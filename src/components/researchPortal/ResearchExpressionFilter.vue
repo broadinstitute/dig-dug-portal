@@ -32,7 +32,7 @@
 						</template>
 					</select>
 				</div>
-				<div class="col filter-col-md">
+				<div class="col filter-col-md" v-if="showDiseaseFilter">
 					<div class="label">Disease</div>
 					<select
 						class="form-control"
@@ -66,6 +66,7 @@ export default Vue.component("ResearchExpressionFilter", {
 			processedCollection: null,
 			minSamples: 1,
 			collection: "all",
+			showDiseaseFilter: false,
 			diseases: [],
 			disease: ""
 		};
@@ -83,6 +84,9 @@ export default Vue.component("ResearchExpressionFilter", {
 	},
 	mounted() {
 		this.processData();
+		if (this.diseases.length > 0){
+			this.showDiseaseFilter = true;
+		}
 	},
 	methods: {
 		...uiUtils,
