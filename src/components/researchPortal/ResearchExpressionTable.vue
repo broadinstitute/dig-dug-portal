@@ -17,6 +17,12 @@
             {{ tissueFormatter(row.item.tissue) }}
         </a>
       </template>
+      <template #cell(gene)="row">
+        <a :href="`/gene.html?gene=${row.item.gene}`" 
+          >
+            {{ row.item.gene}}
+        </a>
+      </template>
 			<template #cell(show_datasets)="row">
 				<b-button
 					class="btn view-features-btn btn-secondary mr-2"
@@ -83,7 +89,7 @@
             { key: "Q3 TPM", sortable: true, formatter: Formatters.tpmFormatter },
             { key: "Max TPM", sortable: true, formatter: Formatters.tpmFormatter },
             { key: "Total samples", sortable: true },
-            { key: "show_datasets", sortable: false },
+            { key: "show_datasets", label: "Evidence", sortable: false },
           ],
           features: ["Datasets"],
           Datasets: [
