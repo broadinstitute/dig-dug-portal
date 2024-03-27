@@ -6,7 +6,7 @@
 			id="byor_single_search"
 			v-model="singleSearchParam"
 			:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction']? singleSearchConfig['search instruction'] 
-			:'Search gene, variant, region or phenotype'"
+			:'Search gene, variant, region, phenotype, or tissue'"
 			@keyup.enter="onSearch"
 		/>
 		<!-- BYOR front page templates -->
