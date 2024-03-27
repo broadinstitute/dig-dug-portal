@@ -24,7 +24,7 @@
 						v-model="collection"
 						@change="applyFilter()"
 					>
-						<option value="all" selected>All</option>
+						<option value="" selected>All</option>
 						<template v-for="collection in processedCollection">
 							<option :value="collection" :key="collection">
 								{{ collection }}
@@ -109,7 +109,10 @@ export default Vue.component("ResearchExpressionFilter", {
 				});
 			});
 			this.processedCollection = [...new Set(processedCollection)].sort();
-			if (this.collection != "all") {
+			if (!processedCollection.includes(this.collection)){
+				this.collection = "";
+			}
+			if (this.collection) {
 				processedData = processedData.filter(
 					(d) => !!d.collection.includes(this.collection)
 				);
