@@ -86,6 +86,7 @@ new Vue({
         return {
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
+            hidePValueFilter: true,
         };
     },
     methods: {
@@ -114,6 +115,9 @@ new Vue({
 
             return isInPhenotype == searchKeys.length ? true : null;
         },
+        clickedTab(tabLabel){
+            this.hidePValueFilter = tabLabel === 'hugescore';
+        }
     },
 
     computed: {
