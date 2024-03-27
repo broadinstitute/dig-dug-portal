@@ -24,10 +24,26 @@
 						v-model="collection"
 						@change="applyFilter()"
 					>
-						<option value="all" selected>All</option>
+						<option value="" selected>All</option>
 						<template v-for="collection in processedCollection">
 							<option :value="collection" :key="collection">
 								{{ collection }}
+							</option>
+						</template>
+					</select>
+				</div>
+				<div class="col filter-col-md" v-if="showDiseaseFilter">
+					<div class="label">Disease</div>
+					<select
+						class="form-control"
+						v-model="disease"
+						@change="applyFilter()"
+						:disabled="!diseases.length"
+					>
+						<option value="" selected>All</option>
+						<template v-for="diseaseName in diseases">
+							<option :value="diseaseName" :key="diseaseName">
+								{{ tissueFormatter(diseaseName) }}
 							</option>
 						</template>
 					</select>
@@ -50,6 +66,9 @@ export default Vue.component("ResearchExpressionFilter", {
 			processedCollection: null,
 			minSamples: 1,
 			collection: "all",
+			showDiseaseFilter: false,
+			diseases: [],
+			disease: ""
 		};
 	},
 	watch: {
@@ -65,16 +84,15 @@ export default Vue.component("ResearchExpressionFilter", {
 	},
 	mounted() {
 		this.processData();
+		if (this.diseases.length > 0){
+			this.showDiseaseFilter = true;
+		}
 	},
 	methods: {
 		...uiUtils,
-
+		tissueFormatter: Formatters.tissueFormatter,
 		applyFilter() {
 			this.processData();
-		},
-
-		tpmFormat(value) {
-			return Formatters.floatFormatter(`${value}`);
 		},
 		processData() {
 			let processedCollection = [];
@@ -91,10 +109,21 @@ export default Vue.component("ResearchExpressionFilter", {
 				});
 			});
 			this.processedCollection = [...new Set(processedCollection)].sort();
-			if (this.collection != "all") {
+			if (!processedCollection.includes(this.collection)){
+				this.collection = "";
+			}
+			if (this.collection) {
 				processedData = processedData.filter(
 					(d) => !!d.collection.includes(this.collection)
 				);
+			}
+			let diseases = processedData.filter(d => !!d.diseaseTermName).map(d => d.diseaseTermName);
+			if (!diseases.includes(this.disease)){
+				this.disease = "";
+			}
+			this.diseases = [...new Set(diseases)].sort();
+			if (this.disease){
+				processedData = processedData.filter(d => d.diseaseTermName === this.disease);
 			}
 			processedData.forEach((entry) => {
                 if(typeof entry.tpmForAllSamples === 'string'){

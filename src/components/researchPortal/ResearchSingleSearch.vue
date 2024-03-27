@@ -9,6 +9,8 @@
 			:'Search gene, variant, region, phenotype, or tissue'"
 			@keyup.enter="onSearch"
 		/>
+		<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()"><b-icon icon="x-circle-fill"></b-icon></span>
+		
 		<!-- BYOR front page templates -->
 		<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
 
@@ -79,7 +81,8 @@
 				class="byor-single-search-results"
 				v-if="
 					singleSearchResult.genes.length > 0 ||
-					singleSearchResult.phenotypes.length > 0
+					singleSearchResult.phenotypes.length > 0 || 
+					singleSearchResult.tissues.length > 0
 				"
 			>
 				<div v-for="gene in singleSearchResult.genes" :key="gene" class="single-search-option">
@@ -236,28 +239,58 @@ export default Vue.component("research-single-search", {
 		},
 	},
 	methods: {
+		resetSearch() {
+			this.singleSearchParam = null;
+
+			let keys = Object.keys(this.singleSearchResult);
+
+			keys.map(key =>{
+				this.singleSearchResult[key] = [];
+			})
+		},
 		async getTissues() {
-			let tissues = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/gene-expression-tissue/1`)
+
+			let tissues1 = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/gene-expression-tissue/1`)
 				.then(resp => resp.json())
 				.then(json => {
 					if (json.count == 0) {
 						return null;
 					}
 
-					return json.keys;
+					let tissues = json.keys.map(key => key[0].replaceAll("_", " "))
+
+					return tissues;
 				});
 
-				//return tissues;
-				if(!!tissues) {
-					let tissuesList = [];
-					tissues.map(tissue =>{
-						let labelString = tissue[0].charAt(0).toUpperCase() + tissue[0].slice(1);
-						let tempObj = {label: labelString.replace("_"," "),value: tissue[0]};
+			let tissues2 = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/partitioned-heritability-top-tissue/2`)
+				.then(resp => resp.json())
+				.then(json => {
+					if (json.count == 0) {
+						return null;
+					}
 
-						tissuesList.push(tempObj)
-					});
-					this.customList["tissues"] = tissuesList;
-				}
+					let tissues = json.keys.map(key=>key[0])
+
+					return tissues;
+				});
+
+			//return tissues;
+			if (!!tissues1 && tissues2) {
+				let tissues = tissues1.concat(tissues2);
+
+				let uniqueList = [...new Set(tissues)];
+
+				console.log(uniqueList);
+
+				let tissuesList = [];
+				uniqueList.map(tissue => {
+					let labelString = tissue.charAt(0).toUpperCase() + tissue.slice(1);
+					let tempObj = { label: labelString, value: tissue.replaceAll(" ", "_") };
+
+					tissuesList.push(tempObj)
+				});
+				this.customList["tissues"] = tissuesList;
+			}
 		},
 		anyResults() {
 			let parameters = Object.keys(this.singleSearchResult) 
@@ -418,7 +451,18 @@ export default Vue.component("research-single-search", {
 });
 </script>
 
-<style>
+<style scoped>
+.reset-search {
+	position: absolute;
+    top: 4px;
+    right: 4px;
+	color: #999999;
+	font-size: 14px;
+}
+
+.reset-search:hover {
+	color: #333333;
+}
 .byor-single-search-wrapper {
 	width: 100%;
 }
