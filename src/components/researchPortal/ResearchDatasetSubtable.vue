@@ -37,8 +37,7 @@
       }
     },
     mounted(){
-      let rows = document.querySelectorAll(".dataset-subtable tbody tr");
-      rows.forEach(row => row.addEventListener("mouseenter", ()=> console.log(row.outerHTML)));
+      this.setupDatasets();
     },
     watch: {
       
@@ -48,8 +47,22 @@
       tissueFormatter: Formatters.tissueFormatter,
       datasetRowClass(d){
         let parentRow = this.plotByField === "gene" ? d.gene : this.toSnakeFormatter(d.tissue);
-        return `data_${parentRow}_${d.dataset}`;
+        return `misc-class dataset--${parentRow}--${d.dataset}`;
       },
+      setupDatasets(){
+        let rows = document.querySelectorAll(".dataset-subtable tbody tr");
+        rows.forEach(row => row.addEventListener("mouseenter", 
+          () => this.highlightDatasets(row.className)));
+      },
+      highlightDatasets(classesString){
+        classesString.split(' ').forEach(c => {
+          if (c.startsWith("dataset--")){
+            let details = c.split("--");
+            let detailsObject = { violin: details[1], dataset: details[2]};
+            console.log(JSON.stringify(detailsObject));
+          }
+        });
+      }
     }
   });
 </script>
