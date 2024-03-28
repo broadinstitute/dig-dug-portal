@@ -37,6 +37,8 @@
       }
     },
     mounted(){
+      let rows = document.querySelectorAll(".dataset-subtable tbody tr");
+      console.log(rows.length);
     },
     watch: {
       
