@@ -30,7 +30,6 @@ export const pageMixin = {
     },
     watch: {
         diseaseGroup(group) {
-            console.log("pageMixin watch diseaseGroup", group);
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
     },
