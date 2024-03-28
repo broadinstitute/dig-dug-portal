@@ -23,6 +23,7 @@
         svg: null,
         flatData: [],
         keyFieldList: [],
+        tpmField: "tpmVal",
         offset: 0,
         dotBoxHalfWidth: 6,
         xScale: null,
@@ -55,7 +56,6 @@
         this.flatten(this.$props.plotData);
         this.getKeyFieldList(this.flatData);
         let colorMap = this.mapColors(this.keyFieldList);
-        let tpmField = "tpmVal";
         let margin = {
             top: 10,
             right: 30,
@@ -102,7 +102,7 @@
           .attr("transform", "rotate(45)");
 
         let maxVal = this.flatData
-          .map((g) => g[tpmField])
+          .map((g) => g[this.tpmField])
           .reduce((prev, next) => (prev > next ? prev : next), 0);
         this.yScale = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
 
@@ -117,7 +117,7 @@
           .nest()
           .key((d) => d.keyField)
           .rollup((d) => {
-            let input = d.map((g) => g[tpmField]);
+            let input = d.map((g) => g[this.tpmField]);
             let bins = histogram(input);
             return bins;
           })
@@ -157,7 +157,7 @@
                 g.noise * this.dotBoxHalfWidth * 4;
               return this.xScale(d.key) + dx;
             })
-            .attr("cy", (g) => this.yScale(g[tpmField]))
+            .attr("cy", (g) => this.yScale(g[this.tpmField]))
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", "lightgray")
@@ -181,7 +181,7 @@
                 j.noise * this.dotBoxHalfWidth * 4;
               return this.xScale(g.keyField) + dx;
             })
-            .attr("cy", (j) => this.yScale(j[tpmField]))
+            .attr("cy", (j) => this.yScale(j[this.tpmField]))
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", hoverColor)
@@ -204,7 +204,7 @@
                 j.noise * this.dotBoxHalfWidth * 4;
               return this.xScale(g.keyField) + dx;
             })
-            .attr("cy", (j) => this.yScale(j[tpmField]))
+            .attr("cy", (j) => this.yScale(j[this.tpmField]))
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", "lightgray")
@@ -271,7 +271,7 @@
           .rollup((d) => {
             numberViolins++;
             let sortedData = d
-              .map((g) => g[tpmField])
+              .map((g) => g[this.tpmField])
               .sort(d3.ascending);
             let q1 = d3.quantile(sortedData, 0.25);
             let median = d3.quantile(sortedData, 0.5);
