@@ -34,7 +34,7 @@
 			</template>
 			<template #row-details="row">
 				<b-table
-					class="dataset-subtable"
+					:class="`dataset-subtable ${toSnakeFormatter(row.item[plotByField])}`"
 					small
 					responsive="sm"
 					:items="row.item['Datasets']"
@@ -154,7 +154,7 @@
       datasetRowClass(d){
         let parentRow = this.plotByField === "gene" ? d.gene : this.toSnakeFormatter(d.tissue);
         return `data_${parentRow}_${d.dataset}`;
-      }
+      },
     }
   });
 </script>
