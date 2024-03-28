@@ -166,7 +166,7 @@
             .attr("fill", "none")
             .attr("stroke", hoverColor)
             .on("mouseover", hoverDot)
-            .on("mouseleave", hideTooltip);
+            .on("mouseleave", this.hideTooltip());
         };
         let redrawNonHoverDots = (g) => {
           let hoverItem = g.keyField;
@@ -189,7 +189,7 @@
             .attr("fill", "none")
             .attr("stroke", "lightgray")
             .on("mouseover", hoverDot)
-            .on("mouseleave", hideTooltip);
+            .on("mouseleave", this.hideTooltip());
         };
         let hoverDot = (g) => {
           let xcoord = `${d3.event.layerX + 35}px`;
@@ -207,9 +207,6 @@
             .html(tooltipContent)
             .style("left", xcoord)
             .style("top", ycoord);
-        };
-        let hideTooltip = (g) => {
-          this.tooltip.style("opacity", 0);
         };
         this.svg.selectAll("myViolin")
           .data(sumstat)
@@ -403,9 +400,12 @@
             .attr("cy", (g) => this.yScale(g[this.tpmField]))
             .attr("r", 2)
             .attr("fill", "none")
-            .attr("stroke", "lightgray");
+            .attr("stroke", "lightgray")
             //.on("mouseover", hoverDot)
-            //.on("mouseleave", hideTooltip);
+            .on("mouseleave", this.hideTooltip());
+        },
+        hideTooltip(){
+          this.tooltip.style("opacity", 0);
         }
     },
   });
