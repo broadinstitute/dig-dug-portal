@@ -25,7 +25,8 @@
         keyFieldList: [],
         offset: 0,
         dotBoxHalfWidth: 6,
-        xScale: null
+        xScale: null,
+        yScale: null
       };
     },
     mounted(){
@@ -103,14 +104,14 @@
         let maxVal = this.flatData
           .map((g) => g[tpmField])
           .reduce((prev, next) => (prev > next ? prev : next), 0);
-        let y = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
+        this.yScale = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
 
-        this.svg.append("g").call(d3.axisLeft(y));
+        this.svg.append("g").call(d3.axisLeft(this.yScale));
 
         let histogram = d3
           .histogram()
-          .domain(y.domain())
-          .thresholds(y.ticks(100))
+          .domain(this.yScale.domain())
+          .thresholds(this.yScale.ticks(100))
           .value((d) => d);
         let sumstat = d3
           .nest()
@@ -156,7 +157,7 @@
                 g.noise * this.dotBoxHalfWidth * 4;
               return this.xScale(d.key) + dx;
             })
-            .attr("cy", (g) => y(g[tpmField]))
+            .attr("cy", (g) => this.yScale(g[tpmField]))
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", "lightgray")
@@ -180,7 +181,7 @@
                 j.noise * this.dotBoxHalfWidth * 4;
               return this.xScale(g.keyField) + dx;
             })
-            .attr("cy", (j) => y(j[tpmField]))
+            .attr("cy", (j) => this.yScale(j[tpmField]))
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", hoverColor)
@@ -203,7 +204,7 @@
                 j.noise * this.dotBoxHalfWidth * 4;
               return this.xScale(g.keyField) + dx;
             })
-            .attr("cy", (j) => y(j[tpmField]))
+            .attr("cy", (j) => this.yScale(j[tpmField]))
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", "lightgray")
@@ -259,7 +260,7 @@
               .area()
               .x0((d) => xNum(-d.length))
               .x1((d) => xNum(d.length))
-              .y((d) => y(d.x0))
+              .y((d) => this.yScale(d.x0))
               .curve(d3.curveCatmullRom)
           )
           .on("mouseover", hoverViolin);
@@ -298,8 +299,8 @@
           .append("line")
           .attr("x1", this.xScale(0))
           .attr("x2", this.xScale(0))
-          .attr("y1", (d) => y(d.value["Q3 TPM"]))
-          .attr("y2", (d) => y(d.value["Max TPM"]))
+          .attr("y1", (d) => this.yScale(d.value["Q3 TPM"]))
+          .attr("y2", (d) => this.yScale(d.value["Max TPM"]))
           .attr("stroke", "black")
           .style("opacity", 0.5)
           .style("width", 30)
@@ -312,8 +313,8 @@
           .append("line")
           .attr("x1", this.xScale(0))
           .attr("x2", this.xScale(0))
-          .attr("y1", (d) => y(d.value["Min TPM"]))
-          .attr("y2", (d) => y(d.value["Q1 TPM"]))
+          .attr("y1", (d) => this.yScale(d.value["Min TPM"]))
+          .attr("y2", (d) => this.yScale(d.value["Q1 TPM"]))
           .attr("stroke", "black")
           .style("opacity", 0.5)
           .style("width", 30)
@@ -325,10 +326,10 @@
           .enter()
           .append("rect")
           .attr("x", (d) => this.xScale(d.key) + this.offset - boxHalfWidth)
-          .attr("y", (d) => y(d.value["Q3 TPM"]))
+          .attr("y", (d) => this.yScale(d.value["Q3 TPM"]))
           .attr(
             "height",
-            (d) => y(d.value["Q1 TPM"]) - y(d.value["Q3 TPM"])
+            (d) => this.yScale(d.value["Q1 TPM"]) - this.yScale(d.value["Q3 TPM"])
           )
           .attr("width", boxHalfWidth * 2)
           .attr("stroke", "black")
@@ -342,8 +343,8 @@
           .enter()
           .append("rect")
           .attr("x", (d) => this.xScale(d.key))
-          .attr("y", (d) => y(maxVal))
-          .attr("height", (d) => y(-maxVal) - y(0))
+          .attr("y", (d) => this.yScale(maxVal))
+          .attr("height", (d) => this.yScale(-maxVal) - this.yScale(0))
           .attr("width", this.offset * 2)
           .attr("stroke", "none")
           .style("fill", "white")
@@ -355,8 +356,8 @@
           .append("line")
           .attr("x1", (d) => this.xScale(d.key) + this.offset - boxHalfWidth)
           .attr("x2", (d) => this.xScale(d.key) + this.offset + boxHalfWidth)
-          .attr("y1", (d) => y(d.value["Median TPM"]))
-          .attr("y2", (d) => y(d.value["Median TPM"]))
+          .attr("y1", (d) => this.yScale(d.value["Median TPM"]))
+          .attr("y2", (d) => this.yScale(d.value["Median TPM"]))
           .attr("stroke", "#99999999")
           .style("width", 50)
           .on("mouseover", hoverViolin);
