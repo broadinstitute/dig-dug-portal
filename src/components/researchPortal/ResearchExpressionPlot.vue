@@ -14,7 +14,7 @@
   import colors from "@/utils/colors";
   import Formatters from "@/utils/formatters";
   export default Vue.component("ResearchExpressionPlot", {
-    props: ["plotData"],
+    props: ["plotData", "highlightedDataset"],
     data(){
       return {
         chart: null,
@@ -39,6 +39,9 @@
         this.showPlot = true;
         this.displayResults();
       },
+      highlightedDataset(details){
+        console.log(JSON.stringify(details));
+      }
     },
     methods: {
       displayResults() {

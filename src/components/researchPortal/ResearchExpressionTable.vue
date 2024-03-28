@@ -36,7 +36,8 @@
 				<research-dataset-subtable
           :row="row"
           :fields="tableConfig['Datasets']"
-          :plotByField="plotByField">
+          :plotByField="plotByField"
+          @highlight="details => highlight(details)">
         </research-dataset-subtable>
 			</template>
 		</b-table>
@@ -137,6 +138,9 @@
         let parentRow = this.plotByField === "gene" ? d.gene : this.toSnakeFormatter(d.tissue);
         return `data_${parentRow}_${d.dataset}`;
       },
+      highlight(details){
+        this.$emit("highlight", details);
+      }
     }
   });
 </script>

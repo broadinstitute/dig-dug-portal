@@ -59,7 +59,7 @@
           if (c.startsWith("dataset--")){
             let details = c.split("--");
             let detailsObject = { violin: details[1], dataset: details[2]};
-            console.log(JSON.stringify(detailsObject));
+            this.$emit("highlight", detailsObject);
           }
         });
       }
