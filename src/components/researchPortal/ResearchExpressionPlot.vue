@@ -20,6 +20,7 @@
         chart: null,
         chartWidth: null,
         showPlot: true,
+        svg: null
       };
     },
     mounted(){
@@ -59,7 +60,7 @@
           width = this.chartWidth - margin.left - margin.right,
           height = 400 - margin.top - margin.bottom;
         this.chart.innerHTML = "";
-        let svg = d3
+        this.svg = d3
           .select("#multi-chart")
           .append("svg")
           .attr("width", width + margin.left + margin.right)
@@ -69,7 +70,7 @@
             "transform",
             "translate(" + margin.left + "," + margin.top + ")"
           )
-          .on("mouseleave", (d) => svg.selectAll("circle").remove());
+          .on("mouseleave", (d) => this.svg.selectAll("circle").remove());
         let tooltip = d3
           .select("#multi-chart")
           .append("div")
@@ -87,7 +88,7 @@
           .domain(flatData.map((entry) => entry.keyField))
           .padding(0.05);
 
-        svg.append("g")
+        this.svg.append("g")
           .attr("transform", `translate(0,${height})`)
           .call(d3.axisBottom(x))
           .selectAll("text")
@@ -100,7 +101,7 @@
           .reduce((prev, next) => (prev > next ? prev : next), 0);
         let y = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
 
-        svg.append("g").call(d3.axisLeft(y));
+        this.svg.append("g").call(d3.axisLeft(y));
 
         let histogram = d3
           .histogram()
@@ -135,11 +136,11 @@
         let colorIndex = 0;
         let violinIndex = 0;
         let mouseover = (d) => {
-          svg.selectAll(".violin").style("opacity", 1);
+          this.svg.selectAll(".violin").style("opacity", 1);
           let violinNumber = keyFieldList.indexOf(d.key);
-          svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
-          svg.selectAll("circle").remove();
-          svg.selectAll("indPoints")
+          this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
+          this.svg.selectAll("circle").remove();
+          this.svg.selectAll("indPoints")
             .data(flatData.filter((entry) => entry.keyField === d.key))
             .enter()
             .append("circle")
@@ -162,7 +163,7 @@
           let hoverItem = g.keyField;
           let hoverDataset = g.dataset;
           let hoverColor = `${colorMap[g.keyField]}`;
-          svg.selectAll("indPoints")
+          this.svg.selectAll("indPoints")
             .data(flatData.filter((entry) =>
               entry.keyField == hoverItem && entry.dataset == hoverDataset))
             .enter()
@@ -185,7 +186,7 @@
         let redrawNonHoverDots = (g) => {
           let hoverItem = g.keyField;
           let hoverDataset = g.dataset;
-          svg.selectAll("indPoints")
+          this.svg.selectAll("indPoints")
             .data(flatData.filter((entry) =>
               entry.keyField === hoverItem && entry.dataset != hoverDataset))
             .enter()
@@ -208,7 +209,7 @@
         let hoverDot = (g) => {
           let xcoord = `${d3.event.layerX + 35}px`;
           let ycoord = `${d3.event.layerY}px`;
-          svg.selectAll("circle").remove();
+          this.svg.selectAll("circle").remove();
           redrawNonHoverDots(g);
           redrawHoverDots(g);
           // Tooltip content
@@ -225,7 +226,7 @@
         let hideTooltip = (g) => {
           tooltip.style("opacity", 0);
         };
-        svg.selectAll("myViolin")
+        this.svg.selectAll("myViolin")
           .data(sumstat)
           .enter()
           .append("g")
@@ -287,7 +288,7 @@
           .entries(flatData);
         let offset = width / (2 * numberViolins);
         // Boxplots top quartile
-        svg.selectAll("vertLines")
+        this.svg.selectAll("vertLines")
           .data(sumstatBox)
           .enter()
           .append("line")
@@ -301,7 +302,7 @@
           .attr("transform", (d) => `translate(${x(d.key) + offset},0)`)
           .on("mouseover", mouseover);
         // Boxplots bottom quartile
-        svg.selectAll("vertLines")
+        this.svg.selectAll("vertLines")
           .data(sumstatBox)
           .enter()
           .append("line")
@@ -315,7 +316,7 @@
           .attr("transform", (d) => `translate(${x(d.key) + offset},0)`)
           .on("mouseover", mouseover);
         let boxHalfWidth = 3;
-        svg.selectAll("boxes")
+        this.svg.selectAll("boxes")
           .data(sumstatBox)
           .enter()
           .append("rect")
@@ -332,7 +333,7 @@
           .on("mouseover", mouseover);
 
         // Packaging data for export at the same time.
-        svg.selectAll("zoneBoxes")
+        this.svg.selectAll("zoneBoxes")
           .data(sumstatBox)
           .enter()
           .append("rect")
@@ -344,7 +345,7 @@
           .style("fill", "white")
           .style("opacity", 0)
           .on("mouseover", mouseover);
-        svg.selectAll("medianLines")
+        this.svg.selectAll("medianLines")
           .data(sumstatBox)
           .enter()
           .append("line")
