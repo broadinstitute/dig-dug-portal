@@ -23,6 +23,7 @@
         svg: null,
         flatData: [],
         keyFieldList: [],
+        offset: 0,
       };
     },
     mounted(){
@@ -137,7 +138,7 @@
 
         let colorIndex = 0;
         let violinIndex = 0;
-        let mouseover = (d) => {
+        let hoverViolin = (d) => {
           this.svg.selectAll(".violin").style("opacity", 1);
           let violinNumber = this.keyFieldList.indexOf(d.key);
           this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
@@ -149,7 +150,7 @@
             .attr("class", (g) => g.dataset)
             .attr("cx", (g) => {
               let dx =
-                offset -
+                this.offset -
                 2 * dotBoxHalfWidth +
                 g.noise * dotBoxHalfWidth * 4;
               return x(d.key) + dx;
@@ -173,7 +174,7 @@
             .attr("class", (j) => j.dataset)
             .attr("cx", (j) => {
               let dx =
-                offset -
+                this.offset -
                 2 * dotBoxHalfWidth +
                 j.noise * dotBoxHalfWidth * 4;
               return x(g.keyField) + dx;
@@ -196,7 +197,7 @@
             .attr("class", (j) => j.dataset)
             .attr("cx", (j) => {
               let dx =
-                offset -
+                this.offset -
                 2 * dotBoxHalfWidth +
                 j.noise * dotBoxHalfWidth * 4;
               return x(g.keyField) + dx;
@@ -260,7 +261,7 @@
               .y((d) => y(d.x0))
               .curve(d3.curveCatmullRom)
           )
-          .on("mouseover", mouseover);
+          .on("mouseover", hoverViolin);
         let numberViolins = 0;
         let sumstatBox = d3
           .nest()
@@ -288,7 +289,7 @@
             return boxplotEntry;
           })
           .entries(this.flatData);
-        let offset = width / (2 * numberViolins);
+        this.offset = width / (2 * numberViolins);
         // Boxplots top quartile
         this.svg.selectAll("vertLines")
           .data(sumstatBox)
@@ -301,8 +302,8 @@
           .attr("stroke", "black")
           .style("opacity", 0.5)
           .style("width", 30)
-          .attr("transform", (d) => `translate(${x(d.key) + offset},0)`)
-          .on("mouseover", mouseover);
+          .attr("transform", (d) => `translate(${x(d.key) + this.offset},0)`)
+          .on("mouseover", hoverViolin);
         // Boxplots bottom quartile
         this.svg.selectAll("vertLines")
           .data(sumstatBox)
@@ -315,14 +316,14 @@
           .attr("stroke", "black")
           .style("opacity", 0.5)
           .style("width", 30)
-          .attr("transform", (d) => `translate(${x(d.key) + offset},0)`)
-          .on("mouseover", mouseover);
+          .attr("transform", (d) => `translate(${x(d.key) + this.offset},0)`)
+          .on("mouseover", hoverViolin);
         let boxHalfWidth = 3;
         this.svg.selectAll("boxes")
           .data(sumstatBox)
           .enter()
           .append("rect")
-          .attr("x", (d) => x(d.key) + offset - boxHalfWidth)
+          .attr("x", (d) => x(d.key) + this.offset - boxHalfWidth)
           .attr("y", (d) => y(d.value["Q3 TPM"]))
           .attr(
             "height",
@@ -332,7 +333,7 @@
           .attr("stroke", "black")
           .style("fill", "white")
           .style("opacity", 0.5)
-          .on("mouseover", mouseover);
+          .on("mouseover", hoverViolin);
 
         // Packaging data for export at the same time.
         this.svg.selectAll("zoneBoxes")
@@ -342,22 +343,22 @@
           .attr("x", (d) => x(d.key))
           .attr("y", (d) => y(maxVal))
           .attr("height", (d) => y(-maxVal) - y(0))
-          .attr("width", offset * 2)
+          .attr("width", this.offset * 2)
           .attr("stroke", "none")
           .style("fill", "white")
           .style("opacity", 0)
-          .on("mouseover", mouseover);
+          .on("mouseover", hoverViolin);
         this.svg.selectAll("medianLines")
           .data(sumstatBox)
           .enter()
           .append("line")
-          .attr("x1", (d) => x(d.key) + offset - boxHalfWidth)
-          .attr("x2", (d) => x(d.key) + offset + boxHalfWidth)
+          .attr("x1", (d) => x(d.key) + this.offset - boxHalfWidth)
+          .attr("x2", (d) => x(d.key) + this.offset + boxHalfWidth)
           .attr("y1", (d) => y(d.value["Median TPM"]))
           .attr("y2", (d) => y(d.value["Median TPM"]))
           .attr("stroke", "#99999999")
           .style("width", 50)
-          .on("mouseover", mouseover);
+          .on("mouseover", hoverViolin);
       },
       getBottomMargin(data) {
         let longestLabel = data
