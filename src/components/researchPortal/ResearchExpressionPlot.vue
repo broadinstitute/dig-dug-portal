@@ -140,30 +140,7 @@
 
         let colorIndex = 0;
         let violinIndex = 0;
-        let hoverViolin = (d) => {
-          this.svg.selectAll(".violin").style("opacity", 1);
-          let violinNumber = this.keyFieldList.indexOf(d.key);
-          this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
-          this.svg.selectAll("circle").remove();
-          this.svg.selectAll("indPoints")
-            .data(this.flatData.filter((entry) => entry.keyField === d.key))
-            .enter()
-            .append("circle")
-            .attr("class", (g) => g.dataset)
-            .attr("cx", (g) => {
-              let dx =
-                this.offset -
-                2 * this.dotBoxHalfWidth +
-                g.noise * this.dotBoxHalfWidth * 4;
-              return this.xScale(d.key) + dx;
-            })
-            .attr("cy", (g) => this.yScale(g[this.tpmField]))
-            .attr("r", 2)
-            .attr("fill", "none")
-            .attr("stroke", "lightgray")
-            .on("mouseover", hoverDot)
-            .on("mouseleave", hideTooltip);
-        };
+        let hoverViolin = (d) => this.hoverViolinMethod(d.key);
         let redrawHoverDots = (g) => {
           let hoverItem = g.keyField;
           let hoverDataset = g.dataset;
@@ -402,7 +379,31 @@
           }
         }
         this.flatData = flatBoth;
-      }
+      },
+      hoverViolinMethod(violin){
+          this.svg.selectAll(".violin").style("opacity", 1);
+          let violinNumber = this.keyFieldList.indexOf(violin);
+          this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
+          this.svg.selectAll("circle").remove();
+          this.svg.selectAll("indPoints")
+            .data(this.flatData.filter((entry) => entry.keyField === violin))
+            .enter()
+            .append("circle")
+            .attr("class", (g) => g.dataset)
+            .attr("cx", (g) => {
+              let dx =
+                this.offset -
+                2 * this.dotBoxHalfWidth +
+                g.noise * this.dotBoxHalfWidth * 4;
+              return this.xScale(violin) + dx;
+            })
+            .attr("cy", (g) => this.yScale(g[this.tpmField]))
+            .attr("r", 2)
+            .attr("fill", "none")
+            .attr("stroke", "lightgray");
+            //.on("mouseover", hoverDot)
+            //.on("mouseleave", hideTooltip);
+        }
     },
   });
 </script>
