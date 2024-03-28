@@ -86,6 +86,7 @@ new Vue({
         return {
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
+            hidePValueFilter: true,
         };
     },
     methods: {
@@ -114,6 +115,9 @@ new Vue({
 
             return isInPhenotype == searchKeys.length ? true : null;
         },
+        clickedTab(tabLabel){
+            this.hidePValueFilter = tabLabel === 'hugescore';
+        }
     },
 
     computed: {
@@ -231,5 +235,20 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        hidePValueFilter(hide){
+            let pValuePills = document.querySelectorAll(".geneLevelAssoc .filter-pill-pValue");
+            let genePills = document.querySelectorAll(".geneLevelAssoc .filter-pill-gene");
+            let allFilterPills = document.querySelectorAll(".geneLevelAssoc .filter-pill-collection");
+            if (hide){
+                if (pValuePills.length > 0 && genePills.length > 0){
+                    pValuePills.forEach(e => e.hidden = true);
+                } else if(pValuePills.length > 0 && genePills.length === 0){
+                    allFilterPills.forEach(e => e.hidden = true);
+                }
+            } else {
+                allFilterPills.forEach(e => e.hidden = false);
+                pValuePills.forEach(e => e.hidden = false);
+            }
+        }
     },
 }).$mount("#app");
