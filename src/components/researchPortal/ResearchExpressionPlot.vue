@@ -143,37 +143,12 @@
 
         let colorIndex = 0;
         let violinIndex = 0;
-        //let hoverViolin = (d) => this.hoverVlnMethod(d.key);
-        let redrawHoverDots = (g) => {
-          let hoverItem = g.keyField;
-          let hoverDataset = g.dataset;
-          let hoverColor = `${this.colorMap[g.keyField]}`;
-          this.svg.selectAll("indPoints")
-            .data(this.flatData.filter((entry) =>
-              entry.keyField == hoverItem && entry.dataset == hoverDataset))
-            .enter()
-            .append("circle")
-            .attr("class", (j) => j.dataset)
-            .attr("cx", (j) => {
-              let dx =
-                this.offset -
-                2 * this.dotBoxHalfWidth +
-                j.noise * this.dotBoxHalfWidth * 4;
-              return this.xScale(g.keyField) + dx;
-            })
-            .attr("cy", (j) => this.yScale(j[this.tpmField]))
-            .attr("r", 2)
-            .attr("fill", "none")
-            .attr("stroke", hoverColor)
-            .on("mouseover", hoverDot)
-            .on("mouseleave", this.hideTooltip());
-        };
         let hoverDot = (g) => {
           let xcoord = `${d3.event.layerX + 35}px`;
           let ycoord = `${d3.event.layerY}px`;
           this.svg.selectAll("circle").remove();
           this.redrawNonHoverDots(g.keyField, g.dataset);
-          redrawHoverDots(g);
+          this.redrawHoverDots(g.keyField, g.dataset);
           // Tooltip content
           //let tooltipContent = `Biosample: ${g.biosample}`;
           let tooltipContent = "Biosample: coming soon";
@@ -404,6 +379,28 @@
             .attr("fill", "none")
             .attr("stroke", "lightgray")
             .on("mouseover", hoverDot)
+            .on("mouseleave", this.hideTooltip());
+        },
+        redrawHoverDots(hoverItem, hoverDataset){
+          let hoverColor = `${this.colorMap[hoverItem]}`;
+          this.svg.selectAll("indPoints")
+            .data(this.flatData.filter((entry) =>
+              entry.keyField == hoverItem && entry.dataset == hoverDataset))
+            .enter()
+            .append("circle")
+            .attr("class", (j) => j.dataset)
+            .attr("cx", (j) => {
+              let dx =
+                this.offset -
+                2 * this.dotBoxHalfWidth +
+                j.noise * this.dotBoxHalfWidth * 4;
+              return this.xScale(hoverItem) + dx;
+            })
+            .attr("cy", (j) => this.yScale(j[this.tpmField]))
+            .attr("r", 2)
+            .attr("fill", "none")
+            .attr("stroke", hoverColor)
+            //.on("mouseover", hoverDot)
             .on("mouseleave", this.hideTooltip());
         }
     },
