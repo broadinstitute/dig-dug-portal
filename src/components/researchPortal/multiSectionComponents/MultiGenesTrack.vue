@@ -185,35 +185,34 @@ export default Vue.component("multi-genes-track", {
 						if(t.length > 0 && gTaken == false) {
 
 							let lastGene = t[t.length - 1];
-							if (lastGene.end <= (g.start - 50)) {
+
+							//measuring if the regioon of the last gene is bigger than the gene label
+							let endPos = ((lastGene.xEndPos - lastGene.xStartPos) >= 150)? lastGene.xEndPos : lastGene.xEndPos + 70;
+							let startPos = ((g.xEndPos - g.xStartPos) <= 150) ? g.xStartPos - ((150 - (g.xEndPos - g.xStartPos))/2): g.xStartPos;
+
+							if (endPos <= startPos) {
 								t.push(g)
 								gTaken = true;
 							}
+						} else if(t.length == 0 && gTaken == false) {
+							t.push(g)
+							gTaken = true;
 						}
 					})
 				}
 			})
 
-			let sortedTracks = []
-
 			console.log("tracks", tracks);
 
-			tracks.map(t => {
-				sortedTracks = sortedTracks.concat(t);
-			});
+			tracks = tracks.filter(t => t.length > 0);
 
-			return sortedTracks;
+			return tracks;
 		},
 
 		renderTrack(GENES) {
 
 			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
-				let genesArray = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc');
-
-				genesArray = this.sortGenesByRegion(genesArray);
-
-				console.log("genesArray", genesArray);
-
+				
 
 				let canvasRenderWidth, canvasRenderHeight;
 				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
@@ -231,7 +230,7 @@ export default Vue.component("multi-genes-track", {
 						(this.adjPlotMargin.left +
 							this.adjPlotMargin.right);
 
-				//let plotHeight = eachGeneTrackHeight * genesArray.length;
+				//let plotHeight = eachGeneTrackHeight * geneTracksArray.length;
 
 				let xMin = Number(this.viewingRegion.start),
 					xMax = Number(this.viewingRegion.end);
@@ -240,51 +239,33 @@ export default Vue.component("multi-genes-track", {
 				let yStart = this.adjPlotMargin.top;
 				let xPosByPixel = plotWidth / (xMax - xMin);
 
-				let takenGeneRegions = [];
-				let geneIndex = 0;
-				genesArray.map((gene) => {
-					//console.log("here", xMin,":",gene.start,xMax,":", gene.end)
-					if (gene.start <= xMax && gene.end >= xMin) {
-						
-						let xStartPos =
-							gene.start > xMin
-								? xStart + (gene.start - xMin) * xPosByPixel
-								: xStart;
-						let xEndPos =
-							gene.end < xMax
-								? xStart + (gene.end - xMin) * xPosByPixel
-								: xStart + (xMax - xMin) * xPosByPixel;
+				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
+									.filter(g => g.start <= xMax && g.end >= xMin);
 
+				genesSorted.map(gene =>{
 
+					let xStartPos =
+						gene.start > xMin
+							? xStart + (gene.start - xMin) * xPosByPixel
+							: xStart;
+					let xEndPos =
+						gene.end < xMax
+							? xStart + (gene.end - xMin) * xPosByPixel
+							: xStart + (xMax - xMin) * xPosByPixel;
 
-						let renderRegionTaken = false;
-
-						takenGeneRegions.map(r => {
-							if ((xStartPos >= r.start && xStartPos <= r.end)
-								|| (xEndPos >= r.start && xEndPos <= r.end)) {
-								renderRegionTaken = true;
-							}
-						})
-
-						//console.log("renderRegionTaken", renderRegionTaken)
-
-						if (takenGeneRegions.length != 0 && renderRegionTaken == true) {
-							takenGeneRegions = [];
-							geneIndex++;
-						}
-
-						takenGeneRegions.push({ start: xStartPos - 100, end: xEndPos + 100 });
-					}
+					gene["xStartPos"] = xStartPos;
+					gene["xEndPos"] = xEndPos;
 				})
 
+				let geneTracksArray = this.sortGenesByRegion(genesSorted);
+
+				console.log("geneTracksArray", geneTracksArray);
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
-					eachGeneTrackHeight * (geneIndex+1)//genesArray.length; // no this.adjPlotMargin.bottom is needed here since there is no plot label needed
+					eachGeneTrackHeight * (geneTracksArray .length);
 
 				let bump = this.adjPlotMargin.bump;
-
-				
 
 				let c = document.getElementById("genesTrack" + this.sectionId);
 				c.setAttribute("width", canvasRenderWidth);
@@ -310,9 +291,67 @@ export default Vue.component("multi-genes-track", {
 				ctx.textAlign = "center";
 				ctx.fillStyle = "#000000";
 
-				takenGeneRegions = [];
+				geneTracksArray.map((genesArray, geneIndex) => {
+					genesArray.map(gene => {
+						let yPos = this.adjPlotMargin.top + geneIndex * eachGeneTrackHeight;
+
+						var left = "\u{2190}";
+						var right = "\u{2192}";
+
+						let geneName =
+							gene.strand == "+"
+								? gene.gene_name + " " + right
+								: left + " " + gene.gene_name;
+
+						ctx.fillText(
+							geneName,
+							gene.xStartPos + (gene.xEndPos - gene.xStartPos) / 2,
+							yPos
+						);
+
+						ctx.beginPath();
+						ctx.lineWidth = 1;
+						ctx.strokeStyle = "#000000";
+						ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+						ctx.moveTo(gene.xStartPos, yPos + 20);
+						ctx.lineTo(gene.xEndPos, yPos + 20);
+						ctx.stroke();
+
+						gene.exons.map((exon) => {
+							//console.log(gene.gene_name, ": ", exon.start, exon.end);
+
+							if (exon.start < xMax && exon.end > xMin) {
+								let xonStartPos =
+									exon.start > xMin
+										? xStart +
+										(exon.start - xMin) * xPosByPixel
+										: xStart;
+								let xonEndPos =
+									exon.end < xMax
+										? xStart +
+										(exon.end - xMin) * xPosByPixel
+										: xStart + (xMax - xMin) * xPosByPixel;
+
+								let xonWidth =
+									xonEndPos - xonStartPos <= 1
+										? 1
+										: xonEndPos - xonStartPos;
+
+								ctx.fillRect(
+									xonStartPos,
+									yPos + 10,
+									xonWidth,
+									20
+								);
+							}
+						});
+					})
+				})
+
+				/*takenGeneRegions = [];
 				geneIndex = 0;
-				genesArray.map((gene) => {
+				geneTracksArray.map((gene) => {
 					if (gene.start <= xMax && gene.end >= xMin) {
 						let xStartPos =
 							gene.start > xMin
@@ -395,7 +434,7 @@ export default Vue.component("multi-genes-track", {
 							}
 						});
 					}
-				});
+				});*/
 
 				if(!!this.starItems) {
 					let yPos1 = this.adjPlotMargin.top - (this.adjPlotMargin.bump * 3);
