@@ -41,7 +41,7 @@
           :current-page="row.item.currentPage"
           :per-page="perPage"
 					:fields="tableConfig['Datasets']"
-          :tbody-tr-class="(d) => `dataset_row_${row.item.tissue}_${d.dataset}`"
+          :tbody-tr-class="(d) => datasetRowClass(d)"
 				>
 					<template #cell(dataset)="data">
 						<a
@@ -151,6 +151,10 @@
         });
         this.tableData = dataRows;
       },
+      datasetRowClass(d){
+        let parentRow = this.plotByField === "gene" ? d.gene : this.toSnakeFormatter(d.tissue);
+        return `data_${parentRow}_${d.dataset}`;
+      }
     }
   });
 </script>
