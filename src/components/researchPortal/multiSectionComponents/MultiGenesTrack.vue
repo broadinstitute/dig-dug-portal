@@ -1,6 +1,25 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div class="col-md-12">
+			<div class="genes-track-setting" v-if="!!localGeneTypes" :style="'right:'+ adjPlotMargin.right + 'px'">
+				<span class="btn btn-default options-gear" ><b-icon icon="gear-fill"></b-icon></span>
+				<ul class="options" >
+						<li>
+							<input type="checkbox" class="chkbox"
+								@click="utils.uiUtils.showHideElement('genesTrackWrapper' + sectionId)"
+							/><label> Show/hide track</label>
+						</li>
+						<li v-for="geneType in localGeneTypes"
+							:key="geneType">
+							<input type="checkbox" class="chkbox"
+								:id="sectionId + geneType"
+								:value="geneType"
+								checked
+								@click="renderTrack(localGenesData)"
+							/><label :for="geneType">{{ geneType.replaceAll("_"," ") }}</label>
+						</li>
+					</ul>
+			</div>
 			<!-- place info modal here-->
 			<div
 				:id="'genesTrackWrapper' + sectionId"
@@ -43,6 +62,7 @@ export default Vue.component("multi-genes-track", {
 		return {
 			plotRendered: 0,
 			localGenesData: null,
+			localGeneTypes: null,
 		};
 	},
 	modules: {
@@ -176,33 +196,37 @@ export default Vue.component("multi-genes-track", {
 				gIndex ++;
 			})
 
+
+			let checkedTypes = [...new Set(this.localGeneTypes.filter(type =>
+				!!document.getElementById(this.sectionId + type) && !!document.getElementById(this.sectionId + type).checked))];
+
 			GENES.map(g => {
-				if(tracks[0].length == 0) {
-					tracks[0].push(g);
-				} else {
-					let gTaken = false;
-					tracks.map(t => {
-						if(t.length > 0 && gTaken == false) {
+				if(!!checkedTypes.includes(g.gene_type)) {
+					if (tracks[0].length == 0) {
+						tracks[0].push(g);
+					} else {
+						let gTaken = false;
+						tracks.map(t => {
+							if (t.length > 0 && gTaken == false) {
 
-							let lastGene = t[t.length - 1];
+								let lastGene = t[t.length - 1];
 
-							//measuring if the regioon of the last gene is bigger than the gene label
-							let endPos = ((lastGene.xEndPos - lastGene.xStartPos) >= 150)? lastGene.xEndPos : lastGene.xEndPos + 70;
-							let startPos = ((g.xEndPos - g.xStartPos) <= 150) ? g.xStartPos - ((150 - (g.xEndPos - g.xStartPos))/2): g.xStartPos;
+								//measuring if the regioon of the last gene is bigger than the gene label
+								let endPos = ((lastGene.xEndPos - lastGene.xStartPos) >= 150) ? lastGene.xEndPos : lastGene.xEndPos + 70;
+								let startPos = ((g.xEndPos - g.xStartPos) <= 150) ? g.xStartPos - ((150 - (g.xEndPos - g.xStartPos)) / 2) : g.xStartPos;
 
-							if (endPos <= startPos) {
+								if (endPos <= startPos) {
+									t.push(g)
+									gTaken = true;
+								}
+							} else if (t.length == 0 && gTaken == false) {
 								t.push(g)
 								gTaken = true;
 							}
-						} else if(t.length == 0 && gTaken == false) {
-							t.push(g)
-							gTaken = true;
-						}
-					})
+						})
+					}
 				}
 			})
-
-			console.log("tracks", tracks);
 
 			tracks = tracks.filter(t => t.length > 0);
 
@@ -212,7 +236,6 @@ export default Vue.component("multi-genes-track", {
 		renderTrack(GENES) {
 
 			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
-				
 
 				let canvasRenderWidth, canvasRenderHeight;
 				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
@@ -259,7 +282,7 @@ export default Vue.component("multi-genes-track", {
 
 				let geneTracksArray = this.sortGenesByRegion(genesSorted);
 
-				console.log("geneTracksArray", geneTracksArray);
+				//console.log("geneTracksArray", geneTracksArray);
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
@@ -349,93 +372,6 @@ export default Vue.component("multi-genes-track", {
 					})
 				})
 
-				/*takenGeneRegions = [];
-				geneIndex = 0;
-				geneTracksArray.map((gene) => {
-					if (gene.start <= xMax && gene.end >= xMin) {
-						let xStartPos =
-							gene.start > xMin
-								? xStart + (gene.start - xMin) * xPosByPixel
-								: xStart;
-						let xEndPos =
-							gene.end < xMax
-								? xStart + (gene.end - xMin) * xPosByPixel
-								: xStart + (xMax - xMin) * xPosByPixel;
-
-						
-
-						let renderRegionTaken = false;
-
-						takenGeneRegions.map(r=>{
-							if((xStartPos >= r.start && xStartPos <= r.end)
-								|| (xEndPos >= r.start && xEndPos <= r.end)) {
-							renderRegionTaken = true;
-							}
-						})
-
-						if (takenGeneRegions.length != 0 && renderRegionTaken == true) {
-							takenGeneRegions = [];
-							geneIndex ++;
-						}
-
-						takenGeneRegions.push({ start: xStartPos - 100, end: xEndPos + 100 });
-
-						let yPos = this.adjPlotMargin.top + geneIndex * eachGeneTrackHeight;
-
-						var left = "\u{2190}";
-						var right = "\u{2192}";
-
-						let geneName =
-							gene.strand == "+"
-								? gene.gene_name + " " + right
-								: left + " " + gene.gene_name;
-
-						ctx.fillText(
-							geneName,
-							xStartPos + (xEndPos - xStartPos) / 2,
-							yPos
-						);
-
-						ctx.beginPath();
-						ctx.lineWidth = 1;
-						ctx.strokeStyle = "#000000";
-						ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
-
-						ctx.moveTo(xStartPos, yPos + 20);
-						ctx.lineTo(xEndPos, yPos + 20);
-						ctx.stroke();
-
-						gene.exons.map((exon) => {
-							//console.log(gene.gene_name, ": ", exon.start, exon.end);
-
-							if (exon.start < xMax && exon.end > xMin) {
-								let xonStartPos =
-									exon.start > xMin
-										? xStart +
-										  (exon.start - xMin) * xPosByPixel
-										: xStart;
-								let xonEndPos =
-									exon.end < xMax
-										? xStart +
-										  (exon.end - xMin) * xPosByPixel
-										: xStart + (xMax - xMin) * xPosByPixel;
-
-								let xonWidth =
-									xonEndPos - xonStartPos <= 1
-										? 1
-										: xonEndPos - xonStartPos;
-
-								ctx.fillRect(
-									xonStartPos,
-									yPos + 10,
-									xonWidth,
-									20
-								);
-							}
-						});
-					}
-				});*/
-
 				if(!!this.starItems) {
 					let yPos1 = this.adjPlotMargin.top - (this.adjPlotMargin.bump * 3);
 					let yPos2 = this.adjPlotMargin.top + (GENES.length * eachGeneTrackHeight);
@@ -499,6 +435,8 @@ export default Vue.component("multi-genes-track", {
 
 				this.localGenesData = JSON.parse(genesData).data;
 
+				this.localGeneTypes = [...new Set(this.localGenesData.map(g => g.gene_type))].sort()
+
 				this.renderTrack(this.localGenesData);
 			}
 		},
@@ -509,6 +447,43 @@ $(function () {});
 </script>
 
 <style>
+.genes-track-setting {
+	position: absolute;
+	top: -10px;
+}
+
+.genes-track-setting .options-gear {
+	color: #999999;
+}
+
+.genes-track-setting:hover .options-gear {
+	color: #333333;
+}
+
+.genes-track-setting ul.options {
+	display: none;
+	position: absolute;
+    background-color: #ffffff;
+    padding: 15px;
+    border: solid 1px #dddddd;
+    border-radius: 5px;
+    z-index: 10;
+    list-style: none;
+	right: 0;
+}
+
+.genes-track-setting ul.options li {
+	white-space: nowrap;
+}
+
+.genes-track-setting ul.options li label {
+	padding-left: 5px;
+}
+
+.genes-track-setting:hover ul.options {
+	display: block;
+}
+
 .genes-plot-wrapper {
 	padding: 0 !important;
 	width: 100% !important;
