@@ -28,7 +28,8 @@
         offset: 0,
         dotBoxHalfWidth: 6,
         xScale: null,
-        yScale: null
+        yScale: null,
+        tooltip: null
       };
     },
     mounted(){
@@ -78,7 +79,7 @@
             "translate(" + margin.left + "," + margin.top + ")"
           )
           .on("mouseleave", (d) => this.svg.selectAll("circle").remove());
-        let tooltip = d3
+        this.tooltip = d3
           .select("#multi-chart")
           .append("div")
           .style("opacity", 0)
@@ -201,14 +202,14 @@
           tooltipContent = tooltipContent.concat(
             `<span>Dataset: ${g.dataset}</span>`
           );
-          tooltip
+          this.tooltip
             .style("opacity", 1)
             .html(tooltipContent)
             .style("left", xcoord)
             .style("top", ycoord);
         };
         let hideTooltip = (g) => {
-          tooltip.style("opacity", 0);
+          this.tooltip.style("opacity", 0);
         };
         this.svg.selectAll("myViolin")
           .data(sumstat)
