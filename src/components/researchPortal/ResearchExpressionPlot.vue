@@ -52,6 +52,8 @@
       highlightedDataset(details){
         console.log(JSON.stringify(details));
         this.hoverVlnMethod(details.violin);
+        this.redrawNonHoverDots(details.violin, details.dataset);
+        this.redrawHoverDots(details.violin, details.dataset);
       }
     },
     methods: {
