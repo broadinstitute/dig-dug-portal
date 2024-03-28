@@ -21,7 +21,8 @@
         chartWidth: null,
         showPlot: true,
         svg: null,
-        flatData: []
+        flatData: [],
+        keyFieldList: [],
       };
     },
     mounted(){
@@ -48,8 +49,8 @@
     methods: {
       displayResults() {
         this.flatten(this.$props.plotData);
-        let keyFieldList = this.getKeyFieldList(this.flatData);
-        let colorMap = this.mapColors(keyFieldList);
+        this.getKeyFieldList(this.flatData);
+        let colorMap = this.mapColors(this.keyFieldList);
         let dotBoxHalfWidth = 6;
         let tpmField = "tpmVal";
         let margin = {
@@ -138,7 +139,7 @@
         let violinIndex = 0;
         let mouseover = (d) => {
           this.svg.selectAll(".violin").style("opacity", 1);
-          let violinNumber = keyFieldList.indexOf(d.key);
+          let violinNumber = this.keyFieldList.indexOf(d.key);
           this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
           this.svg.selectAll("circle").remove();
           this.svg.selectAll("indPoints")
@@ -371,7 +372,7 @@
           if(!uniques.includes(datum.keyField)){
             uniques.push(datum.keyField);
           }});
-        return uniques;
+        this.keyFieldList = uniques;
       },
       mapColors(uniqueItems) {
         let colorMap = {};
