@@ -49,7 +49,7 @@
       },
       highlightedDataset(details){
         console.log(JSON.stringify(details));
-        this.hoverViolinMethod(details.violin);
+        this.hoverVlnMethod(details.violin);
       }
     },
     methods: {
@@ -141,7 +141,7 @@
 
         let colorIndex = 0;
         let violinIndex = 0;
-        let hoverViolin = (d) => this.hoverViolinMethod(d.key);
+        //let hoverViolin = (d) => this.hoverVlnMethod(d.key);
         let redrawHoverDots = (g) => {
           let hoverItem = g.keyField;
           let hoverDataset = g.dataset;
@@ -241,7 +241,7 @@
               .y((d) => this.yScale(d.x0))
               .curve(d3.curveCatmullRom)
           )
-          .on("mouseover", hoverViolin);
+          .on("mouseover", (d) => this.hoverVlnMethod(d.key));
         let numberViolins = 0;
         let sumstatBox = d3
           .nest()
@@ -283,7 +283,7 @@
           .style("opacity", 0.5)
           .style("width", 30)
           .attr("transform", (d) => `translate(${this.xScale(d.key) + this.offset},0)`)
-          .on("mouseover", hoverViolin);
+          .on("mouseover", (d) => this.hoverVlnMethod(d.key));
         // Boxplots bottom quartile
         this.svg.selectAll("vertLines")
           .data(sumstatBox)
@@ -297,7 +297,7 @@
           .style("opacity", 0.5)
           .style("width", 30)
           .attr("transform", (d) => `translate(${this.xScale(d.key) + this.offset},0)`)
-          .on("mouseover", hoverViolin);
+          .on("mouseover", (d) => this.hoverVlnMethod(d.key));
         let boxHalfWidth = 3;
         this.svg.selectAll("boxes")
           .data(sumstatBox)
@@ -313,7 +313,7 @@
           .attr("stroke", "black")
           .style("fill", "white")
           .style("opacity", 0.5)
-          .on("mouseover", hoverViolin);
+          .on("mouseover", (d) => this.hoverVlnMethod(d.key));
 
         // Packaging data for export at the same time.
         this.svg.selectAll("zoneBoxes")
@@ -327,7 +327,7 @@
           .attr("stroke", "none")
           .style("fill", "white")
           .style("opacity", 0)
-          .on("mouseover", hoverViolin);
+          .on("mouseover", (d) => this.hoverVlnMethod(d.key));
         this.svg.selectAll("medianLines")
           .data(sumstatBox)
           .enter()
@@ -338,7 +338,7 @@
           .attr("y2", (d) => this.yScale(d.value["Median TPM"]))
           .attr("stroke", "#99999999")
           .style("width", 50)
-          .on("mouseover", hoverViolin);
+          .on("mouseover", (d) => this.hoverVlnMethod(d.key));
       },
       getBottomMargin(data) {
         let longestLabel = data
@@ -381,7 +381,7 @@
         }
         this.flatData = flatBoth;
       },
-      hoverViolinMethod(violin){
+      hoverVlnMethod(violin){
           this.svg.selectAll(".violin").style("opacity", 1);
           let violinNumber = this.keyFieldList.indexOf(violin);
           this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
