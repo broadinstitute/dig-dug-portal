@@ -38,7 +38,7 @@
     },
     mounted(){
       let rows = document.querySelectorAll(".dataset-subtable tbody tr");
-      console.log(rows.length);
+      rows.forEach(row => row.addEventListener("mouseenter", ()=> console.log(row.outerHTML)));
     },
     watch: {
       
