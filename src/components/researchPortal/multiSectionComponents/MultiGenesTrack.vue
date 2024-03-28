@@ -7,7 +7,7 @@
 						<li>
 							<input type="checkbox" class="chkbox"
 								@click="utils.uiUtils.showHideElement('genesTrackWrapper' + sectionId)"
-							/><label> Show/hide track</label>
+							/><label> Hide track</label>
 						</li>
 						<li v-for="geneType in localGeneTypes"
 							:key="geneType">
