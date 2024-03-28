@@ -23,6 +23,7 @@
         svg: null,
         flatData: [],
         keyFieldList: [],
+        colorMap: {},
         tpmField: "tpmVal",
         offset: 0,
         dotBoxHalfWidth: 6,
@@ -56,7 +57,7 @@
       displayResults() {
         this.flatten(this.$props.plotData);
         this.getKeyFieldList(this.flatData);
-        let colorMap = this.mapColors(this.keyFieldList);
+        this.mapColors(this.keyFieldList);
         let margin = {
             top: 10,
             right: 30,
@@ -145,7 +146,7 @@
         let redrawHoverDots = (g) => {
           let hoverItem = g.keyField;
           let hoverDataset = g.dataset;
-          let hoverColor = `${colorMap[g.keyField]}`;
+          let hoverColor = `${this.colorMap[g.keyField]}`;
           this.svg.selectAll("indPoints")
             .data(this.flatData.filter((entry) =>
               entry.keyField == hoverItem && entry.dataset == hoverDataset))
@@ -362,7 +363,7 @@
           colorMap[entry] = colors[colorIndex];
           colorIndex = colorIndex >= colors.length - 1 ? 0 : colorIndex + 1;  
         });
-        return colorMap;
+        this.colorMap = colorMap;
       },
       flatten(processedData){
         let flatBoth = [];
