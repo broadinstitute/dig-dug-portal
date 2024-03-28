@@ -143,24 +143,6 @@
 
         let colorIndex = 0;
         let violinIndex = 0;
-        let hoverDot = (g) => {
-          let xcoord = `${d3.event.layerX + 35}px`;
-          let ycoord = `${d3.event.layerY}px`;
-          this.svg.selectAll("circle").remove();
-          this.redrawNonHoverDots(g.keyField, g.dataset);
-          this.redrawHoverDots(g.keyField, g.dataset);
-          // Tooltip content
-          //let tooltipContent = `Biosample: ${g.biosample}`;
-          let tooltipContent = "Biosample: coming soon";
-          tooltipContent = tooltipContent.concat(
-            `<span>Dataset: ${g.dataset}</span>`
-          );
-          this.tooltip
-            .style("opacity", 1)
-            .html(tooltipContent)
-            .style("left", xcoord)
-            .style("top", ycoord);
-        };
         this.svg.selectAll("myViolin")
           .data(sumstat)
           .enter()
@@ -354,7 +336,7 @@
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", "lightgray")
-            //.on("mouseover", hoverDot)
+            .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset))
             .on("mouseleave", this.hideTooltip());
         },
         hideTooltip(){
@@ -378,7 +360,7 @@
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", "lightgray")
-            .on("mouseover", hoverDot)
+            .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset))
             .on("mouseleave", this.hideTooltip());
         },
         redrawHoverDots(hoverItem, hoverDataset){
@@ -400,8 +382,26 @@
             .attr("r", 2)
             .attr("fill", "none")
             .attr("stroke", hoverColor)
-            //.on("mouseover", hoverDot)
+            .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset))
             .on("mouseleave", this.hideTooltip());
+        },
+        hoverDot(hoverItem, hoverDataset){
+          let xcoord = `${d3.event.layerX + 35}px`;
+          let ycoord = `${d3.event.layerY}px`;
+          this.svg.selectAll("circle").remove();
+          this.redrawNonHoverDots(hoverItem, hoverDataset);
+          this.redrawHoverDots(hoverItem, hoverDataset);
+          // Tooltip content
+          //let tooltipContent = `Biosample: ${g.biosample}`;
+          let tooltipContent = "Biosample: coming soon";
+          tooltipContent = tooltipContent.concat(
+            `<span>Dataset: ${hoverDataset}</span>`
+          );
+          this.tooltip
+            .style("opacity", 1)
+            .html(tooltipContent)
+            .style("left", xcoord)
+            .style("top", ycoord);
         }
     },
   });
