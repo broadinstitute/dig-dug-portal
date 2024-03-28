@@ -25,6 +25,7 @@
         keyFieldList: [],
         offset: 0,
         dotBoxHalfWidth: 6,
+        xScale: null
       };
     },
     mounted(){
@@ -85,7 +86,7 @@
           .style("border-radius", "5px")
           .style("font-size", "smaller");
 
-        let x = d3
+        this.xScale = d3
           .scaleBand()
           .range([0, width])
           .domain(this.flatData.map((entry) => entry.keyField))
@@ -93,7 +94,7 @@
 
         this.svg.append("g")
           .attr("transform", `translate(0,${height})`)
-          .call(d3.axisBottom(x))
+          .call(d3.axisBottom(this.xScale))
           .selectAll("text")
           .style("text-anchor", "start")
           .style("font-size", "13px")
@@ -133,7 +134,7 @@
         }
         let xNum = d3
           .scaleLinear()
-          .range([0, x.bandwidth()])
+          .range([0, this.xScale.bandwidth()])
           .domain([-maxNum, maxNum]);
 
         let colorIndex = 0;
@@ -153,7 +154,7 @@
                 this.offset -
                 2 * this.dotBoxHalfWidth +
                 g.noise * this.dotBoxHalfWidth * 4;
-              return x(d.key) + dx;
+              return this.xScale(d.key) + dx;
             })
             .attr("cy", (g) => y(g[tpmField]))
             .attr("r", 2)
@@ -177,7 +178,7 @@
                 this.offset -
                 2 * this.dotBoxHalfWidth +
                 j.noise * this.dotBoxHalfWidth * 4;
-              return x(g.keyField) + dx;
+              return this.xScale(g.keyField) + dx;
             })
             .attr("cy", (j) => y(j[tpmField]))
             .attr("r", 2)
@@ -200,7 +201,7 @@
                 this.offset -
                 2 * this.dotBoxHalfWidth +
                 j.noise * this.dotBoxHalfWidth * 4;
-              return x(g.keyField) + dx;
+              return this.xScale(g.keyField) + dx;
             })
             .attr("cy", (j) => y(j[tpmField]))
             .attr("r", 2)
@@ -233,7 +234,7 @@
           .data(sumstat)
           .enter()
           .append("g")
-          .attr("transform", (d) => `translate(${x(d.key)},0)`)
+          .attr("transform", (d) => `translate(${this.xScale(d.key)},0)`)
           .append("path")
           .datum((d) => d.value)
           .attr("class", (d) => {
@@ -295,35 +296,35 @@
           .data(sumstatBox)
           .enter()
           .append("line")
-          .attr("x1", x(0))
-          .attr("x2", x(0))
+          .attr("x1", this.xScale(0))
+          .attr("x2", this.xScale(0))
           .attr("y1", (d) => y(d.value["Q3 TPM"]))
           .attr("y2", (d) => y(d.value["Max TPM"]))
           .attr("stroke", "black")
           .style("opacity", 0.5)
           .style("width", 30)
-          .attr("transform", (d) => `translate(${x(d.key) + this.offset},0)`)
+          .attr("transform", (d) => `translate(${this.xScale(d.key) + this.offset},0)`)
           .on("mouseover", hoverViolin);
         // Boxplots bottom quartile
         this.svg.selectAll("vertLines")
           .data(sumstatBox)
           .enter()
           .append("line")
-          .attr("x1", x(0))
-          .attr("x2", x(0))
+          .attr("x1", this.xScale(0))
+          .attr("x2", this.xScale(0))
           .attr("y1", (d) => y(d.value["Min TPM"]))
           .attr("y2", (d) => y(d.value["Q1 TPM"]))
           .attr("stroke", "black")
           .style("opacity", 0.5)
           .style("width", 30)
-          .attr("transform", (d) => `translate(${x(d.key) + this.offset},0)`)
+          .attr("transform", (d) => `translate(${this.xScale(d.key) + this.offset},0)`)
           .on("mouseover", hoverViolin);
         let boxHalfWidth = 3;
         this.svg.selectAll("boxes")
           .data(sumstatBox)
           .enter()
           .append("rect")
-          .attr("x", (d) => x(d.key) + this.offset - boxHalfWidth)
+          .attr("x", (d) => this.xScale(d.key) + this.offset - boxHalfWidth)
           .attr("y", (d) => y(d.value["Q3 TPM"]))
           .attr(
             "height",
@@ -340,7 +341,7 @@
           .data(sumstatBox)
           .enter()
           .append("rect")
-          .attr("x", (d) => x(d.key))
+          .attr("x", (d) => this.xScale(d.key))
           .attr("y", (d) => y(maxVal))
           .attr("height", (d) => y(-maxVal) - y(0))
           .attr("width", this.offset * 2)
@@ -352,8 +353,8 @@
           .data(sumstatBox)
           .enter()
           .append("line")
-          .attr("x1", (d) => x(d.key) + this.offset - boxHalfWidth)
-          .attr("x2", (d) => x(d.key) + this.offset + boxHalfWidth)
+          .attr("x1", (d) => this.xScale(d.key) + this.offset - boxHalfWidth)
+          .attr("x2", (d) => this.xScale(d.key) + this.offset + boxHalfWidth)
           .attr("y1", (d) => y(d.value["Median TPM"]))
           .attr("y2", (d) => y(d.value["Median TPM"]))
           .attr("stroke", "#99999999")
