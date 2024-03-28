@@ -20,7 +20,8 @@
         chart: null,
         chartWidth: null,
         showPlot: true,
-        svg: null
+        svg: null,
+        flatData: []
       };
     },
     mounted(){
@@ -46,15 +47,15 @@
     },
     methods: {
       displayResults() {
-        let flatData = this.flatten(this.$props.plotData);
-        let keyFieldList = this.getKeyFieldList(flatData);
+        this.flatten(this.$props.plotData);
+        let keyFieldList = this.getKeyFieldList(this.flatData);
         let colorMap = this.mapColors(keyFieldList);
         let dotBoxHalfWidth = 6;
         let tpmField = "tpmVal";
         let margin = {
             top: 10,
             right: 30,
-            bottom: this.getBottomMargin(flatData),
+            bottom: this.getBottomMargin(this.flatData),
             left: 40,
           },
           width = this.chartWidth - margin.left - margin.right,
@@ -85,7 +86,7 @@
         let x = d3
           .scaleBand()
           .range([0, width])
-          .domain(flatData.map((entry) => entry.keyField))
+          .domain(this.flatData.map((entry) => entry.keyField))
           .padding(0.05);
 
         this.svg.append("g")
@@ -96,7 +97,7 @@
           .style("font-size", "13px")
           .attr("transform", "rotate(45)");
 
-        let maxVal = flatData
+        let maxVal = this.flatData
           .map((g) => g[tpmField])
           .reduce((prev, next) => (prev > next ? prev : next), 0);
         let y = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
@@ -116,7 +117,7 @@
             let bins = histogram(input);
             return bins;
           })
-          .entries(flatData);
+          .entries(this.flatData);
 
         //Maximum number of entries in a bin.
         let maxNum = 0;
@@ -141,7 +142,7 @@
           this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
           this.svg.selectAll("circle").remove();
           this.svg.selectAll("indPoints")
-            .data(flatData.filter((entry) => entry.keyField === d.key))
+            .data(this.flatData.filter((entry) => entry.keyField === d.key))
             .enter()
             .append("circle")
             .attr("class", (g) => g.dataset)
@@ -164,7 +165,7 @@
           let hoverDataset = g.dataset;
           let hoverColor = `${colorMap[g.keyField]}`;
           this.svg.selectAll("indPoints")
-            .data(flatData.filter((entry) =>
+            .data(this.flatData.filter((entry) =>
               entry.keyField == hoverItem && entry.dataset == hoverDataset))
             .enter()
             .append("circle")
@@ -187,7 +188,7 @@
           let hoverItem = g.keyField;
           let hoverDataset = g.dataset;
           this.svg.selectAll("indPoints")
-            .data(flatData.filter((entry) =>
+            .data(this.flatData.filter((entry) =>
               entry.keyField === hoverItem && entry.dataset != hoverDataset))
             .enter()
             .append("circle")
@@ -285,7 +286,7 @@
             };
             return boxplotEntry;
           })
-          .entries(flatData);
+          .entries(this.flatData);
         let offset = width / (2 * numberViolins);
         // Boxplots top quartile
         this.svg.selectAll("vertLines")
@@ -396,7 +397,7 @@
             flatBoth.push(flatEntry);
           }
         }
-        return flatBoth;
+        this.flatData = flatBoth;
       }
     },
   });
