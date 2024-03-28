@@ -47,7 +47,8 @@
       tissueFormatter: Formatters.tissueFormatter,
       datasetRowClass(d){
         let parentRow = this.plotByField === "gene" ? d.gene : this.toSnakeFormatter(d.tissue);
-        return `misc-class dataset--${parentRow}--${d.dataset}`;
+        let biosample = this.toSnakeFormatter(d.biosample);
+        return `misc-class dataset--${parentRow}--${d.dataset}--${biosample}`;
       },
       setupDatasets(){
         let rows = document.querySelectorAll(".dataset-subtable tbody tr");
@@ -58,7 +59,11 @@
         classesString.split(' ').forEach(c => {
           if (c.startsWith("dataset--")){
             let details = c.split("--");
-            let detailsObject = { violin: details[1], dataset: details[2]};
+            let detailsObject = { 
+              violin: details[1], 
+              dataset: details[2],
+              biosample: details[3]
+            };
             this.$emit("highlight", detailsObject);
           }
         });
