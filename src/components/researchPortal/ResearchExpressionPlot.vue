@@ -49,6 +49,7 @@
       },
       highlightedDataset(details){
         console.log(JSON.stringify(details));
+        this.hoverViolinMethod(details.violin);
       }
     },
     methods: {
