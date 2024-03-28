@@ -24,6 +24,7 @@
         flatData: [],
         keyFieldList: [],
         offset: 0,
+        dotBoxHalfWidth: 6,
       };
     },
     mounted(){
@@ -52,7 +53,6 @@
         this.flatten(this.$props.plotData);
         this.getKeyFieldList(this.flatData);
         let colorMap = this.mapColors(this.keyFieldList);
-        let dotBoxHalfWidth = 6;
         let tpmField = "tpmVal";
         let margin = {
             top: 10,
@@ -151,8 +151,8 @@
             .attr("cx", (g) => {
               let dx =
                 this.offset -
-                2 * dotBoxHalfWidth +
-                g.noise * dotBoxHalfWidth * 4;
+                2 * this.dotBoxHalfWidth +
+                g.noise * this.dotBoxHalfWidth * 4;
               return x(d.key) + dx;
             })
             .attr("cy", (g) => y(g[tpmField]))
@@ -175,8 +175,8 @@
             .attr("cx", (j) => {
               let dx =
                 this.offset -
-                2 * dotBoxHalfWidth +
-                j.noise * dotBoxHalfWidth * 4;
+                2 * this.dotBoxHalfWidth +
+                j.noise * this.dotBoxHalfWidth * 4;
               return x(g.keyField) + dx;
             })
             .attr("cy", (j) => y(j[tpmField]))
@@ -198,8 +198,8 @@
             .attr("cx", (j) => {
               let dx =
                 this.offset -
-                2 * dotBoxHalfWidth +
-                j.noise * dotBoxHalfWidth * 4;
+                2 * this.dotBoxHalfWidth +
+                j.noise * this.dotBoxHalfWidth * 4;
               return x(g.keyField) + dx;
             })
             .attr("cy", (j) => y(j[tpmField]))
