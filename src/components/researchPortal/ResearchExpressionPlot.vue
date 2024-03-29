@@ -289,6 +289,7 @@
           if(!uniques.includes(datum.keyField)){
             uniques.push(datum.keyField);
           }});
+          console.log(JSON.stringify(uniques));
         this.keyFieldList = uniques;
       },
       mapColors(uniqueItems) {

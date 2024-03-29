@@ -46,7 +46,7 @@
       toSnakeFormatter: Formatters.toSnakeFormatter,
       tissueFormatter: Formatters.tissueFormatter,
       datasetRowClass(d){
-        let parentRow = this.plotByField === "gene" ? d.gene : this.toSnakeFormatter(d.tissue);
+        let parentRow = this.toSnakeFormatter(d[this.plotByField]);
         let biosample = this.toSnakeFormatter(d.biosample);
         return `misc-class dataset--${parentRow}--${d.dataset}--${biosample}`;
       },

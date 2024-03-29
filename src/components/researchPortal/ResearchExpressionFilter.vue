@@ -91,6 +91,7 @@ export default Vue.component("ResearchExpressionFilter", {
 	methods: {
 		...uiUtils,
 		tissueFormatter: Formatters.tissueFormatter,
+		toSnakeFormatter: Formatters.toSnakeFormatter,
 		applyFilter() {
 			this.processData();
 		},
@@ -152,7 +153,7 @@ export default Vue.component("ResearchExpressionFilter", {
 				});
 			}
 			for (let item of processedData){
-				item.keyField = item[this.keyField];
+				item.keyField = this.toSnakeFormatter(item[this.keyField]);
 				item.tpmsToUse = this.logScale ? 
 					item.tpmForAllSamples.map(tpm => Math.log10(tpm + 1)) : 
 					item.tpmForAllSamples;
