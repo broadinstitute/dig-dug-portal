@@ -26,59 +26,69 @@
 			v-bind:isPlotByRow="false"
 		>
 		</research-summary-plot>
-		<div
-			v-if="!!dataset"
-			v-html="'Total rows: ' + this.rows"
-			class="table-total-rows"
-		></div>
+		
 		<div v-if="!!dataset" class="table-ui-wrapper">
-			<label
-				>Rows per page:
-				<select v-model="perPageNumber" class="number-per-page">
-					<option value="10">10</option>
-					<option value="20">20</option>
-					<option value="40">40</option>
-					<option value="100">100</option>
-					<option value="0">
-						<span style="color: #f00">All</span>
-					</option>
-				</select>
-			</label>
 			<div
-				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv(filteredData, pageID + sectionId+ '_filtered')"
-			>
-				Save as CSV
-			</div>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
-			>
-				Save as JSON
-			</div>
-			<div
-				class="convert-2-csv btn-sm"
+				class="convert-2-csv table-settings-opener btn-sm"
 				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
 			>
-				{{ !!summarySection ? 'Set summary table' : 'Show/hide columns' }}
+				<span class="btn btn-default options-gear" >Save data / Table settings <b-icon icon="gear-fill"></b-icon></span>
+				<!--{{ !!summarySection ? 'Set summary table' : 'Show/hide columns' }}-->
 			</div>
-			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="hidden">
+			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="table-options-box hidden">
 				<div
 					class="show-hide-columns-box-close"
 					@click="showHidePanel('#showHideColumnsBox'+sectionId)"
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
-				<h4 style="text-align: center">show/hide columns</h4>
-				<p></p>
+				<h5 style="text-align: center">Settings</h5>
+				
 				<div class="table-wrapper">
 					<table class="table table-sm">
-						<thead>
-							<tr>
-								<th></th>
-							</tr>
-						</thead>
+						
 						<tbody>
+							<tr>
+								<td>
+									<label
+										><strong>Rows per page: </strong>
+										<select v-model="perPageNumber" class="number-per-page">
+											<option value="10">10</option>
+											<option value="20">20</option>
+											<option value="40">40</option>
+											<option value="100">100</option>
+											<option value="0">
+												<span style="color: #f00">All</span>
+											</option>
+										</select>
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<strong>Save data in section: </strong>
+									<div
+										class="convert-2-csv btn-sm"
+										@click="convertJson2Csv(filteredData, pageID + sectionId + '_filtered')"
+									>
+										CSV
+									</div>
+									<div
+										class="convert-2-csv btn-sm"
+										@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
+									>
+										JSON
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<Strong>Hide table: </Strong><input type="checkbox" class="chkbox"
+									@click="utils.uiUtils.showHideElement(sectionId + '_table_wrapper')"
+								/>
+								</td>
+							</tr>
+							<tr><td><strong>Show / hide columns</strong></td></tr>
 							<tr
 								v-for="column in tableFormat['top rows']"
 								:key="column"
@@ -119,6 +129,12 @@
 				</div>
 			</div>
 		</div>
+		<span :id="sectionId+'_table_wrapper'">
+			<div
+				v-if="!!dataset"
+				v-html="'Total rows: ' + this.rows"
+				class="table-total-rows"
+			></div>
 		<div class="table-wrapper">
 		<table
 			:class="'table table-sm research-data-table ' + pageID"
@@ -278,6 +294,7 @@
 				:phenotypeMap="phenotypeMap"
 			></b-pagination>
 		</b-container>
+		</span>
 	</div>
 </template>
 
@@ -1037,7 +1054,31 @@ export default Vue.component("research-data-table", {
 });
 </script>
 
-<style>
+<style scoped>
+
+.table-settings-opener {
+	border: solid 1px #dddddd !important;
+	margin-bottom: 5px ;
+}
+
+.table-settings-opener span.options-gear {
+	padding: 0px;
+	font-size: 12px;
+	color: #333333;
+}
+
+.table-settings-opener:hover span.options-gear {
+	color: #000000;
+}
+
+.table-settings-opener span.options-gear > svg {
+	font-size: 12px !important
+}
+
+.table-options-box {
+	height: auto !important;
+}
+
 .show-hide-columns-box-close {
 	position: absolute;
 	top: 5px;
@@ -1049,32 +1090,7 @@ export default Vue.component("research-data-table", {
 .show-hide-columns-box-close:hover {
 	color: #36c;
 }
-/*#showHideColumnsBox {
-	position: fixed;
-	background-color: #fff;
-	border: solid 1px #ddd;
-	border-radius: 5px;
-	z-index: 11;
-	font-size: 14px;
-	width: 400px;
-	height: 50%;
-	text-align: left;
-	top: 25%;
-	left: calc(50% - 200px);
-	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
-	padding: 20px;
-}
 
-#showHideColumnsBox .table-wrapper {
-	overflow: auto !important;
-	padding: 0;
-	height: calc(100% - 35px);
-}
-
-#showHideColumnsBox th,
-#showHideColumnsBox td {
-	border: none;
-}*/
 [id*="showHideColumnsBox"] {
 	position: fixed;
 	background-color: #fff;

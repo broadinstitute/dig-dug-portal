@@ -1,8 +1,8 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div class="col-md-12">
-			<div class="genes-track-setting" v-if="!!localGeneTypes" :style="'right:'+ adjPlotMargin.right + 'px'">
-				<span class="btn btn-default options-gear" ><b-icon icon="gear-fill"></b-icon></span>
+			<div class="genes-track-setting" v-if="!!localGeneTypes" >
+				<span class="btn btn-default options-gear" >Genes <b-icon icon="gear-fill"></b-icon></span>
 				<ul class="options" >
 						<li>
 							<input type="checkbox" class="chkbox"
@@ -12,11 +12,19 @@
 						<li v-for="geneType in localGeneTypes"
 							:key="geneType">
 							<input type="checkbox" class="chkbox"
+								v-if="geneType == 'protein_coding'"
 								:id="sectionId + geneType"
 								:value="geneType"
 								checked
 								@click="renderTrack(localGenesData)"
-							/><label :for="geneType">{{ geneType.replaceAll("_"," ") }}</label>
+							/>
+							<input type="checkbox" class="chkbox"
+									v-else
+									:id="sectionId + geneType"
+									:value="geneType"
+									@click="renderTrack(localGenesData)"
+								/>
+							<label :for="geneType">{{ geneType.replaceAll("_"," ") }}</label>
 						</li>
 					</ul>
 			</div>
@@ -89,6 +97,8 @@ export default Vue.component("multi-genes-track", {
 			
 			let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
 
+			console.log('gene track', customPlotMargin);
+
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
 				right: customPlotMargin.right,
@@ -103,8 +113,6 @@ export default Vue.component("multi-genes-track", {
 					bottom: this.plotMargin.bottomMargin,
 					bump: this.plotMargin.bump,
 				};
-
-				//console.log("multi genes track", plotMargin);
 
 			return plotMargin;
 		},
@@ -212,8 +220,10 @@ export default Vue.component("multi-genes-track", {
 								let lastGene = t[t.length - 1];
 
 								//measuring if the regioon of the last gene is bigger than the gene label
-								let endPos = ((lastGene.xEndPos - lastGene.xStartPos) >= 150) ? lastGene.xEndPos : lastGene.xEndPos + 70;
-								let startPos = ((g.xEndPos - g.xStartPos) <= 150) ? g.xStartPos - ((150 - (g.xEndPos - g.xStartPos)) / 2) : g.xStartPos;
+								let lastGeneWidth = lastGene.xEndPos - lastGene.xStartPos;
+								let newGeneWidth = g.xEndPos - g.xStartPos;
+								let endPos = (lastGeneWidth <= 100) ? ((100- lastGeneWidth)/2)+lastGene.xEndPos: lastGene.xEndPos;
+								let startPos = (newGeneWidth <= 100) ? g.xStartPos - ((100 - newGeneWidth) / 2) : g.xStartPos;
 
 								if (endPos <= startPos) {
 									t.push(g)
@@ -450,14 +460,24 @@ $(function () {});
 .genes-track-setting {
 	position: absolute;
 	top: -10px;
+	right: 5px;
 }
 
 .genes-track-setting .options-gear {
-	color: #999999;
+	color: #333333;
+	padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    margin-right: 10px;
+    border: solid 1px #dddddd;
+}
+
+.genes-track-setting .options-gear > svg {
+	font-size: 12px !important;
 }
 
 .genes-track-setting:hover .options-gear {
-	color: #333333;
+	color: #000000;
 }
 
 .genes-track-setting ul.options {
@@ -470,6 +490,7 @@ $(function () {});
     z-index: 10;
     list-style: none;
 	right: 0;
+	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%)
 }
 
 .genes-track-setting ul.options li {
