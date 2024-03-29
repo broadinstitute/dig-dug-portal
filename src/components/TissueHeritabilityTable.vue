@@ -42,7 +42,6 @@
             </template>
             <template #cell(biosample)="r"
                 ><b-button
-                    v-b-popover.hover="'View biosamples'"
                     size="sm"
                     variant="outline-primary"
                     class=""
