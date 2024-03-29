@@ -140,3 +140,20 @@
     }
   });
 </script>
+<style scoped>
+  .row {
+    font-size: smaller;
+    margin-left: 15px;
+    margin-right: 0;
+    background-color: #efefef;
+  }
+  .row .col-12 {
+    padding: 0 0 0 5px !important;
+  }
+  .b-popover{
+    background-color: #fff;
+  }
+  .active .activeIcon {
+    color: #007bff;
+  }
+</style>
