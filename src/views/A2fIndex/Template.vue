@@ -400,11 +400,6 @@
                             ></news-feed-section>
                         </div>
                         <div class="col-md-5">
-                            <research-page-description
-                                v-if="$parent.pageDescription != null"
-                                :content="$parent.pageDescription"
-                                :utils="$parent.utilsBox"
-                            ></research-page-description>
                             <about-project-section
                                 :front-contents="$parent.frontContents"
                             ></about-project-section>
