@@ -3,7 +3,6 @@
     <b-table
 			v-if="tableData.length > 0"
 			id="big-table"
-			hover
 			small
 			responsive="sm"
 			:items="tableData"
