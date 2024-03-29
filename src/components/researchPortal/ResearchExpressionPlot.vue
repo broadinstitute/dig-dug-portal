@@ -1,6 +1,11 @@
 <template>
-  <div id="multi-chart">
-    <p>Loading...</p>
+  <div>
+    <div id="multi-chart" :hidden="!showPlot">
+      <p>Loading...</p>
+    </div>
+    <div v-if="!showPlot">
+      <p>No datasets meet minimum sample count.</p>
+    </div>
   </div>
 </template>
 <script>
@@ -14,6 +19,7 @@
       return {
         chart: null,
         chartWidth: null,
+        showPlot: true,
       };
     },
     mounted(){
@@ -25,14 +31,18 @@
       });
     },
     watch: {
-      plotData(){
+      plotData(data){
+        if (data.length === 0){
+          this.showPlot = false;
+          return;
+        }
+        this.showPlot = true;
         this.displayResults();
       },
     },
     methods: {
       displayResults() {
         let flatData = this.flatten(this.$props.plotData);
-        if (flatData.length === 0){ return; }
         let keyFieldList = this.getKeyFieldList(flatData);
         let colorMap = this.mapColors(keyFieldList);
         let dotBoxHalfWidth = 6;

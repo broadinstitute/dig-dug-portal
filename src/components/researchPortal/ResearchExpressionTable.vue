@@ -17,9 +17,15 @@
             {{ tissueFormatter(row.item.tissue) }}
         </a>
       </template>
+      <template #cell(gene)="row">
+        <a :href="`/gene.html?gene=${row.item.gene}`" 
+          >
+            {{ row.item.gene}}
+        </a>
+      </template>
 			<template #cell(show_datasets)="row">
 				<b-button
-					class="btn view-features-btn btn-secondary mr-2"
+          variant="outline-primary"
 					size="sm"
 					@click="row.toggleDetails"
 				>
@@ -83,13 +89,15 @@
             { key: "Q3 TPM", sortable: true, formatter: Formatters.tpmFormatter },
             { key: "Max TPM", sortable: true, formatter: Formatters.tpmFormatter },
             { key: "Total samples", sortable: true },
-            { key: "show_datasets", sortable: false },
+            { key: "show_datasets", label: "Evidence", sortable: false },
           ],
           features: ["Datasets"],
           Datasets: [
             { key: "biosample", formatter: Formatters.tissueFormatter, sortable: true },
             { key: "collection", formatter: (value) => value.toString(", ") },
             { key: "dataset", sortable: true},
+            { key: "diseaseTermName", label: "Disease", sortable: true,
+              formatter: (value) => !value ? "Not available" : Formatters.tissueFormatter(value)},
             { key: "Min TPM", formatter: Formatters.tpmFormatter, sortable: true },
             { key: "Q1 TPM", formatter: Formatters.tpmFormatter, sortable: true },
             { key: "Median TPM", formatter: Formatters.tpmFormatter, sortable: true },

@@ -270,7 +270,7 @@
                 </div>
 
                 <div class="card mdkp-card">
-                    <div class="card-body">
+                    <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">
                             Top gene-level associations for
                             {{ $store.state.phenotype.description }}
@@ -294,13 +294,19 @@
                                 <div class="label">Gene</div>
                             </filter-enumeration-control>
 
-                            <filter-pvalue-control :field="'pValue'">
+                            <filter-pvalue-control
+                                :field="'pValue'"
+                                v-if="!$parent.hidePValueFilter"
+                            >
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <b-tabs>
-                                    <b-tab title="HuGE Scores">
+                                    <b-tab
+                                        title="HuGE Scores"
+                                        @click="$parent.clickedTab('hugescore')"
+                                    >
                                         <phenotype-huge-scores
                                             :scores="
                                                 $store.state.hugePhenotype.data
@@ -317,6 +323,7 @@
                                         </phenotype-huge-scores>
                                     </b-tab>
                                     <b-tab
+                                        @click="$parent.clickedTab('commmon')"
                                         :title="`Common variant
                                         (Ancestry: ${
                                             !$store.state.ancestry
@@ -343,6 +350,7 @@
                                         ></gene-finder-table>
                                     </b-tab>
                                     <b-tab
+                                        @click="$parent.clickedTab('rare')"
                                         title="Rare variant (all ancestries)"
                                     >
                                         <gene-finder-table
@@ -520,10 +528,7 @@
                                 :no-icon="false"
                             ></tooltip-documentation>
                         </h4>
-                        <documentation
-                            name="pheno.eglsSection.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
+
                         <egls-section :phenotype="$store.state.phenotype">
                         </egls-section>
                     </div>

@@ -22,14 +22,10 @@
             </research-expression-plot>
         </div>
         <div v-else>Loading expression plot...</div>
-
-        <tissue-table
-            :tissueTableData="tableData"
-            :tissue="tissue"
+        <research-expression-table
             :filteredData="plotData"
-            @sortByField="(field, ascending) => sortBy(field, ascending)"
-        >
-        </tissue-table>
+            plotByField="gene">
+        </research-expression-table>
         <b-pagination
             v-model="currentPage"
             :total-rows="sortedData.length"
@@ -44,7 +40,7 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import ResearchExpressionFilter from "@/components/researchPortal/ResearchExpressionFilter.vue";
 import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
-import TissueTable from "./TissueTable.vue";
+import ResearchExpressionTable from "./researchPortal/ResearchExpressionTable.vue";
 export default Vue.component("TissueExpressionDisplay", {
     props: {
         tissueData: {

@@ -5,25 +5,25 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
 import keyParams from "@/utils/keyParams";
-import TissueTable from "@/components/TissueTable.vue";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionDisplay from "@/components/TissueExpressionDisplay.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import { pageMixin } from "@/mixins/pageMixin";
 new Vue({
     store,
     components: {
         PageHeader,
         PageFooter,
         Documentation,
-        TissueTable,
         TissueHeritabilityTable,
         TissueExpressionDisplay,
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
     },
+    mixins: [pageMixin],
     data() {
         return {
             tissue: keyParams.tissue || "",
