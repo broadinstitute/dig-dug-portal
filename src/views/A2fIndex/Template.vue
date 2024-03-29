@@ -179,7 +179,11 @@
                                         />
                                     </div>
                                     <div class="info">
-                                        <div class="count">123</div>
+                                        <div class="count">
+                                            {{
+                                                $parent.pageStats["Phenotypes"]
+                                            }}
+                                        </div>
                                         <div class="label">Phenotypes</div>
                                     </div>
                                 </div>
@@ -190,7 +194,13 @@
                                         />
                                     </div>
                                     <div class="info">
-                                        <div class="count">123</div>
+                                        <div class="count">
+                                            {{
+                                                $parent.pageStats[
+                                                    "Genetic datasets"
+                                                ]
+                                            }}
+                                        </div>
                                         <div class="label">
                                             Genetic Datasets
                                         </div>
@@ -203,7 +213,13 @@
                                         />
                                     </div>
                                     <div class="info">
-                                        <div class="count">123</div>
+                                        <div class="count">
+                                            {{
+                                                $parent.pageStats[
+                                                    "Genomic datasets"
+                                                ]
+                                            }}
+                                        </div>
                                         <div class="label">
                                             Genomic Datasets
                                         </div>
@@ -216,7 +232,13 @@
                                         />
                                     </div>
                                     <div class="info">
-                                        <div class="count">123</div>
+                                        <div class="count">
+                                            {{
+                                                $parent.pageStats[
+                                                    "Bioinformatic methods"
+                                                ]
+                                            }}
+                                        </div>
                                         <div class="label">
                                             Bioinfomatic Methods
                                         </div>
@@ -229,7 +251,13 @@
                                         />
                                     </div>
                                     <div class="info">
-                                        <div class="count">123</div>
+                                        <div class="count">
+                                            {{
+                                                $parent.pageStats[
+                                                    "Curated datasets"
+                                                ]
+                                            }}
+                                        </div>
                                         <div class="label">
                                             Curated Datasets
                                         </div>
