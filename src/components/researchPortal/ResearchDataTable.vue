@@ -32,7 +32,7 @@
 				class="convert-2-csv table-settings-opener btn-sm"
 				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
 			>
-				<span class="btn btn-default options-gear" >Save data / Table settings <b-icon icon="gear-fill"></b-icon></span>
+				<span class="btn btn-default options-gear" >Save data / set table <b-icon icon="gear-fill"></b-icon></span>
 				<!--{{ !!summarySection ? 'Set summary table' : 'Show/hide columns' }}-->
 			</div>
 			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="table-options-box hidden">
