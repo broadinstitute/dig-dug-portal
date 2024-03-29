@@ -170,6 +170,44 @@
                             </div>
                         </div>
                         <!-- end -->
+
+                        <!-- search for all portals except CMD -->
+                        <template
+                            v-if="!$store.getters['bioPortal/isRootPortal']"
+                        >
+                            <div class="row front-search-section">
+                                <div
+                                    class="col-md-8 offset-md-2"
+                                    align="center"
+                                >
+                                    <div class="single-search-wrapper">
+                                        <h4 style="color: #fff">
+                                            Search gene, variant, region,
+                                            phenotype or tissue
+                                        </h4>
+                                        <research-single-search
+                                            :single-search-config="null"
+                                            :phenotypes="
+                                                $parent.phenotypesInSession
+                                            "
+                                            :utils="$parent.utilsBox"
+                                        ></research-single-search>
+                                        <div
+                                            class="region-search-examples a2f-region-search-examples"
+                                        >
+                                            <documentation
+                                                name="home.example"
+                                                :group="
+                                                    $parent.diseaseGroup.name
+                                                "
+                                            ></documentation>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <!-- end -->
+
                         <div id="stats">
                             <div class="stats">
                                 <div class="stat">
@@ -265,43 +303,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- search for all portals except CMD -->
-                        <template
-                            v-if="!$store.getters['bioPortal/isRootPortal']"
-                        >
-                            <div class="row front-search-section">
-                                <div
-                                    class="col-md-8 offset-md-2"
-                                    align="center"
-                                >
-                                    <div class="single-search-wrapper">
-                                        <h4 style="color: #fff">
-                                            Search gene, variant, region,
-                                            phenotype or tissue
-                                        </h4>
-                                        <research-single-search
-                                            :single-search-config="null"
-                                            :phenotypes="
-                                                $parent.phenotypesInSession
-                                            "
-                                            :utils="$parent.utilsBox"
-                                        ></research-single-search>
-                                        <div
-                                            class="region-search-examples a2f-region-search-examples"
-                                        >
-                                            <documentation
-                                                name="home.example"
-                                                :group="
-                                                    $parent.diseaseGroup.name
-                                                "
-                                            ></documentation>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                        <!-- end -->
                     </div>
                 </div>
             </div>
