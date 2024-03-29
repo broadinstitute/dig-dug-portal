@@ -3,7 +3,6 @@
     <b-table
 			v-if="tableData.length > 0"
 			id="big-table"
-			hover
 			small
 			responsive="sm"
 			:items="tableData"
@@ -33,29 +32,12 @@
 				</b-button>
 			</template>
 			<template #row-details="row">
-				<b-table
-					class="dataset-subtable"
-					small
-					responsive="sm"
-					:items="row.item['Datasets']"
-          :current-page="row.item.currentPage"
-          :per-page="perPage"
-					:fields="tableConfig['Datasets']"
-				>
-					<template #cell(dataset)="data">
-						<a
-							:href="`https://cmdga.org/annotations/${data.value}/`"
-							target="_blank"
-						>
-							{{ data.value }}
-						</a>
-					</template>
-				</b-table>
-        <b-pagination
-          v-model="row.item.currentPage"
-          :total-rows="row.item['Datasets'].length"
-          :per-page="perPage">
-        </b-pagination>
+				<research-dataset-subtable
+          :row="row"
+          :fields="tableConfig['Datasets']"
+          :plotByField="plotByField"
+          @highlight="details => highlight(details)">
+        </research-dataset-subtable>
 			</template>
 		</b-table>
 		<b-pagination v-if="plotByField === 'tissue'"
@@ -70,6 +52,7 @@
   import Vue from "vue";
   import * as d3 from "d3";
   import Formatters from "@/utils/formatters";
+  import ResearchDatasetSubtable from "@/components/researchPortal/ResearchDatasetSubtable.vue";
   export default Vue.component("ResearchExpressionTable", {
 	  props: {
       filteredData: Array,
@@ -150,6 +133,9 @@
         });
         this.tableData = dataRows;
       },
+      highlight(details){
+        this.$emit("highlight", details);
+      }
     }
   });
 </script>

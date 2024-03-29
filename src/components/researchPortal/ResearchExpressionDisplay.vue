@@ -6,10 +6,12 @@
       @dataReady="(data) => getFilteredData(data)">
     </research-expression-filter>
     <research-expression-plot
-      :plotData="filteredData">
+      :plotData="filteredData"
+      :highlightedDataset="datasetDetails">
     </research-expression-plot>
     <research-expression-table
-      :filteredData="filteredData">
+      :filteredData="filteredData"
+      @highlight="details => highlight(details)">
     </research-expression-table>
   </div>
 </template>
@@ -22,13 +24,17 @@
     props: ["rawData"],
     data() {
       return {
-        filteredData: []
+        filteredData: [],
+        datasetDetails: {}
       };
     },
     methods: {
       getFilteredData(data){
         this.filteredData = data;
       },
+      highlight(details){
+        this.datasetDetails = details;
+      }
     }
   });
 </script>
