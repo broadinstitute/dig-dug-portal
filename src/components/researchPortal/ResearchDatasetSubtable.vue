@@ -1,24 +1,24 @@
 <template>
-  <div>
-    <b-table
-      class="dataset-subtable"
-      small
-      responsive="sm"
-      :items="row.item['Datasets']"
-      :current-page="row.item.currentPage"
-      :per-page="perPage"
-      :fields="fields"
-      :tbody-tr-class="(d) => datasetRowClass(d)"
-    >
-      <template #cell(dataset)="data">
-        <a
-          :href="`https://cmdga.org/annotations/${data.value}/`"
-          target="_blank"
-        >
-          {{ data.value }}
-        </a>
-      </template>
-    </b-table>
+  <div class="row">
+    <div class="col-12">
+      <b-table
+        class="dataset-subtable"
+        :items="row.item['Datasets']"
+        :current-page="row.item.currentPage"
+        :per-page="perPage"
+        :fields="fields"
+        :tbody-tr-class="(d) => datasetRowClass(d)"
+      >
+        <template #cell(dataset)="data">
+          <a
+            :href="`https://cmdga.org/annotations/${data.value}/`"
+            target="_blank"
+          >
+            {{ data.value }}
+          </a>
+        </template>
+      </b-table>
+    </div>
     <b-pagination
       v-model="row.item.currentPage"
       :total-rows="row.item['Datasets'].length"
@@ -73,7 +73,7 @@
 </script>
 <style scoped>
   .row {
-    font-size: smaller;
+    /*font-size: smaller;*/
     margin-left: 15px;
     margin-right: 0;
     background-color: #efefef;
