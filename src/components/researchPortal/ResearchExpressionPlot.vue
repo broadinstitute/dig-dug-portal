@@ -50,7 +50,6 @@
         this.displayResults();
       },
       highlightedDataset(details){
-        console.log(JSON.stringify(details));
         this.hoverViolin(details.violin);
         this.redrawNonHoverDots(details.violin, details.dataset);
         this.redrawHoverDots(details.violin, details.dataset);
@@ -289,7 +288,6 @@
           if(!uniques.includes(datum.keyField)){
             uniques.push(datum.keyField);
           }});
-          console.log(JSON.stringify(uniques));
         this.keyFieldList = uniques;
       },
       mapColors(uniqueItems) {

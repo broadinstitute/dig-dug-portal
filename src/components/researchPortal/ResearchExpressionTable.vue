@@ -134,11 +134,6 @@
         });
         this.tableData = dataRows;
       },
-      datasetRowClass(d){
-        //let parentRow = this.plotByField === "gene" ? d.gene : this.toSnakeFormatter(d.tissue);
-        let parentRow = this.toSnakeFormatter(d[this.plotByField]);
-        return `data_${parentRow}_${d.dataset}`;
-      },
       highlight(details){
         this.$emit("highlight", details);
       }
