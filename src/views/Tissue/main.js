@@ -10,6 +10,7 @@ import TissueExpressionDisplay from "@/components/TissueExpressionDisplay.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import { pageMixin } from "@/mixins/pageMixin";
 new Vue({
     store,
     components: {
@@ -22,6 +23,7 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
     },
+    mixins: [pageMixin],
     data() {
         return {
             tissue: keyParams.tissue || "",

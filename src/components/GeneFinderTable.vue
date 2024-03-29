@@ -1,8 +1,9 @@
 <template>
-    <div>
+    <div v-if="associations">
         <div v-show="showPlot">
             <research-m-plot
-                :plotData="formatAssocData(tableData)"
+                v-if="plotData.length > 0"
+                :plotData="plotData"
                 :renderConfig="assocPlotConfig"
             ></research-m-plot>
             <center style="margin-bottom: 30px">
@@ -129,16 +130,16 @@ export default Vue.component("GeneFinderTable", {
                 },
             ],
             assocPlotConfig: {
-                "type": "manhattan plot",
+                type: "manhattan plot",
                 "x axis field": "position",
                 "y axis field": "minusLogP",
                 "render by": "gene",
                 "x axis label": "Position",
                 "y axis label": "-log10(p-value)",
-                "height": 300,
+                height: 300,
                 "link to": "/region.html",
-                "hover content": ["p"]
-            }
+                "hover content": ["p"],
+            },
         };
     },
 
@@ -148,6 +149,9 @@ export default Vue.component("GeneFinderTable", {
                 return this.associations.filter(this.filter);
             }
             return this.associations;
+        },
+        plotData() {
+            return this.formatAssocData(this.tableData) || [];
         },
 
         fields() {
@@ -267,8 +271,8 @@ export default Vue.component("GeneFinderTable", {
         intFormatter: Formatters.intFormatter,
         floatFormatter: Formatters.floatFormatter,
         pValueFormatter: Formatters.pValueFormatter,
-        formatAssocData(assocData){
-            assocData.forEach(entry => {
+        formatAssocData(assocData) {
+            assocData.forEach((entry) => {
                 entry.position = `${entry.chromosome} : ${entry.start} - ${entry.end}`;
                 entry.minusLogP = -Math.log10(entry.pValue);
                 entry.p = this.pValueFormatter(entry.pValue);
