@@ -18,13 +18,16 @@
                 @dataReady="(filteredData) => getPlotData(filteredData)"
             >
             </research-expression-filter>
-            <research-expression-plot :plotData="plotData">
+            <research-expression-plot 
+                :plotData="plotData"
+                :highlightedDataset="datasetDetails">
             </research-expression-plot>
         </div>
         <div v-else>Loading expression plot...</div>
         <research-expression-table
             :filteredData="plotData"
-            plotByField="gene">
+            plotByField="gene"
+            @highlight="details => highlight(details)">
         </research-expression-table>
         <b-pagination
             v-model="currentPage"
@@ -61,7 +64,8 @@ export default Vue.component("TissueExpressionDisplay", {
             evidence: {},
             plotData: [],
             tableData: [],
-            sortKey: ""
+            sortKey: "",
+            datasetDetails: {}
         };
     },
     mounted() {
@@ -103,6 +107,9 @@ export default Vue.component("TissueExpressionDisplay", {
             });
             this.currentPage = 1;
             this.populateGeneData();
+        },
+        highlight(details){
+            this.datasetDetails = details;
         }
     },
     watch: {
