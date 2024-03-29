@@ -44,7 +44,7 @@
                     <b-th
                         v-for="(phenotype, i) in phenotypes"
                         :key="phenotype"
-                        colspan="3"
+                        colspan="1"
                         class="reference"
                         :class="'color-' + (i + 1)"
                     >
@@ -67,7 +67,7 @@
                     #[phenotypePValueColumn(p)]="r"
                     >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
                 >
-                <template
+                <!-- <template
                     v-for="p in phenotypes"
                     #[phenotypeVariantsColumn(p)]="r"
                     >{{ intFormatter(r.item[`${p}:nParam`]) }}</template
@@ -76,7 +76,7 @@
                     v-for="p in phenotypes"
                     #[phenotypeSubjectsColumn(p)]="r"
                     >{{ intFormatter(r.item[`${p}:subjects`]) }}</template
-                >
+                > -->
             </b-table>
             <b-pagination
                 v-model="currentPage"
@@ -181,14 +181,14 @@ export default Vue.component("GeneFinderTable", {
                         },
                         sortable: true,
                     },
-                    {
-                        key: `${p}:nParam`,
-                        label: "Variants",
-                    },
-                    {
-                        key: `${p}:subjects`,
-                        label: "Samples",
-                    },
+                    // {
+                    //     key: `${p}:nParam`,
+                    //     label: "Variants",
+                    // },
+                    // {
+                    //     key: `${p}:subjects`,
+                    //     label: "Samples",
+                    // },
                 ]);
             }
 
@@ -224,8 +224,8 @@ export default Vue.component("GeneFinderTable", {
                 // add the phenotype columns
                 data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
                 data[dataIndex][`${r.phenotype}:zStat`] = r.zStat;
-                data[dataIndex][`${r.phenotype}:nParam`] = r.nParam;
-                data[dataIndex][`${r.phenotype}:subjects`] = r.subjects;
+                // data[dataIndex][`${r.phenotype}:nParam`] = r.nParam;
+                // data[dataIndex][`${r.phenotype}:subjects`] = r.subjects;
 
                 // lowest p-value across all phenotypes
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
@@ -283,13 +283,13 @@ export default Vue.component("GeneFinderTable", {
             return `cell(${phenotype}:pValue)`;
         },
 
-        phenotypeVariantsColumn(phenotype) {
-            return `cell(${phenotype}:nParam)`;
-        },
+        // phenotypeVariantsColumn(phenotype) {
+        //     return `cell(${phenotype}:nParam)`;
+        // },
 
-        phenotypeSubjectsColumn(phenotype) {
-            return `cell(${phenotype}:subjects)`;
-        },
+        // phenotypeSubjectsColumn(phenotype) {
+        //     return `cell(${phenotype}:subjects)`;
+        // },
 
         chiSquared(row) {
             let X = 0.0;
