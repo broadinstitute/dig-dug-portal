@@ -32,8 +32,6 @@ import Alert, {
     postAlertError,
     closeAlert,
 } from "@/components/Alert";
-import { concat } from "lodash";
-import { get } from "jquery";
 
 new Vue({
     store,
@@ -61,6 +59,13 @@ new Vue({
             { id: "variantOrRegion", name: "variantOrRegion" },
         ],
         stats: [],
+        statsKeys: [
+            { icon: "phenotypes", label: "Phenotypes" },
+            { icon: "genetic_datasets", label: "Genetic datasets" },
+            { icon: "genomic_datasets", label: "Genomic datasets" },
+            { icon: "bioinfomatics_methods", label: "Bioinformatic methods" },
+            { icon: "curated_datasets", label: "Curated datasets" },
+        ],
     },
 
     computed: {
@@ -307,14 +312,19 @@ new Vue({
         },
         pageStats() {
             if (this.diseaseGroup) {
-                console.log("inside");
                 return this.stats.find(
                     (s) => s["Portal ID"] == this.diseaseGroup.name
                 );
             } else {
-                console.log("outside");
                 return {};
             }
+        },
+        statsArray() {
+            return this.statsKeys.map((stat) => ({
+                ...stat,
+                value: this.pageStats[stat.label],
+                display: this.capitalize(stat.label),
+            }));
         },
     },
 
@@ -362,6 +372,11 @@ new Vue({
                 this.stats = data;
                 console.log(this.stats);
             }
+        },
+        capitalize(str) {
+            return str.replace(/\b\w/g, function (char) {
+                return char.toUpperCase();
+            });
         },
     },
 

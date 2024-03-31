@@ -208,96 +208,25 @@
                         </template>
                         <!-- end -->
 
+                        <!-- portal stats -->
                         <div id="stats">
                             <div class="stats">
-                                <div class="stat">
+                                <div
+                                    v-for="(stat, index) in $parent.statsArray"
+                                    :key="index"
+                                    class="stat"
+                                >
                                     <div class="icon">
                                         <img
-                                            src="/images/icons/stats/phenotypes.svg"
+                                            :src="`/images/icons/stats/${stat.icon}.svg`"
                                         />
                                     </div>
                                     <div class="info">
                                         <div class="count">
-                                            {{
-                                                $parent.pageStats["Phenotypes"]
-                                            }}
-                                        </div>
-                                        <div class="label">Phenotypes</div>
-                                    </div>
-                                </div>
-                                <div class="stat">
-                                    <div class="icon">
-                                        <img
-                                            src="/images/icons/stats/genetic_datasets.svg"
-                                        />
-                                    </div>
-                                    <div class="info">
-                                        <div class="count">
-                                            {{
-                                                $parent.pageStats[
-                                                    "Genetic datasets"
-                                                ]
-                                            }}
+                                            {{ stat.value }}
                                         </div>
                                         <div class="label">
-                                            Genetic Datasets
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="stat">
-                                    <div class="icon">
-                                        <img
-                                            src="/images/icons/stats/genomic_datasets.svg"
-                                        />
-                                    </div>
-                                    <div class="info">
-                                        <div class="count">
-                                            {{
-                                                $parent.pageStats[
-                                                    "Genomic datasets"
-                                                ]
-                                            }}
-                                        </div>
-                                        <div class="label">
-                                            Genomic Datasets
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="stat">
-                                    <div class="icon">
-                                        <img
-                                            src="/images/icons/stats/bioinfomatics_methods.svg"
-                                        />
-                                    </div>
-                                    <div class="info">
-                                        <div class="count">
-                                            {{
-                                                $parent.pageStats[
-                                                    "Bioinformatic methods"
-                                                ]
-                                            }}
-                                        </div>
-                                        <div class="label">
-                                            Bioinfomatic Methods
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="stat">
-                                    <div class="icon">
-                                        <img
-                                            src="/images/icons/stats/curated_datasets.svg"
-                                        />
-                                    </div>
-                                    <div class="info">
-                                        <div class="count">
-                                            {{
-                                                $parent.pageStats[
-                                                    "Curated datasets"
-                                                ]
-                                            }}
-                                        </div>
-                                        <div class="label">
-                                            Curated Datasets
+                                            {{ stat.display }}
                                         </div>
                                     </div>
                                 </div>
