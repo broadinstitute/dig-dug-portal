@@ -309,7 +309,13 @@
 
             <div class="container static-content-section">
                 <div class="row">
-                    <div class="col-md-8">
+                    <div
+                        :class="
+                            $parent.diseaseGroup.name == 'a2f'
+                                ? 'col-md-8'
+                                : 'col-md-7'
+                        "
+                    >
                         <!-- A2FKP only static content -->
                         <div
                             v-if="
@@ -343,7 +349,13 @@
                             v-html="$parent.frontContents.field_about_portal"
                         ></div>
                     </div>
-                    <div class="col-md-4">
+                    <div
+                        :class="
+                            $parent.diseaseGroup.name == 'a2f'
+                                ? 'col-md-4'
+                                : 'col-md-5'
+                        "
+                    >
                         <div
                             v-html="$parent.frontContents.field_about_project"
                         ></div>
