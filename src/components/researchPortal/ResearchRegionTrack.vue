@@ -1,24 +1,23 @@
 <template>
-    <div>
-        <div id="region_track_wrapper" class="region-track-wrapper">
+    <div id="region_track_wrapper" class="region-track-wrapper">
             
-            <div :id="'block_data_' + sectionId" class="block-data hidden">
-                <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
-                    <b-icon icon="x-circle-fill"></b-icon>
-                </div>
-                <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
+        <div :id="'block_data_' + sectionId" class="block-data hidden">
+            <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
+                <b-icon icon="x-circle-fill"></b-icon>
             </div>
-            <div>
-                <span v-for="cKey,index in colorGroups" :key="cKey" class="color-groups" @mouseover="renderPlot(cKey)" @mouseleave="renderPlot()">
-                    <span class="box" :style="'background-color:' + colors.bold[index % 16]"></span><span class="label" v-html="cKey"></span>
-                </span>
-            </div>
-            <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-                @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
-                width="" height="">
-            </canvas>
+            <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
         </div>
+        <div>
+            <span v-for="cKey,index in colorGroups" :key="cKey" class="color-groups" @mouseover="renderPlot(cKey)" @mouseleave="renderPlot()">
+                <span class="box" :style="'background-color:' + colors.bold[index % 16]"></span><span class="label" v-html="cKey"></span>
+            </span>
+        </div>
+        <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
+            @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
+            width="" height="">
+        </canvas>
     </div>
+    
 </template>
 
 <script>
@@ -65,6 +64,8 @@ export default Vue.component("research-region-track", {
 
             let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
 
+            
+
             let plotMargin = !!customPlotMargin ? {
                 left: customPlotMargin.left,
                 right: customPlotMargin.right,
@@ -79,6 +80,8 @@ export default Vue.component("research-region-track", {
                     bottom: this.plotMargin.bottomMargin,
                     bump: this.plotMargin.bump,
                 };
+
+            console.log('region track', plotMargin);
 
             return plotMargin;
         },

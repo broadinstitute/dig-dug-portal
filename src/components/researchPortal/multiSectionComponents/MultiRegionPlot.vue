@@ -172,6 +172,8 @@ export default Vue.component("multi-region-plot", {
 
 			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
 
+			
+
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
 				right: customPlotMargin.right,
@@ -187,7 +189,8 @@ export default Vue.component("multi-region-plot", {
 					bump: this.plotMargin.bump,
 				};
 
-			//console.log("region plot", plotMargin);
+			console.log('region plot', plotMargin);
+
 			return plotMargin;
 		},
 		staredVariants() {
