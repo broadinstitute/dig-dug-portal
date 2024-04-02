@@ -215,11 +215,11 @@ a:hover {
 }
 
 .front-logo-tagline-agingkp {
-    transform: translate(0%, 25%);
+    transform: translate(0%, 70%);
 }
 
 .front-logo-tagline-kidneykp {
-    transform: translate(0%, 25%);
+    transform: translate(0%, 75%);
 }
 
 .front-logo-tagline-autoimmunekp {
@@ -2220,7 +2220,7 @@ span.volcano-score-2 {
 }
 
 .kp-tabs-contents {
-    margin: auto;
+    /*margin: auto;*/
     background-color: #fff;
     padding: 1.25em;
     border-radius: 5px;

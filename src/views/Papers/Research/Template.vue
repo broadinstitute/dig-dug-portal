@@ -1,3 +1,4 @@
+
 <template>
 	<div id="app">
 		<!-- KP Header -->
@@ -77,10 +78,19 @@
 											class="btn btn-primary"
 											@click="$parent.fetchDevPage()"
 										>
-											Load page
+											Load page 
 										</button>
 									</div>
 								</div>
+							</div>
+							<div class="row">
+								<label class="col">
+									<input 
+										type="checkbox" 
+										v-model="$parent.devCK"
+									>
+									Remember me for 2 weeks.
+								</label>
 							</div>
 						</div>
 					</div>
@@ -88,9 +98,17 @@
 			</div>
 		</div>
 
+		<research-front-page 
+			v-if="$parent.researchPage !== null && $parent.sectionConfigs['is front page']"
+			:sectionConfigs="$parent.sectionConfigs"
+			:pageDescription="$parent.pageDescription"
+			:utilsBox="$parent.utilsBox">
+		</research-front-page>
+		
+
 		<div
-			class="container-fluid mdkp-body"
-			v-if="$parent.researchPage != null"
+			class="container-fluid mdkp-body flex-body"
+			v-if="$parent.researchPage !== null && !$parent.sectionConfigs['is front page']"
 		>
 			<div class="card mdkp-card dataset-page-header">
 				<div class="row card-body">
@@ -127,7 +145,7 @@
 								</tr>
 							</thead>
 							<tbody>
-	<tr v-for="data  in $store.state.capturedData">
+								<tr v-for="data  in $store.state.capturedData">
 		
 								<td v-html="data.title"></td>
 								<td>
@@ -581,16 +599,25 @@
 								>
 							</research-multi-sections-search>
 							<template v-if="!!$parent.sectionConfigs['tab groups']">
-								<template v-for="group, groupIndex in $parent.sectionConfigs['tab groups']">
+								<div v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" style="position:relative">
+									
+									<button class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
+										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
+										$parent.utilsBox.uiUtils.showHideSvg('tabContentGroup' + groupIndex);
+										$parent.utilsBox.uiUtils.addRemoveClass('tabsOpener' + groupIndex,'closed');" title="Show / hide section">
+										<span :id="'groupLabel'+ + groupIndex">{{ "Show/hide "+group.label+"  " }}</span><b-icon
+											icon="eye-slash-fill"></b-icon></button>
 									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
-										<div v-for="tab, tabIndex in group" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
+										<div v-for="tab, tabIndex in group.sections" :id="'tabUi'+tab.section" class="tab-ui-tab" :class="tabIndex == 0?'active':''"
 											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
-												'tabContent' + tab.section,'tabContentGroup' + groupIndex)">
-											{{ tab.label }}
+												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
+											{{ tab.label }} <span class="flag"><b-icon
+												icon="cloud-download-fill"></b-icon></span>
 										</div>
+										
 									</div>
-									<div :id="'tabContentGroup'+groupIndex">
-										<template v-for="tab, tabIndex in group">
+									<div :id="'tabContentGroup'+groupIndex" class="tab-content-group">
+										<template v-for="tab, tabIndex in group.sections">
 											<div v-for="config, index in $parent.sectionConfigs.sections" 
 												v-if="config['section id'] == tab.section"
 												:id="'tabContent' + tab.section"
@@ -598,6 +625,7 @@
 												:class="(tabIndex == 0)?'':'hidden-content'"
 												>
 												<research-section
+													v-if="!config['is summary section']"
 													:sectionIndex="'section-' + index"
 													:uId="$parent.uid"
 													:sectionConfig="config"
@@ -610,34 +638,39 @@
 													:plotLegend="$parent.multiPlotLegends"
 													:tableLegend="$parent.multiTableLegends"
 													:utils="$parent.utilsBox"
-													:key="index">
+													:key="index"
+													:starItems="$parent.starItems"
+													:regionZoom="$parent.regionZoom"
+													:regionViewArea="$parent.regionViewArea"
+													:isInTab="true"
+													@on-star="$parent.starColumn"
+													@on-sectionData="$parent.onSectionsData"
+													@on-zoom="$parent.setZoom">
 												</research-section>
+												<research-sections-summary
+													v-if="!!config['is summary section']"
+													:sectionIndex="'section-' + index"
+													:uId="$parent.uid"
+													:key="index"
+													:sectionsConfig="config"
+													:sectionsData="$parent.sectionsData"
+													:utils="$parent.utilsBox"
+													:starItems="$parent.starItems"
+													:regionZoom="$parent.regionZoom"
+													:regionViewArea="$parent.regionViewArea"
+													:isInTab="true"
+													@on-star="$parent.starColumn"
+													@on-zoom="$parent.setZoom">
+												</research-sections-summary>
 										</div>
 										</template>
 									</div>
-								</template>
-								<template v-for="config, index in $parent.sectionConfigs.sections">
-									<research-section
-										v-if="$parent.isInTabGroups(config['section id']) == false"
-										:sectionIndex="'section-' + index"
-										:uId="$parent.uid"
-										:sectionConfig="config"
-										:description="!!$parent.sectionDescriptions ?
-											$parent.sectionDescriptions[config['section id']] : ''"
-										:phenotypeMap="$parent.phenotypeMap"
-										:phenotypesInUse="$parent.phenotypesInSession"
-										:colors="$parent.colors"
-										:plotMargin="$parent.plotMargin"
-										:plotLegend="$parent.plotLegend"
-										:tableLegend="$parent.tableLegend"
-										:utils="$parent.utilsBox"
-										:key="index">
-									</research-section>	
-								</template>
+								</div>
 							</template>
-							<template v-else>
+							
+							<template v-for="config, index in $parent.sectionConfigs.sections">
 								<research-section
-									v-for="config, index in $parent.sectionConfigs.sections"
+									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:sectionConfig="config"
@@ -650,11 +683,32 @@
 									:plotLegend="$parent.plotLegend"
 									:tableLegend="$parent.tableLegend"
 									:utils="$parent.utilsBox"
-									:key="index">
+									:key="index"
+									:starItems="$parent.starItems"
+									:regionZoom="$parent.regionZoom"
+									:regionViewArea="$parent.regionViewArea"
+									@on-star="$parent.starColumn"
+									@on-sectionData="$parent.onSectionsData"
+									@on-zoom="$parent.setZoom">
 								</research-section>	
+								<research-sections-summary
+									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
+									:sectionIndex="'section-' + index"
+									:uId="$parent.uid"
+									:key="index"
+									:sectionsConfig="config"
+									:sectionsData="$parent.sectionsData"
+									:utils="$parent.utilsBox"
+									:starItems="$parent.starItems"
+									:regionZoom="$parent.regionZoom"
+									:regionViewArea="$parent.regionViewArea"
+									@on-star="$parent.starColumn"
+									@on-zoom="$parent.setZoom"
+									>
+								</research-sections-summary>
 							</template>
 							
-	            		</div>
+						</div>
 					</div>
 				</div>
 
@@ -721,9 +775,34 @@
 html {
 	font-size: 14px !important;
 }
+html, body, #app {
+    min-height: 100vh;
+    position: relative;
+}
+#app {
+    display:flex;
+	flex-direction: column;
+}
+.flex-body{
+    flex: 1 1 auto;
+    display:flex;
+    flex-direction: column;
+	padding-bottom: 40px;
+}
 .card.hidden {
 	display: none !important;
 }
+
+.show-tabs-btn {
+ font-size: 14px !important;
+ color: #55AAEE;
+}
+
+.show-tabs-btn.closed {
+ font-size: 14px !important;
+ color: #ee5555;
+}
+
 .no-data-warning {
 	background-color: #ffaaaa;
 	position: fixed;
@@ -852,13 +931,14 @@ html {
 	margin-right: 20px;
 }
 
-.research-data-table td.multi-value-td span {
+.research-data-table td.multi-value-td > span {
 	height: 27px !important;
 }
 
 .tab-ui-wrapper {
+	position: relative;
 	border-bottom: solid 1px #ddd;
-    margin: 25px 0;
+    margin: 5px 0 10px 0;
     padding: 0 25px;
 }
 
@@ -881,5 +961,32 @@ html {
 .tab-ui-wrapper .tab-ui-tab.active {
 	border-bottom: solid 1px #fff;
 	background-color: #fff;
+}
+
+.tab-ui-wrapper .tab-ui-tab > .flag {
+ 	display: none;
+}
+
+.tab-ui-wrapper .tab-ui-tab.loading > .flag {
+ 	display: inline-block;
+	color:#05bd02;
+}
+
+.tab-ui-wrapper.hidden-svg {
+	visibility: hidden !important;
+	height: 10px !important;
+	overflow:hidden;
+	margin-bottom: 20px;
+}
+
+.tab-content-group.hidden-svg {
+	visibility: hidden !important;
+	height: 1px !important;
+	overflow:hidden;
+}
+
+.tab-content-wrapper.hidden-content {
+	visibility: hidden !important;
+	height: 1px !important;
 }
 </style>

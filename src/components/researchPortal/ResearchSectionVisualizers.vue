@@ -17,8 +17,8 @@
 			v-if="plotConfig != null && plotConfig['type'] == 'manhattan bitmap plot'"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
-			:dataComparisonConfig="null"
-			:compareGroupColors="null"
+			:dataComparisonConfig="dataComparisonConfig"
+			:compareGroupColors="colors.moderate"
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-m-bitmap-plot>
@@ -62,36 +62,84 @@
 			:sectionId="sectionId"
 		></research-m-qq-plot>
 		<!-- region_plot -->
-		<research-region-plot
-			v-if="!!plotConfig && plotConfig['type'] == 'region plot'"
+		<multi-region-plot
+			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!region"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
-			:searchParameters="null"
-			:dataComparisonConfig="null"
-			:region="utils.keyParams.region"
+			:searchParameters="searchParameters"
+			:dataComparisonConfig="dataComparisonConfig"
+			:region="region"
 			:plotMargin="plotMargin"
 			:compareGroupColors="colors.moderate"
-			:regionZoom="0"
-			:regionViewArea="null"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
 			:pkgData="null"
 			:pkgDataSelected="null"
 			:isSectionPage="true"
 			:sectionId="sectionId"
 			:utils="utils"
-		></research-region-plot>
+			:starItems="starItems"
+			@on-star="starColumn"
+		></multi-region-plot>
+		
+		<!-- general track -->
+		<research-region-track
+			v-if="!!plotConfig && plotConfig['type'] == 'region track' && !!region"
+			:sectionId="sectionId"
+			:plotConfig="plotConfig"
+			:plotData="plotData"
+			:dataComparisonConfig="dataComparisonConfig"
+			:region="region"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
+			:colors="colors"
+			:utils="utils"
+			:plotMargin="plotMargin"
+			:starItems="starItems"
+		></research-region-track>
+		<!-- general dots track -->
+		<research-region-dots-track
+			v-if="!!plotConfig && plotConfig['type'] == 'region dots track' && !!region"
+			:sectionId="sectionId"
+			:plotConfig="plotConfig"
+			:plotData="plotData"
+			:dataComparisonConfig="dataComparisonConfig"
+			:region="region"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
+			:colors="colors"
+			:utils="utils"
+			:plotMargin="plotMargin"
+			:starItems="starItems"
+		></research-region-dots-track>
 		<!-- genes track -->
-		<research-genes-track
-			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!plotConfig['genes track']"
-			:region="utils.keyParams.region"
+		<multi-genes-track
+			v-if="!!plotConfig && (plotConfig['type'] == 'region plot' || plotConfig['type'] == 'region track' || plotConfig['type'] == 'region dots track') && !!plotConfig['genes track'] && !!region"
+			:region="region"
 			:genesData="null"
 			:plotConfig="plotConfig"
 			:plotType="plotConfig['type']"
 			:plotMargin="plotMargin"
-			:regionZoom="0"
-			:regionViewArea="null"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
 			:utils="utils"
 			:sectionId="sectionId"
-		></research-genes-track>
+			:starItems="starItems"
+		></multi-genes-track>
+		<!-- scatter plot -->
+		<research-scatter-plot
+			v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
+			:plotData="plotData"
+			:renderConfig="plotConfig"
+			:searchParameters="searchParameters"
+			:dataComparisonConfig="dataComparisonConfig"
+			:plotMargin="plotMargin"
+			:compareGroupColors="colors.moderate"
+			:isSectionPage="true"
+			:sectionId="sectionId"
+			:utils="utils"
+		></research-scatter-plot>
+		
 	</div>
 </template>
 
@@ -101,28 +149,35 @@ import $ from "jquery";
 
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import ResearchMQQPlot from "@/components/researchPortal/ResearchMQQPlot.vue";
-import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
+import ResearchRegionPlot from "@/components/researchPortal/multiSectionComponents/MultiRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
-import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
-import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
+import ResearchGenesTrack from "@/components/researchPortal/multiSectionComponents/MultiGenesTrack.vue";
+//import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
-import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
+import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
+import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
+import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 
 export default Vue.component("research-section-visualizers", {
-	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors","sectionId","utils"],
+	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region"],
 	components: {
 		ResearchAnnotationsPlot,
+		ResearchScatterPlot,
 		ResearchMPlotBitmap,
 		ResearchMQQPlot,
 		ResearchRegionPlot,
 		ResearchScorePlot,
 		ResearchGenesTrack,
-		ResearchMPlot,
+		//ResearchMPlot,
 		ResearchVolcanoPlot,
 		ResearchHeatmap,
-		ResearchPheWAS
+		ResearchPheWAS,
+		ResearchRegionTrack,
+		ResearchRegionDotsTrack
     },
 	data() {
 		return {
@@ -133,17 +188,32 @@ export default Vue.component("research-section-visualizers", {
 	mounted: function () {
 	},
 	computed: {
-		
+		groupedPlotData() {
+			if(!!this.plotData){
+				let grouped = {};
+				this.plotData.map(d=>{
+					grouped[this.dataComparisonConfig["key field"]] = d;
+				});
+				return grouped;
+			}  else {
+				return null
+			}
+			
+		}
 	},
 	watch: {
-		
 	},
 	methods: {
-		
+		starColumn(ARRAY) {
+			this.$emit('on-star', ARRAY);
+		},
 	},
 });
 
 $(function () {});
 </script>
 <style>
+canvas {
+	border: solid 1px #fff;
+}
 </style>
