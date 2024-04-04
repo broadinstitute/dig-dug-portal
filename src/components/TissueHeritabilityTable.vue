@@ -60,6 +60,11 @@
                             :current-page="r.item.currentPage"
                         >
                         </b-table>
+                        <b-pagination
+                            v-model="r.item.currentPage"
+                            :total-rows="getSubTableData(r.item).length"
+                            :per-page="perPage">
+                        </b-pagination>
                     </div>
                 </div>
             </template>
