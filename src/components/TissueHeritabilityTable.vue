@@ -172,7 +172,7 @@ export default Vue.component("TissueHeritabilityTable", {
             let queryString = `${this.toSpace(this.tissue)},${this.ancestry}`;
             if (this.tissue && !this.tableData[queryString]) {
                 query("partitioned-heritability-top-tissue", queryString, {
-                    limit: 1000,
+                    limit: 1000, limitWhile: (r) => r.pValue <= 1e-5,
                 }).then((data) => {
                     Vue.set(
                         this.tableData,
