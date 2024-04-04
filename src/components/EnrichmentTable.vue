@@ -14,9 +14,11 @@
                 :items="tableData"
                 :fields="fields"
                 :sort-by="sortBy"
-                :sort-desc="false"
                 :per-page="perPage"
                 :current-page="currentPage"
+                :sort-null-last="true"
+                :sortable="true"
+                :no-sort-reset="true"
             >
                 <template #thead-top="data">
                     <b-th colspan="3">
@@ -35,7 +37,11 @@
                     </b-th>
                 </template>
                 <template #cell(tissue)="r">
-                    <a :href="`/tissue.html?tissue=${toSnakeFormatter(r.item.tissue)}`">
+                    <a
+                        :href="`/tissue.html?tissue=${toSnakeFormatter(
+                            r.item.tissue
+                        )}`"
+                    >
                         {{ tissueFormatter(r.item.tissue) }}
                     </a>
                 </template>
@@ -211,7 +217,7 @@ export default Vue.component("EnrichmentTable", {
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
-        toSnakeFormatter: Formatters.toSnakeFormatter
-    }
+        toSnakeFormatter: Formatters.toSnakeFormatter,
+    },
 });
 </script>
