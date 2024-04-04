@@ -160,7 +160,7 @@ export default Vue.component("TissueHeritabilityTable", {
     computed: {
         totalRows() {
             return (
-                this.tableData[`${this.tissue},${this.ancestry}`]?.length || 0
+                this.tableData[`${this.tissue.replaceAll('_', ' ')},${this.ancestry}`]?.length || 0
             );
         },
     },
