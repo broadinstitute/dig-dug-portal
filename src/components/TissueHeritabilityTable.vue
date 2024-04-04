@@ -30,7 +30,7 @@
         <b-table
             small
             responsive="sm"
-            :items="tableData[`${tissue.replaceAll('_', ' ')},${ancestry}`]"
+            :items="tableData[`${toSpace(tissue)},${ancestry}`]"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -131,11 +131,8 @@ export default Vue.component("TissueHeritabilityTable", {
                     label: "Biosample",
                     formatter: (value) =>
                         !value
-                            ? `All biosamples (${this.tissue.replaceAll(
-                                  "_",
-                                  " "
-                              )})`
-                            : value.replaceAll("_", " "),
+                            ? `All biosamples (${this.toSpace(this.tissue)})`
+                            : this.toSpace(value),
                     tdClass: (value) => (!value ? "all_biosamples" : ""),
                     sortable: true,
                 },
@@ -160,7 +157,7 @@ export default Vue.component("TissueHeritabilityTable", {
     computed: {
         totalRows() {
             return (
-                this.tableData[`${this.tissue.replaceAll('_', ' ')},${this.ancestry}`]?.length || 0
+                this.tableData[`${this.toSpace(this.tissue)},${this.ancestry}`]?.length || 0
             );
         },
     },
@@ -172,9 +169,7 @@ export default Vue.component("TissueHeritabilityTable", {
         phenotypeFormatter: Formatters.phenotypeFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         queryHeritability() {
-            let queryString = `${this.tissue.replaceAll("_", " ")},${
-                this.ancestry
-            }`;
+            let queryString = `${this.toSpace(this.tissue)},${this.ancestry}`;
             if (this.tissue && !this.tableData[queryString]) {
                 query("partitioned-heritability-top-tissue", queryString, {
                     limit: 1000,
@@ -189,8 +184,7 @@ export default Vue.component("TissueHeritabilityTable", {
         },
         async queryPartitionedHeritability(item) {
             let queryString = `${item.phenotype},${this.ancestry},${
-                item.annotation
-            },${this.tissue.replaceAll("_", " ")}`;
+                item.annotation},${this.toSpace(this.tissue)}`;
             if (!this.subTableData[queryString]) {
                 let data = await query(
                     "partitioned-heritability-tissue",
@@ -207,9 +201,12 @@ export default Vue.component("TissueHeritabilityTable", {
         getSubTableData(item) {
             let query = `${item.phenotype},${this.ancestry},${
                 item.annotation
-            },${this.tissue.replaceAll("_", " ")}`;
+            },${this.toSpace(this.tissue)}`;
             return this.subTableData[query];
         },
+        toSpace(phrase){
+            return phrase.replaceAll("_", " ");
+        }
     },
     watch: {
         "$store.state.selectedAncestry"(ancestry) {
