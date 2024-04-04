@@ -134,6 +134,7 @@ export default Vue.component("EnrichmentTable", {
                                 ? "variant-table-cell high"
                                 : "";
                         },
+                        sortable: true
                     },
                 ]);
             }

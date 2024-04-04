@@ -101,7 +101,7 @@ export default new Vuex.Store({
                     ancestryAssocQuery
                 );
             }
-            context.dispatch("annotations/query", query);
+            context.dispatch("annotations/query", {... query, limitWhile: (r) => r.pValue <= 1e-5,});
             context.dispatch("genes/query", geneQuery);
             context.dispatch("genes52k/query", gene52kQuery);
             context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
