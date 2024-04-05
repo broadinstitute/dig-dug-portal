@@ -5,7 +5,7 @@
 
 import querystring from "query-string";
 import cookie from "cookie";
-//import Vue from "vue";
+import Vue from "vue";
 
 // set cookie for authenticated requests
 let session_cookie = undefined;
@@ -40,7 +40,7 @@ export function apiUrl(path, query_private = false) {
 export function rawUrl(path, query_params, query_private=false) {
     let qs = querystring.stringify(query_params, { skipNull: true });
     let rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`
-    console.log("rawUrl function:"+rawURL+"|"+query_private+"|"+Date.now());
+    console.log("rawUrl function:"+rawURL+"|"+query_private+"|"+Date.now()+"|"+Vue.prototype.$useremail);
     return rawURL;
 }
 
