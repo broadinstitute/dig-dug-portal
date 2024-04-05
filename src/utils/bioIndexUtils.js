@@ -5,6 +5,7 @@
 
 import querystring from "query-string";
 import cookie from "cookie";
+//import Vue from "vue";
 
 // set cookie for authenticated requests
 let session_cookie = undefined;
@@ -21,7 +22,6 @@ export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 /* Returns the path for any BioIndex API end-point.
  */
 export function apiUrl(path, query_private = false) {
-    //console.log("apiURL call");
     if (path.startsWith("/")) {
         path = path.substr(1);
     }
@@ -39,8 +39,9 @@ export function apiUrl(path, query_private = false) {
  */
 export function rawUrl(path, query_params, query_private=false) {
     let qs = querystring.stringify(query_params, { skipNull: true });
-
-    return `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`;
+    let rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`
+    console.log("rawUrl function:"+rawURL+"|"+query_private+"|"+Date.now());
+    return rawURL;
 }
 
 /* Build a generic request to a BioIndex end-point.
