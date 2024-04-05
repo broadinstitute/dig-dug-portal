@@ -4,7 +4,7 @@
         ref="tissueOptionsSelect"
         placeholder="Add a tissue..."
         :data="tissueOptions"
-        :serializer="(r) => capitalizedFormatter(r.tissue)"
+        :serializer="(r) => capitalizedFormatter(r)"
         :showOnFocus="true"
         :minMatchingChars="0"
         :maxMatches="1000"
@@ -60,7 +60,7 @@ export default Vue.component("tissue-selectpicker", {
                 }
             }).then(json => {
                 if (!!json){
-                    let tissues = json.keys.flat().map(t => {return {tissue: t};});
+                    let tissues = json.keys.flat();
                     console.log(JSON.stringify(tissues));
                     this.tissueBox = tissues;
                 } else {
@@ -71,8 +71,8 @@ export default Vue.component("tissue-selectpicker", {
     computed: {
         tissueOptions() {
             return this.tissueBox.sort((a, b) => {
-                if (a.tissue < b.tissue) return -1;
-                if (b.tissue < a.tissue) return 1;
+                if (a < b) return -1;
+                if (b < a) return 1;
                 return 0;
             });
         }

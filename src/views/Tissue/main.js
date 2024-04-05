@@ -33,6 +33,11 @@ new Vue({
             tissue: keyParams.tissue || "",
         };
     },
+    methods: {
+        storeNewTissue(newTissue){
+            console.log(newTissue);
+        },
+    },
     computed: {
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;

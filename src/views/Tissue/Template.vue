@@ -22,7 +22,9 @@
                             <!-- Wrap page level searchs with "pageSearchParameters" div -->
                             <div class="col filter-col-md">
                                 <div class="label">Tissue</div>
-                                <tissue-selectpicker></tissue-selectpicker>
+                                <tissue-selectpicker
+                                    @tissue="newTissue => $parent.storeNewTissue(newTissue)">
+                                </tissue-selectpicker>
                             </div>
                             <div class="col filter-col-md">
                                 <div class="label">Search</div>
