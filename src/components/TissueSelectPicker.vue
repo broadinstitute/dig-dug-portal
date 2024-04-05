@@ -33,8 +33,7 @@ export default Vue.component("tissue-selectpicker", {
     props: {
         tissues: {
             type: Array,
-            //required: true
-            default: () => []
+            required: false
         },
         clearOnSelected: {
             type: Boolean,
@@ -47,11 +46,12 @@ export default Vue.component("tissue-selectpicker", {
     },
     data() {
         return {
-            userText: this.defaultSet || null
+            userText: this.defaultSet || null,
+            tissueBox : !!this.tissues? this.tissues : []
         };
     },
     mounted: async function(){
-        if (this.tissues.length > 0){ return;}
+        if (!!this.tissues){ return;}
         let url = "api/bio/keys/partitioned-heritability-top-tissue/2";
         request(url, {columns: 'tissue'})
             .then(resp => {
@@ -60,8 +60,9 @@ export default Vue.component("tissue-selectpicker", {
                 }
             }).then(json => {
                 if (!!json){
-                    let tissues = json.keys.flat();
+                    let tissues = json.keys.flat().map(t => {return {tissue: t};});
                     console.log(JSON.stringify(tissues));
+                    this.tissueBox = tissues;
                 } else {
                     console.error("Tissues not available.");
                 }
@@ -69,7 +70,7 @@ export default Vue.component("tissue-selectpicker", {
     },
     computed: {
         tissueOptions() {
-            return this.tissues.sort((a, b) => {
+            return this.tissueBox.sort((a, b) => {
                 if (a.tissue < b.tissue) return -1;
                 if (b.tissue < a.tissue) return 1;
                 return 0;
