@@ -68,8 +68,8 @@ export const SignOut = async function() {
 }*/;
 
 export const CheckSignInStatus = async function(){  
-  await msalInstance.handleRedirectPromise();
-  const accounts = msalInstance.getAllAccounts();
+  //await msalInstance.handleRedirectPromise();
+  //const accounts = msalInstance.getAllAccounts();
   //alert(accounts.length);
   /*if(accounts.length === 0){
       SignIn();
