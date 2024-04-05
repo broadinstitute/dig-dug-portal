@@ -82,6 +82,7 @@ export default Vue.component("tissue-selectpicker", {
 
         onTissueSelect(event) {
             this.$emit("tissue", event);
+            this.$store.dispatch("onTissueChange", event);
 
             if (this.clearOnSelected) {
                 this.userText = "";

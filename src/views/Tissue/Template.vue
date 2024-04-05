@@ -22,8 +22,7 @@
                             <!-- Wrap page level searchs with "pageSearchParameters" div -->
                             <div class="col filter-col-md">
                                 <div class="label">Tissue</div>
-                                <tissue-selectpicker
-                                    @tissue="newTissue => $parent.storeNewTissue(newTissue)">
+                                <tissue-selectpicker>
                                 </tissue-selectpicker>
                             </div>
                             <div class="col filter-col-md">
@@ -32,7 +31,7 @@
                                     id="regionSearchGo"
                                     class="btn btn-light btn-sm go"
                                     type="button"
-                                    @click="$store.dispatch('queryTissue')"
+                                    @click="$store.dispatch('getTissue')"
                                 >
                                     GO
                                 </button>
