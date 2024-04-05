@@ -18,6 +18,24 @@
             <div class="container-fluid mdkp-body">
                 <div class="card mdkp-card">
                     <div class="card-body temporary-card">
+                        <search-header-wrapper>
+                            <!-- Wrap page level searchs with "pageSearchParameters" div -->
+                            <div class="col filter-col-md">
+                                <div class="label">Tissue</div>
+                                <tissue-selectpicker></tissue-selectpicker>
+                            </div>
+                            <div class="col filter-col-md">
+                                <div class="label">Search</div>
+                                <button
+                                    id="regionSearchGo"
+                                    class="btn btn-light btn-sm go"
+                                    type="button"
+                                    @click="$store.dispatch('queryTissue')"
+                                >
+                                    GO
+                                </button>
+                            </div>
+                        </search-header-wrapper>
                         <documentation
                             name="tissue.explore.subheader"
                             :content-fill="$parent.documentationMap"

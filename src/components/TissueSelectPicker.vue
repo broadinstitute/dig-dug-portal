@@ -22,6 +22,7 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Formatters from "@/utils/formatters";
+import { request } from "@/utils/bioIndexUtils";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
@@ -32,7 +33,8 @@ export default Vue.component("tissue-selectpicker", {
     props: {
         tissues: {
             type: Array,
-            required: true
+            //required: true
+            default: () => []
         },
         clearOnSelected: {
             type: Boolean,
@@ -47,6 +49,16 @@ export default Vue.component("tissue-selectpicker", {
         return {
             userText: this.defaultSet || null
         };
+    },
+    mounted: async function(){
+        if (this.tissues.length > 0){ return;}
+        let url = "api/bio/keys/partitioned-heritability-top-tissue/2";
+        request(url, {columns: 'tissue'})
+            .then(resp => {
+                console.log(resp.status);
+            }).then(blob => {
+                console.log(JSON.stringify(blob));
+            });
     },
     computed: {
         tissueOptions() {

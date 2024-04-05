@@ -10,6 +10,8 @@ import TissueExpressionDisplay from "@/components/TissueExpressionDisplay.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import { pageMixin } from "@/mixins/pageMixin";
 new Vue({
     store,
@@ -22,6 +24,8 @@ new Vue({
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
+        SearchHeaderWrapper,
+        TissueSelectPicker
     },
     mixins: [pageMixin],
     data() {
