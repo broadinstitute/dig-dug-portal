@@ -55,9 +55,16 @@ export default Vue.component("tissue-selectpicker", {
         let url = "api/bio/keys/partitioned-heritability-top-tissue/2";
         request(url, {columns: 'tissue'})
             .then(resp => {
-                console.log(resp.status);
-            }).then(blob => {
-                console.log(JSON.stringify(blob));
+                if (resp.status === 200){
+                    return resp.json();
+                }
+            }).then(json => {
+                if (!!json){
+                    let tissues = json.keys.flat();
+                    console.log(JSON.stringify(tissues));
+                } else {
+                    console.error("Tissues not available.");
+                }
             });
     },
     computed: {
