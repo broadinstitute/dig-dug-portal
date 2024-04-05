@@ -27,10 +27,10 @@ export function apiUrl(path, query_private = false) {
     }
 
     if (query_private) {
-        console.log("query_private:", query_private, path);
+        //console.log("query_private:", query_private, path);
         return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
     } else {
-        console.log("query_private is false:", query_private, path);
+        //console.log("query_private is false:", query_private, path);
         return `${BIO_INDEX_HOST}/${path}`;
     }
 }
@@ -40,7 +40,7 @@ export function apiUrl(path, query_private = false) {
 export function rawUrl(path, query_params, query_private=false) {
     let qs = querystring.stringify(query_params, { skipNull: true });
 
-    return `${apiUrl(path,query_private)}${qs ? "?" + qs : ""}`;
+    return `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`;
 }
 
 /* Build a generic request to a BioIndex end-point.
@@ -56,7 +56,7 @@ export async function request(path, query_params, query_private=false) {
 /* Perform a BioIndex query.
  */
 export async function query(index, q, opts = {}, query_private=false) {
-    console.log("query function:"+index+"|"+query_private);
+    //console.log("query function:"+index+"|"+query_private);
     let { limit, onResolve, onError, onLoad, limitWhile} = opts;
     let req = request(`/api/bio/query/${index}`, { q, limit }, query_private);
 
@@ -92,7 +92,7 @@ function limitRecordsWhile(json, limitWhile) {
 
 /* Follow continuations and continue reading all data.
  */
-async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
+async function processRequest(req, onResolve, onError, onLoad, limitWhile, query_private=false) {
     let resp = await req;
     let json = await resp.json();
     let data = [];
@@ -112,7 +112,7 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
 
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
-            let req = request(`/api/bio/cont`, { token: json.continuation });
+            let req = request(`/api/bio/cont`, { token: json.continuation }, query_private);
 
             // follow the continuation
             resp = await req;
