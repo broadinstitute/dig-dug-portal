@@ -33,33 +33,36 @@ export default Vue.component("tissue-selectpicker", {
     props: {
         tissues: {
             type: Array,
-            required: false
+            required: false,
         },
         clearOnSelected: {
             type: Boolean,
-            required: false
+            required: false,
         },
         defaultSet: {
             type: String,
-            required: false
-        }
+            required: false,
+        },
     },
     data() {
         return {
             userText: this.defaultSet || null,
-            tissueBox : !!this.tissues? this.tissues : []
+            tissueBox: !!this.tissues ? this.tissues : [],
         };
     },
-    mounted: async function(){
-        if (!!this.tissues){ return;}
+    mounted: async function () {
+        if (!!this.tissues) {
+            return;
+        }
         let url = "api/bio/keys/partitioned-heritability-top-tissue/2";
-        request(url, {columns: 'tissue'})
-            .then(resp => {
-                if (resp.status === 200){
+        request(url, { columns: "tissue" })
+            .then((resp) => {
+                if (resp.status === 200) {
                     return resp.json();
                 }
-            }).then(json => {
-                if (!!json){
+            })
+            .then((json) => {
+                if (!!json) {
                     let tissues = json.keys.flat();
                     console.log(JSON.stringify(tissues));
                     this.tissueBox = tissues;
@@ -75,14 +78,13 @@ export default Vue.component("tissue-selectpicker", {
                 if (b < a) return 1;
                 return 0;
             });
-        }
+        },
     },
     methods: {
         ...Formatters,
 
         onTissueSelect(event) {
             this.$emit("tissue", event);
-            this.$store.dispatch("onTissueChange", event);
 
             if (this.clearOnSelected) {
                 this.userText = "";
@@ -93,7 +95,7 @@ export default Vue.component("tissue-selectpicker", {
             this.$nextTick(() => {
                 this.$refs.tissueOptions.$refs.input.focus();
             });
-        }
-    }
+        },
+    },
 });
 </script>
