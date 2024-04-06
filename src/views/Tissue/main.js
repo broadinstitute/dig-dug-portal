@@ -25,17 +25,23 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
         SearchHeaderWrapper,
-        TissueSelectPicker
+        TissueSelectPicker,
     },
     mixins: [pageMixin],
     data() {
         return {
             tissue: keyParams.tissue || "",
+            selectTissue: "",
         };
     },
     methods: {
-        storeNewTissue(newTissue){
-            console.log(newTissue);
+        newTissue(tissue) {
+            this.selectTissue = tissue;
+        },
+        updateTissueData() {
+            this.tissue = this.selectTissue;
+            this.$store.commit("setTissueName", this.tissue);
+            this.$store.dispatch("getTissue");
         },
     },
     computed: {
@@ -78,5 +84,6 @@ new Vue({
             this.$store.dispatch("getTissue");
         }
     },
+
     render: (h) => h(Template),
 }).$mount("#app");

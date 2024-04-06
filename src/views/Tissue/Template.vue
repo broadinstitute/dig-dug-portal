@@ -22,7 +22,9 @@
                             <!-- Wrap page level searchs with "pageSearchParameters" div -->
                             <div class="col filter-col-md">
                                 <div class="label">Tissue</div>
-                                <tissue-selectpicker>
+                                <tissue-selectpicker
+                                    @tissue="$parent.newTissue"
+                                >
                                 </tissue-selectpicker>
                             </div>
                             <div class="col filter-col-md">
@@ -31,7 +33,7 @@
                                     id="regionSearchGo"
                                     class="btn btn-light btn-sm go"
                                     type="button"
-                                    @click="$store.dispatch('getTissue')"
+                                    @click="$parent.updateTissueData"
                                 >
                                     GO
                                 </button>
@@ -85,7 +87,7 @@
     margin-bottom: 10px !important;
 }
 
-.row li.page-item .page-link  {
+.row li.page-item .page-link {
     width: 30px !important;
     height: 30px !important;
     min-width: 30px !important;
