@@ -320,6 +320,9 @@
     </div>
 </template>
 <style>
+p[id="home.example"] {
+    white-space: break-spaces;
+}
 .a2f-front-logo-wrapper {
     margin-left: auto;
     margin-right: auto;
