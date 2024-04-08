@@ -1126,7 +1126,6 @@ div.search-example {
 }
 
 .gene-with-signal {
-    cursor: pointer;
     display: inline-block;
     margin: 0px 10px 10px 0;
     padding: 2px 20px;
@@ -1134,14 +1133,21 @@ div.search-example {
     -moz-border-radius: 3px;
     border-radius: 3px;
     font-size: 13px;
+    color: #007bff;
+}
+
+.gene-with-signal > a {
+    text-decoration: none;
 }
 
 .gene-with-signal.protein_coding {
+    cursor: pointer;
     background-color: #a0d7ff;
     border: solid 1px #30b7f6;
 }
 
 .gene-with-signal.antisense {
+    cursor: pointer;
     background-color: #b7eab7;
     border: solid 1px #72ce49;
 }

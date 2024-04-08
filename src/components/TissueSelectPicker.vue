@@ -4,7 +4,7 @@
         ref="tissueOptionsSelect"
         placeholder="Add a tissue..."
         :data="tissueOptions"
-        :serializer="(r) => capitalizedFormatter(r.tissue)"
+        :serializer="(r) => capitalizedFormatter(r)"
         :showOnFocus="true"
         :minMatchingChars="0"
         :maxMatches="1000"
@@ -22,6 +22,7 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Formatters from "@/utils/formatters";
+import { request } from "@/utils/bioIndexUtils";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
@@ -32,30 +33,52 @@ export default Vue.component("tissue-selectpicker", {
     props: {
         tissues: {
             type: Array,
-            required: true
+            required: false,
         },
         clearOnSelected: {
             type: Boolean,
-            required: false
+            required: false,
         },
         defaultSet: {
             type: String,
-            required: false
-        }
+            required: false,
+        },
     },
     data() {
         return {
-            userText: this.defaultSet || null
+            userText: this.defaultSet || null,
+            tissueBox: !!this.tissues ? this.tissues : [],
         };
+    },
+    mounted: async function () {
+        if (!!this.tissues) {
+            return;
+        }
+        let url = "api/bio/keys/partitioned-heritability-top-tissue/2";
+        request(url, { columns: "tissue" })
+            .then((resp) => {
+                if (resp.status === 200) {
+                    return resp.json();
+                }
+            })
+            .then((json) => {
+                if (!!json) {
+                    let tissues = json.keys.flat();
+                    console.log(JSON.stringify(tissues));
+                    this.tissueBox = tissues;
+                } else {
+                    console.error("Tissues not available.");
+                }
+            });
     },
     computed: {
         tissueOptions() {
-            return this.tissues.sort((a, b) => {
-                if (a.tissue < b.tissue) return -1;
-                if (b.tissue < a.tissue) return 1;
+            return this.tissueBox.sort((a, b) => {
+                if (a < b) return -1;
+                if (b < a) return 1;
                 return 0;
             });
-        }
+        },
     },
     methods: {
         ...Formatters,
@@ -72,7 +95,7 @@ export default Vue.component("tissue-selectpicker", {
             this.$nextTick(() => {
                 this.$refs.tissueOptions.$refs.input.focus();
             });
-        }
-    }
+        },
+    },
 });
 </script>
