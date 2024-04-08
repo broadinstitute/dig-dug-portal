@@ -308,7 +308,7 @@
                 </select>
                 <b-btn
                     v-if="!!config && !!config[dataset]['convert_2_csv']"
-                    class="btn-sm"
+                    class="convert-2-csv btn-sm"
                     @click="
                         convertJson2Csv(filteredData, dataset + '_filtered')
                     "
