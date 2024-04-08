@@ -128,7 +128,7 @@
                             <div class="col-md-12 portal-front-tabs">
                                 <b-tabs content-class="mt-3" align="center">
                                     <b-tab
-                                        title="Gene, region, variant or phenotype"
+                                        title="Gene, region, variant, phenotype or tissue"
                                         active
                                     >
                                         <div
@@ -423,6 +423,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: 40px;
 }
 .stats {
     display: flex;
