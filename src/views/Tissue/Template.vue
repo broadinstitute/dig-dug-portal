@@ -16,8 +16,30 @@
         </div>
         <template v-else>
             <div class="container-fluid mdkp-body">
+                <search-header-wrapper>
+                    <!-- Wrap page level searchs with "pageSearchParameters" div -->
+                    <div class="col filter-col-md">
+                        <div class="label">Tissue</div>
+                        <tissue-selectpicker
+                            @tissue="$parent.newTissue"
+                        >
+                        </tissue-selectpicker>
+                    </div>
+                    <div class="col filter-col-md">
+                        <div class="label">Search</div>
+                        <button
+                            id="regionSearchGo"
+                            class="btn btn-light btn-sm go"
+                            type="button"
+                            @click="$parent.updateTissueData"
+                        >
+                            GO
+                        </button>
+                    </div>
+                </search-header-wrapper>
                 <div class="card mdkp-card">
                     <div class="card-body temporary-card">
+                        
                         <documentation
                             name="tissue.explore.subheader"
                             :content-fill="$parent.documentationMap"
@@ -66,7 +88,7 @@
     margin-bottom: 10px !important;
 }
 
-.row li.page-item .page-link  {
+.row li.page-item .page-link {
     width: 30px !important;
     height: 30px !important;
     min-width: 30px !important;

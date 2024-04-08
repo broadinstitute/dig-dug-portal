@@ -92,6 +92,7 @@ export default Vue.component("ResearchExpressionFilter", {
 		...uiUtils,
 		tissueFormatter: Formatters.tissueFormatter,
 		toSnakeFormatter: Formatters.toSnakeFormatter,
+		snakeFormatter: Formatters.snakeFormatter,
 		applyFilter() {
 			this.processData();
 		},
@@ -153,7 +154,10 @@ export default Vue.component("ResearchExpressionFilter", {
 				});
 			}
 			for (let item of processedData){
-				item.keyField = this.toSnakeFormatter(item[this.keyField]);
+				// Round-trip formatting is essential to prevent any discrepancies on the plot.
+				item.keyField = this.keyField === "tissue"
+					? this.snakeFormatter(this.toSnakeFormatter(item.tissue))
+					: item[this.keyField];
 				item.tpmsToUse = this.logScale ? 
 					item.tpmForAllSamples.map(tpm => Math.log10(tpm + 1)) : 
 					item.tpmForAllSamples;

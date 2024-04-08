@@ -30,7 +30,7 @@
         <b-table
             small
             responsive="sm"
-            :items="tableData[`${tissue.replaceAll('_', ' ')},${ancestry}`]"
+            :items="tableData[`${toSpace(tissue)},${ancestry}`]"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -60,6 +60,12 @@
                             :current-page="r.item.currentPage"
                         >
                         </b-table>
+                        <b-pagination
+                            v-model="r.item.currentPage"
+                            :total-rows="getSubTableData(r.item).length"
+                            :per-page="perPage"
+                        >
+                        </b-pagination>
                     </div>
                 </div>
             </template>
@@ -126,11 +132,8 @@ export default Vue.component("TissueHeritabilityTable", {
                     label: "Biosample",
                     formatter: (value) =>
                         !value
-                            ? `All biosamples (${this.tissue.replaceAll(
-                                  "_",
-                                  " "
-                              )})`
-                            : value.replaceAll("_", " "),
+                            ? `All biosamples (${this.toSpace(this.tissue)})`
+                            : this.toSpace(value),
                     tdClass: (value) => (!value ? "all_biosamples" : ""),
                     sortable: true,
                 },
@@ -155,24 +158,33 @@ export default Vue.component("TissueHeritabilityTable", {
     computed: {
         totalRows() {
             return (
-                this.tableData[`${this.tissue},${this.ancestry}`]?.length || 0
+                this.tableData[`${this.toSpace(this.tissue)},${this.ancestry}`]
+                    ?.length || 0
             );
         },
     },
-    mounted() {
-        this.queryHeritability();
+    watch: {
+        "$store.state.selectedAncestry"(ancestry) {
+            this.ancestry = ancestry === "" ? "Mixed" : ancestry;
+            this.queryHeritability();
+        },
+        tissue: {
+            immediate: true,
+            handler() {
+                this.queryHeritability();
+            },
+        },
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         queryHeritability() {
-            let queryString = `${this.tissue.replaceAll("_", " ")},${
-                this.ancestry
-            }`;
+            let queryString = `${this.toSpace(this.tissue)},${this.ancestry}`;
             if (this.tissue && !this.tableData[queryString]) {
                 query("partitioned-heritability-top-tissue", queryString, {
                     limit: 1000,
+                    limitWhile: (r) => r.pValue <= 1e-5,
                 }).then((data) => {
                     Vue.set(
                         this.tableData,
@@ -185,7 +197,7 @@ export default Vue.component("TissueHeritabilityTable", {
         async queryPartitionedHeritability(item) {
             let queryString = `${item.phenotype},${this.ancestry},${
                 item.annotation
-            },${this.tissue.replaceAll("_", " ")}`;
+            },${this.toSpace(this.tissue)}`;
             if (!this.subTableData[queryString]) {
                 let data = await query(
                     "partitioned-heritability-tissue",
@@ -202,14 +214,11 @@ export default Vue.component("TissueHeritabilityTable", {
         getSubTableData(item) {
             let query = `${item.phenotype},${this.ancestry},${
                 item.annotation
-            },${this.tissue.replaceAll("_", " ")}`;
+            },${this.toSpace(this.tissue)}`;
             return this.subTableData[query];
         },
-    },
-    watch: {
-        "$store.state.selectedAncestry"(ancestry) {
-            this.ancestry = ancestry === "" ? "Mixed" : ancestry;
-            this.queryHeritability();
+        toSpace(phrase) {
+            return phrase.replaceAll("_", " ");
         },
     },
 });

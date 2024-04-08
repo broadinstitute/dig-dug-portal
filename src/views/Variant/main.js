@@ -127,7 +127,9 @@ new Vue({
             return data;
         },
         variantData() {
-            return this.$store.state.variantData.data;
+            return this.$store.state.variantData?.data?.length
+                ? this.$store.state.variantData.data[0]
+                : {};
         },
         varId() {
             return this.$store.state.pageVariant &&

@@ -43,10 +43,13 @@
       
     },
     methods: {
+      snakeFormatter: Formatters.snakeFormatter,
       toSnakeFormatter: Formatters.toSnakeFormatter,
       tissueFormatter: Formatters.tissueFormatter,
       datasetRowClass(d){
-        let parentRow = this.toSnakeFormatter(d[this.plotByField]);
+        let parentRow = this.plotByField === "tissue" 
+          ? this.toSnakeFormatter(d.tissue)
+          : d[this.plotByField];
         let biosample = this.toSnakeFormatter(d.biosample);
         return `misc-class dataset--${parentRow}--${d.dataset}--${biosample}`;
       },
@@ -59,8 +62,11 @@
         classesString.split(' ').forEach(c => {
           if (c.startsWith("dataset--")){
             let details = c.split("--");
+            let violinString = this.plotByField === "tissue"
+              ? this.snakeFormatter(details[1])
+              : details[1];
             let detailsObject = { 
-              violin: details[1], 
+              violin: violinString, 
               dataset: details[2],
               biosample: details[3]
             };

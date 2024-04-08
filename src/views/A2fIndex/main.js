@@ -9,10 +9,6 @@ import PageFooter from "@/components/PageFooter.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import NewsFeedSection from "@/components/frontPage/NewsFeedSection.vue";
-import AboutPortalSection from "@/components/frontPage/AboutPortalSection.vue";
-import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue";
-import UnderDatasetsSection from "@/components/frontPage/UnderDatasetsSection.vue";
-import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 import DiseaseSystems from "@/components/DiseaseSystems.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -34,20 +30,11 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
-import { concat } from "lodash";
 
 new Vue({
     store,
-
-    data: {
-        selected: '',
-        searches: [
-            { id: 'gene', name: 'gene' },
-            { id: 'variantOrRegion', name: 'variantOrRegion' },
-        ],
-    },
 
     components: {
         PageHeader,
@@ -56,43 +43,32 @@ new Vue({
         PhenotypeSelectPicker,
         DatasetSelectPicker,
         NewsFeedSection,
-        AboutPortalSection,
-        AboutProjectSection,
-        DatasetsSection,
-        UnderDatasetsSection,
         DiseaseGroupSelect,
         TooltipDocumentation,
         Documentation,
         Autocomplete,
         ResearchSingleSearch,
         ResearchPageDescription,
-        DiseaseSystems
+        DiseaseSystems,
     },
 
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        showHideElement(ID) {
-            uiUtils.showHideElement(ID);
-        }
+    data: {
+        selected: "",
+        searches: [
+            { id: "gene", name: "gene" },
+            { id: "variantOrRegion", name: "variantOrRegion" },
+        ],
+        stats: [],
+        statsKeys: [
+            { icon: "phenotypes", label: "Phenotypes" },
+            { icon: "genetic_datasets", label: "Genetic datasets" },
+            { icon: "genomic_datasets", label: "Genomic datasets" },
+            { icon: "bioinfomatics_methods", label: "Bioinformatic methods" },
+            { icon: "curated_datasets", label: "Curated datasets" },
+        ],
     },
 
     computed: {
-
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -102,8 +78,8 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
-                regionUtils: regionUtils
-            }
+                regionUtils: regionUtils,
+            };
             return utils;
         },
 
@@ -163,107 +139,112 @@ new Vue({
         },
         phenotypesByName() {
             if (!this.phenotypes) {
-                return null
+                return null;
             }
 
-            let content = {}
+            let content = {};
 
-            this.phenotypes.map(p => {
+            this.phenotypes.map((p) => {
                 content[p.name] = p;
-            })
+            });
 
             return content;
-
         },
         datasetsDescription() {
             let datasets = this.$store.state.bioPortal.datasets;
-            let diseases = this.$store.state.bioPortal
-                .diseaseSystems
+            let diseases = this.$store.state.bioPortal.diseaseSystems;
 
             //first get datasets by phenotype groups
-            if (datasets.length > 0 && !!this.phenotypesByName && diseases.length > 0) {
+            if (
+                datasets.length > 0 &&
+                !!this.phenotypesByName &&
+                diseases.length > 0
+            ) {
+                let pGroups = {};
 
-                let pGroups = {}
-
-                this.$store.state.bioPortal.phenotypes.map(p => {
+                this.$store.state.bioPortal.phenotypes.map((p) => {
                     if (!pGroups[p.group]) {
                         pGroups[p.group] = { phenotypes: [], datasets: [] };
                     }
-                    pGroups[p.group].phenotypes.push(p.name)
-                })
+                    pGroups[p.group].phenotypes.push(p.name);
+                });
 
-                datasets.map(d => {
-
-                    d.phenotypes.map(dp => {
+                datasets.map((d) => {
+                    d.phenotypes.map((dp) => {
                         for (const [key, data] of Object.entries(pGroups)) {
                             if (!!data.phenotypes.includes(dp)) {
-                                data.datasets.push(d.name)
+                                data.datasets.push(d.name);
                             }
                         }
-                    })
-                })
+                    });
+                });
 
                 let diseaseSystems = [
                     ...new Set(diseases.map((d) => d.system)),
                 ].sort();
 
-                let dGroups = {}
+                let dGroups = {};
 
-                diseaseSystems.map(ds => {
+                diseaseSystems.map((ds) => {
                     dGroups[ds] = { phenotypes: [], datasets: [] };
-                })
+                });
 
-                diseases.map(d => {
+                diseases.map((d) => {
                     if (!dGroups[d.system].phenotypes.includes(d.group)) {
                         dGroups[d.system].phenotypes.push(d.group);
                     }
-                })
-
-
+                });
 
                 //then get dataset numbers by disease systems X phenotype groups
 
-                Object.keys(dGroups).map(dg => {
-                    dGroups[dg].phenotypes.map(p => {
-
+                Object.keys(dGroups).map((dg) => {
+                    dGroups[dg].phenotypes.map((p) => {
                         if (!!pGroups[p]) {
-                            let tempDatasetsArr = [].concat(dGroups[dg].datasets, pGroups[p].datasets);
-                            dGroups[dg].datasets = [... new Set(tempDatasetsArr)];
+                            let tempDatasetsArr = [].concat(
+                                dGroups[dg].datasets,
+                                pGroups[p].datasets
+                            );
+                            dGroups[dg].datasets = [
+                                ...new Set(tempDatasetsArr),
+                            ];
                         }
-
-                    })
-                })
-
+                    });
+                });
 
                 let filteredDGroups = {};
 
-                Object.keys(dGroups).map(dg => {
+                Object.keys(dGroups).map((dg) => {
                     if (dGroups[dg].datasets.length > 0) {
                         filteredDGroups[dg] = dGroups[dg];
                     }
-                })
+                });
 
                 //then create diagram content by disease groups
 
                 let dataContent = "";
-
 
                 let dGroupKeys = Object.keys(filteredDGroups).sort();
                 let dcountLength = dGroupKeys.length - 1;
 
                 let kIndex = 0;
 
-                dGroupKeys.map(k => {
-                    dataContent += '"' + k.replaceAll(" system", "").replaceAll(" & ", " / ") + '":' + filteredDGroups[k].datasets.length;
-                    dataContent += (kIndex < dcountLength) ? ',' : '';
+                dGroupKeys.map((k) => {
+                    dataContent +=
+                        '"' +
+                        k.replaceAll(" system", "").replaceAll(" & ", " / ") +
+                        '":' +
+                        filteredDGroups[k].datasets.length;
+                    dataContent += kIndex < dcountLength ? "," : "";
 
                     kIndex++;
-                })
+                });
 
-                let content = '<div class="plot">{"type":"bar","data": { ' + dataContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":100}</div>';
+                let content =
+                    '<div class="plot">{"type":"bar","data": { ' +
+                    dataContent +
+                    ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":100}</div>';
 
                 return content;
-
             } else {
                 return null;
             }
@@ -272,34 +253,34 @@ new Vue({
             let phenotypes = this.$store.state.bioPortal.phenotypes;
 
             if (phenotypes.length > 0) {
-
                 ///create phenotypes plot content
 
-                let groupLabel = [...new Set(phenotypes.map(p => p.group))].sort();
-                let group = phenotypes.map(g => g.group);
-                let groupCount = {}
+                let groupLabel = [
+                    ...new Set(phenotypes.map((p) => p.group)),
+                ].sort();
+                let group = phenotypes.map((g) => g.group);
+                let groupCount = {};
 
-
-
-                groupLabel.map(l => {
-                    let tempCount = group.filter(t => t == l);
+                groupLabel.map((l) => {
+                    let tempCount = group.filter((t) => t == l);
                     groupCount[l] = tempCount.length;
-
-                })
+                });
 
                 let groupContent = "";
                 let gCountLength = Object.keys(groupCount).length - 1;
 
                 let gIndex = 0;
-                Object.keys(groupCount).map(g => {
+                Object.keys(groupCount).map((g) => {
                     groupContent += '"' + g + '":' + groupCount[g];
 
-                    groupContent += (gIndex < gCountLength) ? ',' : '';
+                    groupContent += gIndex < gCountLength ? "," : "";
                     gIndex++;
-                })
+                });
 
-
-                let content = '<div class="plot">{"type":"bar","data": { ' + groupContent + ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":175}</div>';
+                let content =
+                    '<div class="plot">{"type":"bar","data": { ' +
+                    groupContent +
+                    ' },"width": 400,"height": 150,"color": "multi","x label angle":65,"label space":175}</div>';
 
                 return content;
             } else {
@@ -308,25 +289,43 @@ new Vue({
         },
 
         pageDescription() {
-            if (this.phenotypesDescription != null && this.datasetsDescription != null) {
-
+            if (
+                this.phenotypesDescription != null &&
+                this.datasetsDescription != null
+            ) {
                 let datasets = this.$store.state.bioPortal.datasets;
                 let phenotypes = this.$store.state.bioPortal.phenotypes;
 
                 let content = "<h5>Datasets by organ system</h5>";
-                content += "<span>Total: " + datasets.length + " datasets</span>";
+                content +=
+                    "<span>Total: " + datasets.length + " datasets</span>";
                 content += this.datasetsDescription;
                 content += "<h5>Phenotypes by group</h5>";
-                content += "<span>Total: " + phenotypes.length + " phenotypes</span>";
+                content +=
+                    "<span>Total: " + phenotypes.length + " phenotypes</span>";
                 content += this.phenotypesDescription;
 
                 return content;
-
             } else {
                 return null;
             }
-
-        }
+        },
+        pageStats() {
+            if (this.diseaseGroup) {
+                return this.stats.find(
+                    (s) => s["Portal ID"] == this.diseaseGroup.name
+                );
+            } else {
+                return {};
+            }
+        },
+        statsArray() {
+            return this.statsKeys.map((stat) => ({
+                ...stat,
+                value: this.pageStats[stat.label],
+                display: this.capitalize(stat.label),
+            }));
+        },
     },
 
     watch: {
@@ -337,8 +336,51 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getNewsFeed", group.name);
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
+            // this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
             this.$store.dispatch("kp4cd/getPortals");
         },
-    }
+    },
+
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.getStats();
+    },
+
+    methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+        showHideElement(ID) {
+            uiUtils.showHideElement(ID);
+        },
+        async getStats() {
+            let dataPoint =
+                "https://hugeampkpncms.org/rest/directcsv?id=Portal_stats_501";
+
+            let contJson = await fetch(dataPoint).then((resp) => resp.json());
+
+            if (contJson.error == null) {
+                let data = dataConvert.csv2Json(
+                    contJson[0]["field_data_points"]
+                );
+                console.log(data);
+                this.stats = data;
+                console.log(this.stats);
+            }
+        },
+        capitalize(str) {
+            return str.replace(/\b\w/g, function (char) {
+                return char.toUpperCase();
+            });
+        },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
 }).$mount("#app");
