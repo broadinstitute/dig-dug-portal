@@ -239,7 +239,7 @@
                                         'phenotype map': 'kp phenotype map',
                                         'render by': 'phenotype',
                                         'y axis label': '-Log10(p-value)',
-                                        'x axis label': 'beta',
+                                        'x axis label': 'Phenotype',
                                         'beta field': 'beta',
                                         'hover content': ['pValue', 'beta'],
                                         thresholds: ['5e-8'],
