@@ -63,7 +63,8 @@
                         <b-pagination
                             v-model="r.item.currentPage"
                             :total-rows="getSubTableData(r.item).length"
-                            :per-page="perPage">
+                            :per-page="perPage"
+                        >
                         </b-pagination>
                     </div>
                 </div>
@@ -157,12 +158,22 @@ export default Vue.component("TissueHeritabilityTable", {
     computed: {
         totalRows() {
             return (
-                this.tableData[`${this.toSpace(this.tissue)},${this.ancestry}`]?.length || 0
+                this.tableData[`${this.toSpace(this.tissue)},${this.ancestry}`]
+                    ?.length || 0
             );
         },
     },
-    mounted() {
-        this.queryHeritability();
+    watch: {
+        "$store.state.selectedAncestry"(ancestry) {
+            this.ancestry = ancestry === "" ? "Mixed" : ancestry;
+            this.queryHeritability();
+        },
+        tissue: {
+            immediate: true,
+            handler() {
+                this.queryHeritability();
+            },
+        },
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -172,7 +183,8 @@ export default Vue.component("TissueHeritabilityTable", {
             let queryString = `${this.toSpace(this.tissue)},${this.ancestry}`;
             if (this.tissue && !this.tableData[queryString]) {
                 query("partitioned-heritability-top-tissue", queryString, {
-                    limit: 1000, limitWhile: (r) => r.pValue <= 1e-5,
+                    limit: 1000,
+                    limitWhile: (r) => r.pValue <= 1e-5,
                 }).then((data) => {
                     Vue.set(
                         this.tableData,
@@ -184,7 +196,8 @@ export default Vue.component("TissueHeritabilityTable", {
         },
         async queryPartitionedHeritability(item) {
             let queryString = `${item.phenotype},${this.ancestry},${
-                item.annotation},${this.toSpace(this.tissue)}`;
+                item.annotation
+            },${this.toSpace(this.tissue)}`;
             if (!this.subTableData[queryString]) {
                 let data = await query(
                     "partitioned-heritability-tissue",
@@ -204,14 +217,8 @@ export default Vue.component("TissueHeritabilityTable", {
             },${this.toSpace(this.tissue)}`;
             return this.subTableData[query];
         },
-        toSpace(phrase){
+        toSpace(phrase) {
             return phrase.replaceAll("_", " ");
-        }
-    },
-    watch: {
-        "$store.state.selectedAncestry"(ancestry) {
-            this.ancestry = ancestry === "" ? "Mixed" : ancestry;
-            this.queryHeritability();
         },
     },
 });

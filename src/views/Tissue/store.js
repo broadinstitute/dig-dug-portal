@@ -19,6 +19,7 @@ export default new Vuex.Store({
     },
     state: {
         tissueName: keyParams.tissue || "",
+        selectedTissue: "",
         geneExpressionTissue: [],
         selectedAncestry: ""
     },
@@ -31,6 +32,7 @@ export default new Vuex.Store({
     },
     actions: {
         getTissue(context) {
+            context.state.tissueName = context.state.selectedTissue || context.state.tissueName;
             context.dispatch("tissue/query", {
                 q: context.state.tissueName.replaceAll(" ", "_"),
             });
@@ -41,6 +43,11 @@ export default new Vuex.Store({
             });
             return evidence;
         },
+        onTissueChange(context, tissue){
+            tissue = tissue.replaceAll(" ", "_");
+            context.state.selectedTissue = tissue;
+            keyParams.set({ tissue: tissue });
+        }
     },
     getters: {
         tissueData(state) {
