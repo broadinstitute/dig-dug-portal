@@ -1133,6 +1133,7 @@ div.search-example {
     -moz-border-radius: 3px;
     border-radius: 3px;
     font-size: 13px;
+    color: #007bff;
 }
 
 .gene-with-signal > a {
