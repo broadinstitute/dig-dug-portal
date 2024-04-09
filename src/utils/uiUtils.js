@@ -199,10 +199,9 @@ let saveByorCsv = function (DATA, FILENAME) {
     let features = {};
     const downloadFilename = FILENAME || "download";
 
-    DATA.map(d => {
+    DATA.map((d) => {
         for (let [key, value] of Object.entries(d)) {
             if (key != "features") {
-
                 if (typeof value == "object" && !value.length) {
                     for (let [vKey, vValue] of Object.entries(value)) {
                         let headerKey = key + "__" + vKey;
@@ -217,87 +216,102 @@ let saveByorCsv = function (DATA, FILENAME) {
                 }
             } else {
                 for (let [fKey, fValue] of Object.entries(value)) {
-
                     if (!features[fKey]) {
                         features[fKey] = [];
                     }
 
                     for (let [fVKey, fVValue] of Object.entries(fValue[0])) {
-
                         if (!features[fKey].includes(fVKey)) {
-                            features[fKey].push(fVKey)
+                            features[fKey].push(fVKey);
                         }
                     }
                 }
             }
         }
-    })
+    });
 
     let csvData = [];
 
     if (Object.keys(features).length > 0) {
-        DATA.map(d => {
-
+        DATA.map((d) => {
             for (let [fKey, fValue] of Object.entries(features)) {
                 for (let i = 0; i < d.features[fKey].length; i++) {
                     let dArr = [];
 
-                    topRows.map(t => {
+                    topRows.map((t) => {
                         let path = t.split("__");
                         if (path.length == 2) {
-                            let cValue = d[path[0]][path[1]] !== null ? d[path[0]][path[1]] === 0 ? 0 : d[path[0]][path[1]] : "";
+                            let cValue =
+                                d[path[0]][path[1]] !== null
+                                    ? d[path[0]][path[1]] === 0
+                                        ? 0
+                                        : d[path[0]][path[1]]
+                                    : "";
                             dArr.push(cValue);
                         } else {
-                            let cValue = d[path[0]] !== null ? d[path[0]] === 0 ? 0 : d[path[0]] : "";
+                            let cValue =
+                                d[path[0]] !== null
+                                    ? d[path[0]] === 0
+                                        ? 0
+                                        : d[path[0]]
+                                    : "";
                             dArr.push(cValue);
                         }
-                    })
+                    });
 
                     for (let [fRKey, fRValue] of Object.entries(features)) {
                         if (fRKey == fKey) {
-                            features[fRKey].map(cKey => {
+                            features[fRKey].map((cKey) => {
                                 dArr.push(d.features[fRKey][i][cKey]);
-                            })
+                            });
                         } else {
-                            features[fRKey].map(cKey => {
-                                dArr.push("")
-                            })
+                            features[fRKey].map((cKey) => {
+                                dArr.push("");
+                            });
                         }
                     }
                     csvData.push(dArr);
                 }
             }
-        })
+        });
     } else if (Object.keys(features).length == 0) {
-        DATA.map(d => {
+        DATA.map((d) => {
             let dArr = [];
-            topRows.map(t => {
+            topRows.map((t) => {
                 let path = t.split("__");
                 if (path.length == 2) {
-                    let cValue = d[path[0]][path[1]] !== null ? d[path[0]][path[1]] === 0 ? 0 : d[path[0]][path[1]] : "";
+                    let cValue =
+                        d[path[0]][path[1]] !== null
+                            ? d[path[0]][path[1]] === 0
+                                ? 0
+                                : d[path[0]][path[1]]
+                            : "";
                     dArr.push(cValue);
                 } else {
-                    let cValue = d[path[0]] !== null ? d[path[0]] === 0 ? 0 : d[path[0]] : "";
+                    let cValue =
+                        d[path[0]] !== null
+                            ? d[path[0]] === 0
+                                ? 0
+                                : d[path[0]]
+                            : "";
                     dArr.push(cValue);
                 }
-            })
+            });
             csvData.push(dArr);
-        })
+        });
     }
 
     let header = topRows;
 
     for (let [fKey, fValue] of Object.entries(features)) {
-        fValue.map(fCKey => {
-            header.push('feature__' + fKey + '__' + fCKey);
-        })
+        fValue.map((fCKey) => {
+            header.push("feature__" + fKey + "__" + fCKey);
+        });
     }
 
     let csv = [
         header.join(","), // header row first
-        ...csvData.map((row) =>
-            row.join(",")
-        ),
+        ...csvData.map((row) => row.join(",")),
     ].join("\r\n");
 
     let downloadLink = document.createElement("a");
@@ -329,6 +343,30 @@ let convertJson2Csv = function (DATA, FILENAME) {
     let url = URL.createObjectURL(blob);
     downloadLink.href = url;
     downloadLink.download = downloadFilename + ".csv"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+};
+
+const convertJson2Tsv = function (DATA, FILENAME) {
+    const items = DATA;
+    const downloadFilename = FILENAME || "download";
+    const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
+    const header = Object.keys(items[0]);
+    const tsv = [
+        header.join("\t"), // header row first
+        ...items.map((row) =>
+            header
+                .map((fieldName) => JSON.stringify(row[fieldName], replacer))
+                .join("\t")
+        ),
+    ].join("\r\n");
+
+    let downloadLink = document.createElement("a");
+    let blob = new Blob(["\ufeff", tsv]);
+    let url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = downloadFilename + ".tsv"; //Name the file here
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -463,41 +501,65 @@ function checkIfNumeric(VALUE) {
     return ifNumber;
 }
 
-let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPPERID, IF_PLOT) {
-    // Set IF_PLOT parameter true if function calling tab is in Plots group 
+let setTabActive = function (
+    TARGETTAB,
+    UIWRAPPERID,
+    TARGETCONTENT,
+    CONTENTWRAPPERID,
+    IF_PLOT
+) {
+    // Set IF_PLOT parameter true if function calling tab is in Plots group
     let tabsWrapper = document.getElementById(UIWRAPPERID),
         tabsChildren = tabsWrapper.getElementsByClassName("tab-ui-tab");
     for (let i = 0; i < tabsChildren.length; i++) {
         let tab = tabsChildren[i];
         let classes = tab.getAttribute("class");
 
-        (classes.includes("loading")) ? tab.setAttribute("class", "tab-ui-tab loading") : tab.setAttribute("class", "tab-ui-tab");
+        classes.includes("loading")
+            ? tab.setAttribute("class", "tab-ui-tab loading")
+            : tab.setAttribute("class", "tab-ui-tab");
     }
 
-    document.getElementById(TARGETTAB).setAttribute("class", "tab-ui-tab active");
+    document
+        .getElementById(TARGETTAB)
+        .setAttribute("class", "tab-ui-tab active");
 
     let contentsWrapper = document.getElementById(CONTENTWRAPPERID),
-        contentsChildren = (!!IF_PLOT) ? contentsWrapper.getElementsByClassName("plot-tab-content-wrapper")
+        contentsChildren = !!IF_PLOT
+            ? contentsWrapper.getElementsByClassName("plot-tab-content-wrapper")
             : contentsWrapper.getElementsByClassName("tab-content-wrapper");
     for (let i = 0; i < contentsChildren.length; i++) {
         let tab = contentsChildren[i];
-        (!!IF_PLOT) ? tab.setAttribute("class", "plot-tab-content-wrapper hidden-content")
+        !!IF_PLOT
+            ? tab.setAttribute(
+                  "class",
+                  "plot-tab-content-wrapper hidden-content"
+              )
             : tab.setAttribute("class", "tab-content-wrapper hidden-content");
     }
 
-    (!!IF_PLOT) ? document.getElementById(TARGETCONTENT).setAttribute("class", "plot-tab-content-wrapper") :
-        document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
-}
+    !!IF_PLOT
+        ? document
+              .getElementById(TARGETCONTENT)
+              .setAttribute("class", "plot-tab-content-wrapper")
+        : document
+              .getElementById(TARGETCONTENT)
+              .setAttribute("class", "tab-content-wrapper");
+};
 
 let toggleFixedSummarySection = function (UIWRAPPERID) {
-    const tabsGroup = document.getElementById(UIWRAPPERID).closest('.tabgroup-fixed-bottom');
-    if (tabsGroup.classList.contains('open')) {
-        tabsGroup.classList.remove('open');
+    const tabsGroup = document
+        .getElementById(UIWRAPPERID)
+        .closest(".tabgroup-fixed-bottom");
+    if (tabsGroup.classList.contains("open")) {
+        tabsGroup.classList.remove("open");
     } else {
-        tabsGroup.classList.add('open');
-        tabsGroup.querySelector('.fixed-group-toggle').classList.remove('has-updates');
+        tabsGroup.classList.add("open");
+        tabsGroup
+            .querySelector(".fixed-group-toggle")
+            .classList.remove("has-updates");
     }
-}
+};
 
 let showHidePanel = function (PANEL) {
     console.log(PANEL);
@@ -507,7 +569,7 @@ let showHidePanel = function (PANEL) {
     } else {
         wrapper.classList.add("hidden");
     }
-}
+};
 
 export default {
     addRemoveClass,
@@ -524,6 +586,7 @@ export default {
     getToolTipPosition,
     onScroll,
     convertJson2Csv,
+    convertJson2Tsv,
     saveByorCsv,
     saveJson,
     getAxisTicks,
@@ -535,5 +598,5 @@ export default {
     checkIfNumeric,
     setTabActive,
     toggleFixedSummarySection,
-    showHidePanel
+    showHidePanel,
 };
