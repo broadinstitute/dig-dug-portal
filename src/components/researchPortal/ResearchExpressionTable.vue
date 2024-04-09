@@ -9,7 +9,6 @@
             :fields="tableConfig['top rows']"
             :per-page="perPage"
             :current-page="currentPage"
-            hover
         >
             <template #cell(tissue)="row">
                 <a
