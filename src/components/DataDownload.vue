@@ -3,6 +3,7 @@
         <b-dropdown-text>Save file as</b-dropdown-text>
         <b-dropdown-divider></b-dropdown-divider>
         <b-dropdown-item @click="downloadCsv()">CSV</b-dropdown-item>
+        <b-dropdown-item @click="downloadTsv()">TSV</b-dropdown-item>
         <b-dropdown-item @click="downloadJson()">JSON</b-dropdown-item>
     </b-dropdown>
 </template>
@@ -50,6 +51,9 @@ export default Vue.component("DataDownload", {
         },
         downloadJson() {
             uiUtils.saveJson(this.data, this.filename);
+        },
+        downloadTsv() {
+            uiUtils.convertJson2Tsv(this.data, this.filename);
         },
     },
 });
