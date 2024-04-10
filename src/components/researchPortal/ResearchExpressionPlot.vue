@@ -6,9 +6,9 @@
     <div v-if="!showPlot">
       <p>No datasets meet minimum sample count.</p>
     </div>
-    <button class="btn btn-primary btn-sm"
+    <button class="btn btn-primary btn-sm download-chart"
       @click="downloadChart()">
-        Download chart
+        Download plot (.svg)
     </button>
   </div>
 </template>
@@ -77,6 +77,7 @@
         this.svg = d3
           .select("#multi-chart")
           .append("svg")
+          .attr("class", "svg-chart")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .append("g")
@@ -281,7 +282,7 @@
           .on("mouseover", (d) => this.hoverViolin(d.key));
       },
       downloadChart(){
-        d3SaveSvg.save(d3.select('svg').node());
+        d3SaveSvg.save(d3.select('svg.svg-chart').node());
       },
       getBottomMargin(data) {
         let longestLabel = data
@@ -443,5 +444,9 @@ div {
 }
 .tooltip span {
 	display: block;
+}
+button.download-chart{
+  float: right;
+  margin-bottom: 25px;
 }
 </style>
