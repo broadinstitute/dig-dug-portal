@@ -348,6 +348,8 @@ export default Vue.component("multi-genes-track", {
 
 				geneTracksArray.map((genesArray, geneIndex) => {
 					genesArray.map(gene => {
+
+						console.log("gene", gene)
 						let yPos = this.adjPlotMargin.top + geneIndex * eachGeneTrackHeight;
 
 						var left = "\u{2190}";
@@ -374,7 +376,6 @@ export default Vue.component("multi-genes-track", {
 						ctx.stroke();
 
 						gene.exons.map((exon) => {
-							//console.log(gene.gene_name, ": ", exon.start, exon.end);
 
 							if (exon.start < xMax && exon.end > xMin) {
 								let xonStartPos =
