@@ -107,10 +107,10 @@
 							@change="setColorField($event)">
 							<option 
 								v-for="(option, index) in renderConfig['color by']" 
-								:value="option"
+								:value="typeof option === 'object' ? option['field'] : option"
 								:selected="renderConfig['color by'] === index"
 							>
-								{{ option }}
+								{{ typeof option === 'object' ? option['field'] : option }}
 							</option>
 						</select>
 
@@ -374,11 +374,17 @@ export default Vue.component("research-scatter-plot", {
 			//eg: colorsBy: { "Sex": ["male", "female"], "Field": [1, 2, 3], ... }
 			colorsBy = {};
 			this.renderConfig["color by"].forEach(colorBy => {
-				colorsBy = { ...colorsBy, [colorBy]:[] };
+				if(typeof colorBy === 'object'){
+					colorsBy = { ...colorsBy, [colorBy["field"]]:[] };
+				}else{
+					colorsBy = { ...colorsBy, [colorBy]:[] };
+				}
+				
 			})
 			this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
 			this.renderConfig["color highlight"] = null;
-
+			
+			//console.log('colorsBy', colorsBy);
 			//console.log('alex render config', this.renderConfig);
 
 			//use filtereredDATA here
@@ -455,15 +461,22 @@ export default Vue.component("research-scatter-plot", {
 						//create object of objects containing the fields and their values as requested in "color by"
 						//renderConfig["color by"]: [ "Sex", "Time of Day" ]
 						//   >    tempObj["color"]: { "Sex": ["male", "female"], "Time of Day": ["night", "day", "all day"], ...}
-						
+						//console.log('this.renderConfig["color by"]', this.renderConfig["color by"]);
 						this.renderConfig["color by"].forEach((colorBy, index) => {
-							tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
-	
-							if( !colorsBy[colorBy].includes( r[ this.renderConfig["color by"][index] ] ) ){
-								colorsBy[colorBy].push( r[ this.renderConfig["color by"][index] ] )
+							if(typeof colorBy === 'object'){
+								tempObj["color"] = { ...tempObj["color"], [colorBy["field"]]: r[ colorBy["field"] ] };
+								if( !colorsBy[colorBy["field"]].includes( r[ colorBy["field"] ] ) ){
+									colorsBy[colorBy["field"]].push( r[ colorBy["field"] ] )
+								}
+							}else{
+								tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
+								if( !colorsBy[colorBy].includes( r[ this.renderConfig["color by"][index] ] ) ){
+									colorsBy[colorBy].push( r[ this.renderConfig["color by"][index] ] )
+								}
 							}
 						});
 					}else{
+						//UNUSED?
 						this.renderConfig["color by"].forEach((colorBy, index) => {
 							tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ colorBy ] };
 	
@@ -482,22 +495,25 @@ export default Vue.component("research-scatter-plot", {
 				massagedData.push(tempObj);
 			});
 
-			//console.log('alex data mapped (used for visuals)', massagedData);
+			//console.log('alex render config', this.renderConfig);
+			//console.log('alex data mapped (tempObj)', massagedData);
 
 			//TODO: create gratient style legends for 'color by' fields
 			//should be settable in JSON config
+			//console.log('colorsBy', colorsBy)
 			if(colorsBy){
 				let cb = Object.keys(colorsBy);
+				//console.log('cb', cb);
 				cb.forEach(colorBy => {
-					if(colorsBy[colorBy].length > 10){
-						//console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
+					//console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
+					//if(colorsBy[colorBy].length > 10){
 						if(typeof colorsBy[colorBy][0] === 'number'){
 							const numbersOnly = colorsBy[colorBy].filter(value => typeof value === 'number');
 							numbersOnly.sort( (a, b) => a - b );
 							colorsBy[colorBy] = numbersOnly;
 							//console.log(`	it is numerical; make gradient`);
 						}
-					}
+					//}
 				})
 			}
 
@@ -505,14 +521,14 @@ export default Vue.component("research-scatter-plot", {
 			this.colorsList = colors.length > 0? colors.sort() : null;
 			this.multiList = multi.length > 0 ? multi : null;
 			this.colorByList = Object.keys(colorsBy).length > 0 ? colorsBy : null;
-
-			/*console.log('alex groups list', this.groupsList);
+			/*
+			console.log('alex groups list', this.groupsList);
 			console.log('alex colorsby list', this.colorByList );
 			console.log('alex colors list', this.colorsList);
 			console.log('alex multi', this.multiList);
 
-			console.log('\n- - - - - - - -\n\n')*/
-
+			console.log('\n- - - - - - - -\n\n')
+			*/
 			return massagedData;
 		}
 	},
@@ -529,6 +545,9 @@ export default Vue.component("research-scatter-plot", {
 			
 		},
 		renderIndividualPlot(DATA, ID, GROUP, MINMAX_VALUES) {
+			//TODO this function get called twice every time a new plot renders, investigate
+			//console.log('new plot renderConfig', this.renderConfig);
+
 			let xAxisData = [];
 			let yAxisData = [];
 
@@ -803,8 +822,9 @@ export default Vue.component("research-scatter-plot", {
 
 			this.colorByField = this.renderConfig["color field"] = e.target.value;
 			//TEMP
-			//TODO
-			if(this.renderConfig["color field"] === "Ambient Temp. (C)") {
+			//if(this.renderConfig["color field"] === "Ambient Temp. (C)" ||
+			//this.renderConfig["color field"] === "Duration (hrs)") {
+			if(!this.renderConfig["color by"].includes(this.renderConfig["color field"])){
 				this.colorByGradient = this.renderConfig["color field gradient"] = this.renderConfig["color field"];
 				this.gradientMinMax.max = this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1];
 				this.gradientMinMax.min = this.colorByList[ this.renderConfig["color field"] ][0];
