@@ -9,6 +9,12 @@
 								@click="utils.uiUtils.showHideElement('genesTrackWrapper' + sectionId)"
 							/><label> Hide track</label>
 						</li>
+						<li>
+							<input type="checkbox" class="chkbox"
+							:id="sectionId + 'GenesTrackAll'"
+							@click="checkAll()"
+							/><label> Show all biotypes</label>
+						</li>
 						<li v-for="geneType in localGeneTypes"
 							:key="geneType">
 							<input type="checkbox" class="chkbox"
@@ -194,6 +200,24 @@ export default Vue.component("multi-genes-track", {
 				this.renderTrack(this.genesData);
 			}
 			
+		},
+
+		checkAll() {
+
+			if(!!document.getElementById(this.sectionId + 'GenesTrackAll').checked) {
+				this.localGeneTypes.map(t => {
+					document.getElementById(this.sectionId + t).checked = true;
+				})
+			} else {
+				this.localGeneTypes.map(t => {
+					if(t != 'protein_coding') {
+						document.getElementById(this.sectionId + t).checked = false;
+					}
+					
+				})
+			}
+
+			this.renderTrack(this.localGenesData)
 		},
 
 		sortGenesByRegion(GENES) {
