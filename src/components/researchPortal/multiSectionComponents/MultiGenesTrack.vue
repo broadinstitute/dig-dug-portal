@@ -103,8 +103,6 @@ export default Vue.component("multi-genes-track", {
 			
 			let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
 
-			console.log('gene track', customPlotMargin);
-
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
 				right: customPlotMargin.right,
