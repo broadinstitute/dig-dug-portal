@@ -6,11 +6,16 @@
     <div v-if="!showPlot">
       <p>No datasets meet minimum sample count.</p>
     </div>
+    <button class="btn btn-primary btn-sm"
+      @click="downloadChart()">
+        Download chart
+    </button>
   </div>
 </template>
 <script>
   import Vue from "vue";
   import * as d3 from "d3";
+  import * as d3SaveSvg from "d3-save-svg";
   import colors from "@/utils/colors";
   import Formatters from "@/utils/formatters";
   export default Vue.component("ResearchExpressionPlot", {
@@ -275,6 +280,9 @@
           .style("width", 50)
           .on("mouseover", (d) => this.hoverViolin(d.key));
       },
+      downloadChart(){
+        d3SaveSvg.save(d3.select('svg').node());
+      },
       getBottomMargin(data) {
         let longestLabel = data
           .map((item) => item.keyField.length)
@@ -317,92 +325,92 @@
         this.flatData = flatBoth;
       },
       hoverViolin(violin){
-          this.svg.selectAll(".violin").style("opacity", 1);
-          let violinNumber = this.keyFieldList.indexOf(violin);
-          this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
-          this.svg.selectAll("circle").remove();
-          this.svg.selectAll("indPoints")
-            .data(this.flatData.filter((entry) => entry.keyField === violin))
-            .enter()
-            .append("circle")
-            .attr("class", (g) => g.dataset)
-            .attr("cx", (g) => {
-              let dx =
-                this.offset -
-                2 * this.dotBoxHalfWidth +
-                g.noise * this.dotBoxHalfWidth * 4;
-              return this.xScale(violin) + dx;
-            })
-            .attr("cy", (g) => this.yScale(g[this.tpmField]))
-            .attr("r", 2)
-            .attr("fill", "none")
-            .attr("stroke", "lightgray")
-            .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset, g.biosample))
-            .on("mouseleave", this.hideTooltip());
-        },
-        hideTooltip(){
-          this.tooltip.style("opacity", 0);
-        },
-        redrawNonHoverDots(hoverItem, hoverDataset){
-          this.svg.selectAll("indPoints")
-            .data(this.flatData.filter((entry) =>
-              entry.keyField === hoverItem && entry.dataset != hoverDataset))
-            .enter()
-            .append("circle")
-            .attr("class", (j) => j.dataset)
-            .attr("cx", (j) => {
-              let dx =
-                this.offset -
-                2 * this.dotBoxHalfWidth +
-                j.noise * this.dotBoxHalfWidth * 4;
-              return this.xScale(hoverItem) + dx;
-            })
-            .attr("cy", (j) => this.yScale(j[this.tpmField]))
-            .attr("r", 2)
-            .attr("fill", "none")
-            .attr("stroke", "lightgray")
-            .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset, g.biosample))
-            .on("mouseleave", this.hideTooltip());
-        },
-        redrawHoverDots(hoverItem, hoverDataset){
-          let hoverColor = `${this.colorMap[hoverItem]}`;
-          this.svg.selectAll("indPoints")
-            .data(this.flatData.filter((entry) =>
-              entry.keyField == hoverItem && entry.dataset == hoverDataset))
-            .enter()
-            .append("circle")
-            .attr("class", (j) => j.dataset)
-            .attr("cx", (j) => {
-              let dx =
-                this.offset -
-                2 * this.dotBoxHalfWidth +
-                j.noise * this.dotBoxHalfWidth * 4;
-              return this.xScale(hoverItem) + dx;
-            })
-            .attr("cy", (j) => this.yScale(j[this.tpmField]))
-            .attr("r", 2)
-            .attr("fill", "none")
-            .attr("stroke", hoverColor)
-            .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset, g.biosample))
-            .on("mouseleave", this.hideTooltip());
-        },
-        hoverDot(hoverItem, hoverDataset, biosample){
-          let xcoord = `${d3.event.layerX + 35}px`;
-          let ycoord = `${d3.event.layerY}px`;
-          this.svg.selectAll("circle").remove();
-          this.redrawNonHoverDots(hoverItem, hoverDataset);
-          this.redrawHoverDots(hoverItem, hoverDataset);
-          // Tooltip content
-          let tooltipContent = `Biosample: ${biosample}`;
-          tooltipContent = tooltipContent.concat(
-            `<span>Dataset: ${hoverDataset}</span>`
-          );
-          this.tooltip
-            .style("opacity", 1)
-            .html(tooltipContent)
-            .style("left", xcoord)
-            .style("top", ycoord);
-        }
+        this.svg.selectAll(".violin").style("opacity", 1);
+        let violinNumber = this.keyFieldList.indexOf(violin);
+        this.svg.selectAll(`.violin_${violinNumber}`).style("opacity", 0.25);
+        this.svg.selectAll("circle").remove();
+        this.svg.selectAll("indPoints")
+          .data(this.flatData.filter((entry) => entry.keyField === violin))
+          .enter()
+          .append("circle")
+          .attr("class", (g) => g.dataset)
+          .attr("cx", (g) => {
+            let dx =
+              this.offset -
+              2 * this.dotBoxHalfWidth +
+              g.noise * this.dotBoxHalfWidth * 4;
+            return this.xScale(violin) + dx;
+          })
+          .attr("cy", (g) => this.yScale(g[this.tpmField]))
+          .attr("r", 2)
+          .attr("fill", "none")
+          .attr("stroke", "lightgray")
+          .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset, g.biosample))
+          .on("mouseleave", this.hideTooltip());
+      },
+      hideTooltip(){
+        this.tooltip.style("opacity", 0);
+      },
+      redrawNonHoverDots(hoverItem, hoverDataset){
+        this.svg.selectAll("indPoints")
+          .data(this.flatData.filter((entry) =>
+            entry.keyField === hoverItem && entry.dataset != hoverDataset))
+          .enter()
+          .append("circle")
+          .attr("class", (j) => j.dataset)
+          .attr("cx", (j) => {
+            let dx =
+              this.offset -
+              2 * this.dotBoxHalfWidth +
+              j.noise * this.dotBoxHalfWidth * 4;
+            return this.xScale(hoverItem) + dx;
+          })
+          .attr("cy", (j) => this.yScale(j[this.tpmField]))
+          .attr("r", 2)
+          .attr("fill", "none")
+          .attr("stroke", "lightgray")
+          .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset, g.biosample))
+          .on("mouseleave", this.hideTooltip());
+      },
+      redrawHoverDots(hoverItem, hoverDataset){
+        let hoverColor = `${this.colorMap[hoverItem]}`;
+        this.svg.selectAll("indPoints")
+          .data(this.flatData.filter((entry) =>
+            entry.keyField == hoverItem && entry.dataset == hoverDataset))
+          .enter()
+          .append("circle")
+          .attr("class", (j) => j.dataset)
+          .attr("cx", (j) => {
+            let dx =
+              this.offset -
+              2 * this.dotBoxHalfWidth +
+              j.noise * this.dotBoxHalfWidth * 4;
+            return this.xScale(hoverItem) + dx;
+          })
+          .attr("cy", (j) => this.yScale(j[this.tpmField]))
+          .attr("r", 2)
+          .attr("fill", "none")
+          .attr("stroke", hoverColor)
+          .on("mouseover", (g) => this.hoverDot(g.keyField, g.dataset, g.biosample))
+          .on("mouseleave", this.hideTooltip());
+      },
+      hoverDot(hoverItem, hoverDataset, biosample){
+        let xcoord = `${d3.event.layerX + 35}px`;
+        let ycoord = `${d3.event.layerY}px`;
+        this.svg.selectAll("circle").remove();
+        this.redrawNonHoverDots(hoverItem, hoverDataset);
+        this.redrawHoverDots(hoverItem, hoverDataset);
+        // Tooltip content
+        let tooltipContent = `Biosample: ${biosample}`;
+        tooltipContent = tooltipContent.concat(
+          `<span>Dataset: ${hoverDataset}</span>`
+        );
+        this.tooltip
+          .style("opacity", 1)
+          .html(tooltipContent)
+          .style("left", xcoord)
+          .style("top", ycoord);
+      }
     },
   });
 </script>
