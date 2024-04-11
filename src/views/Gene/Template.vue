@@ -558,6 +558,7 @@
                     <research-expression-display
                         v-if="$parent.geneExpression.length > 0"
                         :raw-data="$parent.geneExpression"
+                        :plotName="`tissue_specific_expression_${$store.state.geneName}`"
                         @expression="
                             (raw) =>
                                 ($parent.geneExpressionTable = JSON.parse(raw))

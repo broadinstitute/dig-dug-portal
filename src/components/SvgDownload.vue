@@ -11,7 +11,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 
 export default Vue.component("SvgDownload", {
-    props: ["chartId", "chartClass"],
+    props: ["chartId", "chartClass", "filename"],
     data() {
         return {};
     },
@@ -33,7 +33,7 @@ export default Vue.component("SvgDownload", {
         // Create a link element and programmatically click it to start the download
         const link = document.createElement("a");
         link.href = url;
-        link.download = "chart.svg";
+        link.download = !!this.filename ? `${this.filename}.svg` : "chart.svg";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
