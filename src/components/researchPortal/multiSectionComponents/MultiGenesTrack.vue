@@ -171,7 +171,6 @@ export default Vue.component("multi-genes-track", {
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				//consolee.log("n",n);
 				if(!!this.genesData){
 					this.renderTrack(this.genesData);
 				} else {
@@ -314,8 +313,6 @@ export default Vue.component("multi-genes-track", {
 
 				let geneTracksArray = this.sortGenesByRegion(genesSorted);
 
-				//console.log("geneTracksArray", geneTracksArray);
-
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
 					eachGeneTrackHeight * (geneTracksArray .length);
@@ -349,7 +346,6 @@ export default Vue.component("multi-genes-track", {
 				geneTracksArray.map((genesArray, geneIndex) => {
 					genesArray.map(gene => {
 
-						console.log("gene", gene)
 						let yPos = this.adjPlotMargin.top + geneIndex * eachGeneTrackHeight;
 
 						var left = "\u{2190}";
