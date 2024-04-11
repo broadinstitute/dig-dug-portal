@@ -17,7 +17,6 @@
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-import * as d3SaveSvg from "d3-save-svg";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 export default Vue.component("ResearchExpressionPlot", {
