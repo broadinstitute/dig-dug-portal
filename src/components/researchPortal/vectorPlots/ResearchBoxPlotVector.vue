@@ -91,9 +91,10 @@ export default Vue.component("research-box-plot-vector", {
 				groupField = this.renderConfig['group by'],
 				renderField = this.renderConfig['render by'];
 
-			let maxVals = [...new Set(localData.map(d => d[maxField]))]
-			let minVals = [...new Set(localData.map(d => d[minField]))]
-			let attribute = [...new Set(localData.map(d => d[groupField]))]
+			let maxVals = [...new Set(localData.map(d => d[maxField]))],
+				minVals = [...new Set(localData.map(d => d[minField]))],
+				groupVals = [...new Set(localData.map(d => d[groupField]))],
+				colors = this.colors;
 
 			let maxVal = Math.ceil(maxVals.reduce((prev, next) => prev > next ? prev : next)),
 				minVal = Math.floor(minVals.reduce((prev, next) => prev < next ? prev : next));
@@ -103,14 +104,17 @@ export default Vue.component("research-box-plot-vector", {
 			let sumstat = d3.nest()
 				.key(function (d) { return d[renderField] })
 				.rollup(function (d) {
-					let interQuantileRange = d[q3Field] - d[q1Field];
-					return ({ q1: d[q1Field], median: d[medianField], q3: d[q3Field], interQuantileRange: interQuantileRange, min: d[minField], max: d[maxField], name: d[renderField] })
+					//console.log(d[0]);
+					let D= d[0];
+					let interQuantileRange = D[q3Field] - D[q1Field];
+					return ({ q1: D[q1Field], median: D[medianField], q3: D[q3Field], 
+						interQuantileRange: interQuantileRange, min: D[minField], max: D[maxField], name: D[renderField], group: D[groupField] })
 				})
 				.entries(localData);
 
 			let x = d3.scaleBand()
 				.range([0, width])
-				.domain([])
+				.domain(sumstat.map(s=>s.key))
 				.paddingInner(1)
 				.paddingOuter(.5)
 			svg.append("g")
@@ -119,8 +123,8 @@ export default Vue.component("research-box-plot-vector", {
 
 
 				
-			let yScale = d3.scaleLinear().domain([minVal, maxVal]).range([height, 0]);
-				svg.append("g").call(d3.axisLeft(yScale));
+			let y = d3.scaleLinear().domain([minVal, maxVal]).range([height, 0]);
+				svg.append("g").call(d3.axisLeft(y));
 				//svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(xScale));
 
 				for (const [key, value] of Object.entries(this.renderData)) {
@@ -133,6 +137,58 @@ export default Vue.component("research-box-plot-vector", {
 				
 
 				console.log("sumstat", sumstat)
+
+				// Show the main vertical line
+			svg
+				.selectAll("vertLines")
+				.data(sumstat)
+				.enter()
+				.append("line")
+				.attr("x1", function (d) { return (x(d.key)) })
+				.attr("x2", function (d) { return (x(d.key)) })
+				.attr("y1", function (d) { return (y(d.value.min)) })
+				.attr("y2", function (d) { return (y(d.value.max)) })
+				.attr("stroke", function (d) {
+					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
+					let fillColor = colors[keyIndex];
+					return fillColor
+				})
+				.style("stroke-width", 1)
+
+			let boxWidth = ((width - (margin.left + margin.right)) / sumstat.length) - 20;
+			boxWidth = boxWidth <= 10 ? 10 : boxWidth >= 40 ? 40 : boxWidth;
+
+			svg
+				.selectAll("boxes")
+				.data(sumstat)
+				.enter()
+				.append("rect")
+				.attr("x", function (d) { return (x(d.key) - boxWidth / 2) })
+				.attr("y", function (d) { return (y(d.value.q3)) })
+				.attr("height", function (d) { return (y(d.value.q1) - y(d.value.q3)) })
+				.attr("width", boxWidth)
+				.attr("stroke", function(d) {
+					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
+					let fillColor = colors[keyIndex];
+					return fillColor
+				})
+				.style("fill", "#ffffff")
+
+			svg
+				.selectAll("medianLines")
+				.data(sumstat)
+				.enter()
+				.append("line")
+				.attr("x1", function (d) { return (x(d.key) - boxWidth / 2) })
+				.attr("x2", function (d) { return (x(d.key) + boxWidth / 2) })
+				.attr("y1", function (d) { return (y(d.value.median)) })
+				.attr("y2", function (d) { return (y(d.value.median)) })
+				.attr("stroke", function (d) {
+					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
+					let fillColor = colors[keyIndex];
+					return fillColor
+				})
+				.style("stroke-width", 2)
 
 /*
 				,
