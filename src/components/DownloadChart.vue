@@ -23,6 +23,10 @@ export default Vue.component("DownloadChart", {
         filename: {
             type: String,
             default: 'chart'
+        },
+        transparentPng: {
+          type: Boolean,
+          default: true
         }
     },
     data() {
@@ -49,11 +53,16 @@ export default Vue.component("DownloadChart", {
         let img = new Image();
         img.src = this.svgUrl();
         let filename = `${this.filename}.png`;
+        let transparent = this.transparentPng;
         img.onload = function(){
             let canvas = document.createElement("canvas");
             canvas.width = this.width;
             canvas.height = this.height;
             let ctx = canvas.getContext("2d");
+            if (!transparent){
+              ctx.fillStyle = "white";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
             ctx.drawImage(this, 0, 0);
             let dataUrl = canvas.toDataURL("image/png");
             uiUtils.downloadChart(dataUrl, filename);
