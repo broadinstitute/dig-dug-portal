@@ -10,7 +10,7 @@
 import Vue from "vue";
 import * as d3 from "d3";
 
-export default Vue.component("SvgDownload", {
+export default Vue.component("DownloadChart", {
     props: {
         chartId: {
             type: String,
@@ -36,7 +36,7 @@ export default Vue.component("SvgDownload", {
         const svgString = new XMLSerializer().serializeToString(
             d3.select(`svg${selector}`).node()
         );
-
+        console.log(svgString);
         // Create a data URL
         const blob = new Blob([svgString], {
             type: "image/svg+xml;charset=utf-8",

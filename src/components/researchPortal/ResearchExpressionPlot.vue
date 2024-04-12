@@ -6,10 +6,10 @@
         <div v-if="!showPlot">
             <p>No datasets meet minimum sample count.</p>
         </div>
-        <svg-download 
+        <download-chart 
           chartClass="svg-chart"
           :filename="plotName">
-        </svg-download>
+        </download-chart>
     </div>
 </template>
 <script>
@@ -17,7 +17,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
-import SvgDownload from "../SvgDownload.vue";
+import DownloadChart from "../DownloadChart.vue";
 export default Vue.component("ResearchExpressionPlot", {
     props: ["plotData", "highlightedDataset", "plotName"],
     data() {
