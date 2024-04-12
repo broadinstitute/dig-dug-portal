@@ -82,7 +82,7 @@
 			</div>
 		</div>
 		<download-chart
-			:filename="plotFilename"
+			:filename="!plotName ? 'PheWAS' : plotName"
 			:chartId="canvasId + 'pheWasPlot'"
 			:isCanvas="true">
 		</download-chart>
@@ -122,11 +122,6 @@ export default Vue.component("research-phewas-plot", {
 			hoverItems: {},
 			showCanvas: true,
 		};
-	},
-	computed: {
-		plotFilename(){
-			return !this.plotName ? "PheWAS" : this.plotName;
-		}
 	},
 	modules: {
 	},
