@@ -81,6 +81,11 @@
 				></canvas>
 			</div>
 		</div>
+		<download-chart
+			:filename="plotFilename"
+			:chartId="canvasId + 'pheWasPlot'"
+			:isCanvas="true">
+		</download-chart>
 	</div>
 </template>
 
@@ -89,7 +94,7 @@ import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
-
+import DownloadChart from "../DownloadChart.vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-phewas-plot", {
@@ -105,7 +110,8 @@ export default Vue.component("research-phewas-plot", {
 		"filter",
 		"options",
 		"sectionId",
-		"utils"
+		"utils",
+		"plotName"
 	],
 	data() {
 		return {
@@ -116,6 +122,11 @@ export default Vue.component("research-phewas-plot", {
 			hoverItems: {},
 			showCanvas: true,
 		};
+	},
+	computed: {
+		plotFilename(){
+			return !this.plotName ? "PheWAS" : this.plotName;
+		}
 	},
 	modules: {
 	},

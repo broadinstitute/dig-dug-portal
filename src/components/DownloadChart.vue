@@ -27,6 +27,10 @@ export default Vue.component("DownloadChart", {
         transparentPng: {
           type: Boolean,
           default: true
+        },
+        isCanvas: {
+          type: Boolean,
+          default: false
         }
     },
     data() {
@@ -50,6 +54,10 @@ export default Vue.component("DownloadChart", {
         uiUtils.downloadChart(this.svgUrl(), `${this.filename}.svg`);
       },
       downloadPng() {
+        if (this.isCanvas){
+          this.downloadCanvasToPng();
+          return;
+        }
         let img = new Image();
         img.src = this.svgUrl();
         let filename = `${this.filename}.png`;
@@ -68,6 +76,12 @@ export default Vue.component("DownloadChart", {
             uiUtils.downloadChart(dataUrl, filename);
         }
       },
+      downloadCanvasToPng(){
+        let selector = !this.chartId ? "" : `#${this.chartId}`;
+        let canvas = document.querySelector(`canvas${selector}`);
+        let dataUrl = canvas.toDataURL("image/png");
+        uiUtils.downloadChart(dataUrl, this.filename);
+      }
     },
 });
 </script>
