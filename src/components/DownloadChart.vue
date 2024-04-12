@@ -1,15 +1,14 @@
 <template>
-    <button
-      class="btn btn-primary btn-sm download-chart"
-      @click="downloadPng()"
-    >
-      Download plot (.svg)
-  </button>
+  <b-dropdown class="download-chart" variant="secondary" right size="sm" text="Download chart">
+      <b-dropdown-text>Save chart as</b-dropdown-text>
+      <b-dropdown-divider></b-dropdown-divider>
+      <b-dropdown-item @click="downloadSvg()">SVG</b-dropdown-item>
+      <b-dropdown-item @click="downloadPng()">PNG</b-dropdown-item>
+  </b-dropdown>
 </template>
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-
 export default Vue.component("DownloadChart", {
     props: {
         chartId: {
@@ -29,7 +28,7 @@ export default Vue.component("DownloadChart", {
         return {};
     },
     methods: {
-      downloadChart() {
+      svgUrl(){
         let selector = !!this.chartId ? `#${this.chartId}` 
           : !!this.chartClass ? `.${this.chartClass}` : "";
         // Serialize the SVG to a string
@@ -41,31 +40,20 @@ export default Vue.component("DownloadChart", {
         const blob = new Blob([svgString], {
             type: "image/svg+xml;charset=utf-8",
         });
-        const url = URL.createObjectURL(blob);
-
+        return URL.createObjectURL(blob);
+      },
+      downloadSvg() {
         // Create a link element and programmatically click it to start the download
         const link = document.createElement("a");
-        link.href = url;
+        link.href = this.svgUrl();
         link.download = `${this.filename}.svg`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       },
       downloadPng() {
-        let selector = !!this.chartId ? `#${this.chartId}` 
-          : !!this.chartClass ? `.${this.chartClass}` : "";
-        // Serialize the SVG to a string
-        const svgString = new XMLSerializer().serializeToString(
-            d3.select(`svg${selector}`).node()
-        );
-        // Create a data URL
-        const blob = new Blob([svgString], {
-            type: "image/svg+xml;charset=utf-8",
-        });
-        const url = URL.createObjectURL(blob);
-
         let img = new Image();
-        img.src = url;
+        img.src = this.svgUrl();
         img.onload = function(){
             let canvas = document.createElement("canvas");
             canvas.width = this.width;
@@ -73,7 +61,6 @@ export default Vue.component("DownloadChart", {
             let ctx = canvas.getContext("2d");
             ctx.drawImage(this, 0, 0);
             let dataUrl = canvas.toDataURL("image/png");
-            console.log(dataUrl);
             const link = document.createElement("a");
             link.href = dataUrl;
             link.download = "chart.png";
@@ -86,7 +73,7 @@ export default Vue.component("DownloadChart", {
 });
 </script>
 <style>
-  button.download-chart {
+  .download-chart {
       float: right;
       margin-bottom: 25px;
   }
