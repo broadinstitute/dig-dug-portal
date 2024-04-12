@@ -78,6 +78,16 @@
 							: ''
 					"
 				></canvas>
+				<research-box-plot-vector
+				v-if="!!renderData"
+					:renderData="groupData(renderData)"
+					:renderConfig="renderConfig"
+					:colors="colors"
+					:margin="adjPlotMargin"
+					:sectionId="canvasId"
+					:utils="utils"
+				>
+				</research-box-plot-vector>
 			</div>
 		</div>
 	</div>
@@ -88,6 +98,7 @@ import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import boxPlotVector from "@/components/researchPortal/vectorPlots/ResearchBoxPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -103,7 +114,7 @@ export default Vue.component("research-box-plot", {
 		"plotMargin",
 		"filter",
 		"options",
-		"sectionId",
+		"canvasId",
 		"utils"
 	],
 	data() {
@@ -118,7 +129,9 @@ export default Vue.component("research-box-plot", {
 	},
 	modules: {
 	},
-	components: {},
+	components: {
+		boxPlotVector,
+	},
 	created: function () {
 		this.renderBoxPlot();
 	},
@@ -180,58 +193,34 @@ export default Vue.component("research-box-plot", {
 				return null;
 			}
 		},
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.plotMargin.leftMargin,
+					right: this.plotMargin.rightMargin,
+					top: this.plotMargin.topMargin,
+					bottom: this.plotMargin.bottomMargin,
+					bump: this.plotMargin.bump,
+				};
+
+			return plotMargin;
+		},
 	},
 	watch: {
 		renderData(content) {
 			this.renderBoxPlot();
 		},
-
-		/*phenotypesData(DATA) {
-
-			console.log("DATA",DATA);
-
-			this.showCanvas = true;
-			let content = {};
-			content["data"] = [];
-
-			
-			let phenotypesData = cloneDeep(this.phenotypesData);
-
-			phenotypesData.map((d) => {
-				let pValue =
-					typeof d[this.renderConfig["y axis field"]] == "string"
-						? Number(d[this.renderConfig["y axis field"]])
-						: d[this.renderConfig["y axis field"]];
-				d["rawPValue"] = pValue;
-
-				if (this.renderConfig["convert y -log10"] == "true") {
-					d[this.renderConfig["y axis field"] + "-log10"] =
-						-Math.log10(pValue);
-				}
-
-				if (
-					this.phenotypeMapConfig == "kpPhenotypeMap" &&
-					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
-				) {
-					content["data"].push(d);
-				} else if (this.phenotypeMapConfig == null) {
-					content["data"].push(d);
-				}
-			});
-		
-			if (!!this.filter) {
-				content.data = content.data.filter(this.filter);
-			}
-
-			if (!!content.data && content.data.length > 0) {
-				this.renderData = content;
-			} else {
-				this.showCanvas = false;
-				this.renderData = null;
-			}
-
-			if(!!this.renderData) {this.renderBoxPlot()};
-		}*/
 	},
 	methods: {
 		//...uiUtils,
@@ -303,7 +292,7 @@ export default Vue.component("research-box-plot", {
 
 			let customPlotMargin = !!this.renderConfig["plot margin"]? this.renderConfig["plot margin"]:null;
 
-			let plotMargin = !!customPlotMargin?{
+			/*let plotMargin = !!customPlotMargin?{
 						left: customPlotMargin.left,
 						right: customPlotMargin.right,
 						top: customPlotMargin.top,
@@ -316,7 +305,9 @@ export default Vue.component("research-box-plot", {
 						top: (this.plotMargin.bottomMargin / 2) * 3.5,
 						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
 						bump: 10,
-					};
+					};*/
+
+			let plotMargin = this.adjPlotMargin;
 
 			let y = Math.ceil(e.clientY - rect.top);
 			let x = Math.ceil(e.clientX - rect.left);
