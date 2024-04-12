@@ -7,7 +7,7 @@
             <p>No datasets meet minimum sample count.</p>
         </div>
         <download-chart 
-          chartClass="svg-chart"
+          chartId="svg-chart"
           :filename="plotName">
         </download-chart>
     </div>
@@ -77,7 +77,7 @@ export default Vue.component("ResearchExpressionPlot", {
             this.svg = d3
                 .select("#multi-chart")
                 .append("svg")
-                .attr("class", "svg-chart")
+                .attr("id", "svg-chart")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")

@@ -84,7 +84,7 @@
 		<download-chart
 			:filename="!plotName ? 'PheWAS' : plotName"
 			:chartId="canvasId + 'pheWasPlot'"
-			:isCanvas="true">
+			>
 		</download-chart>
 	</div>
 </template>

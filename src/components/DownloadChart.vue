@@ -12,37 +12,32 @@ import uiUtils from "@/utils/uiUtils";
 import * as d3 from "d3";
 export default Vue.component("DownloadChart", {
     props: {
-        chartId: {
-            type: String,
-            default: ''
-        },
-        chartClass: {
-            type: String,
-            default: ''
-        },
-        filename: {
-            type: String,
-            default: 'chart'
-        },
-        transparentPng: {
-          type: Boolean,
-          default: true
-        },
-        isCanvas: {
-          type: Boolean,
-          default: false
-        }
+      chartId: {
+        type: String,
+        required: true,
+      },
+      filename: {
+        type: String,
+        default: 'chart'
+      },
+      transparentPng: {
+        type: Boolean,
+        default: true
+      },
     },
     data() {
         return {};
     },
+    computed: {
+      isCanvas(){
+        return document.querySelector(`canvas#${this.chartId}`) !== null;
+      }
+    },
     methods: {
       svgUrl(){
-        let selector = !!this.chartId ? `#${this.chartId}` 
-          : !!this.chartClass ? `.${this.chartClass}` : "";
         // Serialize the SVG to a string
         const svgString = new XMLSerializer().serializeToString(
-            d3.select(`svg${selector}`).node()
+            d3.select(`svg#${this.chartId}`).node()
         );
         // Create a data URL
         const blob = new Blob([svgString], {
@@ -51,6 +46,10 @@ export default Vue.component("DownloadChart", {
         return URL.createObjectURL(blob);
       },
       downloadSvg() {
+        if (this.isCanvas){
+          this.downloadCanvasToSvg();
+          return;
+        }
         uiUtils.downloadChart(this.svgUrl(), `${this.filename}.svg`);
       },
       downloadPng() {
@@ -77,10 +76,12 @@ export default Vue.component("DownloadChart", {
         }
       },
       downloadCanvasToPng(){
-        let selector = !this.chartId ? "" : `#${this.chartId}`;
-        let canvas = document.querySelector(`canvas${selector}`);
+        let canvas = document.querySelector(`canvas#${this.chartId}`);
         let dataUrl = canvas.toDataURL("image/png");
-        uiUtils.downloadChart(dataUrl, this.filename);
+        uiUtils.downloadChart(dataUrl, `${this.filename}.png`);
+      },
+      downloadCanvasToSvg(){
+        console.log("Coming soon");
       }
     },
 });
