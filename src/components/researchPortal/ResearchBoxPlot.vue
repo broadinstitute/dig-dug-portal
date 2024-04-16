@@ -104,7 +104,6 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-box-plot", {
 	props: [
-		"canvasId",
 		"phenotypeMap",
 		"phenotypesData",
 		"renderConfig",
@@ -223,9 +222,6 @@ export default Vue.component("research-box-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
-		//isIdFixed: uiUtils.isIdFixed,
-		//removeOnMouseOut: uiUtils.removeOnMouseOut,
 		openPage(PAGE, PARAMETER) {
 			this.utils.uiUtils.openPage(PAGE, PARAMETER);
 		},
@@ -268,15 +264,6 @@ export default Vue.component("research-box-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
-			/*
-			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
-				value.sort((a, b) =>
-					a[this.renderConfig["y axis field"]] >
-					b[this.renderConfig["y axis field"]]
-						? 1
-						: -1
-				);
-			}*/
 
 			return phenotypeGroupsObj;
 		},
@@ -291,21 +278,6 @@ export default Vue.component("research-box-plot", {
 			let rawY = e.clientY - rect.top;
 
 			let customPlotMargin = !!this.renderConfig["plot margin"]? this.renderConfig["plot margin"]:null;
-
-			/*let plotMargin = !!customPlotMargin?{
-						left: customPlotMargin.left,
-						right: customPlotMargin.right,
-						top: customPlotMargin.top,
-						bottom: customPlotMargin.bottom,
-						bump: 10,
-					}:
-					{
-						left: this.plotMargin.leftMargin / 2,
-						right: (this.plotMargin.leftMargin / 2) * 1.5,
-						top: (this.plotMargin.bottomMargin / 2) * 3.5,
-						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
-						bump: 10,
-					};*/
 
 			let plotMargin = this.adjPlotMargin;
 
@@ -690,30 +662,26 @@ export default Vue.component("research-box-plot", {
 
 								labelXpos = xPos > labelXpos ? xPos : labelXpos;
 
-								if (
-									labelIndex == 0 ||
-									labelXpos < maxWidthPerGroup
-								) {
-									ctx.font = "22px Arial";
+								
+								ctx.font = "22px Arial";
 
-									ctx.fillStyle = "#000000"
+								ctx.fillStyle = "#000000"
 
-									let labelYPos = yPos0;
+								let labelYPos = yPos0;
 
-									ctx.save();
-									ctx.translate(labelXpos + (boxWidth / 2) + 10, centerY1 - 24);
-									ctx.rotate((90 * -Math.PI) / 180);
-									ctx.textAlign = "start";
-									ctx.fillText(pName, 0, 0);
-									ctx.restore();
+								ctx.save();
+								ctx.translate(labelXpos + (boxWidth / 2) + 10, centerY1 - 24);
+								ctx.rotate((90 * -Math.PI) / 180);
+								ctx.textAlign = "start";
+								ctx.fillText(pName, 0, 0);
+								ctx.restore();
 
 
-									ctx.lineWidth = 1;
-									ctx.moveTo((xPos + (boxWidth/2)), centerY1 - 5);
-									ctx.lineTo(labelXpos + (boxWidth / 2), centerY1 - 20);
-									ctx.strokeStyle = "#00000080";
-									ctx.stroke();
-								}
+								ctx.lineWidth = 1;
+								ctx.moveTo((xPos + (boxWidth/2)), centerY1 - 5);
+								ctx.lineTo(labelXpos + (boxWidth / 2), centerY1 - 20);
+								ctx.strokeStyle = "#00000080";
+								ctx.stroke();
 
 								labelIndex++;
 								dotIndex++;

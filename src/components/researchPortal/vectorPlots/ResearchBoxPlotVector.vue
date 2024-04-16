@@ -58,6 +58,10 @@ export default Vue.component("research-box-plot-vector", {
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
 
+			let bitmapWrapper = document.querySelector(
+				"#" + this.sectionId + "boxPlotWrapper"
+			);
+
 			let margin = {
 				left: this.margin.left/2,
 				right: this.margin.right / 2,
@@ -65,15 +69,15 @@ export default Vue.component("research-box-plot-vector", {
 				bottom: this.margin.bottom / 2,
 				bump: this.margin.bump / 2,
 			}
+			
 			let width = !!this.renderConfig['width']? this.renderConfig['width']: 
-				document.getElementById(wrapperId).clientWidth - (margin.left + margin.right);
-			let height = !!this.renderConfig['height'] ? this.renderConfig['height']/2 : 150;
+				bitmapWrapper.clientWidth - (margin.left + margin.right);
+			let height = !!this.renderConfig['height'] ? this.renderConfig['height']-(margin.top+margin.bottom) : 150;
 
 			let svg = d3.select(wrapperClass)
 				.append("svg")
 				.attr("width", width + margin.left + margin.right)
 				.attr("height", height + margin.top + margin.bottom)
-				.attr("style","border: solid 1px #000")
 				.append("g")
 				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -99,12 +103,9 @@ export default Vue.component("research-box-plot-vector", {
 			let maxVal = Math.ceil(maxVals.reduce((prev, next) => prev > next ? prev : next)),
 				minVal = Math.floor(minVals.reduce((prev, next) => prev < next ? prev : next));
 
-				console.log("maxVal, minVal", maxVal, minVal)
-
 			let sumstat = d3.nest()
 				.key(function (d) { return d[renderField] })
 				.rollup(function (d) {
-					//console.log(d[0]);
 					let D= d[0];
 					let interQuantileRange = D[q3Field] - D[q1Field];
 					return ({ q1: D[q1Field], median: D[medianField], q3: D[q3Field], 
@@ -116,27 +117,48 @@ export default Vue.component("research-box-plot-vector", {
 				.range([0, width])
 				.domain(sumstat.map(s=>s.key))
 				.paddingInner(1)
-				.paddingOuter(.5)
-			svg.append("g")
-				.attr("transform", "translate(0," + height + ")")
-				.call(d3.axisBottom(x))
+				.paddingOuter(.5);
 
-
-				
 			let y = d3.scaleLinear().domain([minVal, maxVal]).range([height, 0]);
 				svg.append("g").call(d3.axisLeft(y));
-				//svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(xScale));
 
-				for (const [key, value] of Object.entries(this.renderData)) {
-					value.map(v =>{
+			svg.append("g")
+				.attr("transform", "translate(0," + height + ")")
+				.call(d3.axisBottom(x).tickFormat(() => ""))
 
-
-					})
-				}
-
+			///rener group Label
+			let groupName = "";
+			svg
+				.selectAll("groupText")
+				.data(sumstat)
+				.enter()
+				.append("text")
+				.attr("transform", function (d) {
+					return "translate(" + (x(d.key)-6) + "," + (y(0) + 12) + ")rotate(45)";
+				})
+				.attr("x", 0)
+				.attr("y", 0)
+				.style("font-family", "Arial").style("font-size", 11)
+				.style("fill", function (d) {
+					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
+					let fillColor = colors[keyIndex];
+					return fillColor
+				})
+				.text(function (d) { 
+						if(groupName == "") {
+							groupName = d.value.group
+							return d.value.group
+						} else if(d.value.group == groupName) {
+							groupName = d.value.group
+							return "";
+						} else if(d.value.group != groupName) {
+							groupName = d.value.group
+							return d.value.group;
+						}
+					}
+				);
 				
-
-				console.log("sumstat", sumstat)
+			
 
 				// Show the main vertical line
 			svg
@@ -154,6 +176,39 @@ export default Vue.component("research-box-plot-vector", {
 					return fillColor
 				})
 				.style("stroke-width", 1)
+
+				//render label lines
+
+			svg
+				.selectAll("labelLines")
+				.data(sumstat)
+				.enter()
+				.append("line")
+				.attr("x1", function (d) { return (x(d.key)) })
+				.attr("x2", function (d) { return (x(d.key)) })
+				.attr("y1", function (d) { return (y(d.value.max)) - 3 })
+				.attr("y2", function (d) { return (y(d.value.max) - 8 ) })
+				.attr("stroke", function (d) {
+					let fillColor = "#999999";
+					return fillColor
+				})
+				.style("stroke-width", 1)
+
+				//render labels
+
+			svg
+				.selectAll("labelText")
+				.data(sumstat)
+				.enter()
+				.append("text")
+				.attr("transform", function (d) {
+					return "translate(" + (x(d.key)+3) + "," + (y(d.value.max) - 11) + ")rotate(-90)";
+				})
+				.attr("x", 0)
+				.attr("y", 0)
+				.style("font-family", "Arial").style("font-size", 11)
+				.text( function(d) { return d.key});
+
 
 			let boxWidth = ((width - (margin.left + margin.right)) / sumstat.length) - 20;
 			boxWidth = boxWidth <= 10 ? 10 : boxWidth >= 40 ? 40 : boxWidth;
