@@ -246,4 +246,51 @@ $(function () {});
 canvas {
 	border: solid 1px #fff;
 }
+.download-images-setting {
+	position: absolute;
+	top: -10px;
+	right: 5px;
+}
+
+.download-images-setting .options-gear {
+	color: #333333;
+	padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    margin-right: 10px;
+    border: solid 1px #dddddd;
+}
+
+.download-images-setting .options-gear > svg {
+	font-size: 12px !important;
+}
+
+.download-images-setting:hover .options-gear {
+	color: #000000;
+}
+
+.download-images-setting ul.options {
+	display: none;
+	position: absolute;
+    background-color: #ffffff;
+    padding: 15px;
+    border: solid 1px #dddddd;
+    border-radius: 5px;
+    z-index: 10;
+    list-style: none;
+	right: 0;
+	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%)
+}
+
+.download-images-setting ul.options li {
+	white-space: nowrap;
+}
+
+.download-images-setting ul.options li label {
+	padding-left: 5px;
+}
+
+.download-images-setting:hover ul.options {
+	display: block;
+}
 </style>

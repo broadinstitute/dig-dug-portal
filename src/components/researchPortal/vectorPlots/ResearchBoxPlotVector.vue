@@ -34,7 +34,7 @@ export default Vue.component("research-box-plot-vector", {
 	created: function () {
 	},
 	mounted: function () {
-		this.renderBoxPlot(this.margin)
+		//this.renderBoxPlot(this.margin)
 	},
 	beforeDestroy() {
 	},
@@ -46,7 +46,7 @@ export default Vue.component("research-box-plot-vector", {
 	},
 	watch: {
 		canvasId(ID) {
-			this.renderBoxPlot()
+			//this.renderBoxPlot()
 		}
 	},
 	methods: {
@@ -72,6 +72,7 @@ export default Vue.component("research-box-plot-vector", {
 
 			let svg = d3.select(wrapperClass)
 				.append("svg")
+				.attr("id", "vector_box_plot_"+this.sectionId )
 				.attr("width", width + margin.left + margin.right)
 				.attr("height", height + margin.top + margin.bottom)
 				.append("g")
