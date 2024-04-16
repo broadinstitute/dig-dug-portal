@@ -1,12 +1,8 @@
 <template>
 	<div>
-		<h1>test</h1>
 		<div :id="'vector_wrapper_'+sectionId" :class="'vector-wrapper-'+ canvasId">
 
 		</div>
-		<div class="vector-wrapper">
-
-			</div>
 	</div>
 </template>
 
@@ -113,6 +109,27 @@ export default Vue.component("research-box-plot-vector", {
 				})
 				.entries(localData);
 
+			//render axis labels
+
+			svg.append("text")
+				.attr("x", (width / 2))
+				.attr("y", (height + margin.top - 12))
+				.style("font-family", "Arial").style("font-size", 12)
+				.style("text-anchor", "middle")
+				.text(this.renderConfig['x axis label']);
+
+			svg.append("text")
+				.attr("transform", function (d) {
+					return "translate("+(-margin.left + 20)+"," + (height/2) + ")rotate(-90)";
+				})
+				.attr("x", 0)
+				.attr("y", 0)
+				.style("font-family", "Arial").style("font-size", 12)
+				.style("text-anchor", "middle")
+				.text(this.renderConfig['y axis label']);
+
+
+
 			let x = d3.scaleBand()
 				.range([0, width])
 				.domain(sumstat.map(s=>s.key))
@@ -126,7 +143,7 @@ export default Vue.component("research-box-plot-vector", {
 				.attr("transform", "translate(0," + height + ")")
 				.call(d3.axisBottom(x).tickFormat(() => ""))
 
-			///rener group Label
+			///render group Label
 			let groupName = "";
 			svg
 				.selectAll("groupText")
@@ -157,10 +174,8 @@ export default Vue.component("research-box-plot-vector", {
 						}
 					}
 				);
-				
-			
 
-				// Show the main vertical line
+				// render the main vertical line
 			svg
 				.selectAll("vertLines")
 				.data(sumstat)
@@ -244,12 +259,6 @@ export default Vue.component("research-box-plot-vector", {
 					return fillColor
 				})
 				.style("stroke-width", 2)
-
-/*
-				,
-				xScale = d3.scaleBand().range([0, width]).domain([attribute]).padding(0.05);;*/
-
-				
 			
 		},
 	},
