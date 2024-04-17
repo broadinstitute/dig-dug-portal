@@ -66,7 +66,6 @@
 						>
 					</span>
 				</div>
-
 				<canvas :hidden="!showCanvas"
 					:id="canvasId + 'pheWasPlot'"
 					width=""
@@ -79,6 +78,31 @@
 							: ''
 					"
 				></canvas>
+				<div class="download-images-setting">
+					<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+					<ul class="options" >
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('vector_wrapper_' + canvasId, canvasId + '_pheWasPlot', 'svg')">Download SVG</a>
+						</li>
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage(canvasId + 'pheWasPlot', canvasId + '_pheWasPlot', 'png')">Download PNG</a>
+						</li>
+					</ul>
+				</div>
+				<research-phewas-plot-vector
+				v-if="!!renderData"
+					:renderData="groupData(renderData)"
+					:renderConfig="renderConfig"
+					:phenotypeMap="phenotypeMap"
+					:colors="colors"
+					:margin="adjPlotMargin"
+					:sectionId="canvasId"
+					:utils="utils"
+					:ref="canvasId + '_pheWasPlot'"
+				>
+				</research-phewas-plot-vector>
 			</div>
 		</div>
 	</div>
@@ -89,6 +113,7 @@ import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -119,7 +144,9 @@ export default Vue.component("research-phewas-plot", {
 	},
 	modules: {
 	},
-	components: {},
+	components: {
+		pheWasPlotVector
+	},
 	created: function () {
 		this.renderPheWas();
 	},
@@ -155,7 +182,7 @@ export default Vue.component("research-phewas-plot", {
 							: d[this.renderConfig["y axis field"]];
 					d["rawPValue"] = pValue;
 
-					if (this.renderConfig["convert y -log10"] == "true") {
+					if (this.renderConfig["convert y -log10"] == true || this.renderConfig["convert y -log10"] == "true") {
 						d[this.renderConfig["y axis field"] + "-log10"] =
 							-Math.log10(pValue);
 					}
@@ -181,63 +208,43 @@ export default Vue.component("research-phewas-plot", {
 				return null;
 			}
 		},
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.plotMargin.leftMargin,
+					right: this.plotMargin.rightMargin,
+					top: this.plotMargin.topMargin,
+					bottom: this.plotMargin.bottomMargin,
+					bump: this.plotMargin.bump,
+				};
+
+			return plotMargin;
+		},
 	},
 	watch: {
 		renderData(content) {
 			this.renderPheWas();
 		},
-
-		/*phenotypesData(DATA) {
-
-			console.log("DATA",DATA);
-
-			this.showCanvas = true;
-			let content = {};
-			content["data"] = [];
-
-			
-			let phenotypesData = cloneDeep(this.phenotypesData);
-
-			phenotypesData.map((d) => {
-				let pValue =
-					typeof d[this.renderConfig["y axis field"]] == "string"
-						? Number(d[this.renderConfig["y axis field"]])
-						: d[this.renderConfig["y axis field"]];
-				d["rawPValue"] = pValue;
-
-				if (this.renderConfig["convert y -log10"] == "true") {
-					d[this.renderConfig["y axis field"] + "-log10"] =
-						-Math.log10(pValue);
-				}
-
-				if (
-					this.phenotypeMapConfig == "kpPhenotypeMap" &&
-					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
-				) {
-					content["data"].push(d);
-				} else if (this.phenotypeMapConfig == null) {
-					content["data"].push(d);
-				}
-			});
-		
-			if (!!this.filter) {
-				content.data = content.data.filter(this.filter);
-			}
-
-			if (!!content.data && content.data.length > 0) {
-				this.renderData = content;
-			} else {
-				this.showCanvas = false;
-				this.renderData = null;
-			}
-
-			if(!!this.renderData) {this.renderPheWas()};
-		}*/
 	},
 	methods: {
-		//...uiUtils,
-		//isIdFixed: uiUtils.isIdFixed,
-		//removeOnMouseOut: uiUtils.removeOnMouseOut,
+		downloadImage(ID, NAME, TYPE) {
+			if (TYPE == 'svg') {
+				this.$refs[this.canvasId + '_pheWasPlot'].renderPheWasPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_pheWas_plot_" + this.canvasId);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+
+		},
 		openPage(PAGE, PARAMETER) {
 			this.utils.uiUtils.openPage(PAGE, PARAMETER);
 		},
