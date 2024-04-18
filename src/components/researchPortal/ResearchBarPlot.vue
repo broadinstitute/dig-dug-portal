@@ -9,7 +9,7 @@
 			>
 				<div
 					:id="canvasId + 'barInfoBox'"
-					class="boxplot-info-box hidden"
+					class="barplot-info-box hidden"
 				>
 					<div
 						:id="canvasId + 'info_box_close'"
@@ -79,6 +79,30 @@
 							: ''
 					"
 				></canvas>
+				<div class="download-images-setting">
+					<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+					<ul class="options" >
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('vector_wrapper_' + canvasId, canvasId + '_barPlot', 'svg')">Download SVG</a>
+						</li>
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage(canvasId + 'barPlot', canvasId + '_barPlot', 'png')">Download PNG</a>
+						</li>
+					</ul>
+				</div>
+				<research-bar-plot-vector
+				v-if="!!renderData"
+					:renderData="groupData(renderData)"
+					:renderConfig="renderConfig"
+					:colors="colors"
+					:margin="adjPlotMargin"
+					:sectionId="canvasId"
+					:utils="utils"
+					:ref="canvasId + '_barPlot'"
+				>
+				</research-bar-plot-vector>
 			</div>
 		</div>
 	</div>
@@ -89,6 +113,7 @@ import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -119,7 +144,9 @@ export default Vue.component("research-bar-plot", {
 	},
 	modules: {
 	},
-	components: {},
+	components: {
+		barPlotVector,
+	},
 	created: function () {
 		this.renderBarPlot();
 	},
@@ -131,6 +158,29 @@ export default Vue.component("research-bar-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.plotMargin.leftMargin,
+					right: this.plotMargin.rightMargin,
+					top: this.plotMargin.topMargin,
+					bottom: this.plotMargin.bottomMargin,
+					bump: this.plotMargin.bump,
+				};
+
+			return plotMargin;
+		},
 		phenotypeMapConfig() {
 			if (this.renderConfig["phenotype map"] == "null") {
 				return null;
@@ -188,9 +238,15 @@ export default Vue.component("research-bar-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
-		//isIdFixed: uiUtils.isIdFixed,
-		//removeOnMouseOut: uiUtils.removeOnMouseOut,
+		downloadImage(ID, NAME, TYPE) {
+			if (TYPE == 'svg') {
+				this.$refs[this.canvasId + '_barPlot'].renderBarPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_bar_plot_" + this.canvasId);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+
+		},
 		openPage(PAGE, PARAMETER) {
 			this.utils.uiUtils.openPage(PAGE, PARAMETER);
 		},
@@ -338,7 +394,7 @@ export default Vue.component("research-bar-plot", {
 							false
 						) {
 							//infoBoxContent.innerHTML = infoContent;
-							infoBox.setAttribute("class", "boxplot-info-box");
+							infoBox.setAttribute("class", "barplot-info-box");
 							infoBoxClose.setAttribute("class", "hidden");
 							if (x < rect.width - 300) {
 								infoBox.style.left = rawX + 25 + "px";
@@ -359,7 +415,7 @@ export default Vue.component("research-bar-plot", {
 						infoBox.setAttribute("class", "hidden");
 					} else {
 						//infoBoxContent.innerHTML = infoContent;
-						infoBox.setAttribute("class", "boxplot-info-box fixed");
+						infoBox.setAttribute("class", "barplot-info-box fixed");
 						if (x < rect.width - 300) {
 							infoBox.style.left = rawX + 25 + "px";
 							infoBox.style.top = rawY + this.spaceBy + "px";
@@ -821,7 +877,7 @@ $(function () {});
 	font-size: 14px;
 	color: #69f;
 }
-.boxplot-info-box {
+.barplot-info-box {
 	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;

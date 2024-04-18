@@ -104,10 +104,6 @@ export default Vue.component("research-phewas-plot-vector", {
 					sumstatIndex++;
 				})
 			}
-
-			console.log("sumstat", sumstat);
-
-			
 			//render axis labels
 
 			svg.append("g")
