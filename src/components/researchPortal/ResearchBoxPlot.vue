@@ -778,7 +778,7 @@ export default Vue.component("research-box-plot", {
 					for (const [key, value] of Object.entries(GROUPS)) {
 						if (value > 0) {
 							let tickXPos =
-								MARGIN.left + previousGroup * xTickDistance;
+								MARGIN.left + (previousGroup + .5) * xTickDistance;
 							let adjTickXPos = Math.floor(tickXPos);
 							CTX.moveTo(
 								adjTickXPos,

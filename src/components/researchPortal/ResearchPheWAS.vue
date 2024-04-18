@@ -243,7 +243,6 @@ export default Vue.component("research-phewas-plot", {
 			} else if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
 			}
-
 		},
 		openPage(PAGE, PARAMETER) {
 			this.utils.uiUtils.openPage(PAGE, PARAMETER);
@@ -616,8 +615,6 @@ export default Vue.component("research-phewas-plot", {
 
 				let dotIndex = 0;
 
-				//console.log("totalNum", totalNum);
-
 				if (totalNum > 1) {
 					for (const [key, value] of Object.entries(renderData)) {
 						let keyIndex =
@@ -642,7 +639,7 @@ export default Vue.component("research-phewas-plot", {
 									])
 							) {
 
-								let xPos = plotMargin.left + xStep * dotIndex;
+								let xPos = plotMargin.left + xStep * (dotIndex + .5);
 
 								let yValue =
 									this.renderConfig["convert y -log10"] ==
@@ -922,7 +919,7 @@ export default Vue.component("research-phewas-plot", {
 					for (const [key, value] of Object.entries(GROUPS)) {
 						if (value > 0) {
 							let tickXPos =
-								MARGIN.left + previousGroup * xTickDistance;
+								MARGIN.left + (previousGroup + .5) * xTickDistance;
 							let adjTickXPos = Math.floor(tickXPos);
 							CTX.moveTo(
 								adjTickXPos,

@@ -36,7 +36,7 @@ export default Vue.component("research-phewas-plot-vector", {
 		
 	},
 	mounted: function () {
-		this.renderPheWasPlot()
+		//this.renderPheWasPlot()
 	},
 	beforeDestroy() {
 	},
@@ -179,35 +179,37 @@ export default Vue.component("research-phewas-plot-vector", {
 
 			///render group Label
 			let groupName = "";
-			svg
-				.selectAll("groupText")
-				.data(sumstat)
-				.enter()
-				.append("text")
-				.attr("transform", function (d) {
-					return "translate(" + (x(d.key)-6) + "," + (y(0) + 18) + ")rotate(45)";
-				})
-				.attr("x", 0)
-				.attr("y", 0)
-				.style("font-family", "Arial").style("font-size", 11)
-				.style("fill", function (d) {
-					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
-					let fillColor = colors[keyIndex];
-					return fillColor
-				})
-				.text(function (d) { 
-						if(groupName == "") {
-							groupName = d.value.group
-							return d.value.group
-						} else if(d.value.group == groupName) {
-							groupName = d.value.group
-							return "";
-						} else if(d.value.group != groupName) {
-							groupName = d.value.group
-							return d.value.group;
-						}
-					}
-				);
+
+			sumstat.map(d => {
+				let keyIndex = groupVals.indexOf(d.value.group) % colors.length,
+				fillColor = colors[keyIndex];
+
+				if(d.value.group != groupName) {
+					
+					groupName = d.value.group;
+
+					svg.select("#axisGroup")
+						.append("line")
+						.attr("x1", x(d.key))
+						.attr("x2", x(d.key))
+						.attr("y1", margin.top + height + margin.bump)
+						.attr("y2", margin.top + height + (margin.bump *2))
+						.attr("stroke", "#000000")
+						.style("stroke-width", 1)
+
+					svg.select("#axisGroup")
+						.append("text")
+						.attr("transform", "translate(" + (x(d.key) - 6) + "," + (y(0) + 18) + ")rotate(45)")
+						.attr("x", 0)
+						.attr("y", 0)
+						.style("font-family", "Arial").style("font-size", 11)
+						.style("fill", fillColor)
+						.text(groupName);
+
+						
+				}
+			})
+			
 
 				// render circle or triangle
 			if(!!this.renderConfig['beta field']) {
@@ -253,7 +255,7 @@ export default Vue.component("research-phewas-plot-vector", {
 					});
 			}
 			
-				// render label line
+				// render threshold lines
 			let threshold;
 
 			this.renderConfig["thresholds"].map(t=>{
@@ -275,28 +277,34 @@ export default Vue.component("research-phewas-plot-vector", {
 				
 			})
 
+			// render labels
+
 			let groups = [...new Set( sumstat.map(s=>s.value.group))];
+			let xPosGap = width / sumstat.length;
 
 			groups.map(group =>{
-				let groupItems = [...new Set(sumstat.filter(s=>s.value.group == group))]
-				let xLimit = x(groupItems[groupItems.length-1].key) - 11;
-				let yLimit = y(threshold);
+				let groupItems = [...new Set(sumstat.filter(s=>s.value.group == group))],
+					xLimit = x(groupItems[groupItems.length-1].key) + xPosGap,
+					yLimit = y(threshold);
 				
 				groupItems.map((d,dIndex)=>{
-					let dXPos = x(d.key) + (dIndex * 11);
+
+					let xPos = x(d.key),
+						nextXPos = xPos + xPosGap,
+						dXPos = x(d.key) + (dIndex * 11);
+
+					dXPos = nextXPos > dXPos ? xPos : dXPos;
 
 					if(dIndex == 0 || dXPos < xLimit) {
 						let fillColor = (y(d.value.value) < yLimit) ? "#000000" : "#cccccc";
 						svg.select("#axisGroup")
 							.append("line")
-							.attr("x1", x(d.key))
+							.attr("x1", xPos)
 							.attr("x2", dXPos)
 							.attr("y1", y(d.value.value))
 							.attr("y2", y(d.value.value) - 10)
 							.attr("stroke", "#999999")
 							.style("stroke-width", 0.5)
-
-						
 
 						svg.select("#axisGroup")
 							.append("text")
