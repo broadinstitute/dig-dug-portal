@@ -129,7 +129,7 @@ export default Vue.component("research-volcano-plot", {
 	methods: {
 		downloadImage(ID, NAME, TYPE) {
 			if (TYPE == 'svg') {
-				this.$refs[this.sectionId + '_volcanoPlot'].renderBarPlot();
+				this.$refs[this.sectionId + '_volcanoPlot'].renderVolcanoPlot();
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_volcano_plot_" + this.sectionId);
 			} else if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)

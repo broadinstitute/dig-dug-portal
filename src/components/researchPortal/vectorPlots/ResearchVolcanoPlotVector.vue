@@ -34,7 +34,7 @@ export default Vue.component("research-volcano-plot-vector", {
 		
 	},
 	mounted: function () {
-		this.renderVolcanoPlot()
+		//this.renderVolcanoPlot()
 	},
 	beforeDestroy() {
 	},
@@ -64,11 +64,7 @@ export default Vue.component("research-volcano-plot-vector", {
 					calcString += eValue;
 				});
 
-				console.log("calcString", calcString);
-
 				let threshold = eval(calcString);
-
-				console.log("threshold", threshold);
 
 				return threshold;
 			}
@@ -82,9 +78,6 @@ export default Vue.component("research-volcano-plot-vector", {
 					renderConfig[condition[0]][condition[1]] = calculateCondition(expression, this.renderData.length)
 				}
 			})
-
-			console.log("renderConfig", renderConfig);
-
 
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
@@ -115,9 +108,6 @@ export default Vue.component("research-volcano-plot-vector", {
 
 					sumstat.push(tempObj);
 				})
-			
-				console.log("sumstat",sumstat);
-
 			
 			//render axis labels
 
@@ -181,8 +171,6 @@ export default Vue.component("research-volcano-plot-vector", {
 				})
 				.call(d3.axisBottom(x));
 
-			console.log("renderConfig", renderConfig)
-
 			if (!!renderConfig["x condition"]) {
 				if(!!renderConfig["x condition"]["greater than"]) {
 					svg.select("#axisGroup")
@@ -212,7 +200,6 @@ export default Vue.component("research-volcano-plot-vector", {
 			if (!!renderConfig["y condition"]) {
 				if (!!renderConfig["y condition"]["greater than"]) {
 
-					console.log('renderConfig["y condition"]["greater than"]', y(renderConfig["y condition"]["greater than"]));
 					svg.select("#axisGroup")
 						.append('line')
 						.attr('style', "stroke-dasharray: 3,3")
@@ -240,272 +227,124 @@ export default Vue.component("research-volcano-plot-vector", {
 
 			
 			// render circle or triangle
-			svg
-				.selectAll("circle")
-				.data(sumstat)
-				.enter()
-				.append('circle')
-				.attr('cx', function (d) {
-					return (x(d.value.x))
-				})
-				.attr('cy', function (d) {
-					return (y(d.value.y))
-				})
-				.attr('r', 4)
-				.style('fill', function (d) {
+			sumstat.map(d=>{
+				let fillScore = 0;
 
-					let fillScore = 0;
+				if (!!renderConfig["x condition"]) {
+					let xCondiCombi =
+						renderConfig["x condition"].combination;
+					let xFieldVal = d.value.x;
 
-					if (!!renderConfig["x condition"]) {
-						let xCondiCombi =
-							renderConfig["x condition"].combination;
-						let xFieldVal = d.value.x;
-
-						if (
-							xCondiCombi == "greater than" &&
+					if (
+						xCondiCombi == "greater than" &&
+						xFieldVal >
+						renderConfig["x condition"]["greater than"]
+					) {
+						fillScore++;
+					}
+					if (
+						xCondiCombi == "lower than" &&
+						xFieldVal <
+						renderConfig["x condition"]["lower than"]
+					) {
+						fillScore++;
+					}
+					if (
+						xCondiCombi == "and" &&
+						xFieldVal >
+						renderConfig["x condition"]["greater than"] &&
+						xFieldVal <
+						renderConfig["x condition"]["lower than"]
+					) {
+						fillScore++;
+					}
+					if (
+						(xCondiCombi == "or" &&
 							xFieldVal >
-							renderConfig["x condition"]["greater than"]
-						) {
-							fillScore++;
-						}
-						if (
-							xCondiCombi == "lower than" &&
-							xFieldVal <
-							renderConfig["x condition"]["lower than"]
-						) {
-							fillScore++;
-						}
-						if (
-							xCondiCombi == "and" &&
-							xFieldVal >
-							renderConfig["x condition"]["greater than"] &&
-							xFieldVal <
-							renderConfig["x condition"]["lower than"]
-						) {
-							fillScore++;
-						}
-						if (
-							(xCondiCombi == "or" &&
-								xFieldVal >
-								renderConfig["x condition"][
-								"greater than"
-								]) ||
-							xFieldVal <
-							renderConfig["x condition"]["lower than"]
-						) {
-							fillScore++;
-						}
+							renderConfig["x condition"][
+							"greater than"
+							]) ||
+						xFieldVal <
+						renderConfig["x condition"]["lower than"]
+					) {
+						fillScore++;
 					}
+				}
 
-					if (!!renderConfig["y condition"]) {
-						let yCondiCombi =
-							renderConfig["y condition"].combination;
-						let yFieldVal = d.value.y;
+				if (!!renderConfig["y condition"]) {
+					let yCondiCombi =
+						renderConfig["y condition"].combination;
+					let yFieldVal = d.value.y;
 
-						if (
-							yCondiCombi == "greater than" &&
+					if (
+						yCondiCombi == "greater than" &&
+						yFieldVal >
+						renderConfig["y condition"]["greater than"]
+					) {
+						fillScore++;
+					}
+					if (
+						yCondiCombi == "lower than" &&
+						yFieldVal <
+						renderConfig["y condition"]["lower than"]
+					) {
+						fillScore++;
+					}
+					if (
+						yCondiCombi == "and" &&
+						yFieldVal >
+						renderConfig["y condition"]["greater than"] &&
+						yFieldVal <
+						renderConfig["y condition"]["lower than"]
+					) {
+						fillScore++;
+					}
+					if (
+						(yCondiCombi == "or" &&
 							yFieldVal >
-							renderConfig["y condition"]["greater than"]
-						) {
-							fillScore++;
-						}
-						if (
-							yCondiCombi == "lower than" &&
-							yFieldVal <
-							renderConfig["y condition"]["lower than"]
-						) {
-							fillScore++;
-						}
-						if (
-							yCondiCombi == "and" &&
-							yFieldVal >
-							renderConfig["y condition"]["greater than"] &&
-							yFieldVal <
-							renderConfig["y condition"]["lower than"]
-						) {
-							fillScore++;
-						}
-						if (
-							(yCondiCombi == "or" &&
-								yFieldVal >
-								renderConfig["y condition"][
-								"greater than"
-								]) ||
-							yFieldVal <
-							renderConfig["y condition"]["lower than"]
-						) {
-							fillScore++;
-						}
+							renderConfig["y condition"][
+							"greater than"
+							]) ||
+						yFieldVal <
+						renderConfig["y condition"]["lower than"]
+					) {
+						fillScore++;
 					}
+				}
 
-					let fillColor;
-					switch (fillScore) {
-						case 0:
-							fillColor = "#00000050";
-							break;
-						case 1:
-							fillColor = "#09910980";
-							break;
-						case 2:
-							fillColor = "#ff003780";
-							break;
-					}
-					return fillColor;
-				});
-			
+				let fillColor;
+				switch (fillScore) {
+					case 0:
+						fillColor = "#00000050";
+						break;
+					case 1:
+						fillColor = "#09910980";
+						break;
+					case 2:
+						fillColor = "#ff003780";
+						break;
+				}
 
-			/*
-			/// render x axis line
-			svg.select("#axisGroup")
-				.append("line")
-				.attr("x1", (margin.left - margin.bump))
-				.attr("x2", (margin.left +width))
-				.attr("y1", margin.top + height + margin.bump)
-				.attr("y2", margin.top + height + margin.bump)
-				.attr("stroke", "#000000")
-				.style("stroke-width", 1)
-
-			///render group Label
-			let groupName = "";
-
-			sumstat.map(d => {
-				let keyIndex = groupVals.indexOf(d.value.group) % colors.length,
-				fillColor = colors[keyIndex];
-
-				if(d.value.group != groupName) {
-					
-					groupName = d.value.group;
-
-					svg.select("#axisGroup")
-						.append("line")
-						.attr("x1", x(d.key))
-						.attr("x2", x(d.key))
-						.attr("y1", margin.top + height + margin.bump)
-						.attr("y2", margin.top + height + (margin.bump *2))
-						.attr("stroke", "#000000")
-						.style("stroke-width", 1)
-
+				if(fillScore >= 2){
 					svg.select("#axisGroup")
 						.append("text")
-						.attr("transform", "translate(" + (x(d.key) - 6) + "," + (y(0) + 18) + ")rotate(45)")
-						.attr("x", 0)
-						.attr("y", 0)
+						.attr("x", x(d.value.x))
+						.attr("y", y(d.value.y) - (margin.bump *2))
+						.style("text-anchor", "middle")
 						.style("font-family", "Arial").style("font-size", 11)
-						.style("fill", fillColor)
-						.text(groupName);
-
-						
-				}
-			})
-			
-			
-
-				// render circle or triangle
-			if(!!this.renderConfig['beta field']) {
-				
-				let sym = d3.symbol().type(d3.symbolTriangle).size(50);
-
-				svg.selectAll("triangles")
-					.data(sumstat)
-					.enter()
-					.append("path")
-					.attr("d", sym)
-					.attr("fill", function (d) {
-						let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
-						let fillColor = colors[keyIndex];
-						return fillColor
-					})
-					.attr("transform", function (d) {
-						let betaAngle = (d.value.beta > 0)? 0:180; 
-						let yPos = (d.value.beta > 0) ? y(d.value.value)+2 : y(d.value.value)-2;
-						return "translate(" + x(d.key) + "," + yPos + ")rotate("+betaAngle+")";
-					})
-					.attr("stroke", "#000000")
-					.style("stroke-width", 0.5);
-					
-				
-			} else {
-				svg
-					.selectAll("circle")
-					.data(sumstat)
-					.enter()
-					.append('circle')
-					.attr('cx', function (d) {
-						return (x(d.key))
-					})
-					.attr('cy', function (d) {
-						return (y(d.value.value))
-					})
-					.attr('r', 5)
-					.style('fill', function (d) {
-						let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
-						let fillColor = colors[keyIndex];
-						return fillColor
-					});
-			}
-			
-				// render threshold lines
-			let threshold;
-
-			this.renderConfig["thresholds"].map(t=>{
-				threshold = (typeof t == 'string') ? Number(t) : t;
-
-				if (this.renderConfig["convert y -log10"] == true || this.renderConfig["convert y -log10"] == "true") {
-					threshold = -Math.log10(t);
+						.style("fill", "#000000")
+						.text(d.key);
 				}
 
 				svg.select("#axisGroup")
-					.append('line')
-					.attr('style', "stroke-dasharray: 5,2")
-					.attr('x1', margin.left)
-					.attr('y1',y(threshold) )
-					.attr('x2', width+margin.left)
-					.attr('y2', y(threshold))
-					.attr("stroke", "#FFAA00")
-					.style("stroke-width", 1)
+					.append('circle')
+					.attr('cx', x(d.value.x))
+					.attr('cy', y(d.value.y))
+					.attr('r', 4)
+					.style('fill', fillColor);
 				
 			})
-
-			// render labels
-
-			let groups = [...new Set( sumstat.map(s=>s.value.group))];
-			let xPosGap = width / sumstat.length;
-
-			groups.map(group =>{
-				let groupItems = [...new Set(sumstat.filter(s=>s.value.group == group))],
-					xLimit = x(groupItems[groupItems.length-1].key) + xPosGap,
-					yLimit = y(threshold);
-				
-				groupItems.map((d,dIndex)=>{
-
-					let xPos = x(d.key),
-						nextXPos = xPos + xPosGap,
-						dXPos = x(d.key) + (dIndex * 11);
-
-					dXPos = nextXPos > dXPos ? xPos : dXPos;
-
-					if(dIndex == 0 || dXPos < xLimit) {
-						let fillColor = (y(d.value.value) < yLimit) ? "#000000" : "#cccccc";
-						svg.select("#axisGroup")
-							.append("line")
-							.attr("x1", xPos)
-							.attr("x2", dXPos)
-							.attr("y1", y(d.value.value))
-							.attr("y2", y(d.value.value) - 10)
-							.attr("stroke", "#999999")
-							.style("stroke-width", 0.5)
-
-						svg.select("#axisGroup")
-							.append("text")
-							.attr("transform", "translate(" + (dXPos+3) + "," + (y(d.value.value) - 12) + ")rotate(-90)")
-							.attr("x", 0)
-							.attr("y", 0)
-							.style("font-family", "Arial").style("font-size", 11)
-							.style("fill",fillColor)
-							.text(d.value.name);
-					}
-				})
-			})	*/		
+					
 		},
 	},
 });
