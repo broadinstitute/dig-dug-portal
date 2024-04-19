@@ -81,7 +81,13 @@ export default Vue.component("DownloadChart", {
         uiUtils.downloadChart(dataUrl, `${this.filename}.png`);
       },
       downloadCanvasToSvg(){
-        console.log("Coming soon");
+        let canvas = document.querySelector(`canvas#${this.chartId}`);
+        let dataUrl = canvas.toDataURL("image/png");
+        let image = `<image height="${canvas.height}" width="${canvas.width
+          }" y="0" x="0" xlink:href="${dataUrl}" id="importedCanvas_0"/>`;
+        let svg = `<svg xmlns:xlink="http://www.w3.org/1999/xlink" height="${canvas.height
+          }" width="${canvas.width}" xmlns="http://www.w3.org/2000/svg" id="svg">${image}</svg>`
+        console.log(svg);
       }
     },
 });
