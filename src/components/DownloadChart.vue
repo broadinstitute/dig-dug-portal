@@ -34,10 +34,13 @@ export default Vue.component("DownloadChart", {
       }
     },
     methods: {
-      svgUrl(){
+      svgUrl(id=""){
+        if (!id){
+          id = this.chartId;
+        }
         // Serialize the SVG to a string
         const svgString = new XMLSerializer().serializeToString(
-            d3.select(`svg#${this.chartId}`).node()
+            d3.select(`svg#${id}`).node()
         );
         // Create a data URL
         const blob = new Blob([svgString], {
@@ -86,8 +89,13 @@ export default Vue.component("DownloadChart", {
         let image = `<image height="${canvas.height}" width="${canvas.width
           }" y="0" x="0" xlink:href="${dataUrl}" id="importedCanvas_0"/>`;
         let svg = `<svg xmlns:xlink="http://www.w3.org/1999/xlink" height="${canvas.height
-          }" width="${canvas.width}" xmlns="http://www.w3.org/2000/svg" id="svg">${image}</svg>`
+          }" width="${canvas.width}" xmlns="http://www.w3.org/2000/svg" id="new-svg">${image}</svg>`
         console.log(svg);
+        const newDiv = document.createElement("div");
+        newDiv.innerHTML = svg;
+        document.body.appendChild(newDiv);
+        uiUtils.downloadChart(this.svgUrl("new-svg"), `${this.filename}.svg`);
+        document.body.removeChild(newDiv);
       }
     },
 });
