@@ -20,6 +20,29 @@
 			"
 		>
 		</canvas>
+		<div class="download-images-setting">
+			<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+			<ul class="options" >
+				<li>
+					<a href="javascript:;"
+					@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_volcanoPlot', 'svg')">Download SVG</a>
+				</li>
+				<li>
+					<a href="javascript:;"
+					@click="downloadImage('volcanoPlot' + sectionId, sectionId + '_volcanoPlot', 'png')">Download PNG</a>
+				</li>
+			</ul>
+		</div>
+		<research-volcano-plot-vector
+		v-if="!!renderData"
+			:renderData="renderData"
+			:renderConfig="renderConfig"
+			:margin="adjPlotMargin"
+			:sectionId="sectionId"
+			:utils="utils"
+			:ref="sectionId + '_volcanoPlot'"
+		>
+		</research-volcano-plot-vector>
 		<div
 			v-if="!!renderConfig.label"
 			class="volcano-plot-label"
@@ -32,20 +55,45 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import volcanoPlotVector from "@/components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-volcano-plot", {
-	props: ["plotData", "renderConfig", "geneOfInterest","utils","sectionId"],
+	props: ["plotData", "renderConfig", "geneOfInterest","utils","sectionId","colors"],
 	data() {
 		return { posData: {} };
 	},
 	modules: {
 	},
+	components: {
+		volcanoPlotVector,
+	},
 	mounted: function () {
 		this.renderPlot();
 	},
 	computed: {
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 5,
+			} :
+				{
+					left: 80,
+					right: 20,
+					top: 20,
+					bottom: 60,
+					bump: 5
+				};
+
+			return plotMargin;
+		},
 		renderingGene() {
 			return this.geneOfInterest;
 		},
@@ -79,6 +127,14 @@ export default Vue.component("research-volcano-plot", {
 		},
 	},
 	methods: {
+		downloadImage(ID, NAME, TYPE) {
+			if (TYPE == 'svg') {
+				this.$refs[this.sectionId + '_volcanoPlot'].renderBarPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_volcano_plot_" + this.sectionId);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 		hidePanel() {
 			this.utils.uiUtils.hideElement("clicked_dot_value"+this.sectionId);
 			//this.renderPlot();
