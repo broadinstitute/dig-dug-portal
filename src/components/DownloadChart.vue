@@ -86,13 +86,16 @@ export default Vue.component("DownloadChart", {
       downloadCanvasToSvg(){
         let canvas = document.querySelector(`canvas#${this.chartId}`);
         let dataUrl = canvas.toDataURL("image/png");
-        let image = `<image height="${canvas.height}" width="${canvas.width
+        let height = canvas.height / 2;
+        let width = canvas.width / 2;
+        let image = `<image height="${height}" width="${width
           }" y="0" x="0" xlink:href="${dataUrl}" id="importedCanvas_0"/>`;
-        let svg = `<svg xmlns:xlink="http://www.w3.org/1999/xlink" height="${canvas.height
-          }" width="${canvas.width}" xmlns="http://www.w3.org/2000/svg" id="new-svg">${image}</svg>`
+        let svg = `<svg xmlns:xlink="http://www.w3.org/1999/xlink" height="${height
+          }" width="${width}" xmlns="http://www.w3.org/2000/svg" id="new-svg">${image}</svg>`
         console.log(svg);
         const newDiv = document.createElement("div");
         newDiv.innerHTML = svg;
+        newDiv.hidden = true;
         document.body.appendChild(newDiv);
         uiUtils.downloadChart(this.svgUrl("new-svg"), `${this.filename}.svg`);
         document.body.removeChild(newDiv);
