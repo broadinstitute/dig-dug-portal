@@ -92,7 +92,6 @@ export default Vue.component("DownloadChart", {
           }" y="0" x="0" xlink:href="${dataUrl}" id="importedCanvas_0"/>`;
         let svg = `<svg xmlns:xlink="http://www.w3.org/1999/xlink" height="${height
           }" width="${width}" xmlns="http://www.w3.org/2000/svg" id="new-svg">${image}</svg>`
-        console.log(svg);
         const newDiv = document.createElement("div");
         newDiv.innerHTML = svg;
         newDiv.hidden = true;

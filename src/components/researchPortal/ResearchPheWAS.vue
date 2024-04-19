@@ -80,12 +80,12 @@
 					"
 				></canvas>
 			</div>
+			<download-chart
+				:filename="!plotName ? 'PheWAS' : plotName"
+				:chartId="canvasId + 'pheWasPlot'"
+				>
+			</download-chart>
 		</div>
-		<download-chart
-			:filename="!plotName ? 'PheWAS' : plotName"
-			:chartId="canvasId + 'pheWasPlot'"
-			>
-		</download-chart>
 	</div>
 </template>
 
