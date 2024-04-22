@@ -66,21 +66,87 @@ export default Vue.component("research-region-track-vector", {
 				bottom: this.margin.bottom / 2,
 				bump: this.margin.bump / 2,
 			}
+
+			let trackGroups = Object.keys(this.renderData).sort();
 			
 			let width = !!this.renderConfig['width']? this.renderConfig['width']: 
 				bitmapWrapper.clientWidth - (margin.left + margin.right);
-			let height = !!this.renderConfig['height'] ? this.renderConfig['height']-(margin.top+margin.bottom) : 150;
+			let height = this.renderConfig['track height'] * trackGroups.length;
 
 			let svg = d3.select(wrapperClass)
 				.append("svg")
 				.attr("id", "vector_region_track_"+this.sectionId )
 				.attr("width", width + margin.left + margin.right)
 				.attr("height", height + margin.top + margin.bottom)
-				.append("g")
-				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+				.attr("style", "border: solid 1px #dddddd");
 
 				console.log("this.renderData", this.renderData)
 				console.log("this.renderConfig", this.renderConfig)
+				console.log("height", height)
+				console.log("region", this.region)
+
+			svg.append("g")
+				.attr("id", "tracksGroup")
+				.attr("transform", "translate(0,0)")
+				.style("font-family", "Arial").style("font-size", 12)
+				.style("text-anchor", "start");
+
+			let x = d3.scaleLinear().domain([this.region.start, this.region.end]).range([margin.left, width + margin.left]);
+
+			svg.select("#tracksGroup")
+				.append("g")
+				.attr("transform", function (d) {
+					return "translate(" + "0" + "," + (height + margin.top + margin.bump) + ")";
+				})
+				.call(d3.axisBottom(x));
+
+			svg.select("#tracksGroup")
+				.append('line')
+				.attr('x1', margin.left - margin.bump)
+				.attr('y1', margin.top)
+				.attr('x2', margin.left - margin.bump)
+				.attr('y2', margin.top + height + margin.bump)
+				.attr("stroke", "#000000")
+				.style("stroke-width", 0.75)
+
+			svg.select("#tracksGroup")
+				.append('line')
+				.attr('x1', margin.left + width + margin.bump)
+				.attr('y1', margin.top)
+				.attr('x2', margin.left + width + margin.bump)
+				.attr('y2', margin.top + height + margin.bump)
+				.attr("stroke", "#000000")
+				.style("stroke-width", 0.75)
+
+			//svg.select("#tracksGroup")
+
+			trackGroups.map((group,gIndex) =>{
+console.log(margin.top, (gIndex * this.renderConfig['track height']))
+				svg.select("#tracksGroup")
+					.append("text")
+					.attr("x", margin.bump)
+					.attr("y", (gIndex * this.renderConfig['track height']) + margin.top + 10)
+					.text(group);
+
+				if(gIndex%2 == 0) {
+					svg.select("#tracksGroup")
+						.append("rect")
+						.attr("x", margin.left)
+						.attr("y", (gIndex * this.renderConfig['track height']) + margin.top)
+						.attr("height", this.renderConfig['track height'])
+						.attr("width", width)
+						.style("fill", "#eeeeee")
+				}
+
+				
+
+				
+				
+			})
+
+			
+
+
 /*
 				
 			let localData = [];

@@ -25,7 +25,7 @@
                 </li>
                 <li>
                     <a href="javascript:;"
-                    @click="downloadImage(sectionId + 'regionTrack', sectionId + '_regionTrack', 'png')">Download PNG</a>
+                    @click="downloadImage('track_' + sectionId, sectionId + '_regionTrack', 'png')">Download PNG</a>
                 </li>
             </ul>
         </div>
