@@ -33,7 +33,7 @@
         v-if="!!renderData"
             :renderData="renderData"
             :renderConfig="plotConfig"
-            :colors="colors"
+            :colors="colors.bold"
             :margin="adjPlotMargin"
             :region="viewingRegion"
             :sectionId="sectionId"
