@@ -242,7 +242,9 @@ export default Vue.component("research-region-track", {
                 ctx.textAlign = "start";
                 ctx.textBaseline = "middle";
                 ctx.font = "24px Arial";
-                ctx.fillText(track, 2, trackTop + 12);
+                let labelLimit = Math.floor((this.adjPlotMargin.left - this.adjPlotMargin.bump) / 16)
+                let trackLabel = (track.length > labelLimit)? track.slice(0, labelLimit)+'...': track;
+                ctx.fillText(trackLabel, 2, trackTop + 12);
 
                 if (trackIndex % 2 == 0) {
                     ctx.fillStyle = "#00000010";
@@ -314,10 +316,10 @@ export default Vue.component("research-region-track", {
                             );
 
                             if (!this.posData[Math.round(trackTop / 2)]) {
-                                this.posData[Math.round(trackTop / 2)] = [];
+                                this.posData[Math.round(trackTop / 2)] = {'label':track,'regions':[]};
                             }
 
-                            this.posData[Math.round(trackTop / 2)].push({ start: Math.round(xPosStart / 2), end: Math.round((xPosStart + xPosWidth) / 2), data: block });
+                            this.posData[Math.round(trackTop / 2)]['regions'].push({ start: Math.round(xPosStart / 2), end: Math.round((xPosStart + xPosWidth) / 2), data: block });
                         }
                     })
                     
@@ -415,15 +417,16 @@ export default Vue.component("research-region-track", {
                 }
                 
                 let trackRows = Object.keys(this.posData);
-
                 let blockData = [];
+                let rowLabel = '';
 
                 trackRows.map(row => {
                     let rowTop = Number(row);
                     let rowBottom = rowTop + Math.round(this.plotConfig["track height"]);
 
                     if (y >= rowTop && y <= rowBottom) {
-                        this.posData[row].map(block => {
+                        rowLabel = this.posData[row].label;
+                        this.posData[row]['regions'].map(block => {
                             if (x >= block.start && x <= block.end) {
                                 blockData.push(block.data);
                             }
@@ -431,7 +434,7 @@ export default Vue.component("research-region-track", {
                     }
                 })
 
-                if (blockData.length > 0) {
+                if (blockData.length > 0 || rowLabel != '') {
                     if (action == "click") {
                         this.infoBoxFrozen = true;
                         document.getElementById("block_data_" + this.sectionId).classList.add("fixed-info-box");
@@ -465,18 +468,19 @@ export default Vue.component("research-region-track", {
                             " items. Click to view full list.</strong>";
                     }
 
-                    contentWrapper.innerHTML = hoverContent;
+                    contentWrapper.innerHTML = (blockData.length > 0)? hoverContent : rowLabel;
 
                     if (action == "hover") {
                         wrapper.classList.remove("hidden");
+                        wrapper.classList.add('hover');
                         wrapper.style.top = y + canvas.offsetTop + 25 + "px";
                         let xPosRatio = x / canvas.offsetWidth;
                         wrapper.style.left = x - (wrapper.offsetWidth * xPosRatio) + canvas.offsetLeft + "px";
                         document.getElementById("block_data_" + this.sectionId).classList.remove("fixed-info-box");
-                    }
-
-                    if(action="hover") {
+                    
                         document.getElementById("track_" + this.sectionId).classList.add("hover");
+                    } else {
+                        wrapper.classList.remove('hover');
                     }
                     
                 } else {
@@ -563,6 +567,10 @@ $(function () { });
     z-index: 10;
     width: auto;
     padding: 8px 20px 8px 10px !important;
+}
+
+.block-data.hover .fixed-info-box-close {
+    display: none;
 }
 
 .block-data.fixed-info-box {

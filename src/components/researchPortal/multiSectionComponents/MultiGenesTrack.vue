@@ -9,6 +9,12 @@
 								@click="utils.uiUtils.showHideElement('genesTrackWrapper' + sectionId)"
 							/><label> Hide track</label>
 						</li>
+						<li>
+							<input type="checkbox" class="chkbox"
+							:id="sectionId + 'GenesTrackAll'"
+							@click="checkAll()"
+							/><label> Show all biotypes</label>
+						</li>
 						<li v-for="geneType in localGeneTypes"
 							:key="geneType">
 							<input type="checkbox" class="chkbox"
@@ -97,8 +103,6 @@ export default Vue.component("multi-genes-track", {
 			
 			let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
 
-			console.log('gene track', customPlotMargin);
-
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
 				right: customPlotMargin.right,
@@ -167,7 +171,6 @@ export default Vue.component("multi-genes-track", {
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				//consolee.log("n",n);
 				if(!!this.genesData){
 					this.renderTrack(this.genesData);
 				} else {
@@ -194,6 +197,24 @@ export default Vue.component("multi-genes-track", {
 				this.renderTrack(this.genesData);
 			}
 			
+		},
+
+		checkAll() {
+
+			if(!!document.getElementById(this.sectionId + 'GenesTrackAll').checked) {
+				this.localGeneTypes.map(t => {
+					document.getElementById(this.sectionId + t).checked = true;
+				})
+			} else {
+				this.localGeneTypes.map(t => {
+					if(t != 'protein_coding') {
+						document.getElementById(this.sectionId + t).checked = false;
+					}
+					
+				})
+			}
+
+			this.renderTrack(this.localGenesData)
 		},
 
 		sortGenesByRegion(GENES) {
@@ -292,8 +313,6 @@ export default Vue.component("multi-genes-track", {
 
 				let geneTracksArray = this.sortGenesByRegion(genesSorted);
 
-				//console.log("geneTracksArray", geneTracksArray);
-
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
 					eachGeneTrackHeight * (geneTracksArray .length);
@@ -326,6 +345,7 @@ export default Vue.component("multi-genes-track", {
 
 				geneTracksArray.map((genesArray, geneIndex) => {
 					genesArray.map(gene => {
+
 						let yPos = this.adjPlotMargin.top + geneIndex * eachGeneTrackHeight;
 
 						var left = "\u{2190}";
@@ -352,7 +372,6 @@ export default Vue.component("multi-genes-track", {
 						ctx.stroke();
 
 						gene.exons.map((exon) => {
-							//console.log(gene.gene_name, ": ", exon.start, exon.end);
 
 							if (exon.start < xMax && exon.end > xMin) {
 								let xonStartPos =

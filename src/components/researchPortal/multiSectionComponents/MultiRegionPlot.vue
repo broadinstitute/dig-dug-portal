@@ -189,8 +189,6 @@ export default Vue.component("multi-region-plot", {
 					bump: this.plotMargin.bump,
 				};
 
-			console.log('region plot', plotMargin);
-
 			return plotMargin;
 		},
 		staredVariants() {
@@ -519,8 +517,6 @@ export default Vue.component("multi-region-plot", {
 				return null;
 			} else {
 				let returnObj = {};
-
-				//console.log("this.region",this.region);
 
 				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
@@ -870,7 +866,6 @@ export default Vue.component("multi-region-plot", {
 						this.searchingRegion.end +
 						"&limit=100000";
 				}
-					console.log(ldURL);
 
 				let ldJson = await fetch(ldURL).then((resp) => resp.json());
 
