@@ -7,7 +7,7 @@
             </div>
             <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
         </div>
-        <div>
+        <div class="col-md-11">
             <span v-for="cKey,index in colorGroups" :key="cKey" class="color-groups" @mouseover="renderPlot(cKey)" @mouseleave="renderPlot()">
                 <span class="box" :style="'background-color:' + colors.bold[index % 16]"></span><span class="label" v-html="cKey"></span>
             </span>
@@ -236,6 +236,14 @@ export default Vue.component("research-region-track", {
                 this.adjPlotMargin.top,
                 this.adjPlotMargin);
 
+            let canvas = document.createElement('canvas'),
+                context = canvas.getContext('2d');
+
+            let getWidth = function (text, fontSize, fontFace) {
+                context.font = fontSize + 'px ' + fontFace;
+                return context.measureText(text).width;
+            }
+
             tracks.map(track=>{
                 let trackTop = this.adjPlotMargin.top + (perTrack * trackIndex);
                 ctx.fillStyle = "#000000";
@@ -243,7 +251,24 @@ export default Vue.component("research-region-track", {
                 ctx.textBaseline = "middle";
                 ctx.font = "24px Arial";
                 let labelLimit = Math.floor((this.adjPlotMargin.left - this.adjPlotMargin.bump) / 16)
-                let trackLabel = (track.length > labelLimit)? track.slice(0, labelLimit)+'...': track;
+
+                let trackLabel = "";
+                let txtWidth = getWidth(track, 24, "Arial")
+
+                if (txtWidth > (this.adjPlotMargin.left - this.adjPlotMargin.bump)) {
+                    for (let i = 0; i < track.length; i++) {
+                        if (getWidth(trackLabel + track[i], 24, "Arial") < (this.adjPlotMargin.left - (this.adjPlotMargin.bump * 6))) {
+                            trackLabel = trackLabel + track[i];
+                        }
+                    }
+                    trackLabel += "..."
+                } else {
+                    trackLabel = track;
+                }
+
+                //let trackLabel = (track.length > labelLimit)? track.slice(0, labelLimit)+'...': track;
+
+
                 ctx.fillText(trackLabel, 2, trackTop + 12);
 
                 if (trackIndex % 2 == 0) {
@@ -529,6 +554,11 @@ $(function () { });
 }
 .color-groups {
     font-size: 13px;
+    display: inline-block;
+}
+
+.color-groups span {
+    display: inline-block;
 }
 
 .color-groups:hover {

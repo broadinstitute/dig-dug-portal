@@ -53,7 +53,6 @@ export default Vue.component("research-region-track-vector", {
 		renderRegionTrack() {
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 
-			console.log(this.renderData)
 			// this part needed to get exact width of legend texts
 			let canvas = document.createElement('canvas'),
 				context = canvas.getContext('2d');
@@ -130,13 +129,15 @@ export default Vue.component("research-region-track-vector", {
 					.attr("width", 12)
 					.style("fill", fillColor)
 
+				let txtWidth = getWidth(text, 12, "Arial")
+
 				svg.select("#tracksGroup")
 					.append("text")
 					.attr("x", prevX + 15)
 					.attr("y", yPos)
 					.text(text);
 
-				let txtWidth = getWidth(text, 12, "Arial") + getWidth(colorGroups[tIndex+1], 12, "Arial")
+				txtWidth = txtWidth + getWidth(colorGroups[tIndex+1], 12, "Arial")
 
 				if((prevX + txtWidth + 20) > (width + margin.left)) {
 					prevX = margin.bump;
@@ -215,11 +216,26 @@ export default Vue.component("research-region-track-vector", {
 			//svg.select("#tracksGroup")
 
 			trackGroups.map((group,gIndex) =>{
+
+				let trackLabel = "";
+				let txtWidth = getWidth(group, 12, "Arial")
+
+				if (txtWidth > (margin.left - margin.bump)) {
+					for (let i = 0; i < group.length; i++) {
+						if (getWidth(trackLabel + group[i], 12, "Arial") < (margin.left - (margin.bump*6))) {
+							trackLabel = trackLabel + group[i];
+						}
+					}
+					trackLabel += "..."
+				} else {
+					trackLabel = group;
+				}
+
 				svg.select("#tracksGroup")
 					.append("text")
 					.attr("x", margin.bump)
 					.attr("y", (gIndex * this.renderConfig['track height']) + margin.top + 10)
-					.text(group);
+					.text(trackLabel);
 
 				if(gIndex%2 == 0) {
 					svg.select("#tracksGroup")
