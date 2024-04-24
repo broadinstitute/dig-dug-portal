@@ -298,7 +298,6 @@
 
                 <template #row-details="row">
                     <div class="details">
-                        {{ row.item.showButton }}
                         <div v-if="row.item.showButton === 1" class="row">
                             <b-table
                                 :items="row.item.hpdisplay"
