@@ -22,6 +22,28 @@
 						height=""
 					>
 					</canvas>
+					<div class="download-images-setting">
+						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+						<ul class="options" >
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_heatmap', 'svg')">Download SVG</a>
+							</li>
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage(sectionId + 'heatmap', sectionId + '_heatmap', 'png')">Download PNG</a>
+							</li>
+						</ul>
+					</div>
+					<research-heatmap-vector
+					v-if="!!renderData"
+						:renderData="renderData"
+						:renderConfig="renderConfig"
+						:sectionId="sectionId"
+						:utils="utils"
+						:ref="sectionId + '_heatmap'"
+					>
+					</research-heatmap-vector>
 				</div>
 			</div>
 			<div
@@ -36,9 +58,8 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
+import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/ResearchHeatmapVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -113,7 +134,15 @@ export default Vue.component("research-heatmap", {
 		},
 	},
 	methods: {
-		//...uiUtils,
+		downloadImage(ID, NAME, TYPE) {
+			if (TYPE == 'svg') {
+				this.$refs[this.sectionId + '_heatmap'].renderHeatmap();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_heatmap_" + this.sectionId);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+
+		},
 		hidePanel() {
 			this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
 			this.renderHeatmap();
