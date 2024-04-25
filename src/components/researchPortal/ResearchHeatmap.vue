@@ -69,6 +69,7 @@ export default Vue.component("research-heatmap", {
 		return {
 			squareData: {},
 			canvasHover: false,
+			margin:{},
 		};
 	},
 	modules: {
@@ -236,8 +237,8 @@ export default Vue.component("research-heatmap", {
 
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
-			let x = Math.floor((e.clientX - rect.left) / this.boxSize);
-			let y = Math.floor((e.clientY - rect.top) / this.boxSize);
+			let x = Math.floor((e.clientX - (rect.left + (this.margin.left/2))) / this.boxSize);
+			let y = Math.floor((e.clientY - (rect.top + (this.margin.top/2))) / this.boxSize);
 
 			let clickedCellValue = "";
 			if (
@@ -294,61 +295,50 @@ export default Vue.component("research-heatmap", {
 			}
 			this.renderHeatmap(x, y);
 		},
+		getWidth(ctx, text, fontSize, fontFace) {
+			ctx.font = fontSize + 'px ' + fontFace;
+			return ctx.measureText(text).width;
+		},
+
 		renderHeatmap(X, Y) {
-			this.squareData = {};
-			document.getElementById("heatmapColumnsWrapper" + this.sectionId).innerHTML = "";
-			document.getElementById("heatmapRowsWrapper" + this.sectionId).innerHTML = "";
-
-			let canvasWidth =
-				this.renderConfig["font size"] *
-				1.5 *
-				this.renderData.columns.length *
-				2;
-
-			let canvasHeight = this.boxSize * this.renderData.rows.length * 2;
-
-			document.getElementById("heatmapColumnsWrapper" + this.sectionId).style.fontSize =
-				this.renderConfig["font size"] + "px";
-			document.getElementById("heatmapRowsWrapper" + this.sectionId).style.fontSize =
-				this.renderConfig["font size"] + "px";
-
-			this.renderData.columns.map((c) => {
-				var div = document.createElement("div");
-				var t = document.createTextNode(c);
-				div.appendChild(t);
-				div.setAttribute("style", "height: " + this.boxSize + "px;");
-				document
-					.getElementById("heatmapColumnsWrapper" + this.sectionId)
-					.appendChild(div);
-			});
-
-			this.renderData.rows.map((r) => {
-				var div = document.createElement("div");
-				var t = document.createTextNode(r);
-				div.appendChild(t);
-				div.setAttribute("style", "height: " + this.boxSize + "px;");
-				document.getElementById("heatmapRowsWrapper" + this.sectionId).appendChild(div);
-			});
-
-			let columnTopSpace =
-				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetHeight -
-				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetWidth -
-				10;
-			let aboveColumnPadding =
-				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetWidth +
-				20;
-
-			let rIndex = 0;
+			let c = document.getElementById("heatmap" + this.sectionId);
+			let ctx = c.getContext("2d");
 
 			
-			document.getElementById("heatmapColumnsWrapper" + this.sectionId).style.left =
-				document.getElementById("heatmapRowsWrapper" + this.sectionId).offsetWidth +
-				(this.boxSize - this.renderConfig["font size"]) / 2 +
-				"px";
-			document.getElementById("heatmapPlotWrapper" + this.sectionId).style.paddingTop =
-				aboveColumnPadding + "px";
 
-			let c = document.getElementById("heatmap" + this.sectionId);
+			let fontSize = this.renderConfig['font size']*2;
+
+			let marginArrs = {
+				left: [],
+				top: []
+			}
+
+			marginArrs.left = this.renderData.rows.map(r => Math.ceil(this.getWidth(ctx,r, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
+			marginArrs.top = this.renderData.columns.map(c => Math.ceil(this.getWidth(ctx,c, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
+
+			this.margin = {
+				top: marginArrs.top[0],
+				bottom: 30,
+				left: marginArrs.left[0],
+				right: 20,
+				bump: 5
+			}
+
+			let margin = {
+				top: marginArrs.top[0] + 80,
+				bottom: 30,
+				left: marginArrs.left[0],
+				right: 40,
+				bump: 10
+			};
+
+			let boxSize = fontSize * 1.5;
+
+			let canvasWidth = ((boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
+			let canvasHeight = ((boxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4)*2);
+
+			console.log(canvasWidth, canvasHeight);
+			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
 			c.setAttribute(
@@ -359,17 +349,40 @@ export default Vue.component("research-heatmap", {
 					canvasHeight / 2 +
 					"px;"
 			);
-			let ctx = c.getContext("2d");
+
 
 			let renderBoxSize = this.boxSize * 2;
 
-			this.renderData.rows.map((r) => {
+			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
-				let cIndex = 0;
-				this.renderData.columns.map((c) => {
+
+				let top = margin.top + (margin.bump * 2) + (renderBoxSize * rIndex);
+
+				ctx.font = "24px Arial";
+				ctx.textAlign = "end";
+				ctx.fillStyle = "#000000";
+				ctx.fillText(
+					r,
+					margin.left + margin.bump,
+					top + fontSize
+				);
+
+
+				this.renderData.columns.map((c, cIndex) => {
+
 					let mainValue = this.renderData[r][c].main;
-					let left = renderBoxSize * cIndex;
-					let top = renderBoxSize * rIndex;
+					let left = margin.left + (margin.bump * 2) + (renderBoxSize * cIndex);
+
+					ctx.save();
+					ctx.translate(left + fontSize, margin.top + margin.bump);
+					ctx.rotate((90 * -Math.PI) / 180);
+					ctx.font = "24px Arial";
+					ctx.fillStyle = "#000000";
+					ctx.textAlign = "start";
+					ctx.fillText(c, 0, 0);
+					ctx.restore();
+
+					
 
 					this.squareData[rIndex][cIndex] = {};
 					this.squareData[rIndex][cIndex]["main"] = {

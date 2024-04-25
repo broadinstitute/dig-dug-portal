@@ -36,7 +36,7 @@ export default Vue.component("research-phewas-plot-vector", {
 		
 	},
 	mounted: function () {
-		//this.renderPheWasPlot()
+		this.renderPheWasPlot()
 	},
 	beforeDestroy() {
 	},
@@ -208,7 +208,8 @@ export default Vue.component("research-phewas-plot-vector", {
 			
 
 				// render circle or triangle
-			if(!!this.renderConfig['beta field']) {
+				console.log("this.renderConfig['beta field']", this.renderConfig['beta field'])
+			if(!!this.renderConfig['beta field'] && this.renderConfig['beta field'] != null && this.renderConfig['beta field'] != 'null') {
 				
 				let sym = d3.symbol().type(d3.symbolTriangle).size(50);
 
@@ -248,7 +249,9 @@ export default Vue.component("research-phewas-plot-vector", {
 						let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
 						let fillColor = colors[keyIndex];
 						return fillColor
-					});
+					})
+					.attr("stroke", "#000000")
+					.style("stroke-width", 0.5);;
 			}
 			
 				// render threshold lines

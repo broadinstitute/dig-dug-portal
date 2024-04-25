@@ -137,12 +137,6 @@ export default Vue.component("research-heatmap-vector", {
 
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 
-			let bitmapWrapper = document.querySelector(
-				"#heatmapCanvasWrapper" + this.canvasId
-			);
-
-			console.log("renderData", this.renderData);
-
 			let fontSize = this.renderConfig['font size'];
 
 			let marginArrs  = {
@@ -156,14 +150,13 @@ export default Vue.component("research-heatmap-vector", {
 			console.log("marginArrs", marginArrs);
 
 			let margin = {
-				top: marginArrs.top[0] + 50,
+				top: marginArrs.top[0] + 20,
 				bottom: 30,
 				left: marginArrs.left[0],
 				right: 20,
 				bump: 5
 			}
 
-			console.log("margin", margin);
 			let boxSize = this.renderConfig['font size'] * 1.5;
 
 			let width = (boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4);
@@ -174,13 +167,136 @@ export default Vue.component("research-heatmap-vector", {
 				.attr("id", "vector_heatmap_" + this.sectionId)
 				.attr("width", width)
 				.attr("height", height)
-				.attr("style", "border: solid 1px #dddddd")
 				.append("g")
 				.attr("transform", "translate(0,0)");
 
 			svg.append("g")
 				.attr("id", "heatmapGroup")
 				.attr("transform", "translate(0,0)");
+
+			// render legends
+			let mainLabel = this.renderConfig.main.label + ": ",
+			subLabel = this.renderConfig.sub.label + ": ",
+			mainSteps = [mainLabel],
+			subSteps = [subLabel];
+
+			let minVal, midVal, maxVal, valStep, valStepLow, valStepHigh;
+
+			if(this.renderConfig.main.low == this.renderConfig.main.middle) {
+				minVal = this.renderConfig.main.middle,
+				midVal = this.renderConfig.main.middle,
+				maxVal = this.renderConfig.main.high,
+				valStep = (maxVal - minVal)/5;
+
+				for (let i = 0; i < 6; i++) {
+					let stepVal = Math.round((minVal + (valStep * i)) * 1000) / 1000
+					mainSteps.push(stepVal)
+				}
+			} else {
+
+				minVal = this.renderConfig.main.low,
+				midVal = this.renderConfig.main.middle,
+				maxVal = this.renderConfig.main.high,
+				valStepLow = (midVal - minVal) / 3,
+				valStepHigh = (maxVal - midVal) / 3;
+
+				for (let i = 0; i < 6; i++) {
+					let stepVal = Math.round((minVal + (valStep * i)) * 1000) / 1000
+					mainSteps.push(stepVal)
+				}
+
+			}
+
+			let prevWidth = margin.bump;
+
+			// main legend
+			mainSteps.map(m =>{
+				let legendWidth = getWidth(m,fontSize, 'Arial');
+
+				if(typeof m != 'string') {
+					legendWidth += margin.bump
+					prevWidth += margin.bump/2;
+
+					let fillColor = getColor(m, maxVal, midVal, minVal)
+
+					svg.select("#heatmapGroup")
+						.append("rect")
+						.attr("x", prevWidth)
+						.attr("y", margin.bump -2)
+						.attr("height", fontSize + 4)
+						.attr("width", legendWidth)
+						.style("fill", fillColor);
+				}
+
+				svg.select("#heatmapGroup")
+					.append("text")
+					.attr("x", prevWidth + 2)
+					.attr("y", margin.bump + fontSize -2)
+					.style("font-family", "Arial")
+					.style("font-size", fontSize)
+					.style("text-anchor", "start")
+					.text(m);
+
+				prevWidth += legendWidth + 2; 
+			})
+
+			//sub legend
+
+			this.renderConfig.sub["value range"].map(r =>{
+				subSteps.push(r)
+			})
+
+			let steps = this.renderConfig.sub["value range"],
+			stepDirection = this.renderConfig.sub.direction,
+			dotMaxR = (boxSize * 0.75)/2;
+
+			prevWidth += margin.bump;
+
+			subSteps.map((s, sindex) => {
+
+				
+				let legendString = s.toString()
+
+				if (typeof s != 'string') {
+
+					if (stepDirection == "positive") {
+						legendString = " >= " + legendString + ": ";
+					} else {
+						legendString = " <= " + legendString + ": ";
+					}
+				}
+
+				let legendWidth = getWidth(legendString, fontSize, 'Arial');
+
+				svg.select("#heatmapGroup")
+					.append("text")
+					.attr("x", prevWidth + 2)
+					.attr("y", margin.bump + fontSize - 2)
+					.style("font-family", "Arial")
+					.style("font-size", fontSize)
+					.style("text-anchor", "start")
+					.text(legendString);
+
+				prevWidth += legendWidth + 2;
+
+				if (typeof s != 'string') {
+					let steps = this.renderConfig.sub["value range"];
+					let dotR = getDotR(this.renderConfig.sub.type, steps, stepDirection, s, dotMaxR)
+
+					svg.select("#heatmapGroup")
+						.append('circle')
+						.attr('cx', prevWidth + (dotR / 2))
+						.attr('cy', margin.bump + (fontSize / 2))
+						.attr('r', dotR)
+						.style('fill', "#00000075");
+
+					prevWidth += dotR * 2;
+
+				}
+
+				
+
+			});
 
 			// render rows labels
 
@@ -232,8 +348,6 @@ export default Vue.component("research-heatmap-vector", {
 
 			// render heatmap
 
-			
-
 			let valHi = this.renderConfig.main.high;
 			let valMid = this.renderConfig.main.middle;
 			let valLo = this.renderConfig.main.low;
@@ -262,10 +376,10 @@ export default Vue.component("research-heatmap-vector", {
 						let subType = this.renderConfig.sub.type;
 						let steps = this.renderConfig.sub["value range"];
 						let subDirection = this.renderConfig.sub.direction;
-						let dotMaxR = (boxSize * 0.75) / 2;
+						//let dotMaxR = (boxSize * 0.75) / 2;
 						let subValue = this.renderData[r][c].sub;
 
-					let dotR = getDotR(subType, steps, subDirection, subValue, dotMaxR)
+						let dotR = getDotR(subType, steps, subDirection, subValue, dotMaxR)
 
 						svg.select("#heatmapGroup")
 							.append('circle')

@@ -147,6 +147,7 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 			})
 
 			// for y axis
+			console.log("DATA", DATA)
 			let dataArr = this.renderData[DATA].unsorted.map(d => d[yAxisField]);
 
 			let maxYVal = Math.ceil(dataArr.reduce((prev, next) => prev > next ? prev : next)),
