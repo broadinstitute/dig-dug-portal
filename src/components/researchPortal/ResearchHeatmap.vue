@@ -31,7 +31,7 @@
 							</li>
 							<li>
 								<a href="javascript:;"
-								@click="downloadImage(sectionId + 'heatmap', sectionId + '_heatmap', 'png')">Download PNG</a>
+								@click="downloadImage('heatmap' + sectionId, sectionId + '_heatmap', 'png')">Download PNG</a>
 							</li>
 						</ul>
 					</div>

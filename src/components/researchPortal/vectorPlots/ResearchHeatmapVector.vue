@@ -57,6 +57,84 @@ export default Vue.component("research-heatmap-vector", {
 				return context.measureText(text).width;
 			}
 
+			let getColor = function (mainValue, valHi, valMid, valLo) {
+				let rColor, gColor, bColor;
+
+				rColor =
+					mainValue >= valMid
+						? 255
+						: 255 -
+						255 * ((valMid - mainValue) / valMid - valLo);
+				gColor =
+					mainValue >= valMid
+						? 255 -
+						255 * ((mainValue - valMid) / (valHi - valMid))
+						: 255 -
+						255 * ((valMid - mainValue) / valMid - valLo);
+				bColor =
+					mainValue < valMid
+						? 255
+						: 255 -
+						255 * ((mainValue - valMid) / (valHi - valMid));
+
+				rColor = rColor > 255 ? 255 : rColor < 0 ? 0 : rColor;
+				gColor = gColor > 255 ? 255 : gColor < 0 ? 0 : gColor;
+				bColor = bColor > 255 ? 255 : bColor < 0 ? 0 : bColor;
+
+				let fillColor =
+					"rgba(" +
+					Math.floor(rColor) +
+					"," +
+					Math.floor(gColor) +
+					"," +
+					Math.floor(bColor) +
+					",1)";
+
+				return fillColor;
+			}
+
+			let getDotR = function (subType, steps, subDirection, subValue, dotMaxR) {
+				let stepVal = 0;
+				let dotR;
+
+				if (subType == "steps") {
+					let dotRUnit = dotMaxR / steps.length;
+					if (subDirection == "positive") {
+						for (let i = 0; i <= steps.length - 1; i++) {
+							stepVal += subValue >= steps[i] ? 1 : 0;
+						}
+					} else {
+						for (let i = steps.length - 1; i >= 0; i--) {
+							stepVal += subValue <= steps[i] ? 1 : 0;
+						}
+					}
+					dotR = dotRUnit * stepVal;
+				} else if (subType == "scale") {
+					let scaleRange = steps[1] - steps[0];
+					if (subDirection == "positive") {
+						subValue -= steps[0];
+						stepVal =
+							subValue <= steps[0]
+								? 0
+								: subValue >= steps[1]
+									? 1
+									: subValue / scaleRange;
+					} else {
+						subValue -= steps[0];
+						stepVal =
+							subValue >= steps[1]
+								? 0
+								: subValue <= steps[0]
+									? 1
+									: (steps[1] - subValue) / scaleRange;
+					}
+
+					dotR = dotMaxR * stepVal;
+				}
+
+				return dotR;
+			}
+
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 
 			let bitmapWrapper = document.querySelector(
@@ -65,216 +143,140 @@ export default Vue.component("research-heatmap-vector", {
 
 			console.log("renderData", this.renderData);
 
+			let fontSize = this.renderConfig['font size'];
+
 			let marginArrs  = {
 				left: [],
 				top: []
 			}
-
-			let fontSize = this.renderConfig['font size'];
 
 			marginArrs.left = this.renderData.rows.map(r => Math.ceil(getWidth(r,fontSize, 'Arial'))).sort(function (a, b) { return b - a })
 			marginArrs.top = this.renderData.columns.map(c => Math.ceil(getWidth(c, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
 
 			console.log("marginArrs", marginArrs);
 
-
-
-/*
 			let margin = {
-				left: this.margin.left/2,
-				right: this.margin.right / 2,
-				top: this.margin.top / 2,
-				bottom: this.margin.bottom / 2,
-				bump: this.margin.bump / 2,
+				top: marginArrs.top[0] + 50,
+				bottom: 30,
+				left: marginArrs.left[0],
+				right: 20,
+				bump: 5
 			}
-			
-			let width = !!this.renderConfig['width']? this.renderConfig['width']: 
-				bitmapWrapper.clientWidth - (margin.left + margin.right);
-			let height = !!this.renderConfig['height'] ? this.renderConfig['height']-(margin.top+margin.bottom) : 150;
+
+			console.log("margin", margin);
+			let boxSize = this.renderConfig['font size'] * 1.5;
+
+			let width = (boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4);
+			let height = (boxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4);
 
 			let svg = d3.select(wrapperClass)
 				.append("svg")
-				.attr("id", "vector_heatmap_"+this.sectionId )
-				.attr("width", width + margin.left + margin.right)
-				.attr("height", height + margin.top + margin.bottom)
+				.attr("id", "vector_heatmap_" + this.sectionId)
+				.attr("width", width)
+				.attr("height", height)
+				.attr("style", "border: solid 1px #dddddd")
 				.append("g")
-				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+				.attr("transform", "translate(0,0)");
 
-			let sumstat = [],
-				yField = this.renderConfig['y axis field'],
-				groupField = this.renderConfig['group by'],
-				renderField = this.renderConfig['render by'];
+			svg.append("g")
+				.attr("id", "heatmapGroup")
+				.attr("transform", "translate(0,0)");
 
-			let sumstatIndex = 0
-			for (const [key, value] of Object.entries(this.renderData)) {
+			// render rows labels
 
-				value.map((v) => {
-					let tempObj = { key: sumstatIndex, value: {} }
-					tempObj.value['value'] = (this.renderConfig["convert y -log10"] == true || this.renderConfig["convert y -log10"] == "true") ? 
-						-Math.log10(v[yField]) : v[yField];
-					tempObj.value['name'] = (!!this.renderConfig["phenotype map"] && this.renderConfig["phenotype map"] == "kp phenotype map") ?
-						this.phenotypeMap[v[renderField]]["description"] : v[renderField];
-					tempObj.value['group'] = key;
-
-					sumstat.push(tempObj);
-
-					sumstatIndex++;
-				})
-			}
-
-			let yVals = [...new Set(sumstat.map(d => d.value.value))],
-				groupVals = [...new Set(sumstat.map(d => d.value.group))],
-				colors = this.colors;
-
-			let maxVal = Math.ceil(yVals.reduce((prev, next) => prev > next ? prev : next)),
-				minVal = Math.floor(yVals.reduce((prev, next) => prev < next ? prev : next));
-
-			//render axis labels
-
-			svg.append("text")
-				.attr("x", (margin.left + (width / 2)))
-				.attr("y", (height + margin.top + margin.bottom - 20))
-				.style("font-family", "Arial").style("font-size", 12)
-				.style("text-anchor", "middle")
-				.text(this.renderConfig['x axis label']);
-
-			svg.append("text")
-				.attr("transform", function (d) {
-					return "translate(20," + (margin.top+(height/2)) + ")rotate(-90)";
-				})
-				.attr("x", 0)
-				.attr("y", 0)
-				.style("font-family", "Arial").style("font-size", 12)
-				.style("text-anchor", "middle")
-				.text(this.renderConfig['y axis label']);
-
-
-			let x = d3.scaleBand()
-				.range([margin.left, margin.left+width])
-				.domain(sumstat.map(s=>s.key))
-				.paddingInner(1)
-				.paddingOuter(.5);
-
-			let y = d3.scaleLinear().domain([minVal, maxVal]).range([+margin.top+height, margin.top]);
-
-			svg.attr("transform", "translate(0,0)")
-				.append("g")
-				.attr("id", "axisGroup")
-
-			svg.select("#axisGroup")
-				.append("g")
-				.attr("transform", function (d) {
-					return "translate(" + (margin.left - margin.bump) + ",0)";
-				})
-				.call(d3.axisLeft(y).ticks(5));
-
-			/// render x axis line
-			svg.select("#axisGroup")
-				.append("line")
-				.attr("x1", (margin.left - margin.bump))
-				.attr("x2", (margin.left + width))
-				.attr("y1", margin.top + height + margin.bump)
-				.attr("y2", margin.top + height + margin.bump)
-				.attr("stroke", "#000000")
-				.style("stroke-width", 1)
-
-			///render group Label
-			let groupName = "";
-
-			sumstat.map(d => {
-				let keyIndex = groupVals.indexOf(d.value.group) % colors.length,
-					fillColor = colors[keyIndex];
-
-				if (d.value.group != groupName) {
-
-					groupName = d.value.group;
-
-					svg.select("#axisGroup")
-						.append("line")
-						.attr("x1", x(d.key))
-						.attr("x2", x(d.key))
-						.attr("y1", margin.top + height + margin.bump)
-						.attr("y2", margin.top + height + (margin.bump * 2))
-						.attr("stroke", "#000000")
-						.style("stroke-width", 1)
-
-					svg.select("#axisGroup")
-						.append("text")
-						.attr("transform", "translate(" + (x(d.key) - 6) + "," + (y(minVal) + 18) + ")rotate(45)")
-						.attr("x", 0)
-						.attr("y", 0)
-						.style("font-family", "Arial").style("font-size", 11)
-						.style("fill", fillColor)
-						.text(groupName);
-				}
+			this.renderData.rows.map((row,rIndex) =>{
+				svg.select("#heatmapGroup")
+					.append("text")
+					.attr("x", margin.left + margin.bump)
+					.attr("y", margin.top + margin.bump + (boxSize * (rIndex + 1)))
+					.style("font-family", "Arial")
+					.style("font-size", fontSize)
+					.style("text-anchor", "end")
+					.text(row);
 			})
+
+			this.renderData.columns.map((column, cIndex) => {
+				svg.select("#heatmapGroup")
+					.append("text")
+					.attr("transform", "translate("+(margin.left + margin.bump + (boxSize * (cIndex + 1)))+"," + (margin.top + margin.bump) + ")rotate(-90)")
+					.attr("x", 0)
+					.attr("y", 0)
+					.style("font-family", "Arial")
+					.style("font-size", fontSize)
+					.style("text-anchor", "start")
+					.text(column);
+			})
+
+			// render heatmap label
+			svg.select("#heatmapGroup")
+				.append("text")
+				.attr("x", (width / 2))
+				.attr("y", (height - (margin.bump * 2)))
+				.style("font-family", "Arial")
+				.style("font-weight", 700)
+				.style("font-size", fontSize * 1.25)
+				.style("text-anchor", "middle")
+				.text(this.renderConfig["label"]);
+
+			// render heatmap box
+
+			svg.select("#heatmapGroup")
+				.append("rect")
+				.attr("x", margin.left + (margin.bump * 2))
+				.attr("y", margin.top + (margin.bump*2))
+				.attr("height", (this.renderData.rows.length * boxSize))
+				.attr("width", (this.renderData.columns.length * boxSize))
+				.attr("stroke", "#aaaaaa")
+				.style("stroke-width", 0.75)
+				.style("fill", "#ffffff");
+
+			// render heatmap
 
 			
 
-			let baseline = (minVal < 0)? y(0) : y(minVal);
+			let valHi = this.renderConfig.main.high;
+			let valMid = this.renderConfig.main.middle;
+			let valLo = this.renderConfig.main.low;
 
-			//render baseline
-			svg.select("#axisGroup")
-				.append("line")
-				.attr("x1", (margin.left - margin.bump))
-				.attr("x2", (margin.left + width))
-				.attr("y1", baseline)
-				.attr("y2", baseline)
-				.attr("stroke", "#999999")
-				.style("stroke-width", 1)
+			this.renderData.rows.map((r, rIndex) => {
+				this.renderData.columns.map((c, cIndex) => {
 
-			// render bars
+					// render boxes
+					let mainValue = this.renderData[r][c].main;
+					let left = margin.left + (margin.bump * 2) + (boxSize * cIndex);
+					let top = margin.top + (margin.bump * 2) + (boxSize * rIndex);
 
-			let barWidth = (width / sumstat.length) - 6;
-			barWidth = barWidth <= 4 ? 4 : barWidth >= 40 ? 40 : barWidth;
+					let fillColor = getColor(mainValue, valHi, valMid, valLo)
+					
 
-			sumstat.map(d => {
-				let keyIndex = groupVals.indexOf(d.value.group) % colors.length,
-					fillColor = colors[keyIndex];
-
-				let barHeight = (minVal < 0 )? y(d.value.value) - y(0): y(d.value.value) - y(minVal);
-				let labelYPos = (barHeight < 0)? (baseline + barHeight) : baseline;
-
-				if(barHeight < 0) {
-					barHeight*=-1;
-
-					svg.select("#axisGroup")
+					svg.select("#heatmapGroup")
 						.append("rect")
-						.attr("x", x(d.key) - (barWidth / 2))
-						.attr("y", baseline - barHeight)
-						.attr("height", barHeight)
-						.attr("width", barWidth)
+						.attr("x", left)
+						.attr("y", top)
+						.attr("height", boxSize)
+						.attr("width", boxSize)
 						.style("fill", fillColor);
 
-				} else {
+					// render circles
+					if (!!this.renderConfig.sub) {
+						let subType = this.renderConfig.sub.type;
+						let steps = this.renderConfig.sub["value range"];
+						let subDirection = this.renderConfig.sub.direction;
+						let dotMaxR = (boxSize * 0.75) / 2;
+						let subValue = this.renderData[r][c].sub;
 
-					svg.select("#axisGroup")
-						.append("rect")
-						.attr("x", x(d.key) - (barWidth / 2))
-						.attr("y", baseline)
-						.attr("height", barHeight)
-						.attr("width", barWidth)
-						.style("fill", fillColor);
-				}
+					let dotR = getDotR(subType, steps, subDirection, subValue, dotMaxR)
 
-				svg.select("#axisGroup")
-					.append("line")
-					.attr("x1", x(d.key))
-					.attr("x2", x(d.key))
-					.attr("y1", labelYPos - 3)
-					.attr("y2", labelYPos - 8)
-					.attr("stroke", "#999999")
-					.style("stroke-width", 1)
-
-				svg.select("#axisGroup")
-					.append("text")
-					.attr("transform", "translate(" + (x(d.key) + 3) + "," + (labelYPos - 11) + ")rotate(-90)")
-					.attr("x", 0)
-					.attr("y", 0)
-					.style("font-family", "Arial").style("font-size", 11)
-					.text(d.value.name);
+						svg.select("#heatmapGroup")
+							.append('circle')
+							.attr('cx', left + (boxSize / 2))
+							.attr('cy', top + (boxSize / 2))
+							.attr('r', dotR)
+							.style('fill', "#00000075");
+						
+					}
+				})
 			})
-			*/
 		},
 	},
 });
