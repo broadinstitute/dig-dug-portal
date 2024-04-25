@@ -1,7 +1,11 @@
 <template>
 	<div class="mbm-plot-content row">
-		
 		<div class="col-md-12 phewas-plot-wrapper">
+			<download-chart
+				:filename="!plotName ? 'PheWAS' : plotName"
+				:chartId="canvasId + 'pheWasPlot'"
+				>
+			</download-chart>
 			<div
 				class="col-md-12"
 				:id="canvasId + 'pheWasPlotWrapper'"
@@ -80,11 +84,6 @@
 					"
 				></canvas>
 			</div>
-			<download-chart
-				:filename="!plotName ? 'PheWAS' : plotName"
-				:chartId="canvasId + 'pheWasPlot'"
-				>
-			</download-chart>
 		</div>
 	</div>
 </template>

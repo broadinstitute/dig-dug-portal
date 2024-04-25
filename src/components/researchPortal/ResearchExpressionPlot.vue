@@ -1,15 +1,15 @@
 <template>
     <div>
+        <download-chart 
+          chartId="svg-chart"
+          :filename="plotName">
+        </download-chart>
         <div id="multi-chart" :hidden="!showPlot">
             <p>Loading...</p>
         </div>
         <div v-if="!showPlot">
             <p>No datasets meet minimum sample count.</p>
         </div>
-        <download-chart 
-          chartId="svg-chart"
-          :filename="plotName">
-        </download-chart>
     </div>
 </template>
 <script>
