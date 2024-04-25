@@ -86,8 +86,8 @@ export default Vue.component("DownloadChart", {
       downloadCanvasToSvg(){
         let canvas = document.querySelector(`canvas#${this.chartId}`);
         let dataUrl = canvas.toDataURL("image/png");
-        let height = canvas.height / 2;
-        let width = canvas.width / 2;
+        let height = canvas.height;
+        let width = canvas.width;
         let image = `<image height="${height}" width="${width
           }" y="0" x="0" xlink:href="${dataUrl}" id="importedCanvas_0"/>`;
         let svg = `<svg xmlns:xlink="http://www.w3.org/1999/xlink" height="${height
