@@ -336,8 +336,6 @@ export default Vue.component("research-heatmap", {
 
 			let canvasWidth = ((boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
 			let canvasHeight = ((boxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4)*2);
-
-			console.log(canvasWidth, canvasHeight);
 			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
@@ -366,24 +364,31 @@ export default Vue.component("research-heatmap", {
 					margin.left + margin.bump,
 					top + fontSize
 				);
+			})
 
+			this.renderData.columns.map((c, cIndex) => {
+				let left = margin.left + (margin.bump * 2) + (renderBoxSize * cIndex);
+
+				ctx.save();
+				ctx.translate(left + fontSize, margin.top + margin.bump + 0.5);
+				ctx.rotate((90 * -Math.PI) / 180);
+				ctx.font = "24px Arial";
+				ctx.fillStyle = "#000000";
+				ctx.textAlign = "start";
+				ctx.fillText(c, 0, 0);
+				ctx.restore();
+			})
+
+			this.renderData.rows.map((r, rIndex) => {
+				this.squareData[rIndex] = {};
+
+				let top = margin.top + (margin.bump * 2) + (renderBoxSize * rIndex);
 
 				this.renderData.columns.map((c, cIndex) => {
 
 					let mainValue = this.renderData[r][c].main;
 					let left = margin.left + (margin.bump * 2) + (renderBoxSize * cIndex);
-
-					ctx.save();
-					ctx.translate(left + fontSize, margin.top + margin.bump);
-					ctx.rotate((90 * -Math.PI) / 180);
-					ctx.font = "24px Arial";
-					ctx.fillStyle = "#000000";
-					ctx.textAlign = "start";
-					ctx.fillText(c, 0, 0);
-					ctx.restore();
-
 					
-
 					this.squareData[rIndex][cIndex] = {};
 					this.squareData[rIndex][cIndex]["main"] = {
 						field: this.renderConfig.main.field,
