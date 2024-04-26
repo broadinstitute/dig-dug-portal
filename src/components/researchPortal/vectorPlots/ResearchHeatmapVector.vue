@@ -32,7 +32,7 @@ export default Vue.component("research-heatmap-vector", {
 	created: function () {
 	},
 	mounted: function () {
-		this.renderHeatmap()
+		//this.renderHeatmap()
 	},
 	beforeDestroy() {
 	},
@@ -44,7 +44,6 @@ export default Vue.component("research-heatmap-vector", {
 	},
 	watch: {
 		canvasId(ID) {
-			//this.renderBarPlot()
 		}
 	},
 	methods: {
@@ -288,14 +287,11 @@ export default Vue.component("research-heatmap-vector", {
 						.attr('cx', prevWidth + (dotR / 2))
 						.attr('cy', margin.bump + (fontSize / 2))
 						.attr('r', dotR)
-						.style('fill', "#00000075");
+						.style('fill', "rgba(10,10,10, 0.5)");
 
 					prevWidth += dotR * 2;
 
 				}
-
-				
-
 			});
 
 			// render rows labels
@@ -386,7 +382,7 @@ export default Vue.component("research-heatmap-vector", {
 							.attr('cx', left + (boxSize / 2))
 							.attr('cy', top + (boxSize / 2))
 							.attr('r', dotR)
-							.style('fill', "#00000075");
+							.style('fill', "rgba(10,10,10, 0.5)");
 						
 					}
 				})
