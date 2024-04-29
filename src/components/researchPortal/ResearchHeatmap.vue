@@ -139,7 +139,7 @@ export default Vue.component("research-heatmap", {
 	methods: {
 		downloadImage(ID, NAME, TYPE) {
 			if (TYPE == 'svg') {
-				this.$refs[this.sectionId + '_heatmap'].renderHeatmap();
+				this.$refs[this.sectionId + '_heatmap'].renderPlot();
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_heatmap_" + this.sectionId);
 			} else if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)

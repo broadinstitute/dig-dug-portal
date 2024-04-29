@@ -47,7 +47,7 @@ export default Vue.component("research-heatmap-vector", {
 		}
 	},
 	methods: {
-		renderHeatmap() {
+		renderPlot() {
 			let canvas = document.createElement('canvas'),
 				context = canvas.getContext('2d');
 

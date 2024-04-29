@@ -317,7 +317,7 @@ export default Vue.component("research-m-bitmap-plot", {
 		downloadImage(ID, NAME, TYPE, SVG, DATA) {
 			if (TYPE == 'svg') {
 				let refName = this.sectionId + '_mPlot';
-				this.$refs[refName].renderMPlot(DATA);
+				this.$refs[refName].renderPlot(DATA);
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, SVG);
 			} else if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)

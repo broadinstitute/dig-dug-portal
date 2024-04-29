@@ -49,7 +49,7 @@ export default Vue.component("research-volcano-plot-vector", {
 		}
 	},
 	methods: {
-		renderVolcanoPlot() {
+		renderPlot() {
 
 			let renderConfig = this.renderConfig;
 

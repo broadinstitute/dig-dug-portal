@@ -240,7 +240,7 @@ export default Vue.component("research-bar-plot", {
 	methods: {
 		downloadImage(ID, NAME, TYPE) {
 			if (TYPE == 'svg') {
-				this.$refs[this.canvasId + '_barPlot'].renderBarPlot();
+				this.$refs[this.canvasId + '_barPlot'].renderPlot();
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_bar_plot_" + this.canvasId);
 			} else if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)

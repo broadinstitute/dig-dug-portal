@@ -50,7 +50,7 @@ export default Vue.component("research-region-track-vector", {
 		}
 	},
 	methods: {
-		renderRegionTrack() {
+		renderPlot() {
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 
 			// this part needed to get exact width of legend texts

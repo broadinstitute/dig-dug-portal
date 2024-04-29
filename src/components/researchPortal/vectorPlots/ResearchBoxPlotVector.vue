@@ -50,7 +50,7 @@ export default Vue.component("research-box-plot-vector", {
 		}
 	},
 	methods: {
-		renderBoxPlot() {
+		renderPlot() {
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
 

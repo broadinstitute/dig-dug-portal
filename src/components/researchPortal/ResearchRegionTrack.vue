@@ -183,7 +183,7 @@ export default Vue.component("research-region-track", {
     methods: {
         downloadImage(ID, NAME, TYPE) {
             if (TYPE == 'svg') {
-                this.$refs[this.sectionId + '_regionTrack'].renderRegionTrack();
+                this.$refs[this.sectionId + '_regionTrack'].renderPlot();
                 this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_region_track_" + this.sectionId);
             } else if (TYPE == 'png') {
                 this.utils.uiUtils.downloadImg(ID, NAME, TYPE)

@@ -51,7 +51,7 @@ export default Vue.component("research-phewas-plot-vector", {
 		}
 	},
 	methods: {
-		renderPheWasPlot() {
+		renderPlot() {
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
 

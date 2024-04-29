@@ -243,7 +243,7 @@ export default Vue.component("research-box-plot", {
 	methods: {
 		downloadImage( ID,NAME,TYPE) {
 			if(TYPE == 'svg') {
-				this.$refs[this.canvasId + '_boxPlot'].renderBoxPlot();
+				this.$refs[this.canvasId + '_boxPlot'].renderPlot();
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_box_plot_" + this.canvasId);
 			} else if(TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)

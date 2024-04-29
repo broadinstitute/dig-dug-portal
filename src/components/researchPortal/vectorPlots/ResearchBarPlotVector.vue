@@ -34,7 +34,7 @@ export default Vue.component("research-bar-plot-vector", {
 	created: function () {
 	},
 	mounted: function () {
-		//this.renderBarPlot(this.margin)
+		//this.renderPlot(this.margin)
 	},
 	beforeDestroy() {
 	},
@@ -50,7 +50,7 @@ export default Vue.component("research-bar-plot-vector", {
 		}
 	},
 	methods: {
-		renderBarPlot() {
+		renderPlot() {
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 
 			let bitmapWrapper = document.querySelector(

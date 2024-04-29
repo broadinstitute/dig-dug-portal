@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div :id="'vector_wrapper_'+sectionId" :class="'vector-wrapper-'+ canvasId">
+		<div :id="'vector_wrapper_' + sectionId" :class="'vector-wrapper-' + canvasId">
 
 		</div>
 	</div>
@@ -15,7 +15,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-m-bitmap-plot-vector", {
+export default Vue.component("research-qq-plot-vector", {
 	props: [
 		"renderData",
 		"renderConfig",
@@ -33,16 +33,16 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 	},
 	components: {},
 	created: function () {
-		
+
 	},
 	mounted: function () {
-		//this.renderMPlot()
+		this.renderQQPlot()
 	},
 	beforeDestroy() {
 	},
 	computed: {
 		canvasId() {
-			let canvasId = this.sectionId.replaceAll("_","-").toLowerCase();
+			let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
 			return canvasId;
 		}
 	},
@@ -50,12 +50,18 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 	},
 	methods: {
 		renderPlot(DATA) {
+
+			console.log(DATA);
+
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
 
 			let bitmapWrapper = document.querySelector(
-				"#" + this.sectionId + "mPlotWrapper"
+				"#" + this.sectionId + "qqPlotWrapper"
 			);
+
+
+
 
 			let margin = {
 				left: this.margin.left / 2,
@@ -64,18 +70,18 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 				bottom: this.margin.bottom / 2,
 				bump: this.margin.bump / 2,
 			}
-			
-			let width = !!this.renderConfig['width']? this.renderConfig['width']: 
+
+			let width = !!this.renderConfig['width'] ? this.renderConfig['width'] :
 				bitmapWrapper.clientWidth - (margin.left + margin.right);
 			let height = !!this.renderConfig['height'] ? this.renderConfig['height']
-							: 300;
+				: 300;
 
 			let svg = d3.select(wrapperClass)
 				.append("svg")
-				.attr("id", "vector_m_plot_"+this.sectionId )
+				.attr("id", "vector_qq_plot_" + this.sectionId)
 				.attr("width", width + margin.left + margin.right)
 				.attr("height", height + margin.top + margin.bottom)
-				.attr("style","border:solid 1px #dddddd");		
+				.attr("style", "border:solid 1px #dddddd");
 
 			svg.append("g")
 				.attr("id", "plot")
@@ -98,6 +104,14 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 				.attr("x", 0)
 				.attr("y", 0)
 				.text(this.renderConfig['y axis label']);
+
+			/* console.log(this.renderData[DATA])
+
+			let dataArr = this.renderData[DATA].unsorted.map(d => d[yAxisField]);
+
+			let maxYVal = Math.ceil(dataArr.reduce((prev, next) => prev > next ? prev : next)),
+				minYVal = Math.floor(dataArr.reduce((prev, next) => prev < next ? prev : next));
+
 
 			// render axis
 
@@ -132,10 +146,10 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 
 				svg.select("#plot")
 					.append("line")
-					.attr("x1", x(totalChrsLength - (chr/2)))
+					.attr("x1", x(totalChrsLength - (chr / 2)))
 					.attr("x2", x(totalChrsLength - (chr / 2)))
 					.attr("y1", margin.top + height + margin.bump)
-					.attr("y2", margin.top + height + (margin.bump *2))
+					.attr("y2", margin.top + height + (margin.bump * 2))
 					.attr("stroke", "#000000")
 					.style("stroke-width", 0.75)
 
@@ -161,7 +175,7 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 				})
 				.call(d3.axisLeft(y).ticks(5));
 
-			if(!!this.renderConfig["thresholds"]) {
+			if (!!this.renderConfig["thresholds"]) {
 				this.renderConfig["thresholds"].map(t => {
 					let threshold = (typeof t == 'string') ? Number(t) : t;
 
@@ -186,8 +200,8 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 			let prevChr = 0;
 			let colorIndex = 1
 			Object.keys(this.renderData[DATA].sorted).map(chr => {
-				
-				let fillColor = this.colors[colorIndex % this.colors.length]+'75'
+
+				let fillColor = this.colors[colorIndex % this.colors.length] + '75'
 
 				this.renderData[DATA].sorted[chr].map(variant => {
 					let yPos = y(variant[yAxisField]);
@@ -201,18 +215,17 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 						.style('fill', fillColor);
 				})
 
-				colorIndex ++;
+				colorIndex++;
 				prevChr += this.chrLengths[chr];
-			})
+			})*/
 		},
 	},
 });
 
-$(function () {});
+$(function () { });
 </script>
 
-<style>
-</style>
+<style></style>
 
 
 
