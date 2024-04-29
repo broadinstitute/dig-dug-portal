@@ -36,7 +36,7 @@ export default Vue.component("research-qq-plot-vector", {
 
 	},
 	mounted: function () {
-		this.renderPlot('default')
+		//this.renderPlot('default')
 	},
 	beforeDestroy() {
 	},
@@ -76,8 +76,7 @@ export default Vue.component("research-qq-plot-vector", {
 				.append("svg")
 				.attr("id", "vector_qq_plot_" + this.sectionId)
 				.attr("width", width + margin.left + margin.right)
-				.attr("height", height + margin.top + margin.bottom)
-				.attr("style", "border:solid 1px #dddddd");
+				.attr("height", height + margin.top + margin.bottom);
 
 			svg.append("g")
 				.attr("id", "plot")
@@ -104,30 +103,44 @@ export default Vue.component("research-qq-plot-vector", {
 			let yAxisField = this.renderConfig['y axis field'],
 				renderField = this.renderConfig['render by'];
 
-			let yAxisDataArr = this.renderData[DATA].unsorted.map(d => d[yAxisField]),
-				expected = [];
+			let qqData = this.utils.sortUtils.sortArrOfObjects(this.renderData[DATA].unsorted, yAxisField, "number", "desc");
+			
+
+			let yMax,
+				yMin,
+				maxXVal = 8,
+				minXVal = 0;
 
 
-				console.log(yAxisDataArr)
+			qqData.map((d) => {
+				let yValue = d[yAxisField];
 
-				yAxisDataArr.map((i,iIndex) =>{
+				if (yMin == null) {
+					yMin = yValue;
+				}
+				if (yMax == null) {
+					yMax = yValue;
+				}
 
-					expected.push(Math.log10((iIndex + 1) + (1 / yAxisDataArr.length)));
+				if (yValue < yMin) {
+					yMin = yValue;
+				}
+				if (yValue > yMax) {
+					yMax = yValue;
+				}
+			});
 
-				})
 
-			let maxYVal = Math.ceil(yAxisDataArr.reduce((prev, next) => prev > next ? prev : next)),
-				minYVal = Math.floor(yAxisDataArr.reduce((prev, next) => prev < next ? prev : next)),
-				maxXVal = Math.ceil(expected.reduce((prev, next) => prev > next ? prev : next)),
-				minXVal = Math.floor(expected.reduce((prev, next) => prev < next ? prev : next));
-
-
+			let expected = [];
+			for (let i = 1; i <= qqData.length; i++) {
+				expected.push(Math.log10(i + 1 / qqData.length));
+			}
 			// render axis
 
 			
 
 
-			let y = d3.scaleLinear().domain([minYVal, maxYVal]).range([height + margin.top, margin.top]);
+			let y = d3.scaleLinear().domain([yMin, yMax]).range([height + margin.top, margin.top]);
 
 			svg.select("#plot")
 				.append("g")
@@ -135,6 +148,7 @@ export default Vue.component("research-qq-plot-vector", {
 				.call(d3.axisLeft(y).ticks(5));
 
 			let x = d3.scaleLinear().domain([minXVal, maxXVal]).range([margin.left, width]);
+			let xReverse = d3.scaleLinear().domain([maxXVal, minXVal]).range([margin.left, width]);
 
 			svg.select("#plot")
 				.append("g")
@@ -142,6 +156,47 @@ export default Vue.component("research-qq-plot-vector", {
 					return "translate(0, " + (margin.top + height + margin.bump) + ")";
 				})
 				.call(d3.axisBottom(x));
+
+
+			let yPosByPixel = height / (yMax - yMin);
+
+			svg.select("#plot")
+				.append("line")
+				.attr("x1", x(0))
+				.attr("x2", x(8))
+				.attr("y1", y(yMin))
+				.attr("y2", margin.top + height - 8 * yPosByPixel)
+				.attr("stroke", "#FF0000")
+				.style("stroke-width", 0.75)
+
+			qqData.map((d,yIndex) => {
+				let xPos = x(expected[expected.length-1] - expected[yIndex]),
+					yPos = y(d[yAxisField])
+
+				svg.select("#plot")
+					.append('circle')
+					.attr('cx', xPos)
+					.attr('cy', yPos)
+					.attr('r', 2)
+					.style('fill', "#0066FF");
+			})
+
+			
+
+			if (!!this.renderData[DATA].lambda) {
+
+				svg.select("#plot")
+					.style("font-family", "Arial").style("font-size", 12)
+					.style("text-anchor", "end")
+
+				svg.select("#plot")
+					.append("text")
+					.attr("x", x(8))
+					.attr("y", y(yMin))
+					.text("lambda(0.95): " + this.renderData[DATA].lambda.toFixed(4));
+			}
+
+			
 
 			// for x axis
 
