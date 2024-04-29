@@ -36,7 +36,7 @@ export default Vue.component("research-qq-plot-vector", {
 
 	},
 	mounted: function () {
-		this.renderQQPlot()
+		this.renderPlot('default')
 	},
 	beforeDestroy() {
 	},
@@ -51,7 +51,6 @@ export default Vue.component("research-qq-plot-vector", {
 	methods: {
 		renderPlot(DATA) {
 
-			console.log(DATA);
 
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
@@ -59,9 +58,6 @@ export default Vue.component("research-qq-plot-vector", {
 			let bitmapWrapper = document.querySelector(
 				"#" + this.sectionId + "qqPlotWrapper"
 			);
-
-
-
 
 			let margin = {
 				left: this.margin.left / 2,
@@ -105,27 +101,58 @@ export default Vue.component("research-qq-plot-vector", {
 				.attr("y", 0)
 				.text(this.renderConfig['y axis label']);
 
-			/* console.log(this.renderData[DATA])
+			let yAxisField = this.renderConfig['y axis field'],
+				renderField = this.renderConfig['render by'];
 
-			let dataArr = this.renderData[DATA].unsorted.map(d => d[yAxisField]);
+			let yAxisDataArr = this.renderData[DATA].unsorted.map(d => d[yAxisField]),
+				expected = [];
 
-			let maxYVal = Math.ceil(dataArr.reduce((prev, next) => prev > next ? prev : next)),
-				minYVal = Math.floor(dataArr.reduce((prev, next) => prev < next ? prev : next));
+
+				console.log(yAxisDataArr)
+
+				yAxisDataArr.map((i,iIndex) =>{
+
+					expected.push(Math.log10((iIndex + 1) + (1 / yAxisDataArr.length)));
+
+				})
+
+			let maxYVal = Math.ceil(yAxisDataArr.reduce((prev, next) => prev > next ? prev : next)),
+				minYVal = Math.floor(yAxisDataArr.reduce((prev, next) => prev < next ? prev : next)),
+				maxXVal = Math.ceil(expected.reduce((prev, next) => prev > next ? prev : next)),
+				minXVal = Math.floor(expected.reduce((prev, next) => prev < next ? prev : next));
 
 
 			// render axis
 
-			let yAxisField = this.renderConfig['y axis field'],
-				xAxisField = this.renderConfig['x axis field'],
-				renderField = this.renderConfig['render by'];
+			
+
+
+			let y = d3.scaleLinear().domain([minYVal, maxYVal]).range([height + margin.top, margin.top]);
+
+			svg.select("#plot")
+				.append("g")
+				.attr("transform",  "translate(" + (margin.left - margin.bump) + ",0)")
+				.call(d3.axisLeft(y).ticks(5));
+
+			let x = d3.scaleLinear().domain([minXVal, maxXVal]).range([margin.left, width]);
+
+			svg.select("#plot")
+				.append("g")
+				.attr("transform", function (d) {
+					return "translate(0, " + (margin.top + height + margin.bump) + ")";
+				})
+				.call(d3.axisBottom(x));
 
 			// for x axis
+
+			/* 
 
 			let totalChrsLength = 0;
 
 			Object.values(this.chrLengths).map(chr => {
 				totalChrsLength += chr;
 			})
+
 
 			let x = d3.scaleLinear().domain([0, totalChrsLength]).range([margin.left, margin.left + width]);
 
