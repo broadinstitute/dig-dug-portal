@@ -35,7 +35,33 @@
 					height=""
 				>
 				</canvas>
+				<div class="download-images-setting">
+					<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+					<ul class="options" >
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_mPlot', 'svg', 'vector_m_plot_' + sectionId, item)">Download SVG</a>
+						</li>
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('manhattanPlot_' + sectionId + item, sectionId + '_mPlot', 'png')">Download PNG</a>
+						</li>
+					</ul>
+				</div>
 			</div>
+
+			<research-m-bitmap-plot-vector
+				v-if="!!renderData"
+				:renderData="renderData"
+				:renderConfig="renderConfig"
+				:colors="chromosomeColors"
+				:margin="adjPlotMargin"
+				:chrLengths="chromosomeLength"
+				:sectionId="sectionId"
+				:utils="utils"
+				:ref="sectionId + '_mPlot'"
+			>
+			</research-m-bitmap-plot-vector>
 			<div
 				v-if="!!renderConfig.label"
 				class="m-plot-label"
@@ -90,10 +116,8 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
-//import sortUtils from "@/utils/sortUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
+import ResearchMPlotBitmapVector from "@/components/researchPortal/vectorPlots/ResearchMPlotBitmapVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -155,10 +179,10 @@ export default Vue.component("research-m-qq-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
 	},
-	components: {},
+	components: {
+		ResearchMPlotBitmapVector
+	},
 	mounted: function () {
 		this.renderPlot(this.renderData);
 		window.addEventListener("resize", this.onResize);
@@ -167,6 +191,27 @@ export default Vue.component("research-m-qq-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.leftMargin,
+					right: this.rightMargin,
+					top: this.topMargin,
+					bottom: this.bottomMargin,
+					bump: 10,
+				};
+
+			return plotMargin;
+		},
 		plotsList() {
 			let rawData = this.plotData;
 			let compareGroups = [];
@@ -321,7 +366,15 @@ export default Vue.component("research-m-qq-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
+		downloadImage(ID, NAME, TYPE, SVG, DATA) {
+			if (TYPE == 'svg') {
+				let refName = this.sectionId + '_mPlot';
+				this.$refs[refName].renderMPlot(DATA);
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, SVG);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 		hidePanel(element) {
 			this.utils.uiUtils.hideElement(element);
 		},
