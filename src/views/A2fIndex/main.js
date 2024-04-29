@@ -66,6 +66,7 @@ new Vue({
             { icon: "bioinfomatics_methods", label: "Bioinformatic methods" },
             { icon: "curated_datasets", label: "Curated datasets" },
         ],
+        oldStats: keyParams.oldstats,
     },
 
     computed: {
