@@ -36,7 +36,7 @@ export default Vue.component("research-phewas-plot-vector", {
 		
 	},
 	mounted: function () {
-		this.renderPheWasPlot()
+		//this.renderPlot()
 	},
 	beforeDestroy() {
 	},

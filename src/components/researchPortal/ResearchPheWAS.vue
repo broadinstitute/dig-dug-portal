@@ -238,7 +238,7 @@ export default Vue.component("research-phewas-plot", {
 	methods: {
 		downloadImage(ID, NAME, TYPE) {
 			if (TYPE == 'svg') {
-				this.$refs[this.canvasId + '_pheWasPlot'].renderPheWasPlot();
+				this.$refs[this.canvasId + '_pheWasPlot'].renderPlot();
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_pheWas_plot_" + this.canvasId);
 			} else if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
