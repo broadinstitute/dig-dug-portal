@@ -21,6 +21,8 @@ export default new Vuex.Store({
         datasetAssociations: bioIndex("variant-dataset-associations"),
         //variantPhenotypeData: bioIndex("variant-phenotype",this.gene,{},true),
         samples: bioIndex("variant-sample",{query_private:true}),
+        gqualitymetrics: bioIndex("genotype-quality-metrics", {query_private:true}),
+        squalitymetrics: bioIndex("site-quality-metrics", {query_private:true})
     },
 
     state: {
