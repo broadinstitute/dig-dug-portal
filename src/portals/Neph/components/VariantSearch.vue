@@ -202,7 +202,7 @@
 						data.item.dbSNP
 					}}</a>
 				</template>
-				<template #cell(max_consequence)="data">
+				<template #cell(consequence)="data">
 					<div
 						v-if="data.item.impact"
 						class="border-color"
@@ -246,7 +246,7 @@
 						Phenotypes</b-btn
 					>
 					<b-btn
-                        v-if="!data.item.max_consequence"
+                        v-if="!data.item.consequence"
                         disabled
                         size="sm"
                         class="btn-mini"
@@ -361,6 +361,15 @@
 										: data.item.proteinStart
 								}}
 							</template>
+							<!-- Helen test -->
+							<!--<template #cell(consequence)="data">
+								<div
+									class="border-color"
+									:class="data.item.impact"
+								>
+								<span>{{ data.item.consequence }}</span>
+								</div>
+							</template>-->
 							<template #cell(consequenceTerms)="data">
 								<div
 									class="border-color"
@@ -368,7 +377,7 @@
 								>
 								<span>{{ data.item.consequenceTerms }}</span>
 								</div>
-							</template> 
+							</template>
 							<template #cell(siftPrediction)="data">
 								{{
 									siftFormatter(data.item.siftPrediction)
@@ -817,7 +826,7 @@ export default Vue.component("variant-search", {
 			uiUtils.showHideElement(ELEMENT);
 		},
 		downloadData() {
-			let printColumns = ["varId","impact","iconsequence","hgvsc","hgvsp","allelecount","allelnumber","allelefrequency",
+			let printColumns = ["varId","impact","consequence","hgvsc","hgvsp","allelecount","allelnumber","allelefrequency",
 				"homozygouscount","gnomADg_AC","gnomADg_AN","gnomADg_AF",];
 			if (this.variantData && this.variantData.length) {
 				let downloadData = [];
@@ -854,12 +863,7 @@ export default Vue.component("variant-search", {
 			this.currentPage = 1; //reset on new search
 			//Helen 2022-01-09
 			//this.variants = await query("variants", this.gene, {}, true);
-			this.variants = await query(
-				"gene-variants2",
-				this.gene,
-				{},
-				true
-			);
+			this.variants = await query("gene-variants2",this.gene,{},true);
 			//console.log(JSON.stringify(this.variants));
 			if (this.variants && this.variants.length) {
 				for (let i = 0; i < this.variants.length; i++) {
