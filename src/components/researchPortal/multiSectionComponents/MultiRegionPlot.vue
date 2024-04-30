@@ -104,7 +104,6 @@
 								<a href="javascript:;"
 								@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_assoPlot', 'svg', 'vector_asso_plot_' + sectionId, item.replaceAll(' ', '_'), sectionId + '_assoPlot')">Download SVG</a>
 							</li>
-							<!--ID, NAME, TYPE, SVG, DATA, ref-->
 							<li>
 								<a href="javascript:;"
 								@click="downloadImage('asso_plot_' + item.replaceAll(' ', '_') + sectionId, sectionId + '_assoPlot', 'png')">Download PNG</a>

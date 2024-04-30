@@ -32,6 +32,14 @@
 								/>
 							<label :for="geneType">{{ geneType.replaceAll("_"," ") }}</label>
 						</li>
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_genesTrack', 'svg')">Download SVG</a>
+						</li>
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('genesTrack' + sectionId, sectionId + '_genesTrack', 'png')">Download PNG</a>
+						</li>
 					</ul>
 			</div>
 			<!-- place info modal here-->
@@ -47,15 +55,25 @@
 				></canvas>
 			</div>
 		</div>
+		<research-genes-track-vector
+		v-if="renderingGenes.length > 0"
+			:genesData="renderingGenes"
+			:renderConfig="plotConfig"
+			:margin="adjPlotMargin"
+			:region="viewingRegion"
+			:sectionId="sectionId"
+			:utils="utils"
+			:ref="sectionId + '_genesTrack'"
+		>
+		</research-genes-track-vector>
 	</div>
 </template>
 
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
+import genesTrackVector from "@/components/researchPortal/vectorPlots/ResearchGenesTrackVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -77,13 +95,14 @@ export default Vue.component("multi-genes-track", {
 			plotRendered: 0,
 			localGenesData: null,
 			localGeneTypes: null,
+			renderingGenes: [],
 		};
 	},
 	modules: {
 		//uiUtils,
 		//Formatters,
 	},
-	components: {},
+	components: { genesTrackVector },
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
 		if(!!this.genesData) {
@@ -190,6 +209,14 @@ export default Vue.component("multi-genes-track", {
 	},
 	methods: {
 		//...uiUtils,
+		downloadImage(ID, NAME, TYPE) {
+			if (TYPE == 'svg') {
+				this.$refs[this.sectionId + '_genesTrack'].renderPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "genesTrack"+this.sectionId);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 		onResize(e) {
 			if(!this.genesData){
 				this.renderTrack(this.localGenesData);
@@ -313,9 +340,11 @@ export default Vue.component("multi-genes-track", {
 
 				let geneTracksArray = this.sortGenesByRegion(genesSorted);
 
+				this.renderingGenes = geneTracksArray;
+
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
-					eachGeneTrackHeight * (geneTracksArray .length);
+					eachGeneTrackHeight * geneTracksArray.length;
 
 				let bump = this.adjPlotMargin.bump;
 
