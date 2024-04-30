@@ -137,6 +137,38 @@
                 </div>
             </div>
 
+            <!-- Helen added Quality Matrics -->
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div
+                            v-if="
+                                $store.state.gqualitymetrics.data.length > 0
+                            "
+                        >
+                        <genotypequalitymetrics-tab v-bind:chartdata="
+                                        $store.state.gqualitymetrics.data[0]
+                                    ">
+                            
+                        </genotypequalitymetrics-tab>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div
+                            v-if="
+                                $store.state.variant.varId
+                            "
+                        >
+                        <sitequalitymetrics-tab v-bind:vardata="
+                                        $store.state.squalitymetrics.data[0]
+                                    "></sitequalitymetrics-tab>
+                    </div>
+                </div>
+            </div>
+
             <div v-if="$store.state.variant && $store.state.variant.nearest">
                 <!-- <div class="card mdkp-card">
                     <div class="card-body temporary-card">
@@ -219,6 +251,7 @@
                         </div>
                     </div>
                 </div>
+                
 
             </div> 
         </div> 
