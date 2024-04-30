@@ -11,6 +11,8 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/portals/Neph/components/TranscriptConsequenceTable.vue";
 import VariantPhenotypeTable from "@/portals/Neph/components/VariantPhenotypeTable.vue";
+import GenotypeQualityMetricsTabs from "@/portals/Neph/components/GenotypeQualityMetricsTabs.vue";
+import SiteQualityMetricsTabs from "@/portals/Neph/components/SiteQualityMetricsTabs.vue";
 import GnomInfoCard from "@/portals/Neph/components/GnomInfoCard.vue";
 import VariantSampleTable from "@/portals/Neph/components/VariantSampleTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
@@ -72,7 +74,8 @@ new Vue({
         FilterGreaterThan,
 
         SearchHeaderWrapper,
-
+        GenotypeQualityMetricsTabs,
+        SiteQualityMetricsTabs,
     },
 
     created() {
@@ -235,6 +238,8 @@ new Vue({
                     q: variant.varId
                 });
                 this.$store.dispatch("samples/query", { q: variant.varId, query_private:true });
+                this.$store.dispatch("gqualitymetrics/query", {q: variant.varId, query_private:true });
+                this.$store.dispatch("squalitymetrics/query", {q: variant.varId, query_private:true });
             }
         }
     }
