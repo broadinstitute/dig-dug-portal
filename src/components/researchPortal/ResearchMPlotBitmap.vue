@@ -17,9 +17,8 @@
 			class="mbm-plot-legend"
 			v-html="renderConfig.legend"
 		></div>
-		<div v-for="item in plotsList" :key="item">
+		<div v-for="item in plotsList" :key="item" :id="sectionId+ 'mPlotWrapper'">
 			<h4 v-if="item != 'default'">{{ item }}</h4>
-
 			<canvas
 				v-if="!!renderConfig"
 				:id="'manhattanPlot_'+ sectionId + item"
@@ -32,7 +31,33 @@
 				height=""
 			>
 			</canvas>
+			<div class="download-images-setting">
+				<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+				<ul class="options" >
+					<li>
+						<a href="javascript:;"
+						@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_mPlot', 'svg', 'vector_m_plot_' + sectionId,item)">Download SVG</a>
+					</li>
+					<li>
+						<a href="javascript:;"
+						@click="downloadImage('manhattanPlot_' + sectionId + item, sectionId + '_mPlot', 'png')">Download PNG</a>
+					</li>
+				</ul>
+			</div>
 		</div>
+		
+		<research-m-bitmap-plot-vector
+			v-if="!!renderData"
+			:renderData="renderData"
+			:renderConfig="renderConfig"
+			:colors="chromosomeColors"
+			:margin="adjPlotMargin"
+			:chrLengths="chromosomeLength"
+			:sectionId="sectionId"
+			:utils="utils"
+			:ref="sectionId + '_mPlot'"
+		>
+		</research-m-bitmap-plot-vector>
 		<div
 			v-if="!!renderConfig.label"
 			class="mbm-plot-label"
@@ -44,9 +69,8 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
+import ResearchMPlotBitmapVector from "@/components/researchPortal/vectorPlots/ResearchMPlotBitmapVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -99,8 +123,8 @@ export default Vue.component("research-m-bitmap-plot", {
 				"#cb181d",
 			],
 			leftMargin: 150, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-			rightMargin: 1,
-			topMargin: 20, // -0.5 to draw crisp line
+			rightMargin: 40,
+			topMargin: 40, // -0.5 to draw crisp line
 			bottomMargin: 100,
 			dotPosData: {},
 			compareGroups: null,
@@ -108,10 +132,10 @@ export default Vue.component("research-m-bitmap-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
 	},
-	components: {},
+	components: {
+		ResearchMPlotBitmapVector
+	},
 	mounted: function () {
 		this.renderPlot(this.renderData);
 		window.addEventListener("resize", this.onResize);
@@ -259,6 +283,27 @@ export default Vue.component("research-m-bitmap-plot", {
 
 			return massagedData;
 		},
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.leftMargin,
+					right: this.rightMargin,
+					top: this.topMargin,
+					bottom: this.bottomMargin,
+					bump: 10,
+				};
+
+			return plotMargin;
+		},
 	},
 	watch: {
 		renderData(CONTENT) {
@@ -269,7 +314,15 @@ export default Vue.component("research-m-bitmap-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
+		downloadImage(ID, NAME, TYPE, SVG, DATA) {
+			if (TYPE == 'svg') {
+				let refName = this.sectionId + '_mPlot';
+				this.$refs[refName].renderPlot(DATA);
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, SVG);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 		hidePanel(element) {
 			this.utils.uiUtils.hideElement(element);
 		},

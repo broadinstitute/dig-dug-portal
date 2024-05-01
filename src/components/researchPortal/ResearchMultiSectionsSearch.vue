@@ -203,8 +203,6 @@ export default Vue.component("research-multi-sections-search", {
 
 				let shorterFirst = options.sort((a, b) => a.label.length - b.label.length);
 
-				console.log("shortFirst", shorterFirst);
-
 				this.listOptions[PARAM.parameter] = shorterFirst;
 			} else {
 				this.listOptions[PARAM.parameter] = [];

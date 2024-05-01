@@ -96,9 +96,38 @@
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
+
+					<div class="download-images-setting">
+						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+						<ul class="options" >
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_assoPlot', 'svg', 'vector_asso_plot_' + sectionId, item.replaceAll(' ', '_'), sectionId + '_assoPlot')">Download SVG</a>
+							</li>
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('asso_plot_' + item.replaceAll(' ', '_') + sectionId, sectionId + '_assoPlot', 'png')">Download PNG</a>
+							</li>
+						</ul>
+					</div>
+	        
 					<div :id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId" class="asso-info-box hidden"></div>
 				</div>
 			</template>
+			<research-region-plot-vector
+		        v-if="!!assoData"
+		            :assoData="assoData"
+					:ldData="ldData"
+					:recombData="recombData"
+		            :renderConfig="renderConfig"
+		            :colors="ldDotColor"
+		            :margin="adjPlotMargin"
+		            :region="searchingRegion"
+		            :sectionId="sectionId"
+		            :utils="utils"
+		            :ref="sectionId + '_assoPlot'"
+		        >
+		    </research-region-plot-vector>
 			
 		</div>
 	</div>
@@ -108,6 +137,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import regionPlotVector from "@/components/researchPortal/vectorPlots/ResearchRegionPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -160,7 +190,9 @@ export default Vue.component("multi-region-plot", {
 	},
 	modules: {
 	},
-	components: {},
+	components: {
+		regionPlotVector,
+	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
 	},
@@ -188,8 +220,6 @@ export default Vue.component("multi-region-plot", {
 					bottom: this.plotMargin.bottomMargin,
 					bump: this.plotMargin.bump,
 				};
-
-			console.log('region plot', plotMargin);
 
 			return plotMargin;
 		},
@@ -520,8 +550,6 @@ export default Vue.component("multi-region-plot", {
 			} else {
 				let returnObj = {};
 
-				//console.log("this.region",this.region);
-
 				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
 				let regionArr = this.region.split(":")[1].split("-");
@@ -556,6 +584,15 @@ export default Vue.component("multi-region-plot", {
 		}
 	},
 	methods: {
+		downloadImage(ID, NAME, TYPE, SVG, DATA, ref) {
+			if (TYPE == 'svg') {
+				let refName = ref;
+				this.$refs[refName].renderPlot(DATA);
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, SVG);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 
 		onResize(e) {
 			this.renderPlots();
@@ -870,7 +907,6 @@ export default Vue.component("multi-region-plot", {
 						this.searchingRegion.end +
 						"&limit=100000";
 				}
-					console.log(ldURL);
 
 				let ldJson = await fetch(ldURL).then((resp) => resp.json());
 
