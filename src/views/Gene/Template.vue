@@ -363,6 +363,7 @@
                                         v-if="$parent.hugeScores.length > 0"
                                         ref="hugeScorePheWASPlot"
                                         canvas-id="hugeScorePlot"
+                                        :plotName="`huge_scores_${$store.state.geneName}`"
                                         :phenotypes-data="$parent.hugeScores"
                                         :phenotype-map="
                                             $store.state.bioPortal.phenotypeMap
@@ -437,6 +438,7 @@
                                         "
                                         ref="commonVariantPheWASPlot"
                                         canvas-id="commonVariantPlot"
+                                        :plotName="`common_variant_${$store.state.geneName}`"
                                         :phenotypes-data="
                                             $parent.filteredAssociations
                                         "
@@ -502,6 +504,7 @@
                                         "
                                         ref="rareVariantPheWASPlot"
                                         canvas-id="rareVariantPlot"
+                                        :plotName="`rare_variant_${$store.state.geneName}`"
                                         :phenotypes-data="
                                             $parent.transcriptOr52k
                                         "
@@ -558,6 +561,7 @@
                     <research-expression-display
                         v-if="$parent.geneExpression.length > 0"
                         :raw-data="$parent.geneExpression"
+                        :plotName="`tissue_specific_expression_${$store.state.geneName}`"
                         @expression="
                             (raw) =>
                                 ($parent.geneExpressionTable = JSON.parse(raw))
