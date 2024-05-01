@@ -22,13 +22,37 @@
 						height=""
 					>
 					</canvas>
+					<div class="download-images-setting">
+						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+						<ul class="options" >
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_heatmap', 'svg')">Download SVG</a>
+							</li>
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('heatmap' + sectionId, sectionId + '_heatmap', 'png')">Download PNG</a>
+							</li>
+						</ul>
+					</div>
+					<research-heatmap-vector
+					v-if="!!renderData"
+						:renderData="renderData"
+						:renderConfig="renderConfig"
+						:sectionId="sectionId"
+						:utils="utils"
+						:ref="sectionId + '_heatmap'"
+					>
+					</research-heatmap-vector>
 				</div>
 			</div>
+			<!--
 			<div
 				v-if="!!renderConfig.label"
 				class="heatmap-label"
 				v-html="renderConfig.label"
 			></div>
+			-->
 		</div>
 	</div>
 </template>
@@ -36,9 +60,8 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
+import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/ResearchHeatmapVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -48,6 +71,7 @@ export default Vue.component("research-heatmap", {
 		return {
 			squareData: {},
 			canvasHover: false,
+			margin:{},
 		};
 	},
 	modules: {
@@ -56,7 +80,7 @@ export default Vue.component("research-heatmap", {
 	},
 	mounted: function () {
 		this.renderHeatmap();
-		this.renderScaleLegend();
+		//this.renderScaleLegend();
 	},
 	beforeDestroy() {},
 	computed: {
@@ -113,93 +137,18 @@ export default Vue.component("research-heatmap", {
 		},
 	},
 	methods: {
-		//...uiUtils,
+		downloadImage(ID, NAME, TYPE) {
+			if (TYPE == 'svg') {
+				this.$refs[this.sectionId + '_heatmap'].renderPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_heatmap_" + this.sectionId);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+
+		},
 		hidePanel() {
 			this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
 			this.renderHeatmap();
-		},
-		renderScaleLegend() {
-			let scaleLegendWrapper = document.getElementById(
-				"heatmap_scale_legend" + this.sectionId
-			);
-			let scaleLegendContent =
-				"<div class='scale-legend-main-field'><div class='field-label'>" +
-				this.renderConfig.main.label +
-				":</div> ";
-
-			let lowValue = this.renderConfig.main.low;
-			let middleValue = this.renderConfig.main.middle;
-			let highValue = this.renderConfig.main.high;
-
-			if (lowValue != middleValue) {
-			}
-
-			if (highValue != middleValue) {
-				let colorStep = (highValue - middleValue) / 5;
-
-				let scaleMiddle =
-					middleValue == 0
-						? "0.00"
-						: this.utils.Formatters.floatFormatter(middleValue);
-				scaleLegendContent +=
-					"<div class='scale-legend-main-colors'><div class='scale-color' style='background-color: rgb(255,255,255)'>" +
-					scaleMiddle +
-					"</div>";
-				for (let i = 1; i < 6; i++) {
-					let rAndG = 1 - i * 0.2;
-					rAndG *= 255;
-					rAndG = rAndG == 0 ? 0 : this.utils.Formatters.intFormatter(rAndG);
-
-					//console.log("rAndG", rAndG);
-					scaleLegendContent +=
-						"<div class='scale-color' style='background-color: rgb(255," +
-						rAndG +
-						"," +
-						rAndG +
-						")'>" +
-						this.utils.Formatters.floatFormatter(colorStep * i) +
-						"</div>";
-				}
-				scaleLegendContent += "</div></div>";
-			}
-
-			if (!!this.renderConfig.sub) {
-				scaleLegendContent +=
-					"<div class='scale-legend-sub-field'><div class='field-label'>" +
-					this.renderConfig.sub.label +
-					"</div>:";
-				let steps = this.renderConfig.sub["value range"];
-				let stepDirection = this.renderConfig.sub.direction;
-				let dotMaxR = this.boxSize * 0.75;
-				let spanScale;
-
-				steps.map((s, sindex) => {
-					if (stepDirection == "positive") {
-						spanScale = dotMaxR * ((sindex + 1) / steps.length);
-						scaleLegendContent +=
-							"<div class='sub-legend-steps'> >= ";
-					} else {
-						spanScale =
-							dotMaxR * ((steps.length - sindex) / steps.length);
-						scaleLegendContent +=
-							"<div class='sub-legend-steps'> <= ";
-					}
-
-					scaleLegendContent +=
-						s +
-						": <span style = 'display: inline-block; background-color: #00000075; width:" +
-						spanScale +
-						"px; height:" +
-						spanScale +
-						"px; border-radius:" +
-						spanScale / 2 +
-						"px;'></span></div>";
-				});
-
-				scaleLegendContent += "</div>";
-			}
-
-			scaleLegendWrapper.innerHTML = scaleLegendContent;
 		},
 		checkPosition(event) {
 			let e = event;
@@ -207,8 +156,8 @@ export default Vue.component("research-heatmap", {
 
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
-			let x = Math.floor((e.clientX - rect.left) / this.boxSize);
-			let y = Math.floor((e.clientY - rect.top) / this.boxSize);
+			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump * 2)) / this.boxSize);
+			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump * 2)) / this.boxSize);
 
 			let clickedCellValue = "";
 			if (
@@ -265,61 +214,128 @@ export default Vue.component("research-heatmap", {
 			}
 			this.renderHeatmap(x, y);
 		},
+		getWidth(ctx, text, fontSize, fontFace) {
+			ctx.font = fontSize + 'px ' + fontFace;
+			return ctx.measureText(text).width;
+		},
+
+		getColor(mainValue, valHi, valMid, valLow) {
+			let rColor, gColor, bColor;
+
+			rColor =
+				mainValue >= valMid
+					? 255
+					: 255 -
+					255 * ((valMid - mainValue) / valMid - valLow);
+			gColor =
+				mainValue >= valMid
+					? 255 -
+					255 * ((mainValue - valMid) / (valHi - valMid))
+					: 255 -
+					255 * ((valMid - mainValue) / valMid - valLow);
+			bColor =
+				mainValue < valMid
+					? 255
+					: 255 -
+					255 * ((mainValue - valMid) / (valHi - valMid));
+
+			rColor = rColor > 255 ? 255 : rColor < 0 ? 0 : rColor;
+			gColor = gColor > 255 ? 255 : gColor < 0 ? 0 : gColor;
+			bColor = bColor > 255 ? 255 : bColor < 0 ? 0 : bColor;
+
+			let fillColor =
+				"rgba(" +
+				Math.floor(rColor) +
+				"," +
+				Math.floor(gColor) +
+				"," +
+				Math.floor(bColor) +
+				",1)";
+
+			return fillColor;
+		},
+
+		getDotR(subType, steps, subDirection, subValue, dotMaxR) {
+			let stepVal = 0;
+			let dotR;
+
+			if (subType == "steps") {
+				let dotRUnit = dotMaxR / steps.length;
+				if (subDirection == "positive") {
+					for (let i = 0; i <= steps.length - 1; i++) {
+						stepVal += subValue >= steps[i] ? 1 : 0;
+					}
+				} else {
+					for (let i = steps.length - 1; i >= 0; i--) {
+						stepVal += subValue <= steps[i] ? 1 : 0;
+					}
+				}
+				dotR = dotRUnit * stepVal;
+			} else if (subType == "scale") {
+				let scaleRange = steps[1] - steps[0];
+				if (subDirection == "positive") {
+					subValue -= steps[0];
+					stepVal =
+						subValue <= steps[0]
+							? 0
+							: subValue >= steps[1]
+								? 1
+								: subValue / scaleRange;
+				} else {
+					subValue -= steps[0];
+					stepVal =
+						subValue >= steps[1]
+							? 0
+							: subValue <= steps[0]
+								? 1
+								: (steps[1] - subValue) / scaleRange;
+				}
+
+				dotR = dotMaxR * stepVal;
+			}
+
+			return dotR;
+		},
+
 		renderHeatmap(X, Y) {
-			this.squareData = {};
-			document.getElementById("heatmapColumnsWrapper" + this.sectionId).innerHTML = "";
-			document.getElementById("heatmapRowsWrapper" + this.sectionId).innerHTML = "";
-
-			let canvasWidth =
-				this.renderConfig["font size"] *
-				1.5 *
-				this.renderData.columns.length *
-				2;
-
-			let canvasHeight = this.boxSize * this.renderData.rows.length * 2;
-
-			document.getElementById("heatmapColumnsWrapper" + this.sectionId).style.fontSize =
-				this.renderConfig["font size"] + "px";
-			document.getElementById("heatmapRowsWrapper" + this.sectionId).style.fontSize =
-				this.renderConfig["font size"] + "px";
-
-			this.renderData.columns.map((c) => {
-				var div = document.createElement("div");
-				var t = document.createTextNode(c);
-				div.appendChild(t);
-				div.setAttribute("style", "height: " + this.boxSize + "px;");
-				document
-					.getElementById("heatmapColumnsWrapper" + this.sectionId)
-					.appendChild(div);
-			});
-
-			this.renderData.rows.map((r) => {
-				var div = document.createElement("div");
-				var t = document.createTextNode(r);
-				div.appendChild(t);
-				div.setAttribute("style", "height: " + this.boxSize + "px;");
-				document.getElementById("heatmapRowsWrapper" + this.sectionId).appendChild(div);
-			});
-
-			let columnTopSpace =
-				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetHeight -
-				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetWidth -
-				10;
-			let aboveColumnPadding =
-				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetWidth +
-				20;
-
-			let rIndex = 0;
+			let c = document.getElementById("heatmap" + this.sectionId);
+			let ctx = c.getContext("2d");
 
 			
-			document.getElementById("heatmapColumnsWrapper" + this.sectionId).style.left =
-				document.getElementById("heatmapRowsWrapper" + this.sectionId).offsetWidth +
-				(this.boxSize - this.renderConfig["font size"]) / 2 +
-				"px";
-			document.getElementById("heatmapPlotWrapper" + this.sectionId).style.paddingTop =
-				aboveColumnPadding + "px";
 
-			let c = document.getElementById("heatmap" + this.sectionId);
+			let fontSize = this.renderConfig['font size'];
+
+			let marginArrs = {
+				left: [],
+				top: []
+			}
+
+			marginArrs.left = this.renderData.rows.map(r => Math.ceil(this.getWidth(ctx,r, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
+			marginArrs.top = this.renderData.columns.map(c => Math.ceil(this.getWidth(ctx,c, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
+
+			this.margin = {
+				top: marginArrs.top[0]+40,
+				bottom: 30,
+				left: marginArrs.left[0],
+				right: 20,
+				bump: 5
+			}
+
+			fontSize = this.renderConfig['font size'] * 2;
+
+			let margin = {
+				top: (marginArrs.top[0]*2) + 80,
+				bottom: 30,
+				left: (marginArrs.left[0]*2),
+				right: 40,
+				bump: 10
+			};
+
+			let boxSize = fontSize * 1.5;
+
+			let canvasWidth = ((boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
+			let canvasHeight = ((boxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4)*2);
+			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
 			c.setAttribute(
@@ -330,17 +346,194 @@ export default Vue.component("research-heatmap", {
 					canvasHeight / 2 +
 					"px;"
 			);
-			let ctx = c.getContext("2d");
+
+			// render legends
+			
+			let mainLabel = this.renderConfig.main.label + ": ",
+				subLabel = this.renderConfig.sub.label + ": ",
+				mainSteps = [mainLabel],
+				subSteps = [subLabel];
+
+			let minVal, midVal, maxVal, valStep, valStepLow, valStepHigh;
+
+			if (this.renderConfig.main.low == this.renderConfig.main.middle) {
+				minVal = this.renderConfig.main.middle,
+					midVal = this.renderConfig.main.middle,
+					maxVal = this.renderConfig.main.high,
+					valStep = (maxVal - minVal) / 5;
+
+				for (let i = 0; i < 6; i++) {
+					let stepVal = Math.round((minVal + (valStep * i)) * 1000) / 1000
+					mainSteps.push(stepVal)
+				}
+			} else {
+
+				minVal = this.renderConfig.main.low,
+					midVal = this.renderConfig.main.middle,
+					maxVal = this.renderConfig.main.high,
+					valStepLow = (midVal - minVal) / 3,
+					valStepHigh = (maxVal - midVal) / 3;
+
+				for (let i = 0; i < 6; i++) {
+					let stepVal = Math.round((minVal + (valStep * i)) * 1000) / 1000
+					mainSteps.push(stepVal)
+				}
+
+			}
+
+			let prevWidth = margin.bump;
+
+			// main legend
+			mainSteps.map(m => {
+				let legendWidth = this.getWidth(ctx,m, fontSize, 'Arial');
+
+				if (typeof m != 'string') {
+					legendWidth += margin.bump
+					prevWidth += margin.bump / 2;
+
+					let fillColor = this.getColor(m, maxVal, midVal, minVal)
+
+					ctx.beginPath();
+					ctx.rect(prevWidth, margin.bump - 4, legendWidth, fontSize + 8);
+					ctx.fillStyle = fillColor;
+					ctx.fill();
+				}
+
+				ctx.font = "24px Arial";
+				ctx.textAlign = "start";
+				ctx.fillStyle = "#000000";
+				ctx.fillText(
+					m,
+					prevWidth + 4,
+					margin.bump + fontSize - 4
+				);
+				prevWidth += legendWidth + 2;
+			})
+
+			//sub legend
+
+			this.renderConfig.sub["value range"].map(r => {
+				subSteps.push(r)
+			})
+
+			let steps = this.renderConfig.sub["value range"],
+				stepDirection = this.renderConfig.sub.direction,
+				dotMaxR = (boxSize * 0.75) / 2;
+
+			prevWidth += margin.bump;
+
+			subSteps.map((s, sindex) => {
+
+
+				let legendString = s.toString()
+
+				if (typeof s != 'string') {
+
+					if (stepDirection == "positive") {
+						legendString = " >= " + legendString + ": ";
+					} else {
+						legendString = " <= " + legendString + ": ";
+					}
+				}
+
+				let legendWidth = this.getWidth(ctx,legendString, fontSize, 'Arial');
+
+				ctx.font = "24px Arial";
+				ctx.textAlign = "start";
+				ctx.fillStyle = "#000000";
+				ctx.fillText(
+					legendString,
+					prevWidth + 4,
+					margin.bump + fontSize - 4
+				);
+
+				prevWidth += legendWidth + 4;
+
+				if (typeof s != 'string') {
+					let steps = this.renderConfig.sub["value range"];
+					let dotR = this.getDotR(this.renderConfig.sub.type, steps, stepDirection, s, dotMaxR)
+
+					ctx.fillStyle = "#00000075";
+					ctx.lineWidth = 0;
+					ctx.beginPath();
+					ctx.arc(
+						prevWidth + dotR,
+						margin.bump + (fontSize / 2),
+						dotR,
+						0,
+						2 * Math.PI
+					);
+					ctx.fill();
+
+					prevWidth += dotR * 2;
+
+				}
+			});
+
+			//render plot label
+
+			ctx.font = "Bold 30px Arial";
+			ctx.textAlign = "center";
+			ctx.fillStyle = "#000000";
+			ctx.fillText(
+				this.renderConfig["label"],
+				(canvasWidth / 2),
+				(canvasHeight - (margin.bump * 2))
+			);
+
 
 			let renderBoxSize = this.boxSize * 2;
 
-			this.renderData.rows.map((r) => {
+			// render heatmap box
+
+			ctx.beginPath();
+			ctx.fillStyle = "#ffffff";
+			ctx.strokeStyle = "#666666";
+			var fillRect = false;
+			ctx.rect(margin.left + (margin.bump * 2), margin.top + (margin.bump * 2), (this.renderData.columns.length * boxSize), (this.renderData.rows.length * boxSize));
+			if (fillRect) {
+				ctx.fill();
+			}
+			ctx.stroke();
+			ctx.closePath();
+
+			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
-				let cIndex = 0;
-				this.renderData.columns.map((c) => {
+
+				let top = margin.top + (margin.bump * 2) + (renderBoxSize * rIndex);
+
+				ctx.font = "24px Arial";
+				ctx.textAlign = "end";
+				ctx.fillStyle = "#000000";
+				ctx.fillText(
+					r,
+					margin.left + margin.bump,
+					top + fontSize
+				);
+			})
+
+			this.renderData.columns.map((c, cIndex) => {
+				let left = margin.left + (margin.bump * 2) + (renderBoxSize * cIndex);
+
+				ctx.save();
+				ctx.translate(left + fontSize, margin.top + margin.bump + 0.5);
+				ctx.rotate((90 * -Math.PI) / 180);
+				ctx.font = "24px Arial";
+				ctx.fillStyle = "#000000";
+				ctx.textAlign = "start";
+				ctx.fillText(c, 0, 0);
+				ctx.restore();
+			})
+
+			this.renderData.rows.map((r, rIndex) => {
+				this.squareData[rIndex] = {};
+
+				let top = margin.top + (margin.bump * 2) + (renderBoxSize * rIndex);
+
+				this.renderData.columns.map((c, cIndex) => {
+
 					let mainValue = this.renderData[r][c].main;
-					let left = renderBoxSize * cIndex;
-					let top = renderBoxSize * rIndex;
+					let left = margin.left + (margin.bump * 2) + (renderBoxSize * cIndex);
 
 					this.squareData[rIndex][cIndex] = {};
 					this.squareData[rIndex][cIndex]["main"] = {
@@ -358,37 +551,9 @@ export default Vue.component("research-heatmap", {
 					let direction = this.renderConfig.main.direction;
 					let valHi = this.renderConfig.main.high;
 					let valMid = this.renderConfig.main.middle;
-					let valLo = this.renderConfig.main.low;
+					let valLow = this.renderConfig.main.low;
 
-					rColor =
-						mainValue >= valMid
-							? 255
-							: 255 -
-							  255 * ((valMid - mainValue) / valMid - valLo);
-					gColor =
-						mainValue >= this.renderConfig.main.middle
-							? 255 -
-							  255 * ((mainValue - valMid) / (valHi - valMid))
-							: 255 -
-							  255 * ((valMid - mainValue) / valMid - valLo);
-					bColor =
-						mainValue < this.renderConfig.main.middle
-							? 255
-							: 255 -
-							  255 * ((mainValue - valMid) / (valHi - valMid));
-
-					rColor = rColor > 255 ? 255 : rColor < 0 ? 0 : rColor;
-					gColor = gColor > 255 ? 255 : gColor < 0 ? 0 : gColor;
-					bColor = bColor > 255 ? 255 : bColor < 0 ? 0 : bColor;
-
-					let colorString =
-						"rgba(" +
-						Math.floor(rColor) +
-						"," +
-						Math.floor(gColor) +
-						"," +
-						Math.floor(bColor) +
-						",1)";
+					let colorString =	this.getColor(mainValue, valHi, valMid, valLow)
 
 					if (X == cIndex && Y == rIndex) {
 						ctx.beginPath();
@@ -416,46 +581,12 @@ export default Vue.component("research-heatmap", {
 						let steps = this.renderConfig.sub["value range"];
 						let subDirection = this.renderConfig.sub.direction;
 						let dotMaxR = (renderBoxSize * 0.75) / 2;
+						let subType = this.renderConfig.sub.type;
 						let centerPos = renderBoxSize / 2;
 
-						let stepVal = 0;
 						let subValue = this.renderData[r][c].sub;
-						let dotR;
 
-						if (this.renderConfig.sub.type == "steps") {
-							let dotRUnit = dotMaxR / steps.length;
-							if (subDirection == "positive") {
-								for (let i = 0; i <= steps.length - 1; i++) {
-									stepVal += subValue >= steps[i] ? 1 : 0;
-								}
-							} else {
-								for (let i = steps.length - 1; i >= 0; i--) {
-									stepVal += subValue <= steps[i] ? 1 : 0;
-								}
-							}
-							dotR = dotRUnit * stepVal;
-						} else if (this.renderConfig.sub.type == "scale") {
-							let scaleRange = steps[1] - steps[0];
-							if (subDirection == "positive") {
-								subValue -= steps[0];
-								stepVal =
-									subValue <= steps[0]
-										? 0
-										: subValue >= steps[1]
-										? 1
-										: subValue / scaleRange;
-							} else {
-								subValue -= steps[0];
-								stepVal =
-									subValue >= steps[1]
-										? 0
-										: subValue <= steps[0]
-										? 1
-										: (steps[1] - subValue) / scaleRange;
-							}
-
-							dotR = dotMaxR * stepVal;
-						}
+						let dotR = this.getDotR(subType, steps, subDirection, subValue, dotMaxR)
 						ctx.fillStyle = "#00000075";
 						ctx.lineWidth = 0;
 						ctx.beginPath();
@@ -474,7 +605,6 @@ export default Vue.component("research-heatmap", {
 				rIndex++;
 			});
 
-			//console.log(this.squareData);
 		},
 	},
 });
@@ -485,7 +615,7 @@ $(function () {});
 <style>
 .heatmap-content {
 	text-align: center;
-	overflow-x: auto;
+	/*overflow-x: auto;*/
 }
 
 .heatmap-wrapper {
@@ -525,7 +655,7 @@ $(function () {});
 }
 
 #heatmapCanvasWrapper canvas, .heatmap-canvas-wrapper canvas {
-	border: solid 1px #aaa;
+	/*border: solid 1px #aaa;*/
 }
 
 #heatmap:hover, .heatmap:hover {

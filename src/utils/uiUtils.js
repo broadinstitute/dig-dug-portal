@@ -532,19 +532,19 @@ let setTabActive = function (
         let tab = contentsChildren[i];
         !!IF_PLOT
             ? tab.setAttribute(
-                  "class",
-                  "plot-tab-content-wrapper hidden-content"
-              )
+                "class",
+                "plot-tab-content-wrapper hidden-content"
+            )
             : tab.setAttribute("class", "tab-content-wrapper hidden-content");
     }
 
     !!IF_PLOT
         ? document
-              .getElementById(TARGETCONTENT)
-              .setAttribute("class", "plot-tab-content-wrapper")
+            .getElementById(TARGETCONTENT)
+            .setAttribute("class", "plot-tab-content-wrapper")
         : document
-              .getElementById(TARGETCONTENT)
-              .setAttribute("class", "tab-content-wrapper");
+            .getElementById(TARGETCONTENT)
+            .setAttribute("class", "tab-content-wrapper");
 };
 
 let toggleFixedSummarySection = function (UIWRAPPERID) {
@@ -570,7 +570,49 @@ let showHidePanel = function (PANEL) {
         wrapper.classList.add("hidden");
     }
 };
-let downloadChart = function(URL, FILENAME){
+
+let downloadImg = function (ID, name, type, svgImage) {
+
+    let imgElement = document.getElementById(ID)
+    let link = document.createElement('a');
+    let dataURL;
+
+    if (type == 'svg') {
+        //ref.renderBoxPlot(); // firstly, render the svg image
+
+        let newSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        let attributesToCopy = ["width", "height", "viewBox"];
+        for (const attr of attributesToCopy) {
+            if (imgElement.hasAttribute(attr)) {
+                newSVG.setAttribute(attr, imgElement.getAttribute(attr));
+            }
+        }
+
+        for (const child of imgElement.children) {
+            if (child.nodeName.toLowerCase() !== "script") {
+                newSVG.appendChild(child.cloneNode(true));
+            }
+        }
+
+        let svgData = new XMLSerializer().serializeToString(newSVG);
+        dataURL = new Blob([svgData], { type: "image/svg+xml" });
+
+    } else if (type == 'png') {
+
+        dataURL = imgElement.toDataURL("image/png");
+    }
+    link.href = (type == 'svg') ? URL.createObjectURL(dataURL) : dataURL;
+    link.download = (type == 'svg') ? name + '.svg' : name + ".png";
+    link.click();
+    URL.revokeObjectURL(link.href);
+
+    if (type == 'svg') {
+        let svgImg = document.getElementById(svgImage);
+        svgImg.remove();
+    }
+}
+
+let downloadChart = function (URL, FILENAME) {
     // Create a link element and programmatically click it to start the download
     const link = document.createElement("a");
     link.href = URL;
@@ -607,5 +649,6 @@ export default {
     setTabActive,
     toggleFixedSummarySection,
     showHidePanel,
+    downloadImg,
     downloadChart
 };

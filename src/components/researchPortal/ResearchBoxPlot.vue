@@ -66,6 +66,11 @@
 					</span>
 				</div>
 
+				<div>
+					
+				
+				</div>
+
 				<canvas :hidden="!showCanvas"
 					:id="canvasId + 'boxPlot'"
 					width=""
@@ -78,6 +83,30 @@
 							: ''
 					"
 				></canvas>
+				<div class="download-images-setting">
+					<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+					<ul class="options" >
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('vector_wrapper_' + canvasId, canvasId + '_boxPlot', 'svg')">Download SVG</a>
+						</li>
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage(canvasId + 'boxPlot', canvasId + '_boxPlot', 'png')">Download PNG</a>
+						</li>
+					</ul>
+				</div>
+				<research-box-plot-vector
+				v-if="!!renderData"
+					:renderData="groupData(renderData)"
+					:renderConfig="renderConfig"
+					:colors="colors"
+					:margin="adjPlotMargin"
+					:sectionId="canvasId"
+					:utils="utils"
+					:ref="canvasId + '_boxPlot'"
+				>
+				</research-box-plot-vector>
 			</div>
 		</div>
 	</div>
@@ -88,12 +117,12 @@ import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import boxPlotVector from "@/components/researchPortal/vectorPlots/ResearchBoxPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-box-plot", {
 	props: [
-		"canvasId",
 		"phenotypeMap",
 		"phenotypesData",
 		"renderConfig",
@@ -103,7 +132,7 @@ export default Vue.component("research-box-plot", {
 		"plotMargin",
 		"filter",
 		"options",
-		"sectionId",
+		"canvasId",
 		"utils"
 	],
 	data() {
@@ -118,7 +147,9 @@ export default Vue.component("research-box-plot", {
 	},
 	modules: {
 	},
-	components: {},
+	components: {
+		boxPlotVector,
+	},
 	created: function () {
 		this.renderBoxPlot();
 	},
@@ -180,63 +211,45 @@ export default Vue.component("research-box-plot", {
 				return null;
 			}
 		},
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.plotMargin.leftMargin,
+					right: this.plotMargin.rightMargin,
+					top: this.plotMargin.topMargin,
+					bottom: this.plotMargin.bottomMargin,
+					bump: this.plotMargin.bump,
+				};
+
+			return plotMargin;
+		},
 	},
 	watch: {
 		renderData(content) {
 			this.renderBoxPlot();
 		},
-
-		/*phenotypesData(DATA) {
-
-			console.log("DATA",DATA);
-
-			this.showCanvas = true;
-			let content = {};
-			content["data"] = [];
-
-			
-			let phenotypesData = cloneDeep(this.phenotypesData);
-
-			phenotypesData.map((d) => {
-				let pValue =
-					typeof d[this.renderConfig["y axis field"]] == "string"
-						? Number(d[this.renderConfig["y axis field"]])
-						: d[this.renderConfig["y axis field"]];
-				d["rawPValue"] = pValue;
-
-				if (this.renderConfig["convert y -log10"] == "true") {
-					d[this.renderConfig["y axis field"] + "-log10"] =
-						-Math.log10(pValue);
-				}
-
-				if (
-					this.phenotypeMapConfig == "kpPhenotypeMap" &&
-					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
-				) {
-					content["data"].push(d);
-				} else if (this.phenotypeMapConfig == null) {
-					content["data"].push(d);
-				}
-			});
-		
-			if (!!this.filter) {
-				content.data = content.data.filter(this.filter);
-			}
-
-			if (!!content.data && content.data.length > 0) {
-				this.renderData = content;
-			} else {
-				this.showCanvas = false;
-				this.renderData = null;
-			}
-
-			if(!!this.renderData) {this.renderBoxPlot()};
-		}*/
 	},
 	methods: {
-		//...uiUtils,
-		//isIdFixed: uiUtils.isIdFixed,
-		//removeOnMouseOut: uiUtils.removeOnMouseOut,
+		downloadImage( ID,NAME,TYPE) {
+			if(TYPE == 'svg') {
+				this.$refs[this.canvasId + '_boxPlot'].renderPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_box_plot_" + this.canvasId);
+			} else if(TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+			
+		},
 		openPage(PAGE, PARAMETER) {
 			this.utils.uiUtils.openPage(PAGE, PARAMETER);
 		},
@@ -279,15 +292,6 @@ export default Vue.component("research-box-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
-			/*
-			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
-				value.sort((a, b) =>
-					a[this.renderConfig["y axis field"]] >
-					b[this.renderConfig["y axis field"]]
-						? 1
-						: -1
-				);
-			}*/
 
 			return phenotypeGroupsObj;
 		},
@@ -303,20 +307,7 @@ export default Vue.component("research-box-plot", {
 
 			let customPlotMargin = !!this.renderConfig["plot margin"]? this.renderConfig["plot margin"]:null;
 
-			let plotMargin = !!customPlotMargin?{
-						left: customPlotMargin.left,
-						right: customPlotMargin.right,
-						top: customPlotMargin.top,
-						bottom: customPlotMargin.bottom,
-						bump: 10,
-					}:
-					{
-						left: this.plotMargin.leftMargin / 2,
-						right: (this.plotMargin.leftMargin / 2) * 1.5,
-						top: (this.plotMargin.bottomMargin / 2) * 3.5,
-						bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
-						bump: 10,
-					};
+			let plotMargin = this.adjPlotMargin;
 
 			let y = Math.ceil(e.clientY - rect.top);
 			let x = Math.ceil(e.clientX - rect.left);
@@ -699,30 +690,26 @@ export default Vue.component("research-box-plot", {
 
 								labelXpos = xPos > labelXpos ? xPos : labelXpos;
 
-								if (
-									labelIndex == 0 ||
-									labelXpos < maxWidthPerGroup
-								) {
-									ctx.font = "22px Arial";
+								
+								ctx.font = "22px Arial";
 
-									ctx.fillStyle = "#000000"
+								ctx.fillStyle = "#000000"
 
-									let labelYPos = yPos0;
+								let labelYPos = yPos0;
 
-									ctx.save();
-									ctx.translate(labelXpos + (boxWidth / 2) + 10, centerY1 - 24);
-									ctx.rotate((90 * -Math.PI) / 180);
-									ctx.textAlign = "start";
-									ctx.fillText(pName, 0, 0);
-									ctx.restore();
+								ctx.save();
+								ctx.translate(labelXpos + (boxWidth / 2) + 10, centerY1 - 24);
+								ctx.rotate((90 * -Math.PI) / 180);
+								ctx.textAlign = "start";
+								ctx.fillText(pName, 0, 0);
+								ctx.restore();
 
 
-									ctx.lineWidth = 1;
-									ctx.moveTo((xPos + (boxWidth/2)), centerY1 - 5);
-									ctx.lineTo(labelXpos + (boxWidth / 2), centerY1 - 20);
-									ctx.strokeStyle = "#00000080";
-									ctx.stroke();
-								}
+								ctx.lineWidth = 1;
+								ctx.moveTo((xPos + (boxWidth/2)), centerY1 - 5);
+								ctx.lineTo(labelXpos + (boxWidth / 2), centerY1 - 20);
+								ctx.strokeStyle = "#00000080";
+								ctx.stroke();
 
 								labelIndex++;
 								dotIndex++;
@@ -791,7 +778,7 @@ export default Vue.component("research-box-plot", {
 					for (const [key, value] of Object.entries(GROUPS)) {
 						if (value > 0) {
 							let tickXPos =
-								MARGIN.left + previousGroup * xTickDistance;
+								MARGIN.left + (previousGroup + .5) * xTickDistance;
 							let adjTickXPos = Math.floor(tickXPos);
 							CTX.moveTo(
 								adjTickXPos,
