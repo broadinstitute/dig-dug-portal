@@ -84,7 +84,7 @@ import DataDownload from "@/components/DataDownload";
 
 const myGeneAPI = "https://mygene.info/v3";
 
-export default Vue.component("TranslatorPredicateTable", {
+export default Vue.component("translator-predicate-table", {
     props: ["title", "geneSymbol", "field", "filter"],
     component: {
         ResolvedCurie,
