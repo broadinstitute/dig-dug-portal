@@ -1,5 +1,5 @@
 <template>
-    <div id="region_track_wrapper" class="region-track-wrapper">
+    <div :id="'region_track_wrapper'+sectionId" class="region-track-wrapper">
             
         <div :id="'block_data_' + sectionId" class="block-data hidden">
             <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
@@ -7,7 +7,7 @@
             </div>
             <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
         </div>
-        <div>
+        <div class="col-md-11">
             <span v-for="cKey,index in colorGroups" :key="cKey" class="color-groups" @mouseover="renderPlot(cKey)" @mouseleave="renderPlot()">
                 <span class="box" :style="'background-color:' + colors.bold[index % 16]"></span><span class="label" v-html="cKey"></span>
             </span>
@@ -16,6 +16,31 @@
             @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
             width="" height="">
         </canvas>
+        <div class="download-images-setting">
+            <span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+            <ul class="options" >
+                <li>
+                    <a href="javascript:;"
+                    @click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_regionTrack', 'svg')">Download SVG</a>
+                </li>
+                <li>
+                    <a href="javascript:;"
+                    @click="downloadImage('track_' + sectionId, sectionId + '_regionTrack', 'png')">Download PNG</a>
+                </li>
+            </ul>
+        </div>
+        <research-region-track-vector
+        v-if="!!renderData"
+            :renderData="renderData"
+            :renderConfig="plotConfig"
+            :colors="colors.bold"
+            :margin="adjPlotMargin"
+            :region="viewingRegion"
+            :sectionId="sectionId"
+            :utils="utils"
+            :ref="sectionId + '_regionTrack'"
+        >
+        </research-region-track-vector>
     </div>
     
 </template>
@@ -24,6 +49,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import regionTrackVector from "@/components/researchPortal/vectorPlots/ResearchRegionTrackVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -51,7 +77,9 @@ export default Vue.component("research-region-track", {
     },
     modules: {
     },
-    components: {},
+    components: {
+        regionTrackVector
+    },
     mounted: function () {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);
@@ -63,8 +91,6 @@ export default Vue.component("research-region-track", {
         adjPlotMargin() {
 
             let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
-
-            
 
             let plotMargin = !!customPlotMargin ? {
                 left: customPlotMargin.left,
@@ -155,13 +181,22 @@ export default Vue.component("research-region-track", {
         }
     },
     methods: {
+        downloadImage(ID, NAME, TYPE) {
+            if (TYPE == 'svg') {
+                this.$refs[this.sectionId + '_regionTrack'].renderPlot();
+                this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_region_track_" + this.sectionId);
+            } else if (TYPE == 'png') {
+                this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+            }
+
+        },
         renderPlot(cKey) {
             
             this.posData = {};
 
             let tracks = Object.keys(this.renderData).sort();
             let perTrack = this.plotConfig["track height"]*2;
-            let canvasWidth = document.querySelector("#region_track_wrapper").clientWidth * 2;
+            let canvasWidth = document.querySelector("#region_track_wrapper"+this.sectionId).clientWidth * 2;
             let canvasHeight = (perTrack * tracks.length)+ this.adjPlotMargin.top + this.adjPlotMargin.bottom;
 
             let c, ctx;
@@ -201,6 +236,14 @@ export default Vue.component("research-region-track", {
                 this.adjPlotMargin.top,
                 this.adjPlotMargin);
 
+            let canvas = document.createElement('canvas'),
+                context = canvas.getContext('2d');
+
+            let getWidth = function (text, fontSize, fontFace) {
+                context.font = fontSize + 'px ' + fontFace;
+                return context.measureText(text).width;
+            }
+
             tracks.map(track=>{
                 let trackTop = this.adjPlotMargin.top + (perTrack * trackIndex);
                 ctx.fillStyle = "#000000";
@@ -208,7 +251,24 @@ export default Vue.component("research-region-track", {
                 ctx.textBaseline = "middle";
                 ctx.font = "24px Arial";
                 let labelLimit = Math.floor((this.adjPlotMargin.left - this.adjPlotMargin.bump) / 16)
-                let trackLabel = (track.length > labelLimit)? track.slice(0, labelLimit)+'...': track;
+
+                let trackLabel = "";
+                let txtWidth = getWidth(track, 24, "Arial")
+
+                if (txtWidth > (this.adjPlotMargin.left - this.adjPlotMargin.bump)) {
+                    for (let i = 0; i < track.length; i++) {
+                        if (getWidth(trackLabel + track[i], 24, "Arial") < (this.adjPlotMargin.left - (this.adjPlotMargin.bump * 6))) {
+                            trackLabel = trackLabel + track[i];
+                        }
+                    }
+                    trackLabel += "..."
+                } else {
+                    trackLabel = track;
+                }
+
+                //let trackLabel = (track.length > labelLimit)? track.slice(0, labelLimit)+'...': track;
+
+
                 ctx.fillText(trackLabel, 2, trackTop + 12);
 
                 if (trackIndex % 2 == 0) {
@@ -494,6 +554,11 @@ $(function () { });
 }
 .color-groups {
     font-size: 13px;
+    display: inline-block;
+}
+
+.color-groups span {
+    display: inline-block;
 }
 
 .color-groups:hover {

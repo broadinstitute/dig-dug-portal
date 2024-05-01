@@ -285,9 +285,18 @@
                                 : 'col-md-5'
                         "
                     >
+                        <research-page-description
+                            v-if="
+                                $parent.oldStats &&
+                                $parent.pageDescription != null
+                            "
+                            :content="$parent.pageDescription"
+                            :utils="$parent.utilsBox"
+                        ></research-page-description>
                         <div
                             v-html="$parent.frontContents.field_about_project"
                         ></div>
+
                         <news-feed-section
                             :disease-group="$parent.diseaseGroup"
                             :news-feed="$store.state.kp4cd.newsFeed"

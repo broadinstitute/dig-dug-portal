@@ -20,7 +20,8 @@
             </research-expression-filter>
             <research-expression-plot 
                 :plotData="plotData"
-                :highlightedDataset="datasetDetails">
+                :highlightedDataset="datasetDetails"
+                :plotName="`gene_expression_${tissue.replaceAll(' ', '_')}_p${currentPage}`">
             </research-expression-plot>
         </div>
         <div v-else>Loading expression plot...</div>
