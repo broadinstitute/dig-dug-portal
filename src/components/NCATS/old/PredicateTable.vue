@@ -55,7 +55,8 @@
 
                 <template #cell(pubmed)="data">
                     <div v-for="pmid in getPubmedArray(data.item)">
-                        <resolved-curie-link :id="pmid" :prefix="'pmid'">
+                        <resolved-curie-link :id="pmid" :prefix="'pmid'"
+                        :keepTitlePrefix="true">
                         </resolved-curie-link>
                     </div>
                 </template>

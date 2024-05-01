@@ -3,7 +3,8 @@
         <slot>
             <curie-label 
                 v-if="!!fullCurie"
-                :curie="fullCurie">
+                :curie="fullCurie"
+                :keepTitlePrefix="keepTitlePrefix">
             </curie-label>
         </slot>
     </a>
@@ -17,7 +18,7 @@ import trapi from "./trapi"
 import NormalizedCurieLabel from "./NormalizedCurieLabel"
 
 export default Vue.component('resolved-curie-link', {
-    props: ["curie", "id", "prefix"],
+    props: ["curie", "id", "prefix", "keepTitlePrefix"],
     components: {
         NormalizedCurieLabel
     },
