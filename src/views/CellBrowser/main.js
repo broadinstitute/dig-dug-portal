@@ -27,6 +27,7 @@ new Vue({
             colorScaleIndex: d3.scaleOrdinal(d3.schemeCategory10),//d3.scaleOrdinal().range(this.generateColors(30)),
             colorScaleRed: d3.scaleSequential(d3.interpolateReds),
             colorScaleRedBlue: d3.scaleLinear().domain([-1, 0, 1]).range(['red', 'white', 'blue']),
+            colorScalePlasmaColorsArray: null,
 
 
             cellCountOptions: ["cell abundance (count)", "cell proportion (%)"],
@@ -86,8 +87,12 @@ new Vue({
         await this.displayDataset();
         //this.selectField('cell_type__custom');
 
+        //get position of info elements parent so we know where to set the 'fixed' breakpoint
         const rect = document.querySelector('.info-wrapper').getBoundingClientRect();
         this.scrollThreshhold = rect.top + window.scrollY - 20;
+
+        //generate colors array from plasma color scale
+        this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ');
     },
 
     render(createElement, context) {
