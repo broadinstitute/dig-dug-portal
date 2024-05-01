@@ -36,7 +36,7 @@ export default Vue.component("research-region-dots-vector", {
 	created: function () {
 	},
 	mounted: function () {
-		this.renderPlot()
+		//this.renderPlot()
 	},
 	beforeDestroy() {
 	},
@@ -52,9 +52,6 @@ export default Vue.component("research-region-dots-vector", {
 	},
 	methods: {
 		renderPlot() {
-
-			console.log("colorGroups", this.colorGroups)
-			console.log("renderData", this.renderData)
 
 			// this part needed to get exact width of legend texts
 			let canvas = document.createElement('canvas'),
