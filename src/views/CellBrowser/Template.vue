@@ -336,10 +336,253 @@
                     </template>
                     </template>
 
+                     <!-- GENE EXPRESSION MEAN/% -->
+                    <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                        <div class="label underline" style="margin-bottom: 40px;">Gene Expression by Cell Type</div>
+                        <div class="expression-tables-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr class="field_labels">
+                                        <th colspan="2">{{ $parent.activeField }}</th>
+                                        <th><div class="gene-label no-events">Cell Count</div></th>
+                                        <!-- dot plot labels -->
+                                        <template v-for="(value2, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
+                                            <th v-if="value2['processed']"
+                                                :data-b-field="gene" :data-b-gene="gene"
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                                
+                                            >
+                                                <div class="no-events">{{ gene }}</div>
+                                            </th>
+                                        </template>
+                                        <template v-for="(value2, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
+                                            <th v-if="value2['processed']"
+                                                :data-b-field="gene" :data-b-gene="gene"
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                                
+                                            >
+                                                <div class="gene-label">{{ gene }}</div>
+                                            </th>
+                                        </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template v-for="(value, key) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.activeField]">
+                                        <tr :data-field="$parent.activeField" :data-field-label="value">
+                                            <td :data-a-field="value"
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                            >
+                                                <div class="field-cluster-swatch" :style="`background:${$parent.datasetsObj[$parent.activeDataset]['metadata_colors'][$parent.activeField][value]['color']}`"></div>
+                                            </td>
+                                            <td class="field-cluster-label" 
+                                                :data-a-field="value"
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                            >
+                                                {{ value }}
+                                            </td>
+                                            <td class="field-cluster-count" 
+                                                :data-a-field="value"
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                            >
+                                                {{ $parent.datasetsObj[$parent.activeDataset]['metadata_counts'][$parent.activeField][value][ $parent.cellCountOption===0 ? "count" : "pct"] }}
+                                            </td>
+                                            <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                                                <template v-for="(value2, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
+                                                    <td v-if="value2['processed']"
+                                                        class="field-cluster-count cluster-expressionNO"
+                                                        :data-a-field="value" :data-b-field="gene" :data-b-gene="gene"
+                                                        @mouseover="$parent.tableHoverOverHandler($event)"
+                                                        @mouseout="$parent.tableHoverOutHandler($event)"
+                                                        
+                                                    >
+                                                        {{ value2['processed'][value]['mean'].toFixed(4) }}
+                                                    </td>
+                                                </template>
+                                            </template>
+                                            <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                                                <template v-for="(value2, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
+                                                    <td v-if="value2['processed']"
+                                                        class="field-cluster-count cluster-expression" 
+                                                        :data-a-field="value" :data-b-field="gene" :data-b-gene="gene"
+                                                        @mouseover="$parent.tableHoverOverHandler($event)"
+                                                        @mouseout="$parent.tableHoverOutHandler($event)"
+                                                        
+                                                    >
+                                                        <!-- dot plot -->
+                                                        <div class="field-cluster-expression-bg" :style="`background:${value2['processed'][value]['color']};`">
+                                                            <div class="field-cluster-expression" :style="`background:#000; transform:scale(${value2['processed'][value]['pct']});`"></div>
+                                                        </div>
+                                                    </td>
+                                                </template>
+                                            </template>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
 
-                    <!-- GENE EXPRESSION MEAN/% -->
+                    <!-- GENE EXPRESSION MEAN/% COMPARE WITH CONDITION -->
+                    <template v-if="$parent.activeGene && $parent.compareSet">
+                        <div class="label underline" style="margin-top: 20px;">{{$parent.activeGene}} Expression by Cell Type & Condition</div>
+                        <div class="expression-tables-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <template v-if="$parent.compareSet">
+                                        <tr>
+                                            <th colspan="2"></th>
+                                            <th class="border-bottom" 
+                                                :colspan="Object.keys($parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]).length + 1"
+                                            >
+                                                mean expression
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="3"></th>
+                                            <th class="border-bottom" 
+                                                :colspan="Object.keys($parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]).length"
+                                            >
+                                                {{$parent.compareField}}
+                                            </th>
+                                        </tr>
+                                    </template>
+                                    <tr class="field_labels">
+                                        <th colspan="2">{{ $parent.activeField }}</th>
+                                        <th :data-b-field="$parent.activeGene" :data-b-gene="$parent.activeGene"
+                                            @mouseover="$parent.tableHoverOverHandler($event)"
+                                            @mouseout="$parent.tableHoverOutHandler($event)"
+                                        >
+                                            <div class="no-events">{{ $parent.activeGene }}</div>
+                                        </th>
+                                        <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
+                                            <th :data-b-field="value2" 
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                            >
+                                                <div class="no-events">{{ value2 }}</div>
+                                            </th>
+                                        </template>
+                                        <!-- dot plot labels -->
+                                        <th :data-b-field="$parent.activeGene" :data-b-gene="$parent.activeGene"
+                                            @mouseover="$parent.tableHoverOverHandler($event)"
+                                            @mouseout="$parent.tableHoverOutHandler($event)"
+                                            
+                                        >
+                                            <div class="gene-label">{{ $parent.activeGene }}</div>
+                                        </th>
+                                        <template v-if="$parent.compareGeneSet">
+                                            <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
+                                                <th :data-b-field="value2" 
+                                                    @mouseover="$parent.tableHoverOverHandler($event)"
+                                                    @mouseout="$parent.tableHoverOutHandler($event)"
+                                                >
+                                                    <div class="gene-label">{{value2}}</div>
+                                                </th>
+                                            </template>
+                                        </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template v-for="(value, key) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.activeField]">
+                                        <tr :data-field="$parent.activeField" :data-field-label="value">
+                                            <td :data-a-field="value"
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                            >
+                                                <div class="field-cluster-swatch" :style="`background:${$parent.datasetsObj[$parent.activeDataset]['metadata_colors'][$parent.activeField][value]['color']}`"></div>
+                                            </td>
+                                            <td class="field-cluster-label" 
+                                                :data-a-field="value"
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                            >
+                                                {{ value }}
+                                            </td>
+                                            <!--
+                                            <td class="field-cluster-count" 
+                                                :data-a-field="value"
+                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                            >
+                                                {{ $parent.datasetsObj[$parent.activeDataset]['metadata_counts'][$parent.activeField][value][ $parent.cellCountOption===0 ? "count" : "pct"] }}
+                                            </td>
+                                            -->
+                                            <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                                                
+                                                <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['genes'][$parent.activeGene]">
+                                                    
+                                                    <td v-if="key2 === 'processed'"
+                                                        class="field-cluster-count cluster-expressionNO"
+                                                        :data-a-field="value" :data-b-field="$parent.activeGene" :data-b-gene="$parent.activeGene"
+                                                        @mouseover="$parent.tableHoverOverHandler($event)"
+                                                        @mouseout="$parent.tableHoverOutHandler($event)"
+                                                        
+                                                    >
+                                                        {{ value2[value]['mean'].toFixed(4) }}
+                                                    </td>
+                                                </template>
+                                                <template v-if="$parent.compareGeneSet">
+                                                    <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
+                                                        <td class="field-cluster-count cluster-expressionNO"
+                                                            :data-a-field="value" :data-b-field="value2" :data-b-gene="$parent.activeGene"
+                                                            @mouseover="$parent.tableHoverOverHandler($event)"
+                                                            @mouseout="$parent.tableHoverOutHandler($event)"
+                                                        >
+                                                            <template v-if="$parent.compareGeneSet[value][value2]">
+                                                                {{ $parent.compareGeneSet[value][value2]['mean'].toFixed(4) }}
+                                                            </template>
+                                                        </td>
+                                                    </template>
+                                                </template>
+                                            </template>
+                                            <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                                                <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['genes'][$parent.activeGene]">
+                                                    <td v-if="key2 === 'processed'"
+                                                        class="field-cluster-count cluster-expression" 
+                                                        :data-a-field="value" :data-b-field="$parent.activeGene" :data-b-gene="$parent.activeGene"
+                                                        @mouseover="$parent.tableHoverOverHandler($event)"
+                                                        @mouseout="$parent.tableHoverOutHandler($event)"
+                                                        
+                                                    >
+                                                        <!-- dot plot -->
+                                                        <div class="field-cluster-expression-bg" :style="`background:${value2[value]['color']};`">
+                                                            <div class="field-cluster-expression" :style="`background:#000; transform:scale(${value2[value]['pct']});`"></div>
+                                                        </div>
+                                                    </td>
+                                                </template>
+                                                <template v-if="$parent.compareGeneSet">
+                                                    <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
+                                                        <td class="field-cluster-count cluster-expression"
+                                                            :data-a-field="value" :data-b-field="value2" :data-b-gene="$parent.activeGene"
+                                                            @mouseover="$parent.tableHoverOverHandler($event)"
+                                                            @mouseout="$parent.tableHoverOutHandler($event)"
+                                                        >
+                                                            <template v-if="$parent.compareGeneSet[value][value2]">
+                                                                <!-- dot plot -->
+                                                                <div class="field-cluster-expression-bg" :style="`background:${$parent.compareGeneSet[value][value2] ? $parent.compareGeneSet[value][value2]['color'] : 'transparent'};`">
+                                                                    <div class="field-cluster-expression" :style="`background:${$parent.compareGeneSet[value][value2] ? '#000' : '#000'}; transform:scale(${$parent.compareGeneSet[value][value2] ? $parent.compareGeneSet[value][value2]['pct'] : '0'});`"></div>
+                                                                </div>
+                                                            </template>
+                                                        </td>
+                                                    </template>
+                                                </template>
+                                            </template>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+
+                    <!-- (UNUSED) GENE EXPRESSION MEAN/% COMPARE WITH CONDITION -->
+                    <template v-if="false">
                     <div class="expression-tables-wrapper">
-                        <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                        <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes'] && $parent.compareSet">
                             <table class="data-table">
                                 <thead>
                                     <template v-if="$parent.compareSet">
@@ -494,11 +737,12 @@
                             </table>
                         </template>
                     </div>
+                    </template>
 
                     <!-- DIFFERENTIAL GENE EXPRESSION -->
-                    <div class="expression-tables-wrapper">
-                        <template v-if="$parent.compareDiffGeneSet">
-                        <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                    <template v-if="$parent.compareDiffGeneSet && $parent.datasetsObj[$parent.activeDataset]['genes']">
+                        <div class="label underline" style="margin-top: 20px;">{{$parent.activeGene}} Differential Expression by Cell Type & Condition</div>
+                        <div class="expression-tables-wrapper">
                             <div class="diff-gene-exp">
                                 <table class="data-table">
                                     <thead>
@@ -602,9 +846,9 @@
                                     <div class="legend-bg" :style="`background: linear-gradient(to top, ${$parent.colorScaleRedBlue(-1)},${$parent.colorScaleRedBlue(0)}, ${$parent.colorScaleRedBlue(1)});`"></div>
                                 </div>
                             </div>
-                        </template>
-                        </template>
-                    </div>
+                        </div>
+                    </template>
+
                 </template>
             </div>
 
@@ -780,6 +1024,11 @@ input{
 .label {
     font-size: 16px;
     margin-bottom: 5px;
+}
+.underline{
+    border-bottom: 1px solid dimgray;
+    width: fit-content;
+    padding: 5px 0;
 }
 .page-wrapper {
     align-items: center;
