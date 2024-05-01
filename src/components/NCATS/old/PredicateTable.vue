@@ -54,25 +54,10 @@
                 </template>
 
                 <template #cell(pubmed)="data">
-                    <ul
-                        style="
-                            columns: 5;
-                            -webkit-columns: 5;
-                            -moz-columns: 5;
-                            list-style-type: none;
-                            padding: 0;
-                            margin: 0;
-                            column-gap: 10px;
-                        "
-                    >
-                        <li
-                            v-for="pmid in [].concat(data.item.pubmed)"
-                            :key="pmid"
-                        >
-                            <resolved-curie-link :id="pmid" :prefix="'pmid'">
-                            </resolved-curie-link>
-                        </li>
-                    </ul>
+                    <div v-for="pmid in getPubmedArray(data.item)">
+                        <resolved-curie-link :id="pmid" :prefix="'pmid'">
+                        </resolved-curie-link>
+                    </div>
                 </template>
             </b-table>
 
@@ -264,6 +249,12 @@ export default Vue.component("TranslatorPredicateTable", {
             this.totalRows = filteredItems.length;
             this.currentPage = 1;
         },
+        getPubmedArray(item){
+            if (typeof item.pubmed === "number"){
+                return [item.pubmed];
+            }
+            return item.pubmed;
+        }
     },
 });
 </script>
