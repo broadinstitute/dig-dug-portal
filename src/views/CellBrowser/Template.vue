@@ -1,5 +1,5 @@
 <template>
-    <div class="col page-wrapper">
+    <div class="col1 page-wrapper">
         <div :class="`loader ${!$parent.isLoading ? 'hidden' : ''}`">loading...</div>
         
 
@@ -8,14 +8,14 @@
         </div>
 
         <!-- selectors -->
-        <div class="row select-wrapper">
+        <div class="row1 select-wrapper">
             
         </div>
 
-        <div class="row explore-wrapper">
+        <div class="row1 explore-wrapper">
 
-            <div class="col" style="width:250px; gap:15px;">
-                <div class="col">
+            <div class="col1" style="width:250px; gap:15px;">
+                <div class="col1">
                     <div class="label">Mammal</div>
                     <select class="active-field-selector" disabled>
                         <option value="" disabled hidden>Select</option>
@@ -23,12 +23,12 @@
                         <option value="mouse">Mouse</option>
                     </select>
                 </div>
-                <div class="col" style="width:250px;">
+                <div class="col1" style="width:250px;">
                     <div class="anatomogram">
                         <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.male_.svg">
                     </div>
                 </div>
-                <div class="col">
+                <div class="col1">
                     <div class="label">Depot</div>
                     <select class="active-field-selector" disabled>
                         <option value="" disabled hidden>Select</option>
@@ -37,7 +37,7 @@
                     </select>
                 </div>
                 <template v-if="$parent.activeField">
-                    <div class="col">
+                    <div class="col1">
                         <div class="label">Condition</div>
                         <select class="comapre-field-selector" @change="$parent.selectCompareField($event)">
                             <option value="" selected disabled hidden>None</option>
@@ -58,10 +58,10 @@
             <!-- tables -->
             <div class="tables-wrapper overflow-x" style="min-width:600px">
 
-                <div class="col header-wrapper">
+                <div class="col1 header-wrapper">
                     <template v-if="$parent.datasetsList && $parent.datasetsList.length > 0">
                         <div class="dataset-wrapper">
-                            <div class="col dataset-selector">
+                            <div class="col1 dataset-selector">
                                 <div class="label" style="font-weight: bold;">Dataset</div>
                                 <select @change="$parent.selectDataset($event)" style="width:100%">
                                     <option value="" selected disabled hidden>Select Dataset</option>
@@ -80,7 +80,7 @@
                     <template v-if="$parent.activeDataset">
                         <div class="field-selectors">
                             <template v-if="$parent.datasetsObj[$parent.activeDataset]['metadata']">
-                                <div class="col hidden">
+                                <div class="col1 hidden">
                                     <div class="label">Select Field</div>
                                     <select class="active-field-selector" @change="$parent.selectField($event)">
                                         <option value="" selected disabled hidden>Select Field</option>
@@ -219,9 +219,9 @@
                         </table>
 
                         <template v-if="$parent.activeField && !$parent.compareField">  
-                            <div class="col" style="gap: 30px;align-self:flex-start;margin-top:22px;">
+                            <div class="col1" style="gap: 30px;align-self:flex-start;margin-top:22px;">
                                 <div class="hidden">x</div>
-                                <div class="col grow">
+                                <div class="col1 grow">
                                     <div class="label">Select Condition</div>
                                     <select class="comapre-field-selector" @change="$parent.selectCompareField($event)">
                                         <option value="" selected disabled hidden>None</option>
@@ -239,7 +239,7 @@
                                     </div>
                                 </div>
                                 <template v-if="!$parent.datasetsObj[$parent.activeDataset]['genes']">
-                                    <div class="col grow">
+                                    <div class="col1 grow">
                                         <div class="label">Search Gene</div>
                                         <input class="gene-search-input" type="text" placeholder="Gene Name"
                                             @keyup.enter="$parent.searchGene($event)"
@@ -254,7 +254,7 @@
                     </div>
 
                     <template v-if="$parent.activeField && ($parent.compareField || $parent.datasetsObj[$parent.activeDataset]['genes'])">
-                        <div class="col grow" style="margin:20px 0;">
+                        <div class="col1 grow" style="margin:20px 0;">
                             <div class="label" style="font-weight: bold;">Search Gene</div>
                             <input class="gene-search-input" type="text" placeholder="Gene Name"
                                 @keyup.enter="$parent.searchGene($event)"
@@ -852,24 +852,24 @@
                 </template>
             </div>
 
-            <div class="col" style="width:250px">
+            <div class="col1" style="width:250px">
                 <!-- hover data -->
                 <template v-if="$parent.activeDataset">
                     <div class="info-wrapper">
-                        <div :class="`col sidebar ${$parent.fixedSidebar ? 'fixed-sidebar' : ''}`">
+                        <div :class="`col1 sidebar ${$parent.fixedSidebar ? 'fixed-sidebar' : ''}`">
                             <div class="label">Dataset Info</div>
                             <template v-if="$parent.activeField">
-                                <div class="col info-block">
-                                    <div class="row info-field">
+                                <div class="col1 info-block">
+                                    <div class="row1 info-field">
                                         <div class="info-field-label">Name</div><div class="info-field-data unknown">{{ Array.isArray($parent.activeDataset) ? $parent.activeDataset[0] : $parent.activeDataset }}</div>
                                     </div>
-                                    <div class="row info-field">
+                                    <div class="row1 info-field">
                                         <div class="info-field-label">Species</div><div class="info-field-data unknown">Human</div>
                                     </div>
-                                    <div class="row info-field">
+                                    <div class="row1 info-field">
                                         <div class="info-field-label">Depot</div><div class="info-field-data unknown">VAT</div>
                                     </div>
-                                    <div class="row info-field">
+                                    <div class="row1 info-field">
                                         <div class="info-field-label">Total Cells</div><div class="info-field-data num">{{$parent.datasetsObj[$parent.activeDataset]["cells"].length.toLocaleString()}}</div>
                                     </div>
                                 </div>
@@ -901,10 +901,10 @@
                                         <div class="field-cluster-bg" :style="`background:${$parent.hoverInfo['cluster']['color']}; width:${$parent.hoverInfo['cluster']['cellPct']}%`"></div>
                                     </div>
                                     <div class="info-block">
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">Cell Count</div><div class="info-field-data num">{{$parent.hoverInfo["cluster"]["cellCount"].toLocaleString()}}</div>
                                         </div>
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">Cell %</div><div class="info-field-data num">{{$parent.hoverInfo["cluster"]["cellPct"]}}</div>
                                         </div>
                                     </div>
@@ -921,10 +921,10 @@
                                         `"></div>
                                     </div>
                                     <div class="info-block">
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">Cell Count</div><div class="info-field-data num">{{$parent.hoverInfo["condition"]["cellCount"].toLocaleString()}}</div>
                                         </div>
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">Cell %</div><div class="info-field-data num">{{$parent.hoverInfo["condition"]["cellPct"]}}</div>
                                         </div>
                                     </div>
@@ -935,13 +935,13 @@
                                 <template v-if="Object.keys($parent.hoverInfo['gene']).length > 0">
                                     <div class="info-header">{{$parent.hoverInfo["gene"]["name"]}}</div>
                                     <div class="info-block">
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">Cells Exp.</div><div class="info-field-data num">{{$parent.hoverInfo["gene"]["cellsExp"]}}</div>
                                         </div>
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">Cells Exp. %</div><div class="info-field-data num">{{($parent.hoverInfo["gene"]["expPct"]*100).toFixed(2)}}</div>
                                         </div>
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">Mean Exp.</div><div class="info-field-data num">{{$parent.hoverInfo["gene"]["expMean"].toFixed(4)}}</div>
                                         </div>
                                     </div>
@@ -949,10 +949,10 @@
                                 <template v-if="Object.keys($parent.hoverInfo['diff']).length > 0">
                                     <div class="info-header">{{$parent.hoverInfo["diff"]["name"]}}</div>
                                     <div class="info-block">
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">p-Value</div><div class="info-field-data num">{{$parent.hoverInfo["diff"]["pValue"].toFixed(8)}}</div>
                                         </div>
-                                        <div class="row info-field">
+                                        <div class="row1 info-field">
                                             <div class="info-field-label">Effect Size</div><div class="info-field-data num">{{$parent.hoverInfo["diff"]["effectSize"].toFixed(8)}}</div>
                                         </div>
                                     </div>
@@ -972,6 +972,10 @@
 *{
     box-sizing: border-box;
 }
+body{
+    line-height: normal;
+    font-size: 14px;
+}
 select, 
 input{
     width: 100%;
@@ -982,11 +986,11 @@ input{
     padding: 10px;
     font-size: 14px;
 }
-.col{
+.col1{
     display: flex;
     flex-direction: column;
 }
-.row{
+.row1{
     display:flex;
     flex-direction: row;
 }
@@ -1174,6 +1178,7 @@ th{
     font-weight: normal;
     font-size: 14px;
     padding: 10px !important;
+    text-align: center;
 }
 th, td{
     padding: 0;
