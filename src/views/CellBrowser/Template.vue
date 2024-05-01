@@ -1,6 +1,5 @@
 <template>
     <div class="col1 page-wrapper">
-        <div :class="`loader ${!$parent.isLoading ? 'hidden' : ''}`">loading...</div>
         
 
         <div class="title" style="align-self:flex-start;transform: scale(1.25);transform-origin: left bottom;">
@@ -56,7 +55,7 @@
             </div>
 
             <!-- tables -->
-            <div class="tables-wrapper overflow-x" style="min-width:600px">
+            <div class="tables-wrapper" style="min-width:600px">
 
                 <div class="col1 header-wrapper">
                     <template v-if="$parent.datasetsList && $parent.datasetsList.length > 0">
@@ -106,7 +105,7 @@
 
                     <!--<div @click="$parent.htmlTableToObject('#table1')">download</div>-->
 
-                    <div class="cell-count-tables-wrapper">
+                    <div class="cell-count-tables-wrapper overflow-h">
                         
                         <table id="table1" class="data-table">
                             <thead>
@@ -338,9 +337,30 @@
 
                      <!-- GENE EXPRESSION MEAN/% -->
                     <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
-                        <div class="label underline" style="margin-bottom: 40px;">Gene Expression by Cell Type</div>
-                        <div class="expression-tables-wrapper">
-                            <table class="data-table">
+                        <div class="row1 label-wrapper">
+                            <div class="label underline" style="margin-bottom: 50px;">Gene Expression by Cell Type</div>
+                            <!-- legends -->
+                            <div class="row1 legends">
+                                <div class="col1 legend">
+                                    <div class="label">Gene Expression</div>
+                                    <div class="gradient" :style="`background: linear-gradient(to left, ${$parent.colorScalePlasmaColorsArray});`"></div>
+                                    <div class="row1 marks"><div>0.0</div><div>3.0</div></div>
+                                </div>
+                                <div class="col1 legend">
+                                    <div class="label">Expressed in Cells (%)</div>
+                                    <div class="row1 circles">
+                                        <div class="circle" style="height:20%"></div>
+                                        <div class="circle" style="height:40%"></div>
+                                        <div class="circle" style="height:60%"></div>
+                                        <div class="circle" style="height:80%"></div>
+                                        <div class="circle" style="height:100%"></div>
+                                    </div>
+                                    <div class="row1 marks"><div>0</div><div>100</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="expression-tables-wrapper overflow-h">
+                            <table class="data-table" style="margin-top:40px;">
                                 <thead>
                                     <tr class="field_labels">
                                         <th colspan="2">{{ $parent.activeField }}</th>
@@ -429,8 +449,29 @@
 
                     <!-- GENE EXPRESSION MEAN/% COMPARE WITH CONDITION -->
                     <template v-if="$parent.activeGene && $parent.compareSet">
-                        <div class="label underline" style="margin-top: 20px;">{{$parent.activeGene}} Expression by Cell Type & Condition</div>
-                        <div class="expression-tables-wrapper">
+                        <div class="row1 label-wrapper">
+                            <div class="label underline" style="margin-top: 20px;">{{$parent.activeGene}} Expression by Cell Type & Condition</div>
+                            <!-- legends -->
+                            <div class="row1 legends">
+                                <div class="col1 legend">
+                                    <div class="label">Gene Expression</div>
+                                    <div class="gradient" :style="`background: linear-gradient(to left, ${$parent.colorScalePlasmaColorsArray});`"></div>
+                                    <div class="row1 marks"><div>0.0</div><div>3.0</div></div>
+                                </div>
+                                <div class="col1 legend">
+                                    <div class="label">Expressed in Cells (%)</div>
+                                    <div class="row1 circles">
+                                        <div class="circle" style="height:20%"></div>
+                                        <div class="circle" style="height:40%"></div>
+                                        <div class="circle" style="height:60%"></div>
+                                        <div class="circle" style="height:80%"></div>
+                                        <div class="circle" style="height:100%"></div>
+                                    </div>
+                                    <div class="row1 marks"><div>0</div><div>100</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="expression-tables-wrapper overflow-h">
                             <table class="data-table">
                                 <thead>
                                     <template v-if="$parent.compareSet">
@@ -741,8 +782,29 @@
 
                     <!-- DIFFERENTIAL GENE EXPRESSION -->
                     <template v-if="$parent.compareDiffGeneSet && $parent.datasetsObj[$parent.activeDataset]['genes']">
-                        <div class="label underline" style="margin-top: 20px;">{{$parent.activeGene}} Differential Expression by Cell Type & Condition</div>
-                        <div class="expression-tables-wrapper">
+                        <div class="row1 label-wrapper">
+                            <div class="label underline" style="margin-top: 20px;">{{$parent.activeGene}} Differential Expression by Cell Type & Condition</div>
+                            <!-- legends -->
+                            <div class="row1 legends">
+                                <div class="col1 legend">
+                                    <div class="label">Effect Size</div>
+                                    <div class="gradient" :style="`background: linear-gradient(to left, ${$parent.colorScaleRedBlue(-1)},${$parent.colorScaleRedBlue(0)}, ${$parent.colorScaleRedBlue(1)});`"></div>
+                                    <div class="row1 marks"><div>-1.0</div><div>0.0</div><div>1.0</div></div>
+                                </div>
+                                <div class="col1 legend">
+                                    <div class="label">p-Value</div>
+                                    <div class="row1 circles">
+                                        <div class="circle" style="height:100%"></div>
+                                        <div class="circle" style="height:80%"></div>
+                                        <div class="circle" style="height:60%"></div>
+                                        <div class="circle" style="height:40%"></div>
+                                        <div class="circle" style="height:20%"></div>
+                                    </div>
+                                    <div class="row1 marks"><div>{{`<=0.001`}}</div><div>{{`<=1`}}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="expression-tables-wrapper overflow-h">
                             <div class="diff-gene-exp">
                                 <table class="data-table">
                                     <thead>
@@ -842,9 +904,6 @@
                                         </template>
                                     </tbody>
                                 </table>
-                                <div class="diff-gene-exp-legend">
-                                    <div class="legend-bg" :style="`background: linear-gradient(to top, ${$parent.colorScaleRedBlue(-1)},${$parent.colorScaleRedBlue(0)}, ${$parent.colorScaleRedBlue(1)});`"></div>
-                                </div>
                             </div>
                         </div>
                     </template>
@@ -857,7 +916,10 @@
                 <template v-if="$parent.activeDataset">
                     <div class="info-wrapper">
                         <div :class="`col1 sidebar ${$parent.fixedSidebar ? 'fixed-sidebar' : ''}`">
-                            <div class="label">Dataset Info</div>
+                            <div class="label" style="position:relative">
+                                Dataset Info 
+                                <div :class="`loader ${!$parent.isLoading ? 'hidden' : ''}`">loading...</div>
+                            </div>
                             <template v-if="$parent.activeField">
                                 <div class="col1 info-block">
                                     <div class="row1 info-field">
@@ -972,10 +1034,6 @@
 *{
     box-sizing: border-box;
 }
-body{
-    line-height: normal;
-    font-size: 14px;
-}
 select, 
 input{
     width: 100%;
@@ -1009,8 +1067,9 @@ input{
 }
 .loader{
     position:absolute;
-    top:20px;
-    right:8px;
+    bottom:0px;
+    right:0px;
+    font-size: 14px;
 }
 .hidden{
     display:none
@@ -1034,6 +1093,42 @@ input{
     width: fit-content;
     padding: 5px 0;
 }
+.label-wrapper {
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 20px;
+}
+.legends {
+    gap: 20px;
+}
+.legend {
+    width: 125px;
+    margin: 0 10px 0 0;
+}
+.legend .label {
+    font-size: 12px;
+}
+.legend .gradient {
+    height: 10px;
+    width: -webkit-fill-available;
+}
+.legend .circles {
+    height: 10px;
+    width: -webkit-fill-available;
+    justify-content: space-between;
+    padding: 0 5px;
+}
+.legend .circle {
+    aspect-ratio: 1;
+    background: #ccc;
+    border-radius: 50%;
+    align-self: center;
+}
+.legend .marks {
+    justify-content: space-between;
+    font-size: 12px;
+    margin-top: 3px;
+}
 .page-wrapper {
     align-items: center;
     gap: 20px;
@@ -1042,6 +1137,8 @@ input{
     max-width: 1280px;
     margin: 0 auto;
     padding-top: 50px;
+    font-size: 14px;
+    line-height: normal;
 }
 .info-wrapper{
     position:relative;
@@ -1094,6 +1191,7 @@ input{
     gap: 10px;
     background: none;
     width: 100%;
+    position: relative;
 }
 .explore-wrapper {
     gap: 20px;
@@ -1159,6 +1257,9 @@ input{
     gap: 20px;
     height: 20px;
 }
+.field-cluster-label {
+    font-size: 16px;
+}
 .field-cluster-swatch{
     width: 100%;
     height: 100%;
@@ -1169,6 +1270,7 @@ input{
 .field-cluster-count {
     font-family: monospace;
     text-align: right;
+    font-size: 13px;
 }
 table{
     border-collapse: collapse;
