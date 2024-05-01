@@ -3,7 +3,7 @@
         
 
         <div class="title" style="align-self:flex-start;transform: scale(1.25);transform-origin: left bottom;">
-            Mammalian<br>Adipose<br>Tissue<br><span style="font-size:11.5px;display: block;">Knowldge Portal</span>
+            Mammalian<br>Adipose<br>Tissue<br><span style="font-size:11.5px;display: block;">Knowledge Portal</span>
         </div>
 
         <!-- selectors -->
