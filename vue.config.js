@@ -264,6 +264,13 @@ let pages = {
         title: "Tissue",
         chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
+    cellbrowser: {
+        entry: "src/views/CellBrowser/main.js",
+        template: "public/index.html",
+        filename: "cellbrowser.html",
+        title: "Cell Browser",
+        chunks: ["chunk-vendors", "chunk-common", "cellbrowser"],
+    },
 };
 
 // remove the debug page in production
