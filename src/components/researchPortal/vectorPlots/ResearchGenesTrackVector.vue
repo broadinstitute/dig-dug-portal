@@ -47,17 +47,6 @@ export default Vue.component("research-genes-track-vector", {
 		renderPlot() {
 			let wrapperClass = `.vector-wrapper-${this.sectionId}`;
 
-			// this part needed to get exact width of legend texts
-			let canvas = document.createElement('canvas'),
-				context = canvas.getContext('2d');
-
-			let getWidth = function (text, fontSize, fontFace) {
-				context.font = fontSize + 'px ' + fontFace;
-				return context.measureText(text).width;
-			}
-
-			///
-
 			let bitmapWrapper = document.querySelector(
 				"#genesTrackWrapper" + this.sectionId
 			);
@@ -69,8 +58,6 @@ export default Vue.component("research-genes-track-vector", {
 				bottom: this.margin.bottom / 2,
 				bump: this.margin.bump / 2,
 			}
-
-			console.log("genes",this.genesData);
 
 			let width = !!this.renderConfig['width'] ? this.renderConfig['width'] :
 				bitmapWrapper.clientWidth - (margin.left + margin.right);
@@ -111,8 +98,6 @@ export default Vue.component("research-genes-track-vector", {
 					let geneStart = (gene.start <= this.region.start)? this.region.start : gene.start,
 						geneEnd = (gene.end >= this.region.end) ? this.region.end : gene.end,
 						nameXpos = geneStart + (geneEnd - geneStart)/2;
-
-					console.log(geneName)
 
 					svg.select("#genesTrackVector")
 						.append("text")
