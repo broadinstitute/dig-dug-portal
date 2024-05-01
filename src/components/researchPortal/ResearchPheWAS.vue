@@ -1,7 +1,11 @@
 <template>
 	<div class="mbm-plot-content row">
-		
 		<div class="col-md-12 phewas-plot-wrapper">
+			<download-chart
+				:filename="!plotName ? 'PheWAS' : plotName"
+				:chartId="canvasId + 'pheWasPlot'"
+				>
+			</download-chart>
 			<div
 				class="col-md-12"
 				:id="canvasId + 'pheWasPlotWrapper'"
@@ -114,7 +118,7 @@ import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";
-
+import DownloadChart from "../DownloadChart.vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-phewas-plot", {
@@ -130,7 +134,8 @@ export default Vue.component("research-phewas-plot", {
 		"filter",
 		"options",
 		"sectionId",
-		"utils"
+		"utils",
+		"plotName"
 	],
 	data() {
 		return {

@@ -612,6 +612,15 @@ let downloadImg = function (ID, name, type, svgImage) {
     }
 }
 
+let downloadChart = function (URL, FILENAME) {
+    // Create a link element and programmatically click it to start the download
+    const link = document.createElement("a");
+    link.href = URL;
+    link.download = FILENAME;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
 export default {
     addRemoveClass,
     popOutElement,
@@ -641,4 +650,5 @@ export default {
     toggleFixedSummarySection,
     showHidePanel,
     downloadImg,
+    downloadChart
 };
