@@ -416,17 +416,8 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
 
             case "as link":
 
-                if (typeof cellValue == 'object') {
-                    let valueString = ""
-                    cellValue.map(value => {
-                        valueString += "<a href='" + value + "'>" + value + "</a>space<br/>"
-                    })
+                cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
 
-                    cellValue = valueString;
-
-                } else {
-                    cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
-                }
 
                 break;
 
