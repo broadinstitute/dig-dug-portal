@@ -159,7 +159,7 @@
                 <div class="card-body">
                     <div
                             v-if="
-                                $store.state.variant.varId
+                                $store.state.squalitymetrics.data.length > 0
                             "
                         >
                         <sitequalitymetrics-tab v-bind:vardata="
