@@ -153,9 +153,9 @@ function floatFormatter(value) {
     return Number.parseFloat(value).toFixed(2);
 }
 
-function tpmFormatter(value){
-    return Number.isNaN(Number.parseFloat(value)) 
-        ? "-" 
+function tpmFormatter(value) {
+    return Number.isNaN(Number.parseFloat(value))
+        ? "-"
         : Number.parseFloat(value).toFixed(3);
 }
 
@@ -416,8 +416,17 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
 
             case "as link":
 
-                cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
+                if (typeof cellValue == 'object') {
+                    let valueString = ""
+                    cellValue.map(value => {
+                        valueString += "<a href='" + value + "'>" + value + "</a>space<br/>"
+                    })
 
+                    cellValue = valueString;
+
+                } else {
+                    cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
+                }
 
                 break;
 
