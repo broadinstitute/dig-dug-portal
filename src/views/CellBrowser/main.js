@@ -810,9 +810,9 @@ new Vue({
                 }
                 if(aField && bField){
                     if(!bGene){
-                        console.log("not gene")
+                        //console.log("not gene")
                         if(!bDiff){
-                            console.log("not diff");
+                            //console.log("not diff");
 
                             hoverInfo.condition = {
                                 type: this.compareField,
@@ -825,7 +825,7 @@ new Vue({
                             //
                             this.highlightClusterInUmap(aField, bField);
                         }else{
-                            console.log("diff")
+                            //console.log("diff")
                             hoverInfo.diff = {
                                 name: `${this.activeGene} (${bField})`,
                                 pValue: this.compareDiffGeneSet[aField][bField]["pValue"],
@@ -833,7 +833,7 @@ new Vue({
                             }
                         }
                     }else{
-                        console.log("gene")
+                        //console.log("gene")
                         if(bGene === bField){
                             hoverInfo.gene = {
                                 name: bGene,
@@ -873,10 +873,11 @@ new Vue({
             }
         },
         tableHoverOutHandler(e){
-            //TODO: save dimmed elements in global list so we dont have to query them again
-            this.dimmedElements.forEach(el => {
-                el.classList.remove('dim-table-item');
-            })
+            if(this.dimmedElements){
+                this.dimmedElements.forEach(el => {
+                    el.classList.remove('dim-table-item');
+                })
+            }
             document.querySelectorAll('.data-table .outline-table-item').forEach(el => { 
                 el.classList.remove('outline-table-item');
             });
@@ -888,10 +889,40 @@ new Vue({
             console.log('searcing for gene: ', e.target.value);
             const string = 'ADIPOQ, PRLR, IL7R, KLRD1';
             const parts = e.target.value.split(/[,\s]+/);
+            e.target.value = '';
+            //TODO: should be a queue
             parts.forEach(async (gene) => {
                 await this.getGeneExpression(gene.toUpperCase());
             })
             
+        },
+
+        removeGene(e){
+            const geneToRemove = e.target.dataset.gene;
+            console.log("removing gene", geneToRemove);
+            if(this.activeGene === geneToRemove){
+                const keys = Object.keys(this.datasetsObj[this.activeDataset]["genes"]);
+                if(keys.length>1){
+                    this.activeGene = keys[0] !== geneToRemove ? keys[0] : keys[1];
+                }else{
+                    //all genes removed
+                    this.activeGene = null;
+                    Vue.delete(this.datasetsObj[this.activeDataset], "genes");
+                    return;
+                }
+            }
+            //delete gene
+            Vue.delete(this.datasetsObj[this.activeDataset]["genes"], geneToRemove);
+            //re-render hack
+            document.querySelector(`[data-a-field]`).dispatchEvent(new Event('mouseover'));
+            document.querySelector(`[data-a-field]`).dispatchEvent(new Event('mouseout'));
+            //const tmpGenes = this.datasetsObj[this.activeDataset]["genes"];
+            //delete tmpGenes[geneToRemove];
+            //Vue.set(this.datasetsObj[this.activeDataset], "genes", tmpGenes);
+            //Vue.set(this.datasetsObj[this.activeDataset], "genes", this.datasetsObj[this.activeDataset]["genes"])
+            //delete this.datasetsObj[this.activeDataset]["genes"][geneToRemove];
+            //this.$forceUpdate();
+            //Vue.set(this.datasetsObj[this.activeDataset], geneToRemove, undefined);
         },
 
         htmlTableToObject(tableSelector) {
@@ -1081,7 +1112,7 @@ new Vue({
         },
 
         highlightClusterInUmap(aField=null, bField=null){
-            console.log(aField, bField);
+            //console.log(aField, bField);
             if(aField && bField){
                 document.querySelector('.umap-wrapper').classList.add('dim');
                 document.querySelectorAll(`.umap-wrapper .umap[data-a-field="${aField}"]`).forEach(el => {

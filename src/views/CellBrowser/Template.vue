@@ -3,7 +3,7 @@
         
 
         <div class="title" style="align-self:flex-start;transform: scale(1.25);transform-origin: left bottom;">
-            Mammalian<br>Adipose<br>Tissue<br><span style="font-size:11.5px;display: block;">Knowldge Portal</span>
+            Mammalian<br>Adipose<br>Tissue<br><span style="font-size:11.5px;display: block;">Knowledge Portal</span>
         </div>
 
         <!-- selectors -->
@@ -258,6 +258,20 @@
                             <input class="gene-search-input" type="text" placeholder="Gene Name"
                                 @keyup.enter="$parent.searchGene($event)"
                             />
+                            
+                            <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                                <div class="gene-list">
+                                    <template v-for="(value, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
+                                        <div class="gene-list-item" 
+                                             :data-gene="gene"
+                                             @click="$parent.removeGene($event)"
+                                        >
+                                        {{ gene }}
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            
                             <div class="note">
                                 See gene expression and differential gene expression by cell type, and condition if selected.
                             </div>
@@ -1355,6 +1369,35 @@ td:has(.field-cluster-pct) {
 }
 .gene-search-input::placeholder{
     text-transform: none;
+}
+.gene-list {
+    display: flex;
+    background: #ccc;
+    padding: 10px;
+    gap: 10px;
+    border-radius: 0 0 5px 5px;
+}
+.gene-list-item {
+    background: white;
+    padding: 2px 5px;
+    font-size: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+}
+.gene-list-item:hover:after {
+    content: '✖';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border-radius: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: red;
 }
 .gene-label {
     font-size: 12px;
