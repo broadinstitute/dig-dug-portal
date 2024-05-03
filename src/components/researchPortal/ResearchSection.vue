@@ -1013,7 +1013,6 @@ export default Vue.component("research-section", {
 
 		async queryApi(QUERY, TYPE, PARAMS) {
 
-
 			if(QUERY != "") {
 				this.searched.push(QUERY);
 			}
@@ -1310,7 +1309,6 @@ export default Vue.component("research-section", {
 					break;
 			}
 
-			
 
 			// if loaded data is processed
 			if (data.length > 0) {
