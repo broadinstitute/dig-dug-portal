@@ -972,7 +972,6 @@ export default Vue.component("research-section", {
 
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
-			console.log(QUERY,TYPE, PARAMS)
 
 			this.searched.push(QUERY);
 
@@ -983,7 +982,7 @@ export default Vue.component("research-section", {
 					dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
 				})
 			} else {
-				
+				 dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
 			}
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
@@ -1007,15 +1006,11 @@ export default Vue.component("research-section", {
 			let dataUrl;
 			let PARAMS =  this.dataPoint["parameters"];
 
-			console.log(this.dataPoint["parameters type"])
-
 			if (this.dataPoint["parameters type"] == "replace") {
 				dataUrl = this.dataPoint["continue url"];
 
 				PARAMS.map((param, pIndex) => {
 					dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
-
-					console.log(dataUrl)
 				})
 
 				dataUrl += TOKEN;
