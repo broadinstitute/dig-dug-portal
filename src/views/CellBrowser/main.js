@@ -897,6 +897,13 @@ new Vue({
             
         },
 
+        setActiveGene(e){
+            const gene = e.target.value;
+            console.log('setting active gene', gene);
+            this.activeGene = gene;
+            this.calcCompareGeneExpression(this.activeGene);
+        },
+
         removeGene(e){
             const geneToRemove = e.target.dataset.gene;
             console.log("removing gene", geneToRemove);

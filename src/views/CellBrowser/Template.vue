@@ -3,7 +3,7 @@
         
 
         <div class="title" style="align-self:flex-start;transform: scale(1.25);transform-origin: left bottom;">
-            Mammalian<br>Adipose<br>Tissue<br><span style="font-size:11.5px;display: block;">Knowledge Portal</span>
+            Mammalian<br>Adipose<br>Tissue<br><span style="font-size:9.2px;display: block;">Knowledge Portal</span>
         </div>
 
         <!-- selectors -->
@@ -253,7 +253,7 @@
                     </div>
 
                     <template v-if="$parent.activeField && ($parent.compareField || $parent.datasetsObj[$parent.activeDataset]['genes'])">
-                        <div class="col1 grow" style="margin:20px 0;">
+                        <div class="col1 grow" style="margin:20px 0 0;">
                             <div class="label" style="font-weight: bold;">Search Gene</div>
                             <input class="gene-search-input" type="text" placeholder="Gene Name"
                                 @keyup.enter="$parent.searchGene($event)"
@@ -352,7 +352,7 @@
                      <!-- GENE EXPRESSION MEAN/% -->
                     <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
                         <div class="row1 label-wrapper">
-                            <div class="label underline" style="margin-bottom: 50px;">Gene Expression by Cell Type</div>
+                            <div class="label underline">Gene Expression by Cell Type</div>
                             <!-- legends -->
                             <div class="row1 legends">
                                 <div class="col1 legend">
@@ -374,8 +374,12 @@
                             </div>
                         </div>
                         <div class="expression-tables-wrapper overflow-h">
-                            <table class="data-table" style="margin-top:40px;">
+                            <table class="data-table">
                                 <thead>
+                                    <tr class="field_labels">
+                                        <th colspan="3"></th>
+                                        <th :colspan="Object.keys($parent.datasetsObj[$parent.activeDataset]['genes']).length" class="border-bottom">mean expression</th>
+                                    </tr>
                                     <tr class="field_labels">
                                         <th colspan="2">{{ $parent.activeField }}</th>
                                         <th><div class="gene-label no-events">Cell Count</div></th>
@@ -464,7 +468,23 @@
                     <!-- GENE EXPRESSION MEAN/% COMPARE WITH CONDITION -->
                     <template v-if="$parent.activeGene && $parent.compareSet">
                         <div class="row1 label-wrapper">
-                            <div class="label underline" style="margin-top: 20px;">{{$parent.activeGene}} Expression by Cell Type & Condition</div>
+                            <div class="label underline" style="padding:0">
+                                <!--{{$parent.activeGene}}-->
+                                <select class="active-field-selector" 
+                                        style="width:auto; border:0"
+                                        @change="$parent.setActiveGene($event)"
+                                >
+                                    <template v-for="(value, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
+                                        <option 
+                                            :value="gene" 
+                                            :selected="gene === $parent.activeGene ? 'selected' : false"
+                                        >
+                                        {{ gene }}
+                                        </option>
+                                    </template>
+                                </select>
+                                Expression by Cell Type & Condition
+                            </div>
                             <!-- legends -->
                             <div class="row1 legends">
                                 <div class="col1 legend">
@@ -513,6 +533,7 @@
                                             @mouseout="$parent.tableHoverOutHandler($event)"
                                         >
                                             <div class="no-events">{{ $parent.activeGene }}</div>
+                                            
                                         </th>
                                         <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
                                             <th :data-b-field="value2" 
@@ -797,7 +818,7 @@
                     <!-- DIFFERENTIAL GENE EXPRESSION -->
                     <template v-if="$parent.compareDiffGeneSet && $parent.datasetsObj[$parent.activeDataset]['genes']">
                         <div class="row1 label-wrapper">
-                            <div class="label underline" style="margin-top: 20px;">{{$parent.activeGene}} Differential Expression by Cell Type & Condition</div>
+                            <div class="label underline">{{$parent.activeGene}} Differential Expression by Cell Type & Condition</div>
                             <!-- legends -->
                             <div class="row1 legends">
                                 <div class="col1 legend">
@@ -1109,8 +1130,9 @@ input{
 }
 .label-wrapper {
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     gap: 20px;
+    margin: 20px 0 10px 0;
 }
 .legends {
     gap: 20px;
