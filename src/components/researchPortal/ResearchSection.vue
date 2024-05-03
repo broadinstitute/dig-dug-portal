@@ -896,7 +896,7 @@ export default Vue.component("research-section", {
 				switch (queryType) {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
-						this.queryBioindex(paramsString);
+						this.queryBioindex(paramsString, paramsType, params);
 						break;
 					case "api":
 						this.queryApi(paramsString, paramsType, params);
@@ -970,11 +970,21 @@ export default Vue.component("research-section", {
 				.catch(error => console.error('Error fetching GraphQL:', error));
 		},
 
-		async queryBioindex(QUERY) {
+		async queryBioindex(QUERY, TYPE, PARAMS) {
+
+			console.log(QUERY,TYPE, PARAMS)
 
 			this.searched.push(QUERY);
-			
-			let dataUrl = this.dataPoint.url + "query/" + this.dataPoint.index + "?q=" + QUERY;
+
+			let dataUrl = this.dataPoint.url;
+
+			if(TYPE == "replace") {
+				PARAMS.map((param, pIndex) => {
+					dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+				})
+			} else {
+				
+			}
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -982,7 +992,7 @@ export default Vue.component("research-section", {
 				this.processLoadedBI(contentJson, QUERY);
 			} else {
 				// fetch failed 
-				if(!!this.dataPoint["cumulate data"]) {
+				if (!!this.dataPoint["cumulate data"]) {
 					this.sectionData = this.sectionData
 				} else {
 					this.sectionData = null;
@@ -994,7 +1004,24 @@ export default Vue.component("research-section", {
 
 		async queryBiContinue(TOKEN, QUERY) {
 			
-			let dataUrl = this.dataPoint.url + "cont?token=" + TOKEN;
+			let dataUrl;
+			let PARAMS =  this.dataPoint["parameters"];
+
+			console.log(this.dataPoint["parameters type"])
+
+			if (this.dataPoint["parameters type"] == "replace") {
+				dataUrl = this.dataPoint["continue url"];
+
+				PARAMS.map((param, pIndex) => {
+					dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+
+					console.log(dataUrl)
+				})
+
+				dataUrl += TOKEN;
+			} else {
+				dataUrl = this.dataPoint.url + "cont?token=" + TOKEN;
+			}
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
