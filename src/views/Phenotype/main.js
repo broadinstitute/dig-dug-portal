@@ -211,6 +211,14 @@ new Vue({
 
             return focusedData;
         },
+        c2ctData(){
+            let data = this.$store.state.c2ct.data;
+            data.forEach( d => {
+                // Makes biosamples show up alphabetically in the dropdown menu.
+                d.originalBiosample = d.biosample;
+                d.biosample = Formatters.tissueFormatter(d.biosample); });
+            return data;
+        }
     },
 
     watch: {

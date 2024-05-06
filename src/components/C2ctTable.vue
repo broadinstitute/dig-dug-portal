@@ -76,7 +76,6 @@ export default Vue.component("c2ct-table", {
                 {
                     key: "biosample",
                     label: "Biosample",
-                    formatter: Formatters.tissueFormatter,
                     sortable: true
                 },
                 {

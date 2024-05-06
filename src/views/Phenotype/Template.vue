@@ -251,7 +251,7 @@
                             <filter-enumeration-control
                                 :field="'biosample'"
                                 :options="
-                                    $store.state.c2ct.data.map(
+                                    $parent.c2ctData.map(
                                         (d) => d.biosample
                                     )
                                 "
@@ -260,7 +260,7 @@
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <c2ct-table
-                                    :c2ctData="$store.state.c2ct.data"
+                                    :c2ctData="$parent.c2ctData"
                                     :filter="filter"
                                     :per-page="10"
                                     >
