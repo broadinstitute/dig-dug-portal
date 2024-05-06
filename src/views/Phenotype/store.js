@@ -20,6 +20,7 @@ export default new Vuex.Store({
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
         geneticCorrelation: bioIndex("genetic-correlation"),
         pathwayAssoc: bioIndex("pathway-associations"),
+        c2ct: bioIndex("c2ct"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -107,6 +108,7 @@ export default new Vuex.Store({
             context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
+            context.dispatch("c2ct/query", ancestryOptionalQuery);
             context.state.manhattanPlotAvailable = true;
         },
         phenotypesInSession(context, PHENOTYPES) {
