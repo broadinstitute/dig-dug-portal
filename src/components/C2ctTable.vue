@@ -25,6 +25,11 @@
                         {{ `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}` }}
                     </a>
                 </template>
+                <template #cell(overlapLeadSNP)="r">
+                    <a :href="`/variant.html?variant=${r.item.overlapLeadSNP}`">
+                        {{ r.item.overlapLeadSNP }}
+                    </a>
+                </template>
             </b-table>
             <b-pagination
                 v-model="currentPage"
