@@ -242,11 +242,21 @@
                                 :field="'annotation'"
                                 :options="
                                     $store.state.c2ct.data.map(
-                                        (annotation) => annotation.annotation
+                                        (d) => d.annotation
                                     )
                                 "
                             >
                                 <div class="label">Annotation</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'biosample'"
+                                :options="
+                                    $store.state.c2ct.data.map(
+                                        (d) => d.biosample
+                                    )
+                                "
+                            >
+                                <div class="label">Biosample</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <c2ct-table
