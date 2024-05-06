@@ -166,6 +166,8 @@ export default Vue.component("research-in-section-search", {
 	},
 	created() {
 		this.$root.$refs.inSectionSearch = this;
+
+		
 		
 	},
 	mounted() {
