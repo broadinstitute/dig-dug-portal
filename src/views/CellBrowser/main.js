@@ -13,6 +13,8 @@ import uiUtils from "@/utils/uiUtils";
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"; 
 
 const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
+//const colors = ["#587c76","#f8d9fa","#8b6b8c","#82c2ff","#ffaa92","#00acdd","#ffb8f5","#01d7ee","#bdb0ff","#2b8647","#01d9bd","#bd4b8e","#aff590","#6f7e00","#0195fa","#af4fb1","#d43d4b","#02ffc3","#ae9800","#ff8efd","#ffae3e","#567bff","#ff5544","#e67500","#d71ba0","#9f6cff","#ff00ac","#b652ff","#82e900","#e600e3"];
+//const colors = ["#696969","#8b4513","#228b22","#808000","#483d8b","#008b8b","#9acd32","#00008b","#7f007f","#8fbc8f","#b03060","#ff0000","#ff8c00","#ffff00","#deb887","#7fff00","#8a2be2","#00ff7f","#dc143c","#00ffff","#00bfff","#0000ff","#da70d6","#ff00ff","#1e90ff","#fa8072","#90ee90","#add8e6","#ff1493","#ffb6c1"];
 
 new Vue({
     store,
@@ -24,13 +26,13 @@ new Vue({
     data() {
         return {
             colorScalePlasma: d3.scaleSequential(d3.interpolatePlasma),
-            colorScaleIndex: d3.scaleOrdinal(d3.schemeCategory10),//d3.scaleOrdinal().range(this.generateColors(30)),
+            colorScaleIndex: d3.scaleOrdinal(d3.schemeCategory10),
             colorScaleRed: d3.scaleSequential(d3.interpolateReds),
             colorScaleRedBlue: d3.scaleLinear().domain([-1, 0, 1]).range(['red', 'white', 'blue']),
             colorScalePlasmaColorsArray: null,
 
 
-            cellCountOptions: ["cell abundance (count)", "cell proportion (%)"],
+            cellCountOptions: ["cell count", "cell %"],
             cellCountOption: 0,
 
             datasetsList: null,
@@ -75,13 +77,17 @@ new Vue({
     mounted() {
         //inject pako gzip library
         //this.injectScript('https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.3/pako.min.js');
+        
+        //inject ttest lib
         this.injectScript('https://cdn.jsdelivr.net/gh/stdlib-js/stats-ttest2@umd/browser.js');
+
+        //add scroll listener
         window.addEventListener('scroll', this.handleScroll);
     },
 
     async created() {
-        console.log('color', this.colorScaleRedBlue(-1), this.colorScaleRedBlue(1));
         await this.getDatasets();
+
         //TMP, auto select dataset and field on start
         this.activeDataset = this.datasetsList[0];
         await this.displayDataset();
@@ -101,6 +107,7 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        //(unused)
         generateColors(numColors) {
             const colors = [];
             const goldenAngle = 180 * (3 - Math.sqrt(5))
@@ -115,7 +122,6 @@ new Vue({
             return colors;
         },
         injectScript(scriptPath){
-            // UNUSED
             // Dynamically create a <script> tag to load library from CDN
             const script = document.createElement('script');
             script.src = scriptPath;
@@ -150,7 +156,7 @@ new Vue({
             // using pako library
             if(fetchPath.includes('.gz')){
                 const blob = await response.blob();
-                const decompressedData = await this.decompressGzip(blob);
+                const decompressedData = await this.inflateGzip(blob);
                 const data = await decompressedData.text();
                 if(fetchPath.includes('.tsv')) {
                     return this.tsvToJson(data);
@@ -162,8 +168,8 @@ new Vue({
             }
             */
         },
-        decompressGzip(blob) {
-            //UNUSED
+        //(unused)
+        inflateGzip(blob) {
             console.log('decompressing gzip blob');
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -212,6 +218,7 @@ new Vue({
             console.log('datasets list', this.datasetsList);
             console.log('datasets object', this.datasetsObj);
         },
+
         async getFields(){
             if(this.datasetsObj[this.activeDataset]["cells"] && this.datasetsObj[this.activeDataset]["metadata"]){
                 console.log('already have fields data for: ', this.activeDataset);
@@ -231,6 +238,7 @@ new Vue({
 
             console.log('fields', json);
         },
+
         async getCoordinates(){
             if(this.datasetsObj[this.activeDataset]["coordinates"]){
                 console.log('alreadt have coordinates data for: ', this.activeDataset);
@@ -241,12 +249,13 @@ new Vue({
             const json = await this.doFetch(`/api/raw/file/single_cell/${this.activeDataset}/coordinates.tsv.gz`);
             Vue.set(this.datasetsObj[this.activeDataset], "coordinates", json);
 
-            this.isLoading = false;
-
             this.drawUMAP();
+
+            this.isLoading = false;
 
             console.log('coordinates', json);
         },
+
         async getGeneExpression(gene){
             if(!this.datasetsObj[this.activeDataset]["genes"]) this.datasetsObj[this.activeDataset]["genes"] = {};
             if(!this.datasetsObj[this.activeDataset]["genes"][gene]) this.datasetsObj[this.activeDataset]["genes"][gene] = {
@@ -276,6 +285,7 @@ new Vue({
 
             
         },
+
         selectDataset(e){
             console.log('setting new dataset: ', e.target.value);
 
@@ -302,8 +312,6 @@ new Vue({
 
             this.activeField = val;
 
-            this.createCellCountsTable();
-
             if(this.datasetsObj[this.activeDataset]["genes"]){
                 console.log('genes exist');
                 Object.keys(this.datasetsObj[this.activeDataset]["genes"]).forEach(key => {
@@ -317,6 +325,7 @@ new Vue({
             const activeSelectorEl = document.querySelector('.active-field-selector');
             if(activeSelectorEl) activeSelectorEl.value = "";
         },
+
         selectCompareField(e){
             console.log('setting compare field: ', e.target.value);
 
@@ -333,6 +342,142 @@ new Vue({
             this.compareSet = null;
             const compareSelectorEl = document.querySelector('.comapre-field-selector');
             if(compareSelectorEl) compareSelectorEl.value = "";
+        },
+
+        searchGene(e){
+            console.log('searcing for gene: ', e.target.value);
+            const parts = e.target.value.split(/[,\s]+/);
+            e.target.value = '';
+            //TODO: should be a queue
+            parts.forEach(async (gene) => {
+                await this.getGeneExpression(gene.toUpperCase());
+            })
+            
+        },
+        setActiveGene(e){
+            const gene = e.target.value;
+            console.log('setting active gene', gene);
+            this.activeGene = gene;
+            this.calcCompareGeneExpression(this.activeGene);
+        },
+        removeGene(e){
+            const geneToRemove = e.target.dataset.gene;
+            console.log("removing gene", geneToRemove);
+            if(this.activeGene === geneToRemove){
+                const keys = Object.keys(this.datasetsObj[this.activeDataset]["genes"]);
+                if(keys.length>1){
+                    this.activeGene = keys[0] !== geneToRemove ? keys[0] : keys[1];
+                }else{
+                    //all genes removed
+                    this.activeGene = null;
+                    Vue.delete(this.datasetsObj[this.activeDataset], "genes");
+                    return;
+                }
+            }
+            //delete gene
+            Vue.delete(this.datasetsObj[this.activeDataset]["genes"], geneToRemove);
+            //re-render hack
+            document.querySelector(`[data-a-field]`).dispatchEvent(new Event('mouseover'));
+            document.querySelector(`[data-a-field]`).dispatchEvent(new Event('mouseout'));
+            //const tmpGenes = this.datasetsObj[this.activeDataset]["genes"];
+            //delete tmpGenes[geneToRemove];
+            //Vue.set(this.datasetsObj[this.activeDataset], "genes", tmpGenes);
+            //Vue.set(this.datasetsObj[this.activeDataset], "genes", this.datasetsObj[this.activeDataset]["genes"])
+            //delete this.datasetsObj[this.activeDataset]["genes"][geneToRemove];
+            //this.$forceUpdate();
+            //Vue.set(this.datasetsObj[this.activeDataset], geneToRemove, undefined);
+        },
+
+        drawUMAP(field){
+            const canvasEl = document.querySelector(`canvas.umap`);
+            const canvas = canvasEl;
+            const ctx = canvas.getContext("2d");
+            const canvasWidth = 250;
+
+            canvas.width = canvasWidth*2;
+            canvas.height = canvasWidth*2;
+            canvas.style.width = canvasWidth+'px';
+            canvas.style.height = canvasWidth+'px';
+
+            const pointsField = field || this.activeField;
+            const dataField = pointsField === this.compareField ? 'data-b-field' : 'data-a-field';
+
+            console.log('pointsField', pointsField);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            this.resetPlot(canvas);
+
+            if(!this.pointBoundsCalculated){
+                //get point bounds by storing outermost points in each cardinal direction
+                this.datasetsObj[this.activeDataset]["coordinates"].forEach(coord => {
+                    var px = parseFloat(coord.X);
+                    var py = parseFloat(coord.Y);
+                    if(px>0) this.pointBounds.e = px > this.pointBounds.e ? px : this.pointBounds.e;
+                    if(px<0) this.pointBounds.w = px < this.pointBounds.w ? px : this.pointBounds.w;
+                    if(py>0) this.pointBounds.s = py > this.pointBounds.s ? py : this.pointBounds.s;
+                    if(py<0) this.pointBounds.n = py < this.pointBounds.n ? py : this.pointBounds.n;
+                })
+
+                this.calculateScaleFactor(canvas);
+
+                this.pointBoundsCalculated = true;
+            }
+
+            //draw points
+            this.datasetsObj[this.activeDataset]["coordinates"].forEach((coord, index) => {
+                const fieldIdx = this.datasetsObj[this.activeDataset]["metadata"][pointsField][index];
+                const fieldName = this.labelNameFromIndex(pointsField, fieldIdx);
+
+                if(fieldIdx===undefined) return;
+
+                var px = parseFloat(coord.X);
+                var py = parseFloat(coord.Y);
+
+                var x = this.pointsCenter.x + px * this.zoom;
+                var y = this.pointsCenter.y - py * this.zoom;
+
+                const canvasEl = document.querySelector(`canvas.umap[${dataField}="${fieldName}"]`);
+                const canvas = canvasEl;
+                const ctx = canvas.getContext("2d");
+
+                ctx.beginPath();
+                ctx.arc(x, y, 1, 0, 2 * Math.PI);
+                ctx.fillStyle = this.datasetsObj[this.activeDataset]["metadata_colors"][pointsField][fieldName]["color"];
+                ctx.fill();
+            });
+
+            return;
+            //debug
+            ctx.beginPath();
+            var x = this.center.x;
+            var y = this.center.y;
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = 'black';
+            ctx.fill();
+
+            ctx.beginPath();
+            var x = this.pointsCenter.x;
+            var y = this.pointsCenter.y;
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+
+            
+            const boundsWidth = (Math.abs(this.pointBounds.e)+Math.abs(this.pointBounds.w))*this.zoom;
+            const boundsHeight = (Math.abs(this.pointBounds.s)+Math.abs(this.pointBounds.n))*this.zoom;
+
+            ctx.strokeStyle = "green";
+            ctx.strokeRect(this.center.x - boundsWidth/2, this.center.y - boundsHeight/2, boundsWidth, boundsHeight);
+        },
+
+        resetPlot(canvas){
+            this.center = { x: canvas.width / 2, y: canvas.height / 2 };
+            this.center.x += 0.5;
+            this.center.y += 0.5;
+            this.scaleFactor = this.calculatedScaleFactor ? this.calculatedScaleFactor : 1;
+            this.scale = 1;
+            this.zoom = this.scale * this.scaleFactor;  
         },
 
         calcFieldColors(){
@@ -352,10 +497,6 @@ new Vue({
 
             Vue.set(this.datasetsObj[this.activeDataset], "metadata_colors", fields);
             console.log('colors', fields);
-        },
-
-        labelNameFromIndex(key, idx){
-            return this.datasetsObj[this.activeDataset]["metadata_labels"][key][idx];
         },
 
         calcCellCounts(){
@@ -390,101 +531,7 @@ new Vue({
             Vue.set(this.datasetsObj[this.activeDataset], "metadata_counts", counts);
             console.log('counts', counts);
         },
-        createCellCountsTable(){
-            //return;
-            console.log('!!!!', this.activeField, this.compareField)
-            if(!this.activeField) return;
 
-
-
-            /*
-            const cellCountsTable = {
-                title: 'Cell Counts',
-                data: []
-            };
-            for(const [key, value] in this.datasetsObj[this.activeDataset]['metadata_labels'][this.activeField]){
-                const fieldName = this.labelNameFromIndex(this.activeField, key);
-                const o = {};
-                o[this.activeField] = key;
-
-
-
-                const row = [
-                    {
-                        data: this.datasetsObj[this.activeDataset]['metadata_colors'][this.activeField][fieldName]['color']
-                    },
-                    {
-                        data: fieldName
-                    },
-                    {
-                        data: this.datasetsObj[this.activeDataset]['metadata_counts'][this.activeField][fieldName][ this.cellCountOption===0 ? "count" : "pct"]
-                    }
-                ]
-                if(this.compareSet){
-                    for(const [key2, value2] in this.datasetsObj[this.activeDataset]['metadata_labels'][this.compareField]){
-                        const fieldName2 = this.labelNameFromIndex(this.compareField, key2);
-                        const rowAdd = {
-                            data: this.compareSet[fieldName][fieldName2] ? this.compareSet[fieldName][fieldName2][ this.cellCountOption===0 ? "count" : "pct"] : ''
-                        };
-                        //console.log(row);
-                        row.push(rowAdd);
-                    }
-                }
-                cellCountsTable.body.push(row);
-            }
-            console.log('cellCountsTable', cellCountsTable);
-            */
-            return;
-            /*
-            const cellCountsTable = {
-                head: [],
-                body: []
-            };
-            
-            cellCountsTable.head.push([
-                {   //cell
-                    colspan: 3,
-                    data: this.activeField,
-                }
-            ])
-            if(this.compareField){
-                cellCountsTable.head[0].push(
-                    {
-                        colspan: this.datasetsObj[this.activeDataset]['metadata_labels'][this.compareField].length,
-                        data: this.compareField,
-                    }
-                )
-            }
-            
-            for(const [key, value] in this.datasetsObj[this.activeDataset]['metadata_labels'][this.activeField]){
-                const fieldName = this.labelNameFromIndex(this.activeField, key);
-                const row = [
-                    {
-                        data: this.datasetsObj[this.activeDataset]['metadata_colors'][this.activeField][fieldName]['color']
-                    },
-                    {
-                        data: fieldName
-                    },
-                    {
-                        data: this.datasetsObj[this.activeDataset]['metadata_counts'][this.activeField][fieldName][ this.cellCountOption===0 ? "count" : "pct"]
-                    }
-                ]
-                if(this.compareSet){
-                    for(const [key2, value2] in this.datasetsObj[this.activeDataset]['metadata_labels'][this.compareField]){
-                        const fieldName2 = this.labelNameFromIndex(this.compareField, key2);
-                        const rowAdd = {
-                            data: this.compareSet[fieldName][fieldName2] ? this.compareSet[fieldName][fieldName2][ this.cellCountOption===0 ? "count" : "pct"] : ''
-                        };
-                        //console.log(row);
-                        row.push(rowAdd);
-                    }
-                }
-                cellCountsTable.body.push(row);
-            }
-            console.log('cellCountsTable', cellCountsTable);
-            return;
-            */
-        },
         calcGeneExpression(gene){
             const expression = {};
 
@@ -553,10 +600,9 @@ new Vue({
             this.compareSet = compareSet;
             console.log('compareSet', compareSet);
 
-            this.createCellCountsTable();
-
             if(this.compareGene) this.calcCompareGeneExpression(this.compareGene);
         },
+
         calcCompareGeneExpression(gene){
             const compareSet = {};
             for(var i=0; i<this.datasetsObj[this.activeDataset]["genes"][gene]["raw"].length; i++){
@@ -599,6 +645,7 @@ new Vue({
 
             this.calcDiffGeneExpression(gene);
         },
+
         calcDiffGeneExpression(gene){
             const compareSet = {};
             //collect all unique keys in comparison field
@@ -665,16 +712,16 @@ new Vue({
             // Function to recursively traverse the object
             function traverse(obj, currentDepth) {
                 if (currentDepth === depth) {
-                // If the desired depth is reached, collect keys
-                Object.keys(obj).forEach(key => {
-                    keys.add(key);
-                });
+                    // If the desired depth is reached, collect keys
+                    Object.keys(obj).forEach(key => {
+                        keys.add(key);
+                    });
                 } else if (currentDepth < depth) {
-                // If the desired depth is not reached, continue traversal
-                Object.values(obj).forEach(value => {
-                    if (typeof value === 'object' && value !== null) {
-                    traverse(value, currentDepth + 1);
-                    }
+                    // If the desired depth is not reached, continue traversal
+                    Object.values(obj).forEach(value => {
+                        if (typeof value === 'object' && value !== null) {
+                            traverse(value, currentDepth + 1);
+                        }
                 });
                 }
             }
@@ -696,12 +743,16 @@ new Vue({
             
                 // Loop through the subsequent elements
                 for (let j = i + 1; j < arr.length; j++) {
-                // Add the subsequent element to the array for the current key
-                combinations[arr[i]].push(arr[j]);
+                    // Add the subsequent element to the array for the current key
+                    combinations[arr[i]].push(arr[j]);
                 }
             }
             
             return combinations;
+        },
+
+        labelNameFromIndex(key, idx){
+            return this.datasetsObj[this.activeDataset]["metadata_labels"][key][idx];
         },
 
         formatXstring(string) {
@@ -714,6 +765,7 @@ new Vue({
             return formattedString;
         },
 
+        //(unused)
         scaleElementByPvalue(pValue) {
             // Define the scaling parameters
             const baseScale = 1; // Original scale of the element
@@ -733,6 +785,10 @@ new Vue({
         selectCellCount(e){
             console.log('setting cell count type: ', this.cellCountOptions[e.target.value]);
             this.cellCountOption = parseInt(e.target.value);
+        },
+
+        toggleCellCount(){
+            this.cellCountOption = this.cellCountOption === 0 ? 1 : 0;
         },
 
         tableHoverOverHandler(e){
@@ -885,51 +941,35 @@ new Vue({
             this.highlightClusterInUmap();
         },
 
-        searchGene(e){
-            console.log('searcing for gene: ', e.target.value);
-            const string = 'ADIPOQ, PRLR, IL7R, KLRD1';
-            const parts = e.target.value.split(/[,\s]+/);
-            e.target.value = '';
-            //TODO: should be a queue
-            parts.forEach(async (gene) => {
-                await this.getGeneExpression(gene.toUpperCase());
-            })
-            
-        },
-
-        setActiveGene(e){
-            const gene = e.target.value;
-            console.log('setting active gene', gene);
-            this.activeGene = gene;
-            this.calcCompareGeneExpression(this.activeGene);
-        },
-
-        removeGene(e){
-            const geneToRemove = e.target.dataset.gene;
-            console.log("removing gene", geneToRemove);
-            if(this.activeGene === geneToRemove){
-                const keys = Object.keys(this.datasetsObj[this.activeDataset]["genes"]);
-                if(keys.length>1){
-                    this.activeGene = keys[0] !== geneToRemove ? keys[0] : keys[1];
-                }else{
-                    //all genes removed
-                    this.activeGene = null;
-                    Vue.delete(this.datasetsObj[this.activeDataset], "genes");
-                    return;
-                }
+        highlightClusterInUmap(aField=null, bField=null){
+            //console.log(aField, bField);
+            if(aField && bField){
+                document.querySelector('.umap-wrapper').classList.add('dim');
+                document.querySelectorAll(`.umap-wrapper .umap[data-a-field="${aField}"]`).forEach(el => {
+                    el.classList.add('highlight', 'over')
+                })
+                document.querySelectorAll(`.umap-wrapper .umap[data-b-field="${bField}"]`).forEach(el => {
+                    el.classList.add('highlight')
+                })
             }
-            //delete gene
-            Vue.delete(this.datasetsObj[this.activeDataset]["genes"], geneToRemove);
-            //re-render hack
-            document.querySelector(`[data-a-field]`).dispatchEvent(new Event('mouseover'));
-            document.querySelector(`[data-a-field]`).dispatchEvent(new Event('mouseout'));
-            //const tmpGenes = this.datasetsObj[this.activeDataset]["genes"];
-            //delete tmpGenes[geneToRemove];
-            //Vue.set(this.datasetsObj[this.activeDataset], "genes", tmpGenes);
-            //Vue.set(this.datasetsObj[this.activeDataset], "genes", this.datasetsObj[this.activeDataset]["genes"])
-            //delete this.datasetsObj[this.activeDataset]["genes"][geneToRemove];
-            //this.$forceUpdate();
-            //Vue.set(this.datasetsObj[this.activeDataset], geneToRemove, undefined);
+            if(aField && !bField){
+                document.querySelector('.umap-wrapper').classList.add('dim');
+                document.querySelectorAll(`.umap-wrapper .umap[data-a-field="${aField}"]:not([data-b-field])`).forEach(el => {
+                    el.classList.add('highlight')
+                })
+            }
+            if(!aField && bField){
+                document.querySelector('.umap-wrapper').classList.add('dim');
+                document.querySelectorAll(`.umap-wrapper .umap[data-b-field="${bField}"]:not([data-a-field])`).forEach(el => {
+                    el.classList.add('highlight')
+                })
+            }
+            if(!aField && !bField){
+                document.querySelector('.umap-wrapper').classList.remove('dim');
+                document.querySelectorAll(`.umap-wrapper .umap`).forEach(el => {
+                    el.classList.remove('highlight', 'over')
+                })
+            }
         },
 
         htmlTableToObject(tableSelector) {
@@ -976,6 +1016,7 @@ new Vue({
             this.htmlTableObjectToCSV(tableInfo);
             return tableInfo;
         },
+
         htmlTableObjectToCSV(tableData) {
             let csvContent = '';
 
@@ -1012,98 +1053,6 @@ new Vue({
             return csvContent;
         },
 
-        drawUMAP(field){
-            const canvasEl = document.querySelector(`canvas.umap`);
-            const canvas = canvasEl;
-            const ctx = canvas.getContext("2d");
-            const canvasWidth = 250;
-
-            canvas.width = canvasWidth*2;
-            canvas.height = canvasWidth*2;
-            canvas.style.width = canvasWidth+'px';
-            canvas.style.height = canvasWidth+'px';
-
-            const pointsField = field || this.activeField;
-            const dataField = pointsField === this.compareField ? 'data-b-field' : 'data-a-field';
-
-            console.log('pointsField', pointsField);
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            this.resetPlot(canvas);
-
-            if(!this.pointBoundsCalculated){
-                //get point bounds by storing outermost points in each cardinal direction
-                this.datasetsObj[this.activeDataset]["coordinates"].forEach(coord => {
-                    var px = parseFloat(coord.X);
-                    var py = parseFloat(coord.Y);
-                    if(px>0) this.pointBounds.e = px > this.pointBounds.e ? px : this.pointBounds.e;
-                    if(px<0) this.pointBounds.w = px < this.pointBounds.w ? px : this.pointBounds.w;
-                    if(py>0) this.pointBounds.s = py > this.pointBounds.s ? py : this.pointBounds.s;
-                    if(py<0) this.pointBounds.n = py < this.pointBounds.n ? py : this.pointBounds.n;
-                })
-
-                this.calculateScaleFactor(canvas);
-
-                this.pointBoundsCalculated = true;
-            }
-
-            //draw points
-            this.datasetsObj[this.activeDataset]["coordinates"].forEach((coord, index) => {
-                const fieldIdx = this.datasetsObj[this.activeDataset]["metadata"][pointsField][index];
-                const fieldName = this.labelNameFromIndex(pointsField, fieldIdx);
-
-                if(fieldIdx===undefined) return;
-
-                var px = parseFloat(coord.X);
-                var py = parseFloat(coord.Y);
-
-                var x = this.pointsCenter.x + px * this.zoom;
-                var y = this.pointsCenter.y - py * this.zoom;
-
-                const canvasEl = document.querySelector(`canvas.umap[${dataField}="${fieldName}"]`);
-                const canvas = canvasEl;
-                const ctx = canvas.getContext("2d");
-
-                ctx.beginPath();
-                ctx.arc(x, y, 1, 0, 2 * Math.PI);
-                ctx.fillStyle = this.datasetsObj[this.activeDataset]["metadata_colors"][pointsField][fieldName]["color"];
-                ctx.fill();
-            });
-
-            return;
-            //debug
-            ctx.beginPath();
-            var x = this.center.x;
-            var y = this.center.y;
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fillStyle = 'black';
-            ctx.fill();
-
-            ctx.beginPath();
-            var x = this.pointsCenter.x;
-            var y = this.pointsCenter.y;
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fillStyle = 'red';
-            ctx.fill();
-
-            
-            const boundsWidth = (Math.abs(this.pointBounds.e)+Math.abs(this.pointBounds.w))*this.zoom;
-            const boundsHeight = (Math.abs(this.pointBounds.s)+Math.abs(this.pointBounds.n))*this.zoom;
-
-            ctx.strokeStyle = "green";
-            ctx.strokeRect(this.center.x - boundsWidth/2, this.center.y - boundsHeight/2, boundsWidth, boundsHeight);
-        },
-
-        resetPlot(canvas){
-            this.center = { x: canvas.width / 2, y: canvas.height / 2 };
-            this.center.x += 0.5;
-            this.center.y += 0.5;
-            this.scaleFactor = this.calculatedScaleFactor ? this.calculatedScaleFactor : 1;
-            this.scale = 1;
-            this.zoom = this.scale * this.scaleFactor;  
-        },
-
         calculateScaleFactor(canvas) {
             const paddingPct = 10;
             const pointsWidth = Math.abs(this.pointBounds.w) + Math.abs(this.pointBounds.e);
@@ -1115,37 +1064,6 @@ new Vue({
             this.pointsCenter = {
                 x: this.center.x - scaleDiffWidth,
                 y: this.center.y + scaleDiffHeight
-            }
-        },
-
-        highlightClusterInUmap(aField=null, bField=null){
-            //console.log(aField, bField);
-            if(aField && bField){
-                document.querySelector('.umap-wrapper').classList.add('dim');
-                document.querySelectorAll(`.umap-wrapper .umap[data-a-field="${aField}"]`).forEach(el => {
-                    el.classList.add('highlight', 'over')
-                })
-                document.querySelectorAll(`.umap-wrapper .umap[data-b-field="${bField}"]`).forEach(el => {
-                    el.classList.add('highlight')
-                })
-            }
-            if(aField && !bField){
-                document.querySelector('.umap-wrapper').classList.add('dim');
-                document.querySelectorAll(`.umap-wrapper .umap[data-a-field="${aField}"]:not([data-b-field])`).forEach(el => {
-                    el.classList.add('highlight')
-                })
-            }
-            if(!aField && bField){
-                document.querySelector('.umap-wrapper').classList.add('dim');
-                document.querySelectorAll(`.umap-wrapper .umap[data-b-field="${bField}"]:not([data-a-field])`).forEach(el => {
-                    el.classList.add('highlight')
-                })
-            }
-            if(!aField && !bField){
-                document.querySelector('.umap-wrapper').classList.remove('dim');
-                document.querySelectorAll(`.umap-wrapper .umap`).forEach(el => {
-                    el.classList.remove('highlight', 'over')
-                })
             }
         },
 

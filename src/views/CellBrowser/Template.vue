@@ -105,6 +105,12 @@
 
                     <!--<div @click="$parent.htmlTableToObject('#table1')">download</div>-->
 
+                    <!--
+                    <select @change="$parent.selectCellCount($event)">
+                        <option v-for="(item, index) in $parent.cellCountOptions" :value="index" :selected="$parent.cellCountOption === index ? 'selected' : false">{{ item }}</option>
+                    </select>
+                    -->
+
                     <div class="cell-count-tables-wrapper overflow-h">
                         
                         <table id="table1" class="data-table">
@@ -116,13 +122,7 @@
                                     </template>
                                 </tr>
                                 <tr>
-                                    <th class="border-right" colspan="3">
-                                        
-                                        <select @change="$parent.selectCellCount($event)">
-                                            <option v-for="(item, index) in $parent.cellCountOptions" :value="index" :selected="$parent.cellCountOption === index ? 'selected' : false">{{ item }}</option>
-                                        </select>
-                                        
-                                    </th>
+                                    <th class="border-right" colspan="3"></th>
                                     <template v-if="$parent.compareSet">
                                         <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
                                             <th :data-b-field="value2" 
@@ -146,14 +146,55 @@
                                         </div>
                                     </th>
                                     <template v-if="$parent.compareSet">
-                                        <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_colors'][$parent.compareField]">
-                                            <th :data-b-field="key2"
-                                                @mouseover="$parent.tableHoverOverHandler($event)"
-                                                @mouseout="$parent.tableHoverOutHandler($event)"
-                                            ><div class="field-cluster-swatch" :style="`background:${value2['color']}`"></div></th>
+                                        <template v-if="$parent.cellCountOption === 0">
+                                            <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_colors'][$parent.compareField]">
+                                                <th :data-b-field="key2"
+                                                    @mouseover="$parent.tableHoverOverHandler($event)"
+                                                    @mouseout="$parent.tableHoverOutHandler($event)"
+                                                ><div class="field-cluster-swatch" :style="`background:${value2['color']}`"></div></th>
+                                            </template>
+                                        </template>
+                                        <template v-else>
+                                            <th class="field-cluster-pct-cell" :colspan="Object.keys($parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]).length">
+                                                <div class="field-cluster-pct" :style="`width:100%; height:10px`">
+                                                    <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
+                                                        <div 
+                                                            :data-b-field="value2" 
+                                                            @mouseover="$parent.tableHoverOverHandler($event)"
+                                                            @mouseout="$parent.tableHoverOutHandler($event)"
+                                                            :style="`background:${$parent.datasetsObj[$parent.activeDataset]['metadata_colors'][$parent.compareField][value2]['color']}; width:${$parent.datasetsObj[$parent.activeDataset]['metadata_counts'][$parent.compareField][value2]['pct']}%`"
+                                                        >
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </th>
                                         </template>
                                     </template>
                                 </tr>
+                                
+                                    <tr>
+                                        <th colspan="2"></th>
+                                        <th class="border-right">
+                                            <button style="white-space: nowrap;"
+                                                @click="$parent.toggleCellCount()"
+                                            >
+                                            {{ $parent.cellCountOptions[$parent.cellCountOption] }}
+                                            </button>
+                                        </th>
+                                        <template v-if="$parent.compareSet">
+                                            <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
+                                                    <th class="field-cluster-count"
+                                                        :data-b-field="value2" 
+                                                        @mouseover="$parent.tableHoverOverHandler($event)"
+                                                        @mouseout="$parent.tableHoverOutHandler($event)"
+                                                    >
+                                                        {{$parent.datasetsObj[$parent.activeDataset]['metadata_counts'][$parent.compareField][value2][ $parent.cellCountOption===0 ? 'count' : 'pct'].toLocaleString()}}
+                                                    </th>
+                                            </template>
+                                            <th></th>
+                                        </template>
+                                    </tr>
+                                
                             
                             </thead>
                             <tbody>
@@ -179,7 +220,7 @@
                                             @mouseover="$parent.tableHoverOverHandler($event)"
                                             @mouseout="$parent.tableHoverOutHandler($event)"
                                         >
-                                            {{ $parent.datasetsObj[$parent.activeDataset]['metadata_counts'][$parent.activeField][value][ $parent.cellCountOption===0 ? "count" : "pct"] }}
+                                            {{ $parent.datasetsObj[$parent.activeDataset]['metadata_counts'][$parent.activeField][value][ $parent.cellCountOption===0 ? "count" : "pct"].toLocaleString() }}
                                         </td>
                                         <template v-if="$parent.compareSet">
                                             <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
@@ -188,7 +229,7 @@
                                                     @mouseover="$parent.tableHoverOverHandler($event)"
                                                     @mouseout="$parent.tableHoverOutHandler($event)"
                                                 >
-                                                    {{ $parent.compareSet[value][value2] ? $parent.compareSet[value][value2][ $parent.cellCountOption===0 ? "count" : "pct"] : ''}}
+                                                    {{ $parent.compareSet[value][value2] ? $parent.compareSet[value][value2][ $parent.cellCountOption===0 ? "count" : "pct"].toLocaleString() : ''}}
                                                     <div class="field-cluster-bg" :style="`background:${$parent.datasetsObj[$parent.activeDataset]['metadata_colors'][$parent.compareField][value2]['color']};
                                                                                         opacity:${$parent.compareSet[value][value2] ? $parent.compareSet[value][value2]['pct']/100 : '0'};
                                                                                         width:${$parent.cellCountOption===1 ? $parent.compareSet[value][value2] ? $parent.compareSet[value][value2]['pct'] : '0' : '100' }%;`"></div>
@@ -953,7 +994,7 @@
                         <div :class="`col1 sidebar ${$parent.fixedSidebar ? 'fixed-sidebar' : ''}`">
                             <div class="label" style="position:relative">
                                 Dataset Info 
-                                <div :class="`loader ${!$parent.isLoading ? 'hidden' : ''}`">loading...</div>
+                                <div :class="`loader ${!$parent.isLoading && !$parent.isCalculating ? 'hidden' : ''}`">loading...</div>
                             </div>
                             <template v-if="$parent.activeField">
                                 <div class="col1 info-block">
@@ -1105,6 +1146,13 @@ input{
     bottom:0px;
     right:0px;
     font-size: 14px;
+    animation: blink 0.5s infinite;
+    color:red;
+}
+@keyframes blink {
+    0% { opacity: 0 }
+    50% { opacity: 1 }
+    100% { opacity: 0 }
 }
 .hidden{
     display:none
@@ -1307,6 +1355,8 @@ input{
     font-family: monospace;
     text-align: right;
     font-size: 13px;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
 }
 table{
     border-collapse: collapse;
@@ -1326,8 +1376,11 @@ th:not(:first-child),
 td:not(:first-child) {
     padding: 0 20px;
 }
-th:has(.field-cluster-swatch) {
+th:has(.field-cluster-swatch), 
+th:has(.field-cluster-pct) {
     height: 10px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 .field-labels th:after {
     content: '';
