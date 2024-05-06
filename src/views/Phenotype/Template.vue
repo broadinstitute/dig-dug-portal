@@ -223,7 +223,42 @@
                         </criterion-function-group>
                     </div>
                 </div>
-
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            C2CT results for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                        </h4>
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'annotation'"
+                                :options="
+                                    $store.state.c2ct.data.map(
+                                        (annotation) => annotation.annotation
+                                    )
+                                "
+                            >
+                                <div class="label">Annotation</div>
+                            </filter-enumeration-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <c2ct-table
+                                    :c2ctData="$store.state.c2ct.data"
+                                    :filter="filter"
+                                    :per-page="10"
+                                    >
+                                </c2ct-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
