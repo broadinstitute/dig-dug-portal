@@ -2193,6 +2193,11 @@ span.volcano-score-2 {
     height: 25px;
 }
 
+.hidden-svg .plot-tab-content-wrapper {
+    visibility: hidden;
+    height: 1;
+}
+
 .kp-tabs-wrapper {
     margin-bottom: -1px;
     padding-left: 20px;
