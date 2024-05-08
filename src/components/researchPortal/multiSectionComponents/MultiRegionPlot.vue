@@ -662,6 +662,8 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		resetLdReference(GROUP, VARIANT) {
+
+			console.log(GROUP, VARIANT);
 			this.showHidePanel("#fixedInfoBox");
 			if (GROUP != "All") {
 				this.ldData[GROUP].refVariant = VARIANT;
@@ -907,6 +909,8 @@ export default Vue.component("multi-region-plot", {
 						this.searchingRegion.end +
 						"&limit=100000";
 				}
+
+				console.log("ldURL", ldURL);
 
 				let ldJson = await fetch(ldURL).then((resp) => resp.json());
 

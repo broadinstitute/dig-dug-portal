@@ -71,7 +71,6 @@ export default Vue.component("research-front-page", {
             let replaceItems = this.sectionConfigs['content']["replace links"];
 
             if (!!replaceItems) {
-
                 replaceItems.map(r => {
                     updatedLink = updatedLink.replace("$" + r, this.utilsBox.keyParams[r]);
                 })

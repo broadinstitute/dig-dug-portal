@@ -8,7 +8,7 @@
 		></div>
 		<div
 			class="rp-header-logo"
-			v-if="!!sectionConfig['header logo']"
+			v-if="!!sectionConfig && !!sectionConfig['header logo']"
 		>
 			<p class="kp-logo-wrapper">
 				<img class="kp-logo" :src="getLogo(sectionConfig['header logo'])">
