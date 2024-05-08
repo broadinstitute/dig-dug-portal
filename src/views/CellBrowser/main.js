@@ -7,6 +7,7 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import * as d3 from "d3";
+import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 //import formatters from "@/utils/formatters";
 
@@ -50,6 +51,7 @@ new Vue({
 
             dimmedElements: null,
             hoverInfo: null,
+            lockedHover: false,
 
             //umap canvas
             center: null,
@@ -107,6 +109,7 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        pValueFormatter: Formatters.pValueFormatter,
         //(unused)
         generateColors(numColors) {
             const colors = [];
@@ -791,7 +794,20 @@ new Vue({
             this.cellCountOption = this.cellCountOption === 0 ? 1 : 0;
         },
 
+        tableClickHandler(e){
+            this.lockedHover = true;
+        },
+        unlockHover(e){
+            this.lockedHover = false;
+            document.querySelector(`[data-a-field]`).dispatchEvent(new Event('mouseout'));
+        },
+
         tableHoverOverHandler(e){
+            if(this.lockedHover) {
+                document.querySelector('.select-lock path').style.fill = 'red';
+                return;
+            }
+
             const aField = e.target.dataset.aField;
             const bField = e.target.dataset.bField;
             const bGene = e.target.dataset.bGene;
@@ -876,7 +892,7 @@ new Vue({
                                 cellCount: this.compareSet[aField][bField]["count"],
                                 cellPct: this.compareSet[aField][bField]["pct"],
                                 color: this.datasetsObj[this.activeDataset]["metadata_colors"][this.compareField][bField]["color"],
-                                text: `The <span class="num bold">${aField}</span> cluster contains <span class="num bold">${this.compareSet[aField][bField]["count"].toLocaleString()}</span> cells with the <span class="num bold">${bField}</span> condition. Representing <span class="num bold">${this.compareSet[aField][bField]["pct"]}%</span> of cells in this cluster.`
+                                text: `The <span class="num bold">${aField}</span> cluster contains <span class="num bold">${this.compareSet[aField][bField]["count"].toLocaleString()}</span> cells with the <span class="num bold">${bField}</span> <span class="num bold">${this.labelFromAnnotation(this.compareField)}</span> condition. Representing <span class="num bold">${this.compareSet[aField][bField]["pct"]}%</span> of cells in this cluster.`
                             }
                             //
                             this.highlightClusterInUmap(aField, bField);
@@ -918,7 +934,7 @@ new Vue({
                                 cellCount: cellCount,
                                 cellPct: cellPct,
                                 color: this.datasetsObj[this.activeDataset]["metadata_colors"][this.compareField][bField]["color"],
-                                text: `This cluster consists of <span class="num bold">${cellCount.toLocaleString()}</span> cells with the <span class="num bold">${bField}</span> condition. Representing <span class="num bold">${cellPct}%</span> of all cells in this dataset.`
+                                text: `This cluster consists of <span class="num bold">${cellCount.toLocaleString()}</span> cells with the <span class="num bold">${bField}</span> <span class="num bold">${this.labelFromAnnotation(this.compareField)}</span> condition. Representing <span class="num bold">${cellPct}%</span> of all cells in this dataset.`
                             }
                             this.highlightClusterInUmap(null, bField);
                         }
@@ -929,6 +945,11 @@ new Vue({
             }
         },
         tableHoverOutHandler(e){
+            if(this.lockedHover) {
+                document.querySelector('.select-lock path').style.fill = 'black';
+                return;
+            }
+
             if(this.dimmedElements){
                 this.dimmedElements.forEach(el => {
                     el.classList.remove('dim-table-item');
@@ -939,6 +960,11 @@ new Vue({
             });
             this.hoverInfo = null;
             this.highlightClusterInUmap();
+        },
+
+        labelFromAnnotation(annotation){
+            let clipDoubleUnderscore = annotation.replace(/__.*$/, ''); //clip after, including double underscore
+            return clipDoubleUnderscore.replace('_', ' '); //underscores to spaces
         },
 
         highlightClusterInUmap(aField=null, bField=null){
@@ -1069,7 +1095,7 @@ new Vue({
 
         handleScroll(){
             this.fixedSidebar = window.scrollY>this.scrollThreshhold;
-        }
+        },
         
     },
 }).$mount("#app");
