@@ -55,23 +55,6 @@ export default new Vuex.Store({
             }
             return null;
         },
-
-        geneSymbol(state) {
-            let data = state.genes.data;
-            let geneData = state.gene.data;
-
-            for (let i in data) {
-                if (
-                    data[i].chromosome == geneData[0].chromosome &&
-                    data[i].start == geneData[0].start &&
-                    data[i].end == geneData[0].end
-                ) {
-                    if (data[i].source === "symbol") {
-                        return data[i].name;
-                    }
-                }
-            }
-        },
     },
 
     actions: {

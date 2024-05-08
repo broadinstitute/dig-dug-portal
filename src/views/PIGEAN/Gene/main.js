@@ -43,6 +43,12 @@ new Vue({
             }
             return contents[0];
         },
+        region() {
+            return this.$store.getters.region;
+        },
+        symbolName() {
+            return this.$store.getters.canonicalSymbol;
+        },
     },
     watch: {
         diseaseGroup(group) {
@@ -58,8 +64,17 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
+    methods: {
+        // go to region page
+        exploreRegion(expanded = 0) {
+            let r = this.region;
 
-    methods: {},
+            if (r) {
+                window.location.href = `../region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
+            }
+        },
+    },
 
     render(createElement, context) {
         return createElement(Template);
