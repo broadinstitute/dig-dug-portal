@@ -25,6 +25,7 @@ export default new Vuex.Store({
         hugeScores: bioIndex("huge"),
         geneExpression: bioIndex("gene-expression"),
         uniprot,
+        pigeanGene: bioIndex("pigean-gene"),
     },
     state: {
         geneName: keyParams.gene,
@@ -135,6 +136,7 @@ export default new Vuex.Store({
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
                 context.dispatch("geneToTranscript/query", { q: name });
+                context.dispatch("pigeanGene/query", { q: name });
             }
         },
         ///
