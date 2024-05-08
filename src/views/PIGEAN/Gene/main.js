@@ -30,6 +30,23 @@ new Vue({
     data() {
         return {};
     },
+    computed: {
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+    },
+    watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+    },
 
     created() {
         if (keyParams.gene) {
@@ -37,6 +54,7 @@ new Vue({
         }
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
     methods: {},
