@@ -223,7 +223,52 @@
                         </criterion-function-group>
                     </div>
                 </div>
-
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            C2CT results for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                        </h4>
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'annotation'"
+                                :options="
+                                    $store.state.c2ct.data.map(
+                                        (d) => d.annotation
+                                    )
+                                "
+                            >
+                                <div class="label">Annotation</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'biosample'"
+                                :options="
+                                    $parent.c2ctData.map(
+                                        (d) => d.biosample
+                                    )
+                                "
+                            >
+                                <div class="label">Biosample</div>
+                            </filter-enumeration-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <c2ct-table
+                                    :c2ctData="$parent.c2ctData"
+                                    :filter="filter"
+                                    :per-page="10"
+                                    >
+                                </c2ct-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
