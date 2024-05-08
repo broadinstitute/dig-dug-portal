@@ -33,12 +33,9 @@
                 </b-button>
             </template>
             <template #row-details="row">
-              <b-table
-                hover
-                small
-                responsive="sm"
-                :items="joinedGenes[`${row.item.phenotype},${row.item.gene}`]">
-              </b-table>
+              <pigean-gene-subtable
+                :joined="joinedGenes[`${row.item.phenotype},${row.item.gene}`]">
+              </pigean-gene-subtable>
             </template>
           </b-table>
           <b-pagination
@@ -61,9 +58,11 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
+import PigeanGeneSubtable from "./PigeanGeneSubtable.vue";
 export default Vue.component("pigean-gene-table", {
   components: {
       DataDownload,
+      PigeanGeneSubtable
   },
   props: ["pigeanGeneData", "phenotypeMap"],
   data() {
