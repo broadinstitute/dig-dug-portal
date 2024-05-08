@@ -46,12 +46,8 @@ export default Vue.component("pigean-gene-subtable", {
           perPage: 10,
           currentPage: 1,
           fields: [
-            "beta",
-            "combined",
-            "gene_set",
-            "log_bf",
-            "prior",
-            "sigma"
+            { key: "gene_set", sortable: true },
+            { key: "beta", sortable: true },
           ],
       };
   },

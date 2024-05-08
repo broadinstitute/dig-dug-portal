@@ -90,7 +90,6 @@
                         :pigeanGeneData="$store.state.pigeanGene.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap">
                     </pigean-gene-table>
-                    subtable:
                 </div>
             </div>
         </div>

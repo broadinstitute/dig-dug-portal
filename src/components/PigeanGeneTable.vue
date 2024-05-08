@@ -70,17 +70,11 @@ export default Vue.component("pigean-gene-table", {
           perPage: 10,
           currentPage: 1,
           fields: [
-            "phenotype",
-            "sigma",
-            "combined",
-            "huge_score",
-            "log_bf",
-            "n",
-            "prior",
-            "max_trait_prior",
-            "max_trait_combined",
-            "max_trait_log_bf",
-            "genesets"
+            { key: "phenotype", sortable: true },
+            { key: "combined", sortable: true },
+            { key: "log_bf", sortable: true },
+            { key: "prior", sortable: true },
+            { key: "genesets" } 
           ],
           joinedGenes: {}
       };
