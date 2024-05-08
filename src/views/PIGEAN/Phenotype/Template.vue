@@ -104,7 +104,12 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body">phenotypes table</div>
+                <div class="card-body">
+                    [scatter plot]<br />
+                    [table]:
+                    https://bioindex-dev.hugeamp.org/api/bio/query/pigean-gene-phenotype?q=T2D<br />
+                    [subtable]:
+                </div>
             </div>
         </div>
 

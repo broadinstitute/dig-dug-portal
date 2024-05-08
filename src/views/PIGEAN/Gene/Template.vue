@@ -85,7 +85,10 @@
                         Gene
                         {{ $store.state.geneName }}
                     </h4>
-                    Table for genes
+                    [scatter plot]<br />
+                    [Table for gene]
+                    https://bioindex-dev.hugeamp.org/api/bio/query/pigean-gene?q=PLAU<br />
+                    subtable:
                 </div>
             </div>
         </div>
