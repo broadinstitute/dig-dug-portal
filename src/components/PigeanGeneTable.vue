@@ -1,9 +1,9 @@
 <template>
-  <div id="c2ct">
+  <div id="pigean-gene">
       <div v-if="rows > 0">
           <div class="text-right mb-2">
               <data-download
-                  :data="c2ctData"
+                  :data="pigeanGeneData"
                   filename="pigean_gene"
               ></data-download>
           </div>
@@ -12,10 +12,14 @@
               small
               responsive="sm"
               :items="pigeanGeneData"
-              :fields="fields"
               :per-page="perPage"
               :current-page="currentPage"
           >
+            <template #cell(phenotype)="r">
+              <a :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}`">
+                {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+              </a>
+            </template>
           </b-table>
           <b-pagination
               v-model="currentPage"
@@ -40,7 +44,7 @@ export default Vue.component("pigean-gene-table", {
   components: {
       DataDownload,
   },
-  props: ["pigeanGeneData"],
+  props: ["pigeanGeneData", "phenotypeMap"],
   data() {
       return {
           perPage: 10,
@@ -53,6 +57,7 @@ export default Vue.component("pigean-gene-table", {
       },
   },
   methods: {
+      phenotypeFormatter: Formatters.phenotypeFormatter,
       pValueFormatter: Formatters.pValueFormatter,
       effectFormatter: Formatters.effectFormatter,
       intFormatter: Formatters.intFormatter,
