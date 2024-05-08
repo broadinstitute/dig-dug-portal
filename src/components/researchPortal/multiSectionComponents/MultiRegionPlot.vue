@@ -19,8 +19,8 @@
 					</span>
 				</template>
 			</div>
-			<div id="fixedInfoBox" class="fixed-info-box hidden">
-				<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox')">
+			<div :id="'fixedInfoBox'+sectionId" class="fixed-info-box hidden">
+				<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox' + sectionId)">
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
 				<div class="fixed-info-box-content">
@@ -661,10 +661,14 @@ export default Vue.component("multi-region-plot", {
 				});
 			}
 		},
-		resetLdReference(GROUP, VARIANT) {
+		resetLdReference(GROUP, ITEM) {
 
-			console.log(GROUP, VARIANT);
-			this.showHidePanel("#fixedInfoBox");
+			console.log(GROUP, VARIANT, this.renderConfig, this.assoData);
+			let variantField = this.renderConfig['ld server']['ref variant field'];
+
+			let VARIANT = this.assoData[GROUP].data[ITEM][variantField];
+
+			this.showHidePanel("#fixedInfoBox" + this.sectionId);
 			if (GROUP != "All") {
 				this.ldData[GROUP].refVariant = VARIANT;
 				this.fixedRefVariants[GROUP] = VARIANT;
@@ -723,6 +727,12 @@ export default Vue.component("multi-region-plot", {
 			return dotsList;
 		},
 		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
+
+			if(EVENT_TYPE == 'click') {
+				console.log(event, GROUP, TYPE, EVENT_TYPE);
+			}
+			
+
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
 			let x = Math.floor(e.clientX - rect.left);
@@ -812,7 +822,7 @@ export default Vue.component("multi-region-plot", {
 
 				} else if (EVENT_TYPE == "click") {
 					this.dotsClicked = dotsOnPosition;
-					this.showHidePanel("#fixedInfoBox");
+					this.showHidePanel("#fixedInfoBox"+this.sectionId);
 				}
 			} else {
 				wrapper.classList.add("hidden");
