@@ -12,13 +12,33 @@
               small
               responsive="sm"
               :items="pigeanGeneData"
+              :fields="fields"
               :per-page="perPage"
               :current-page="currentPage"
           >
             <template #cell(phenotype)="r">
-              <a :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}`">
+              <a v-if="!!phenotypeMap[r.item.phenotype]"
+                :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}`">
                 {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
               </a>
+              <span v-else>{{ r.item.phenotype }}</span>
+            </template>
+            <template #cell(genesets)="row">
+                <b-button
+                    variant="outline-primary"
+                    size="sm"
+                    @click="getJoinedGenes(row)"
+                >
+                    {{ row.detailsShowing ? "Hide" : "Show" }} Genesets
+                </b-button>
+            </template>
+            <template #row-details="row">
+              <b-table
+                hover
+                small
+                responsive="sm"
+                :items="joinedGenes[`${row.item.phenotype},${row.item.gene}`]">
+              </b-table>
             </template>
           </b-table>
           <b-pagination
@@ -38,6 +58,7 @@
 </template>
 <script>
 import Vue from "vue";
+import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 export default Vue.component("pigean-gene-table", {
@@ -49,6 +70,20 @@ export default Vue.component("pigean-gene-table", {
       return {
           perPage: 10,
           currentPage: 1,
+          fields: [
+            "phenotype",
+            "sigma",
+            "combined",
+            "huge_score",
+            "log_bf",
+            "n",
+            "prior",
+            "max_trait_prior",
+            "max_trait_combined",
+            "max_trait_log_bf",
+            "genesets"
+          ],
+          joinedGenes: {}
       };
   },
   computed: {
@@ -63,7 +98,16 @@ export default Vue.component("pigean-gene-table", {
       intFormatter: Formatters.intFormatter,
       annotationFormatter: Formatters.annotationFormatter,
       tissueFormatter: Formatters.tissueFormatter,
-      tpmFormatter: Formatters.tpmFormatter
+      tpmFormatter: Formatters.tpmFormatter,
+      async getJoinedGenes(row) {
+        let queryKey = `${row.item.phenotype},${row.item.gene}`;
+        if (!this.joinedGenes[queryKey]) {
+          console.log("we don't have this");
+          let data = await query("pigean-joined-gene", queryKey);
+          Vue.set(this.joinedGenes, queryKey, data);
+        }
+        row.toggleDetails();
+      },
   },
 });
 </script>

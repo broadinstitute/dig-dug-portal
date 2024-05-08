@@ -86,8 +86,6 @@
                         {{ $store.state.geneName }}
                     </h4>
                     [scatter plot]<br />
-                    [Table for gene]
-                    https://bioindex-dev.hugeamp.org/api/bio/query/pigean-gene?q=PLAU<br />
                     <pigean-gene-table
                         :pigeanGeneData="$store.state.pigeanGene.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap">
