@@ -110,15 +110,16 @@
                         <option v-for="(item, index) in $parent.cellCountOptions" :value="index" :selected="$parent.cellCountOption === index ? 'selected' : false">{{ item }}</option>
                     </select>
                     -->
+                    <div class="label underline">Cell Abundance & Distribution of Cell Types {{ !$parent.compareField ? '' : 'x '+$parent.labelFromAnnotation($parent.compareField)+' Condition'  }}</div>
 
                     <div class="cell-count-tables-wrapper overflow-h">
                         
                         <table id="table1" class="data-table">
                             <thead>
                                 <tr class="field_labels">
-                                    <th class="border-right" colspan="3">{{ $parent.activeField }}</th>
+                                    <th class="border-right" colspan="3">{{ $parent.labelFromAnnotation($parent.activeField) }}</th>
                                     <template v-if="$parent.compareSet">
-                                        <th class="" :colspan="$parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField].length">{{ $parent.compareField }}</th>
+                                        <th class="" :colspan="$parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField].length">{{ $parent.labelFromAnnotation($parent.compareField) }}</th>
                                     </template>
                                 </tr>
                                 <tr>
@@ -269,10 +270,10 @@
                         </table>
 
                         <template v-if="$parent.activeField && !$parent.compareField">  
-                            <div class="col1" style="gap: 30px;align-self:flex-start;margin-top:22px;">
+                            <div class="col1" style="gap: 30px;align-self:center;">
                                 <div class="hidden">x</div>
                                 <div class="col1 grow">
-                                    <div class="label">Select Condition</div>
+                                    <div class="label" style="font-weight: bold;">Select Condition</div>
                                     <select class="comapre-field-selector" @change="$parent.selectCompareField($event)">
                                         <option value="" selected disabled hidden>None</option>
                                         <option 
@@ -285,9 +286,10 @@
                                         </option>
                                     </select>
                                     <div class="note">
-                                        Compare cell types by condition, including: cell abundance and proportion, gene exprssion, and differential gene expression.
+                                        Select a condition to see its cell abundance and distribution compared by cell type.
                                     </div>
                                 </div>
+                                <!--
                                 <template v-if="!$parent.datasetsObj[$parent.activeDataset]['genes']">
                                     <div class="col1 grow">
                                         <div class="label">Search Gene</div>
@@ -299,11 +301,12 @@
                                         </div>
                                     </div>
                                 </template>
+                                -->
                             </div>
                         </template>
                     </div>
 
-                    <template v-if="$parent.activeField && ($parent.compareField || $parent.datasetsObj[$parent.activeDataset]['genes'])">
+                    <template v-if="$parent.activeField">
                         <div class="col1 grow" style="margin:20px 0 0;">
                             <div class="label" style="font-weight: bold;">Search Gene</div>
                             <input class="gene-search-input" type="text" placeholder="Gene Name"
@@ -361,7 +364,7 @@
                                         <th :colspan="Object.keys($parent.datasetsObj[$parent.activeDataset]['genes']).length" class="border-bottom">mean expression</th>
                                     </tr>
                                     <tr class="field_labels">
-                                        <th colspan="2">{{ $parent.activeField }}</th>
+                                        <th colspan="2">{{ $parent.labelFromAnnotation($parent.activeField) }}</th>
                                         <th><div class="gene-label no-events">Cell Count</div></th>
                                         <!-- dot plot labels -->
                                         <template v-for="(value2, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
@@ -470,7 +473,7 @@
                                         </option>
                                     </template>
                                 </select>
-                                Expression by Cell Type & Condition
+                                Expression by Cell Type & {{$parent.labelFromAnnotation($parent.compareField)}} Condition
                             </div>
                             <!-- legends -->
                             <div class="row1 legends">
@@ -509,12 +512,12 @@
                                             <th class="border-bottom" 
                                                 :colspan="Object.keys($parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]).length"
                                             >
-                                                {{$parent.compareField}}
+                                                {{$parent.labelFromAnnotation($parent.compareField)}}
                                             </th>
                                         </tr>
                                     </template>
                                     <tr class="field_labels">
-                                        <th colspan="2">{{ $parent.activeField }}</th>
+                                        <th colspan="2">{{ $parent.labelFromAnnotation($parent.activeField) }}</th>
                                         <th :data-b-field="$parent.activeGene" :data-b-gene="$parent.activeGene"
                                             @mouseover="$parent.tableHoverOverHandler($event)"
                                             @mouseout="$parent.tableHoverOutHandler($event)"
@@ -656,7 +659,7 @@
                     <!-- DIFFERENTIAL GENE EXPRESSION -->
                     <template v-if="$parent.compareDiffGeneSet && $parent.datasetsObj[$parent.activeDataset]['genes']">
                         <div class="row1 label-wrapper">
-                            <div class="label underline">{{$parent.activeGene}} Differential Expression by Cell Type & Condition</div>
+                            <div class="label underline">{{$parent.activeGene}} Differential Expression by Cell Type & {{$parent.labelFromAnnotation($parent.compareField)}} Condition</div>
                             <!-- legends -->
                             <div class="row1 legends">
                                 <div class="col1 legend">
@@ -695,12 +698,12 @@
                                                 <th class="border-bottom" 
                                                     :colspan="$parent.getUniqueKeysAtDepth($parent.compareDiffGeneSet, 2).length"
                                                 >
-                                                    {{ $parent.compareField }}
+                                                    {{ $parent.labelFromAnnotation($parent.compareField) }}
                                                 </th>
                                             </tr>
                                         </template>
                                         <tr class="field_labels">
-                                            <th colspan="3">{{ $parent.activeField }}</th>
+                                            <th colspan="3">{{ $parent.labelFromAnnotation($parent.activeField) }}</th>
                                             <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
 
                                                 <template v-for="key2 in $parent.getUniqueKeysAtDepth($parent.compareDiffGeneSet, 2)">
@@ -1109,8 +1112,8 @@ input{
     display: flex;
     align-items: center;
     gap: 20px;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
+    flex-direction: row;
+    justify-content: flex-start;
 }
 .expression-tables-wrapper{
     display:flex;

@@ -795,7 +795,12 @@ new Vue({
         },
 
         tableClickHandler(e){
-            this.lockedHover = true;
+            if(!this.lockedHover){
+                this.lockedHover = true;
+            }else{
+                this.unlockHover(e);
+                e.target.dispatchEvent(new Event('mouseover'));
+            }
         },
         unlockHover(e){
             this.lockedHover = false;
