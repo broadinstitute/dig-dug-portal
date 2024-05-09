@@ -17,10 +17,6 @@
                     style="vertical-align: -8px !important"
                 >
                     <div class="label">Phenotype</div>
-                    <!--<phenotype-selectpicker
-						v-if="$store.state.phenotype"
-						:phenotypes="$parent.phenotypesInSession"
-					></phenotype-selectpicker>-->
                     <div class="form-control new-phenotype-search-key">
                         {{
                             !$parent.newPhenotypeSearchKey
@@ -38,16 +34,6 @@
                         v-if="!!$parent.phenotypeSearchKey"
                         class="page-phenotypes-list"
                     >
-                        <!--<li
-							v-for="item in $parent.phenotypesInSession"
-							v-if="
-								!!item.description
-									.toLowerCase()
-									.includes(
-										$parent.phenotypeSearchKey.toLowerCase()
-									)
-							"
-						>-->
                         <template v-for="item in $parent.phenotypesInSession">
                             <li
                                 v-if="
@@ -65,16 +51,6 @@
                             </li>
                         </template>
                     </ul>
-                </div>
-                <div class="col filter-col-md hidden">
-                    <div class="label">Ancestry</div>
-                    <ancestry-selectpicker
-                        :ancestries="
-                            $store.state.bioPortal.datasets.map(
-                                (dataset) => dataset.ancestry
-                            )
-                        "
-                    ></ancestry-selectpicker>
                 </div>
                 <div class="region-search col filter-col-md hidden">
                     <div class="label">Search</div>
