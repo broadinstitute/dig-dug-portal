@@ -5,8 +5,6 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
-import uniprot from "@/modules/uniprot";
-import regionUtils from "@/utils/regionUtils";
 
 Vue.use(Vuex);
 
@@ -15,7 +13,6 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         pigeanGeneSet: bioIndex("pigean-gene-set"),
-        uniprot,
     },
     state: {
         geneSet: keyParams.geneset,
@@ -36,7 +33,7 @@ export default new Vuex.Store({
     actions: {
         async queryGeneSet(context, symbol) {
             let name = context.state.geneSetToQuery || context.state.geneSet;
-            context.commit("setGenSet", name);
+            context.commit("setGeneSet", name);
 
             if (!!name) {
                 context.dispatch("pigeanGeneSet/query", { q: name });

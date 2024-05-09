@@ -12,13 +12,9 @@
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
-                <span class="gene-search-tip">
-                    <sup>*</sup>
-                    Alias names are converted to gene symbols
-                </span>
                 <div class="col filter-col-md">
-                    <div class="label">Gene</div>
-                    <gene-selectpicker></gene-selectpicker>
+                    <div class="label">Gene set</div>
+                    Gene set search coming soon
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Search</div>
@@ -26,7 +22,7 @@
                         id="regionSearchGo"
                         class="btn btn-light btn-sm go"
                         type="button"
-                        @click="$store.dispatch('queryGeneName')"
+                        @click="$store.dispatch('queryGeneSet')"
                     >
                         GO
                     </button>
@@ -68,7 +64,7 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        Geneset
+                        Gene set
                         {{ $store.state.geneSet }}
                     </h4>
                     [scatter plot]<br />
