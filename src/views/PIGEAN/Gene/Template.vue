@@ -86,10 +86,11 @@
                         {{ $store.state.geneName }}
                     </h4>
                     [scatter plot]<br />
-                    <pigean-gene-table
-                        :pigeanGeneData="$store.state.pigeanGene.data"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap">
-                    </pigean-gene-table>
+                    <pigean-table
+                        :pigeanData="$store.state.pigeanGene.data"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :config="$parent.tableConfig">
+                    </pigean-table>
                 </div>
             </div>
         </div>

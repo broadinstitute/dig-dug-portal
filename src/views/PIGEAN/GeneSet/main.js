@@ -9,7 +9,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
-import PigeanGenesetTable from "@/components/PigeanGenesetTable.vue";
+import PigeanTable from "@/components/PigeanTable.vue";
 
 import keyParams from "@/utils/keyParams";
 
@@ -24,7 +24,7 @@ new Vue({
         PageHeader,
         PageFooter,
         SearchHeaderWrapper,
-        PigeanGenesetTable
+        PigeanTable
     },
 
     data() {

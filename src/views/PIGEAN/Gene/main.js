@@ -10,7 +10,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
-import PigeanGeneTable from "@/components/PigeanGeneTable.vue";
+import PigeanTable from "@/components/PigeanTable.vue";
 
 import keyParams from "@/utils/keyParams";
 
@@ -26,11 +26,23 @@ new Vue({
         PageFooter,
         SearchHeaderWrapper,
         GeneSelectPicker,
-        PigeanGeneTable
+        PigeanTable
     },
 
     data() {
-        return {};
+        return {
+            tableConfig: {
+                fields: [
+                    { key: "phenotype", sortable: true },
+                    { key: "combined", sortable: true },
+                    { key: "log_bf", sortable: true },
+                    { key: "prior", sortable: true },
+                    { key: "expand", label: "Gene sets" } 
+                  ],
+                queryParam: "gene",
+                subtableEndpoint: "pigean-joined-gene"
+            }
+        };
     },
     computed: {
         diseaseGroup() {

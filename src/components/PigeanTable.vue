@@ -3,16 +3,16 @@
       <div v-if="rows > 0">
           <div class="text-right mb-2">
               <data-download
-                  :data="genesetData"
-                  filename="pigean_geneset"
+                  :data="pigeanData"
+                  filename="pigean_gene"
               ></data-download>
           </div>
           <b-table
               hover
               small
               responsive="sm"
-              :items="genesetData"
-              :fields="fields"
+              :items="pigeanData"
+              :fields="config.fields"
               :per-page="perPage"
               :current-page="currentPage"
           >
@@ -22,6 +22,20 @@
                 {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
               </a>
               <span v-else>{{ r.item.phenotype }}</span>
+            </template>
+            <template #cell(expand)="row">
+                <b-button
+                    variant="outline-primary"
+                    size="sm"
+                    @click="getSubtable(row)"
+                >
+                    {{ row.detailsShowing ? "Hide" : "Show" }} Genesets
+                </b-button>
+            </template>
+            <template #row-details="row">
+              <pigean-subtable
+                :joinedData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]">
+              </pigean-subtable>
             </template>
           </b-table>
           <b-pagination
@@ -44,26 +58,23 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("pigean-geneset-table", {
+import PigeanSubtable from "./PigeanSubtable.vue";
+export default Vue.component("pigean-table", {
   components: {
       DataDownload,
+      PigeanSubtable
   },
-  props: ["genesetData", "phenotypeMap"],
+  props: ["pigeanData", "phenotypeMap", "config"],
   data() {
       return {
           perPage: 10,
           currentPage: 1,
-          fields: [
-            { key: "phenotype", sortable: true },
-            { key: "beta", sortable: true },
-            { key: "beta_uncorrected", sortable: true },
-            { key: "genes"}
-          ],
+          subtableData: {}
       };
   },
   computed: {
       rows() {
-          return this.genesetData.length;
+          return this.pigeanData.length;
       },
   },
   methods: {
@@ -74,6 +85,14 @@ export default Vue.component("pigean-geneset-table", {
       annotationFormatter: Formatters.annotationFormatter,
       tissueFormatter: Formatters.tissueFormatter,
       tpmFormatter: Formatters.tpmFormatter,
+      async getSubtable(row) {
+        let queryKey = `${row.item.phenotype},${row.item[this.config.queryParam]}`;
+        if (!this.subtableData[queryKey]) {
+          let data = await query(this.config.subtableEndpoint, queryKey);
+          Vue.set(this.subtableData, queryKey, data);
+        }
+        row.toggleDetails();
+      },
   },
 });
 </script>

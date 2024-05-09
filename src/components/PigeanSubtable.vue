@@ -11,8 +11,7 @@
               hover
               small
               responsive="sm"
-              :items="joined"
-              :fields="fields"
+              :items="joinedData"
               :per-page="perPage"
               :current-page="currentPage"
           >
@@ -45,7 +44,7 @@ export default Vue.component("pigean-gene-subtable", {
   components: {
       DataDownload,
   },
-  props: ["joined"],
+  props: ["joinedData"],
   data() {
       return {
           perPage: 10,
@@ -58,7 +57,7 @@ export default Vue.component("pigean-gene-subtable", {
   },
   computed: {
       rows() {
-          return this.joined.length;
+          return this.joinedData.length;
       },
   },
   methods: {
