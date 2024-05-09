@@ -16,6 +16,8 @@ import uiUtils from "@/utils/uiUtils";
 const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
 //const colors = ["#587c76","#f8d9fa","#8b6b8c","#82c2ff","#ffaa92","#00acdd","#ffb8f5","#01d7ee","#bdb0ff","#2b8647","#01d9bd","#bd4b8e","#aff590","#6f7e00","#0195fa","#af4fb1","#d43d4b","#02ffc3","#ae9800","#ff8efd","#ffae3e","#567bff","#ff5544","#e67500","#d71ba0","#9f6cff","#ff00ac","#b652ff","#82e900","#e600e3"];
 //const colors = ["#696969","#8b4513","#228b22","#808000","#483d8b","#008b8b","#9acd32","#00008b","#7f007f","#8fbc8f","#b03060","#ff0000","#ff8c00","#ffff00","#deb887","#7fff00","#8a2be2","#00ff7f","#dc143c","#00ffff","#00bfff","#0000ff","#da70d6","#ff00ff","#1e90ff","#fa8072","#90ee90","#add8e6","#ff1493","#ffb6c1"];
+const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"]
+//const schemeCategory20 = ["#Ff7f0e","#1f77b4","#2ca02c","#D62728","#9467bd","#8c654b","#E377c2","#F7f7f7","#Bcbd22","#17becf","#Aec7e8","#Ffbb78","#98df8a","#Ff9896","#C5b0d5","#C49c94","#F7b6d2","#C7c7c7","#Bdbd8d","#9edae5"]
 
 new Vue({
     store,
@@ -27,9 +29,9 @@ new Vue({
     data() {
         return {
             colorScalePlasma: d3.scaleSequential(d3.interpolatePlasma),
-            colorScaleIndex: d3.scaleOrdinal(d3.schemeCategory10),
+            colorScaleIndex: d3.scaleOrdinal(colors), //d3.schemeCategory10
             colorScaleRed: d3.scaleSequential(d3.interpolateReds),
-            colorScaleRedBlue: d3.scaleLinear().domain([-1, 0, 1]).range(['red', 'white', 'blue']),
+            colorScaleRedBlue: d3.scaleLinear().domain([-1, 0, 1]).range(['red', '#ffddff', 'blue']),
             colorScalePlasmaColorsArray: null,
 
 

@@ -110,6 +110,7 @@
                         <option v-for="(item, index) in $parent.cellCountOptions" :value="index" :selected="$parent.cellCountOption === index ? 'selected' : false">{{ item }}</option>
                     </select>
                     -->
+
                     <div class="label underline">Cell Abundance & Distribution of Cell Types {{ !$parent.compareField ? '' : 'x '+$parent.labelFromAnnotation($parent.compareField)+' Condition'  }}</div>
 
                     <div class="cell-count-tables-wrapper overflow-h">
@@ -664,7 +665,7 @@
                             <div class="row1 legends">
                                 <div class="col1 legend">
                                     <div class="label">Effect Size</div>
-                                    <div class="gradient" :style="`background: linear-gradient(to left, ${$parent.colorScaleRedBlue(-1)},${$parent.colorScaleRedBlue(0)}, ${$parent.colorScaleRedBlue(1)});`"></div>
+                                    <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleRedBlue(-1)},${$parent.colorScaleRedBlue(0)}, ${$parent.colorScaleRedBlue(1)});`"></div>
                                     <div class="row1 marks"><div>-1.0</div><div>0.0</div><div>1.0</div></div>
                                 </div>
                                 <div class="col1 legend">
@@ -812,7 +813,7 @@
                                         <div class="info-field-label">Species</div><div class="info-field-data unknown">Human</div>
                                     </div>
                                     <div class="row1 info-field">
-                                        <div class="info-field-label">Depot</div><div class="info-field-data unknown">VAT</div>
+                                        <div class="info-field-label">Depot</div><div class="info-field-data unknown">Omental Fat Pad<br>SAT</div>
                                     </div>
                                     <div class="row1 info-field">
                                         <div class="info-field-label">Total Cells</div><div class="info-field-data num">{{$parent.datasetsObj[$parent.activeDataset]["cells"].length.toLocaleString()}}</div>
@@ -907,7 +908,14 @@
                                         </div>
                                     </div>
                                 </template>
-                                
+                            </template>
+                            <template v-else>
+                                <template v-if="$parent.activeField">
+                                    <div class="info-text">
+                                        <!--The <span class="num bold">{{ Array.isArray($parent.activeDataset) ? $parent.activeDataset[0] : $parent.activeDataset }}</span>-->
+                                        This dataset contains <span class="unknown">scRNAseq</span> data of <span class="num bold">{{ $parent.datasetsObj[$parent.activeDataset]["cells"].length.toLocaleString() }}</span> cells from the <span class="unknown">omental fat pad</span>, and <span class="unknown">subcutaneous adipose tissue</span> depots of <span class="unknown">12</span> <span class="unknown">Human</span> subjects with the <span class="unknown">BMI</span> condition.
+                                    </div>
+                                </template>
                             </template>
                         </div>
                     </div>
@@ -1005,14 +1013,14 @@ input{
     font-size: 12px;
 }
 .legend .gradient {
-    height: 10px;
+    height: 15px;
     width: -webkit-fill-available;
 }
 .legend .circles {
-    height: 10px;
+    height: 15px;
     width: -webkit-fill-available;
     justify-content: space-between;
-    padding: 0 5px;
+    padding: 0 0;
 }
 .legend .circle {
     aspect-ratio: 1;
@@ -1243,10 +1251,10 @@ td:has(.field-cluster-pct) {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: inherit;
-    mix-blend-mode: normal;
+    background: black !important;
+    mix-blend-mode: soft-light;
     pointer-events: none;
-    opacity: .5;
+    /*opacity: .5;*/
 }
 .cluster-expression{
     padding:0 !important;
