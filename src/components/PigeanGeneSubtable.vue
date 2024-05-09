@@ -57,13 +57,7 @@ export default Vue.component("pigean-gene-subtable", {
       },
   },
   methods: {
-      phenotypeFormatter: Formatters.phenotypeFormatter,
-      pValueFormatter: Formatters.pValueFormatter,
-      effectFormatter: Formatters.effectFormatter,
-      intFormatter: Formatters.intFormatter,
-      annotationFormatter: Formatters.annotationFormatter,
       tissueFormatter: Formatters.tissueFormatter,
-      tpmFormatter: Formatters.tpmFormatter,
   },
 });
 </script>
