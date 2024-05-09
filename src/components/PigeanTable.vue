@@ -29,12 +29,13 @@
                     size="sm"
                     @click="getSubtable(row)"
                 >
-                    {{ row.detailsShowing ? "Hide" : "Show" }} Genesets
+                    {{ row.detailsShowing ? "Hide" : "Show" }}
                 </b-button>
             </template>
             <template #row-details="row">
               <pigean-subtable
-                :joinedData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]">
+                :joinedData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]"
+                :fields="config.subtableFields">
               </pigean-subtable>
             </template>
           </b-table>

@@ -1,23 +1,23 @@
 <template>
-  <div id="pigean-gene-subtable">
+  <div id="pigean-subtable">
       <div v-if="rows > 0">
-      <!-- <div class="text-right mb-2">
-              <data-download
-                  :data="pigeanGeneData"
-                  filename="pigean_gene"
-              ></data-download>
-          </div> -->
           <b-table
               hover
               small
               responsive="sm"
               :items="joinedData"
+              :fields="fields"
               :per-page="perPage"
               :current-page="currentPage"
           >
             <template #cell(gene_set)="r">
               <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}`">
                 {{ r.item.gene_set }}
+              </a>
+            </template>
+            <template #cell(gene)="r">
+              <a :href="`/pigean/gene.html?gene=${r.item.gene}`">
+                {{ r.item.gene }}
               </a>
             </template>
           </b-table>
@@ -40,19 +40,15 @@
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("pigean-gene-subtable", {
+export default Vue.component("pigean-subtable", {
   components: {
       DataDownload,
   },
-  props: ["joinedData"],
+  props: ["joinedData", "fields"],
   data() {
       return {
           perPage: 10,
           currentPage: 1,
-          fields: [
-            { key: "gene_set", sortable: true },
-            { key: "beta", sortable: true },
-          ],
       };
   },
   computed: {

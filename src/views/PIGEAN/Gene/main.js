@@ -40,7 +40,12 @@ new Vue({
                     { key: "expand", label: "Gene sets" } 
                   ],
                 queryParam: "gene",
-                subtableEndpoint: "pigean-joined-gene"
+                subtableEndpoint: "pigean-joined-gene",
+                subtableFields: [
+                    { key: "gene_set", sortable: true },
+                    { key: "beta", sortable: true },
+                  ],
+                
             }
         };
     },
