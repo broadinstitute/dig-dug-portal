@@ -16,6 +16,11 @@
               :per-page="perPage"
               :current-page="currentPage"
           >
+            <template #cell(gene_set)="r">
+              <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}`">
+                {{ r.item.gene_set }}
+              </a>
+            </template>
           </b-table>
           <b-pagination
               v-model="currentPage"

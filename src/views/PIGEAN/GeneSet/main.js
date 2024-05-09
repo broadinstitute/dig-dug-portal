@@ -49,10 +49,7 @@ new Vue({
     },
 
     created() {
-        if (keyParams.gene) {
-            console.log("gene", keyParams.gene);
-        }
-        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        this.$store.dispatch("queryGeneSet", this.$store.state.geneSet);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
     },

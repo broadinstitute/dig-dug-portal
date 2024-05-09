@@ -39,7 +39,7 @@
                     <div class="col-md-8 gene-page-header-body">
                         <div>
                             <span>{{
-                                $store.state.geneName.toUpperCase()
+                                $store.state.geneSet.toUpperCase()
                             }}</span>
                         </div>
                     </div>
@@ -68,8 +68,8 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        Gene
-                        {{ $store.state.geneName }}
+                        Geneset
+                        {{ $store.state.geneSet }}
                     </h4>
                     [scatter plot]<br />
                     [Table for gene]
