@@ -12,18 +12,18 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        pigeanGeneSet: bioIndex("pigean-gene-set"),
+        pigeanGeneset: bioIndex("pigean-gene-set"),
     },
     state: {
-        geneSet: keyParams.geneset,
-        geneSetToQuery: "",
+        geneset: keyParams.geneset,
+        genesetToQuery: "",
         aliasName: null,
     },
 
     mutations: {
-        setGeneSet(state, geneSet) {
-            state.geneSet = geneSet || state.geneSet;
-            keyParams.set({ geneset: state.geneSet });
+        setGeneset(state, geneset) {
+            state.geneset = geneset || state.geneset;
+            keyParams.set({ geneset: state.geneset });
         },
     },
 
@@ -31,12 +31,12 @@ export default new Vuex.Store({
     },
 
     actions: {
-        async queryGeneSet(context, symbol) {
-            let name = context.state.geneSetToQuery || context.state.geneSet;
-            context.commit("setGeneSet", name);
+        async queryGeneset(context, symbol) {
+            let name = context.state.genesetToQuery || context.state.geneset;
+            context.commit("setGeneset", name);
 
             if (!!name) {
-                context.dispatch("pigeanGeneSet/query", { q: name });
+                context.dispatch("pigeanGeneset/query", { q: name });
             }
         },
     },

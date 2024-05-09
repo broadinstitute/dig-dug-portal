@@ -9,7 +9,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
-import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import PigeanGenesetTable from "@/components/PigeanGenesetTable.vue";
 
 import keyParams from "@/utils/keyParams";
 
@@ -24,7 +24,7 @@ new Vue({
         PageHeader,
         PageFooter,
         SearchHeaderWrapper,
-        GeneSelectPicker,
+        PigeanGenesetTable
     },
 
     data() {
@@ -49,7 +49,7 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("queryGeneSet", this.$store.state.geneSet);
+        this.$store.dispatch("queryGeneset", this.$store.state.geneset);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
     },

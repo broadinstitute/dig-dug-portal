@@ -22,7 +22,7 @@
                         id="regionSearchGo"
                         class="btn btn-light btn-sm go"
                         type="button"
-                        @click="$store.dispatch('queryGeneSet')"
+                        @click="$store.dispatch('queryGeneset')"
                     >
                         GO
                     </button>
@@ -35,7 +35,7 @@
                     <div class="col-md-8 gene-page-header-body">
                         <div>
                             <span>{{
-                                $store.state.geneSet.toUpperCase()
+                                $store.state.geneset.toUpperCase()
                             }}</span>
                         </div>
                     </div>
@@ -65,11 +65,13 @@
                 <div class="card-body">
                     <h4 class="card-title">
                         Gene set
-                        {{ $store.state.geneSet }}
+                        {{ $store.state.geneset }}
                     </h4>
                     [scatter plot]<br />
-                    [Table for gene]
-                    https://bioindex-dev.hugeamp.org/api/bio/query/pigean-gene-set?q=mp_abnormal_germ_layer_development<br />
+                    <pigean-geneset-table
+                        :genesetData="$store.state.pigeanGeneset.data"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap">
+                    </pigean-geneset-table>
                     subtable:
                 </div>
             </div>
