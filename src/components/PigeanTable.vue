@@ -8,7 +8,6 @@
               ></data-download>
           </div>
           <b-table
-              hover
               small
               responsive="sm"
               :items="pigeanData"
@@ -70,7 +69,6 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-import PigeanSubtable from "./PigeanSubtable.vue";
 import PigeanTable from "./PigeanTable.vue";
 export default Vue.component("pigean-table", {
   components: {
@@ -117,13 +115,7 @@ label {
 }
 .pigean-subtable {
     font-size: smaller;
-    /*margin-left: 15px;
-    background-color: #efefef;*/
-}
-.pigean-subtable .row {
-    /*font-size: smaller;*/
     margin-left: 15px;
-    margin-right: 0;
     background-color: #efefef;
 }
 .pigean-subtable .row .col-12 {
