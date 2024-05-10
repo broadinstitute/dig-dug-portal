@@ -1,7 +1,7 @@
 <template>
-  <div id="pigean-gene">
+  <div id="pigean-gene" :class="`${!!isSubtable ? 'pigean-subtable' : ''}`">
       <div v-if="rows > 0">
-          <div class="text-right mb-2">
+          <div class="text-right mb-2" v-if="!isSubtable">
               <data-download
                   :data="pigeanData"
                   filename="pigean_gene"
@@ -43,10 +43,15 @@
                 </b-button>
             </template>
             <template #row-details="row">
-              <pigean-subtable
+              <!-- <pigean-subtable
                 :joinedData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]"
                 :fields="config.subtableFields">
-              </pigean-subtable>
+              </pigean-subtable> -->
+              <pigean-table
+                :pigeanData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]"
+                :config="{fields:config.subtableFields}"
+                :isSubtable="true">
+              </pigean-table>
             </template>
           </b-table>
           <b-pagination
@@ -70,12 +75,14 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import PigeanSubtable from "./PigeanSubtable.vue";
+import PigeanTable from "./PigeanTable.vue";
 export default Vue.component("pigean-table", {
   components: {
       DataDownload,
-      PigeanSubtable
+      PigeanSubtable,
+      PigeanTable
   },
-  props: ["pigeanData", "phenotypeMap", "config"],
+  props: ["pigeanData", "phenotypeMap", "config", "isSubtable"],
   data() {
       return {
           perPage: 10,
