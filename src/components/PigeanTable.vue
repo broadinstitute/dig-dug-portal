@@ -16,6 +16,11 @@
               :per-page="perPage"
               :current-page="currentPage"
           >
+            <template #cell(gene)="r">
+              <a :href="`/pigean/gene.html?gene=${r.item.gene}`">
+                {{ r.item.gene }}
+              </a>
+            </template>
             <template #cell(phenotype)="r">
               <a v-if="!!phenotypeMap[r.item.phenotype]"
                 :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}`">

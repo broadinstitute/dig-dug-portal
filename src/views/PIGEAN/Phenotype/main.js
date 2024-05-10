@@ -15,6 +15,7 @@ import uiUtils from "@/utils/uiUtils";
 import sessionUtils from "@/utils/sessionUtils";
 import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import PigeanTable from "@/components/PigeanTable.vue";
 new Vue({
     store,
 
@@ -24,7 +25,8 @@ new Vue({
         Alert,
         SearchHeaderWrapper,
         ResearchMPlot,
-        RawImage
+        RawImage,
+        PigeanTable
     },
 
     created() {
@@ -42,6 +44,21 @@ new Vue({
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
+            tableConfig: {
+                fields: [
+                    { key: "gene", sortable: true },
+                    { key: "combined", sortable: true },
+                    { key: "log_bf", sortable: true },
+                    { key: "prior", sortable: true},
+                    { key: "expand", label: "Gene sets"}
+                ],
+                queryParam: "gene",
+                subtableEndpoint: "pigean-joined-gene",
+                subtableFields: [
+                    { key: "gene_set", sortable: true },
+                    { key: "beta", sortable: true },
+                  ],
+            }
         };
     },
     methods: {

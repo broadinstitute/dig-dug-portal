@@ -73,7 +73,6 @@
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :config="$parent.tableConfig">
                     </pigean-table>
-                    subtable:
                 </div>
             </div>
         </div>
