@@ -1,14 +1,13 @@
 <template>
-  <div id="pigean-gene">
+  <div id="pigean-gene" :class="`${!!isSubtable ? 'pigean-subtable' : ''}`">
       <div v-if="rows > 0">
-          <div class="text-right mb-2">
+          <div class="text-right mb-2" v-if="!isSubtable">
               <data-download
                   :data="pigeanData"
                   filename="pigean_gene"
               ></data-download>
           </div>
           <b-table
-              hover
               small
               responsive="sm"
               :items="pigeanData"
@@ -43,10 +42,11 @@
                 </b-button>
             </template>
             <template #row-details="row">
-              <pigean-subtable
-                :joinedData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]"
-                :fields="config.subtableFields">
-              </pigean-subtable>
+              <pigean-table
+                :pigeanData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]"
+                :config="{fields:config.subtableFields}"
+                :isSubtable="true">
+              </pigean-table>
             </template>
           </b-table>
           <b-pagination
@@ -69,13 +69,13 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-import PigeanSubtable from "./PigeanSubtable.vue";
+import PigeanTable from "./PigeanTable.vue";
 export default Vue.component("pigean-table", {
   components: {
       DataDownload,
-      PigeanSubtable
+      PigeanTable
   },
-  props: ["pigeanData", "phenotypeMap", "config"],
+  props: ["pigeanData", "phenotypeMap", "config", "isSubtable"],
   data() {
       return {
           perPage: 10,
@@ -112,5 +112,13 @@ export default Vue.component("pigean-table", {
 
 label {
   margin: 10px;
+}
+.pigean-subtable {
+    font-size: smaller;
+    margin-left: 15px;
+    background-color: #efefef;
+}
+.pigean-subtable .row .col-12 {
+    padding: 0 0 0 5px !important;
 }
 </style>
