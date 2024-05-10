@@ -85,7 +85,6 @@
                         Gene
                         {{ $store.state.geneName }}
                     </h4>
-                    [scatter plot]<br />
                     <pigean-table
                         :pigeanData="$store.state.pigeanGene.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"

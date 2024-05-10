@@ -81,10 +81,17 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    [scatter plot]<br />
                     <pigean-table
                         :pigeanData="$store.state.pigeanPhenotype.data"
                         :config="$parent.tableConfig">
+                    </pigean-table>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <pigean-table
+                        :pigeanData="$store.state.genesetPhenotype.data"
+                        :config="$parent.genesetTableConfig">
                     </pigean-table>
                 </div>
             </div>
