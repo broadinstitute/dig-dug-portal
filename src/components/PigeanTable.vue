@@ -43,10 +43,6 @@
                 </b-button>
             </template>
             <template #row-details="row">
-              <!-- <pigean-subtable
-                :joinedData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]"
-                :fields="config.subtableFields">
-              </pigean-subtable> -->
               <pigean-table
                 :pigeanData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]"
                 :config="{fields:config.subtableFields}"
@@ -79,7 +75,6 @@ import PigeanTable from "./PigeanTable.vue";
 export default Vue.component("pigean-table", {
   components: {
       DataDownload,
-      PigeanSubtable,
       PigeanTable
   },
   props: ["pigeanData", "phenotypeMap", "config", "isSubtable"],
@@ -119,5 +114,19 @@ export default Vue.component("pigean-table", {
 
 label {
   margin: 10px;
+}
+.pigean-subtable {
+    font-size: smaller;
+    /*margin-left: 15px;
+    background-color: #efefef;*/
+}
+.pigean-subtable .row {
+    /*font-size: smaller;*/
+    margin-left: 15px;
+    margin-right: 0;
+    background-color: #efefef;
+}
+.pigean-subtable .row .col-12 {
+    padding: 0 0 0 5px !important;
 }
 </style>
