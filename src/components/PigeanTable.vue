@@ -28,6 +28,11 @@
               </a>
               <span v-else>{{ r.item.phenotype }}</span>
             </template>
+            <template #cell(gene_set)="r">
+              <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}`">
+                {{ r.item.gene_set }}
+              </a>
+            </template>
             <template #cell(expand)="row">
                 <b-button
                     variant="outline-primary"

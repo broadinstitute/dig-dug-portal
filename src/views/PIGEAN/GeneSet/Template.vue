@@ -67,7 +67,6 @@
                         Gene set
                         {{ $store.state.geneset }}
                     </h4>
-                    [scatter plot]<br />
                     <pigean-table
                         :pigeanData="$store.state.pigeanGeneset.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"

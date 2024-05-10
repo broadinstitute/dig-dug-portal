@@ -58,6 +58,22 @@ new Vue({
                     { key: "gene_set", sortable: true },
                     { key: "beta", sortable: true },
                   ],
+            },
+            genesetTableConfig: {
+                fields: [
+                    { key: "gene_set", sortable: true },
+                    { key: "beta", sortable: true },
+                    { key: "beta_uncorrected", sortable: true },
+                    { key: "expand", label: "Genes"}
+                ],
+                queryParam: "gene_set",
+                subtableEndpoint: "pigean-joined-gene-set",
+                subtableFields: [
+                    { key: "gene", sortable: true },
+                    { key: "combined", sortable: true },
+                    { key: "log_bf", sortable: true },
+                    { key: "prior", sortable: true }
+                ]
             }
         };
     },
