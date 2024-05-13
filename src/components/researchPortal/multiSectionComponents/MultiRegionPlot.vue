@@ -76,7 +76,7 @@
 				<span>No data</span>
 			</div>
 			<div class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + sectionId)">View P-Value / LD plot(s)</div>
-			<div :id="'ldPlotsWrapper' + sectionId" class="ld-plots-wrapper">
+			<div :id="'ldPlotsWrapper' + sectionId" class="ld-plots-wrapper hidden">
 				<template v-for="(item, itemIndex) in plotsList">
 					<h6 v-html="item != 'default'
 						? item + ' <small>*Showing only with LD</small>'
@@ -615,7 +615,7 @@ export default Vue.component("multi-region-plot", {
 	},
 	methods: {
 		downloadImage(ID, NAME, TYPE, SVG, DATA, ref) {
-			console.log("ID: ",ID, "NAME: ", NAME, "TYPE: ", TYPE, "SVG: ", SVG)
+			//console.log("ID: ",ID, "NAME: ", NAME, "TYPE: ", TYPE, "SVG: ", SVG)
 			if (TYPE == 'svg') {
 				let refName = ref;
 				this.$refs[refName].renderPlot(DATA);
@@ -1392,7 +1392,7 @@ export default Vue.component("multi-region-plot", {
 					} else {
 						//let yField = this.renderConfig["y axis field"];
 
-						console.log(this.assoData[GROUP])
+						//console.log(this.assoData[GROUP])
 
 						for (const [key, value] of Object.entries(
 							this.ldData[GROUP].data
