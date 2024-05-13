@@ -39,7 +39,7 @@ export default Vue.component("pigean-plot", {
         top: 10,
         right: 30,
         bottom: 30,
-        left: 60
+        left: 90
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = 300 - margin.top - margin.bottom;
@@ -75,6 +75,13 @@ export default Vue.component("pigean-plot", {
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale));
+      let xAxisLabel = d3.select("#pigean-plot")
+        .append("div")
+        .style("position", "relative")
+        .style("left", `${width / 2 + margin.left}px`)
+        .style("font-size", "smaller")
+        .style("font-weight", "bold")
+        .html(`${this.xField}`);
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
@@ -82,6 +89,13 @@ export default Vue.component("pigean-plot", {
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale));
+      let yAxisLabel = d3.select("#pigean-plot")
+        .append("div")
+        .style("position", "relative")
+        .style("top", `${-height/2 - margin.bottom - margin.top}px`)
+        .style("font-size", "smaller")
+        .style("font-weight", "bold")
+        .html(`${this.yField}`);
 
       // add dots
       this.svg.append("g")
