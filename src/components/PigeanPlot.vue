@@ -92,9 +92,9 @@ export default Vue.component("pigean-plot", {
           .attr("class", d => d.phenotype)
           .attr("cx", d => this.xScale(d[this.xField]))
           .attr("cy", d => this.yScale(d[this.yField]))
-          .attr("r", 1.5)
-          .style("fill", "lightgray")
-          //.style("fill", "#69b3a2")
+          .attr("r", 2)
+          .attr("fill", "none")
+          .attr("stroke", "lightgray")
           .on("mouseover", (g) =>
               this.hoverDot(g.gene, g.phenotype, g.combined));
     },
@@ -107,10 +107,12 @@ export default Vue.component("pigean-plot", {
       return sorted[index][field]
     },
     hoverDot(gene, phenotype, combined) {
-      this.hideTooltip();
+      this.unHoverDot();
       this.svg.selectAll("circle")
-        .style("fill", "lightgray");
+        .style("stroke", "lightgray")
+        .style("fill", "none");
       this.svg.selectAll(`circle.${phenotype}`)
+        .style("stroke", "#69b3a2")
         .style("fill", "#69b3a2");
 
       let xcoord = `${d3.event.layerX + 20}px`;
@@ -130,8 +132,8 @@ export default Vue.component("pigean-plot", {
         .style("left", xcoord)
         .style("top", ycoord);
     },
-    hideTooltip() {
-        this.tooltip.style("opacity", 0);
+    unHoverDot() {
+      this.tooltip.style("opacity", 0);
     },
   },
 });
