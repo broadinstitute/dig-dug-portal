@@ -85,13 +85,13 @@
                         Gene
                         {{ $store.state.geneName }}
                     </h4>
-                    <pigean-plot v-if="$store.state.pigeanGene.data.length > 0"
-                        :pigeanData="$store.state.pigeanGene.data"
+                    <pigean-plot v-if="$parent.sortedGeneData.length > 0"
+                        :pigeanData="$parent.sortedGeneData"
                         xField="prior"
                         yField="log_bf">
                     </pigean-plot>
                     <pigean-table
-                        :pigeanData="$store.state.pigeanGene.data"
+                        :pigeanData="$parent.sortedGeneData"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :config="$parent.tableConfig">
                     </pigean-table>
