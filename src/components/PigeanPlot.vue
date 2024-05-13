@@ -1,7 +1,6 @@
 <template>
   <div>
     <div id="pigean-plot">
-      <p>Loading...</p>
     </div>
   </div>
 </template>
@@ -35,8 +34,8 @@ export default Vue.component("pigean-plot", {
       let height = 300 - margin.top - margin.bottom;
       let svg = d3.select("#pigean-plot")
         .append("svg")
-          .attr("width", width)
-          .attr("height", height)
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       let xMax = this.extremeVal(this.xField, false);
