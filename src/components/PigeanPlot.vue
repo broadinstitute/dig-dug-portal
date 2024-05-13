@@ -1,6 +1,7 @@
 <template>
   <div>
     <div id="pigean-plot">
+      <p>Loading...</p>
     </div>
   </div>
 </template>
@@ -13,10 +14,21 @@ export default Vue.component("pigean-plot", {
   props: ["pigeanData", "xField", "yField"],
   data() {
       return {
+        chart: null,
+        chartWidth: null,
+        svg: null,
+        xScale: null,
+        yScale: null,
+        tooltip: null,
       };
   },
   mounted(){
-    console.log(this.pigeanData.length);
+    this.chart = document.getElementById("pigean-plot");
+    this.chartWidth = this.chart.clientWidth;
+    addEventListener("resize", (event) => {
+        this.chartWidth = this.chart.clientWidth;
+        this.drawChart();
+    });
     this.drawChart();
   },
   computed: {
@@ -29,9 +41,9 @@ export default Vue.component("pigean-plot", {
         bottom: 30,
         left: 60
       };
-      let plotDiv = document.getElementById("pigean-plot");
-      let width = plotDiv.clientWidth - margin.left - margin.right;
+      let width = this.chartWidth - margin.left - margin.right;
       let height = 300 - margin.top - margin.bottom;
+      this.chart.innerHTML = "";
       let svg = d3.select("#pigean-plot")
         .append("svg")
           .attr("width", width + margin.left + margin.right)
