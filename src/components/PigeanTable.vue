@@ -8,12 +8,13 @@
               ></data-download>
           </div>
           <b-table
-              small
-              responsive="sm"
-              :items="pigeanData"
-              :fields="config.fields"
-              :per-page="perPage"
-              :current-page="currentPage"
+            :hover="isSubtable"
+            small
+            responsive="sm"
+            :items="pigeanData"
+            :fields="config.fields"
+            :per-page="perPage"
+            :current-page="currentPage"
           >
             <template #cell(gene)="r">
               <a :href="`/pigean/gene.html?gene=${r.item.gene}`">

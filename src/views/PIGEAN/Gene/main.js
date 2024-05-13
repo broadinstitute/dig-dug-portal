@@ -11,6 +11,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
 
 import keyParams from "@/utils/keyParams";
 
@@ -26,7 +27,8 @@ new Vue({
         PageFooter,
         SearchHeaderWrapper,
         GeneSelectPicker,
-        PigeanTable
+        PigeanTable,
+        PigeanPlot
     },
 
     data() {
