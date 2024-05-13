@@ -38,12 +38,14 @@ export default Vue.component("pigean-plot", {
           .attr("height", height + margin.top + margin.bottom)
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
+      let xMin = this.extremeVal(this.xField);
+      let yMin = this.extremeVal(this.yField);
       let xMax = this.extremeVal(this.xField, false);
       let yMax = this.extremeVal(this.yField, false);
       
       // add X-axis
       let x = d3.scaleLinear()
-        .domain([0, xMax])
+        .domain([xMin, xMax])
         .range([0, width]);
       svg.append("g")
         .attr("transform", `translate(0,${height})`)
@@ -51,17 +53,16 @@ export default Vue.component("pigean-plot", {
       
       // add Y-axis
       let y = d3.scaleLinear()
-        .domain([0, yMax])
+        .domain([yMin, yMax])
         .range([height, 0]);
       svg.append("g")
         .call(d3.axisLeft(y));
-      
       // add dots
       svg.append("g")
         .selectAll("dot")
         .data(this.pigeanData)
         .enter()
-        .append("cicle")
+        .append("circle")
           .attr("cx", d => x(d[this.xField]))
           .attr("cy", d => y(d[this.yField]))
           .attr("r", 1.5)
