@@ -51,6 +51,17 @@ export default Vue.component("pigean-plot", {
           .attr("height", height + margin.top + margin.bottom)
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
+      
+      this.tooltip = d3
+            .select("#pigean-plot")
+            .append("div")
+            .style("opacity", 0)
+            .attr("class", "tooltip")
+            .style("background-color", "white")
+            .style("border", "2px solid gray")
+            .style("padding", "5px")
+            .style("border-radius", "5px")
+            .style("font-size", "smaller");
 
       let xMin = this.extremeVal(this.xField);
       let yMin = this.extremeVal(this.yField);
@@ -78,10 +89,14 @@ export default Vue.component("pigean-plot", {
         .data(this.pigeanData)
         .enter()
         .append("circle")
+          .attr("class", d => d.phenotype)
           .attr("cx", d => this.xScale(d[this.xField]))
           .attr("cy", d => this.yScale(d[this.yField]))
           .attr("r", 1.5)
-          .style("fill", "#69b3a2");
+          .style("fill", "lightgray")
+          //.style("fill", "#69b3a2")
+          .on("mouseover", (g) =>
+              this.hoverDot(g.gene, g.phenotype, g.combined));
     },
     extremeVal(field, min=true){
       let sorted = this.pigeanData.sort((a,b) => {
@@ -90,10 +105,40 @@ export default Vue.component("pigean-plot", {
       });
       let index = min ? 0 : sorted.length - 1;
       return sorted[index][field]
-    }
+    },
+    hoverDot(gene, phenotype, combined) {
+      this.hideTooltip();
+      this.svg.selectAll("circle")
+        .style("fill", "lightgray");
+      this.svg.selectAll(`circle.${phenotype}`)
+        .style("fill", "#69b3a2");
+
+      let xcoord = `${d3.event.layerX + 20}px`;
+      let ycoord = `${d3.event.layerY}px`;
+
+      // Tooltip content
+      let tooltipContent = `Gene: ${gene}`;
+      tooltipContent = tooltipContent.concat(
+          `<span>Phenotype: ${phenotype}</span>`
+      );
+      tooltipContent = tooltipContent.concat(
+          `<span>Combined: ${combined}</span>`
+      );
+      this.tooltip
+        .style("opacity", 1)
+        .html(tooltipContent)
+        .style("left", xcoord)
+        .style("top", ycoord);
+    },
+    hideTooltip() {
+        this.tooltip.style("opacity", 0);
+    },
   },
 });
 </script>
 <style>
-@import url("/css/effectorGenes.css");
+  @import url("/css/effectorGenes.css");
+  .tooltip span {
+      display: block;
+  }
 </style>
