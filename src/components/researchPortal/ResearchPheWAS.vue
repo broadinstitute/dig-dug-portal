@@ -82,6 +82,19 @@
 							: ''
 					"
 				></canvas>
+				<div class="download-images-setting">
+					<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+					<ul class="options" >
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('vector_wrapper_' + canvasId, canvasId + '_pheWasPlot', 'svg')">Download SVG</a>
+						</li>
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage(canvasId + 'pheWasPlot', canvasId + '_pheWasPlot', 'png')">Download PNG</a>
+						</li>
+					</ul>
+				</div>
 				<research-phewas-plot-vector
 				v-if="!!renderData"
 					:renderData="groupData(renderData)"
