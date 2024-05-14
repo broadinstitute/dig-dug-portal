@@ -15,6 +15,8 @@
             :fields="config.fields"
             :per-page="perPage"
             :current-page="currentPage"
+            :sort-by="sortBy"
+            :sort-desc="true"
           >
             <template #cell(gene)="r">
               <a :href="`/pigean/gene.html?gene=${r.item.gene}`">
@@ -81,13 +83,18 @@ export default Vue.component("pigean-table", {
       return {
           perPage: 10,
           currentPage: 1,
-          subtableData: {}
+          subtableData: {},
       };
   },
   computed: {
       rows() {
           return this.pigeanData.length;
       },
+      sortBy(){
+        return this.pigeanData.length === 0 ? 0 
+          : this.pigeanData[0]["combined"] !== undefined
+            ? "combined" : "beta_uncorrected";
+      }
   },
   methods: {
       phenotypeFormatter: Formatters.phenotypeFormatter,
