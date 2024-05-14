@@ -11,12 +11,13 @@ import * as d3 from "d3";
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields"],
+  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields", "plotHeight"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
         chart: null,
         chartWidth: null,
+        chartHeight: !!this.plotHeight ? this.plotHeight : 400,
         svg: null,
         xScale: null,
         yScale: null,
@@ -40,10 +41,10 @@ export default Vue.component("pigean-plot", {
         top: 10,
         right: 30,
         bottom: 30,
-        left: 90
+        left: 60
       };
       let width = this.chartWidth - margin.left - margin.right;
-      let height = 400 - margin.top - margin.bottom;
+      let height = this.chartHeight - margin.top - margin.bottom;
       this.chart.innerHTML = "";
 
       this.svg = d3.select(`#${this.plotId}`)
@@ -76,13 +77,12 @@ export default Vue.component("pigean-plot", {
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale));
-      let xAxisLabel = d3.select(`#${this.plotId}`)
+      d3.select(`#${this.plotId}`)
         .append("div")
-        .style("position", "relative")
-        .style("left", `${width / 2 + margin.left}px`)
-        .style("font-size", "smaller")
-        .style("font-weight", "bold")
-        .html(`${this.xField}`);
+          .style("position", "relative")
+          .style("left", `${width / 2 + margin.left}px`)
+          .style("font-size", "smaller")
+          .html(`${this.xField}`);
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
@@ -90,13 +90,13 @@ export default Vue.component("pigean-plot", {
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale));
-      let yAxisLabel = d3.select(`#${this.plotId}`)
-        .append("div")
-        .style("position", "relative")
-        .style("top", `${-height/2 - margin.bottom - margin.top}px`)
-        .style("font-size", "smaller")
-        .style("font-weight", "bold")
-        .html(`${this.yField}`);
+      this.svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .attr("font-size", "smaller")
+        .attr("y", -margin.left + 20)
+        .attr("x", - height / 2 - margin.top)
+        .text(this.yField);
 
       // add dots
       this.svg.append("g")
