@@ -89,7 +89,8 @@
                         :pigeanData="$parent.sortedGeneData"
                         xField="prior"
                         yField="log_bf"
-                        dotKey="phenotype">
+                        dotKey="phenotype"
+                        :hoverFields="['gene', 'phenotype', 'combined']">
                     </pigean-plot>
                     <pigean-table
                         :pigeanData="$parent.sortedGeneData"

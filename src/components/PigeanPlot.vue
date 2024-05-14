@@ -11,7 +11,7 @@ import * as d3 from "d3";
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "xField", "yField", "dotKey"],
+  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields"],
   data() {
       return {
         chart: null,
@@ -134,12 +134,10 @@ export default Vue.component("pigean-plot", {
       let ycoord = `${d3.event.layerY}px`;
 
       // Tooltip content
-      let tooltipContent = `Gene: ${dotObject.gene}`;
-      tooltipContent = tooltipContent.concat(
-          `<span>Phenotype: ${dotObject.phenotype}</span>`
-      );
-      tooltipContent = tooltipContent.concat(
-          `<span>Combined: ${dotObject.combined}</span>`
+      let tooltipContent = "";
+      this.hoverFields.forEach(field =>
+        tooltipContent = tooltipContent.concat(
+          `<span>${field}: ${dotObject[field]}</span>`)
       );
       this.tooltip
         .style("opacity", 1)

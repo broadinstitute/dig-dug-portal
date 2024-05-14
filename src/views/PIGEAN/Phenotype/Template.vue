@@ -85,7 +85,8 @@
                         :pigeanData="$store.state.pigeanPhenotype.data"
                         xField="prior"
                         yField="log_bf"
-                        dotKey="gene">
+                        dotKey="gene"
+                        :hoverFields="['gene', 'phenotype', 'combined']">
                     </pigean-plot>
                     <pigean-table
                         :pigeanData="$store.state.pigeanPhenotype.data"
