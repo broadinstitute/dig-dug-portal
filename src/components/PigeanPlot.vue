@@ -108,7 +108,7 @@ export default Vue.component("pigean-plot", {
           .attr("cy", d => this.yScale(d[this.yField]))
           .attr("r", 2)
           .attr("fill", "none")
-          .attr("stroke", "lightgray")
+          .attr("stroke", "gray")
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
     },
@@ -124,7 +124,7 @@ export default Vue.component("pigean-plot", {
       this.unHoverDot();
       let dotObject = JSON.parse(dotString);
       this.svg.selectAll("circle")
-        .style("stroke", "lightgray")
+        .style("stroke", "gray")
         .style("fill", "none");
       this.svg.selectAll(`circle.${dotObject[this.dotKey]}`)
         .style("stroke", "#69b3a2")
@@ -134,11 +134,13 @@ export default Vue.component("pigean-plot", {
       let ycoord = `${d3.event.layerY}px`;
 
       // Tooltip content
-      let tooltipContent = "";
-      this.hoverFields.forEach(field =>
-        tooltipContent = tooltipContent.concat(
-          `<span>${field}: ${dotObject[field]}</span>`)
-      );
+      let tooltipContent = `${this.dotKey}: ${dotObject[this.dotKey]}`;
+      if (!!this.hoverFields){
+        this.hoverFields.forEach(field =>
+          tooltipContent = tooltipContent.concat(
+            `<span>${field}: ${dotObject[field]}</span>`)
+        );
+      }
       this.tooltip
         .style("opacity", 1)
         .html(tooltipContent)

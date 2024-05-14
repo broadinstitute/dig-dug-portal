@@ -67,6 +67,12 @@
                         Gene set
                         {{ $store.state.geneset }}
                     </h4>
+                    <pigean-plot v-if="$store.state.pigeanGeneset.data.length > 0"
+                        :pigeanData="$store.state.pigeanGeneset.data"
+                        xField="beta_uncorrected"
+                        yField="beta"
+                        dotKey="phenotype">
+                    </pigean-plot>
                     <pigean-table
                         :pigeanData="$store.state.pigeanGeneset.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
