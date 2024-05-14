@@ -81,6 +81,12 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <pigean-plot v-if="$store.state.pigeanPhenotype.data.length > 0"
+                        :pigeanData="$store.state.pigeanPhenotype.data"
+                        xField="prior"
+                        yField="log_bf"
+                        dotKey="gene">
+                    </pigean-plot>
                     <pigean-table
                         :pigeanData="$store.state.pigeanPhenotype.data"
                         :config="$parent.tableConfig">

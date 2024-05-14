@@ -11,7 +11,7 @@ import * as d3 from "d3";
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "xField", "yField"],
+  props: ["pigeanData", "xField", "yField", "dotKey"],
   data() {
       return {
         chart: null,
@@ -103,14 +103,14 @@ export default Vue.component("pigean-plot", {
         .data(this.pigeanData)
         .enter()
         .append("circle")
-          .attr("class", d => d.phenotype)
+          .attr("class", d => `${d[this.dotKey]}`)
           .attr("cx", d => this.xScale(d[this.xField]))
           .attr("cy", d => this.yScale(d[this.yField]))
           .attr("r", 2)
           .attr("fill", "none")
           .attr("stroke", "lightgray")
           .on("mouseover", (g) =>
-              this.hoverDot(g.gene, g.phenotype, g.combined));
+              this.hoverDot(JSON.stringify(g)));
     },
     extremeVal(field, min=true){
       let sorted = this.pigeanData.sort((a,b) => {
@@ -120,12 +120,13 @@ export default Vue.component("pigean-plot", {
       let index = min ? 0 : sorted.length - 1;
       return sorted[index][field]
     },
-    hoverDot(gene, phenotype, combined) {
+    hoverDot(dotString) {
       this.unHoverDot();
+      let dotObject = JSON.parse(dotString);
       this.svg.selectAll("circle")
         .style("stroke", "lightgray")
         .style("fill", "none");
-      this.svg.selectAll(`circle.${phenotype}`)
+      this.svg.selectAll(`circle.${dotObject[this.dotKey]}`)
         .style("stroke", "#69b3a2")
         .style("fill", "#69b3a2");
 
@@ -133,12 +134,12 @@ export default Vue.component("pigean-plot", {
       let ycoord = `${d3.event.layerY}px`;
 
       // Tooltip content
-      let tooltipContent = `Gene: ${gene}`;
+      let tooltipContent = `Gene: ${dotObject.gene}`;
       tooltipContent = tooltipContent.concat(
-          `<span>Phenotype: ${phenotype}</span>`
+          `<span>Phenotype: ${dotObject.phenotype}</span>`
       );
       tooltipContent = tooltipContent.concat(
-          `<span>Combined: ${combined}</span>`
+          `<span>Combined: ${dotObject.combined}</span>`
       );
       this.tooltip
         .style("opacity", 1)

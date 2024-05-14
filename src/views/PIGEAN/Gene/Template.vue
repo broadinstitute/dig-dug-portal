@@ -88,7 +88,8 @@
                     <pigean-plot v-if="$parent.sortedGeneData.length > 0"
                         :pigeanData="$parent.sortedGeneData"
                         xField="prior"
-                        yField="log_bf">
+                        yField="log_bf"
+                        dotKey="phenotype">
                     </pigean-plot>
                     <pigean-table
                         :pigeanData="$parent.sortedGeneData"

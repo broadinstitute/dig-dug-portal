@@ -16,6 +16,7 @@ import sessionUtils from "@/utils/sessionUtils";
 import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
 new Vue({
     store,
 
@@ -26,7 +27,8 @@ new Vue({
         SearchHeaderWrapper,
         ResearchMPlot,
         RawImage,
-        PigeanTable
+        PigeanTable,
+        PigeanPlot
     },
 
     created() {
