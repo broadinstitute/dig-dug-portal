@@ -40,7 +40,10 @@ export function apiUrl(path, query_private = false) {
 export function rawUrl(path, query_params, query_private=false) {
     let qs = querystring.stringify(query_params, { skipNull: true });
     let rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`
-    console.log("rawUrl function:"+rawURL+"|"+query_private+"|"+Date.now()+"|"+Vue.prototype.$useremail);
+    if(path.includes("/log/")){
+        rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}${"|"+Vue.prototype.$useremail}`
+    }
+    //console.log("rawUrl function:"+rawURL+"|"+query_private+"|"+Date.now()+"|"+Vue.prototype.$useremail);
     return rawURL;
 }
 
@@ -60,7 +63,10 @@ export async function query(index, q, opts = {}, query_private=false) {
     //console.log("query function:"+index+"|"+query_private);
     let { limit, onResolve, onError, onLoad, limitWhile} = opts;
     let req = request(`/api/bio/query/${index}`, { q, limit }, query_private);
-
+    //add log to bioindex
+    if (query_private == true){
+        request(`/api/bio/log/${index}`, { q, limit }, query_private);
+    }
     return await processRequest(req, onResolve, onError, onLoad, limitWhile, query_private);
 }
 
