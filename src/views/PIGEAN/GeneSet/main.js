@@ -10,6 +10,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
 
 import keyParams from "@/utils/keyParams";
 
@@ -24,7 +25,8 @@ new Vue({
         PageHeader,
         PageFooter,
         SearchHeaderWrapper,
-        PigeanTable
+        PigeanTable,
+        PigeanPlot
     },
 
     data() {

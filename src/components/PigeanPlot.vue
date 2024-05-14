@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div id="pigean-plot">
+    <div :id="plotId">
       <p>Loading...</p>
     </div>
   </div>
@@ -11,9 +11,10 @@ import * as d3 from "d3";
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "xField", "yField"],
+  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields"],
   data() {
       return {
+        plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
         chart: null,
         chartWidth: null,
         svg: null,
@@ -23,7 +24,7 @@ export default Vue.component("pigean-plot", {
       };
   },
   mounted(){
-    this.chart = document.getElementById("pigean-plot");
+    this.chart = document.getElementById(this.plotId);
     this.chartWidth = this.chart.clientWidth;
     addEventListener("resize", (event) => {
         this.chartWidth = this.chart.clientWidth;
@@ -45,7 +46,7 @@ export default Vue.component("pigean-plot", {
       let height = 300 - margin.top - margin.bottom;
       this.chart.innerHTML = "";
 
-      this.svg = d3.select("#pigean-plot")
+      this.svg = d3.select(`#${this.plotId}`)
         .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
@@ -53,15 +54,15 @@ export default Vue.component("pigean-plot", {
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
       this.tooltip = d3
-            .select("#pigean-plot")
-            .append("div")
-            .style("opacity", 0)
-            .attr("class", "tooltip")
-            .style("background-color", "white")
-            .style("border", "2px solid gray")
-            .style("padding", "5px")
-            .style("border-radius", "5px")
-            .style("font-size", "smaller");
+        .select(`#${this.plotId}`)
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "white")
+        .style("border", "2px solid gray")
+        .style("padding", "5px")
+        .style("border-radius", "5px")
+        .style("font-size", "smaller");
 
       let xMin = this.extremeVal(this.xField);
       let yMin = this.extremeVal(this.yField);
@@ -75,7 +76,7 @@ export default Vue.component("pigean-plot", {
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale));
-      let xAxisLabel = d3.select("#pigean-plot")
+      let xAxisLabel = d3.select(`#${this.plotId}`)
         .append("div")
         .style("position", "relative")
         .style("left", `${width / 2 + margin.left}px`)
@@ -89,7 +90,7 @@ export default Vue.component("pigean-plot", {
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale));
-      let yAxisLabel = d3.select("#pigean-plot")
+      let yAxisLabel = d3.select(`#${this.plotId}`)
         .append("div")
         .style("position", "relative")
         .style("top", `${-height/2 - margin.bottom - margin.top}px`)
@@ -103,14 +104,14 @@ export default Vue.component("pigean-plot", {
         .data(this.pigeanData)
         .enter()
         .append("circle")
-          .attr("class", d => d.phenotype)
+          .attr("class", d => `${d[this.dotKey]}`)
           .attr("cx", d => this.xScale(d[this.xField]))
           .attr("cy", d => this.yScale(d[this.yField]))
           .attr("r", 2)
           .attr("fill", "none")
-          .attr("stroke", "lightgray")
+          .attr("stroke", "gray")
           .on("mouseover", (g) =>
-              this.hoverDot(g.gene, g.phenotype, g.combined));
+              this.hoverDot(JSON.stringify(g)));
     },
     extremeVal(field, min=true){
       let sorted = this.pigeanData.sort((a,b) => {
@@ -120,12 +121,13 @@ export default Vue.component("pigean-plot", {
       let index = min ? 0 : sorted.length - 1;
       return sorted[index][field]
     },
-    hoverDot(gene, phenotype, combined) {
+    hoverDot(dotString) {
       this.unHoverDot();
+      let dotObject = JSON.parse(dotString);
       this.svg.selectAll("circle")
-        .style("stroke", "lightgray")
+        .style("stroke", "gray")
         .style("fill", "none");
-      this.svg.selectAll(`circle.${phenotype}`)
+      this.svg.selectAll(`circle.${dotObject[this.dotKey]}`)
         .style("stroke", "#69b3a2")
         .style("fill", "#69b3a2");
 
@@ -133,13 +135,13 @@ export default Vue.component("pigean-plot", {
       let ycoord = `${d3.event.layerY}px`;
 
       // Tooltip content
-      let tooltipContent = `Gene: ${gene}`;
-      tooltipContent = tooltipContent.concat(
-          `<span>Phenotype: ${phenotype}</span>`
-      );
-      tooltipContent = tooltipContent.concat(
-          `<span>Combined: ${combined}</span>`
-      );
+      let tooltipContent = `${this.dotKey}: ${dotObject[this.dotKey]}`;
+      if (!!this.hoverFields){
+        this.hoverFields.forEach(field =>
+          tooltipContent = tooltipContent.concat(
+            `<span>${field}: ${dotObject[field]}</span>`)
+        );
+      }
       this.tooltip
         .style("opacity", 1)
         .html(tooltipContent)
