@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div id="pigean-plot">
+    <div :id="plotId">
       <p>Loading...</p>
     </div>
   </div>
@@ -14,6 +14,7 @@ export default Vue.component("pigean-plot", {
   props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields"],
   data() {
       return {
+        plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
         chart: null,
         chartWidth: null,
         svg: null,
@@ -23,7 +24,7 @@ export default Vue.component("pigean-plot", {
       };
   },
   mounted(){
-    this.chart = document.getElementById("pigean-plot");
+    this.chart = document.getElementById(this.plotId);
     this.chartWidth = this.chart.clientWidth;
     addEventListener("resize", (event) => {
         this.chartWidth = this.chart.clientWidth;
@@ -45,7 +46,7 @@ export default Vue.component("pigean-plot", {
       let height = 300 - margin.top - margin.bottom;
       this.chart.innerHTML = "";
 
-      this.svg = d3.select("#pigean-plot")
+      this.svg = d3.select(`#${this.plotId}`)
         .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
@@ -53,15 +54,15 @@ export default Vue.component("pigean-plot", {
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
       this.tooltip = d3
-            .select("#pigean-plot")
-            .append("div")
-            .style("opacity", 0)
-            .attr("class", "tooltip")
-            .style("background-color", "white")
-            .style("border", "2px solid gray")
-            .style("padding", "5px")
-            .style("border-radius", "5px")
-            .style("font-size", "smaller");
+        .select(`#${this.plotId}`)
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "white")
+        .style("border", "2px solid gray")
+        .style("padding", "5px")
+        .style("border-radius", "5px")
+        .style("font-size", "smaller");
 
       let xMin = this.extremeVal(this.xField);
       let yMin = this.extremeVal(this.yField);
@@ -75,7 +76,7 @@ export default Vue.component("pigean-plot", {
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale));
-      let xAxisLabel = d3.select("#pigean-plot")
+      let xAxisLabel = d3.select(`#${this.plotId}`)
         .append("div")
         .style("position", "relative")
         .style("left", `${width / 2 + margin.left}px`)
@@ -89,7 +90,7 @@ export default Vue.component("pigean-plot", {
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale));
-      let yAxisLabel = d3.select("#pigean-plot")
+      let yAxisLabel = d3.select(`#${this.plotId}`)
         .append("div")
         .style("position", "relative")
         .style("top", `${-height/2 - margin.bottom - margin.top}px`)
