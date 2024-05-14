@@ -68,12 +68,6 @@ new Vue({
         symbolName() {
             return this.$store.getters.canonicalSymbol;
         },
-        sortedGeneData(){
-            return this.$store.state.pigeanGene.data.sort(
-                (a,b) => a.combined < b.combined ? 1 :
-                    a.combined > b.combined ? -1 : 0
-            );
-        }
     },
     watch: {
         diseaseGroup(group) {

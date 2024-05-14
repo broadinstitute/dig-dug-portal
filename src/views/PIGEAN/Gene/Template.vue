@@ -85,15 +85,15 @@
                         Gene
                         {{ $store.state.geneName }}
                     </h4>
-                    <pigean-plot v-if="$parent.sortedGeneData.length > 0"
-                        :pigeanData="$parent.sortedGeneData"
+                    <pigean-plot v-if="$store.state.pigeanGene.data.length > 0"
+                        :pigeanData="$store.state.pigeanGene.data"
                         xField="prior"
                         yField="log_bf"
                         dotKey="phenotype"
                         :hoverFields="['gene', 'combined']">
                     </pigean-plot>
                     <pigean-table
-                        :pigeanData="$parent.sortedGeneData"
+                        :pigeanData="$store.state.pigeanGene.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :config="$parent.tableConfig">
                     </pigean-table>
