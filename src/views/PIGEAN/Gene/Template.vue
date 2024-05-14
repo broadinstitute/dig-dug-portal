@@ -80,36 +80,39 @@
             </div>
 
             <div class="card mdkp-card">
+                <div class="row card-body">
+                    <div class="col-md-8">
+                        <h4 class="card-title">
+                            Gene
+                            {{ $store.state.geneName }}
+                        </h4>
+                        <research-phewas-plot
+                            v-if="$store.state.pigeanGene.data.length > 0"
+                            canvas-id="pigeanGene"
+                            :plotName="`PIGEAN_${$store.state.geneName}`"
+                            :phenotypes-data="$store.state.pigeanGene.data"
+                            :phenotype-map="
+                                $store.state.bioPortal.phenotypeMap
+                            "
+                            :colors="$parent.plotColors"
+                            :render-config="$parent.renderConfig"
+                            :pkg-data="null"
+                            :pkg-data-selected="null"
+                            :utils="$parent.utilsBox"
+                        >
+                        </research-phewas-plot>
+                    </div>
+                    <div class="col-md-4">
+                        <pigean-plot v-if="$store.state.pigeanGene.data.length > 0"
+                            :pigeanData="$store.state.pigeanGene.data"
+                            xField="prior"
+                            yField="log_bf"
+                            dotKey="phenotype"
+                            :hoverFields="['gene', 'combined']">
+                        </pigean-plot>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <h4 class="card-title">
-                        Gene
-                        {{ $store.state.geneName }}
-                    </h4>
-                    <research-phewas-plot
-                        v-if="$store.state.pigeanGene.data.length > 0"
-                        canvas-id="pigeanGene"
-                        :plotName="`PIGEAN_${$store.state.geneName}`"
-                        :phenotypes-data="$store.state.pigeanGene.data"
-                        :phenotype-map="
-                            $store.state.bioPortal.phenotypeMap
-                        "
-                        :colors="$parent.plotColors"
-                        :plot-margin="$parent.phewasPlotMargin"
-                        :render-config="
-                            $parent.renderConfig
-                        "
-                        :pkg-data="null"
-                        :pkg-data-selected="null"
-                        :utils="$parent.utilsBox"
-                    >
-                    </research-phewas-plot>
-                    <pigean-plot v-if="$store.state.pigeanGene.data.length > 0"
-                        :pigeanData="$store.state.pigeanGene.data"
-                        xField="prior"
-                        yField="log_bf"
-                        dotKey="phenotype"
-                        :hoverFields="['gene', 'combined']">
-                    </pigean-plot>
                     <pigean-table
                         :pigeanData="$store.state.pigeanGene.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"

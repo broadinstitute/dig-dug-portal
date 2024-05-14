@@ -43,7 +43,7 @@ export default Vue.component("pigean-plot", {
         left: 90
       };
       let width = this.chartWidth - margin.left - margin.right;
-      let height = 300 - margin.top - margin.bottom;
+      let height = 400 - margin.top - margin.bottom;
       this.chart.innerHTML = "";
 
       this.svg = d3.select(`#${this.plotId}`)

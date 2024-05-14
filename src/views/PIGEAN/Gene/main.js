@@ -75,13 +75,6 @@ new Vue({
                 '#D5A768',
                 '#d4d4d4'
             ],
-            phewasPlotMargin: {
-                leftMargin: 150,
-                rightMargin: 40,
-                topMargin: 20,
-                bottomMargin: 100,
-                bump: 11
-            },
             renderConfig: {
                 type: 'phewas plot',
                 'render by': 'phenotype',
@@ -99,7 +92,7 @@ new Vue({
                 ],
                 thresholds: [Math.log(3), Math.log(30)],
                 'label in black': 'greater than',
-                height: '600',
+                height: '400',
                 "plot margin": {
                     "left": 150,
                     "right": 150,
