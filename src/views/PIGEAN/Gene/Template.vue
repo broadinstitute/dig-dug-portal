@@ -80,12 +80,14 @@
             </div>
 
             <div class="card mdkp-card">
+                <div class="card-body title">
+                    <h4 class="card-title">
+                        Gene
+                        {{ $store.state.geneName }}
+                    </h4>
+                </div>
                 <div class="row card-body plots">
                     <div class="col-md-8">
-                        <h4 class="card-title">
-                            Gene
-                            {{ $store.state.geneName }}
-                        </h4>
                         <research-phewas-plot
                             v-if="$store.state.pigeanGene.data.length > 0"
                             canvas-id="pigeanGene"
@@ -112,7 +114,7 @@
                         </pigean-plot>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body pigean-table">
                     <pigean-table
                         :pigeanData="$store.state.pigeanGene.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
@@ -298,5 +300,12 @@
 }
 .card-body.plots {
     padding-bottom: 0;
+    padding-top: 0;
+}
+.card-body.title{
+    padding-bottom: 0;
+}
+.card-body.pigean-table {
+    padding-top: 0;
 }
 </style>

@@ -1,13 +1,21 @@
 <template>
-  <div>
-    <div :id="plotId">
-      <p>Loading...</p>
+  <div class="mbm-plot-content row">
+		<div class="col-md-12">
+      <download-chart
+				filename="PIGEAN_plot"
+				:chartId="plotId"
+				>
+			</download-chart>
+      <div :id="plotId">
+        <p>Loading...</p>
+      </div>
     </div>
   </div>
 </template>
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
+import DownloadChart from "./DownloadChart.vue";
 export default Vue.component("pigean-plot", {
   components: {
   },

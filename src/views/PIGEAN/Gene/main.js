@@ -92,7 +92,7 @@ new Vue({
                 ],
                 thresholds: [Math.log(3), Math.log(30)],
                 'label in black': 'greater than',
-                height: '400',
+                height: '535',
                 "plot margin": {
                     "left": 150,
                     "right": 180,
