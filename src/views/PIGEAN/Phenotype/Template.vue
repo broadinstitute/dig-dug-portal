@@ -96,6 +96,12 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <pigean-plot v-if="$store.state.genesetPhenotype.data.length > 0"
+                        :pigeanData="$store.state.genesetPhenotype.data"
+                        xField="beta_uncorrected"
+                        yField="beta"
+                        dotKey="gene_set">
+                    </pigean-plot>
                     <pigean-table
                         :pigeanData="$store.state.genesetPhenotype.data"
                         :config="$parent.genesetTableConfig">
