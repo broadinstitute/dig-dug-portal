@@ -80,7 +80,7 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="row card-body">
+                <div class="row card-body plots">
                     <div class="col-md-8">
                         <h4 class="card-title">
                             Gene
@@ -295,5 +295,8 @@
 .pseudoFilter a {
     color: inherit !important;
     text-decoration: inherit !important;
+}
+.card-body.plots {
+    padding-bottom: 0;
 }
 </style>

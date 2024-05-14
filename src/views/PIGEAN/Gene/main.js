@@ -95,7 +95,7 @@ new Vue({
                 height: '400',
                 "plot margin": {
                     "left": 150,
-                    "right": 150,
+                    "right": 180,
                     "top": 250,
                     "bottom": 300
                 }
