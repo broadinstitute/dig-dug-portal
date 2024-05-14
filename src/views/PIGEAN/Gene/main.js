@@ -12,8 +12,16 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 
 import keyParams from "@/utils/keyParams";
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -28,7 +36,8 @@ new Vue({
         SearchHeaderWrapper,
         GeneSelectPicker,
         PigeanTable,
-        PigeanPlot
+        PigeanPlot,
+        ResearchPheWAS
     },
 
     data() {
@@ -47,8 +56,50 @@ new Vue({
                     { key: "gene_set", sortable: true },
                     { key: "beta", sortable: true },
                   ],
-                
-            }
+            },
+            plotColors: [
+                '#007bff',
+                '#048845',
+                '#8490C8',
+                '#BF61A5',
+                '#EE3124',
+                '#FCD700',
+                '#5555FF',
+                '#7aaa1c',
+                '#9F78AC',
+                '#F88084',
+                '#F5A4C7',
+                '#CEE6C1',
+                '#cccc00',
+                '#6FC7B6',
+                '#D5A768',
+                '#d4d4d4'
+            ],
+            renderConfig: {
+                type: 'phewas plot',
+                'render by': 'phenotype',
+                'group by': 'group',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'combined',
+                'convert y -log10': 'false',
+                'y axis label': 'Combined',
+                'x axis label': '',
+                'beta field': 'null',
+                'hover content': [
+                    'combined',
+                    'log_bf',
+                    'prior',
+                ],
+                thresholds: [Math.log(3), Math.log(30)],
+                'label in black': 'greater than',
+                height: '535',
+                "plot margin": {
+                    "left": 150,
+                    "right": 180,
+                    "top": 250,
+                    "bottom": 300
+                }
+            },
         };
     },
     computed: {
@@ -68,12 +119,18 @@ new Vue({
         symbolName() {
             return this.$store.getters.canonicalSymbol;
         },
-        sortedGeneData(){
-            return this.$store.state.pigeanGene.data.sort(
-                (a,b) => a.combined < b.combined ? 1 :
-                    a.combined > b.combined ? -1 : 0
-            );
-        }
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
     },
     watch: {
         diseaseGroup(group) {

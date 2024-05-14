@@ -80,20 +80,43 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body">
+                <div class="card-body title">
                     <h4 class="card-title">
                         Gene
                         {{ $store.state.geneName }}
                     </h4>
-                    <pigean-plot v-if="$parent.sortedGeneData.length > 0"
-                        :pigeanData="$parent.sortedGeneData"
-                        xField="prior"
-                        yField="log_bf"
-                        dotKey="phenotype"
-                        :hoverFields="['gene', 'combined']">
-                    </pigean-plot>
+                </div>
+                <div class="row card-body plots">
+                    <div class="col-md-8">
+                        <research-phewas-plot
+                            v-if="$store.state.pigeanGene.data.length > 0"
+                            canvas-id="pigeanGene"
+                            :plotName="`PIGEAN_${$store.state.geneName}`"
+                            :phenotypes-data="$store.state.pigeanGene.data"
+                            :phenotype-map="
+                                $store.state.bioPortal.phenotypeMap
+                            "
+                            :colors="$parent.plotColors"
+                            :render-config="$parent.renderConfig"
+                            :pkg-data="null"
+                            :pkg-data-selected="null"
+                            :utils="$parent.utilsBox"
+                        >
+                        </research-phewas-plot>
+                    </div>
+                    <div class="col-md-4">
+                        <pigean-plot v-if="$store.state.pigeanGene.data.length > 0"
+                            :pigeanData="$store.state.pigeanGene.data"
+                            xField="prior"
+                            yField="log_bf"
+                            dotKey="phenotype"
+                            :hoverFields="['gene', 'combined']">
+                        </pigean-plot>
+                    </div>
+                </div>
+                <div class="card-body pigean-table">
                     <pigean-table
-                        :pigeanData="$parent.sortedGeneData"
+                        :pigeanData="$store.state.pigeanGene.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :config="$parent.tableConfig">
                     </pigean-table>
@@ -274,5 +297,15 @@
 .pseudoFilter a {
     color: inherit !important;
     text-decoration: inherit !important;
+}
+.card-body.plots {
+    padding-bottom: 0;
+    padding-top: 0;
+}
+.card-body.title{
+    padding-bottom: 0;
+}
+.card-body.pigean-table {
+    padding-top: 0;
 }
 </style>
