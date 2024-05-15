@@ -340,17 +340,39 @@ export default Vue.component("research-single-search", {
 				this.singleSearchConfig["search parameters"].map(param =>{
 					if(param.values == PARAM) {
 						returnParam.active = true;
-						returnParam.url = '/research.html?pageid='
-							+param['target page']['page id'];
+						if(!!param['target page']['page id']) {
+							returnParam.url = '/research.html?pageid='
+								+ param['target page']['page id'];
+						} else if(!!param['target page']['url']) {
+							returnParam.url = param['target page']['url'];
+						}
+						//returnParam.url = '/research.html?pageid='+param['target page']['page id'];
 						returnParam.url += (!!param['target page']['entity'])? '&' + param['target page']['entity parameter'] + '='+param['target page']['entity']:"";
-						returnParam.url += '&'+param['parameter']+'=';
+						
+						if (!!param['target page']['page id']) {
+							returnParam.url += '&' + param['parameter'] + '=';
+						} else if (!!param['target page']['url']) {
+							returnParam.url += param['parameter'] + '=';
+						}
+						
 					} else {
 						if(param.parameter == PARAM) {
 							returnParam.active = true;
-							returnParam.url = '/research.html?pageid='
-								+ param['target page']['page id'];
+							if (!!param['target page']['page id']) {
+								returnParam.url = '/research.html?pageid='
+									+ param['target page']['page id'];
+							} else if (!!param['target page']['url']) {
+								returnParam.url = param['target page']['url'];
+							}
+							/*returnParam.url = '/research.html?pageid='
+								+ param['target page']['page id'];*/
 							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
-							returnParam.url += '&' + param['parameter'] + '=';
+							//returnParam.url += '&' + param['parameter'] + '=';
+							if (!!param['target page']['page id']) {
+								returnParam.url += '&' + param['parameter'] + '=';
+							} else if (!!param['target page']['url']) {
+								returnParam.url += param['parameter'] + '=';
+							}
 						}
 					}
 				})
