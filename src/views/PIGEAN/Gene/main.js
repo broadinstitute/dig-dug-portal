@@ -102,6 +102,10 @@ new Vue({
             },
         };
     },
+    mounted(){
+        console.log("checking to see if this is useful");
+        console.log(document.querySelectorAll(".legend").length);
+    },
     computed: {
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
