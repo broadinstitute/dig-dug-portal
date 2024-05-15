@@ -80,13 +80,13 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body title">
+                <div class="card-body pigean-title">
                     <h4 class="card-title">
                         Gene
                         {{ $store.state.geneName }}
                     </h4>
                 </div>
-                <div class="row card-body plots">
+                <div class="row card-body pigean-plots">
                     <div class="col-md-8">
                         <research-phewas-plot
                             v-if="$store.state.pigeanGene.data.length > 0"
@@ -298,11 +298,11 @@
     color: inherit !important;
     text-decoration: inherit !important;
 }
-.card-body.plots {
+.card-body.pigean-plots {
     padding-bottom: 0;
     padding-top: 0;
 }
-.card-body.title{
+.card-body.pigean-title{
     padding-bottom: 0;
 }
 .card-body.pigean-table {
