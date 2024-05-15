@@ -62,22 +62,45 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body">
+                <div class="card-body title">
                     <h4 class="card-title">
                         Gene set
                         {{ $store.state.geneset }}
                     </h4>
-                    <pigean-plot v-if="$store.state.pigeanGeneset.data.length > 0"
-                        :pigeanData="$store.state.pigeanGeneset.data"
-                        xField="beta_uncorrected"
-                        yField="beta"
-                        dotKey="phenotype">
-                    </pigean-plot>
-                    <pigean-table
-                        :pigeanData="$store.state.pigeanGeneset.data"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                        :config="$parent.tableConfig">
-                    </pigean-table>
+                </div>
+                <div class="row card-body plots">
+                    <div class="col-md-8">
+                        <research-phewas-plot
+                            v-if="$store.state.pigeanGeneset.data.length > 0"
+                            canvas-id="pigeanGeneSet"
+                            :plotName="`PIGEAN_${$store.state.geneset}`"
+                            :phenotypes-data="$store.state.pigeanGeneset.data"
+                            :phenotype-map="
+                                $store.state.bioPortal.phenotypeMap
+                            "
+                            :colors="$parent.plotColors"
+                            :render-config="$parent.renderConfig"
+                            :pkg-data="null"
+                            :pkg-data-selected="null"
+                            :utils="$parent.utilsBox"
+                        >
+                        </research-phewas-plot>
+                    </div>
+                    <div class="col-md-4">
+                        <pigean-plot v-if="$store.state.pigeanGeneset.data.length > 0"
+                            :pigeanData="$store.state.pigeanGeneset.data"
+                            xField="beta_uncorrected"
+                            yField="beta"
+                            dotKey="phenotype">
+                        </pigean-plot>
+                    </div>
+                    <div class="card-body pigean-table">
+                        <pigean-table
+                            :pigeanData="$store.state.pigeanGeneset.data"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            :config="$parent.tableConfig">
+                        </pigean-table>    
+                    </div>
                 </div>
             </div>
         </div>
