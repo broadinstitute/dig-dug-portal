@@ -11,8 +11,16 @@ import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+
 
 import keyParams from "@/utils/keyParams";
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -20,13 +28,15 @@ Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
-    modules: {},
+    modules: {
+    },
     components: {
         PageHeader,
         PageFooter,
         SearchHeaderWrapper,
         PigeanTable,
-        PigeanPlot
+        PigeanPlot,
+        ResearchPheWAS
     },
 
     data() {
@@ -46,7 +56,32 @@ new Vue({
                     { key: "log_bf", sortable: true },
                     { key: "prior", sortable: true }
                 ]
-            }
+            },
+            plotColors: plotUtils.plotColors(),
+            renderConfig: {
+                type: 'phewas plot',
+                'render by': 'phenotype',
+                'group by': 'group',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'beta_uncorrected',
+                'convert y -log10': 'false',
+                'y axis label': 'Beta (uncorrected)',
+                'x axis label': '',
+                'beta field': 'beta_uncorrected',
+                'hover content': [
+                    'beta',
+                    'beta_uncorrected'
+                ],
+                thresholds: [Math.log(3), Math.log(30)],
+                'label in black': 'greater than',
+                height: '535',
+                "plot margin": {
+                    "left": 150,
+                    "right": 180,
+                    "top": 250,
+                    "bottom": 300
+                }
+            },
         };
     },
     computed: {
@@ -59,6 +94,18 @@ new Vue({
                 return {};
             }
             return contents[0];
+        },
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
         },
     },
     watch: {
@@ -73,7 +120,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
-    methods: {},
+    methods: {
+    },
 
     render(createElement, context) {
         return createElement(Template);
