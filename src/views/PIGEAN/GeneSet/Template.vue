@@ -80,8 +80,6 @@
                             "
                             :colors="$parent.plotColors"
                             :render-config="$parent.renderConfig"
-                            :pkg-data="null"
-                            :pkg-data-selected="null"
                             :utils="$parent.utilsBox"
                         >
                         </research-phewas-plot>
