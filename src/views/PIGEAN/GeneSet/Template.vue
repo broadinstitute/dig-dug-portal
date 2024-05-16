@@ -88,7 +88,6 @@
                             xField="beta_uncorrected"
                             yField="beta"
                             dotKey="phenotype"
-                            :hoverFields="[]"
                             :phenotype-map="$store.state.bioPortal.phenotypeMap"
                         >
                         </pigean-plot>

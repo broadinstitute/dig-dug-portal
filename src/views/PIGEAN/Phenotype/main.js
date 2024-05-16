@@ -136,6 +136,10 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
+        plotReady(){
+            return this.$store.state.genesetPhenotype.data.length > 0
+                && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        }
     },
 
     watch: {
