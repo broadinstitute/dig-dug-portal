@@ -29,8 +29,6 @@
             </search-header-wrapper>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">Gene</div>
-                    <div class="col-md-4 gene-page-header-title">Navigate</div>
                     <div class="col-md-8 gene-page-header-body">
                         <div>
                             <span>{{
