@@ -19,7 +19,8 @@ import DownloadChart from "./DownloadChart.vue";
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields", "plotHeight"],
+  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields", 
+    "plotHeight", "phenotypeMap"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
@@ -30,6 +31,7 @@ export default Vue.component("pigean-plot", {
         xScale: null,
         yScale: null,
         tooltip: null,
+        colorMap: null
       };
   },
   mounted(){
@@ -45,6 +47,7 @@ export default Vue.component("pigean-plot", {
   },
   methods: {
     drawChart(){
+      this.groupColors();
       let margin = {
         top: 10,
         right: 30,
@@ -159,6 +162,18 @@ export default Vue.component("pigean-plot", {
     unHoverDot() {
       this.tooltip.style("opacity", 0);
     },
+    groupColors(){
+      let groupsInUse = this.pigeanData.map(d => d.phenotype)
+        .map(p => !!this.phenotypeMap[p] ? this.phenotypeMap[p]["group"] : "")
+        .filter(g => g !== "")
+        .sort();
+      console.log(JSON.stringify(groupsInUse));
+      let uniqueGroups = new Set();
+      groupsInUse.forEach(g => uniqueGroups.add(g));
+      for (const item of uniqueGroups){
+        console.log(item);
+      }
+    }
   },
 });
 </script>

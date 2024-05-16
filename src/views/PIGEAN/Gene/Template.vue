@@ -93,9 +93,7 @@
                             canvas-id="pigeanGene"
                             :plotName="`PIGEAN_${$store.state.geneName}`"
                             :phenotypes-data="$store.state.pigeanGene.data"
-                            :phenotype-map="
-                                $store.state.bioPortal.phenotypeMap
-                            "
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :colors="$parent.plotColors"
                             :render-config="$parent.renderConfig"
                             :utils="$parent.utilsBox"
@@ -108,7 +106,9 @@
                             xField="prior"
                             yField="log_bf"
                             dotKey="phenotype"
-                            :hoverFields="['gene', 'combined']">
+                            :hoverFields="['gene', 'combined']"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        >
                         </pigean-plot>
                     </div>
                 </div>
