@@ -44,17 +44,33 @@ new Vue({
         return {
             tableConfig: {
                 fields: [
-                    { key: "phenotype", sortable: true },
-                    { key: "combined", sortable: true },
-                    { key: "log_bf", sortable: true },
-                    { key: "prior", sortable: true },
-                    { key: "expand", label: "Gene sets" } 
+                    { key: "phenotype", 
+                        label: "Phenotype",
+                        sortable: true },
+                    { key: "combined", 
+                        label: "Combined",
+                        sortable: true },
+                    { key: "huge_score", 
+                        label: "GWAS evidence unweighted",
+                        sortable: true },
+                    { key: "log_bf", 
+                        label: "GWAS evidence weighted",
+                        sortable: true },
+                    { key: "prior", 
+                        label: "Gene set evidence",
+                        sortable: true },
+                    { key: "expand", 
+                        label: "Gene sets" } 
                   ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
                 subtableFields: [
-                    { key: "gene_set", sortable: true },
-                    { key: "beta", sortable: true },
+                    { key: "gene_set", 
+                        label: "Gene set",
+                        sortable: true },
+                    { key: "beta", 
+                        label: "Effect (joint)",
+                        sortable: true },
                   ],
             },
             plotColors: plotUtils.plotColors(),
@@ -70,6 +86,7 @@ new Vue({
                 'beta field': 'null',
                 'hover content': [
                     'combined',
+                    'huge_score',
                     'log_bf',
                     'prior',
                 ],
