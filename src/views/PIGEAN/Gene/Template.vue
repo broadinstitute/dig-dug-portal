@@ -89,7 +89,7 @@
                 <div class="row card-body pigean-plots">
                     <div class="col-md-8">
                         <research-phewas-plot
-                            v-if="$store.state.pigeanGene.data.length > 0"
+                            v-if="$parent.plotReady"
                             canvas-id="pigeanGene"
                             :plotName="`PIGEAN_${$store.state.geneName}`"
                             :phenotypes-data="$store.state.pigeanGene.data"
@@ -101,7 +101,7 @@
                         </research-phewas-plot>
                     </div>
                     <div class="col-md-4">
-                        <pigean-plot v-if="$store.state.pigeanGene.data.length > 0"
+                        <pigean-plot v-if="$parent.plotReady"
                             :pigeanData="$store.state.pigeanGene.data"
                             xField="prior"
                             yField="log_bf"
