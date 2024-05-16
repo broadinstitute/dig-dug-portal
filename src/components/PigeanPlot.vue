@@ -50,7 +50,6 @@ export default Vue.component("pigean-plot", {
   },
   methods: {
     drawChart(){
-      this.groupColors();
       let margin = {
         top: 10,
         right: 30,
@@ -183,7 +182,7 @@ export default Vue.component("pigean-plot", {
     },
     dotColor(phenotype){
       if (!this.phenotypeMap[phenotype]){
-        return "gray";
+        return this.dotOutlineColor;
       }
       return this.colorMap[this.phenotypeMap[phenotype].group];
     },

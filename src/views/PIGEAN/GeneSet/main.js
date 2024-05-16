@@ -107,6 +107,10 @@ new Vue({
             }
             return utils;
         },
+        plotReady(){
+            return this.$store.state.pigeanGeneset.data.length > 0
+                && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        }
     },
     watch: {
         diseaseGroup(group) {

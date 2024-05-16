@@ -71,13 +71,11 @@
                 <div class="row card-body pigean-plots">
                     <div class="col-md-8">
                         <research-phewas-plot
-                            v-if="$store.state.pigeanGeneset.data.length > 0"
+                            v-if="$parent.plotReady"
                             canvas-id="pigeanGeneSet"
                             :plotName="`PIGEAN_${$store.state.geneset}`"
                             :phenotypes-data="$store.state.pigeanGeneset.data"
-                            :phenotype-map="
-                                $store.state.bioPortal.phenotypeMap
-                            "
+                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
                             :colors="$parent.plotColors"
                             :render-config="$parent.renderConfig"
                             :utils="$parent.utilsBox"
@@ -85,11 +83,14 @@
                         </research-phewas-plot>
                     </div>
                     <div class="col-md-4">
-                        <pigean-plot v-if="$store.state.pigeanGeneset.data.length > 0"
+                        <pigean-plot v-if="$parent.plotReady"
                             :pigeanData="$store.state.pigeanGeneset.data"
                             xField="beta_uncorrected"
                             yField="beta"
-                            dotKey="phenotype">
+                            dotKey="phenotype"
+                            :hoverFields="[]"
+                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        >
                         </pigean-plot>
                     </div>
                     <div class="card-body pigean-table">
