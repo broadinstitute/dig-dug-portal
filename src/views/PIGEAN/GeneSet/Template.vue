@@ -11,10 +11,9 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
                 <div class="col filter-col-md">
                     <div class="label">Gene set</div>
-                    Gene set search coming soon
+                    <geneset-selectpicker></geneset-selectpicker>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Search</div>
@@ -30,8 +29,6 @@
             </search-header-wrapper>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">Gene</div>
-                    <div class="col-md-4 gene-page-header-title">Navigate</div>
                     <div class="col-md-8 gene-page-header-body">
                         <div>
                             <span>{{
