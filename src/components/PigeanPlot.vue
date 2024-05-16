@@ -17,6 +17,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 import DownloadChart from "./DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
+import Formatters from "@/utils/formatters";
 export default Vue.component("pigean-plot", {
   components: {
   },
@@ -136,24 +137,24 @@ export default Vue.component("pigean-plot", {
     },
     hoverDot(dotString) {
       this.unHoverDot();
-      let dotObject = JSON.parse(dotString);
-      // this.svg.selectAll("circle")
-      //   .style("stroke", this.dotOutlineColor)
-      //   .style("fill", "none");
-      this.svg.selectAll(`circle.${dotObject[this.dotKey]}`)
-        .style("fill", "#69b3a2");
+      let dot = JSON.parse(dotString);
 
       let xcoord = `${d3.event.layerX + 20}px`;
       let ycoord = `${d3.event.layerY}px`;
 
       // Tooltip content
-      let tooltipContent = `${this.dotKey}: ${dotObject[this.dotKey]}`;
-      if (!!this.hoverFields){
-        this.hoverFields.forEach(field =>
-          tooltipContent = tooltipContent.concat(
-            `<span>${field}: ${dotObject[field]}</span>`)
-        );
-      }
+      let tooltipContent = "";
+      let allHoverFields = !this.hoverFields.includes(this.dotKey) ?
+        [this.dotKey].concat(this.hoverFields) : this.hoverFields;
+      
+      allHoverFields.forEach(field =>{
+        let newLine = field === "phenotype" ?
+          `phenotype: ${this.phDesc(dot.phenotype)}`
+          : `${field}: ${dot[field]}`;
+        tooltipContent = tooltipContent.concat(
+          `<span>${newLine}</span>`);
+      });
+      
       this.tooltip
         .style("opacity", 1)
         .html(tooltipContent)
@@ -185,7 +186,13 @@ export default Vue.component("pigean-plot", {
         return "gray";
       }
       return this.colorMap[this.phenotypeMap[phenotype].group];
-    }
+    },
+    phDesc(phenotype){
+      if (!this.phenotypeMap[phenotype]){
+        return phenotype;
+      }
+      return Formatters.phenotypeFormatter(this.phenotypeMap[phenotype])
+    },
   },
   watch: {
     phenotypeMap(map){
