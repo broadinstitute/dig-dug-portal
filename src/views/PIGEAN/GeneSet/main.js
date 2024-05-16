@@ -9,6 +9,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import GenesetSelectPicker from "@/components/GenesetSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -36,7 +37,8 @@ new Vue({
         SearchHeaderWrapper,
         PigeanTable,
         PigeanPlot,
-        ResearchPheWAS
+        ResearchPheWAS,
+        GenesetSelectPicker,
     },
 
     data() {
