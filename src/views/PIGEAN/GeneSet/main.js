@@ -43,18 +43,33 @@ new Vue({
         return {
             tableConfig: {
                 fields: [
-                    { key: "phenotype", sortable: true },
-                    { key: "beta", sortable: true },
-                    { key: "beta_uncorrected", sortable: true },
-                    { key: "expand", label: "Genes"}
+                    { key: "phenotype", 
+                        label: "Phenotype",
+                        sortable: true },
+                    { key: "beta_uncorrected", 
+                        label: "Effect (marginal)",
+                        sortable: true },
+                    { key: "beta", 
+                        label: "Effect (joint)",
+                        sortable: true },
+                    { key: "expand", 
+                        label: "Genes"}
                 ],
                 queryParam: "gene_set",
                 subtableEndpoint: "pigean-joined-gene-set",
                 subtableFields: [
-                    { key: "gene", sortable: true },
-                    { key: "combined", sortable: true },
-                    { key: "log_bf", sortable: true },
-                    { key: "prior", sortable: true }
+                    { key: "gene", 
+                        label: "Gene",
+                        sortable: true },
+                    { key: "combined", 
+                        label: "Combined",
+                        sortable: true },
+                    { key: "log_bf", 
+                        label: "GWAS evidence weighted",
+                        sortable: true },
+                    { key: "prior",
+                        label: "Gene set evidence",
+                        sortable: true }
                 ]
             },
             plotColors: plotUtils.plotColors(),
@@ -107,6 +122,10 @@ new Vue({
             }
             return utils;
         },
+        plotReady(){
+            return this.$store.state.pigeanGeneset.data.length > 0
+                && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        }
     },
     watch: {
         diseaseGroup(group) {

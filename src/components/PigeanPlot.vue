@@ -16,10 +16,13 @@
 import Vue from "vue";
 import * as d3 from "d3";
 import DownloadChart from "./DownloadChart.vue";
+import plotUtils from "@/utils/plotUtils";
+import Formatters from "@/utils/formatters";
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields", "plotHeight"],
+  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields", 
+    "plotHeight", "phenotypeMap"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
@@ -30,6 +33,11 @@ export default Vue.component("pigean-plot", {
         xScale: null,
         yScale: null,
         tooltip: null,
+        allHoverFields : !this.hoverFields ? [this.dotKey] :
+          this.hoverFields.includes(this.dotKey) ? this.hoverFields
+            : [this.dotKey].concat(this.hoverFields),
+        colorMap: this.groupColors(),
+        dotOutlineColor: "#00000075"
       };
   },
   mounted(){
@@ -115,9 +123,9 @@ export default Vue.component("pigean-plot", {
           .attr("class", d => `${d[this.dotKey]}`)
           .attr("cx", d => this.xScale(d[this.xField]))
           .attr("cy", d => this.yScale(d[this.yField]))
-          .attr("r", 2)
-          .attr("fill", "none")
-          .attr("stroke", "gray")
+          .attr("r", 5)
+          .attr("fill", d => this.dotColor(d.phenotype))
+          .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
     },
@@ -131,25 +139,21 @@ export default Vue.component("pigean-plot", {
     },
     hoverDot(dotString) {
       this.unHoverDot();
-      let dotObject = JSON.parse(dotString);
-      this.svg.selectAll("circle")
-        .style("stroke", "gray")
-        .style("fill", "none");
-      this.svg.selectAll(`circle.${dotObject[this.dotKey]}`)
-        .style("stroke", "#69b3a2")
-        .style("fill", "#69b3a2");
+      let dot = JSON.parse(dotString);
 
       let xcoord = `${d3.event.layerX + 20}px`;
       let ycoord = `${d3.event.layerY}px`;
 
       // Tooltip content
-      let tooltipContent = `${this.dotKey}: ${dotObject[this.dotKey]}`;
-      if (!!this.hoverFields){
-        this.hoverFields.forEach(field =>
-          tooltipContent = tooltipContent.concat(
-            `<span>${field}: ${dotObject[field]}</span>`)
-        );
-      }
+      let tooltipContent = "";      
+      this.allHoverFields.forEach(field =>{
+        let newLine = field === "phenotype" ?
+          `phenotype: ${this.phDesc(dot.phenotype)}`
+          : `${field}: ${dot[field]}`;
+        tooltipContent = tooltipContent.concat(
+          `<span>${newLine}</span>`);
+      });
+      
       this.tooltip
         .style("opacity", 1)
         .html(tooltipContent)
@@ -159,7 +163,41 @@ export default Vue.component("pigean-plot", {
     unHoverDot() {
       this.tooltip.style("opacity", 0);
     },
+    groupColors(){
+      let groupsInUse = this.pigeanData.map(d => d.phenotype)
+        .map(p => !!this.phenotypeMap[p] ? this.phenotypeMap[p]["group"] : "")
+        .filter(g => g !== "");
+      let uniqueGroups = [];
+      groupsInUse.forEach(g => {
+        if (!uniqueGroups.includes(g)){
+          uniqueGroups.push(g);
+        }});
+      uniqueGroups.sort();
+      let colorMap = {};
+      let colors = plotUtils.plotColors();
+      for (let i = 0; i < uniqueGroups.length; i++){
+        colorMap[uniqueGroups[i]] = colors[i % colors.length];
+      }
+      return colorMap;
+    },
+    dotColor(phenotype){
+      if (!this.phenotypeMap[phenotype]){
+        return this.dotOutlineColor;
+      }
+      return this.colorMap[this.phenotypeMap[phenotype].group];
+    },
+    phDesc(phenotype){
+      if (!this.phenotypeMap[phenotype]){
+        return phenotype;
+      }
+      return Formatters.phenotypeFormatter(this.phenotypeMap[phenotype])
+    },
   },
+  watch: {
+    phenotypeMap(map){
+      console.log(JSON.stringify(map));
+    }
+  }
 });
 </script>
 <style>
