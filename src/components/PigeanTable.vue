@@ -3,7 +3,7 @@
       <div v-if="rows > 0">
           <div class="text-right mb-2" v-if="!isSubtable">
               <data-download
-                  :data="pigeanData"
+                  :data="probData"
                   filename="pigean_gene"
               ></data-download>
           </div>
@@ -11,7 +11,7 @@
             :hover="isSubtable"
             small
             responsive="sm"
-            :items="pigeanData"
+            :items="probData"
             :fields="config.fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -84,8 +84,8 @@ export default Vue.component("pigean-table", {
           perPage: 10,
           currentPage: 1,
           subtableData: {},
-          prior: 0.05,
-          probData: this.computeProbabilities()
+          probFields: ["combined"],
+          probData: this.computeProbabilities(),
       };
   },
   computed: {
@@ -114,10 +114,25 @@ export default Vue.component("pigean-table", {
         }
         row.toggleDetails();
       },
-      probability(val){
-        let a = Math.exp(Math.log(this.prior) + val);
+      probability(val, prior=0.05){
+        let a = Math.exp(Math.log(prior) + val);
         return a / (1 + a);
+      },
+      computeProbabilities(){
+        let probFields = ["combined"];
+        let data = JSON.parse(JSON.stringify(this.pigeanData)); // Deep copy
+        for (let i = 0; i < probFields.length; i++){
+          let field = probFields[i];
+          for (let j = 0; j < data.length; j++){
+            console.log(this.probability(data[j][field]))
+            if (!!data[j][field] && !Number.isNaN(data[j][field])){
+              data[j][`${field}_probability`] = this.probability(data[j][field]);
+            }
+          }
+        }
+        return data;
       }
+
   },
 });
 </script>
