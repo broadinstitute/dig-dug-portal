@@ -83,6 +83,7 @@ export default Vue.component("pigean-plot", {
 
       let xMin = this.extremeVal(this.xField);
       let yMin = this.extremeVal(this.yField);
+      console.log("y min", yMin);
       let xMax = this.extremeVal(this.xField, false);
       let yMax = this.extremeVal(this.yField, false);
       
@@ -130,12 +131,17 @@ export default Vue.component("pigean-plot", {
               this.hoverDot(JSON.stringify(g)));
     },
     extremeVal(field, min=true){
-      let sorted = this.pigeanData.sort((a,b) => {
-        return a[field] < b[field] ? -1 : 
-          a[field] > b[field] ? 1 : 0;
+      let data = this.pigeanData.filter(d => 
+        d[field] !== undefined && !Number.isNaN(d[field]));
+      let val = data[0][field];
+      this.pigeanData.forEach(d => {
+        if (min && d[field] < val){
+          val = d[field];
+        } else if (!min && d[field] > val){
+            val = d[field];
+        }
       });
-      let index = min ? 0 : sorted.length - 1;
-      return sorted[index][field]
+      return val;
     },
     hoverDot(dotString) {
       this.unHoverDot();

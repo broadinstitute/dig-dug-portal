@@ -86,7 +86,7 @@
                         xField="prior"
                         yField="log_bf"
                         dotKey="gene"
-                        :hoverFields="['combined']"
+                        :hoverFields="['combined', 'log_bf']"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap">
                     </pigean-plot>
                     <pigean-table v-if="$parent.plotReady"
