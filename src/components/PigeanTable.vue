@@ -84,6 +84,8 @@ export default Vue.component("pigean-table", {
           perPage: 10,
           currentPage: 1,
           subtableData: {},
+          prior: 0.05,
+          probData: this.computeProbabilities()
       };
   },
   computed: {
@@ -112,6 +114,10 @@ export default Vue.component("pigean-table", {
         }
         row.toggleDetails();
       },
+      probability(val){
+        let a = Math.exp(Math.log(this.prior) + val);
+        return a / (1 + a);
+      }
   },
 });
 </script>
