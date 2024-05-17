@@ -123,7 +123,10 @@ export default Vue.component("pigean-plot", {
         .append("circle")
           .attr("class", d => `${d[this.dotKey]}`)
           .attr("cx", d => this.xScale(d[this.xField]))
-          .attr("cy", d => this.yScale(d[this.yField]))
+          .attr("cy", d => 
+            d[this.yField] === undefined 
+              ? this.yScale(0) 
+              : this.yScale(d[this.yField]))
           .attr("r", 5)
           .attr("fill", d => this.dotColor(d.phenotype))
           .attr("stroke", this.dotOutlineColor)
