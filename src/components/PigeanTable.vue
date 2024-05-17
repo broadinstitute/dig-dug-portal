@@ -120,9 +120,11 @@ export default Vue.component("pigean-table", {
       },
       computeProbabilities(){
         let probFields = ["combined"];
+        let fieldsInUse = this.config.fields.map(field => field.key);
         let data = JSON.parse(JSON.stringify(this.pigeanData)); // Deep copy
         for (let i = 0; i < probFields.length; i++){
           let field = probFields[i];
+          if (!fieldsInUse.includes(field)) { continue; }
           for (let j = 0; j < data.length; j++){
             console.log(this.probability(data[j][field]))
             if (!!data[j][field] && !Number.isNaN(data[j][field])){
