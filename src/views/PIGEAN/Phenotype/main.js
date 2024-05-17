@@ -169,6 +169,7 @@ new Vue({
         },
         plotReady(){
             return this.$store.state.genesetPhenotype.data.length > 0
+                && this.$store.state.pigeanPhenotype.data.length > 0
                 && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
         }
     },
