@@ -53,7 +53,7 @@ new Vue({
                         sortable: true },
                     { key: "combined_probability",
                         label: "Combined probability",
-                        sortable: false },
+                        sortable: true },
                     { key: "combined",
                         label: "Combined",
                         sortable: true },

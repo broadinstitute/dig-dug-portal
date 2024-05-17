@@ -126,9 +126,8 @@ export default Vue.component("pigean-table", {
           let field = probFields[i];
           if (!fieldsInUse.includes(field)) { continue; }
           for (let j = 0; j < data.length; j++){
-            console.log(this.probability(data[j][field]))
             if (!!data[j][field] && !Number.isNaN(data[j][field])){
-              data[j][`${field}_probability`] = this.probability(data[j][field]);
+              data[j][`${field}_probability`] = this.tpmFormatter(this.probability(data[j][field]));
             }
           }
         }
