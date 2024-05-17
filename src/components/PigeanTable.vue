@@ -12,7 +12,7 @@
             small
             responsive="sm"
             :items="probData"
-            :fields="config.fields"
+            :fields="probFields"
             :per-page="perPage"
             :current-page="currentPage"
             :sort-by="sortBy"
@@ -86,6 +86,7 @@ export default Vue.component("pigean-table", {
           subtableData: {},
           probFields: ["combined"],
           probData: this.computeProbabilities(),
+          probFields: this.collateFields()
       };
   },
   computed: {
@@ -119,12 +120,11 @@ export default Vue.component("pigean-table", {
         return a / (1 + a);
       },
       computeProbabilities(){
-        let probFields = ["combined"];
-        let fieldsInUse = this.config.fields.map(field => field.key);
         let data = JSON.parse(JSON.stringify(this.pigeanData)); // Deep copy
-        for (let i = 0; i < probFields.length; i++){
-          let field = probFields[i];
-          if (!fieldsInUse.includes(field)) { continue; }
+        for (let i = 0; i < this.config.fields.length; i++){
+          let fieldConfig = this.config.fields[i];
+          if (!fieldConfig.showProbability) { continue; }
+          let field = fieldConfig.key;
           for (let j = 0; j < data.length; j++){
             if (!!data[j][field] && !Number.isNaN(data[j][field])){
               data[j][`${field}_probability`] = this.tpmFormatter(this.probability(data[j][field]));
@@ -132,8 +132,21 @@ export default Vue.component("pigean-table", {
           }
         }
         return data;
+      },
+      collateFields(){
+        let allFields = [];
+        this.config.fields.forEach(field => {
+          if (field.showProbability){
+            allFields.push({
+              key: `${field.key}_probability`,
+              label: `${field.label} Probability`,
+              sortable: true
+            });
+          }
+          allFields.push(field);
+        });
+        return allFields
       }
-
   },
 });
 </script>
