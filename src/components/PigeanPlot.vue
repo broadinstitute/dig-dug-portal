@@ -83,9 +83,10 @@ export default Vue.component("pigean-plot", {
 
       let xMin = this.extremeVal(this.xField);
       let yMin = this.extremeVal(this.yField);
-      console.log("y min", yMin);
       let xMax = this.extremeVal(this.xField, false);
       let yMax = this.extremeVal(this.yField, false);
+      xMin = xMin > 0 ? 0 : xMin;
+      yMin = yMin > 0 ? 0 : yMin;
       
       // add X-axis
       this.xScale = d3.scaleLinear()
