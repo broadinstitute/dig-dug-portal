@@ -100,6 +100,7 @@ new Vue({
                         sortable: true },
                     { key: "combined", 
                         label: "Combined",
+                        showProbability: true,
                         sortable: true },
                     { key: "log_bf",
                         label: "GWAS evidence weighted",
