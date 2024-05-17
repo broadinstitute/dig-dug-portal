@@ -53,6 +53,7 @@ new Vue({
                         sortable: true },
                     { key: "combined",
                         label: "Combined",
+                        showProbability: true,
                         sortable: true },
                     { key: "huge_score",
                         label: "GWAS evidence unweighted",
@@ -99,6 +100,7 @@ new Vue({
                         sortable: true },
                     { key: "combined", 
                         label: "Combined",
+                        showProbability: true,
                         sortable: true },
                     { key: "log_bf",
                         label: "GWAS evidence weighted",
@@ -169,6 +171,7 @@ new Vue({
         },
         plotReady(){
             return this.$store.state.genesetPhenotype.data.length > 0
+                && this.$store.state.pigeanPhenotype.data.length > 0
                 && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
         }
     },

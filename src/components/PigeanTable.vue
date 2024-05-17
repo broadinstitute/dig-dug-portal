@@ -3,7 +3,7 @@
       <div v-if="rows > 0">
           <div class="text-right mb-2" v-if="!isSubtable">
               <data-download
-                  :data="pigeanData"
+                  :data="probData"
                   filename="pigean_gene"
               ></data-download>
           </div>
@@ -11,8 +11,8 @@
             :hover="isSubtable"
             small
             responsive="sm"
-            :items="pigeanData"
-            :fields="config.fields"
+            :items="probData"
+            :fields="probFields"
             :per-page="perPage"
             :current-page="currentPage"
             :sort-by="sortBy"
@@ -84,6 +84,9 @@ export default Vue.component("pigean-table", {
           perPage: 10,
           currentPage: 1,
           subtableData: {},
+          probFields: ["combined"],
+          probData: this.computeProbabilities(),
+          probFields: this.collateFields()
       };
   },
   computed: {
@@ -112,6 +115,39 @@ export default Vue.component("pigean-table", {
         }
         row.toggleDetails();
       },
+      probability(val, prior=0.05){
+        let a = Math.exp(Math.log(prior) + val);
+        return a / (1 + a);
+      },
+      computeProbabilities(){
+        let data = JSON.parse(JSON.stringify(this.pigeanData)); // Deep copy
+        for (let i = 0; i < this.config.fields.length; i++){
+          let fieldConfig = this.config.fields[i];
+          if (!fieldConfig.showProbability) { continue; }
+          let field = fieldConfig.key;
+          for (let j = 0; j < data.length; j++){
+            if (!!data[j][field]){
+              data[j][`${field}_probability`] = 
+                this.tpmFormatter(this.probability(data[j][field]));
+            }
+          }
+        }
+        return data;
+      },
+      collateFields(){
+        let allFields = [];
+        this.config.fields.forEach(field => {
+          if (field.showProbability){
+            allFields.push({
+              key: `${field.key}_probability`,
+              label: `${field.label} Probability`,
+              sortable: true
+            });
+          }
+          allFields.push(field);
+        });
+        return allFields
+      }
   },
 });
 </script>

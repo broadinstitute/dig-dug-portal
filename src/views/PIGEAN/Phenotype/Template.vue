@@ -89,7 +89,7 @@
                         :hoverFields="['combined']"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap">
                     </pigean-plot>
-                    <pigean-table
+                    <pigean-table v-if="$parent.plotReady"
                         :pigeanData="$store.state.pigeanPhenotype.data"
                         :config="$parent.tableConfig">
                     </pigean-table>
@@ -104,7 +104,7 @@
                         dotKey="gene_set"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap">
                     </pigean-plot>
-                    <pigean-table
+                    <pigean-table v-if="$parent.plotReady"
                         :pigeanData="$store.state.genesetPhenotype.data"
                         :config="$parent.genesetTableConfig">
                     </pigean-table>
