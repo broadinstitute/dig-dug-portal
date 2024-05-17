@@ -85,6 +85,8 @@ export default Vue.component("pigean-plot", {
       let yMin = this.extremeVal(this.yField);
       let xMax = this.extremeVal(this.xField, false);
       let yMax = this.extremeVal(this.yField, false);
+      xMin = xMin > 0 ? 0 : xMin;
+      yMin = yMin > 0 ? 0 : yMin;
       
       // add X-axis
       this.xScale = d3.scaleLinear()
@@ -121,8 +123,14 @@ export default Vue.component("pigean-plot", {
         .enter()
         .append("circle")
           .attr("class", d => `${d[this.dotKey]}`)
-          .attr("cx", d => this.xScale(d[this.xField]))
-          .attr("cy", d => this.yScale(d[this.yField]))
+          .attr("cx", d => 
+            d[this.xField] === undefined
+              ? this.xScale(0) 
+              : this.xScale(d[this.xField]))
+          .attr("cy", d => 
+            d[this.yField] === undefined 
+              ? this.yScale(0) 
+              : this.yScale(d[this.yField]))
           .attr("r", 5)
           .attr("fill", d => this.dotColor(d.phenotype))
           .attr("stroke", this.dotOutlineColor)
@@ -130,12 +138,17 @@ export default Vue.component("pigean-plot", {
               this.hoverDot(JSON.stringify(g)));
     },
     extremeVal(field, min=true){
-      let sorted = this.pigeanData.sort((a,b) => {
-        return a[field] < b[field] ? -1 : 
-          a[field] > b[field] ? 1 : 0;
+      let data = this.pigeanData.filter(d => 
+        d[field] !== undefined && !Number.isNaN(d[field]));
+      let val = data[0][field];
+      this.pigeanData.forEach(d => {
+        if (min && d[field] < val){
+          val = d[field];
+        } else if (!min && d[field] > val){
+            val = d[field];
+        }
       });
-      let index = min ? 0 : sorted.length - 1;
-      return sorted[index][field]
+      return val;
     },
     hoverDot(dotString) {
       this.unHoverDot();
