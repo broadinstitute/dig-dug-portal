@@ -90,7 +90,7 @@
                         </pigean-plot>
                     </div>
                     <div class="card-body pigean-table">
-                        <pigean-table
+                        <pigean-table v-if="$parent.plotReady"
                             :pigeanData="$store.state.pigeanGeneset.data"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :config="$parent.tableConfig">
