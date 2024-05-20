@@ -139,6 +139,7 @@
                                         dotKey="phenotype"
                                         :hoverFields="['gene', 'combined']"
                                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                        :filter="filter"
                                     >
                                     </pigean-plot>
                                 </div>

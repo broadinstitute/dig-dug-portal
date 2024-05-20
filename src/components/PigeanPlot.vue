@@ -22,7 +22,7 @@ export default Vue.component("pigean-plot", {
   components: {
   },
   props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields", 
-    "plotHeight", "phenotypeMap"],
+    "plotHeight", "phenotypeMap", "filter"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
@@ -50,9 +50,17 @@ export default Vue.component("pigean-plot", {
     this.drawChart();
   },
   computed: {
+    chartData(){
+      let data = this.pigeanData;
+      if (this.filter){
+        data = data.filter(this.filter);
+      }
+      return data;
+    }
   },
   methods: {
     drawChart(){
+      console.log("Draw the chart");
       let margin = {
         top: 10,
         right: 30,
@@ -81,10 +89,11 @@ export default Vue.component("pigean-plot", {
         .style("border-radius", "5px")
         .style("font-size", "smaller");
 
-      let xMin = this.extremeVal(this.pigeanData, this.xField);
-      let yMin = this.extremeVal(this.pigeanData, this.yField);
-      let xMax = this.extremeVal(this.pigeanData, this.xField, false);
-      let yMax = this.extremeVal(this.pigeanData, this.yField, false);
+      // Use unfiltered data so the scales do not change
+      let xMin = this.extremeVal(this.xField);
+      let yMin = this.extremeVal(this.yField);
+      let xMax = this.extremeVal(this.xField, false);
+      let yMax = this.extremeVal(this.yField, false);
       xMin = xMin > 0 ? 0 : xMin;
       yMin = yMin > 0 ? 0 : yMin;
       
@@ -119,7 +128,7 @@ export default Vue.component("pigean-plot", {
       // add dots
       this.svg.append("g")
         .selectAll("dot")
-        .data(this.pigeanData)
+        .data(this.chartData)
         .enter()
         .append("circle")
           .attr("class", d => `${d[this.dotKey]}`)
@@ -137,8 +146,8 @@ export default Vue.component("pigean-plot", {
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
     },
-    extremeVal(data, field, min=true){
-      let filteredData = data.filter(d => 
+    extremeVal(field, min=true){
+      let filteredData = this.pigeanData.filter(d => 
         d[field] !== undefined && !Number.isNaN(d[field]));
       let val = filteredData[0][field];
       filteredData.forEach(d => {
@@ -177,6 +186,7 @@ export default Vue.component("pigean-plot", {
       this.tooltip.style("opacity", 0);
     },
     groupColors(){
+      // Based on pigeanData not filtered data. Phenotypes should always match PheWAS
       let groupsInUse = this.pigeanData.map(d => d.phenotype)
         .map(p => !!this.phenotypeMap[p] ? this.phenotypeMap[p]["group"] : "")
         .filter(g => g !== "");
@@ -207,8 +217,9 @@ export default Vue.component("pigean-plot", {
     },
   },
   watch: {
-    phenotypeMap(map){
-      console.log(JSON.stringify(map));
+    chartData(){
+      console.log("chart data is changing");
+      this.drawChart();
     }
   }
 });
