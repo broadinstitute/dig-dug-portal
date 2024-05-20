@@ -82,6 +82,16 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <criterion-function-group>
+                        <filter-enumeration-control
+                            field="gene"
+                            placeholder="Select a gene ..."
+                            :options="
+                                $store.state.pigeanPhenotype.data.map(d => d.gene)
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Genes</div>
+                        </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
                                 $parent.geneFilterFields"
@@ -111,6 +121,16 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <criterion-function-group>
+                        <filter-enumeration-control
+                            field="gene_set"
+                            placeholder="Select a gene set..."
+                            :options="
+                                $store.state.genesetPhenotype.data.map(d => d.gene_set)
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Genes</div>
+                        </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
                                 $parent.genesetFilterFields"
