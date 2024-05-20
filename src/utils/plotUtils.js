@@ -17,6 +17,13 @@ let colors = ["#007bff75",
     "#D5A76875",
     "#d4d4d475"]
 
+const plotColors = function(TRANSLUCENT=false){
+    let plotColors = colors;
+    if (!TRANSLUCENT){
+        plotColors = plotColors.map(c => c.slice(0,-2));
+    }
+    return plotColors;
+}
 
 let renderDot = function (CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
     CTX.fillStyle = DOT_COLOR;
@@ -783,5 +790,6 @@ export default {
     renderDots,
     renderBestFitLine,
     getDotsPosData,
-    getDotsInPos
+    getDotsInPos,
+    plotColors
 };
