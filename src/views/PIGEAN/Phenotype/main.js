@@ -15,6 +15,7 @@ import uiUtils from "@/utils/uiUtils";
 import sessionUtils from "@/utils/sessionUtils";
 import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 new Vue({
@@ -25,6 +26,7 @@ new Vue({
         PageFooter,
         Alert,
         SearchHeaderWrapper,
+        SigmaSelectPicker,
         ResearchMPlot,
         RawImage,
         PigeanTable,

@@ -23,10 +23,13 @@ export default new Vuex.Store({
         diseaseInSession: null,
         selectedPhenotype: null,
         manhattanPlotAvailable: false,
+        sigma: keyParams.sigma || "sigma2",
+        sigmaToQuery: null,
     },
     mutations: {
-        setPhenotype(state, phenotype) {
-            state.phenotype = phenotype;
+        setSigma(state, sigma){
+            state.sigma = sigma || state.sigma
+            keyParams.set({ sigma: state.sigma });
         },
         setPhenotypesInSession(state, PHENOTYPES) {
             state.phenotypesInSession = PHENOTYPES;
@@ -48,13 +51,18 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
+            console.log(phenotype);
             context.state.selectedPhenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
 
         queryPhenotype(context) {
             context.state.phenotype = context.state.selectedPhenotype;
-            let query = { q: context.state.phenotype.name, limit: 1000 };
+            let name = context.state.phenotype.name;
+            let sigma = context.state.sigmaToQuery || context.state.sigma;
+            context.commit("setSigma", sigma);
+            let sigmaInt = parseInt(sigma.slice(-1));
+            let query = { q: `${name},${sigmaInt}`, limit: 1000 };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
         },
