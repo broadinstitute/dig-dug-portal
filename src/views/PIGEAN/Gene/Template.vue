@@ -35,6 +35,7 @@
                     <gene-selectpicker></gene-selectpicker>
                 </div>
                 <div class="col filter-col-md">
+                    <div class="label">Sigma</div>
                     <sigma-selectpicker></sigma-selectpicker>
                 </div>
                 <div class="col filter-col-md">

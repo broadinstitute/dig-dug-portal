@@ -16,7 +16,9 @@ export default new Vuex.Store({
     },
     state: {
         geneset: keyParams.geneset,
+        sigma: keyParams.sigma || "sigma2",
         genesetToQuery: "",
+        sigmaToQuery: null,
         aliasName: null,
     },
 
@@ -24,6 +26,10 @@ export default new Vuex.Store({
         setGeneset(state, geneset) {
             state.geneset = geneset || state.geneset;
             keyParams.set({ geneset: state.geneset });
+        },
+        setSigma(state, sigma){
+            state.sigma = sigma || state.sigma
+            keyParams.set({ sigma: state.sigma });
         },
     },
 
@@ -33,10 +39,13 @@ export default new Vuex.Store({
     actions: {
         async queryGeneset(context, symbol) {
             let name = context.state.genesetToQuery || context.state.geneset;
+            let sigma = context.state.sigmaToQuery || context.state.sigma;
             context.commit("setGeneset", name);
+            context.commit("setSigma", sigma);
 
+            let sigmaInt = parseInt(sigma.slice(-1));
             if (!!name) {
-                context.dispatch("pigeanGeneset/query", { q: name });
+                context.dispatch("pigeanGeneset/query", { q: `${name},${sigmaInt}` });
             }
         },
     },
