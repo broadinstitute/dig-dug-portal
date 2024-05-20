@@ -110,7 +110,8 @@
                         </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
-                                $parent.tableConfig.fields.filter(item => !!item.filter2way)"
+                                $parent.tableConfig.fields.filter(
+                                    item => !!item.filter2way)"
                             :field="filterField.key"
                         >
                             <div class="label">{{ filterField.label}}</div>
