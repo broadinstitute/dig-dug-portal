@@ -48,6 +48,12 @@ new Vue({
 
     data() {
         return {
+            filterFields: [
+                { key: "combined", label: "Combined" },
+                { key: "huge_score", label: "GWAS unweighted" },
+                { key: "log_bf", label: "GWAS weighted" },
+                { key: "prior", label: "Gene set evidence"}
+            ],
             tableConfig: {
                 fields: [
                     { key: "phenotype", 
@@ -55,20 +61,16 @@ new Vue({
                         sortable: true },
                     { key: "combined", 
                         label: "Combined",
-                        sortable: true,
-                        filter2way: true },
+                        sortable: true },
                     { key: "huge_score", 
                         label: "GWAS evidence unweighted",
-                        sortable: true,
-                        filter2way: true },
+                        sortable: true },
                     { key: "log_bf", 
                         label: "GWAS evidence weighted",
-                        sortable: true,
-                        filter2way: true, },
+                        sortable: true },
                     { key: "prior", 
                         label: "Gene set evidence",
-                        sortable: true,
-                        filter2way: true, },
+                        sortable: true },
                     { key: "expand", 
                         label: "Gene sets" } 
                   ],

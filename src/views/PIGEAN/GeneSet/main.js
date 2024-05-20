@@ -49,6 +49,10 @@ new Vue({
 
     data() {
         return {
+            filterFields: [
+                { key: "beta_uncorrected", label: "Effect (marginal)" },
+                { key: "beta", label: "Effect (joint)" }
+            ],
             tableConfig: {
                 fields: [
                     { key: "phenotype", 
@@ -56,12 +60,10 @@ new Vue({
                         sortable: true, },
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
-                        sortable: true,
-                        filter2way: true },
+                        sortable: true },
                     { key: "beta", 
                         label: "Effect (joint)",
-                        sortable: true,
-                        filter2way: true, },
+                        sortable: true },
                     { key: "expand", 
                         label: "Genes"}
                 ],

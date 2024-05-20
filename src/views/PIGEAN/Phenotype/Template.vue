@@ -113,8 +113,7 @@
                     <criterion-function-group>
                         <filter-greater-less 
                             v-for="filterField in 
-                                $parent.genesetTableConfig.fields.filter(
-                                    item => !!item.filter2way)"
+                                $parent.genesetFilterFields"
                             :field="filterField.key"
                         >
                             <div class="label">{{ filterField.label}}</div>

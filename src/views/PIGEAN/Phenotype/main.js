@@ -92,6 +92,10 @@ new Vue({
                         sortable: true },
                   ],
             },
+            genesetFilterFields: [
+                { key: "beta", label: "Effect (joint)" },
+                { key: "beta_uncorrected", label: "Effect (marginal)" }
+            ],
             genesetTableConfig: {
                 fields: [
                     { key: "gene_set", 
@@ -99,12 +103,10 @@ new Vue({
                         sortable: true },
                     { key: "beta", 
                         label: "Effect (joint)",
-                        sortable: true,
-                        filter2way: true },
+                        sortable: true },
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
-                        sortable: true,
-                        filter2way: true },
+                        sortable: true },
                     { key: "expand", 
                         label: "Genes"}
                 ],
