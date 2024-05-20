@@ -81,10 +81,10 @@ export default Vue.component("pigean-plot", {
         .style("border-radius", "5px")
         .style("font-size", "smaller");
 
-      let xMin = this.extremeVal(this.xField);
-      let yMin = this.extremeVal(this.yField);
-      let xMax = this.extremeVal(this.xField, false);
-      let yMax = this.extremeVal(this.yField, false);
+      let xMin = this.extremeVal(this.pigeanData, this.xField);
+      let yMin = this.extremeVal(this.pigeanData, this.yField);
+      let xMax = this.extremeVal(this.pigeanData, this.xField, false);
+      let yMax = this.extremeVal(this.pigeanData, this.yField, false);
       xMin = xMin > 0 ? 0 : xMin;
       yMin = yMin > 0 ? 0 : yMin;
       
@@ -137,11 +137,11 @@ export default Vue.component("pigean-plot", {
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
     },
-    extremeVal(field, min=true){
-      let data = this.pigeanData.filter(d => 
+    extremeVal(data, field, min=true){
+      let filteredData = data.filter(d => 
         d[field] !== undefined && !Number.isNaN(d[field]));
-      let val = data[0][field];
-      this.pigeanData.forEach(d => {
+      let val = filteredData[0][field];
+      filteredData.forEach(d => {
         if (min && d[field] < val){
           val = d[field];
         } else if (!min && d[field] > val){
