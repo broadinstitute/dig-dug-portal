@@ -659,8 +659,39 @@
 
                     <!-- DIFFERENTIAL GENE EXPRESSION -->
                     <template v-if="$parent.compareDiffGeneSet && $parent.datasetsObj[$parent.activeDataset]['genes']">
+                        <!-- label -->
                         <div class="row1 label-wrapper">
-                            <div class="label underline">{{$parent.activeGene}} Differential Expression by Cell Type & {{$parent.labelFromAnnotation($parent.compareField)}} Condition</div>
+                            <div class="label underline" style="padding:0px">
+                                <select class="active-field-selector" 
+                                        style="width:auto; border:0"
+                                        @change="$parent.setActiveGene($event)"
+                                >
+                                    <template v-for="(value, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
+                                        <option 
+                                            :value="gene" 
+                                            :selected="gene === $parent.activeGene ? 'selected' : false"
+                                        >
+                                        {{ gene }}
+                                        </option>
+                                    </template>
+                                </select>
+                                Differential Expression by Cell Type &
+                                <select class="active-field-selector" 
+                                        style="width:auto; border:0"
+                                        @change="$parent.setDiffCondition($event)"
+                                >
+                                    <template v-for="key2 in $parent.getUniqueKeysAtDepth($parent.compareGeneSet, 2)">
+                                        <option 
+                                            :value="key2" 
+                                            :selected="key2 === $parent.diffCondition ? 'selected' : false"
+                                        >
+                                        {{ key2 }}
+                                        </option>
+                                    </template>
+                                </select>
+                                {{$parent.labelFromAnnotation($parent.compareField)}} 
+                                Condition
+                            </div>
                             <!-- legends -->
                             <div class="row1 legends">
                                 <div class="col1 legend">
@@ -681,13 +712,17 @@
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="expression-tables-wrapper overflow-h">
                             <div class="diff-gene-exp">
                                 <table class="data-table">
                                     <thead>
                                         <template v-if="$parent.compareDiffGeneSet">
                                             <tr>
-                                                <th colspan="3"></th>
+                                                <th colspan="2"></th>
+                                                <th class="border-bottom">
+                                                    mean exp.
+                                                </th>
                                                 <th class="border-bottom" 
                                                     :colspan="$parent.getUniqueKeysAtDepth($parent.compareDiffGeneSet, 2).length"
                                                 >
@@ -695,31 +730,57 @@
                                                 </th>
                                             </tr>
                                             <tr>
-                                                <th colspan="3"></th>
+                                                <th colspan="2"></th>
                                                 <th class="border-bottom" 
-                                                    :colspan="$parent.getUniqueKeysAtDepth($parent.compareDiffGeneSet, 2).length"
+                                                    :colspan="$parent.getUniqueKeysAtDepth($parent.compareDiffGeneSet, 2).length + 1"
                                                 >
                                                     {{ $parent.labelFromAnnotation($parent.compareField) }}
                                                 </th>
                                             </tr>
                                         </template>
                                         <tr class="field_labels">
-                                            <th colspan="3">{{ $parent.labelFromAnnotation($parent.activeField) }}</th>
+                                            <th colspan="2">{{ $parent.labelFromAnnotation($parent.activeField) }}</th>
+                                            <template v-if="$parent.diffCondition">
+                                                <th :data-b-field="$parent.diffCondition" 
+                                                    @mouseover="$parent.tableHoverOverHandler($event)"
+                                                    @mouseout="$parent.tableHoverOutHandler($event)"
+                                                    @click="$parent.tableClickHandler($event)"
+                                                >
+                                                    <div class="no-events">{{ $parent.diffCondition }}</div>
+                                                </th>
+                                            </template>
                                             <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
-
                                                 <template v-for="key2 in $parent.getUniqueKeysAtDepth($parent.compareDiffGeneSet, 2)">
                                                     <th :data-b-field="key2" data-b-diff="true"
                                                         @mouseover="$parent.tableHoverOverHandler($event)"
                                                         @mouseout="$parent.tableHoverOutHandler($event)"
                                                         @click="$parent.tableClickHandler($event)"
                                                     >
-                                                        <!--<div class="" v-html="$parent.formatXstring(key2)"></div>-->
                                                         <div class="no-events">{{key2}}</div>
                                                     </th>
                                                 </template>
-
                                             </template>
-                                            
+
+                                            <template v-if="$parent.diffCondition">
+                                                <th :data-b-field="$parent.diffCondition" 
+                                                    @mouseover="$parent.tableHoverOverHandler($event)"
+                                                    @mouseout="$parent.tableHoverOutHandler($event)"
+                                                    @click="$parent.tableClickHandler($event)"
+                                                >
+                                                    <div class="gene-label">{{ $parent.diffCondition }}</div>
+                                                </th>
+                                            </template>
+                                            <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                                                <template v-for="key2 in $parent.getUniqueKeysAtDepth($parent.compareDiffGeneSet, 2)">
+                                                    <th :data-b-field="key2" data-b-diff="true"
+                                                        @mouseover="$parent.tableHoverOverHandler($event)"
+                                                        @mouseout="$parent.tableHoverOutHandler($event)"
+                                                        @click="$parent.tableClickHandler($event)"
+                                                    >
+                                                        <div class="gene-label">{{key2}}</div>
+                                                    </th>
+                                                </template>
+                                            </template>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -743,30 +804,62 @@
                                                 >
                                                     {{ value }}
                                                 </td>
-                                                <td class="field-cluster-count" 
-                                                    :data-a-field="value"
-                                                    @mouseover="$parent.tableHoverOverHandler($event)"
-                                                    @mouseout="$parent.tableHoverOutHandler($event)"
-                                                    @click="$parent.tableClickHandler($event)"
-                                                >
-                                                    {{ $parent.datasetsObj[$parent.activeDataset]['metadata_counts'][$parent.activeField][value][ $parent.cellCountOption===0 ? "count" : "pct"] }}
-                                                </td>
-                                                
+                                                <template v-if="$parent.compareGeneSet">
+                                                    <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
+                                                        <template v-if="value2 === $parent.diffCondition">
+                                                            <td class="field-cluster-count cluster-expressionNO"
+                                                                :data-a-field="value" :data-b-field="value2" :data-b-gene="$parent.activeGene"
+                                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                                                @click="$parent.tableClickHandler($event)"
+                                                            >
+                                                                <template v-if="$parent.compareGeneSet[value][value2]">
+                                                                    {{ $parent.compareGeneSet[value][value2]['mean'].toFixed(4) }}
+                                                                </template>
+                                                            </td>
+                                                        </template>
+                                                    </template>
+                                                </template>
                                                 <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
-                                                    <template v-for="(value2, key2) in $parent.compareDiffGeneSet[value]">
-                                                        <td class="field-cluster-count"
-                                                            :data-a-field="value" :data-b-field="key2" data-b-diff="true"
-                                                            @mouseover="$parent.tableHoverOverHandler($event)"
-                                                            @mouseout="$parent.tableHoverOutHandler($event)"
-                                                            @click="$parent.tableClickHandler($event)"
-                                                        >
-                                                            <template v-if="value2">
-                                                                {{ (value2["pValue"]).toFixed(4) }}<br>
-                                                                <!--{{ $parent.pValueFormatter(value2["pValue"]) }}-->
-                                                                <!--{{ (value2["effectSize"]).toFixed(4) }}-->
-                                                                <!--<div class="field-cluster-bg" :style="`background:${value2['rejected'] ? value2['effectSizeColor'] : value2['effectSizeColor']}`"></div>-->
+                                                    <template v-if="Object.keys($parent.compareDiffGeneSet[value]).length > 0">
+                                                        <template v-for="(value2, key2) in $parent.compareDiffGeneSet[value]">
+                                                            <td class="field-cluster-count"
+                                                                :data-a-field="value" :data-b-field="key2" data-b-diff="true"
+                                                                @mouseover="$parent.tableHoverOverHandler($event)"
+                                                                @mouseout="$parent.tableHoverOutHandler($event)"
+                                                                @click="$parent.tableClickHandler($event)"
+                                                            >
+                                                                <template v-if="value2">
+                                                                    {{ (value2["pValue"]).toFixed(4) }}<br>
+                                                                    <!--{{ $parent.pValueFormatter(value2["pValue"]) }}-->
+                                                                    <!--{{ (value2["effectSize"]).toFixed(4) }}-->
+                                                                    <!--<div class="field-cluster-bg" :style="`background:${value2['rejected'] ? value2['effectSizeColor'] : value2['effectSizeColor']}`"></div>-->
+                                                                </template>
+                                                            </td>
+                                                        </template>
+                                                    </template>
+                                                    <template v-else>
+                                                        <td></td>
+                                                    </template>
+                                                    
+                                                    <template v-if="$parent.compareGeneSet">
+                                                        <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
+                                                            <template v-if="value2 === $parent.diffCondition">
+                                                                <td class="field-cluster-count cluster-expression"
+                                                                    :data-a-field="value" :data-b-field="value2" :data-b-gene="$parent.activeGene"
+                                                                    @mouseover="$parent.tableHoverOverHandler($event)"
+                                                                    @mouseout="$parent.tableHoverOutHandler($event)"
+                                                                    @click="$parent.tableClickHandler($event)"
+                                                                >
+                                                                    <template v-if="$parent.compareGeneSet[value][value2]">
+                                                                        <!-- dot plot -->
+                                                                        <div class="field-cluster-expression-bg" :style="`background:${$parent.compareGeneSet[value][value2] ? $parent.compareGeneSet[value][value2]['color'] : 'transparent'};`">
+                                                                            <div class="field-cluster-expression" :style="`background:${$parent.compareGeneSet[value][value2] ? '#000' : '#000'}; transform:scale(${$parent.compareGeneSet[value][value2] ? $parent.compareGeneSet[value][value2]['pct'] : '0'});`"></div>
+                                                                        </div>
+                                                                    </template>
+                                                                </td>
                                                             </template>
-                                                        </td>
+                                                        </template>
                                                     </template>
                                                     <template v-for="(value2, key2) in $parent.compareDiffGeneSet[value]">
                                                         <td class="field-cluster-count cluster-expression"

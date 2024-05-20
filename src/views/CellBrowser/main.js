@@ -48,6 +48,7 @@ new Vue({
             compareGeneSet: null,
             compareDiffGeneSet: null,
             activeGene: null,
+            diffCondition: null,
 
             isLoading: false,
 
@@ -333,6 +334,8 @@ new Vue({
 
         selectCompareField(e){
             console.log('setting compare field: ', e.target.value);
+
+            this.diffCondition = null;
 
             this.compareField = e.target.value;
 
@@ -646,21 +649,60 @@ new Vue({
             });
 
             this.compareGeneSet = compareSet;
-            console.log('geneCompareSet', compareSet);
+            console.log('compareGeneSet', compareSet);
 
             this.calcDiffGeneExpression(gene);
         },
 
         calcDiffGeneExpression(gene){
             const compareSet = {};
+            const effectSizes = [];
             //collect all unique keys in comparison field
             //sometime some are missing, so we cant rely on a single sample
             const uniqueFields = this.getUniqueKeysAtDepth(this.compareGeneSet, 2);
+            //set compare condition
+            this.diffCondition = !this.diffCondition ? uniqueFields[0] : this.diffCondition;
+            console.log('compare condition', this.diffCondition);
+
+            //loop through main field (eg. cell types)
+            for(const [key, value] of Object.entries(this.compareGeneSet)){
+                //save field as key
+                if(!compareSet[key]) compareSet[key] = {};
+                //loop through fields
+                uniqueFields.forEach(val => {
+                    //if this is the reference value, skip it
+                    if(val === this.diffCondition) return;
+                    //if compare value doesnt exist in the data, skip it
+                    if(!this.compareGeneSet[key][val]) return;
+                    //calculate
+                    if(!compareSet[key][val]){
+                        //make sure we have a value
+                        if(!this.compareGeneSet[key][this.diffCondition]) return;
+                        //perform a ttest
+                        compareSet[key][val] = ttest2(
+                            this.compareGeneSet[key][this.diffCondition].expList,
+                            this.compareGeneSet[key][val].expList
+                        )
+                        //calc standard deviation
+                        compareSet[key][val].standardDeviation = this.calculateStandardDeviation(this.compareGeneSet[key][val].expList);
+                        //calc effect size
+                        compareSet[key][val].effectSize = compareSet[key][val].xmean - compareSet[key][val].ymean / compareSet[key][val].standardDeviation;
+                        //get color from effect size
+                        compareSet[key][val].effectSizeColor = this.colorScaleRedBlue(compareSet[key][val].effectSize);
+                        //save
+                        effectSizes.push(compareSet[key][val].effectSize);
+                    }
+                })
+            }
+            console.log('calcDiffGeneExpression', compareSet)
+
+            this.compareDiffGeneSet = compareSet;
+
+            return;
             //uniqueFields.sort();
             //create combos for all comparison fields
             const uniqueCombos = this.generateUniqueCombinationsObject(uniqueFields);
             //this.colorScaleRedBlue.domain([-1, 1]);
-            const effectSizes = [];
             console.log('uniqueFields', uniqueFields);
             console.log('uniqueCombos', uniqueCombos);
 
@@ -754,6 +796,11 @@ new Vue({
             }
             
             return combinations;
+        },
+
+        setDiffCondition(e){
+            this.diffCondition = e.target.value;
+            this.calcDiffGeneExpression(this.activeGene);
         },
 
         labelNameFromIndex(key, idx){
@@ -865,6 +912,8 @@ new Vue({
                     el.classList.add('dim-table-item');
                 });
             }
+
+            if(aField && bField && !this.compareSet[aField][bField]) return;
 
             if(aField || bField){
                 const hoverInfo = {
