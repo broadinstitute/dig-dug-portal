@@ -108,10 +108,12 @@
                         >
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
-                        <filter-greater-less
-                            field="combined"
+                        <filter-greater-less 
+                            v-for="filterField in 
+                                $parent.tableConfig.fields.filter(item => !!item.filter2way)"
+                            :field="filterField.key"
                         >
-                            <div class="label">Combined</div>
+                            <div class="label">{{ filterField.label}}</div>
                         </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
                             <div class="row pigean-plots">
