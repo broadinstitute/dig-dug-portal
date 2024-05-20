@@ -86,7 +86,8 @@
                         {{ $store.state.geneName }}
                     </h4>
                 </div>
-                <criterion-function-group>
+                <div class="card-body">
+                    <criterion-function-group>
                     <filter-enumeration-control
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
@@ -105,9 +106,10 @@
                             "
                             :multiple="true"
                         >
+                            <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
                     <template slot="filtered" slot-scope="{ filter }">
-                        <div class="row card-body pigean-plots">
+                        <div class="row pigean-plots">
                             <div class="col-md-8">
                                 <research-phewas-plot
                                     v-if="$parent.plotReady"
@@ -143,6 +145,8 @@
                         </div>
                     </template>
                 </criterion-function-group>
+                </div>
+                
                 
             </div>
         </div>
