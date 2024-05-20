@@ -18,7 +18,6 @@ export default {
     // initial module state
     state() {
         return {
-            gene: null,
             uniprotDoc: null,
         };
     },
@@ -27,9 +26,6 @@ export default {
     mutations: {
         setUniprotDoc(state, doc) {
             state.uniprotDoc = doc;
-        },
-        setGene(state, gene) {
-            state.gene = gene;
         },
     },
     getters: {
@@ -180,7 +176,6 @@ export default {
     actions: {
         //this returns gene information using exact gene name in tab separated file
         async getUniprotGeneInfo(context, gene) {
-            context.commit("setGene", gene);
             let format = "json";
             let organism_id = 9606; // homosapein
             let query = "gene_exact";
