@@ -11,7 +11,7 @@
             :hover="isSubtable"
             small
             responsive="sm"
-            :items="probData"
+            :items="tableData"
             :fields="probFields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -78,14 +78,14 @@ export default Vue.component("pigean-table", {
       DataDownload,
       PigeanTable
   },
-  props: ["pigeanData", "phenotypeMap", "config", "isSubtable"],
+  props: ["pigeanData", "phenotypeMap", "config", "isSubtable", "filter"],
   data() {
       return {
           perPage: 10,
           currentPage: 1,
           subtableData: {},
           probFields: ["combined"],
-          probData: this.computeProbabilities(),
+          probData: this.computeProbabilities(), // only need to do this once
           probFields: this.collateFields()
       };
   },
@@ -97,6 +97,14 @@ export default Vue.component("pigean-table", {
         return this.pigeanData.length === 0 ? 0 
           : this.pigeanData[0]["combined"] !== undefined
             ? "combined" : "beta_uncorrected";
+      },
+      tableData(){
+        let data = this.probData;
+        if (this.filter){
+          console.log("filtering!");
+          data = data.filter(this.filter);
+        }
+        return data;
       }
   },
   methods: {

@@ -88,7 +88,7 @@
                 </div>
                 <div class="card-body">
                     <criterion-function-group>
-                    <filter-enumeration-control
+                        <filter-enumeration-control
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
@@ -108,43 +108,44 @@
                         >
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
-                    <template slot="filtered" slot-scope="{ filter }">
-                        <div class="row pigean-plots">
-                            <div class="col-md-8">
-                                <research-phewas-plot
-                                    v-if="$parent.plotReady"
-                                    canvas-id="pigeanGene"
-                                    :plotName="`PIGEAN_${$store.state.geneName}`"
-                                    :phenotypes-data="$store.state.pigeanGene.data"
-                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                    :colors="$parent.plotColors"
-                                    :render-config="$parent.renderConfig"
-                                    :utils="$parent.utilsBox"
-                                    :filter="filter"
-                                >
-                                </research-phewas-plot>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <div class="row pigean-plots">
+                                <div class="col-md-8">
+                                    <research-phewas-plot
+                                        v-if="$parent.plotReady"
+                                        canvas-id="pigeanGene"
+                                        :plotName="`PIGEAN_${$store.state.geneName}`"
+                                        :phenotypes-data="$store.state.pigeanGene.data"
+                                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                        :colors="$parent.plotColors"
+                                        :render-config="$parent.renderConfig"
+                                        :utils="$parent.utilsBox"
+                                        :filter="filter"
+                                    >
+                                    </research-phewas-plot>
+                                </div>
+                                <div class="col-md-4">
+                                    <pigean-plot v-if="$parent.plotReady"
+                                        :pigeanData="$store.state.pigeanGene.data"
+                                        xField="prior"
+                                        yField="log_bf"
+                                        dotKey="phenotype"
+                                        :hoverFields="['gene', 'combined']"
+                                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    >
+                                    </pigean-plot>
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <pigean-plot v-if="$parent.plotReady"
+                            <div class="card-body pigean-table">
+                                <pigean-table v-if="$parent.plotReady"
                                     :pigeanData="$store.state.pigeanGene.data"
-                                    xField="prior"
-                                    yField="log_bf"
-                                    dotKey="phenotype"
-                                    :hoverFields="['gene', 'combined']"
                                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                >
-                                </pigean-plot>
+                                    :config="$parent.tableConfig"
+                                    :filter="filter">
+                                </pigean-table>
                             </div>
-                        </div>
-                        <div class="card-body pigean-table">
-                            <pigean-table v-if="$parent.plotReady"
-                                :pigeanData="$store.state.pigeanGene.data"
-                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                :config="$parent.tableConfig">
-                            </pigean-table>
-                        </div>
-                    </template>
-                </criterion-function-group>
+                        </template>
+                    </criterion-function-group>
                 </div>
                 
                 
