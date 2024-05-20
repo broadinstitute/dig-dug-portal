@@ -60,7 +60,6 @@ export default Vue.component("pigean-plot", {
   },
   methods: {
     drawChart(){
-      console.log("Draw the chart");
       let margin = {
         top: 10,
         right: 30,
@@ -218,7 +217,6 @@ export default Vue.component("pigean-plot", {
   },
   watch: {
     chartData(){
-      console.log("chart data is changing");
       this.drawChart();
     }
   }

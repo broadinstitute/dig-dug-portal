@@ -108,13 +108,11 @@
                         >
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
-                        <filter-greater-control
+                        <filter-greater-less
                             field="combined"
                         >
-                            <div>
-                                <strong>Combined (&ge;)</strong>
-                            </div>
-                        </filter-greater-control>
+                            <div class="label">Combined</div>
+                        </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
                             <div class="row pigean-plots">
                                 <div class="col-md-8">

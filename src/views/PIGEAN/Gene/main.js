@@ -17,6 +17,7 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -45,7 +46,8 @@ new Vue({
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterThan,
-        FilterLessThan
+        FilterLessThan,
+        FilterGreaterLess
     },
 
     data() {
