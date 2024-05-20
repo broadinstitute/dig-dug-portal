@@ -147,7 +147,7 @@ export default {
 
         geneFunction(state) {
             let doc = state.uniprotDoc;
-            if (!!doc) {
+            if (doc) {
                 let commentObject = doc.comments;
                 for (let i in commentObject) {
                     if (commentObject[i].commentType == "FUNCTION") {
@@ -213,10 +213,12 @@ export default {
                 })
                 .finally(() => closeAlert(alertID));
 
-            if (!!uniprotDoc) {
-                context.commit("setUniprotDoc", uniprotDoc.results[0]);
-            } else {
-                // TODO: postAlertError(some error message);
+            if (uniprotDoc) {
+                let results = uniprotDoc.results.filter(
+                    (d) => d.uniProtkbId === gene + "_HUMAN"
+                );
+                //there should be only one result
+                context.commit("setUniprotDoc", results[0]);
             }
         },
     },
