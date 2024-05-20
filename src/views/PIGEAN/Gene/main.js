@@ -44,37 +44,36 @@ new Vue({
         return {
             tableConfig: {
                 fields: [
-                    { key: "phenotype", sortable: true },
-                    { key: "combined", sortable: true },
-                    { key: "log_bf", sortable: true },
-                    { key: "prior", sortable: true },
-                    { key: "expand", label: "Gene sets" } 
+                    { key: "phenotype", 
+                        label: "Phenotype",
+                        sortable: true },
+                    { key: "combined", 
+                        label: "Combined",
+                        sortable: true },
+                    { key: "huge_score", 
+                        label: "GWAS evidence unweighted",
+                        sortable: true },
+                    { key: "log_bf", 
+                        label: "GWAS evidence weighted",
+                        sortable: true },
+                    { key: "prior", 
+                        label: "Gene set evidence",
+                        sortable: true },
+                    { key: "expand", 
+                        label: "Gene sets" } 
                   ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
                 subtableFields: [
-                    { key: "gene_set", sortable: true },
-                    { key: "beta", sortable: true },
+                    { key: "gene_set", 
+                        label: "Gene set",
+                        sortable: true },
+                    { key: "beta", 
+                        label: "Effect (joint)",
+                        sortable: true },
                   ],
             },
-            plotColors: [
-                '#007bff',
-                '#048845',
-                '#8490C8',
-                '#BF61A5',
-                '#EE3124',
-                '#FCD700',
-                '#5555FF',
-                '#7aaa1c',
-                '#9F78AC',
-                '#F88084',
-                '#F5A4C7',
-                '#CEE6C1',
-                '#cccc00',
-                '#6FC7B6',
-                '#D5A768',
-                '#d4d4d4'
-            ],
+            plotColors: plotUtils.plotColors(),
             renderConfig: {
                 type: 'phewas plot',
                 'render by': 'phenotype',
@@ -87,6 +86,7 @@ new Vue({
                 'beta field': 'null',
                 'hover content': [
                     'combined',
+                    'huge_score',
                     'log_bf',
                     'prior',
                 ],
@@ -131,6 +131,10 @@ new Vue({
             }
             return utils;
         },
+        plotReady(){
+            return this.$store.state.pigeanGene.data.length > 0
+                && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        }
     },
     watch: {
         diseaseGroup(group) {

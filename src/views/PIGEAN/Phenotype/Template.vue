@@ -81,14 +81,15 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <pigean-plot v-if="$store.state.pigeanPhenotype.data.length > 0"
+                    <pigean-plot v-if="$parent.plotReady"
                         :pigeanData="$store.state.pigeanPhenotype.data"
                         xField="prior"
                         yField="log_bf"
                         dotKey="gene"
-                        :hoverFields="['phenotype', 'combined']">
+                        :hoverFields="['combined', 'log_bf']"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap">
                     </pigean-plot>
-                    <pigean-table
+                    <pigean-table v-if="$parent.plotReady"
                         :pigeanData="$store.state.pigeanPhenotype.data"
                         :config="$parent.tableConfig">
                     </pigean-table>
@@ -96,13 +97,14 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <pigean-plot v-if="$store.state.genesetPhenotype.data.length > 0"
+                    <pigean-plot v-if="$parent.plotReady"
                         :pigeanData="$store.state.genesetPhenotype.data"
                         xField="beta_uncorrected"
                         yField="beta"
-                        dotKey="gene_set">
+                        dotKey="gene_set"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap">
                     </pigean-plot>
-                    <pigean-table
+                    <pigean-table v-if="$parent.plotReady"
                         :pigeanData="$store.state.genesetPhenotype.data"
                         :config="$parent.genesetTableConfig">
                     </pigean-table>

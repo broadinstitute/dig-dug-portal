@@ -9,7 +9,7 @@ import jsonQuery from "json-query";
 import {
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
 export default {
@@ -18,7 +18,7 @@ export default {
     // initial module state
     state() {
         return {
-            uniprotDoc: null
+            uniprotDoc: null,
         };
     },
 
@@ -26,7 +26,7 @@ export default {
     mutations: {
         setUniprotDoc(state, doc) {
             state.uniprotDoc = doc;
-        }
+        },
     },
     getters: {
         // geneNames(state) {
@@ -42,7 +42,7 @@ export default {
         geneNames(state) {
             let doc = state.uniprotDoc;
             if (!!doc) {
-                return doc.genes.map(g => g.geneName.value);
+                return doc.genes.map((g) => g.geneName.value);
             }
         },
 
@@ -78,16 +78,16 @@ export default {
 
             if (!!doc) {
                 let dbReferenceArrayObj = doc.uniProtKBCrossReferences;
-                let attributes = dbReferenceArrayObj.map(item => {
+                let attributes = dbReferenceArrayObj.map((item) => {
                     return {
                         source: item.database,
                         id: item.id,
                         proteinSeqID: item.properties.find(
-                            e => e["key"] === "ProteinId"
+                            (e) => e["key"] === "ProteinId"
                         )?.value,
                         moleculeType: item.properties.find(
-                            e => e["key"] === "MoleculeType"
-                        )?.value
+                            (e) => e["key"] === "MoleculeType"
+                        )?.value,
                     };
                 });
                 return attributes;
@@ -143,7 +143,7 @@ export default {
 
         geneFunction(state) {
             let doc = state.uniprotDoc;
-            if (!!doc) {
+            if (doc) {
                 let commentObject = doc.comments;
                 for (let i in commentObject) {
                     if (commentObject[i].commentType == "FUNCTION") {
@@ -169,7 +169,7 @@ export default {
         proteinExistence(state) {
             let doc = state.uniprotDoc;
             return !!doc ? doc.proteinExistence : "";
-        }
+        },
     },
 
     // dispatch methods
@@ -188,14 +188,14 @@ export default {
             //     },
             //     { skipNull: true }
             // );
-            let qs = `limit=1&query=(${query}:${gene})+AND+(organism_id:${organism_id})+AND+(reviewed:true)&format:${format}`;
+            let qs = `limit=1&query=(${query}:${gene})+AND+(organism_id:${organism_id})+AND+(reviewed:true)&format=${format}`;
 
             let alertID = postAlertNotice("Loading Uniprot data...");
 
             let uniprotDoc = await fetch(
                 `https://rest.uniprot.org/uniprotkb/search?${qs}`
             )
-                .then(response => {
+                .then((response) => {
                     if (!response.ok) {
                         throw new Error(
                             "HTTP error, status = " + response.status
@@ -203,16 +203,18 @@ export default {
                     }
                     return response.json();
                 })
-                .catch(error => {
+                .catch((error) => {
                     postAlertError(error);
                 })
                 .finally(() => closeAlert(alertID));
 
-            if (!!uniprotDoc) {
-                context.commit("setUniprotDoc", uniprotDoc.results[0]);
-            } else {
-                // TODO: postAlertError(some error message);
+            if (uniprotDoc) {
+                let results = uniprotDoc.results.filter(
+                    (d) => d.uniProtkbId === gene + "_HUMAN"
+                );
+                //there should be only one result
+                context.commit("setUniprotDoc", results[0]);
             }
-        }
-    }
+        },
+    },
 };

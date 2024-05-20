@@ -9,10 +9,19 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import GenesetSelectPicker from "@/components/GenesetSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+
 
 import keyParams from "@/utils/keyParams";
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -20,33 +29,77 @@ Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
-    modules: {},
+    modules: {
+    },
     components: {
         PageHeader,
         PageFooter,
         SearchHeaderWrapper,
         PigeanTable,
-        PigeanPlot
+        PigeanPlot,
+        ResearchPheWAS,
+        GenesetSelectPicker,
     },
 
     data() {
         return {
             tableConfig: {
                 fields: [
-                    { key: "phenotype", sortable: true },
-                    { key: "beta", sortable: true },
-                    { key: "beta_uncorrected", sortable: true },
-                    { key: "expand", label: "Genes"}
+                    { key: "phenotype", 
+                        label: "Phenotype",
+                        sortable: true },
+                    { key: "beta_uncorrected", 
+                        label: "Effect (marginal)",
+                        sortable: true },
+                    { key: "beta", 
+                        label: "Effect (joint)",
+                        sortable: true },
+                    { key: "expand", 
+                        label: "Genes"}
                 ],
                 queryParam: "gene_set",
                 subtableEndpoint: "pigean-joined-gene-set",
                 subtableFields: [
-                    { key: "gene", sortable: true },
-                    { key: "combined", sortable: true },
-                    { key: "log_bf", sortable: true },
-                    { key: "prior", sortable: true }
+                    { key: "gene", 
+                        label: "Gene",
+                        sortable: true },
+                    { key: "combined", 
+                        label: "Combined",
+                        showProbability: true,
+                        sortable: true },
+                    { key: "log_bf", 
+                        label: "GWAS evidence weighted",
+                        sortable: true },
+                    { key: "prior",
+                        label: "Gene set evidence",
+                        sortable: true }
                 ]
-            }
+            },
+            plotColors: plotUtils.plotColors(),
+            renderConfig: {
+                type: 'phewas plot',
+                'render by': 'phenotype',
+                'group by': 'group',
+                'phenotype map': 'kp phenotype map',
+                'y axis field': 'beta_uncorrected',
+                'convert y -log10': 'false',
+                'y axis label': 'Beta (uncorrected)',
+                'x axis label': '',
+                'beta field': 'beta_uncorrected',
+                'hover content': [
+                    'beta',
+                    'beta_uncorrected'
+                ],
+                thresholds: [Math.log(3), Math.log(30)],
+                'label in black': 'greater than',
+                height: '535',
+                "plot margin": {
+                    "left": 150,
+                    "right": 180,
+                    "top": 250,
+                    "bottom": 300
+                }
+            },
         };
     },
     computed: {
@@ -60,6 +113,22 @@ new Vue({
             }
             return contents[0];
         },
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            }
+            return utils;
+        },
+        plotReady(){
+            return this.$store.state.pigeanGeneset.data.length > 0
+                && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        }
     },
     watch: {
         diseaseGroup(group) {
@@ -73,7 +142,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
-    methods: {},
+    methods: {
+    },
 
     render(createElement, context) {
         return createElement(Template);
