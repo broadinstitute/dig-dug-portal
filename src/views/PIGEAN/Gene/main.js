@@ -15,6 +15,8 @@ import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -42,6 +44,8 @@ new Vue({
         ResearchPheWAS,
         CriterionFunctionGroup,
         FilterEnumeration,
+        FilterGreaterThan,
+        FilterLessThan
     },
 
     data() {

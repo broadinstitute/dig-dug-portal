@@ -1,6 +1,6 @@
 <template>
   <div id="pigean-gene" :class="`${!!isSubtable ? 'pigean-subtable' : ''}`">
-      <div v-if="rows > 0">
+      <div v-if="tableData.length > 0">
           <div class="text-right mb-2" v-if="!isSubtable">
               <data-download
                   :data="probData"
@@ -55,7 +55,7 @@
           <b-pagination
               v-model="currentPage"
               class="pagination-sm justify-content-center"
-              :total-rows="rows"
+              :total-rows="tableData.length"
               :per-page="perPage"
           ></b-pagination>
       </div>
@@ -101,7 +101,6 @@ export default Vue.component("pigean-table", {
       tableData(){
         let data = this.probData;
         if (this.filter){
-          console.log("filtering!");
           data = data.filter(this.filter);
         }
         return data;
