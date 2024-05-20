@@ -67,6 +67,26 @@
                 </div>
                 <div class="card-body">
                     <criterion-function-group>
+                        <filter-enumeration-control
+                            :field="'phenotype'"
+                            placeholder="Select a phenotype ..."
+                            :options="
+                                $store.state.pigeanGeneset.data.map(d => d.phenotype)
+                            "
+                            :label-formatter="
+                                (phenotype) =>
+                                    !!$store.state.bioPortal.phenotypeMap[
+                                        phenotype
+                                    ]
+                                        ? $store.state.bioPortal.phenotypeMap[
+                                              phenotype
+                                          ].description
+                                        : phenotype
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Phenotypes</div>
+                        </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
                                 $parent.tableConfig.fields.filter(
