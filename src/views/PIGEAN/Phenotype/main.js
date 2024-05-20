@@ -17,6 +17,10 @@ import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+
 new Vue({
     store,
 
@@ -28,7 +32,10 @@ new Vue({
         ResearchMPlot,
         RawImage,
         PigeanTable,
-        PigeanPlot
+        PigeanPlot,
+        CriterionFunctionGroup,
+        FilterEnumeration,
+        FilterGreaterLess
     },
 
     created() {
@@ -46,6 +53,13 @@ new Vue({
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
+            geneFilterFields: [
+                { key: "combined", label: "Combined" },
+                { key: "combined_probability", label: "Combined probability" },
+                { key: "huge_score", label: "GWAS evidence unweighted" },
+                { key: "log_bf", label: "GWAS evidence weighted" },
+                { key: "prior", label: "Gene set evidence"}
+            ],
             tableConfig: {
                 fields: [
                     { key: "gene", 
@@ -85,10 +99,12 @@ new Vue({
                         sortable: true },
                     { key: "beta", 
                         label: "Effect (joint)",
-                        sortable: true },
+                        sortable: true,
+                        filter2way: true },
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
-                        sortable: true },
+                        sortable: true,
+                        filter2way: true },
                     { key: "expand", 
                         label: "Genes"}
                 ],
