@@ -265,11 +265,18 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
     cellbrowser: {
-        entry: "src/views/CellBrowser/main.js",
+        entry: "src/views/MATKP/CellBrowser/main.js",
         template: "public/index.html",
         filename: "cellbrowser.html",
         title: "Cell Browser",
         chunks: ["chunk-vendors", "chunk-common", "cellbrowser"],
+    },
+    cellbrowsertest: {
+        entry: "src/views/MATKP/Index/main.js",
+        template: "public/index.html",
+        filename: "matkp.html",
+        title: "MATKP",
+        chunks: ["chunk-vendors", "chunk-common", "cellbrowsertest"],
     },
 };
 

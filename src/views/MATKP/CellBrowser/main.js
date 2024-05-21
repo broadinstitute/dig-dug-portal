@@ -2,9 +2,13 @@ import Vue from "vue";
 import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
+import '../assets/styles.css';
 
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
+
+import matkpNav from "../components/matkp-nav.vue"
+import matkpFooter from "../components/matkp-footer.vue"
 
 import * as d3 from "d3";
 import Formatters from "@/utils/formatters";
@@ -23,7 +27,8 @@ new Vue({
     store,
 
     components: {
-
+        matkpNav,
+        matkpFooter
     },
 
     data() {
