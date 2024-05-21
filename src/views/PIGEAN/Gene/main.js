@@ -108,7 +108,7 @@ new Vue({
                     'log_bf',
                     'prior',
                 ],
-                thresholds: [Math.log(3), Math.log(30)],
+                thresholds: [0.01, 0.1],
                 'label in black': 'greater than',
                 height: '535',
                 "plot margin": {
