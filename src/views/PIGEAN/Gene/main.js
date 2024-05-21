@@ -152,6 +152,16 @@ new Vue({
         plotReady(){
             return this.$store.state.pigeanGene.data.length > 0
                 && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        },
+        phewasAdjustedData(){
+            let adjustedData = JSON.parse(JSON.stringify(
+                this.$store.state.pigeanGene.data)); // Deep copy
+            for (let i = 0; i < adjustedData.length; i++){
+                if (adjustedData[i].combined < 0){
+                    adjustedData[i].combined = 0;
+                }
+            }
+            return adjustedData;
         }
     },
     watch: {

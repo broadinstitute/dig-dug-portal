@@ -130,7 +130,7 @@
                                         v-if="$parent.plotReady"
                                         canvas-id="pigeanGene"
                                         :plotName="`PIGEAN_${$store.state.geneName}`"
-                                        :phenotypes-data="$store.state.pigeanGene.data"
+                                        :phenotypes-data="$parent.phewasAdjustedData"
                                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
