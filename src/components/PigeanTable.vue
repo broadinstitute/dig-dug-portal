@@ -140,7 +140,7 @@ export default Vue.component("pigean-table", {
         return a / (1 + a);
       },
       computeProbabilities(){
-        let data = JSON.parse(JSON.stringify(this.pigeanData)); // Deep copy
+        let data = structuredClone(this.pigeanData);
         for (let i = 0; i < this.config.fields.length; i++){
           let fieldConfig = this.config.fields[i];
           if (!fieldConfig.showProbability) { continue; }
