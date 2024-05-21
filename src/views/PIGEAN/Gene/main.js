@@ -14,6 +14,9 @@ import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -39,11 +42,20 @@ new Vue({
         SigmaSelectPicker,
         PigeanTable,
         PigeanPlot,
-        ResearchPheWAS
+        ResearchPheWAS,
+        CriterionFunctionGroup,
+        FilterEnumeration,
+        FilterGreaterLess
     },
 
     data() {
         return {
+            filterFields: [
+                { key: "combined", label: "Combined" },
+                { key: "huge_score", label: "GWAS unweighted" },
+                { key: "log_bf", label: "GWAS weighted" },
+                { key: "prior", label: "Gene set evidence"}
+            ],
             tableConfig: {
                 fields: [
                     { key: "phenotype", 
