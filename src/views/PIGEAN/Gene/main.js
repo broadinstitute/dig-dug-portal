@@ -75,9 +75,6 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "n",
-                        label: "Number of gene sets",
-                        sortable: true },
                     { key: "expand", 
                         label: "Gene sets" } 
                   ],
