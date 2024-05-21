@@ -82,7 +82,9 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "sigma"},
+                    { key: "n",
+                        label: "Number of gene sets",
+                        sortable: true },
                     { key: "expand", 
                         label: "Gene sets"}
                 ],
@@ -95,7 +97,6 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
-                    { key: "sigma"}
                   ],
             },
             genePigeanPlotConfig: {
@@ -119,7 +120,9 @@ new Vue({
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
                         sortable: true },
-                    { key: "sigma"},
+                    { key: "n",
+                        label: "Number of genes",
+                        sortable: true },
                     { key: "expand", 
                         label: "Genes"}
                 ],
@@ -139,7 +142,6 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "sigma"}
                 ]
             },
             genesetPigeanPlotConfig: {

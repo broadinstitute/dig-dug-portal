@@ -75,7 +75,9 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "sigma"},
+                    { key: "n",
+                        label: "Number of gene sets",
+                        sortable: true },
                     { key: "expand", 
                         label: "Gene sets" } 
                   ],
@@ -88,7 +90,6 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
-                    { key: "sigma"},
                   ],
             },
             pigeanPlotConfig: {

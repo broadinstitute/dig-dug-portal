@@ -68,9 +68,11 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
+                    { key: "n",
+                        label: "Number of genes",
+                        sortable: true },
                     { key: "expand", 
                         label: "Genes"},
-                    { key: "sigma"},
                 ],
                 queryParam: "gene_set",
                 subtableEndpoint: "pigean-joined-gene-set",
@@ -88,7 +90,6 @@ new Vue({
                     { key: "prior",
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "sigma"},
                 ]
             },
             pigeanPlotConfig: {
