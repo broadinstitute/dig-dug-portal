@@ -148,7 +148,7 @@ export default Vue.component("c2ct-table", {
     },
 });
 </script>
-<style>
+<style scoped>
 @import url("/css/effectorGenes.css");
 
 label {
