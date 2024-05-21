@@ -1,6 +1,6 @@
 <template>
   <div id="pigean-gene" :class="`${!!isSubtable ? 'pigean-subtable' : ''}`">
-      <div v-if="rows > 0">
+      <div v-if="tableData.length > 0">
           <div class="text-right mb-2" v-if="!isSubtable">
               <data-download
                   :data="probData"
@@ -11,7 +11,7 @@
             :hover="isSubtable"
             small
             responsive="sm"
-            :items="probData"
+            :items="tableData"
             :fields="probFields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -55,7 +55,7 @@
           <b-pagination
               v-model="currentPage"
               class="pagination-sm justify-content-center"
-              :total-rows="rows"
+              :total-rows="tableData.length"
               :per-page="perPage"
           ></b-pagination>
       </div>
@@ -78,14 +78,14 @@ export default Vue.component("pigean-table", {
       DataDownload,
       PigeanTable
   },
-  props: ["pigeanData", "phenotypeMap", "config", "isSubtable"],
+  props: ["pigeanData", "phenotypeMap", "config", "isSubtable", "filter"],
   data() {
       return {
           perPage: 10,
           currentPage: 1,
           subtableData: {},
           probFields: ["combined"],
-          probData: this.computeProbabilities(),
+          probData: this.computeProbabilities(), // only need to do this once
           probFields: this.collateFields()
       };
   },
@@ -97,6 +97,13 @@ export default Vue.component("pigean-table", {
         return this.pigeanData.length === 0 ? 0 
           : this.pigeanData[0]["combined"] !== undefined
             ? "combined" : "beta_uncorrected";
+      },
+      tableData(){
+        let data = this.probData;
+        if (this.filter){
+          data = data.filter(this.filter);
+        }
+        return data;
       }
   },
   methods: {

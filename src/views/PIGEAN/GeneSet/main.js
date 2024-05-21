@@ -13,6 +13,9 @@ import GenesetSelectPicker from "@/components/GenesetSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 
 
 import keyParams from "@/utils/keyParams";
@@ -39,15 +42,22 @@ new Vue({
         PigeanPlot,
         ResearchPheWAS,
         GenesetSelectPicker,
+        CriterionFunctionGroup,
+        FilterEnumeration,
+        FilterGreaterLess
     },
 
     data() {
         return {
+            filterFields: [
+                { key: "beta_uncorrected", label: "Effect (marginal)" },
+                { key: "beta", label: "Effect (joint)" }
+            ],
             tableConfig: {
                 fields: [
                     { key: "phenotype", 
                         label: "Phenotype",
-                        sortable: true },
+                        sortable: true, },
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
                         sortable: true },
