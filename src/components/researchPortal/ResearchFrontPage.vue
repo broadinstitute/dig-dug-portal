@@ -5,7 +5,7 @@
             <div class="fp-intro-section">
                 <div class="fp-intro-logo">
                     <img style="width:400px;" 
-                        :src="this.sectionConfigs['content']['logo large']"/>
+                        :src="getLogo(this.sectionConfigs['content']['logo large'])"/>
                 </div>
                 <div class="fp-intro-divider"></div>
                 <div class="fp-intro-blurb">
@@ -65,6 +65,19 @@ export default Vue.component("research-front-page", {
         }
     },
     methods: {
+        getLogo(SRC) {
+
+            let updatedLink = SRC;
+            let replaceItems = this.sectionConfigs['content']["replace links"];
+
+            if (!!replaceItems) {
+                replaceItems.map(r => {
+                    updatedLink = updatedLink.replace("$" + r, this.utilsBox.keyParams[r]);
+                })
+            }
+
+            return updatedLink
+        },
         getExampleLink(EXAMPLE) {
             let exampleLink;
             this.sectionConfigs['content']['search parameters'].map(param =>{

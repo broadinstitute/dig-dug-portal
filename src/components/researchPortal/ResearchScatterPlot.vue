@@ -418,8 +418,10 @@ export default Vue.component("research-scatter-plot", {
 					//loop through each axis fields pair
 					this.renderConfig["axis fields"].forEach(fieldpair => {
 						//get x,y values for each pair
-						let xvalue = typeof(r[fieldpair["x axis field"]]) == 'string' ? 0 : r[fieldpair["x axis field"]]; //TODO: filter out? not here though
-						let yvalue = typeof(r[fieldpair["y axis field"]]) == 'string' ? 0 : r[fieldpair["y axis field"]]; //TODO: filter out? not here though
+						let xvalue = (r[fieldpair["x axis field"]] === 0)? 0 : typeof(r[fieldpair["x axis field"]]) == 'string' ? Number(r[field]) : r[fieldpair["x axis field"]]; //TODO: filter out? not here though
+						let yvalue = (r[fieldpair["y axis field"]] === 0) ? 0 : typeof(r[fieldpair["y axis field"]]) == 'string' ? Number(r[field]) : r[fieldpair["y axis field"]]; //TODO: filter out? not here though
+						
+						
 						tempObj["x"] = { ...tempObj["x"], [fieldpair["x axis field"]]:xvalue };
 						tempObj["y"] = { ...tempObj["y"], [fieldpair["y axis field"]]:yvalue };
 
@@ -534,9 +536,11 @@ export default Vue.component("research-scatter-plot", {
 	},
 	watch: {
 		renderData(DATA){
-			
+			console.log(DATA);
+			this.renderPlot()
 		},
 		groupsList(LIST){
+			this.renderPlot()
 		}
 	},
 	methods: {
