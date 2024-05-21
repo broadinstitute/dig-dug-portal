@@ -179,7 +179,25 @@ export default Vue.component("research-single-search", {
 	watch: {
 		singleSearchParam(PARAM) {
 			if (PARAM.length >= 2) {
-				this.lookupGenes(PARAM);
+
+				// in case there is custom searchConfig, make sure kp gene search is there. Otherwise, gene search is active in default.
+				if(!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
+
+					let isKpGenes = null;
+
+					this.singleSearchConfig["search parameters"].map(S => {
+						if (!!S["values"] && S["values"] == "kp genes") {
+							isKpGenes = true
+						}
+					})
+
+					if (!!isKpGenes) { this.lookupGenes(PARAM); }
+
+				} else {
+					
+					this.lookupGenes(PARAM);
+				}
+
 				let paramWords = PARAM.split(" ");
 				let searchPhenotypes = [];
 
@@ -280,7 +298,7 @@ export default Vue.component("research-single-search", {
 
 				let uniqueList = [...new Set(tissues)];
 
-				console.log(uniqueList);
+				//console.log(uniqueList);
 
 				let tissuesList = [];
 				uniqueList.map(tissue => {
@@ -400,12 +418,30 @@ export default Vue.component("research-single-search", {
 							dataEntity = dataEntity[w];
 						})
 
-
 						if (typeof dataEntity == "string") {
 							dataEntity = (TYPE == "json") ? JSON.parse(dataEntity) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(dataEntity) : dataEntity;
 						}
 
-						list = dataEntity;
+						//console.log("dataEntity", PARAM, typeof dataEntity)
+
+						let values = [];
+
+						if (dataEntity.length > 0) {
+							dataEntity.map(item => {
+							if(typeof item == 'string' || typeof item == 'number') {
+								values.push({"label":item, "value":item}) 
+							} else if(typeof item == 'object' && !!Array.isArray(item)) {
+								values.push({ "label": item[0], "value": item[0] })
+							} else if(typeof item == 'object' && !Array.isArray(item)) {
+								values.push(item);
+							}
+							})
+						}
+
+
+						//list = dataEntity;
+
+						list = values;
 
 					} else {
 						list = paramList
