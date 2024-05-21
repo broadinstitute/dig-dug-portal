@@ -22,7 +22,7 @@ export default Vue.component("pigean-plot", {
   components: {
   },
   props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields", 
-    "plotHeight", "phenotypeMap"],
+    "plotHeight", "phenotypeMap", "filter"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
@@ -50,6 +50,13 @@ export default Vue.component("pigean-plot", {
     this.drawChart();
   },
   computed: {
+    chartData(){
+      let data = this.pigeanData;
+      if (this.filter){
+        data = data.filter(this.filter);
+      }
+      return data;
+    }
   },
   methods: {
     drawChart(){
@@ -81,6 +88,7 @@ export default Vue.component("pigean-plot", {
         .style("border-radius", "5px")
         .style("font-size", "smaller");
 
+      // Use unfiltered data so the scales do not change
       let xMin = this.extremeVal(this.xField);
       let yMin = this.extremeVal(this.yField);
       let xMax = this.extremeVal(this.xField, false);
@@ -119,7 +127,7 @@ export default Vue.component("pigean-plot", {
       // add dots
       this.svg.append("g")
         .selectAll("dot")
-        .data(this.pigeanData)
+        .data(this.chartData)
         .enter()
         .append("circle")
           .attr("class", d => `${d[this.dotKey]}`)
@@ -138,10 +146,10 @@ export default Vue.component("pigean-plot", {
               this.hoverDot(JSON.stringify(g)));
     },
     extremeVal(field, min=true){
-      let data = this.pigeanData.filter(d => 
+      let filteredData = this.pigeanData.filter(d => 
         d[field] !== undefined && !Number.isNaN(d[field]));
-      let val = data[0][field];
-      this.pigeanData.forEach(d => {
+      let val = filteredData[0][field];
+      filteredData.forEach(d => {
         if (min && d[field] < val){
           val = d[field];
         } else if (!min && d[field] > val){
@@ -177,6 +185,7 @@ export default Vue.component("pigean-plot", {
       this.tooltip.style("opacity", 0);
     },
     groupColors(){
+      // Based on pigeanData not filtered data. Phenotypes should always match PheWAS
       let groupsInUse = this.pigeanData.map(d => d.phenotype)
         .map(p => !!this.phenotypeMap[p] ? this.phenotypeMap[p]["group"] : "")
         .filter(g => g !== "");
@@ -207,8 +216,8 @@ export default Vue.component("pigean-plot", {
     },
   },
   watch: {
-    phenotypeMap(map){
-      console.log(JSON.stringify(map));
+    chartData(){
+      this.drawChart();
     }
   }
 });
