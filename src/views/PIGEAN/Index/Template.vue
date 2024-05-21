@@ -8,13 +8,14 @@
         ></page-header>
         <!-- Body -->
         <div v-if="$parent.diseaseGroup">
-            <div class="fluid">
+            <div id="pigean" class="fluid">
                 <div
                     :class="
                         'front-top-banner-' +
                         $parent.diseaseGroup.name +
                         'kp front-top-banner'
                     "
+                    style="height: 70vh"
                 >
                     <div class="container" style="display: block !important">
                         <div class="row">
@@ -38,294 +39,38 @@
                                             $parent.diseaseGroup.name +
                                             'kp'
                                         "
-                                        v-html="
-                                            $parent.frontContents.field_tagline
-                                        "
-                                    ></span>
+                                        style="font-size: 2.3rem"
+                                        >Priors Inferred from GEne
+                                        ANotations</span
+                                    >
                                 </div>
                             </div>
                         </div>
-                        <!-- A2F only feature -->
-                        <div
-                            v-if="$parent.diseaseGroup.name == 'a2f'"
-                            class="row"
-                            style="margin-top: 25px"
-                        >
-                            <div class="col-md-8 offset-md-2">
-                                <h4
-                                    style="color: #fff"
-                                    align="center"
-                                    v-html="
-                                        !!$parent.diseaseInSession
-                                            ? '<small>Current focus:</small> ' +
-                                              $parent.diseaseInSession
-                                            : 'Set system focus'
-                                    "
-                                ></h4>
-
-                                <div
-                                    :class="
-                                        !$parent.diseaseInSession
-                                            ? 'hidden'
-                                            : ''
-                                    "
-                                    style="
-                                        text-align: center;
-                                        margin-bottom: 20px;
-                                    "
-                                >
-                                    <span
-                                        href="javascript:;"
-                                        align="center"
-                                        class="btn btn-sm btn-light"
-                                        @click="
-                                            $parent.showHideElement(
-                                                'disease_systems_tree'
-                                            )
-                                        "
-                                    >
-                                        {{ "Change focus" }}</span
-                                    >
-                                </div>
-
-                                <div
-                                    v-if="
-                                        $store.state.bioPortal.diseaseSystems
-                                            .length > 0 &&
-                                        $parent.phenotypes.length > 0
-                                    "
-                                    id="disease_systems_tree"
-                                    class="disease-systems-trees-wrapper"
-                                    :class="
-                                        !!$parent.diseaseInSession
-                                            ? 'hidden'
-                                            : ''
-                                    "
-                                >
-                                    <disease-systems
-                                        page="front"
-                                        :diseases="
-                                            $store.state.bioPortal
-                                                .diseaseSystems
-                                        "
-                                        :disease-groups="
-                                            $store.state.bioPortal.diseaseGroups
-                                        "
-                                        :phenotypes="$parent.phenotypes"
-                                        :phenotype-correlation="
-                                            $store.state.phenotypeCorrelation
-                                        "
-                                    ></disease-systems>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- end -->
-                        <!-- search for CMD -->
-                        <div
-                            v-if="$store.getters['bioPortal/isRootPortal']"
-                            class="row"
-                        >
-                            <div class="col-md-12 portal-front-tabs">
-                                <b-tabs content-class="mt-3" align="center">
-                                    <b-tab
-                                        title="Gene, region, variant, phenotype or tissue"
-                                        active
-                                    >
-                                        <div
-                                            class="col-md-8 offset-md-2"
-                                            align="center"
-                                        >
-                                            <div class="single-search-wrapper">
-                                                <research-single-search
-                                                    :single-search-config="
-                                                        $parent.config
-                                                    "
-                                                    :phenotypes="
-                                                        $parent.phenotypesInSession
-                                                    "
-                                                    :utils="$parent.utilsBox"
-                                                ></research-single-search>
-                                                <div
-                                                    class="region-search-examples a2f-region-search-examples"
-                                                >
-                                                    <documentation
-                                                        name="home.example"
-                                                        :group="
-                                                            $parent.diseaseGroup
-                                                                .name
-                                                        "
-                                                    ></documentation>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </b-tab>
-
-                                    <b-tab title="Disease-specific portals">
-                                        <disease-group-select
-                                            :disease-groups="
-                                                $store.state.bioPortal
-                                                    .diseaseGroups
-                                            "
-                                        ></disease-group-select>
-                                    </b-tab>
-                                </b-tabs>
-                            </div>
-                        </div>
-                        <!-- end -->
 
                         <!-- search for all portals except CMD -->
-                        <template
-                            v-if="!$store.getters['bioPortal/isRootPortal']"
-                        >
-                            <div class="row front-search-section">
-                                <div
-                                    class="col-md-8 offset-md-2"
-                                    align="center"
-                                >
-                                    <div class="single-search-wrapper">
-                                        <h4 style="color: #fff">
-                                            Search gene, variant, region,
-                                            phenotype or tissue
-                                        </h4>
-                                        <research-single-search
-                                            :single-search-config="
-                                                $parent.config
-                                            "
-                                            :phenotypes="
-                                                $parent.phenotypesInSession
-                                            "
-                                            :utils="$parent.utilsBox"
-                                        ></research-single-search>
-                                        <div
-                                            class="region-search-examples a2f-region-search-examples"
-                                        >
-                                            <documentation
-                                                name="home.example"
-                                                :group="
-                                                    $parent.diseaseGroup.name
-                                                "
-                                            ></documentation>
-                                        </div>
-                                    </div>
+
+                        <div class="row front-search-section">
+                            <div class="col-md-8 offset-md-2" align="center">
+                                <div class="single-search-wrapper">
+                                    <h4 style="color: #fff">
+                                        Search for gene, geneset or phenotype
+                                    </h4>
+                                    <research-single-search
+                                        :single-search-config="$parent.config"
+                                        :phenotypes="
+                                            $parent.phenotypesInSession
+                                        "
+                                        :utils="$parent.utilsBox"
+                                    ></research-single-search>
                                 </div>
                             </div>
-                        </template>
+                        </div>
+
                         <!-- end -->
-
-                        <!-- portal stats -->
-                        <div id="stats">
-                            <div class="stats">
-                                <div
-                                    v-for="(stat, index) in $parent.statsArray"
-                                    :key="index"
-                                    class="stat"
-                                >
-                                    <div class="icon">
-                                        <img
-                                            :src="`/images/icons/stats/${stat.icon}.svg`"
-                                        />
-                                    </div>
-                                    <div class="info">
-                                        <div class="count">
-                                            {{ stat.value }}
-                                        </div>
-                                        <div class="label">
-                                            {{ stat.display }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="container static-content-section">
-                <div class="row">
-                    <div
-                        :class="
-                            $parent.diseaseGroup.name == 'a2f'
-                                ? 'col-md-8'
-                                : 'col-md-7'
-                        "
-                    >
-                        <!-- A2FKP only static content -->
-                        <div
-                            v-if="
-                                $parent.kPortals &&
-                                $parent.diseaseGroup.name == 'a2f'
-                            "
-                        >
-                            <h2>Community Knowledge Portals</h2>
-                            <p></p>
-                            <div class="row">
-                                <div
-                                    v-for="portal in $parent.kPortals"
-                                    :key="portal.title"
-                                    class="k-portal"
-                                >
-                                    <div v-html="portal.body"></div>
-                                    <div
-                                        class="kp-title"
-                                        v-html="portal.title"
-                                    ></div>
-                                    <div>
-                                        <a :href="portal.field_portal_address"
-                                            >Visit portal</a
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- end-->
-                        <div
-                            v-html="$parent.frontContents.field_about_portal"
-                        ></div>
-                    </div>
-                    <div
-                        :class="
-                            $parent.diseaseGroup.name == 'a2f'
-                                ? 'col-md-4'
-                                : 'col-md-5'
-                        "
-                    >
-                        <research-page-description
-                            v-if="
-                                $parent.oldStats &&
-                                $parent.pageDescription != null
-                            "
-                            :content="$parent.pageDescription"
-                            :utils="$parent.utilsBox"
-                        ></research-page-description>
-                        <div
-                            v-html="$parent.frontContents.field_about_project"
-                        ></div>
-
-                        <news-feed-section
-                            :disease-group="$parent.diseaseGroup"
-                            :news-feed="$store.state.kp4cd.newsFeed"
-                        ></news-feed-section>
-                        <h2
-                            style="
-                                font-family: 'Oswald';
-                                font-size: 30px;
-                                margin-top: 5px;
-                            "
-                        >
-                            Stay in touch
-                        </h2>
-                        <p>
-                            <a
-                                href="https://docs.google.com/forms/d/e/1FAIpQLSdZXVbAT7YG0cQmCRXWDgCEBfMiCZ5r3DxGmhqYlL7f2jTqcw/viewform?usp=sf_link"
-                                target="_blank"
-                                >Sign up</a
-                            >
-                            for emailed updates, newsletters, and webinar
-                            invitations.
-                        </p>
-                    </div>
-                </div>
-            </div>
             <!-- end -->
         </div>
         <!-- Footer-->
@@ -468,5 +213,8 @@ p[id="home.example"] {
 .stats .label {
     font-size: 12px;
     max-width: 70px;
+}
+#pigean .front-logo-tagline-a2fkp {
+    transform: translate(0%, 40%);
 }
 </style>
