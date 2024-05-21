@@ -16,6 +16,7 @@ import sessionUtils from "@/utils/sessionUtils";
 import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
+import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -31,6 +32,7 @@ new Vue({
         Alert,
         SearchHeaderWrapper,
         SigmaSelectPicker,
+        GenesetSizeSelectPicker,
         ResearchMPlot,
         RawImage,
         PigeanTable,
