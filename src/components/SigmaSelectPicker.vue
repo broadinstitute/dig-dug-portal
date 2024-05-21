@@ -1,6 +1,6 @@
 <template>
 	<select v-model="sigma">
-		<!-- option value="sigma0">0</option -->
+		<option value="sigma0">0</option>
 		<option value="sigma2">2</option>
 		<option value="sigma4">4</option>
 	</select>
