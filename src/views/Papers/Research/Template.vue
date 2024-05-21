@@ -11,6 +11,7 @@
 
 		<!--  Research page Header -->
 		<research-page-header
+			v-if="!!$parent.sectionConfigs"
 			:class="
 				$parent.displayOnKP == true
 					? 'research-portal-header-compact'
@@ -22,6 +23,8 @@
 					? null
 					: $parent.headerLogo
 			"
+			:sectionConfig="$parent.sectionConfigs['header menu']"
+			:utils="$parent.utilsBox"
 		></research-page-header>
 	<div class="single-search-wrapper" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['single search']">
 		<research-single-search
