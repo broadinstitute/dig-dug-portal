@@ -91,6 +91,11 @@ new Vue({
                     { key: "sigma"},
                 ]
             },
+            pigeanPlotConfig: {
+                xField: "beta_uncorrected",
+                yField: "beta",
+                dotKey: "phenotype"
+            },
             plotColors: plotUtils.plotColors(),
             renderConfig: {
                 type: 'phewas plot',

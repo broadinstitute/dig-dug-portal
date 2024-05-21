@@ -33,6 +33,7 @@ export default Vue.component("pigean-plot", {
         yScale: null,
         tooltip: null,
         colorMap: this.groupColors(),
+        allHoverFields: this.getHoverFields(),
         dotOutlineColor: "#00000075"
       };
   },
@@ -163,8 +164,7 @@ export default Vue.component("pigean-plot", {
 
       // Tooltip content
       let tooltipContent = "";
-      let allHoverFields = this.getHoverFields();
-      allHoverFields.forEach(field =>{
+      this.allHoverFields.forEach(field =>{
         let newLine = field === "phenotype" ?
           `phenotype: ${this.phDesc(dot.phenotype)}`
           : `${field}: ${dot[field]}`;
@@ -216,11 +216,13 @@ export default Vue.component("pigean-plot", {
       fields.push(this.config.dotKey);
       fields.push(this.config.xField);
       fields.push(this.config.yField);
-      this.config.hoverFields.forEach(field => {
-        if (!fields.includes(field)){
-          fields.push(field);
-        }
-      });
+      if (this.config.hoverFields){
+        this.config.hoverFields.forEach(field => {
+          if (!fields.includes(field)){
+            fields.push(field);
+          }
+        });
+      }
       return fields;
     }
   },
