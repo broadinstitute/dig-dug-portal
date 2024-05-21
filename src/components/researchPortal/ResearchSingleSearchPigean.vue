@@ -35,14 +35,23 @@
                         ><a
                             v-if="!!isParameterActive('kp genes').active"
                             class="search-gene-link"
-                            @click="searchGene(gene)"
                             href="javascript:;"
+                            @click="searchGene(gene)"
                             >{{ "Search gene"
                             }}<span class="gene-link-tip"
                                 >Alias names are converted to gene symbols</span
                             ></a
                         >
-                    </span>
+                        <span v-if="!!isParameterActive('kp region').active"
+                            >|</span
+                        >
+                        <a
+                            v-if="!!isParameterActive('kp region').active"
+                            href="javascript:;"
+                            @click="searchRegion(gene)"
+                            >{{ "Search region" }}</a
+                        ></span
+                    >
                 </div>
                 <template v-if="!!isParameterActive('kp phenotypes').active">
                     <div
@@ -83,8 +92,8 @@
                                 v-for="item in singleSearchResult[
                                     param['parameter']
                                 ]"
-                                :value="item.value"
                                 :key="item.value"
+                                :value="item.value"
                                 class="single-search-option"
                             >
                                 {{ item.label }}
@@ -125,15 +134,15 @@
                     }}<span class="search-word-group"
                         ><a
                             class="search-gene-link"
-                            @click="searchGene(gene)"
                             href="javascript:;"
+                            @click="searchGene(gene)"
                             >{{ "Search gene"
                             }}<span class="gene-link-tip"
                                 >Alias names are converted to gene symbols</span
                             ></a
                         >
                         |
-                        <a @click="searchRegion(gene)" href="javascript:;">{{
+                        <a href="javascript:;" @click="searchRegion(gene)">{{
                             "Search region"
                         }}</a></span
                     >
@@ -141,8 +150,8 @@
 
                 <div
                     v-for="tissue in singleSearchResult.tissues"
-                    :value="tissue.value"
                     :key="tissue.value"
+                    :value="tissue.value"
                     class="single-search-option"
                 >
                     <a :href="'/tissue.html?tissue=' + tissue.value">{{
@@ -157,13 +166,12 @@
                     :value="phenotype.name"
                     class="single-search-option"
                 >
-                    <a
-                        :href="
-                            '/pigean/phenotype.html?phenotype=' + phenotype.name
-                        "
-                        >{{ phenotype.description }}</a
-                    >
-                    <span class="search-word-group">{{ phenotype.group }}</span>
+                    <a :href="'/phenotype.html?phenotype=' + phenotype.name">{{
+                        phenotype.description
+                    }}</a
+                    ><span class="search-word-group">{{
+                        phenotype.group
+                    }}</span>
                 </div>
             </div>
         </div>
@@ -172,12 +180,11 @@
 </template>
 
 <script>
-//This is a copy of the ResearchSingleSearch.vue component with some modifications to make it work with PIGEAN endpoints
 import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
-export default Vue.component("research-single-search", {
+export default Vue.component("ResearchSingleSearch", {
     props: ["singleSearchConfig", "phenotypes", "utils"],
     modules: {},
 
@@ -204,7 +211,7 @@ export default Vue.component("research-single-search", {
                     let isInPhenotype = 0;
                     paramWords.map((w) => {
                         if (
-                            !!p.description
+                            p.description
                                 .toLowerCase()
                                 .includes(w.toLowerCase())
                         ) {
@@ -263,7 +270,7 @@ export default Vue.component("research-single-search", {
             !!this.singleSearchConfig["search parameters"]
         ) {
             this.singleSearchConfig["search parameters"].map((S) => {
-                if (!!S["data point"]) {
+                if (S["data point"]) {
                     let listPoint = S["data point"];
                     this.getList(
                         S["parameter"],
@@ -273,8 +280,6 @@ export default Vue.component("research-single-search", {
                     );
                 }
             });
-        } else {
-            this.getTissues();
         }
     },
     mounted() {},
@@ -304,7 +309,7 @@ export default Vue.component("research-single-search", {
                 !!this.singleSearchParam.includes("rs") ||
                 !!this.singleSearchParam.includes(":")
             ) {
-                if (!!this.singleSearchParam.includes("-")) {
+                if (this.singleSearchParam.includes("-")) {
                     let chr = searchKey.split(":")[0];
                     let region = searchKey.split(":")[1].split("-");
 
@@ -332,33 +337,55 @@ export default Vue.component("research-single-search", {
         isParameterActive(PARAM) {
             let returnParam = { active: null, url: "" };
 
-            if (!!this.singleSearchConfig) {
+            if (this.singleSearchConfig) {
                 this.singleSearchConfig["search parameters"].map((param) => {
                     if (param.values == PARAM) {
                         returnParam.active = true;
-                        returnParam.url =
-                            "/research.html?pageid=" +
-                            param["target page"]["page id"];
-                        returnParam.url += !!param["target page"]["entity"]
+                        if (param["target page"]["page id"]) {
+                            returnParam.url =
+                                "/research.html?pageid=" +
+                                param["target page"]["page id"];
+                        } else if (param["target page"]["url"]) {
+                            returnParam.url = param["target page"]["url"];
+                        }
+                        //returnParam.url = '/research.html?pageid='+param['target page']['page id'];
+                        returnParam.url += param["target page"]["entity"]
                             ? "&" +
                               param["target page"]["entity parameter"] +
                               "=" +
                               param["target page"]["entity"]
                             : "";
-                        returnParam.url += "&" + param["parameter"] + "=";
+
+                        if (param["target page"]["page id"]) {
+                            returnParam.url += "&" + param["parameter"] + "=";
+                        } else if (param["target page"]["url"]) {
+                            returnParam.url += param["parameter"] + "=";
+                        }
                     } else {
                         if (param.parameter == PARAM) {
                             returnParam.active = true;
-                            returnParam.url =
-                                "/research.html?pageid=" +
-                                param["target page"]["page id"];
-                            returnParam.url += !!param["target page"]["entity"]
+                            if (param["target page"]["page id"]) {
+                                returnParam.url =
+                                    "/research.html?pageid=" +
+                                    param["target page"]["page id"];
+                            } else if (param["target page"]["url"]) {
+                                returnParam.url = param["target page"]["url"];
+                            }
+                            /*returnParam.url = '/research.html?pageid='
+								+ param['target page']['page id'];*/
+                            returnParam.url += param["target page"]["entity"]
                                 ? "&" +
                                   param["target page"]["entity parameter"] +
                                   "=" +
                                   param["target page"]["entity"]
                                 : "";
-                            returnParam.url += "&" + param["parameter"] + "=";
+                            //returnParam.url += '&' + param['parameter'] + '=';
+                            if (param["target page"]["page id"]) {
+                                returnParam.url +=
+                                    "&" + param["parameter"] + "=";
+                            } else if (param["target page"]["url"]) {
+                                returnParam.url += param["parameter"] + "=";
+                            }
                         }
                     }
                 });
@@ -367,7 +394,7 @@ export default Vue.component("research-single-search", {
             return returnParam;
         },
         async getList(PARAM, URL, TYPE, WRAPPER) {
-            if (!!URL) {
+            if (URL) {
                 let paramList = await fetch(URL).then((resp) => resp.json());
                 let list;
 
@@ -380,7 +407,7 @@ export default Vue.component("research-single-search", {
                                 ? this.utils.dataConvert.csv2Json(paramList)
                                 : paramList;
                     }
-                    if (!!WRAPPER) {
+                    if (WRAPPER) {
                         let dataEntity = paramList;
 
                         WRAPPER.map((w) => {

@@ -67,6 +67,68 @@ new Vue({
             { icon: "curated_datasets", label: "Curated datasets" },
         ],
         oldStats: keyParams.oldstats,
+        config: {
+            "search instruction": "Search gene, geneset or phenotype",
+            "search examples": [
+                {
+                    parameter: "gene",
+                    value: "PLAU",
+                },
+                {
+                    parameter: "gene",
+                    value: "MLX",
+                },
+            ],
+            "search parameters": [
+                {
+                    parameter: "gene",
+                    "data point": {
+                        type: "api",
+                        url: "https://bioindex-dev.hugeamp.org/api/bio/keys/pigean-gene/1",
+                        "data type": "json",
+                        "data wrapper": ["keys"],
+                    },
+                    "target page": {
+                        label: "Search Gene",
+                        url: "/pigean/gene.html?",
+                    },
+                },
+                {
+                    parameter: "geneset",
+                    "data point": {
+                        type: "api",
+                        url: "https://bioindex-dev.hugeamp.org/api/bio/keys/pigean-gene-set/1",
+                        "data type": "json",
+                        "data wrapper": ["keys"],
+                    },
+                    "target page": {
+                        label: "Search Geneset",
+                        url: "/pigean/geneset.html?",
+                    },
+                },
+                // {
+                //     parameter: "phenotype",
+                //     "data point": {
+                //         type: "api",
+                //         url: "https://bioindex-dev.hugeamp.org/api/bio/keys/pigean-gene-set-phenotype/1",
+                //         "data type": "json",
+                //         "data wrapper": ["keys"],
+                //     },
+                //     "target page": {
+                //         label: "Search Phenotype",
+                //         url: "/pigean/phenotype.html?",
+                //     },
+                // },
+                {
+                    parameter: "phenotype",
+                    values: "kp phenotypes",
+                    "target page": {
+                        label: "Search Phenotype",
+                        url: "/pigean/phenotype.html?",
+                    },
+                },
+            ],
+        },
     },
 
     computed: {
@@ -319,13 +381,6 @@ new Vue({
             } else {
                 return {};
             }
-        },
-        statsArray() {
-            return this.statsKeys.map((stat) => ({
-                ...stat,
-                value: this.pageStats[stat.label],
-                display: this.capitalize(stat.label),
-            }));
         },
     },
 
