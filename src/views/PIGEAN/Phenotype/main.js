@@ -98,6 +98,12 @@ new Vue({
                     { key: "sigma"}
                   ],
             },
+            genePigeanPlotConfig: {
+                xField: "prior",
+                yField: "log_bf",
+                dotKey: "gene",
+                hoverFields: ['combined', 'log_bf']
+            },
             genesetFilterFields: [
                 { key: "beta", label: "Effect (joint)" },
                 { key: "beta_uncorrected", label: "Effect (marginal)" }
@@ -135,6 +141,11 @@ new Vue({
                         sortable: true },
                     { key: "sigma"}
                 ]
+            },
+            genesetPigeanPlotConfig: {
+                xField: "beta_uncorrected",
+                yField: "beta",
+                dotKey: "gene_set"
             }
         };
     },

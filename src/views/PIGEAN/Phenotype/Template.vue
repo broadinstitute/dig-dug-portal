@@ -110,10 +110,7 @@
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot v-if="$parent.plotReady"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
-                                xField="prior"
-                                yField="log_bf"
-                                dotKey="gene"
-                                :hoverFields="['combined', 'log_bf']"
+                                :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                 :filter="filter">
                             </pigean-plot>
@@ -149,9 +146,7 @@
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot v-if="$parent.plotReady"
                                 :pigeanData="$store.state.genesetPhenotype.data"
-                                xField="beta_uncorrected"
-                                yField="beta"
-                                dotKey="gene_set"
+                                :config="$parent.genesetPigeanPlotConfig"
                                 :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                 :filter="filter">
                             </pigean-plot>
