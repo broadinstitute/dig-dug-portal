@@ -61,6 +61,7 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
+                    { key: "sigma"},
                     { key: "expand", 
                         label: "Gene sets" } 
                   ],
@@ -73,6 +74,7 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
+                    { key: "sigma"},
                   ],
             },
             plotColors: plotUtils.plotColors(),

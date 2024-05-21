@@ -66,6 +66,7 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
+                    { key: "sigma"},
                     { key: "expand", 
                         label: "Gene sets"}
                 ],
@@ -78,6 +79,7 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
+                    { key: "sigma"}
                   ],
             },
             genesetTableConfig: {
@@ -91,6 +93,7 @@ new Vue({
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
                         sortable: true },
+                    { key: "sigma"},
                     { key: "expand", 
                         label: "Genes"}
                 ],
@@ -109,7 +112,8 @@ new Vue({
                         sortable: true },
                     { key: "prior", 
                         label: "Gene set evidence",
-                        sortable: true }
+                        sortable: true },
+                    { key: "sigma"}
                 ]
             }
         };

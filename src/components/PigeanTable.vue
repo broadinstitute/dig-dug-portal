@@ -19,19 +19,19 @@
             :sort-desc="true"
           >
             <template #cell(gene)="r">
-              <a :href="`/pigean/gene.html?gene=${r.item.gene}`">
+              <a :href="`/pigean/gene.html?gene=${r.item.gene}&sigma=${sigma}`">
                 {{ r.item.gene }}
               </a>
             </template>
             <template #cell(phenotype)="r">
               <a v-if="!!phenotypeMap[r.item.phenotype]"
-                :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}`">
+                :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}&sigma=${sigma}`">
                 {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
               </a>
               <span v-else>{{ r.item.phenotype }}</span>
             </template>
             <template #cell(gene_set)="r">
-              <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}`">
+              <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}&sigma=${sigma}`">
                 {{ r.item.gene_set }}
               </a>
             </template>
@@ -72,6 +72,7 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
+import keyParams from "@/utils/keyParams";
 import PigeanTable from "./PigeanTable.vue";
 export default Vue.component("pigean-table", {
   components: {
@@ -97,6 +98,9 @@ export default Vue.component("pigean-table", {
         return this.pigeanData.length === 0 ? 0 
           : this.pigeanData[0]["combined"] !== undefined
             ? "combined" : "beta_uncorrected";
+      },
+      sigma(){
+        return keyParams.sigma;
       }
   },
   methods: {
