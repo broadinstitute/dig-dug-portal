@@ -595,6 +595,7 @@ let downloadImg = function (ID, name, type, svgImage) {
         }
 
         let svgData = new XMLSerializer().serializeToString(newSVG);
+
         dataURL = new Blob([svgData], { type: "image/svg+xml" });
 
     } else if (type == 'png') {
