@@ -21,21 +21,17 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "xField", "yField", "dotKey", "hoverFields", 
-    "plotHeight", "phenotypeMap", "filter"],
+  props: ["pigeanData", "config", "phenotypeMap", "filter"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
         chart: null,
         chartWidth: null,
-        chartHeight: !!this.plotHeight ? this.plotHeight : 400,
+        chartHeight: !!this.config.plotHeight ? this.config.plotHeight : 400,
         svg: null,
         xScale: null,
         yScale: null,
         tooltip: null,
-        allHoverFields : !this.hoverFields ? [this.dotKey] :
-          this.hoverFields.includes(this.dotKey) ? this.hoverFields
-            : [this.dotKey].concat(this.hoverFields),
         colorMap: this.groupColors(),
         dotOutlineColor: "#00000075"
       };
@@ -89,10 +85,10 @@ export default Vue.component("pigean-plot", {
         .style("font-size", "smaller");
 
       // Use unfiltered data so the scales do not change
-      let xMin = this.extremeVal(this.xField);
-      let yMin = this.extremeVal(this.yField);
-      let xMax = this.extremeVal(this.xField, false);
-      let yMax = this.extremeVal(this.yField, false);
+      let xMin = this.extremeVal(this.config.xField);
+      let yMin = this.extremeVal(this.config.yField);
+      let xMax = this.extremeVal(this.config.xField, false);
+      let yMax = this.extremeVal(this.config.yField, false);
       xMin = xMin > 0 ? 0 : xMin;
       yMin = yMin > 0 ? 0 : yMin;
       
@@ -108,7 +104,7 @@ export default Vue.component("pigean-plot", {
           .style("position", "relative")
           .style("left", `${width / 2 + margin.left}px`)
           .style("font-size", "smaller")
-          .html(`${this.xField}`);
+          .html(`${this.config.xAxisLabel || this.config.xField}`);
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
@@ -122,7 +118,7 @@ export default Vue.component("pigean-plot", {
         .attr("font-size", "smaller")
         .attr("y", -margin.left + 20)
         .attr("x", - height / 2 - margin.top)
-        .text(this.yField);
+        .text(this.config.yAxisLabel || this.config.yField);
 
       // add dots
       this.svg.append("g")
@@ -130,15 +126,15 @@ export default Vue.component("pigean-plot", {
         .data(this.chartData)
         .enter()
         .append("circle")
-          .attr("class", d => `${d[this.dotKey]}`)
+          .attr("class", d => `${d[this.config.dotKey]}`)
           .attr("cx", d => 
-            d[this.xField] === undefined
+            d[this.config.xField] === undefined
               ? this.xScale(0) 
-              : this.xScale(d[this.xField]))
+              : this.xScale(d[this.config.xField]))
           .attr("cy", d => 
-            d[this.yField] === undefined 
+            d[this.config.yField] === undefined 
               ? this.yScale(0) 
-              : this.yScale(d[this.yField]))
+              : this.yScale(d[this.config.yField]))
           .attr("r", 5)
           .attr("fill", d => this.dotColor(d.phenotype))
           .attr("stroke", this.dotOutlineColor)
@@ -166,8 +162,9 @@ export default Vue.component("pigean-plot", {
       let ycoord = `${d3.event.layerY}px`;
 
       // Tooltip content
-      let tooltipContent = "";      
-      this.allHoverFields.forEach(field =>{
+      let tooltipContent = "";
+      let allHoverFields = this.getHoverFields();
+      allHoverFields.forEach(field =>{
         let newLine = field === "phenotype" ?
           `phenotype: ${this.phDesc(dot.phenotype)}`
           : `${field}: ${dot[field]}`;
@@ -214,6 +211,18 @@ export default Vue.component("pigean-plot", {
       }
       return Formatters.phenotypeFormatter(this.phenotypeMap[phenotype])
     },
+    getHoverFields(){
+      let fields = [];
+      fields.push(this.config.dotKey);
+      fields.push(this.config.xField);
+      fields.push(this.config.yField);
+      this.config.hoverFields.forEach(field => {
+        if (!fields.includes(field)){
+          fields.push(field);
+        }
+      });
+      return fields;
+    }
   },
   watch: {
     chartData(){

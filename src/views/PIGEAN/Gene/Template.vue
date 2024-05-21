@@ -142,10 +142,7 @@
                                 <div class="col-md-4">
                                     <pigean-plot v-if="$parent.plotReady"
                                         :pigeanData="$store.state.pigeanGene.data"
-                                        xField="prior"
-                                        yField="log_bf"
-                                        dotKey="phenotype"
-                                        :hoverFields="['gene', 'combined']"
+                                        :config="$parent.pigeanPlotConfig"
                                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                         :filter="filter"
                                     >

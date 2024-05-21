@@ -91,6 +91,12 @@ new Vue({
                     { key: "sigma"},
                   ],
             },
+            pigeanPlotConfig: {
+                xField: "prior",
+                yField: "log_bf",
+                dotKey: "phenotype",
+                hoverFields: ['gene', 'combined']
+            },
             plotColors: plotUtils.plotColors(),
             renderConfig: {
                 type: 'phewas plot',
