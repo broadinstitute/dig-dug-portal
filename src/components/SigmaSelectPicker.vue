@@ -23,10 +23,20 @@ export default Vue.component("sigma-selectpicker", {
 			sigma: keyParams.sigma
 		};
 	},
+	computed: {
+		keyParamsSigma(){ return keyParams.sigma; }
+	},
 	watch: {
 		sigma(newSigma){
 			this.$store.state.sigmaToQuery = newSigma;
 			this.$emit("onSigmaChange", newSigma);
+		},
+		keyParamsSigma(newKey){
+			// On some pages, keyParams.sigma is set after initial page load.
+			// This captures that.
+			if (this.sigma === null){
+				this.sigma = newKey;
+			}
 		}
 	}
 });
