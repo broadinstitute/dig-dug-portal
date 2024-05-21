@@ -10,6 +10,8 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
+import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -38,6 +40,8 @@ new Vue({
         PageFooter,
         SearchHeaderWrapper,
         GeneSelectPicker,
+        SigmaSelectPicker,
+        GenesetSizeSelectPicker,
         PigeanTable,
         PigeanPlot,
         ResearchPheWAS,
@@ -71,6 +75,7 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
+                    { key: "sigma"},
                     { key: "expand", 
                         label: "Gene sets" } 
                   ],
@@ -83,6 +88,7 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
+                    { key: "sigma"},
                   ],
             },
             plotColors: plotUtils.plotColors(),
@@ -155,9 +161,6 @@ new Vue({
     },
 
     created() {
-        if (keyParams.gene) {
-            console.log("gene", keyParams.gene);
-        }
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");

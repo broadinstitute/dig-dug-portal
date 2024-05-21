@@ -10,6 +10,8 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSelectPicker from "@/components/GenesetSelectPicker.vue";
+import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
+import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -42,6 +44,8 @@ new Vue({
         PigeanPlot,
         ResearchPheWAS,
         GenesetSelectPicker,
+        SigmaSelectPicker,
+        GenesetSizeSelectPicker,
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess
@@ -65,7 +69,8 @@ new Vue({
                         label: "Effect (joint)",
                         sortable: true },
                     { key: "expand", 
-                        label: "Genes"}
+                        label: "Genes"},
+                    { key: "sigma"},
                 ],
                 queryParam: "gene_set",
                 subtableEndpoint: "pigean-joined-gene-set",
@@ -82,7 +87,8 @@ new Vue({
                         sortable: true },
                     { key: "prior",
                         label: "Gene set evidence",
-                        sortable: true }
+                        sortable: true },
+                    { key: "sigma"},
                 ]
             },
             plotColors: plotUtils.plotColors(),

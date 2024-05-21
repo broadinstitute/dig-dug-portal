@@ -15,6 +15,8 @@ import uiUtils from "@/utils/uiUtils";
 import sessionUtils from "@/utils/sessionUtils";
 import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
+import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -29,6 +31,8 @@ new Vue({
         PageFooter,
         Alert,
         SearchHeaderWrapper,
+        SigmaSelectPicker,
+        GenesetSizeSelectPicker,
         ResearchMPlot,
         RawImage,
         PigeanTable,
@@ -78,6 +82,7 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
+                    { key: "sigma"},
                     { key: "expand", 
                         label: "Gene sets"}
                 ],
@@ -90,6 +95,7 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
+                    { key: "sigma"}
                   ],
             },
             genesetFilterFields: [
@@ -107,6 +113,7 @@ new Vue({
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
                         sortable: true },
+                    { key: "sigma"},
                     { key: "expand", 
                         label: "Genes"}
                 ],
@@ -125,7 +132,8 @@ new Vue({
                         sortable: true },
                     { key: "prior", 
                         label: "Gene set evidence",
-                        sortable: true }
+                        sortable: true },
+                    { key: "sigma"}
                 ]
             }
         };

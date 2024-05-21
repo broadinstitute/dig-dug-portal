@@ -16,6 +16,14 @@
                     <geneset-selectpicker></geneset-selectpicker>
                 </div>
                 <div class="col filter-col-md">
+                    <div class="label">Sigma</div>
+                    <sigma-selectpicker></sigma-selectpicker>
+                </div>
+                <div class="col filter-col-md">
+                    <div class="label">Gene set size</div>
+                    <geneset-size-selectpicker></geneset-size-selectpicker>
+                </div>
+                <div class="col filter-col-md">
                     <div class="label">Search</div>
                     <button
                         id="regionSearchGo"
