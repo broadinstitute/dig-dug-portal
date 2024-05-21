@@ -82,7 +82,9 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "sigma"},
+                    { key: "n",
+                        label: "Number of gene sets",
+                        sortable: true },
                     { key: "expand", 
                         label: "Gene sets"}
                 ],
@@ -95,8 +97,13 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
-                    { key: "sigma"}
                   ],
+            },
+            genePigeanPlotConfig: {
+                xField: "prior",
+                yField: "log_bf",
+                dotKey: "gene",
+                hoverFields: ['combined', 'log_bf']
             },
             genesetFilterFields: [
                 { key: "beta", label: "Effect (joint)" },
@@ -113,7 +120,9 @@ new Vue({
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
                         sortable: true },
-                    { key: "sigma"},
+                    { key: "n",
+                        label: "Number of genes",
+                        sortable: true },
                     { key: "expand", 
                         label: "Genes"}
                 ],
@@ -133,8 +142,12 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "sigma"}
                 ]
+            },
+            genesetPigeanPlotConfig: {
+                xField: "beta_uncorrected",
+                yField: "beta",
+                dotKey: "gene_set"
             }
         };
     },

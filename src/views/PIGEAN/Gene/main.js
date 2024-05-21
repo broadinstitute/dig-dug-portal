@@ -75,7 +75,6 @@ new Vue({
                     { key: "prior", 
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "sigma"},
                     { key: "expand", 
                         label: "Gene sets" } 
                   ],
@@ -88,8 +87,13 @@ new Vue({
                     { key: "beta", 
                         label: "Effect (joint)",
                         sortable: true },
-                    { key: "sigma"},
                   ],
+            },
+            pigeanPlotConfig: {
+                xField: "prior",
+                yField: "log_bf",
+                dotKey: "phenotype",
+                hoverFields: ['gene', 'combined']
             },
             plotColors: plotUtils.plotColors(),
             renderConfig: {
@@ -108,7 +112,7 @@ new Vue({
                     'log_bf',
                     'prior',
                 ],
-                thresholds: [Math.log(3), Math.log(30)],
+                thresholds: [0.01, 0.1],
                 'label in black': 'greater than',
                 height: '535',
                 "plot margin": {

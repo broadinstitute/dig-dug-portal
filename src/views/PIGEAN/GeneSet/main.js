@@ -70,7 +70,6 @@ new Vue({
                         sortable: true },
                     { key: "expand", 
                         label: "Genes"},
-                    { key: "sigma"},
                 ],
                 queryParam: "gene_set",
                 subtableEndpoint: "pigean-joined-gene-set",
@@ -88,8 +87,12 @@ new Vue({
                     { key: "prior",
                         label: "Gene set evidence",
                         sortable: true },
-                    { key: "sigma"},
                 ]
+            },
+            pigeanPlotConfig: {
+                xField: "beta_uncorrected",
+                yField: "beta",
+                dotKey: "phenotype"
             },
             plotColors: plotUtils.plotColors(),
             renderConfig: {
@@ -106,7 +109,7 @@ new Vue({
                     'beta',
                     'beta_uncorrected'
                 ],
-                thresholds: [Math.log(3), Math.log(30)],
+                thresholds: [0.01, 0.1],
                 'label in black': 'greater than',
                 height: '535',
                 "plot margin": {

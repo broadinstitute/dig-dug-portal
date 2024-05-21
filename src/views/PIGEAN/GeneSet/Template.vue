@@ -121,9 +121,7 @@
                                 <div class="col-md-4">
                                     <pigean-plot v-if="$parent.plotReady"
                                         :pigeanData="$store.state.pigeanGeneset.data"
-                                        xField="beta_uncorrected"
-                                        yField="beta"
-                                        dotKey="phenotype"
+                                        :config="$parent.pigeanPlotConfig"
                                         :phenotype-map="$store.state.bioPortal.phenotypeMap"
                                         :filter="filter"
                                     >
