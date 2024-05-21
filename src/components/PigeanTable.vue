@@ -19,19 +19,19 @@
             :sort-desc="true"
           >
             <template #cell(gene)="r">
-              <a :href="`/pigean/gene.html?gene=${r.item.gene}&sigma=sigma${sigma}`">
+              <a :href="`/pigean/gene.html?gene=${r.item.gene}${suffix}`">
                 {{ r.item.gene }}
               </a>
             </template>
             <template #cell(phenotype)="r">
               <a v-if="!!phenotypeMap[r.item.phenotype]"
-                :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}&sigma=sigma${sigma}`">
+                :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`">
                 {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
               </a>
               <span v-else>{{ r.item.phenotype }}</span>
             </template>
             <template #cell(gene_set)="r">
-              <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}&sigma=sigma${sigma}`">
+              <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}${suffix}`">
                 {{ r.item.gene_set }}
               </a>
             </template>
@@ -46,7 +46,7 @@
             </template>
             <template #row-details="row">
               <pigean-table
-                :pigeanData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]},${sigma}`]"
+                :pigeanData="subtableData[subtableKey(row.item)]"
                 :config="{fields:config.subtableFields}"
                 :isSubtable="true">
               </pigean-table>
@@ -108,6 +108,12 @@ export default Vue.component("pigean-table", {
       },
       sigma(){
         return parseInt(keyParams.sigma.slice(-1));
+      },
+      genesetSize(){
+        return keyParams.genesetSize;
+      },
+      suffix(){
+        return `&sigma=sigma${this.sigma}&genesetSize=${this.genesetSize}`;
       }
   },
   methods: {
@@ -119,12 +125,15 @@ export default Vue.component("pigean-table", {
       tissueFormatter: Formatters.tissueFormatter,
       tpmFormatter: Formatters.tpmFormatter,
       async getSubtable(row) {
-        let queryKey = `${row.item.phenotype},${row.item[this.config.queryParam]},${this.sigma}`;
+        let queryKey = this.subtableKey(row.item);
         if (!this.subtableData[queryKey]) {
           let data = await query(this.config.subtableEndpoint, queryKey);
           Vue.set(this.subtableData, queryKey, data);
         }
         row.toggleDetails();
+      },
+      subtableKey(item){
+        return `${item.phenotype},${item[this.config.queryParam]},${this.sigma},${this.genesetSize}`;
       },
       probability(val, prior=0.05){
         let a = Math.exp(Math.log(prior) + val);
