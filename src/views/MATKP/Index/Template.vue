@@ -8,7 +8,7 @@
                 <!-- HERO -->
                 <matkp-hero></matkp-hero>
                 <!-- CONTENT -->
-                <div class="content-wrap f-col">
+                <div class="content-wrap f-col align-h-center">
                     <div class="">LOGLINE</div>
                     <div class="">
                         TEST
@@ -24,5 +24,6 @@
 <style scoped>
 .content-wrap{
     min-height: 500px;
+    padding: 20px;
 }
 </style>

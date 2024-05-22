@@ -5,15 +5,19 @@ body, body.kp-default{
 }
 .mat-header, .mat-footer{
     flex: 0 0 auto;
-    background: dimgray;
+    background: #424242;
     color: white;
     padding: 20px;
 }
 .mat-body{
     flex-grow: 1;
+    /*background: #fff7d0;*/
 }
 
 /* LAYOUT STYLES */
+.no-events{
+    pointer-events: none;
+}
 .f-col{
     display: flex;
     flex-direction: column;
@@ -42,11 +46,13 @@ body, body.kp-default{
     height: -moz-available;
     height: -webkit-fill-avaiilable;
     height: fill-available;
+    height: 100%;
 }
 .fill-width{
     width: -moz-available;
     width: -webkit-fill-avaiilable;
     width: fill-available;
+    width: 100%;
 }
 .hug-height{
     height: fit-content;
