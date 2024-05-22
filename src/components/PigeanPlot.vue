@@ -157,26 +157,38 @@ export default Vue.component("pigean-plot", {
     },
     hoverDot(dotString) {
       this.unHoverDot();
-      let dot = JSON.parse(dotString);
 
       let xcoord = `${d3.event.layerX + 20}px`;
       let ycoord = `${d3.event.layerY}px`;
 
       // Tooltip content
-      let tooltipContent = "";
-      this.allHoverFields.forEach(field =>{
-        let newLine = field === "phenotype" ?
-          `phenotype: ${this.phDesc(dot.phenotype)}`
-          : `${field}: ${dot[field]}`;
-        tooltipContent = tooltipContent.concat(
-          `<span>${newLine}</span>`);
-      });
-      
       this.tooltip
         .style("opacity", 1)
-        .html(tooltipContent)
+        .html(this.getTooltipContent(dotString))
         .style("left", xcoord)
         .style("top", ycoord);
+    },
+    getTooltipContent(dotString){
+      let dot = JSON.parse(dotString);
+      dot.phenotype = this.phDesc(dot.phenotype);
+      let tooltipText = `${
+        Formatters.tissueFormatter(this.config.dotKey)}: ${
+          dot[this.config.dotKey]}`;
+      tooltipText = tooltipText.concat(
+        `<span>${this.config.xAxisLabel}: ${
+          dot[this.config.xField]}</span>`);
+      tooltipText = tooltipText.concat(
+        `<span>${this.config.yAxisLabel}: ${
+          dot[this.config.yField]}</span>`);
+      if (this.config.hoverFields){
+        this.config.hoverFields.forEach(field => {
+          tooltipText = tooltipText.concat(
+            `<span>${Formatters.tissueFormatter(field)}: ${
+              dot[field]}</span>`
+          );
+        });
+      }
+      return tooltipText;
     },
     unHoverDot() {
       this.tooltip.style("opacity", 0);
