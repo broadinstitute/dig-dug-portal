@@ -232,25 +232,4 @@
 .card-body.pigean-table {
     padding-top: 0;
 }
-.greater-less-filter select{
-    /* This can't be done at component level due to scope concerns.*/
-    display: inline;
-    width: inherit;
-    margin-right: -5px;
-    border-right: none;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    height: 30px;
-}
-.greater-less-filter input {
-    height: 30px;
-    margin-left: -5px;
-    border-left: none;
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
-}
-.greater-less-filter .label {
-    padding-right: 40px;
-}
-
 </style>
