@@ -98,7 +98,7 @@
                             "
                             :multiple="true"
                         >
-                            <div class="label">Genes</div>
+                            <div class="label">Filter by Genes</div>
                         </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
@@ -135,7 +135,7 @@
                             "
                             :multiple="true"
                         >
-                            <div class="label">Genes</div>
+                            <div class="label">Filter by Gene Sets</div>
                         </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
