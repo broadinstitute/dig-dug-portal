@@ -96,6 +96,7 @@ export default Vue.component("pigean-table", {
       },
       sortBy(){
         return this.pigeanData.length === 0 ? 0 
+          : this.config.sortBy ? this.config.sortBy 
           : this.pigeanData[0]["combined"] !== undefined
             ? "combined" : "beta_uncorrected";
       },
