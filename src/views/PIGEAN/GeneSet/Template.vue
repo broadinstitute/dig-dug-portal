@@ -95,11 +95,12 @@
                             "
                             :multiple="true"
                         >
-                            <div class="label">Phenotypes</div>
+                            <div class="label">Filter by Phenotypes</div>
                         </filter-enumeration-control>
                         <filter-greater-less
                             v-for="filterField in $parent.filterFields"
                             :field="filterField.key"
+                            :label="filterField.label"
                         >
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>

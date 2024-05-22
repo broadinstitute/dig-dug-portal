@@ -91,7 +91,9 @@ new Vue({
             },
             pigeanPlotConfig: {
                 xField: "beta_uncorrected",
+                xAxisLabel: "Effect (marginal)",
                 yField: "beta",
+                yAxisLabel: "Effect (joint)",
                 dotKey: "phenotype"
             },
             plotColors: plotUtils.plotColors(),

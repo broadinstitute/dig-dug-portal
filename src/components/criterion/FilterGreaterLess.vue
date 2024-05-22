@@ -1,25 +1,29 @@
 <template>
-    <span>
+    <span class="greater-less-filter">
+        <select v-model="filterGreater" class="form-control form-control-sm">
+            <option :value="true">&ge;</option>
+            <option :value="false">&le;</option>
+        </select>
         <filter-control-template
-            class="filter-col-sm"
             :field="field"
             :type="'number'"
-            :predicate="(number, bound) => filterGreater ? 
-                number >= bound : number <= bound"
-            :pillFormatter="filterDefinition => filterGreater ?
-                    `${filterDefinition.field} ≥ ${filterDefinition.threshold}` : 
-                    `${filterDefinition.field} <= ${filterDefinition.threshold}`"
-            :placeholder="field"
+            :predicate="
+                (number, bound) =>
+                    filterGreater ? number >= bound : number <= bound
+            "
+            :pillFormatter="
+                (filterDefinition) =>
+                    filterGreater
+                        ? `${label} ≥ ${filterDefinition.threshold}`
+                        : `${label} ≤ ${filterDefinition.threshold}`
+            "
+            :placeholder="`${label} ${filterGreater ? '≥' : '≤'}`"
             :color="color"
             :computedField="computedField"
             :multiple="false"
         >
             <slot>{{ field }}</slot>
         </filter-control-template>
-        <select v-model="filterGreater">
-            <option :value="true">&ge;</option>
-            <option :value="false">&le;</option>
-        </select>
     </span>
 </template>
 <script>
@@ -28,28 +32,35 @@ import FilterControlTemplate from "@/components/criterion/template/FilterControl
 export default Vue.component("filter-greater-less", {
     props: {
         field: String,
+        label: String,
         computedField: Function,
         predicate: {
             type: Function,
-            default: (number, lowerBound) => number >= lowerBound
+            default: (number, lowerBound) => number >= lowerBound,
         },
         pillFormatter: {
             type: Function,
-            default: filterDefinition =>
-                `${filterDefinition.field} ≥ ${filterDefinition.threshold}`
+            default: (filterDefinition) =>
+                `${filterDefinition.field} ≥ ${filterDefinition.threshold}`,
         },
         color: {
-            type: String
+            type: String,
         },
-        placeholder: String
+        placeholder: String,
     },
     components: {
-        FilterControlTemplate
+        FilterControlTemplate,
     },
-    data() { 
+    data() {
         return {
-            filterGreater : true
-        }
-    }
+            filterGreater: true,
+        };
+    },
 });
 </script>
+<style scoped>
+select.form-control {
+    display: inline-block;
+    width: auto;
+}
+</style>
