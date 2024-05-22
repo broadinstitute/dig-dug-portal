@@ -127,6 +127,7 @@ new Vue({
                         label: "Genes"}
                 ],
                 queryParam: "gene_set",
+                sortBy: "beta",
                 subtableEndpoint: "pigean-joined-gene-set",
                 subtableFields: [
                     { key: "gene", 

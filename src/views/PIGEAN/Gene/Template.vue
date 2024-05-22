@@ -114,7 +114,7 @@
                             "
                             :multiple="true"
                         >
-                            <div class="label">Phenotypes</div>
+                            <div class="label">Filter by Phenotypes</div>
                         </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
