@@ -101,9 +101,11 @@ new Vue({
             },
             genePigeanPlotConfig: {
                 xField: "prior",
+                xAxisLabel: "Gene set evidence",
                 yField: "log_bf",
+                yAxisLabel: "GWAS evidence weighted",
                 dotKey: "gene",
-                hoverFields: ['combined', 'log_bf']
+                hoverFields: ['combined']
             },
             genesetFilterFields: [
                 { key: "beta", label: "Effect (joint)" },
@@ -147,7 +149,9 @@ new Vue({
             },
             genesetPigeanPlotConfig: {
                 xField: "beta_uncorrected",
+                xAxisLabel: "Effect (marginal)",
                 yField: "beta",
+                yAxisLabel: "Effect (joint)",
                 dotKey: "gene_set"
             }
         };

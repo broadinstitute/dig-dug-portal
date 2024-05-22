@@ -91,7 +91,9 @@ new Vue({
             },
             pigeanPlotConfig: {
                 xField: "prior",
+                xAxisLabel: "Gene set evidence",
                 yField: "log_bf",
+                yAxisLabel: "GWAS evidence weighted",
                 dotKey: "phenotype",
                 hoverFields: ['gene', 'combined']
             },
