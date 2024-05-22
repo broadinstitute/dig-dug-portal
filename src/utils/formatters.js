@@ -153,9 +153,9 @@ function floatFormatter(value) {
     return Number.parseFloat(value).toFixed(2);
 }
 
-function tpmFormatter(value){
-    return Number.isNaN(Number.parseFloat(value)) 
-        ? "-" 
+function tpmFormatter(value) {
+    return Number.isNaN(Number.parseFloat(value))
+        ? "-"
         : Number.parseFloat(value).toFixed(3);
 }
 

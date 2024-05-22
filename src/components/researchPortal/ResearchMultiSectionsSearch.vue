@@ -10,6 +10,14 @@
 						<span v-html="parameter.label"></span>
 					</div>
 
+					<select v-if="parameter.type == 'api list'"
+						:id="'search_param_' + parameter.parameter"  class="custom-select custom-select-search"
+						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
+						
+						<option v-for="param in parameterOptions[paramIndex]" :key="param.value" :value="param.value"
+								v-html="param.label.trim()"></option>
+				</select>
+
 					<select v-if="parameter.type == 'list' &&
 						parameter.values.length <= 10
 						" :id="'search_param_' + parameter.parameter" class="custom-select custom-select-search"
@@ -122,6 +130,9 @@ export default Vue.component("research-multi-sections-search", {
 				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
 			},
+			parameterOptions: {
+0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: []
+			},
 			searchingValues: {},
 			kpGenes: [],
 			listOptions: {},
@@ -129,6 +140,12 @@ export default Vue.component("research-multi-sections-search", {
 	},
 	created() {
 		this.$root.$refs.multiSectionSearch = this;
+		console.log("searchParameters", this.searchParameters);
+		this.searchParameters.map((param, pIndex) =>{
+			if(param.type == 'api list') {
+				this.getList(param["data point"], pIndex);
+			}
+		})
 	},
 	beforeUpdate() {
 
@@ -176,6 +193,51 @@ export default Vue.component("research-multi-sections-search", {
 	watch: {
 	},
 	methods: {
+		async getList(apiPoint, INDEX) {
+			
+			let searchPoint = apiPoint.url;
+			let values = []; 
+
+			if (!!apiPoint["parameters type"] && apiPoint["parameters type"] == "replace") {
+
+				let PARAMS = apiPoint.parameters
+
+				PARAMS.map((param, pIndex) => {
+					searchPoint = searchPoint.replace("$" + param, this.utils.keyParams[param]);
+				})
+			}
+
+			let valuesJson = await fetch(searchPoint).then((resp) => resp.json());
+
+			if (valuesJson.error == null) {
+				console.log("valuesJson", valuesJson)
+
+				let data = valuesJson;
+
+				if (!!apiPoint["data wrapper"]) {
+					apiPoint["data wrapper"].map(mapper => {
+						data = data[mapper];
+					})
+				}
+
+				if (data.length > 0) {
+					data.map(item => {
+						if(typeof item == 'string' || typeof item == 'number') {
+							values.push({"label":item, "value":item}) 
+						} else if(typeof item == 'object' && !!Array.isArray(item)) {
+							values.push({ "label": item[0], "value": item[0] })
+						} else if(typeof item == 'object' && !Array.isArray(item)) {
+							values.push(item);
+						}
+					})
+				}
+
+				this.parameterOptions[INDEX] = values
+			}
+			
+			
+
+		},
 		onScroll(e) {
 			let windowTop = window.top.scrollY;
 
@@ -202,8 +264,6 @@ export default Vue.component("research-multi-sections-search", {
 				})
 
 				let shorterFirst = options.sort((a, b) => a.label.length - b.label.length);
-
-				console.log("shortFirst", shorterFirst);
 
 				this.listOptions[PARAM.parameter] = shorterFirst;
 			} else {

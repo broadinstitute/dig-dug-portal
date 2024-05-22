@@ -264,6 +264,41 @@ let pages = {
         title: "Tissue",
         chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
+    cellbrowser: {
+        entry: "src/views/CellBrowser/main.js",
+        template: "public/index.html",
+        filename: "cellbrowser.html",
+        title: "Cell Browser",
+        chunks: ["chunk-vendors", "chunk-common", "cellbrowser"],
+    },
+    pigean_index: {
+        entry: "src/views/PIGEAN/Index/main.js",
+        template: "public/index.html",
+        filename: "pigean/index.html",
+        title: "PIGEAN Home",
+        chunks: ["chunk-vendors", "chunk-common", "pigean_index"],
+    },
+    pigean_gene: {
+        entry: "src/views/PIGEAN/Gene/main.js",
+        template: "public/index.html",
+        filename: "pigean/gene.html",
+        title: "PIGEAN Gene Info",
+        chunks: ["chunk-vendors", "chunk-common", "pigean_gene"],
+    },
+    pigean_geneset: {
+        entry: "src/views/PIGEAN/GeneSet/main.js",
+        template: "public/index.html",
+        filename: "pigean/geneset.html",
+        title: "PIGEAN Gene Set Info",
+        chunks: ["chunk-vendors", "chunk-common", "pigean_geneset"],
+    },
+    pigean_phenotype: {
+        entry: "src/views/PIGEAN/Phenotype/main.js",
+        template: "public/index.html",
+        filename: "pigean/phenotype.html",
+        title: "PIGEAN Phenotype",
+        chunks: ["chunk-vendors", "chunk-common", "pigean_phenotype"],
+    },
 };
 
 // remove the debug page in production
@@ -277,7 +312,8 @@ module.exports = {
     },
     configureWebpack: (config) => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
-        let bioindex_host = process.env.BIOINDEX_HOST || "https://bioindex.hugeamp.org"; // production by default
+        let bioindex_host =
+            process.env.BIOINDEX_HOST || "https://bioindex.hugeamp.org"; // production by default
         //set private bioindex host if variable is defined, otherwise use default
         let bioindex_host_private =
             process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";

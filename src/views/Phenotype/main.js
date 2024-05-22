@@ -16,6 +16,7 @@ import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue";
 import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
@@ -69,7 +70,8 @@ new Vue({
         FilterEffectDirection,
         SearchHeaderWrapper,
         ResearchMPlot,
-        PhenotypeHugeScores
+        PhenotypeHugeScores,
+        C2ctTable
     },
 
     created() {
@@ -149,13 +151,16 @@ new Vue({
             );
         },
         ancestryAnnotations() {
-            if (!this.$store.state.ancestry) {
-                return this.$store.state.annotations.data;
+            let data = this.$store.state.annotations.data;
+            if (!!this.$store.state.ancestry) {
+                data = data.filter((annotation) =>
+                annotation.ancestry == this.$store.state.ancestry)
             }
-            return this.$store.state.annotations.data.filter(
-                (annotation) =>
-                    annotation.ancestry == this.$store.state.ancestry
-            );
+            let filteredData = data.filter(d => d.pValue < 1e-5 );
+            if (filteredData.length < 20){
+                filteredData = data.sort((a,b) => a.pValue - b.pValue).slice(0,20);
+            }
+            return filteredData;
         },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -209,6 +214,14 @@ new Vue({
 
             return focusedData;
         },
+        c2ctData(){
+            let data = this.$store.state.c2ct.data;
+            data.forEach( d => {
+                // Makes biosamples show up alphabetically in the dropdown menu.
+                d.originalBiosample = d.biosample;
+                d.biosample = Formatters.tissueFormatter(d.biosample); });
+            return data;
+        }
     },
 
     watch: {

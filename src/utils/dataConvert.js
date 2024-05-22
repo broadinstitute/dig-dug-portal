@@ -150,6 +150,10 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                 case "raw":
 
                     let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
+
+                    if (d[c["raw field"]] === 0) {
+                        rawValue = "0";
+                    }
                     if (!!rawValue) {
                         tempObj[c["field name"]] = rawValue;
                         d[c["field name"]] = tempObj[c["field name"]];

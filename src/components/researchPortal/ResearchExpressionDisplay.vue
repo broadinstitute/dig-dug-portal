@@ -7,7 +7,8 @@
     </research-expression-filter>
     <research-expression-plot
       :plotData="filteredData"
-      :highlightedDataset="datasetDetails">
+      :highlightedDataset="datasetDetails"
+      :plotName="plotName">
     </research-expression-plot>
     <research-expression-table
       :filteredData="filteredData"
@@ -21,7 +22,7 @@
   import ResearchExpressionTable from "@/components/researchPortal/ResearchExpressionTable.vue";
   import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
   export default Vue.component("ResearchExpressionDisplay", {
-    props: ["rawData"],
+    props: ["rawData", "plotName"],
     data() {
       return {
         filteredData: [],

@@ -473,7 +473,7 @@ export default Vue.component("research-data-table", {
 
 				let rawData = [...new Set(this.dataset)];
 
-				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
+				if (!!this.tableFormat["data zoom"] && !!startPos && !!endPos) {
 					rawData = rawData.filter(vValue => vValue[posField] >= startPos && vValue[posField] <= endPos);
 				}
 
@@ -508,17 +508,21 @@ export default Vue.component("research-data-table", {
 
 				let rawData = {...this.dataset};
 
-				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
+				if (!!this.tableFormat["data zoom"] && !!startPos && !!endPos) {
 
 					for (const [vKey, vValue] of Object.entries(rawData)) {
+						
 						if (
-							vValue[posField] >= startPos &&
-							vValue[posField] <= endPos
+							vValue[posField] < startPos ||
+							vValue[posField] > endPos
 						) {
 							delete rawData[vKey];
+							deleteCount++;
 						}
 					}
 				}
+
+				
 
 				for (const [key, value] of Object.entries(rawData)) {
 					let tempObj = {};
