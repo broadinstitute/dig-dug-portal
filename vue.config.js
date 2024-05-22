@@ -278,11 +278,11 @@ let pages = {
         title: "MATKP",
         chunks: ["chunk-vendors", "chunk-common", "cellbrowsertest"],
     pigean_index: {
-        entry: "src/views/A2fIndex/main.js",
+        entry: "src/views/PIGEAN/Index/main.js",
         template: "public/index.html",
         filename: "pigean/index.html",
         title: "PIGEAN Home",
-        chunks: ["chunk-vendors", "chunk-common", "index"],
+        chunks: ["chunk-vendors", "chunk-common", "pigean_index"],
     },
     pigean_gene: {
         entry: "src/views/PIGEAN/Gene/main.js",

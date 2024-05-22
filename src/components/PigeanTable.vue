@@ -1,6 +1,6 @@
 <template>
   <div id="pigean-gene" :class="`${!!isSubtable ? 'pigean-subtable' : ''}`">
-      <div v-if="rows > 0">
+      <div v-if="tableData.length > 0">
           <div class="text-right mb-2" v-if="!isSubtable">
               <data-download
                   :data="probData"
@@ -11,7 +11,7 @@
             :hover="isSubtable"
             small
             responsive="sm"
-            :items="probData"
+            :items="tableData"
             :fields="probFields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -19,19 +19,19 @@
             :sort-desc="true"
           >
             <template #cell(gene)="r">
-              <a :href="`/pigean/gene.html?gene=${r.item.gene}`">
+              <a :href="`/pigean/gene.html?gene=${r.item.gene}${suffix}`">
                 {{ r.item.gene }}
               </a>
             </template>
             <template #cell(phenotype)="r">
               <a v-if="!!phenotypeMap[r.item.phenotype]"
-                :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}`">
+                :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`">
                 {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
               </a>
               <span v-else>{{ r.item.phenotype }}</span>
             </template>
             <template #cell(gene_set)="r">
-              <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}`">
+              <a :href="`/pigean/geneset.html?geneset=${r.item.gene_set}${suffix}`">
                 {{ r.item.gene_set }}
               </a>
             </template>
@@ -46,7 +46,7 @@
             </template>
             <template #row-details="row">
               <pigean-table
-                :pigeanData="subtableData[`${row.item.phenotype},${row.item[config.queryParam]}`]"
+                :pigeanData="subtableData[subtableKey(row.item)]"
                 :config="{fields:config.subtableFields}"
                 :isSubtable="true">
               </pigean-table>
@@ -55,7 +55,7 @@
           <b-pagination
               v-model="currentPage"
               class="pagination-sm justify-content-center"
-              :total-rows="rows"
+              :total-rows="tableData.length"
               :per-page="perPage"
           ></b-pagination>
       </div>
@@ -72,20 +72,21 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
+import keyParams from "@/utils/keyParams";
 import PigeanTable from "./PigeanTable.vue";
 export default Vue.component("pigean-table", {
   components: {
       DataDownload,
       PigeanTable
   },
-  props: ["pigeanData", "phenotypeMap", "config", "isSubtable"],
+  props: ["pigeanData", "phenotypeMap", "config", "isSubtable", "filter"],
   data() {
       return {
           perPage: 10,
           currentPage: 1,
           subtableData: {},
           probFields: ["combined"],
-          probData: this.computeProbabilities(),
+          probData: this.computeProbabilities(), // only need to do this once
           probFields: this.collateFields()
       };
   },
@@ -97,6 +98,22 @@ export default Vue.component("pigean-table", {
         return this.pigeanData.length === 0 ? 0 
           : this.pigeanData[0]["combined"] !== undefined
             ? "combined" : "beta_uncorrected";
+      },
+      tableData(){
+        let data = this.probData;
+        if (this.filter){
+          data = data.filter(this.filter);
+        }
+        return data;
+      },
+      sigma(){
+        return parseInt(keyParams.sigma.slice(-1));
+      },
+      genesetSize(){
+        return keyParams.genesetSize;
+      },
+      suffix(){
+        return `&sigma=sigma${this.sigma}&genesetSize=${this.genesetSize}`;
       }
   },
   methods: {
@@ -108,19 +125,22 @@ export default Vue.component("pigean-table", {
       tissueFormatter: Formatters.tissueFormatter,
       tpmFormatter: Formatters.tpmFormatter,
       async getSubtable(row) {
-        let queryKey = `${row.item.phenotype},${row.item[this.config.queryParam]}`;
+        let queryKey = this.subtableKey(row.item);
         if (!this.subtableData[queryKey]) {
           let data = await query(this.config.subtableEndpoint, queryKey);
           Vue.set(this.subtableData, queryKey, data);
         }
         row.toggleDetails();
       },
+      subtableKey(item){
+        return `${item.phenotype},${item[this.config.queryParam]},${this.sigma},${this.genesetSize}`;
+      },
       probability(val, prior=0.05){
         let a = Math.exp(Math.log(prior) + val);
         return a / (1 + a);
       },
       computeProbabilities(){
-        let data = JSON.parse(JSON.stringify(this.pigeanData)); // Deep copy
+        let data = structuredClone(this.pigeanData);
         for (let i = 0; i < this.config.fields.length; i++){
           let fieldConfig = this.config.fields[i];
           if (!fieldConfig.showProbability) { continue; }

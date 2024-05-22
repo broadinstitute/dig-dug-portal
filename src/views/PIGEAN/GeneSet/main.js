@@ -10,9 +10,14 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSelectPicker from "@/components/GenesetSelectPicker.vue";
+import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
+import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 
 
 import keyParams from "@/utils/keyParams";
@@ -39,15 +44,24 @@ new Vue({
         PigeanPlot,
         ResearchPheWAS,
         GenesetSelectPicker,
+        SigmaSelectPicker,
+        GenesetSizeSelectPicker,
+        CriterionFunctionGroup,
+        FilterEnumeration,
+        FilterGreaterLess
     },
 
     data() {
         return {
+            filterFields: [
+                { key: "beta_uncorrected", label: "Effect (marginal)" },
+                { key: "beta", label: "Effect (joint)" }
+            ],
             tableConfig: {
                 fields: [
                     { key: "phenotype", 
                         label: "Phenotype",
-                        sortable: true },
+                        sortable: true, },
                     { key: "beta_uncorrected", 
                         label: "Effect (marginal)",
                         sortable: true },
@@ -55,7 +69,7 @@ new Vue({
                         label: "Effect (joint)",
                         sortable: true },
                     { key: "expand", 
-                        label: "Genes"}
+                        label: "Genes"},
                 ],
                 queryParam: "gene_set",
                 subtableEndpoint: "pigean-joined-gene-set",
@@ -72,8 +86,13 @@ new Vue({
                         sortable: true },
                     { key: "prior",
                         label: "Gene set evidence",
-                        sortable: true }
+                        sortable: true },
                 ]
+            },
+            pigeanPlotConfig: {
+                xField: "beta_uncorrected",
+                yField: "beta",
+                dotKey: "phenotype"
             },
             plotColors: plotUtils.plotColors(),
             renderConfig: {
@@ -90,7 +109,7 @@ new Vue({
                     'beta',
                     'beta_uncorrected'
                 ],
-                thresholds: [Math.log(3), Math.log(30)],
+                thresholds: [0.01, 0.1],
                 'label in black': 'greater than',
                 height: '535',
                 "plot margin": {
@@ -128,6 +147,16 @@ new Vue({
         plotReady(){
             return this.$store.state.pigeanGeneset.data.length > 0
                 && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        },
+        phewasAdjustedData(){
+            let adjustedData = JSON.parse(JSON.stringify(
+                this.$store.state.pigeanGeneset.data)); // Deep copy
+            for (let i = 0; i < adjustedData.length; i++){
+                if (adjustedData[i].beta_uncorrected < 0){
+                    adjustedData[i].beta_uncorrected = 0;
+                }
+            }
+            return adjustedData;
         }
     },
     watch: {
