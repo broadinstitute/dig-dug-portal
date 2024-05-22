@@ -1,12 +1,11 @@
 <template>
-    <span class="greater-less">
+    <span class="greater-less-filter">
         <select v-model="filterGreater"
             class="form-control form-control-sm">
             <option :value="true">&ge;</option>
             <option :value="false">&le;</option>
         </select>
         <filter-control-template
-            class=""
             :field="field"
             :type="'number'"
             :predicate="(number, bound) => filterGreater ? 
@@ -55,9 +54,3 @@ export default Vue.component("filter-greater-less", {
     },
 });
 </script>
-<style scoped>
-    .greater-less select{
-        display: inline;
-        width: inherit;
-    }
-</style>
