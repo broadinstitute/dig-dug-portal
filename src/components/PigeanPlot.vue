@@ -107,12 +107,18 @@ export default Vue.component("pigean-plot", {
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale));
-      d3.select(`#${this.plotId}`)
+      this.svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("font-size", "smaller")
+        .attr("y", height + margin.top + 15)
+        .attr("x", width/2)
+        .text(this.config.xAxisLabel || this.config.xField);
+      /* d3.select(`#${this.plotId}`)
         .append("div")
           .style("position", "relative")
           .style("left", `${width / 2 + margin.left}px`)
           .style("font-size", "smaller")
-          .html(`${this.config.xAxisLabel || this.config.xField}`);
+          .html(`${this.config.xAxisLabel || this.config.xField}`); */
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
