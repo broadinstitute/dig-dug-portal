@@ -31,9 +31,12 @@ export default Vue.component("pigean-plot", {
         svg: null,
         xScale: null,
         yScale: null,
+        xMedian: 0,
         tooltip: null,
+        tooltipElement: null,
         colorMap: this.groupColors(),
         allHoverFields: this.getHoverFields(),
+        hoverBoxPosition: this.config.hoverBoxPosition || "left",
         dotOutlineColor: "#00000075"
       };
   },
@@ -85,6 +88,9 @@ export default Vue.component("pigean-plot", {
         .style("border-radius", "5px")
         .style("font-size", "smaller");
 
+      // Access the tooltip as an HTML element
+      this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
+
       // Use unfiltered data so the scales do not change
       let xMin = this.extremeVal(this.config.xField);
       let yMin = this.extremeVal(this.config.yField);
@@ -92,6 +98,7 @@ export default Vue.component("pigean-plot", {
       let yMax = this.extremeVal(this.config.yField, false);
       xMin = xMin > 0 ? 0 : xMin;
       yMin = yMin > 0 ? 0 : yMin;
+      this.xMedian = (xMin + xMax) / 2;
       
       // add X-axis
       this.xScale = d3.scaleLinear()
@@ -158,15 +165,31 @@ export default Vue.component("pigean-plot", {
     hoverDot(dotString) {
       this.unHoverDot();
 
-      let xcoord = `${d3.event.layerX + 20}px`;
-      let ycoord = `${d3.event.layerY}px`;
+      let xcoord = d3.event.layerX;
+      let ycoord = d3.event.layerY;
 
       // Tooltip content
       this.tooltip
         .style("opacity", 1)
-        .html(this.getTooltipContent(dotString))
-        .style("left", xcoord)
-        .style("top", ycoord);
+        .html(this.getTooltipContent(dotString));
+
+      let leftOffset = this.tooltipElement.clientWidth;
+      let hoverLeft = this.dotHoverLeft(dotString);
+
+      if (hoverLeft){
+        xcoord = xcoord - leftOffset - 20;
+      } else {
+        xcoord = xcoord + 20;
+      }
+      this.tooltip
+        .style("left", `${xcoord}px`)
+        .style("top", `${ycoord}px`);
+    },
+    dotHoverLeft(dotString){
+      let dot = JSON.parse(dotString);
+      return this.hoverBoxPosition === "both"
+        ? dot[this.config.xField] > this.xMedian 
+        : this.hoverBoxPosition === "left";
     },
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);

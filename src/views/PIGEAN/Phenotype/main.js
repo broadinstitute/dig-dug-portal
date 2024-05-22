@@ -105,6 +105,7 @@ new Vue({
                 yField: "log_bf",
                 yAxisLabel: "GWAS evidence weighted",
                 dotKey: "gene",
+                hoverBoxPosition: "both",
                 hoverFields: ['combined']
             },
             genesetFilterFields: [
@@ -152,7 +153,8 @@ new Vue({
                 xAxisLabel: "Effect (marginal)",
                 yField: "beta",
                 yAxisLabel: "Effect (joint)",
-                dotKey: "gene_set"
+                dotKey: "gene_set",
+                hoverBoxPosition: "both",
             }
         };
     },
