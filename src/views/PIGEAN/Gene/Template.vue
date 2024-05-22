@@ -120,6 +120,7 @@
                             v-for="filterField in 
                                 $parent.filterFields"
                             :field="filterField.key"
+                            :label="filterField.label"
                         >
                             <div class="label">{{ filterField.label}}</div>
                         </filter-greater-less>

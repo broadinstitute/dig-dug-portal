@@ -1,7 +1,12 @@
 <template>
-    <span>
+    <span class="greater-less">
+        <select v-model="filterGreater"
+            class="form-control form-control-sm">
+            <option :value="true">&ge;</option>
+            <option :value="false">&le;</option>
+        </select>
         <filter-control-template
-            class="filter-col-sm"
+            class=""
             :field="field"
             :type="'number'"
             :predicate="(number, bound) => filterGreater ? 
@@ -9,17 +14,13 @@
             :pillFormatter="filterDefinition => filterGreater ?
                     `${filterDefinition.field} ≥ ${filterDefinition.threshold}` : 
                     `${filterDefinition.field} <= ${filterDefinition.threshold}`"
-            :placeholder="field"
+            :placeholder="label"
             :color="color"
             :computedField="computedField"
             :multiple="false"
         >
             <slot>{{ field }}</slot>
         </filter-control-template>
-        <select v-model="filterGreater">
-            <option :value="true">&ge;</option>
-            <option :value="false">&le;</option>
-        </select>
     </span>
 </template>
 <script>
@@ -28,6 +29,7 @@ import FilterControlTemplate from "@/components/criterion/template/FilterControl
 export default Vue.component("filter-greater-less", {
     props: {
         field: String,
+        label: String,
         computedField: Function,
         predicate: {
             type: Function,
@@ -53,3 +55,9 @@ export default Vue.component("filter-greater-less", {
     }
 });
 </script>
+<style scoped>
+    .greater-less select{
+        display: inline;
+        width: inherit;
+    }
+</style>

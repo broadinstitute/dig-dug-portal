@@ -104,6 +104,7 @@
                             v-for="filterField in 
                                 $parent.geneFilterFields"
                             :field="filterField.key"
+                            :label="filterField.label"
                         >
                             <div class="label">{{ filterField.label}}</div>
                         </filter-greater-less>
@@ -140,6 +141,7 @@
                             v-for="filterField in 
                                 $parent.genesetFilterFields"
                             :field="filterField.key"
+                            :label="filterField.label"
                         >
                             <div class="label">{{ filterField.label}}</div>
                         </filter-greater-less>
