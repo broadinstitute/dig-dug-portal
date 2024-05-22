@@ -12,9 +12,9 @@
             :predicate="(number, bound) => filterGreater ? 
                 number >= bound : number <= bound"
             :pillFormatter="filterDefinition => filterGreater ?
-                    `${filterDefinition.field} ≥ ${filterDefinition.threshold}` : 
-                    `${filterDefinition.field} <= ${filterDefinition.threshold}`"
-            :placeholder="label"
+                    `${label} ≥ ${filterDefinition.threshold}` : 
+                    `${label} ≤ ${filterDefinition.threshold}`"
+            :placeholder="`${label} ${filterGreater? '≥' : '≤'}`"
             :color="color"
             :computedField="computedField"
             :multiple="false"
@@ -52,7 +52,7 @@ export default Vue.component("filter-greater-less", {
         return {
             filterGreater : true
         }
-    }
+    },
 });
 </script>
 <style scoped>
