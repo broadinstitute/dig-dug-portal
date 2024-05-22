@@ -98,12 +98,13 @@
                             "
                             :multiple="true"
                         >
-                            <div class="label">Genes</div>
+                            <div class="label">Filter by Genes</div>
                         </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
                                 $parent.geneFilterFields"
                             :field="filterField.key"
+                            :label="filterField.label"
                         >
                             <div class="label">{{ filterField.label}}</div>
                         </filter-greater-less>
@@ -134,12 +135,13 @@
                             "
                             :multiple="true"
                         >
-                            <div class="label">Genes</div>
+                            <div class="label">Filter by Gene Sets</div>
                         </filter-enumeration-control>
                         <filter-greater-less 
                             v-for="filterField in 
                                 $parent.genesetFilterFields"
                             :field="filterField.key"
+                            :label="filterField.label"
                         >
                             <div class="label">{{ filterField.label}}</div>
                         </filter-greater-less>

@@ -2383,3 +2383,22 @@ span.spacer-5 {
 .download-images-setting:hover ul.options {
     display: block;
 }
+
+.greater-less-filter select{
+    /* This can't be done at component level due to scope concerns.*/
+    display: inline;
+    width: inherit;
+    margin-right: -5px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    height: 30px;
+}
+.greater-less-filter input {
+    height: 30px;
+    margin-left: -5px;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+.greater-less-filter .label {
+    margin-left: -30px !important;
+}
