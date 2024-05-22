@@ -2400,5 +2400,5 @@ span.spacer-5 {
     border-bottom-left-radius: 0 !important;
 }
 .greater-less-filter .label {
-    padding-right: 40px;
+    margin-left: -30px !important;
 }
