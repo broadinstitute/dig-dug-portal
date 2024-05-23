@@ -10,9 +10,14 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
+import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -35,13 +40,24 @@ new Vue({
         PageFooter,
         SearchHeaderWrapper,
         GeneSelectPicker,
+        SigmaSelectPicker,
+        GenesetSizeSelectPicker,
         PigeanTable,
         PigeanPlot,
-        ResearchPheWAS
+        ResearchPheWAS,
+        CriterionFunctionGroup,
+        FilterEnumeration,
+        FilterGreaterLess
     },
 
     data() {
         return {
+            filterFields: [
+                { key: "combined", label: "Combined" },
+                { key: "huge_score", label: "GWAS unweighted" },
+                { key: "log_bf", label: "GWAS weighted" },
+                { key: "prior", label: "Gene set evidence"}
+            ],
             tableConfig: {
                 fields: [
                     { key: "phenotype", 
@@ -72,6 +88,14 @@ new Vue({
                         label: "Effect (joint)",
                         sortable: true },
                   ],
+            },
+            pigeanPlotConfig: {
+                xField: "prior",
+                xAxisLabel: "Gene set evidence",
+                yField: "log_bf",
+                yAxisLabel: "GWAS evidence weighted",
+                dotKey: "phenotype",
+                hoverFields: ['gene', 'combined']
             },
             plotColors: plotUtils.plotColors(),
             renderConfig: {
@@ -134,6 +158,16 @@ new Vue({
         plotReady(){
             return this.$store.state.pigeanGene.data.length > 0
                 && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        },
+        phewasAdjustedData(){
+            let adjustedData = JSON.parse(JSON.stringify(
+                this.$store.state.pigeanGene.data)); // Deep copy
+            for (let i = 0; i < adjustedData.length; i++){
+                if (adjustedData[i].combined < 0){
+                    adjustedData[i].combined = 0;
+                }
+            }
+            return adjustedData;
         }
     },
     watch: {
@@ -143,9 +177,6 @@ new Vue({
     },
 
     created() {
-        if (keyParams.gene) {
-            console.log("gene", keyParams.gene);
-        }
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");

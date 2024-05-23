@@ -52,6 +52,14 @@
                         </template>
                     </ul>
                 </div>
+                <div class="col filter-col-md">
+                    <div class="label">Gene set size preference</div>
+                    <sigma-selectpicker></sigma-selectpicker>
+                </div>
+                <div class="col filter-col-md">
+                    <div class="label">Number of gene sets included</div>
+                    <geneset-size-selectpicker></geneset-size-selectpicker>
+                </div>
                 <div class="region-search col filter-col-md hidden">
                     <div class="label">Search</div>
                     <button
@@ -81,33 +89,76 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <pigean-plot v-if="$parent.plotReady"
-                        :pigeanData="$store.state.pigeanPhenotype.data"
-                        xField="prior"
-                        yField="log_bf"
-                        dotKey="gene"
-                        :hoverFields="['combined', 'log_bf']"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap">
-                    </pigean-plot>
-                    <pigean-table v-if="$parent.plotReady"
-                        :pigeanData="$store.state.pigeanPhenotype.data"
-                        :config="$parent.tableConfig">
-                    </pigean-table>
+                    <criterion-function-group>
+                        <filter-enumeration-control
+                            field="gene"
+                            placeholder="Select a gene ..."
+                            :options="
+                                $store.state.pigeanPhenotype.data.map(d => d.gene)
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Filter by Genes</div>
+                        </filter-enumeration-control>
+                        <filter-greater-less 
+                            v-for="filterField in 
+                                $parent.geneFilterFields"
+                            :field="filterField.key"
+                            :label="filterField.label"
+                        >
+                            <div class="label">{{ filterField.label}}</div>
+                        </filter-greater-less>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-plot v-if="$parent.plotReady"
+                                :pigeanData="$store.state.pigeanPhenotype.data"
+                                :config="$parent.genePigeanPlotConfig"
+                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                :filter="filter">
+                            </pigean-plot>
+                            <pigean-table v-if="$parent.plotReady"
+                                :pigeanData="$store.state.pigeanPhenotype.data"
+                                :config="$parent.tableConfig"
+                                :filter="filter">
+                            </pigean-table>
+                        </template>
+                    </criterion-function-group>
                 </div>
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <pigean-plot v-if="$parent.plotReady"
-                        :pigeanData="$store.state.genesetPhenotype.data"
-                        xField="beta_uncorrected"
-                        yField="beta"
-                        dotKey="gene_set"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap">
-                    </pigean-plot>
-                    <pigean-table v-if="$parent.plotReady"
-                        :pigeanData="$store.state.genesetPhenotype.data"
-                        :config="$parent.genesetTableConfig">
-                    </pigean-table>
+                    <criterion-function-group>
+                        <filter-enumeration-control
+                            field="gene_set"
+                            placeholder="Select a gene set..."
+                            :options="
+                                $store.state.genesetPhenotype.data.map(d => d.gene_set)
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Filter by Gene Sets</div>
+                        </filter-enumeration-control>
+                        <filter-greater-less 
+                            v-for="filterField in 
+                                $parent.genesetFilterFields"
+                            :field="filterField.key"
+                            :label="filterField.label"
+                        >
+                            <div class="label">{{ filterField.label}}</div>
+                        </filter-greater-less>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-plot v-if="$parent.plotReady"
+                                :pigeanData="$store.state.genesetPhenotype.data"
+                                :config="$parent.genesetPigeanPlotConfig"
+                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                :filter="filter">
+                            </pigean-plot>
+                            <pigean-table v-if="$parent.plotReady"
+                                :pigeanData="$store.state.genesetPhenotype.data"
+                                :config="$parent.genesetTableConfig"
+                                :filter="filter">
+                            </pigean-table>
+                        </template>
+                    </criterion-function-group>
                 </div>
             </div>
         </div>
