@@ -240,6 +240,7 @@ export default Vue.component("research-scatter-plot", {
 		"compareGroupColors",
 		"isSectionPage",
 		"sectionId",
+		"starItems",
 		"utils"
 	],
 	data() {
@@ -1031,6 +1032,13 @@ export default Vue.component("research-scatter-plot", {
 					//autoclose timeout
 					clearTimeout(this.dotPanelCloseTimer);
 					this.dotPanelCloseTimer = setTimeout(()=>{
+						this.isDotPanelClick = false;
+						wrapper.setAttribute("class", "scatter-dot-value hidden");
+					}, 10000);
+				}
+
+				if(EVENT_TYPE == 'move') {
+					this.dotPanelCloseTimer = setTimeout(() => {
 						this.isDotPanelClick = false;
 						wrapper.setAttribute("class", "scatter-dot-value hidden");
 					}, 10000);

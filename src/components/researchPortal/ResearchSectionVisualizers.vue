@@ -163,6 +163,7 @@
 			:compareGroupColors="colors.moderate"
 			:isSectionPage="true"
 			:sectionId="sectionId"
+			:starItems="starItems"
 			:utils="utils"
 		></research-scatter-plot>
 		

@@ -144,12 +144,21 @@
 		>
 			<thead class="">
 				<tr>
-					<th v-if="!!tableFormat['star column']">
+					<th v-if="!!tableFormat['star column']" class="star-items-control">
 						<b-icon
 							:icon="!!stared ? 'star-fill' : 'star'"
 							style="color: #ffcc00; cursor: pointer"
-							@click="showHideStared()"
-						></b-icon>
+							
+							
+						>
+						
+					</b-icon>
+					<span class="star-items-options">
+								<ul>
+									<li><a href="javascript:;" @click="showHideStared()">Show stard only</a></li>
+									<li><a href="javascript:;" @click="starAll()">Star / unstar all</a></li>
+								</ul>
+							</span>
 					</th>
 					<template v-for="(value, index) in topRows">
 						<th
@@ -331,6 +340,7 @@ export default Vue.component("research-data-table", {
 			featureRowsNumber: 10,
 			compareGroups: [],
 			stared: false,
+			staredAll: false,
 		};
 	},
 	modules: {},
@@ -484,6 +494,10 @@ export default Vue.component("research-data-table", {
 						tempObj[t] = d[t];
 					});
 
+					if(!!this.tableFormat["star column"] && !tempObj[this.tableFormat["star column"]]) {
+						tempObj[this.tableFormat["star column"]] = d[this.tableFormat["star column"]]
+					}
+
 					if (this.tableFormat["features"] != undefined) {
 						tempObj["features"] = {};
 
@@ -530,6 +544,10 @@ export default Vue.component("research-data-table", {
 					this.tableFormat["top rows"].map((t) => {
 						tempObj[t] = value[t];
 					});
+
+					if (!!this.tableFormat["star column"] && !tempObj[this.tableFormat["star column"]]) {
+						tempObj[this.tableFormat["star column"]] = d[this.tableFormat["star column"]]
+					}
 
 					if (this.tableFormat["features"] != undefined) {
 						tempObj["features"] = {};
@@ -724,6 +742,70 @@ export default Vue.component("research-data-table", {
 				item = this.dataset.filter(p => p[this.tableFormat["star column"]] == ID)[0];
 			}
 			return item;
+		},
+		starAll() {
+
+			if(this.staredAll == true) {
+				this.staredAll = false;
+
+				if (!!this.multiSectionPage) {
+
+					let stard = [...new Set(this.starItems)]
+
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						stard = stard.filter(s => s.id != value);
+					})
+
+					this.$emit('on-star', stard);
+				} else {
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						this.$store.dispatch("pkgDataSelected", {
+							type: this.tableFormat["star column"],
+							id: value,
+							action: "remove",
+						});
+
+					})
+				}
+
+			} else {
+				this.staredAll = true;
+
+				if (!!this.multiSectionPage) {
+
+					let stard = [...new Set(this.starItems)]
+
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						let tempObj = {
+							type: this.tableFormat["star column"],
+							id: value,
+							columns: this.getColumns(value)
+						}
+						stard.push(tempObj);
+					})
+
+					this.$emit('on-star', stard);
+				} else {
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						this.$store.dispatch("pkgDataSelected", {
+							type: this.tableFormat["star column"],
+							id: value,
+							action: "add",
+						});
+
+					})
+				}
+
+			}
+			
 		},
 		addStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
@@ -1059,6 +1141,32 @@ export default Vue.component("research-data-table", {
 </script>
 
 <style scoped>
+
+.star-items-control {
+	position: relative;
+}
+.star-items-options {
+	display: none;
+    position: absolute;
+    background-color: #ffffff;
+    padding: 10px;
+    border: solid 1px #dddddd;
+    border-radius: 5px;
+    z-index: 10;
+    top: 0;
+    left: 20px;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.star-items-options ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.star-items-control:hover .star-items-options {
+	display: block;
+}
 
 .table-settings-opener {
 	border: solid 1px #dddddd !important;
