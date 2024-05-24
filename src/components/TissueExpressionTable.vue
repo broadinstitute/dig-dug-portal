@@ -147,7 +147,7 @@
         },
         async populateEvidence(genes) {
           await Promise.all(genes.map((gene) => this.showEvidence(gene)));
-          this.$emit( "geneData", genes.flatMap(gene => this.evidence[gene]));
+          this.$emit( "geneDataReady", genes.flatMap(gene => this.evidence[gene]));
         },
         parseData(data){
           data.forEach((entry) => {

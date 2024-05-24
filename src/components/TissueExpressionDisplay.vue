@@ -25,8 +25,8 @@
                 <tissue-expression-table
                     :tissueData="tissueData"
                     :tissue="tissue"
-                    :filter="filter">
-
+                    :filter="filter"
+                    @geneDataReady="data => getGeneData(data)">
                 </tissue-expression-table>
             </template>
         </criterion-function-group>
@@ -178,6 +178,9 @@ export default Vue.component("TissueExpressionDisplay", {
         },
         highlight(details){
             this.datasetDetails = details;
+        },
+        getGeneData(data){
+            this.genePlotData = data;
         }
     },
     watch: {
