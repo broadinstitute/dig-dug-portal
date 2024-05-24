@@ -60,7 +60,8 @@
                 >
                 </research-dataset-subtable> -->
                 <b-table
-                    :items="evidence[row.item.gene]">
+                    :items="evidence[row.item.gene]"
+                    :fields="datasetFields">
                 </b-table>
             </template>
         </b-table>
@@ -113,6 +114,53 @@ export default Vue.component("TissueExpressionDisplay", {
                     formatter: Formatters.tpmFormatter },
                 { key: "show_datasets"}
             ],
+            datasetFields: [
+                {
+                    key: "biosample",
+                    formatter: Formatters.tissueFormatter,
+                    sortable: true,
+                },
+                {
+                    key: "collection",
+                    formatter: (value) => value.toString(", "),
+                },
+                { key: "dataset", sortable: true },
+                {
+                    key: "diseaseTermName",
+                    label: "Disease",
+                    sortable: true,
+                    formatter: (value) =>
+                        !value
+                            ? "Not available"
+                            : Formatters.tissueFormatter(value),
+                },
+                {
+                    key: "Min TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true,
+                },
+                {
+                    key: "Q1 TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true,
+                },
+                {
+                    key: "Median TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true,
+                },
+                {
+                    key: "Q3 TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true,
+                },
+                {
+                    key: "Max TPM",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true,
+                },
+                { key: "nSamples", label: "Samples", sortable: true },
+            ],
         };
     },
     mounted() {
@@ -129,6 +177,7 @@ export default Vue.component("TissueExpressionDisplay", {
                     data = data.filter(
                         (d) => d.tissue === this.tissue.replace(" ", "_")
                     );
+                    console.log(JSON.stringify(data));
                     Vue.set(this.evidence, gene, data);
                 }
             }
@@ -145,6 +194,7 @@ export default Vue.component("TissueExpressionDisplay", {
             let endIndex = startIndex + this.perPage;
             this.tableData = this.tissueData.slice(startIndex, endIndex);
             let rows = this.tableData.map((d) => d.gene);
+            console.log(JSON.stringify(rows));
             await this.populateEvidence(rows);
             this.rawData = rows.flatMap((gene) => this.evidence[gene]);
         },
