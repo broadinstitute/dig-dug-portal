@@ -33,7 +33,8 @@
                     :tissueData="tissueData"
                     :tissue="tissue"
                     :filter="filter"
-                    @geneDataReady="data => getGeneData(data)">
+                    @geneDataReady="data => getGeneData(data)"
+                    @highlight="(details) => highlight(details)">
                 </tissue-expression-table>
             </template>
         </criterion-function-group>

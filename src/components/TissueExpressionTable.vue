@@ -31,7 +31,8 @@
       <template #row-details="row">
           <tissue-expression-subtable
             v-if="!!evidence[row.item.gene]"
-            :datasets="evidence[row.item.gene]">
+            :datasets="evidence[row.item.gene]"
+            @highlight="(details) => highlight(details)">
           </tissue-expression-subtable>
       </template>
     </b-table>
@@ -128,9 +129,9 @@
           });
           return data;
         },
-        highlight(details){
-            this.datasetDetails = details;
-        }
+        highlight(details) {
+            this.$emit("highlight", details);
+        },
       },
       watch: {
           async currentGenes(latestGenes){
