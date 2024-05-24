@@ -10,6 +10,13 @@
             :content-fill="$parent.documentationMap"
         ></documentation>
         <criterion-function-group>
+            <div class="col filter-col-md">
+                <div class="label">Scale</div>
+                <select v-model="logScale" class="form-control">
+                    <option :value="false">Linear</option>
+                    <option :value="true">Logarithmic: log10(TPM+1)</option>
+                </select>
+            </div>
             <filter-greater-control field="meanTpm">
                 <div class="label">Mean TPM (≥)</div>
             </filter-greater-control>
@@ -56,6 +63,7 @@ export default Vue.component("TissueExpressionDisplay", {
         return {
             genePlotData: [],            
             datasetDetails: {},
+            logScale: false
         };
     },
     methods: {
@@ -63,10 +71,20 @@ export default Vue.component("TissueExpressionDisplay", {
         highlight(details){
             this.datasetDetails = details;
         },
+        plotScale(plotData){
+            let data = structuredClone(plotData);
+            data.forEach(d => d.tpmsToUse = this.logScale ? d.tpmLogs : d.tpmForAllSamples);
+            return data;
+        },
         getGeneData(data){
-            this.genePlotData = data;
+            this.genePlotData = this.plotScale(data);
         },
     },
+    watch: {
+        logScale(){
+            this.genePlotData = this.plotScale(this.genePlotData);
+        }
+    }
 });
 </script>
 <style scoped>

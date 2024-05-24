@@ -170,6 +170,7 @@
             entry["Q3 TPM"] = parseFloat(entry.thirdQuTpm);
             entry["Max TPM"] = parseFloat(entry.maxTpm);
             entry["nSamples"] = parseInt(entry.nSamples);
+            entry["tpmLogs"] = entry.tpmForAllSamples.map(tpm => Math.log10(tpm + 1));
           });
           return data;
         },
