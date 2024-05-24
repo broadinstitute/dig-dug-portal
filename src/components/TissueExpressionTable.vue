@@ -1,12 +1,12 @@
 <template>
   <div>
     <b-table
-      v-if="tissueData.length > 0"
+      v-if="tableData.length > 0"
       v-model="currentTable"
       id="big-table"
       small
       responsive="sm"
-      :items="tissueData"
+      :items="tableData"
       sort-by="meanTpm"
       :sort-desc="true"
       :fields="newTableFields"
@@ -38,7 +38,7 @@
     <b-pagination
         v-model="currentPage"
         class="pagination-sm justify-content-center"
-        :total-rows="tissueData.length"
+        :total-rows="tableData.length"
         :per-page="perPage"
       >
     </b-pagination>
@@ -57,8 +57,6 @@
               currentTable: [],
               genePlotData: [],
               evidence: {},
-              tableData: [],
-              sortKey: "",
               datasetDetails: {},
               newTableFields: [
                   { key: "gene",
@@ -127,9 +125,16 @@
           this.populateEvidence(this.currentGenes);
       },
       computed: {
-          currentGenes(){
-              return this.currentTable.map(d => d.gene);
-          }
+        tableData(){
+            let data = this.tissueData;
+            if (this.filter){
+                data = data.filter(this.filter);
+            }
+            return data;
+        },
+        currentGenes(){
+            return this.currentTable.map(d => d.gene);
+        },
       },
       methods: {
         tissueFormatter: Formatters.tissueFormatter,
