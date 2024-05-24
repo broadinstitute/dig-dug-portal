@@ -29,10 +29,9 @@
           </b-button>
       </template>
       <template #row-details="row">
-          <b-table
-              :items="evidence[row.item.gene]"
-              :fields="datasetFields">
-          </b-table>
+          <tissue-expression-subtable
+            :datasets="evidence[row.item.gene]">
+          </tissue-expression-subtable>
       </template>
     </b-table>
     <b-pagination
@@ -48,6 +47,7 @@
   import Vue from "vue";
   import { query } from "@/utils/bioIndexUtils";
   import Formatters from "@/utils/formatters";
+  import TissueExpressionSubtable from "@/components/TissueExpressionSubtable.vue";
   export default Vue.component("TissueExpressionTable", {
       props: ["tissueData", "tissue", "filter"],
       data() {
@@ -71,53 +71,6 @@
                       sortable: true,
                       formatter: Formatters.tpmFormatter },
                   { key: "show_datasets"}
-              ],
-              datasetFields: [
-                  {
-                      key: "biosample",
-                      formatter: Formatters.tissueFormatter,
-                      sortable: true,
-                  },
-                  {
-                      key: "collection",
-                      formatter: (value) => value.toString(", "),
-                  },
-                  { key: "dataset", sortable: true },
-                  {
-                      key: "diseaseTermName",
-                      label: "Disease",
-                      sortable: true,
-                      formatter: (value) =>
-                          !value
-                              ? "Not available"
-                              : Formatters.tissueFormatter(value),
-                  },
-                  {
-                      key: "Min TPM",
-                      formatter: Formatters.tpmFormatter,
-                      sortable: true,
-                  },
-                  {
-                      key: "Q1 TPM",
-                      formatter: Formatters.tpmFormatter,
-                      sortable: true,
-                  },
-                  {
-                      key: "Median TPM",
-                      formatter: Formatters.tpmFormatter,
-                      sortable: true,
-                  },
-                  {
-                      key: "Q3 TPM",
-                      formatter: Formatters.tpmFormatter,
-                      sortable: true,
-                  },
-                  {
-                      key: "Max TPM",
-                      formatter: Formatters.tpmFormatter,
-                      sortable: true,
-                  },
-                  { key: "nSamples", label: "Samples", sortable: true },
               ],
           };
       },
