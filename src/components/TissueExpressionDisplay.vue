@@ -9,25 +9,25 @@
             name="tissue.gene-expression.subheader"
             :content-fill="$parent.documentationMap"
         ></documentation>
-        <!-- <div id="plot" v-if="rawData.length > 0" class="expression-plot-wrapper">
-            <research-expression-filter
+        <div id="plot" v-if="genePlotData.length > 0" class="expression-plot-wrapper">
+            <!-- <research-expression-filter
                 :rawData="rawData"
                 :plotByField="'gene'"
                 :skipSort="true"
                 ref="plotRef"
                 @dataReady="(filteredData) => getPlotData(filteredData)"
             >
-            </research-expression-filter>
+            </research-expression-filter> -->
             <research-expression-plot 
-                :plotData="plotData"
+                :plotData="genePlotData"
                 :highlightedDataset="datasetDetails"
                 :plotName="`gene_expression_${tissue.replaceAll(' ', '_')}_p${currentPage}`">
             </research-expression-plot>
         </div>
-        <div v-else>Loading expression plot...</div> -->
+        <div v-else>Loading expression plot...</div>
         <b-table
             v-if="tissueData.length > 0"
-            v-model="currentGenes"
+            v-model="currentTable"
             id="big-table"
             small
             responsive="sm"
@@ -49,7 +49,7 @@
                 <b-button
                     variant="outline-primary"
                     size="sm"
-                    @click="showEvidence(row)"
+                    @click="row.toggleDetails()"
                 >
                     {{ row.detailsShowing ? "Hide" : "Show" }} Datasets
                 </b-button>
@@ -98,7 +98,8 @@ export default Vue.component("TissueExpressionDisplay", {
         return {
             perPage: 10,
             currentPage: 1,
-            currentGenes: [],
+            currentTable: [],
+            genePlotData: [],
             rawData: [],
             evidence: {},
             plotData: [],
@@ -169,25 +170,18 @@ export default Vue.component("TissueExpressionDisplay", {
         };
     },
     mounted() {
-        console.log(JSON.stringify(this.currentGenes));
+        console.log(this.genePlotData);
     },
     computed: {
-        genesList(){
-            return JSON.stringify(this.currentGenes);
+        currentGenes(){
+            return this.currentTable.map(d => d.gene);
         }
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
-        get10Genes(){
-            let table = document.getElementById("big-table");
-            let genes = table.getElementsByClassName("gene-findable");
-            let genesList = Array.from(genes).map(item => item.innerText);
-            return genesList;
-        },
-        async showEvidence(row) {
-            if (row.item) {
+        async showEvidence(gene) {
+            if (gene) {
                 //check if evidence object already has key equal gene
-                let gene = row.item.gene;
                 if (!this.evidence[gene]) {
                     let data = await query("gene-expression", gene);
                     data = data.filter(
@@ -196,7 +190,9 @@ export default Vue.component("TissueExpressionDisplay", {
                     Vue.set(this.evidence, gene, data);
                 }
             }
-            row.toggleDetails();
+        },
+        async populateEvidence(genes) {
+            await Promise.all(genes.map((gene) => this.showEvidence(gene)));
         },
         getPlotData(plotData) {
             this.plotData = plotData;
@@ -206,8 +202,10 @@ export default Vue.component("TissueExpressionDisplay", {
         }
     },
     watch: {
-        genesList(newList){
-            console.log(newList);
+        async currentGenes(latestGenes){
+            await this.populateEvidence(latestGenes);
+            this.genePlotData = latestGenes.flatMap(gene => this.evidence[gene]);
+            //console.log(JSON.stringify(this.genePlotData));
         }
     },
 });
