@@ -203,6 +203,7 @@ export default Vue.component("TissueExpressionDisplay", {
                         .map((i) => !!Number.isNaN(parseFloat(i)) ? 0 : parseFloat(i));
                     entry["tpmForAllSamples"] = tpms;
                 }
+                entry["keyField"] = entry.gene;
 				entry["tissue"] = Formatters.tissueFormatter(entry["tissue"]);
 				entry["Min TPM"] = parseFloat(entry.minTpm);
 				entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);

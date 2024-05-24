@@ -338,10 +338,8 @@ export default Vue.component("ResearchExpressionPlot", {
             let flatBoth = [];
             console.log(processedData.length);
             for (let item of processedData) {
-                console.log(JSON.stringify(item));
-                let tpms = item.tpmsToUse? item.tpmsToUse : JSON.parse(item.tpmForAllSamples);
+                let tpms = item.tpmsToUse ? item.tpmsToUse : item.tpmForAllSamples;
                 for (let tpmVal of tpms) {
-                    console.log(tpmVal);
                     let flatEntry = {};
                     flatEntry["keyField"] = item.keyField;
                     flatEntry["tpmVal"] = tpmVal;
