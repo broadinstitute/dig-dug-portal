@@ -170,7 +170,7 @@ export default Vue.component("TissueExpressionDisplay", {
         };
     },
     mounted() {
-        console.log(this.genePlotData);
+        this.populateEvidence(this.currentGenes);
     },
     computed: {
         currentGenes(){
@@ -193,6 +193,7 @@ export default Vue.component("TissueExpressionDisplay", {
         },
         async populateEvidence(genes) {
             await Promise.all(genes.map((gene) => this.showEvidence(gene)));
+            this.genePlotData = genes.flatMap(gene => this.evidence[gene]);
         },
         getPlotData(plotData) {
             this.plotData = plotData;
@@ -204,8 +205,6 @@ export default Vue.component("TissueExpressionDisplay", {
     watch: {
         async currentGenes(latestGenes){
             await this.populateEvidence(latestGenes);
-            this.genePlotData = latestGenes.flatMap(gene => this.evidence[gene]);
-            //console.log(JSON.stringify(this.genePlotData));
         }
     },
 });

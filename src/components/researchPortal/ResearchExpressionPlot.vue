@@ -47,6 +47,7 @@ export default Vue.component("ResearchExpressionPlot", {
     },
     watch: {
         plotData(data) {
+            console.log(JSON.stringify(data));
             if (data.length === 0) {
                 this.showPlot = false;
                 return;
