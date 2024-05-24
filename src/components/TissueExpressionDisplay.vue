@@ -46,19 +46,22 @@
                 <b-button
                     variant="outline-primary"
                     size="sm"
-                    @click="row.toggleDetails"
+                    @click="showEvidence(row)"
                 >
                     {{ row.detailsShowing ? "Hide" : "Show" }} Datasets
                 </b-button>
             </template>
             <template #row-details="row">
-                <research-dataset-subtable
+                <!-- <research-dataset-subtable
                     :row="row"
                     :fields="tableConfig['Datasets']"
                     :plotByField="plotByField"
                     @highlight="(details) => highlight(details)"
                 >
-                </research-dataset-subtable>
+                </research-dataset-subtable> -->
+                <b-table
+                    :items="evidence[row.item.gene]">
+                </b-table>
             </template>
         </b-table>
         <b-pagination
@@ -91,7 +94,6 @@ export default Vue.component("TissueExpressionDisplay", {
         return {
             perPage: 10,
             currentPage: 1,
-            sortedData: this.$props.tissueData,
             rawData: [],
             evidence: {},
             plotData: [],
@@ -108,19 +110,20 @@ export default Vue.component("TissueExpressionDisplay", {
                 { key: "meanTpm",
                     label: "Mean TPM",
                     sortable: true,
-                    formatter: Formatters.tpmFormatter }
+                    formatter: Formatters.tpmFormatter },
+                { key: "show_datasets"}
             ],
         };
     },
     mounted() {
         this.populateGeneData();
-        console.log(this.tissueData.length);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
-        async showEvidence(gene) {
-            if (gene) {
+        async showEvidence(row) {
+            if (row.item) {
                 //check if evidence object already has key equal gene
+                let gene = row.item.gene;
                 if (!this.evidence[gene]) {
                     let data = await query("gene-expression", gene);
                     data = data.filter(
@@ -129,12 +132,18 @@ export default Vue.component("TissueExpressionDisplay", {
                     Vue.set(this.evidence, gene, data);
                 }
             }
+            row.toggleDetails();
+        },
+        clickButton(gene){
+            console.log(gene);
+            console.log(JSON.stringify(this.evidence[gene]));
+            console.log(JSON.stringify(this.evidence));
         },
         async populateGeneData() {
             this.rawData = [];
             let startIndex = (this.currentPage - 1) * this.perPage;
             let endIndex = startIndex + this.perPage;
-            this.tableData = this.sortedData.slice(startIndex, endIndex);
+            this.tableData = this.tissueData.slice(startIndex, endIndex);
             let rows = this.tableData.map((d) => d.gene);
             await this.populateEvidence(rows);
             this.rawData = rows.flatMap((gene) => this.evidence[gene]);
@@ -144,14 +153,6 @@ export default Vue.component("TissueExpressionDisplay", {
         },
         getPlotData(plotData) {
             this.plotData = plotData;
-        },
-        sortBy(field, ascending){
-            this.sortedData.sort((a,b) => {
-                let sortVal = a[field] < b[field] ? -1 : a[field] > b[field] ? 1 : 0;
-                return !ascending ? -sortVal : sortVal;
-            });
-            this.currentPage = 1;
-            this.populateGeneData();
         },
         highlight(details){
             this.datasetDetails = details;
