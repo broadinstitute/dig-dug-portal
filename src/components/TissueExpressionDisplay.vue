@@ -167,16 +167,14 @@ export default Vue.component("TissueExpressionDisplay", {
     mounted() {
         this.populateGeneData();
     },
-    computed: {
+    methods: {
+        tissueFormatter: Formatters.tissueFormatter,
         get10Genes(){
             let table = document.getElementById("big-table");
             let genes = table.getElementsByClassName("gene-findable");
             let genesList = Array.from(genes).map(item => item.innerText);
             return genesList;
-        }
-    },
-    methods: {
-        tissueFormatter: Formatters.tissueFormatter,
+        },
         async showEvidence(row) {
             if (row.item) {
                 //check if evidence object already has key equal gene
@@ -189,7 +187,6 @@ export default Vue.component("TissueExpressionDisplay", {
                     Vue.set(this.evidence, gene, data);
                 }
             }
-            console.log(this.get10Genes);
             row.toggleDetails();
         },
         async populateGeneData() {
@@ -214,6 +211,7 @@ export default Vue.component("TissueExpressionDisplay", {
     watch: {
         currentPage: function () {
             this.populateGeneData();
+            console.log(this.get10Genes());
         },
     },
 });
