@@ -165,7 +165,6 @@ export default Vue.component("TissueExpressionDisplay", {
         };
     },
     mounted() {
-        this.populateGeneData();
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -189,18 +188,6 @@ export default Vue.component("TissueExpressionDisplay", {
             }
             row.toggleDetails();
         },
-        async populateGeneData() {
-            this.rawData = [];
-            let startIndex = (this.currentPage - 1) * this.perPage;
-            let endIndex = startIndex + this.perPage;
-            this.tableData = this.tissueData.slice(startIndex, endIndex);
-            let rows = this.tableData.map((d) => d.gene);
-            await this.populateEvidence(rows);
-            this.rawData = rows.flatMap((gene) => this.evidence[gene]);
-        },
-        async populateEvidence(genes) {
-            await Promise.all(genes.map((gene) => this.showEvidence(gene)));
-        },
         getPlotData(plotData) {
             this.plotData = plotData;
         },
@@ -210,7 +197,6 @@ export default Vue.component("TissueExpressionDisplay", {
     },
     watch: {
         currentPage: function () {
-            this.populateGeneData();
             console.log(this.get10Genes());
         },
     },
