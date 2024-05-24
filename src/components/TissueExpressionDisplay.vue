@@ -9,7 +9,7 @@
             name="tissue.gene-expression.subheader"
             :content-fill="$parent.documentationMap"
         ></documentation>
-        <div id="plot" v-if="rawData.length > 0" class="expression-plot-wrapper">
+        <!-- <div id="plot" v-if="rawData.length > 0" class="expression-plot-wrapper">
             <research-expression-filter
                 :rawData="rawData"
                 :plotByField="'gene'"
@@ -24,18 +24,49 @@
                 :plotName="`gene_expression_${tissue.replaceAll(' ', '_')}_p${currentPage}`">
             </research-expression-plot>
         </div>
-        <div v-else>Loading expression plot...</div>
-        <research-expression-table
-            :filteredData="plotData"
-            plotByField="gene"
-            @highlight="details => highlight(details)">
-        </research-expression-table>
+        <div v-else>Loading expression plot...</div> -->
+        <b-table
+            v-if="tissueData.length > 0"
+            id="big-table"
+            small
+            responsive="sm"
+            :items="tissueData"
+            sort-by="meanTpm"
+            :sort-desc="true"
+            :fields="newTableFields"
+            :per-page="perPage"
+            :current-page="currentPage"
+        >
+            <template #cell(gene)="row">
+                <a :href="`/gene.html?gene=${row.item.gene}`">
+                    {{ row.item.gene }}
+                </a>
+            </template>
+            <template #cell(show_datasets)="row">
+                <b-button
+                    variant="outline-primary"
+                    size="sm"
+                    @click="row.toggleDetails"
+                >
+                    {{ row.detailsShowing ? "Hide" : "Show" }} Datasets
+                </b-button>
+            </template>
+            <template #row-details="row">
+                <research-dataset-subtable
+                    :row="row"
+                    :fields="tableConfig['Datasets']"
+                    :plotByField="plotByField"
+                    @highlight="(details) => highlight(details)"
+                >
+                </research-dataset-subtable>
+            </template>
+        </b-table>
         <b-pagination
             v-model="currentPage"
-            :total-rows="sortedData.length"
+            class="pagination-sm justify-content-center"
+            :total-rows="tissueData.length"
             :per-page="perPage"
-        >
-        </b-pagination>
+        ></b-pagination>
     </div>
 </template>
 <script>
@@ -66,11 +97,24 @@ export default Vue.component("TissueExpressionDisplay", {
             plotData: [],
             tableData: [],
             sortKey: "",
-            datasetDetails: {}
+            datasetDetails: {},
+            newTableFields: [
+                { key: "gene",
+                    label: "Gene",
+                    sortable: true },
+                { key: "nSamples",
+                    label: "Samples",
+                    sortable: true },
+                { key: "meanTpm",
+                    label: "Mean TPM",
+                    sortable: true,
+                    formatter: Formatters.tpmFormatter }
+            ],
         };
     },
     mounted() {
         this.populateGeneData();
+        console.log(this.tissueData.length);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
