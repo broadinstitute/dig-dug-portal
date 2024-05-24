@@ -9,71 +9,64 @@
             name="tissue.gene-expression.subheader"
             :content-fill="$parent.documentationMap"
         ></documentation>
-        <div id="plot" v-if="genePlotData.length > 0" class="expression-plot-wrapper">
-            <!-- <research-expression-filter
-                :rawData="rawData"
-                :plotByField="'gene'"
-                :skipSort="true"
-                ref="plotRef"
-                @dataReady="(filteredData) => getPlotData(filteredData)"
-            >
-            </research-expression-filter> -->
-            <research-expression-plot 
-                :plotData="genePlotData"
-                :highlightedDataset="datasetDetails"
-                :plotName="`gene_expression_${tissue.replaceAll(' ', '_')}_p${currentPage}`">
-            </research-expression-plot>
-        </div>
-        <div v-else>Loading expression plot...</div>
-        <b-table
-            v-if="tissueData.length > 0"
-            v-model="currentTable"
-            id="big-table"
-            small
-            responsive="sm"
-            :items="tissueData"
-            sort-by="meanTpm"
-            :sort-desc="true"
-            :fields="newTableFields"
-            :per-page="perPage"
-            :current-page="currentPage"
-            @sort-changed="showTableEvent($event)"
-            @filtered="showTableEvent($event)"
-        >
-            <template #cell(gene)="row">
-                <a :href="`/gene.html?gene=${row.item.gene}`">
-                    {{ row.item.gene }}
-                </a>
-            </template>
-            <template #cell(show_datasets)="row">
-                <b-button
-                    variant="outline-primary"
-                    size="sm"
-                    @click="row.toggleDetails()"
-                >
-                    {{ row.detailsShowing ? "Hide" : "Show" }} Datasets
-                </b-button>
-            </template>
-            <template #row-details="row">
-                <!-- <research-dataset-subtable
-                    :row="row"
-                    :fields="tableConfig['Datasets']"
-                    :plotByField="plotByField"
-                    @highlight="(details) => highlight(details)"
-                >
-                </research-dataset-subtable> -->
+        <criterion-function-group>
+            <filter-greater-control field="meanTpm">
+                <div class="label">Mean TPM (≥)</div>
+            </filter-greater-control>
+            <template slot="filtered" slot-scope="{ filter }">
+                <div id="plot" v-if="genePlotData.length > 0" class="expression-plot-wrapper">
+                    <research-expression-plot 
+                        :plotData="genePlotData"
+                        :highlightedDataset="datasetDetails"
+                        :plotName="`gene_expression_${tissue.replaceAll(' ', '_')}_p${currentPage}`">
+                    </research-expression-plot>
+                </div>
+                <div v-else>Loading expression plot...</div>
                 <b-table
-                    :items="evidence[row.item.gene]"
-                    :fields="datasetFields">
+                    v-if="tissueData.length > 0"
+                    v-model="currentTable"
+                    id="big-table"
+                    small
+                    responsive="sm"
+                    :items="tissueData"
+                    sort-by="meanTpm"
+                    :sort-desc="true"
+                    :fields="newTableFields"
+                    :per-page="perPage"
+                    :current-page="currentPage"
+                    :filter-function="filter"
+                >
+                    <template #cell(gene)="row">
+                        <a :href="`/gene.html?gene=${row.item.gene}`">
+                            {{ row.item.gene }}
+                        </a>
+                    </template>
+                    <template #cell(show_datasets)="row">
+                        <b-button
+                            variant="outline-primary"
+                            size="sm"
+                            @click="row.toggleDetails()"
+                        >
+                            {{ row.detailsShowing ? "Hide" : "Show" }} Datasets
+                        </b-button>
+                    </template>
+                    <template #row-details="row">
+                        <b-table
+                            :items="evidence[row.item.gene]"
+                            :fields="datasetFields">
+                        </b-table>
+                    </template>
                 </b-table>
+                <b-pagination
+                    v-model="currentPage"
+                    class="pagination-sm justify-content-center"
+                    :total-rows="tissueData.length"
+                    :per-page="perPage"
+                ></b-pagination>
             </template>
-        </b-table>
-        <b-pagination
-            v-model="currentPage"
-            class="pagination-sm justify-content-center"
-            :total-rows="tissueData.length"
-            :per-page="perPage"
-        ></b-pagination>
+        </criterion-function-group>
+        
+        
     </div>
 </template>
 <script>
@@ -83,6 +76,8 @@ import Formatters from "@/utils/formatters";
 import ResearchExpressionFilter from "@/components/researchPortal/ResearchExpressionFilter.vue";
 import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
 import ResearchExpressionTable from "./researchPortal/ResearchExpressionTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 export default Vue.component("TissueExpressionDisplay", {
     props: {
         tissueData: {
