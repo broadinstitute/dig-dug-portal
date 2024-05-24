@@ -336,10 +336,8 @@ export default Vue.component("ResearchExpressionPlot", {
         },
         flatten(processedData) {
             let flatBoth = [];
-            console.log(processedData.length);
             for (let item of processedData) {
-                let tpms = item.tpmsToUse ? item.tpmsToUse : item.tpmForAllSamples;
-                for (let tpmVal of tpms) {
+                for (let tpmVal of item.tpmsToUse) {
                     let flatEntry = {};
                     flatEntry["keyField"] = item.keyField;
                     flatEntry["tpmVal"] = tpmVal;
