@@ -27,6 +27,7 @@
         <div v-else>Loading expression plot...</div> -->
         <b-table
             v-if="tissueData.length > 0"
+            v-model="currentGenes"
             id="big-table"
             small
             responsive="sm"
@@ -36,6 +37,8 @@
             :fields="newTableFields"
             :per-page="perPage"
             :current-page="currentPage"
+            @sort-changed="showTableEvent($event)"
+            @filtered="showTableEvent($event)"
         >
             <template #cell(gene)="row">
                 <a :href="`/gene.html?gene=${row.item.gene}`">
@@ -95,6 +98,7 @@ export default Vue.component("TissueExpressionDisplay", {
         return {
             perPage: 10,
             currentPage: 1,
+            currentGenes: [],
             rawData: [],
             evidence: {},
             plotData: [],
@@ -165,6 +169,12 @@ export default Vue.component("TissueExpressionDisplay", {
         };
     },
     mounted() {
+        console.log(JSON.stringify(this.currentGenes));
+    },
+    computed: {
+        genesList(){
+            return JSON.stringify(this.currentGenes);
+        }
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -196,9 +206,9 @@ export default Vue.component("TissueExpressionDisplay", {
         }
     },
     watch: {
-        currentPage: function () {
-            console.log(this.get10Genes());
-        },
+        genesList(newList){
+            console.log(newList);
+        }
     },
 });
 </script>
