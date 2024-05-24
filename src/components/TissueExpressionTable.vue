@@ -30,6 +30,7 @@
       </template>
       <template #row-details="row">
           <tissue-expression-subtable
+            v-if="!!evidence[row.item.gene]"
             :datasets="evidence[row.item.gene]">
           </tissue-expression-subtable>
       </template>
