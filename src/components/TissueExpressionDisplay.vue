@@ -187,13 +187,31 @@ export default Vue.component("TissueExpressionDisplay", {
                     data = data.filter(
                         (d) => d.tissue === this.tissue.replace(" ", "_")
                     );
-                    Vue.set(this.evidence, gene, data);
+                    Vue.set(this.evidence, gene, this.parseData(data));
                 }
             }
         },
         async populateEvidence(genes) {
             await Promise.all(genes.map((gene) => this.showEvidence(gene)));
             this.genePlotData = genes.flatMap(gene => this.evidence[gene]);
+        },
+        parseData(data){
+            data.forEach((entry) => {
+                if(typeof entry.tpmForAllSamples === 'string'){
+                    let tpms = entry.tpmForAllSamples
+                        .split(",")
+                        .map((i) => !!Number.isNaN(parseFloat(i)) ? 0 : parseFloat(i));
+                    entry["tpmForAllSamples"] = tpms;
+                }
+				entry["tissue"] = Formatters.tissueFormatter(entry["tissue"]);
+				entry["Min TPM"] = parseFloat(entry.minTpm);
+				entry["Q1 TPM"] = parseFloat(entry.firstQuTpm);
+				entry["Median TPM"] = parseFloat(entry.medianTpm);
+				entry["Q3 TPM"] = parseFloat(entry.thirdQuTpm);
+				entry["Max TPM"] = parseFloat(entry.maxTpm);
+				entry["nSamples"] = parseInt(entry.nSamples);
+			});
+            return data;
         },
         getPlotData(plotData) {
             this.plotData = plotData;

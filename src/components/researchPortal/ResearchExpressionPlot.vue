@@ -47,7 +47,6 @@ export default Vue.component("ResearchExpressionPlot", {
     },
     watch: {
         plotData(data) {
-            console.log(JSON.stringify(data));
             if (data.length === 0) {
                 this.showPlot = false;
                 return;
@@ -337,8 +336,12 @@ export default Vue.component("ResearchExpressionPlot", {
         },
         flatten(processedData) {
             let flatBoth = [];
+            console.log(processedData.length);
             for (let item of processedData) {
-                for (let tpmVal of item.tpmsToUse) {
+                console.log(JSON.stringify(item));
+                let tpms = item.tpmsToUse? item.tpmsToUse : JSON.parse(item.tpmForAllSamples);
+                for (let tpmVal of tpms) {
+                    console.log(tpmVal);
                     let flatEntry = {};
                     flatEntry["keyField"] = item.keyField;
                     flatEntry["tpmVal"] = tpmVal;
