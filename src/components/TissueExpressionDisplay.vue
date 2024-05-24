@@ -104,7 +104,8 @@ export default Vue.component("TissueExpressionDisplay", {
             newTableFields: [
                 { key: "gene",
                     label: "Gene",
-                    sortable: true },
+                    sortable: true,
+                    tdClass: "gene-findable" },
                 { key: "nSamples",
                     label: "Samples",
                     sortable: true },
@@ -166,6 +167,14 @@ export default Vue.component("TissueExpressionDisplay", {
     mounted() {
         this.populateGeneData();
     },
+    computed: {
+        get10Genes(){
+            let table = document.getElementById("big-table");
+            let genes = table.getElementsByClassName("gene-findable");
+            let genesList = Array.from(genes).map(item => item.innerText);
+            return genesList;
+        }
+    },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
         async showEvidence(row) {
@@ -177,16 +186,11 @@ export default Vue.component("TissueExpressionDisplay", {
                     data = data.filter(
                         (d) => d.tissue === this.tissue.replace(" ", "_")
                     );
-                    console.log(JSON.stringify(data));
                     Vue.set(this.evidence, gene, data);
                 }
             }
+            console.log(this.get10Genes);
             row.toggleDetails();
-        },
-        clickButton(gene){
-            console.log(gene);
-            console.log(JSON.stringify(this.evidence[gene]));
-            console.log(JSON.stringify(this.evidence));
         },
         async populateGeneData() {
             this.rawData = [];
@@ -194,7 +198,6 @@ export default Vue.component("TissueExpressionDisplay", {
             let endIndex = startIndex + this.perPage;
             this.tableData = this.tissueData.slice(startIndex, endIndex);
             let rows = this.tableData.map((d) => d.gene);
-            console.log(JSON.stringify(rows));
             await this.populateEvidence(rows);
             this.rawData = rows.flatMap((gene) => this.evidence[gene]);
         },
