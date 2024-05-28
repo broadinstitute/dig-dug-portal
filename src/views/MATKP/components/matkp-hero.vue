@@ -1,12 +1,15 @@
 <template>
     <div class="hero-wrap f-col align-h-center align-v-center">
         <div class="hero-interact fill-width fill-height"></div>
-        <div class="logo f-row no-events">
-            <div style="align-self:flex-start;transform: scale(1.25);transform-origin: center;">
-                Mammalian<br>Adipose<br>Tissue<br><span style="font-size:9.2px;display: block;">Knowledge Portal</span>
+        <div class="hero-label f-col align-v-center no-events">
+            <div class="logo f-row align-v-center">
+                <div style="width:100px; height: 100px; background: dimgray;"></div>
+                <div style="font-size:26px; line-height: 24px;">
+                    Mammalian<br>Adipose<br>Tissue<br><span style="font-size:17px;display: block;">Knowledge Portal</span>
+                </div>
             </div>
+            <div class="tagline">The place for fat</div>
         </div>
-        <div class="tagline no-events">The place for fat.</div>
     </div>
 </template>
 
@@ -187,21 +190,27 @@ export default Vue.component("matkp-hero", {
     position: relative;
     overflow: hidden;
 }
-.logo{
-    padding: 50px;
-    background: #424242;
+.hero-label{
     z-index: 1;
-    color: white;
+    background: #424242;
+    padding: 50px;
     box-shadow: 0 10px 20px 5px #42424290;
 }
+.logo{
+    color: white;
+    gap: 20px;
+}
+.logo img {
+    height: 100px;
+}
 .tagline {
-    z-index: 1;
-    font-size: 40px;
+    font-size: 33px;
     font-weight: bold;
     font-style: italic;
-    margin: 50px 0 -50px 0;
-    color: #494949;
-    mix-blend-mode: hard-light;
+    margin: 30px 0 0;
+    padding: 20px 0 0;
+    color: dimgray;
+    border-top: 0.5px solid dimgray;
 }
 .hero-interact {
     position: absolute;

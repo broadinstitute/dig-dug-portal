@@ -264,19 +264,20 @@ let pages = {
         title: "Tissue",
         chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
-    cellbrowser: {
-        entry: "src/views/MATKP/CellBrowser/main.js",
-        template: "public/index.html",
-        filename: "cellbrowser.html",
-        title: "Cell Browser",
-        chunks: ["chunk-vendors", "chunk-common", "cellbrowser"],
-    },
-    cellbrowsertest: {
+    matkp: {
         entry: "src/views/MATKP/Index/main.js",
         template: "public/index.html",
-        filename: "matkp.html",
+        filename: "matkp/index.html",
         title: "MATKP",
-        chunks: ["chunk-vendors", "chunk-common", "cellbrowsertest"],
+        chunks: ["chunk-vendors", "chunk-common", "matkp"],
+    },
+    matkp_cellbrowser: {
+        entry: "src/views/MATKP/CellBrowser/main.js",
+        template: "public/index.html",
+        filename: "matkp/cellbrowser.html",
+        title: "Cell Browser",
+        chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser"],
+    },
     pigean_index: {
         entry: "src/views/PIGEAN/Index/main.js",
         template: "public/index.html",
