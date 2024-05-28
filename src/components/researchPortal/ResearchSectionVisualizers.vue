@@ -105,6 +105,7 @@
 			:sectionId="sectionId"
 			:utils="utils"
 			:starItems="starItems"
+			:colors="colors"
 			@on-star="starColumn"
 		></multi-region-plot>
 		

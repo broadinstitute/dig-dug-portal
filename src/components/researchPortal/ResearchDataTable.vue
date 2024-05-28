@@ -188,7 +188,7 @@
 						class="th-evidence"
 						v-if="tableFormat['features'] != undefined"
 					>
-						Evidence
+						{{(!!tableFormat['features header'])? tableFormat['features header']: "Evidence"}}
 					</th>
 				</tr>
 			</thead>
@@ -755,8 +755,10 @@ export default Vue.component("research-data-table", {
 					this.rawData.map(row => {
 						let value = row[this.tableFormat["star column"]];
 
-						stard = stard.filter(s => s.id != value);
+						//stard = stard.filter(s => s.section != this.sectionId);
 					})
+
+					stard = stard.filter(s => s.section != this.sectionId);
 
 					this.$emit('on-star', stard);
 				} else {
@@ -785,7 +787,8 @@ export default Vue.component("research-data-table", {
 						let tempObj = {
 							type: this.tableFormat["star column"],
 							id: value,
-							columns: this.getColumns(value)
+							columns: this.getColumns(value),
+							section: this.sectionId,
 						}
 						stard.push(tempObj);
 					})
@@ -815,7 +818,8 @@ export default Vue.component("research-data-table", {
 				let tempObj = {
 					type: this.tableFormat["star column"],
 					id: value,
-					columns: this.getColumns(value)
+					columns: this.getColumns(value),
+					section: this.sectionId,
 				}
 				stard.push(tempObj);
 				this.$emit('on-star', stard);
@@ -1141,7 +1145,19 @@ export default Vue.component("research-data-table", {
 </script>
 
 <style scoped>
+.byor-shortened-string {
+    position: relative;
+}
 
+.byor-shortened-string .raw-string {
+    position: absolute;
+    display: none;
+    z-index: 2;
+}
+
+.byor-shortened-string:hover .raw-string {
+    display: block;
+}
 .star-items-control {
 	position: relative;
 }
