@@ -99,10 +99,6 @@ export default Vue.component("PathwayTable", {
     },
 });
 </script>
-<style>
+<style scoped>
 @import url("/css/effectorGenes.css");
-
-label {
-    margin: 10px;
-}
 </style>

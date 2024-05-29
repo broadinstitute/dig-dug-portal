@@ -2,7 +2,7 @@
     <div id="correlations">
         <div v-if="rows > 0">
             <div class="text-right mb-2">
-                <label class="label">
+                <label class="label correlation-label">
                     <input v-model="sortByCorrelation" type="checkbox" /> Sort
                     by correlation
                 </label>
@@ -147,10 +147,10 @@ export default Vue.component("CorrelationTable", {
     },
 });
 </script>
-<style>
-@import url("/css/effectorGenes.css");
+<style scoped>
+    @import url("/css/effectorGenes.css");
 
-label {
-    margin: 10px;
-}
+    label.correlation-label {
+        margin: 10px;
+    }
 </style>
