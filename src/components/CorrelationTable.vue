@@ -2,10 +2,6 @@
     <div id="correlations">
         <div v-if="rows > 0">
             <div class="text-right mb-2">
-                <label class="label">
-                    <input v-model="sortByCorrelation" type="checkbox" /> Sort
-                    by correlation
-                </label>
                 <data-download
                     :data="correlationData"
                     filename="genetic_correlations"
@@ -19,6 +15,7 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
+                :sort-by.sync="sortBy"
             >
                 <template #cell(link)="r">
                     <a
@@ -55,11 +52,12 @@ export default Vue.component("CorrelationTable", {
         return {
             perPage: 10,
             currentPage: 1,
-            sortByCorrelation: false,
+            sortBy: "pValue",
             fields: [
                 {
                     key: "link",
                     label: "Phenotype",
+                    sortable: true
                 },
                 {
                     key: "pValue",
@@ -67,20 +65,23 @@ export default Vue.component("CorrelationTable", {
                     formatter: Formatters.pValueFormatter,
                     tdClass(x) {
                         return !!x && x < 1e-5
-                            ? "variant-table-cell p-value-flag high"
+                            ? "variant-table-cell pValue-flag high"
                             : "";
                     },
+                    sortable: true
                 },
                 {
                     key: "rg",
                     label: "Correlation",
                     formatter: Formatters.effectFormatter,
                     tdClass: "variant-table-cell rg-flag",
+                    sortable: true
                 },
                 {
                     key: "stdErr",
                     label: "Standard error",
                     formatter: Formatters.effectFormatter,
+                    sortable: true
                 },
             ],
         };
@@ -109,28 +110,7 @@ export default Vue.component("CorrelationTable", {
             if (filter) {
                 dataRows = dataRows.filter((row) => filter(row));
             }
-            if (this.sortByCorrelation) {
-                dataRows.sort((a, b) => b["rg"] - a["rg"]);
-            } else {
-                dataRows.sort((a, b) => a["pValue"] - b["pValue"]);
-            }
             return dataRows;
-        },
-    },
-    watch: {
-        sortByCorrelation(newVal) {
-            let cellsToClear = document.querySelectorAll("#correlations td");
-            cellsToClear.forEach(function (cell) {
-                cell.classList.remove("high");
-            });
-
-            let classToHighlight = newVal ? "rg-flag" : "p-value-flag";
-            let cellsToHighlight = document.querySelectorAll(
-                `#correlations td.${classToHighlight}`
-            );
-            cellsToHighlight.forEach(function (cell) {
-                cell.classList.add("high");
-            });
         },
     },
     methods: {
@@ -147,10 +127,6 @@ export default Vue.component("CorrelationTable", {
     },
 });
 </script>
-<style>
-@import url("/css/effectorGenes.css");
-
-label {
-    margin: 10px;
-}
+<style scoped>
+    @import url("/css/effectorGenes.css");
 </style>
