@@ -536,6 +536,14 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                         : '<span class="direction-negative">&#x25B2;</span>' +
                         cellValue;
                 break;
+
+            case "shorten":
+                let shortenTo = columnKeyObj["shorten to"];
+                let shortString = (columnKeyObj["shorten anchor"] == "start") ? cellValue.substring(0, shortenTo) :
+                    cellValue.substring(cellValue.length - shortenTo, cellValue.length);
+
+                cellValue = (columnKeyObj["shorten anchor"] == "start") ? "<span class='byor-shortened-string'><span class='raw-string'>" + cellValue + "</span>" + shortString + "...</span>" :
+                    "<span class='byor-shortened-string'><span class='raw-string'>" + cellValue + "</span>..." + shortString + "</span>";
         }
     });
     return cellValue
@@ -611,6 +619,13 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
     }
 }
 
+function getShortName(STR) {
+    let formatted;
+    formatted = (STR.length >= 15) ? "<span class='byor-shortened-string'><span class='raw-string'>" + STR + "</span>" + STR.substring(0, 14) + "...</span>" :
+        STR;
+    return formatted;
+}
+
 export default {
     alleleFormatter,
     ancestryFormatter,
@@ -637,5 +652,6 @@ export default {
     pValueCss,
     decimalFormatter,
     BYORColumnFormatter,
-    getHoverValue
+    getHoverValue,
+    getShortName,
 };
