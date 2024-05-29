@@ -15,6 +15,7 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
+                sort-by="pValue"
             >
             </b-table>
             <b-pagination
@@ -45,11 +46,11 @@ export default Vue.component("PathwayTable", {
         return {
             perPage: 10,
             currentPage: 1,
-            sortByCorrelation: false,
             fields: [
                 {
                     key: "pathwayName",
                     label: "Pathway",
+                    sortable: true
                 },
                 {
                     key: "pValue",
@@ -58,16 +59,19 @@ export default Vue.component("PathwayTable", {
                     tdClass(x) {
                         return !!x && x < 1e-5 ? "variant-table-cell high" : "";
                     },
+                    sortable: true,
                 },
                 {
                     key: "beta",
                     label: "Beta",
                     formatter: Formatters.effectFormatter,
+                    sortable: true,
                 },
                 {
                     key: "stdErr",
                     label: "Standard error",
                     formatter: Formatters.effectFormatter,
+                    sortable: true
                 },
             ],
         };
