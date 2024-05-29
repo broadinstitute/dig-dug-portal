@@ -350,7 +350,6 @@ export default Vue.component("research-data-table", {
 
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
-		//console.log(this.dataset);
 	},
 	updated() {},
 	computed: {
@@ -472,10 +471,6 @@ export default Vue.component("research-data-table", {
 			let posField = !!this.tableFormat["data zoom"]? this.tableFormat["data zoom"].position:null;
 			let startPos = !!this.viewingRegion? this.viewingRegion.start:null;
 			let endPos = !!this.viewingRegion ? this.viewingRegion.end:null;
-
-			//console.log("posField", posField, "startPos", startPos, "endPos", endPos );
-
-			//console.log("this.dataset", this.dataset);
 
 			let formattedData = [];
 
@@ -668,8 +663,6 @@ export default Vue.component("research-data-table", {
 	},
 	methods: {
 		setParameter(VALUE,KEY,SECTION,PARAMETERS){
-
-			//console.log("section component", VALUE, ":", KEY, ":", SECTION, ":", PARAMETERS);
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
 
@@ -1073,7 +1066,6 @@ export default Vue.component("research-data-table", {
 				});
 
 				let isNumeric = this.checkIfNumeric(filtered, key);
-				//console.log("isNumeric",isNumeric)
 
 				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = this.utils.sortUtils
