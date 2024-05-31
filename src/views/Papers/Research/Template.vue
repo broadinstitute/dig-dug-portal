@@ -822,7 +822,7 @@
 	</div>
 </template>
 
-<style scoped>
+<style>
 @import url("/css/effectorGenes.css");
 @import url("/css/tooltipDocumentation.css");
 html {
