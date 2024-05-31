@@ -1082,12 +1082,17 @@ label {
 
 }
 
+.kp-tab-content .row {
+	width: calc(100% + 30px);
+}
+
 #view_data_content.kp-tab-content {
 	display: none;
 }
 
 #view_data_content.kp-tab-content.active {
 	display: flex;
+	width: 100%;
 }
 
 /* Summary Tab group, sticky */
