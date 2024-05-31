@@ -3,6 +3,11 @@ body, body.kp-default{
     padding: 0;
     height: 100vh;
 }
+
+.bold{
+    font-weight: bold;
+}
+
 .mat-header, .mat-footer{
     flex: 0 0 auto;
     background: #424242;

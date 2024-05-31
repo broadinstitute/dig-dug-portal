@@ -8,7 +8,7 @@
             <span>MAT<span class="light">KP</span></span>
         </a>
         <div class="f-row menu">
-            <a href="/matkp/">Datasets</a>
+            <a href="/matkp/datasets.html">Datasets</a>
             <a href="/matkp/cellbrowser.html">Cell Browser</a>
             <a href="/matkp/">Help</a>
         </div>

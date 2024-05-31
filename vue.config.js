@@ -275,8 +275,15 @@ let pages = {
         entry: "src/views/MATKP/CellBrowser/main.js",
         template: "public/index.html",
         filename: "matkp/cellbrowser.html",
-        title: "Cell Browser",
+        title: "MATKP | Cell Browser",
         chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser"],
+    },
+    matkp_datasets: {
+        entry: "src/views/MATKP/Datasets/main.js",
+        template: "public/index.html",
+        filename: "matkp/datasets.html",
+        title: "MATKP | Datasets",
+        chunks: ["chunk-vendors", "chunk-common", "matkp_datasets"],
     },
     pigean_index: {
         entry: "src/views/PIGEAN/Index/main.js",
