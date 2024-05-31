@@ -1586,4 +1586,5 @@ button.red-background {
 .byor-shortened-string:hover .raw-string {
     display: block;
 }
+
 </style>

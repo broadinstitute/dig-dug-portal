@@ -822,7 +822,7 @@
 	</div>
 </template>
 
-<style>
+<style scoped>
 @import url("/css/effectorGenes.css");
 @import url("/css/tooltipDocumentation.css");
 html {
@@ -849,6 +849,12 @@ html, body, #app {
 
 .mdkp-body.flex-body {
 	overflow-x: hidden;
+	overflow-y: hidden;
+}
+
+
+label {
+	margin: 0 !important;
 }
 
 /* single search */
@@ -1017,7 +1023,7 @@ html, body, #app {
 .tab-ui-wrapper {
 	position: relative;
 	border-bottom: solid 1px #ddd;
-    margin: 5px 0 10px 0;
+    margin: 5px 0 -1px 0;
     padding: 0 25px;
 }
 
@@ -1071,6 +1077,18 @@ html, body, #app {
 	overflow: hidden;
 }
 
+.kp-tabs li.active {
+	position: relative;
+
+}
+
+#view_data_content.kp-tab-content {
+	display: none;
+}
+
+#view_data_content.kp-tab-content.active {
+	display: flex;
+}
 
 /* Summary Tab group, sticky */
 .tabgroup-fixed-bottom {

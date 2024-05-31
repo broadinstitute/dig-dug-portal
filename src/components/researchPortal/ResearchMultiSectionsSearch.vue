@@ -166,17 +166,21 @@ export default Vue.component("research-multi-sections-search", {
 		window.removeEventListener("scroll", this.onScroll);
 	},
 	computed: {
-		tableTop() {
+		/*tableTop() {
 			let eglTable = document.getElementsByClassName("multi-page-search")[0];
-			let rect = eglTable.getBoundingClientRect();
-			let scrollTop = document.documentElement.scrollTop
-				? document.documentElement.scrollTop
-				: document.body.scrollTop;
+			if(!!eglTable) {
+				let rect = eglTable.getBoundingClientRect();
+				let scrollTop = document.documentElement.scrollTop
+					? document.documentElement.scrollTop
+					: document.body.scrollTop;
 
-			let tableTop = rect.top + scrollTop;
+				let tableTop = rect.top + scrollTop;
 
-			return tableTop;
-		},
+				return tableTop;
+			} else {
+				return null;
+			}			
+		},*/
 		displyingSearchNum() {
 			let totalSearchNum = this.searchParameters.length;
 
@@ -191,6 +195,7 @@ export default Vue.component("research-multi-sections-search", {
 		}
 	},
 	watch: {
+		
 	},
 	methods: {
 		async getList(apiPoint, INDEX) {
@@ -242,7 +247,15 @@ export default Vue.component("research-multi-sections-search", {
 			let windowTop = window.top.scrollY;
 
 			let element = document.getElementsByClassName("multi-page-search")[0];
-			if (windowTop > this.tableTop) {
+			let contentsTop = document.getElementsByClassName("kp-tabs-contents")[0];
+			let rect = contentsTop.getBoundingClientRect();
+			let scrollTop = document.documentElement.scrollTop
+				? document.documentElement.scrollTop
+				: document.body.scrollTop;
+
+			let tableTop = rect.top + scrollTop;
+
+			if (windowTop > tableTop) {
 				if (!element.classList.contains("fixed-header")) {
 					element.classList.add("fixed-header");
 				}
