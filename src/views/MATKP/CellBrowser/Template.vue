@@ -6,9 +6,38 @@
         <!-- BODY -->
         <div class="mat-body">
 
-            <div class="row1 explore-wrapper">
+            <div class="f-row" style="margin: 80px 20px 20px; justify-content: space-between;">
+                <div class="f-col" v-if="$parent.activeDataset">
+                    <div style="font-size: 20px; font-weight: bold;">{{ $parent.getDatasetNamePart($parent.datasetsObj[$parent.activeDataset]["info"]["datasetName"]) }}</div>
+                    <div style="font-style: italic;">{{ $parent.getDatasetNamePart($parent.datasetsObj[$parent.activeDataset]["info"]["datasetName"], "credit") }}</div>
+                    <div :class="`loader ${!$parent.isLoading ? 'hidden' : ''}`">loading...</div>
+                </div>
+                <div class="col1 header-wrapper" style="max-width:250px">
+                    <template v-if="$parent.datasetsObj && Object.keys($parent.datasetsObj).length > 0">
+                        <div class="dataset-wrapper">
+                            <div class="f-row dataset-selector">
+                                <select @change="$parent.selectDataset($event)" style="width:100%">
+                                    <option value="" selected disabled hidden>Datasets</option>
+                                    <option 
+                                        v-for="(value, key) in $parent.datasetsObj"
+                                        :value="key"
+                                    >
+                                        {{ value["info"]["datasetName"] }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
 
-                <div class="col1" style="width:250px; gap:15px;">
+            <div class="row1 explore-wrapper" style="padding:20px 20px 150px" v-if="$parent.activeField">
+
+                <div class="col1" style="width:250px; gap:15px; font-size:14px">
+                    <div class="label underline" style="position:relative">
+                        Dataset Info 
+                    </div>
+                    <!--
                     <div class="col1">
                         <div class="label">Mammal</div>
                         <select class="active-field-selector" disabled>
@@ -17,11 +46,52 @@
                             <option value="mouse">Mouse</option>
                         </select>
                     </div>
+                    -->
                     <div class="col1" style="width:250px;">
                         <div class="anatomogram">
                             <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.male_.svg">
                         </div>
                     </div>
+                    <template v-if="$parent.activeField">
+                        <div class="col1 info-block">
+                            <!--
+                            <div class="row1 info-field">
+                                <div class="info-field-label">Name</div><div class="info-field-data unknown">{{ Array.isArray($parent.activeDataset) ? $parent.activeDataset[0] : $parent.activeDataset }}</div>
+                            </div>
+                            -->
+                            <div class="row1 info-field">
+                                <div class="info-field-label">Species</div><div class="info-field-data">
+                                    <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['species']">
+                                        <div>{{item}}</div>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="row1 info-field">
+                                <div class="info-field-label">Depot</div><div class="info-field-data">
+                                    <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['depot']">
+                                        <div>{{item}}</div>
+                                    </template>
+                                </div>
+                            </div>
+                            <!--
+                            <div class="row1 info-field">
+                                <div class="info-field-label">Method</div><div class="info-field-data">
+                                    <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['method']">
+                                        <div>{{item}}</div>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="row1 info-field">
+                                <div class="info-field-label">Platform</div><div class="info-field-data">
+                                    <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['platform']">
+                                        <div>{{item}}</div>
+                                    </template>
+                                </div>
+                            </div>
+                            -->
+                        </div>
+                    </template>
+                    <!--
                     <div class="col1">
                         <div class="label">Depot</div>
                         <select class="active-field-selector" disabled>
@@ -30,9 +100,10 @@
                             <option value="SAT">SAT</option>
                         </select>
                     </div>
-                    <template v-if="$parent.activeField">
+                    -->
+                    <template v-if="$parent.activeField && $parent.compareField">
                         <div class="col1">
-                            <div class="label">Condition</div>
+                            <div class="label bold">Compare Condition</div>
                             <select class="comapre-field-selector" @change="$parent.selectCompareField($event)">
                                 <option value="" selected disabled hidden>None</option>
                                 <option 
@@ -47,52 +118,33 @@
                             </select>
                         </div>
                     </template>
+                    <template v-if="$parent.activeField && $parent.datasetsObj[$parent.activeDataset]['genes']">
+                        <div class="col1 grow" style="margin:20px 0 0;">
+                            <div class="label" style="font-weight: bold;">Gene Search</div>
+                            <input class="gene-search-input" type="text" placeholder="Gene Name(s)"
+                                @keyup.enter="$parent.searchGene($event)"
+                            />
+                            
+                            <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
+                                <div class="gene-list">
+                                    <template v-for="(value, gene) in $parent.datasetsObj[$parent.activeDataset]['genes']">
+                                        <div class="gene-list-item" 
+                                            :data-gene="gene"
+                                            @click="$parent.removeGene($event)"
+                                        >
+                                        {{ gene }}
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- tables -->
                 <div class="tables-wrapper" style="min-width:600px">
 
-                    <div class="col1 header-wrapper">
-                        <template v-if="$parent.datasetsList && $parent.datasetsList.length > 0">
-                            <div class="dataset-wrapper">
-                                <div class="col1 dataset-selector">
-                                    <div class="label" style="font-weight: bold;">Dataset</div>
-                                    <select @change="$parent.selectDataset($event)" style="width:100%">
-                                        <option value="" selected disabled hidden>Select Dataset</option>
-                                        <option 
-                                            v-for="dataset in $parent.datasetsList"
-                                            :value="dataset"
-                                            :selected="$parent.activeDataset && $parent.activeDataset === dataset ? 'selected' : ''"
-                                        >
-                                            {{ dataset[0] }}
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                        </template>
-                        <!--
-                        <template v-if="$parent.activeDataset">
-                            <div class="field-selectors">
-                                <template v-if="$parent.datasetsObj[$parent.activeDataset]['metadata']">
-                                    <div class="col1 hidden">
-                                        <div class="label">Select Field</div>
-                                        <select class="active-field-selector" @change="$parent.selectField($event)">
-                                            <option value="" selected disabled hidden>Select Field</option>
-                                            <option 
-                                                v-for="(value, key) in $parent.datasetsObj[$parent.activeDataset]['metadata']" 
-                                                :key="key"
-                                                :value="key"
-                                                :selected="key === $parent.activeField ? 'selected' : false"
-                                            >
-                                                {{ key }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-                        -->
-                    </div>
+                    
 
 
                     <template v-if="$parent.activeField">
@@ -106,21 +158,19 @@
                         </select>
                         -->
 
-                        <div class="label underline">Cell Abundance & Distribution of Cell Types {{ !$parent.compareField ? '' : 'x '+$parent.labelFromAnnotation($parent.compareField)+' Condition'  }}</div>
+                        <div class="label underline">Abundance & Distribution of Cell Types {{ !$parent.compareField ? '' : 'x '+$parent.labelFromAnnotation($parent.compareField)  }}</div>
 
                         <div class="cell-count-tables-wrapper overflow-h">
                             
                             <table id="table1" class="data-table">
                                 <thead>
-                                    <tr class="field_labels">
-                                        <th class="border-right" colspan="3">{{ $parent.labelFromAnnotation($parent.activeField) }}</th>
-                                        <template v-if="$parent.compareSet">
-                                            <th class="" :colspan="$parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField].length">{{ $parent.labelFromAnnotation($parent.compareField) }}</th>
-                                        </template>
-                                    </tr>
-                                    <tr>
-                                        <th class="border-right" colspan="3"></th>
-                                        <template v-if="$parent.compareSet">
+                                    <template v-if="$parent.compareSet">
+                                        <tr class="field_labels">
+                                            <th colspan="3"></th>
+                                            <th class="border-bottom" :colspan="$parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField].length">{{ $parent.labelFromAnnotation($parent.compareField) }}</th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="3"></th>
                                             <template v-for="(value2, key2) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.compareField]">
                                                 <th :data-b-field="value2" 
                                                     @mouseover="$parent.tableHoverOverHandler($event)"
@@ -128,10 +178,10 @@
                                                     @click="$parent.tableClickHandler($event)"
                                                 >{{ value2 }}</th>
                                             </template>
-                                        </template>
-                                    </tr>
+                                        </tr>
+                                    </template>
                                     <tr>
-                                        <th class="border-right" colspan="3">
+                                        <th colspan="3">
                                             <div class="field-cluster-pct">
                                                 <template v-for="(value, key) in $parent.datasetsObj[$parent.activeDataset]['metadata_labels'][$parent.activeField]">
                                                     <div 
@@ -174,9 +224,9 @@
                                     </tr>
                                     
                                         <tr>
-                                            <th colspan="2"></th>
+                                            <th colspan="2">{{ $parent.labelFromAnnotation($parent.activeField) }}</th>
                                             <th class="border-right">
-                                                <button style="white-space: nowrap;"
+                                                <button style="white-space: nowrap; cursor:pointer"
                                                     @click="$parent.toggleCellCount()"
                                                 >
                                                 {{ $parent.cellCountOptions[$parent.cellCountOption] }}
@@ -266,10 +316,10 @@
                             </table>
 
                             <template v-if="$parent.activeField && !$parent.compareField">  
-                                <div class="col1" style="gap: 30px;align-self:center;">
+                                <div class="col1" style="gap: 30px;align-self:center; width:100%">
                                     <div class="hidden">x</div>
                                     <div class="col1 grow">
-                                        <div class="label" style="font-weight: bold;">Select Condition</div>
+                                        <div class="label" style="font-weight: bold;">Compare Condition</div>
                                         <select class="comapre-field-selector" @change="$parent.selectCompareField($event)">
                                             <option value="" selected disabled hidden>None</option>
                                             <option 
@@ -285,11 +335,11 @@
                                             Select a condition to see its cell abundance and distribution compared by cell type.
                                         </div>
                                     </div>
-                                    <!--
+                                    
                                     <template v-if="!$parent.datasetsObj[$parent.activeDataset]['genes']">
                                         <div class="col1 grow">
-                                            <div class="label">Search Gene</div>
-                                            <input class="gene-search-input" type="text" placeholder="Gene Name"
+                                            <div class="label bold">Gene Search</div>
+                                            <input class="gene-search-input" type="text" placeholder="Gene Name(s)"
                                                 @keyup.enter="$parent.searchGene($event)"
                                             />
                                             <div class="note">
@@ -297,15 +347,15 @@
                                             </div>
                                         </div>
                                     </template>
-                                    -->
+                                    
                                 </div>
                             </template>
                         </div>
 
-                        <template v-if="$parent.activeField">
+                        <template v-if="$parent.activeField && !$parent.datasetsObj[$parent.activeDataset]['genes'] && !!$parent.compareField">
                             <div class="col1 grow" style="margin:20px 0 0;">
-                                <div class="label" style="font-weight: bold;">Search Gene</div>
-                                <input class="gene-search-input" type="text" placeholder="Gene Name"
+                                <div class="label" style="font-weight: bold;">Gene Search</div>
+                                <input class="gene-search-input" type="text" placeholder="Gene Name(s)"
                                     @keyup.enter="$parent.searchGene($event)"
                                 />
                                 
@@ -452,7 +502,7 @@
                         </template>
 
                         <!-- GENE EXPRESSION MEAN/% COMPARE WITH CONDITION -->
-                        <template v-if="$parent.activeGene && $parent.compareSet">
+                        <template v-if="$parent.activeGene && $parent.compareSet && $parent.datasetsObj[$parent.activeDataset]['genes']">
                             <div class="row1 label-wrapper">
                                 <div class="label underline" style="padding:0">
                                     <!--{{$parent.activeGene}}-->
@@ -684,8 +734,7 @@
                                             </option>
                                         </template>
                                     </select>
-                                    {{$parent.labelFromAnnotation($parent.compareField)}} 
-                                    Condition
+                                    {{$parent.labelFromAnnotation($parent.compareField)}}
                                 </div>
                                 <!-- legends -->
                                 <div class="row1 legends">
@@ -883,26 +932,38 @@
                     </template>
                 </div>
 
-                <div class="col1" style="width:250px">
+                <div class="col1" style="width:250px" v-if="$parent.activeField">
                     <!-- hover data -->
                     <template v-if="$parent.activeDataset">
                         <div class="info-wrapper">
                             <div :class="`col1 sidebar ${$parent.fixedSidebar ? 'fixed-sidebar' : ''}`">
+                                <!--
                                 <div class="label" style="position:relative">
                                     Dataset Info 
                                     <div :class="`loader ${!$parent.isLoading ? 'hidden' : ''}`">loading...</div>
                                 </div>
+                                -->
                                 <template v-if="$parent.activeField">
                                     <div class="col1 info-block">
+                                        <!--
                                         <div class="row1 info-field">
                                             <div class="info-field-label">Name</div><div class="info-field-data unknown">{{ Array.isArray($parent.activeDataset) ? $parent.activeDataset[0] : $parent.activeDataset }}</div>
                                         </div>
                                         <div class="row1 info-field">
-                                            <div class="info-field-label">Species</div><div class="info-field-data unknown">Human</div>
+                                            <div class="info-field-label">Species</div><div class="info-field-data">
+                                                <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['species']">
+                                                    <div>{{item}}</div>
+                                                </template>
+                                            </div>
                                         </div>
                                         <div class="row1 info-field">
-                                            <div class="info-field-label">Depot</div><div class="info-field-data unknown">Omental Fat Pad<br>SAT</div>
+                                            <div class="info-field-label">Depot</div><div class="info-field-data">
+                                                <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['depot']">
+                                                    <div>{{item}}</div>
+                                                </template>
+                                            </div>
                                         </div>
+                                        -->
                                         <div class="row1 info-field">
                                             <div class="info-field-label">Total Cells</div><div class="info-field-data num">{{$parent.datasetsObj[$parent.activeDataset]["cells"].length.toLocaleString()}}</div>
                                         </div>
@@ -1001,7 +1062,21 @@
                                     <template v-if="$parent.activeField">
                                         <div class="info-text">
                                             <!--The <span class="num bold">{{ Array.isArray($parent.activeDataset) ? $parent.activeDataset[0] : $parent.activeDataset }}</span>-->
-                                            This dataset contains <span class="unknown">scRNAseq</span> data of <span class="num bold">{{ $parent.datasetsObj[$parent.activeDataset]["cells"].length.toLocaleString() }}</span> cells from the <span class="unknown">omental fat pad</span>, and <span class="unknown">subcutaneous adipose tissue</span> depots of <span class="unknown">12</span> <span class="unknown">Human</span> subjects with the <span class="unknown">BMI</span> condition.
+                                            This dataset contains 
+                                            <template v-for="(item, index) in $parent.datasetsObj[$parent.activeDataset]['info']['method']">
+                                                <span class="bold">{{ item }}</span>{{($parent.datasetsObj[$parent.activeDataset]['info']['method'].length > 1) ? ((index === $parent.datasetsObj[$parent.activeDataset]['info']['method'].length-2) ? ', and ' : ((index < $parent.datasetsObj[$parent.activeDataset]['info']['method'].length-2) ? ', ' : '')) : ''}}
+                                            </template>
+                                            data of 
+                                            <span class="num bold">{{ $parent.datasetsObj[$parent.activeDataset]["cells"].length.toLocaleString() }}</span> 
+                                            cells from the 
+                                            <template v-for="(item, index) in $parent.datasetsObj[$parent.activeDataset]['info']['depot']">
+                                                <span class="bold">{{ item }}</span>{{($parent.datasetsObj[$parent.activeDataset]['info']['depot'].length > 1) ? ((index === $parent.datasetsObj[$parent.activeDataset]['info']['depot'].length-2) ? ', and ' : ((index < $parent.datasetsObj[$parent.activeDataset]['info']['depot'].length-2) ? ', ' : '')) : ''}}
+                                            </template>
+                                            depot{{$parent.datasetsObj[$parent.activeDataset]['info']['depot'].length > 1 ? 's' : ''}} of 
+                                            <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['species']">
+                                                <span class="bold">{{ item }}</span>{{($parent.datasetsObj[$parent.activeDataset]['info']['species'].length > 1) ? ((index === $parent.datasetsObj[$parent.activeDataset]['info']['species'].length-2) ? ', and ' : ((index < $parent.datasetsObj[$parent.activeDataset]['info']['species'].length-2) ? ', ' : '')) : ''}}
+                                            </template> 
+                                            subjects.
                                         </div>
                                     </template>
                                 </template>
@@ -1021,15 +1096,8 @@
 *{
     box-sizing: border-box;
 }
-select, 
-input{
-    width: 100%;
-    height: 40px;
-    border: 0;
-    border-bottom: 1px solid dimgray;
-    background: #dddddd;
-    padding: 10px;
-    font-size: 14px;
+select{
+    cursor: pointer;
 }
 .col1{
     display: flex;
@@ -1053,9 +1121,6 @@ input{
     font-weight: bold;
 }
 .loader{
-    position:absolute;
-    bottom:0px;
-    right:0px;
     font-size: 14px;
     animation: blink 0.5s infinite;
     color:red;
@@ -1191,7 +1256,6 @@ input{
 .explore-wrapper {
     gap: 20px;
     width: -webkit-fill-available;
-    padding: 100px 20px;
 }
 .tables-wrapper{
     display: flex;

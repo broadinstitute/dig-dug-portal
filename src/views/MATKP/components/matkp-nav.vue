@@ -4,9 +4,14 @@
            href="/matkp/"
         >
             <div style="width:40px; height: 40px; background: dimgray;"></div>
+            <!--<img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkp_logo.png">-->
             <span>MAT<span class="light">KP</span></span>
         </a>
-        <div class="menu"><a href="/matkp/cellbrowser.html">MENU</a></div>
+        <div class="f-row menu">
+            <a href="/matkp/">Datasets</a>
+            <a href="/matkp/cellbrowser.html">Cell Browser</a>
+            <a href="/matkp/">Help</a>
+        </div>
     </div>
 </template>
 
@@ -45,5 +50,9 @@ a, a:visited{
 }
 .logo img{
     height:inherit;
+}
+.menu{
+    font-size:14px;
+    gap: 10px;
 }
 </style>

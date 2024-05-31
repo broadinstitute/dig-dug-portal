@@ -4,6 +4,7 @@
         <div class="hero-label f-col align-v-center no-events">
             <div class="logo f-row align-v-center">
                 <div style="width:100px; height: 100px; background: dimgray;"></div>
+                <!--<img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkp_logo.png">-->
                 <div style="font-size:26px; line-height: 24px;">
                     Mammalian<br>Adipose<br>Tissue<br><span style="font-size:17px;display: block;">Knowledge Portal</span>
                 </div>

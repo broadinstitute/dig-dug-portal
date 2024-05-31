@@ -13,6 +13,7 @@ import matkpFooter from "../components/matkp-footer.vue"
 import * as d3 from "d3";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import keyParams from "@/utils/keyParams";
 //import formatters from "@/utils/formatters";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"; 
@@ -99,7 +100,8 @@ new Vue({
         await this.getDatasets();
 
         //TMP, auto select dataset and field on start
-        this.activeDataset = this.datasetsList[0];
+        this.activeDataset = keyParams.dataset ? keyParams.dataset : this.datasetsList[0];
+
         await this.displayDataset();
         //this.selectField('cell_type__custom');
 
@@ -204,7 +206,6 @@ new Vue({
                 const obj = {};
                 
                 headers.forEach((header, index) => {
-                    //obj[header] = header==='X' || header==='Y' ? parseFloat(values[index]) : values[index];
                     obj[header] = values[index];
                 });
     
@@ -216,7 +217,28 @@ new Vue({
 
         async getDatasets(){
             console.log('getting datasets');
-            const json = await this.doFetch(`/api/bio/keys/single-cell-gene/2?columns=dataset`);
+            const fetchPath = '/api/raw/file/single_cell_metadata/dataset_metadata.json.gz';
+            const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
+            const dataText = await response.text();
+            const lines = dataText.split('\n').filter(line => line.trim() !== '');
+            const jsonObjects = lines.map(line => JSON.parse(line));
+            this.datasetsList = jsonObjects.map(item => item["datasetId"]);
+            //add to datasets object
+            const datasetsObj = {};
+            for(var i=0; i<this.datasetsList.length; i++){
+                if(!datasetsObj[this.datasetsList[i]]) {
+                    datasetsObj[this.datasetsList[i]] = {};
+                    datasetsObj[this.datasetsList[i]]["info"] = jsonObjects[i];
+                }
+            }
+            this.datasetsObj = datasetsObj;
+            this.isLoading = false;
+            console.log('datasets list', this.datasetsList);
+            console.log('datasets object', this.datasetsObj);
+            /*
+            // /api/bio/keys/single-cell-gene/2?columns=dataset
+            // /api/bio/keys/single-cell-lognorm/2?columns=dataset
+            const json = await this.doFetch(`/api/bio/keys/single-cell-lognorm/2?columns=dataset`);
             //add to datasets list
             this.datasetsList = json.keys;
             //add to datasets object
@@ -228,6 +250,7 @@ new Vue({
             this.isLoading = false;
             console.log('datasets list', this.datasetsList);
             console.log('datasets object', this.datasetsObj);
+            */
         },
 
         async getFields(){
@@ -302,15 +325,23 @@ new Vue({
 
             this.unselectCompareField();
             this.unselectField();
+            this.compareGene = null;
+            this.activeGene = null;
+            this.compareGeneSet = null;
+            this.compareDiffGeneSet = null;
 
             this.activeDataset = e.target.value;
+
             this.displayDataset();
         },
         async displayDataset(){
+            keyParams.set({dataset: this.activeDataset});
+
             await this.getFields();
             this.getCoordinates();
 
-            this.selectField('cell_type__custom');
+            const cellTypeLabel = this.datasetsObj[this.activeDataset]["metadata_labels"]["cell_type__custom"] ? "cell_type__custom" : "cluster";
+            this.selectField(cellTypeLabel);
 
             console.log('datasetsObj updated: ', this.datasetsObj);
         },
@@ -820,6 +851,11 @@ new Vue({
             const formattedString = ranges.join('<br>');
             
             return formattedString;
+        },
+
+        getDatasetNamePart(string, part){
+            if(part==='credit') return string.substring(string.lastIndexOf(',')+1).trim();
+            else return string.substring(0, string.lastIndexOf(','));
         },
 
         //(unused)

@@ -13,6 +13,31 @@ body, body.kp-default{
     flex-grow: 1;
     /*background: #fff7d0;*/
 }
+.table-wrap {
+    width: -webkit-fill-available;
+    overflow-x: auto;
+}
+
+select, 
+input{
+    position:relative;
+    width: 100%;
+    height: 40px;
+    border: 0;
+    border-bottom: 1px solid dimgray;
+    background: #dddddd;
+    padding: 10px;
+    font-size: 14px;
+}
+.search-input:not([value=''])::after{
+    content:'x';
+    font-size: 22px;
+    height: inherit;
+    aspect-ratio: 1;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
 
 /* LAYOUT STYLES */
 .no-events{
