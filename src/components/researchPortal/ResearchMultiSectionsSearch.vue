@@ -371,6 +371,8 @@ export default Vue.component("research-multi-sections-search", {
 			})
 			this.utils.keyParams.set(paramsObj);
 
+			console.log("paramsObj", paramsObj);
+
 			this.sections.map(s => {
 				if (!!s["data point"] && !!s["data point"]["parameters"]) {
 					if(!!document.getElementById("section_"+ s['section id'])) {
