@@ -50,6 +50,7 @@ import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import regionTrackVector from "@/components/researchPortal/vectorPlots/ResearchRegionTrackVector.vue";
+import { indexOf } from "@amcharts/amcharts4/.internal/core/utils/Array";
 
 Vue.use(BootstrapVueIcons);
 
@@ -73,6 +74,7 @@ export default Vue.component("research-region-track", {
             groupsList: null,
             colorGroups:[],
             infoBoxFrozen: false,
+            starGroups: [],
         };
     },
     modules: {
@@ -177,6 +179,7 @@ export default Vue.component("research-region-track", {
             this.renderPlot();
         },
         starItems(STARS) {
+            this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
             this.renderPlot();
         }
     },
@@ -359,8 +362,30 @@ export default Vue.component("research-region-track", {
 
                 this.starItems.map(star => {
                     let xPos = xStart + (star.columns[this.plotConfig["x axis field"]] - region.start) * xPerPixel;
+                    let lineColor = this.colors.moderate[this.starGroups.indexOf(star.section) % 16];
 
-                    this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
+                    this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, lineColor, [6, 2]); //"#FFAA0055"
+                })
+
+                let xPos = this.adjPlotMargin.bump
+                this.starGroups.map((group, gIndex) => {
+                    
+                    let lineColor = this.colors.bold[gIndex]
+                    let yPos = this.adjPlotMargin.top + plotHeight + this.adjPlotMargin.bottom - this.adjPlotMargin.bump;
+                    this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos, xPos+50, yPos, 3, lineColor, [12, 4]);
+
+                    xPos += 60;
+
+                    ctx.font = "24px Arial";
+                    ctx.fillStyle = lineColor;
+
+                    ctx.fillText(
+                            group,
+                            xPos,
+                            yPos
+                        );
+
+                    xPos += getWidth(group, 24, "Arial") + this.adjPlotMargin.bump;
                 })
             }
         },

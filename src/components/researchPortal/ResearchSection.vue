@@ -58,7 +58,7 @@
 
 				<div class="col-md-12" v-if="!!groups">
 					<span v-for="key in groups" @click="removeData(key)"
-						class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
+						class="btn section-search-bbl show-evidence-btn" v-html="utils.Formatters.getShortName(key.label) + ' x'"></span></div>
 
 				<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'left'" 
 					:style="'width: '+ sectionConfig['filters vertical']['width']+'px; margin-right: 15px'">
@@ -1565,5 +1565,25 @@ button.red-background {
 .sub-tab-ui-wrapper .tab-ui-tab.active {
 	border-bottom: solid 1px #fff;
 	background-color: #fff;
+}
+
+.byor-shortened-string {
+    position: relative;
+}
+
+.byor-shortened-string .raw-string {
+    position: absolute;
+    display: none;
+	background-color: #333333;
+	color: #ffffff;
+	padding: 3px 8px;
+	border: solid 1px #ddd;
+	border-radius: 3px;
+    z-index: 2;
+	top: -20px;
+}
+
+.byor-shortened-string:hover .raw-string {
+    display: block;
 }
 </style>

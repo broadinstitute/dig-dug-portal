@@ -105,6 +105,7 @@
 			:sectionId="sectionId"
 			:utils="utils"
 			:starItems="starItems"
+			:colors="colors"
 			@on-star="starColumn"
 		></multi-region-plot>
 		
@@ -163,6 +164,7 @@
 			:compareGroupColors="colors.moderate"
 			:isSectionPage="true"
 			:sectionId="sectionId"
+			:starItems="starItems"
 			:utils="utils"
 		></research-scatter-plot>
 		

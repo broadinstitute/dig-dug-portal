@@ -28,7 +28,13 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
             } else {
                 fieldValue += fData[FIELDS[i]];
             }
+        }
 
+        if (jBy.length >= FIELDS.length) {
+            let startIndex = jBy.length - ((jBy.length - FIELDS.length) + 1);
+            for (let i = startIndex; i < jBy.length; i++) {
+                fieldValue += jBy[i];
+            }
         }
         return fieldValue;
     }

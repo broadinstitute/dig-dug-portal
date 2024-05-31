@@ -7,7 +7,7 @@
 				<div :id="'scatter_dot_value' + sectionId" 
 					class="scatter-dot-value hidden"
 					>
-					<div :style="!!isDotPanelClick ? 'display:block' : 'display:none'" class="fixed-info-box-close" @click="utils.uiUtils.showHidePanel('#scatter_dot_value'+ sectionId)">
+					<div :style="!!isDotPanelClick ? 'display:block' : 'display:none'" class="fixed-info-box-close" @click="checkPosition($event,'','click')">
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
 					<div class="scatter-dot-value-content" :id="'scatter_dot_value_content' + sectionId"></div>
@@ -240,6 +240,7 @@ export default Vue.component("research-scatter-plot", {
 		"compareGroupColors",
 		"isSectionPage",
 		"sectionId",
+		"starItems",
 		"utils"
 	],
 	data() {
@@ -253,6 +254,7 @@ export default Vue.component("research-scatter-plot", {
 			gradientMinMax:{},
 			posData:{},
 			isDotPanelClick: false,
+			dotPanelCloseTimer: null
 		};
 	},
 	modules: {},
@@ -946,17 +948,19 @@ export default Vue.component("research-scatter-plot", {
 			this.renderPlot()
 		},
 		checkPosition(e, GROUP, EVENT_TYPE) {
-
+			//every frame
 			let data = (!!GROUP) ? this.posData[GROUP] : this.posData;
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
 			let wrapperContent = document.querySelector('#scatter_dot_value_content' + this.sectionId);
 			//let canvas = document.querySelector('#scatterPlot' + this.sectionId + GROUP);
 			let canvas = e.target;
 
+			//get mouse position
 			let rect = e.target.getBoundingClientRect();
 			let x = Math.floor(e.clientX - rect.left);
 			let y = Math.floor(e.clientY - rect.top);
 
+			//check for dots under mouse
 			let posData = this.utils.plotUtils.getDotsInPos(x, y, data)
 
 			if (posData.length > 0) {
@@ -988,6 +992,25 @@ export default Vue.component("research-scatter-plot", {
 				})
 
 				if (EVENT_TYPE == 'move' && !this.isDotPanelClick){
+					wrapperContent.innerHTML = posContent;
+
+					const width = wrapper.offsetWidth;
+					const height = wrapper.offsetHeight;
+					const distanceFrom = {
+						top: 	e.clientY,
+						right: 	window.innerWidth  - e.clientX,
+						bottom: window.innerHeight - e.clientY,
+						left: 	e.clientX
+					}
+					const pad = 10;
+					const offset = {
+						x: distanceFrom.right  < width + pad  ? - width  - pad : pad,
+						y: distanceFrom.bottom < height + pad ? - height - pad : pad,
+					}
+					wrapper.style.left = distanceFrom.left + offset.x + 'px';
+					wrapper.style.top =  distanceFrom.top  + offset.y + 'px';
+					
+					/*
 					wrapper.style.top = x + canvas.offsetLeft + 150 > canvas.width
 						? y + canvas.offsetTop + 15 + "px" : y + canvas.offsetTop + "px";
 					wrapper.style.left =
@@ -996,24 +1019,41 @@ export default Vue.component("research-scatter-plot", {
 							: x + canvas.offsetLeft + 15 + "px";
 					wrapper.style.width =
 						x + canvas.offsetLeft + 150 > canvas.width ? "auto" : "auto";
-					wrapper.setAttribute("class", "scatter-dot-value")
+					*/
 
-					wrapperContent.innerHTML = posContent;
+					wrapper.setAttribute("class", "scatter-dot-value")
 				}
 
 				if (EVENT_TYPE == 'click') {
 					this.isDotPanelClick = true;
 					wrapper.setAttribute("class", "scatter-dot-value fixed-panel");
 					wrapperContent.innerHTML = posContent;
+
+					//autoclose timeout
+					clearTimeout(this.dotPanelCloseTimer);
+					this.dotPanelCloseTimer = setTimeout(()=>{
+						this.isDotPanelClick = false;
+						wrapper.setAttribute("class", "scatter-dot-value hidden");
+					}, 10000);
+				}
+
+				if(EVENT_TYPE == 'move') {
+					this.dotPanelCloseTimer = setTimeout(() => {
+						this.isDotPanelClick = false;
+						wrapper.setAttribute("class", "scatter-dot-value hidden");
+					}, 10000);
 				}
 
 			} else {
 				if (EVENT_TYPE == 'click') {
 					this.isDotPanelClick = false;
+					wrapper.setAttribute("class", "scatter-dot-value hidden");
+					clearTimeout(this.dotPanelCloseTimer);
 				}
 				if (EVENT_TYPE == 'move' && !this.isDotPanelClick) {
 					wrapperContent.innerHTML = "";
-					wrapper.setAttribute("class", "scatter-dot-value hidden")
+					wrapper.setAttribute("class", "scatter-dot-value hidden");
+					clearTimeout(this.dotPanelCloseTimer);
 				}
 			}
 
@@ -1132,13 +1172,14 @@ $(function () { });
 }
 
 .scatter-dot-value {
-	position: absolute;
+	position: fixed;
     background-color: #fff;
     border: solid 1px #ddd;
     border-radius: 5px;
     padding: 20px 0 0 15px;
     z-index: 11;
     font-size: 14px;
+	width: 350px;
 }
 
 .scatter-dot-value.hidden {
@@ -1147,23 +1188,24 @@ $(function () { });
 
 .scatter-dot-value.fixed-panel {
 	position: fixed;
-	width: auto;
+	/*width: auto;*/
 	height: auto;
 	max-width: 50%;
 	max-height: 50%;
-	left: calc(50% - 200px) !important;
-	top: calc(50% - 150px) !important;
+	/*left: calc(50% - 200px) !important;
+	top: calc(50% - 150px) !important;*/
 	padding: 20px 0 0 15px;
 	border-radius: 5px;
 	border: solid 1px #ddd;
 	background-color: #fff;
 	z-index: 100;
 	box-shadow: 0px 5px 15px #00000050;
+	overflow: auto;
 }
 
 .scatter-dot-value-content {
 	height: auto;
-	max-height: 450px;
+	max-height: 350px;
     overflow: auto;
 	padding-right: 15px;
 	padding-bottom: 15px;
