@@ -1,41 +1,56 @@
-body, body.kp-default{
+<template>
+    <div>
+        <slot></slot>
+    </div>
+</template>
+
+<script>
+import Vue from "vue";
+export default Vue.component("matkp-wrapper", {});
+</script>
+
+<style>
+body, 
+body.kp-default{
     margin: 0;
     padding: 0;
     height: 100vh;
 }
-.hidden{
+</style>
+<style scoped>
+::v-deep .hidden{
     display: none !important;
 }
-.bold{
+::v-deep .bold{
     font-weight: bold;
 }
-.underline{
+::v-deep .underline{
     border-bottom: 1px solid dimgray;
     width: fit-content;
     padding: 5px 0;
 }
 
-.mat-header, .mat-footer{
+::v-deep .mat-header, .mat-footer{
     flex: 0 0 auto;
     background: #424242;
     color: white;
     padding: 20px;
 }
-.mat-body{
+::v-deep .mat-body{
     flex-grow: 1;
     /*background: #fff7d0;*/
 }
-.table-wrap {
+::v-deep .table-wrap {
     width: -webkit-fill-available;
     overflow-x: auto;
 }
-label{
+::v-deep label{
     margin:0;
 }
 
-select, 
-input:not([type="checkbox"]),
-.matkp-input{
+::v-deep select, 
+::v-deep input:not([type="checkbox"]),
+::v-deep .matkp-input{
     position:relative;
     width: 100%;
     height: 40px;
@@ -45,7 +60,7 @@ input:not([type="checkbox"]),
     padding: 10px;
     font-size: 14px;
 }
-.search-input:not([value=''])::after{
+::v-deep .search-input:not([value=''])::after{
     content:'x';
     font-size: 22px;
     height: inherit;
@@ -54,16 +69,16 @@ input:not([type="checkbox"]),
     top: 0;
     right: 0;
 }
-.matkp-input{
+::v-deep .matkp-input{
     cursor:pointer;
 }
-a.matkp-input,
-a.matkp-input:hover{
+::v-deep a.matkp-input,
+::v-deep a.matkp-input:hover{
     text-decoration: none;
     color:black !important;
     text-align: center;
 }
-.input-options {
+::v-deep .input-options {
     position: absolute;
     top: 0;
     left: 100%;
@@ -77,7 +92,7 @@ a.matkp-input:hover{
     max-height: 300px;
     overflow-y: auto;
 }
-.input-overlay {
+::v-deep .input-overlay {
     background: none;
     position: fixed;
     width: 100vw;
@@ -86,7 +101,7 @@ a.matkp-input:hover{
     left: 0;
     z-index: 9;
 }
-.input-list:not(:empty) {
+::v-deep .input-list:not(:empty) {
     display: flex;
     background: #ccc;
     padding: 10px;
@@ -94,7 +109,7 @@ a.matkp-input:hover{
     flex-wrap: wrap;
     border-radius: 0 0 5px 5px;
 }
-.input-list-item {
+::v-deep .input-list-item {
     background: white;
     padding: 2px 5px;
     font-size: 12px;
@@ -102,7 +117,7 @@ a.matkp-input:hover{
     cursor: pointer;
     position: relative;
 }
-.input-list-item:hover:after {
+::v-deep .input-list-item:hover:after {
     content: '✖';
     position: absolute;
     left: 0;
@@ -116,57 +131,58 @@ a.matkp-input:hover{
     justify-content: center;
     color: red;
 }
-.multiselect-toggle{
+::v-deep .multiselect-toggle{
     font-weight: bold;
     cursor: pointer;
 }
 
 /* LAYOUT STYLES */
-.no-events{
+::v-deep .no-events{
     pointer-events: none;
 }
-.f-col{
+::v-deep .f-col{
     display: flex;
     flex-direction: column;
 }
-.f-row{
+::v-deep .f-row{
     display: flex;
     flex-direction: row;
 }
-.f-col.align-v-center{
+::v-deep .f-col.align-v-center{
     justify-content: center;
 }
-.f-row.align-v-center{
+::v-deep .f-row.align-v-center{
     align-items: center;
 }
-.f-col.align-h-center{
+::v-deep .f-col.align-h-center{
     align-items: center;
 }
-.f-row.align-h-center{
+::v-deep .f-row.align-h-center{
     justify-content: center;
 }
-.f-col.spread-out,
-.f-row.spread-out{
+::v-deep .f-col.spread-out,
+::v-deep .f-row.spread-out{
     justify-content: space-between;
 }
-.fill-height{
+::v-deep .fill-height{
     height: -moz-available;
     height: -webkit-fill-avaiilable;
     height: fill-available;
     height: 100%;
 }
-.fill-width{
+::v-deep .fill-width{
     width: -moz-available;
     width: -webkit-fill-avaiilable;
     width: fill-available;
     width: 100%;
 }
-.hug-height{
+::v-deep .hug-height{
     height: fit-content;
 }
-.hug-width{
+::v-deep .hug-width{
     width: fit-content
 }
-.grow-children>*{
+::v-deep .grow-children>*{
     flex-grow: 1;
 }
+</style>
