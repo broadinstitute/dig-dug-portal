@@ -4,12 +4,12 @@ import Template from "./Template.vue";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import '../assets/styles.css';
 
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
+import matkpWrapper from '../components/matkp-wrapper.vue';
 import matkpNav from "../components/matkp-nav.vue"
 import matkpFooter from "../components/matkp-footer.vue"
 import * as d3 from "d3";
@@ -22,6 +22,7 @@ const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
 
 new Vue({
     components: {
+        matkpWrapper,
         matkpNav,
         matkpFooter
     },
