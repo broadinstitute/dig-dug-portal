@@ -5,12 +5,12 @@ import store from "./store.js";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import '../assets/styles.css';
 
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
+import matkpWrapper from '../components/matkp-wrapper.vue';
 import matkpNav from "../components/matkp-nav.vue"
 import matkpHero from "../components/matkp-hero.vue"
 import matkpFooter from "../components/matkp-footer.vue"
@@ -26,6 +26,7 @@ new Vue({
     store,
 
     components: {
+        matkpWrapper,
         matkpHero,
         matkpNav,
         matkpFooter
