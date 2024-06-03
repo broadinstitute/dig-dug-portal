@@ -10,9 +10,9 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
+                <!--
 
-                <div class="col filter-col-md">
+                    <div class="col filter-col-md">
                     <div class="label">Variant</div>
                     <input
                         v-model="$store.state.newVariantId"
@@ -22,6 +22,17 @@
                         id="variant_search_input"
                         @click="$parent.clearBadSearch()"
                     />
+                </div>
+
+                -->
+                <div class="region-search col filter-col-md">
+                    <div class="label">Begin new search</div>
+                    <research-single-search
+                        :single-search-config="null"
+                        :phenotypes="$parent.phenotypesInSession
+                            "
+                        :utils="$parent.utilsBox"
+                    ></research-single-search>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Ancestry</div>
@@ -33,6 +44,7 @@
                         "
                     ></ancestry-selectpicker>
                 </div>
+                <!--
                 <div class="col filter-col-sm">
                     <button
                         id="variantSearchGo"
@@ -48,6 +60,7 @@
                         GO
                     </button>
                 </div>
+                -->
                 <div class="col divider"></div>
                 <div class="col filter-col-md search-example">
                     <div class="label">Search format examples</div>

@@ -9,18 +9,39 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
+
+                    <div>
+                        <div class="region-search col filter-col-md">
+                            <div class="label">Begin new search</div>
+                            <research-single-search
+                                :single-search-config="null"
+                                :phenotypes="$parent.phenotypesInSession
+                                    "
+                                :utils="$parent.utilsBox"
+                            ></research-single-search>
+                        </div>
+                        <div class="region-search col filter-col-md">
+                            <div class="label">Set Ancestry</div>
+                            <ancestry-selectpicker
+                                :ancestries="$store.state.bioPortal.datasets.map(
+                                    (dataset) => dataset.ancestry
+                                )
+                                    "
+                            ></ancestry-selectpicker>
+                        </div>
+                    </div>
+                </search-header-wrapper>
+            <!--<search-header-wrapper>
+                
 
                 <div
                     class="col filter-col-md hidden"
                     style="vertical-align: -8px !important"
                 >
                     <div class="label">Phenotype</div>
-                    <!--<phenotype-selectpicker
-						v-if="$store.state.phenotype"
-						:phenotypes="$parent.phenotypesInSession"
-					></phenotype-selectpicker>-->
+                    
                     <div class="form-control new-phenotype-search-key">
                         {{
                             !$parent.newPhenotypeSearchKey
@@ -38,16 +59,7 @@
                         v-if="!!$parent.phenotypeSearchKey"
                         class="page-phenotypes-list"
                     >
-                        <!--<li
-							v-for="item in $parent.phenotypesInSession"
-							v-if="
-								!!item.description
-									.toLowerCase()
-									.includes(
-										$parent.phenotypeSearchKey.toLowerCase()
-									)
-							"
-						>-->
+                        
                         <template v-for="item in $parent.phenotypesInSession">
                             <li
                                 v-if="
@@ -88,6 +100,7 @@
                     </button>
                 </div>
             </search-header-wrapper>
+            -->
 
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
