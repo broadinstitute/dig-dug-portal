@@ -24,10 +24,19 @@
 							icon="eye"></b-icon></button>
 					<h4>{{ sectionConfig.header }}
 
+						<!--
 						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
 							v-for="parameter in dataPoint['parameters']" :key="parameter"
 							style="font-size:0.7em"
 							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
+
+						-->
+						<small style="font-size: 0.7em;">Required parameters: </small>
+						<span class="required-parameters-wrapper">
+						<small :class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
+							v-for="parameter in dataPoint['parameters']" :key="parameter"
+							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
+						</span>
 						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
 							:id="'flag_' + sectionID">Loading data...</small>-->
 							<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
@@ -41,15 +50,16 @@
 					<button  v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 						title="Capture data in section"><b-icon icon="camera"></b-icon></button>
 					<h4>
-						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
+						<small style="font-size: 0.7em;">Required parameters: </small>
+						<span class="required-parameters-wrapper">
+						<small :class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
 							v-for="parameter in dataPoint['parameters']" :key="parameter"
-							style="font-size:0.7em"
-							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-						
-						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-							:id="'flag_' + sectionID">Loading data...</small>-->
-							<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
-							<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
+							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
+
+						</span>
+
+						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
+						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
 					</h4>
 				</div>
 			</div>
@@ -936,7 +946,7 @@ export default Vue.component("research-section", {
 				}
 			} else {
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "Query parameter missing or invalid";
+				this.noLoadedData = "Please set valid parameters for this query.";
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
@@ -1508,6 +1518,15 @@ button.red-background {
 	border: solid 1px #aa5555 !important;
 }
 
+.required-parameter {
+	font-size: 0.7em;
+	text-transform: capitalize;
+}
+
+.required-parameters-wrapper > .required-parameter:not(:last-child):after {
+  content: ", ";
+}
+
 .no-search-value {
 	color: #ff0000 !important;
 }
@@ -1533,6 +1552,12 @@ button.red-background {
 	padding: 0 15px;
 	margin-right: 10px;
 	color: #006633;
+}
+
+.no-data-flag {
+	font-size: 0.7em;
+    font-weight: 600;
+	color: #33cc77;
 }
 
 .data-loading-flag.hidden {

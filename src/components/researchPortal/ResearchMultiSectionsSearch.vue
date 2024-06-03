@@ -10,9 +10,12 @@
 						<span v-html="parameter.label"></span>
 					</div>
 
+					
 					<select v-if="parameter.type == 'api list'"
 						:id="'search_param_' + parameter.parameter"  class="custom-select custom-select-search"
 						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
+
+						<option value="">{{ 'Set ' + parameter.parameter }}</option>
 						
 						<option v-for="param in parameterOptions[paramIndex]" :key="param.value" :value="param.value"
 								v-html="param.label.trim()"></option>
