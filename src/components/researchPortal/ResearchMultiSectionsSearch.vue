@@ -10,9 +10,12 @@
 						<span v-html="parameter.label"></span>
 					</div>
 
+					
 					<select v-if="parameter.type == 'api list'"
 						:id="'search_param_' + parameter.parameter"  class="custom-select custom-select-search"
 						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
+
+						<option value="">{{ 'Set ' + parameter.parameter }}</option>
 						
 						<option v-for="param in parameterOptions[paramIndex]" :key="param.value" :value="param.value"
 								v-html="param.label.trim()"></option>
@@ -166,17 +169,21 @@ export default Vue.component("research-multi-sections-search", {
 		window.removeEventListener("scroll", this.onScroll);
 	},
 	computed: {
-		tableTop() {
+		/*tableTop() {
 			let eglTable = document.getElementsByClassName("multi-page-search")[0];
-			let rect = eglTable.getBoundingClientRect();
-			let scrollTop = document.documentElement.scrollTop
-				? document.documentElement.scrollTop
-				: document.body.scrollTop;
+			if(!!eglTable) {
+				let rect = eglTable.getBoundingClientRect();
+				let scrollTop = document.documentElement.scrollTop
+					? document.documentElement.scrollTop
+					: document.body.scrollTop;
 
-			let tableTop = rect.top + scrollTop;
+				let tableTop = rect.top + scrollTop;
 
-			return tableTop;
-		},
+				return tableTop;
+			} else {
+				return null;
+			}			
+		},*/
 		displyingSearchNum() {
 			let totalSearchNum = this.searchParameters.length;
 
@@ -191,6 +198,7 @@ export default Vue.component("research-multi-sections-search", {
 		}
 	},
 	watch: {
+		
 	},
 	methods: {
 		async getList(apiPoint, INDEX) {
@@ -242,7 +250,15 @@ export default Vue.component("research-multi-sections-search", {
 			let windowTop = window.top.scrollY;
 
 			let element = document.getElementsByClassName("multi-page-search")[0];
-			if (windowTop > this.tableTop) {
+			let contentsTop = document.getElementsByClassName("kp-tabs-contents")[0];
+			let rect = contentsTop.getBoundingClientRect();
+			let scrollTop = document.documentElement.scrollTop
+				? document.documentElement.scrollTop
+				: document.body.scrollTop;
+
+			let tableTop = rect.top + scrollTop;
+
+			if (windowTop > tableTop) {
 				if (!element.classList.contains("fixed-header")) {
 					element.classList.add("fixed-header");
 				}
@@ -357,6 +373,8 @@ export default Vue.component("research-multi-sections-search", {
 				document.getElementById("search_param_" + s.parameter).value = "";
 			})
 			this.utils.keyParams.set(paramsObj);
+
+			console.log("paramsObj", paramsObj);
 
 			this.sections.map(s => {
 				if (!!s["data point"] && !!s["data point"]["parameters"]) {
