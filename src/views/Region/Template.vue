@@ -10,50 +10,19 @@
         <!-- body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div>
                     <div class="region-search col filter-col-md">
-                        <div class="label">Search gene</div>
-                        <gene-selectpicker
-                            @onGeneChange="
-                                $store.dispatch('onGeneChange', $event)
-                            "
-                        ></gene-selectpicker>
-                    </div>
-                    <div class="col divider" style="background: none">
-                        <span class="or-text">or</span>
-                    </div>
-                    <div class="region-search col filter-col-sm">
-                        <div class="label">Chromosome</div>
-                        <input
-                            v-model="$store.state.newChr"
-                            type="text"
-                            class="form-control input-default"
-                            placeholder="Chromosome"
-                        />
+                        <div class="label">Begin new search</div>
+                        <research-single-search
+                            :single-search-config="null"
+                            :phenotypes="$parent.phenotypesInSession
+                                "
+                            :utils="$parent.utilsBox"
+                        ></research-single-search>
                     </div>
                     <div class="region-search col filter-col-md">
-                        <div class="label">Start</div>
-                        <input
-                            v-model="$store.state.newStart"
-                            type="text"
-                            class="form-control input-default"
-                            placeholder="Start position"
-                        />
-                    </div>
-
-                    <div class="region-search col filter-col-md">
-                        <div class="label">End</div>
-                        <input
-                            v-model="$store.state.newEnd"
-                            type="text"
-                            class="form-control input-default"
-                            placeholder="End position"
-                        />
-                    </div>
-                    <div class="region-search col filter-col-md">
-                        <div class="label">Ancestry</div>
+                        <div class="label">Set Ancestry</div>
                         <ancestry-selectpicker
                             :ancestries="
                                 $store.state.bioPortal.datasets.map(
@@ -62,6 +31,7 @@
                             "
                         ></ancestry-selectpicker>
                     </div>
+                    <!--
                     <div class="region-search col filter-col-md">
                         <div class="label">Search</div>
                         <button
@@ -73,7 +43,7 @@
                             GO
                         </button>
                     </div>
-                    <div class="col divider"></div>
+                    -->
                     <!-- <div class="region-search col filter-col-md">
                         <div class="label">Search phenotype</div>
                         <phenotype-selectpicker
