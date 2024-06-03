@@ -47,11 +47,15 @@
                         </select>
                     </div>
                     -->
-                    <div class="col1" style="width:250px;">
-                        <div class="anatomogram">
-                            <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.male_.svg">
+                    
+                    <template>
+                        <div class="col1" style="width:250px;">
+                            <div class="anatomogram">
+                                <img class="anatomy-human" :class="$parent.datasetsObj[$parent.activeDataset]['info']['species'][0] ==='Human' ? '' : 'hidden'" src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.male_.svg">
+                                <img class="anatomy-mouse" :class="$parent.datasetsObj[$parent.activeDataset]['info']['species'][0]==='Mouse' ? '' : 'hidden'" src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/mus_musculus.male_.svg">
+                            </div>
                         </div>
-                    </div>
+                    </template>
                     <template v-if="$parent.activeField">
                         <div class="col1 info-block">
                             <!--
@@ -1129,9 +1133,6 @@ select{
     0% { opacity: 0 }
     50% { opacity: 1 }
     100% { opacity: 0 }
-}
-.hidden{
-    display:none
 }
 .overflow-h {
     overflow-x: auto;

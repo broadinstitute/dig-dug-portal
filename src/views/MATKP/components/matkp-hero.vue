@@ -1,15 +1,22 @@
 <template>
-    <div class="hero-wrap f-col align-h-center align-v-center">
+    <div class="hero-wrap f-row align-h-center align-v-center">
         <div class="hero-interact fill-width fill-height"></div>
         <div class="hero-label f-col align-v-center no-events">
             <div class="logo f-row align-v-center">
-                <div style="width:100px; height: 100px; background: dimgray;"></div>
-                <!--<img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkp_logo.png">-->
-                <div style="font-size:26px; line-height: 24px;">
-                    Mammalian<br>Adipose<br>Tissue<br><span style="font-size:17px;display: block;">Knowledge Portal</span>
+                <!--<div style="width:100px; height: 100px; background: dimgray;"></div>-->
+                <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png">
+                <div style="font-size:22px;line-height:22px;font-weight:bold">
+                    Mammalian<br>Adipose<br>Tissue<br><span style="font-size:15px;display: block;font-weight:normal;">Knowledge Portal</span>
                 </div>
             </div>
-            <div class="tagline">The place for fat</div>
+        </div>
+        <div class="f-col hero-info no-events" style="z-index:1; gap:20px">
+            <div class="tagline">A resource for the exploration of genes, traits and cell types in the function of adipose tissue across species, depots and conditions.</div>
+            <a class="matkp-input" style="pointer-events:all;" href="/matkp/datasets.html">Browse all Datasets</a>
+            <div style="width:100%;margin:-10px 0;text-align:center;">or</div>
+            <b-input-group size="sm" style="pointer-events: none; opacity: .7;">
+                <input type="text" placeholder="Search gene, cell type or trait"><b-button class="button-lock-right" @click="">Search</b-button>
+            </b-input-group>
         </div>
     </div>
 </template>
@@ -24,7 +31,7 @@ export default Vue.component("matkp-hero", {
     props: [],
     data() {
         return {
-            
+            delauneyActive: false,
         };
     },
     computed: {
@@ -72,7 +79,7 @@ export default Vue.component("matkp-hero", {
             const radius = 200; // Radius around the mouse for interaction
             const moveFactor = 0.02; // Factor to control how much particles move towards the mouse
 
-            function update() {
+            const update = () => {
                 const delaunay = d3.Delaunay.from(particles);
                 const voronoi = delaunay.voronoi([0.5, 0.5, width - 0.5, height - 0.5]);
                 context.clearRect(0, 0, width, height);
@@ -104,19 +111,19 @@ export default Vue.component("matkp-hero", {
                     }
                 }
 
-                /*
-                context.beginPath();
-                voronoi.render(context);
-                voronoi.renderBounds(context);
-                context.lineWidth = 1;
-                context.strokeStyle = "#000";
-                context.stroke();
+                if(this.delauneyActive){
+                    context.beginPath();
+                    voronoi.render(context);
+                    voronoi.renderBounds(context);
+                    context.lineWidth = 1;
+                    context.strokeStyle = "gray";
+                    context.stroke();
 
-                context.beginPath();
-                delaunay.renderPoints(context);
-                context.fillStyle = "#000";
-                context.fill();
-                */
+                    context.beginPath();
+                    delaunay.renderPoints(context);
+                    context.fillStyle = "gray";
+                    context.fill();
+                }
             }
 
             const smoothPolygonPath = (cellData) => {
@@ -149,6 +156,10 @@ export default Vue.component("matkp-hero", {
                 return Math.abs(area);
             }
 
+            context.canvas.onclick = () => {
+                this.delauneyActive = !this.delauneyActive;
+                update();
+            }
             context.canvas.ontouchmove = 
             context.canvas.onmousemove = event => {
                 event.preventDefault();
@@ -193,25 +204,30 @@ export default Vue.component("matkp-hero", {
 }
 .hero-label{
     z-index: 1;
-    background: #424242;
+    background: #ffffff50;
+    backdrop-filter: blur(5px);
     padding: 50px;
-    box-shadow: 0 10px 20px 5px #42424290;
+    aspect-ratio: 1;
+    box-shadow: 0 0 10px 0 #42424220;
 }
 .logo{
-    color: white;
+    color: #424242;
     gap: 20px;
 }
 .logo img {
     height: 100px;
 }
+.hero-info{
+    margin: 0 0 0 30px;
+    padding: 0 0 0 20px;
+}
 .tagline {
-    font-size: 33px;
+    z-index: 1;
+    width: 500px;
+    line-height: normal;
+    font-size: 18px;
     font-weight: bold;
-    font-style: italic;
-    margin: 30px 0 0;
-    padding: 20px 0 0;
-    color: dimgray;
-    border-top: 0.5px solid dimgray;
+    color: #424242;
 }
 .hero-interact {
     position: absolute;
@@ -219,5 +235,13 @@ export default Vue.component("matkp-hero", {
     left: 0;
     background: #ffea4e;
     background: linear-gradient(to top, #ffb254, #ffea4e);
+}
+.button-lock-right{
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 1;
+    border-radius: 0;
 }
 </style>

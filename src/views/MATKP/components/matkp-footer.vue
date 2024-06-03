@@ -1,6 +1,6 @@
 <template>
-    <div class="mat-footer f-row align-h-center">
-        FOOTER
+    <div class="mat-footer f-row align-h-center" style="font-size: 14px;">
+        matkp development build
     </div>
 </template>
 

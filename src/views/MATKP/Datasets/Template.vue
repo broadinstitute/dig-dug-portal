@@ -9,7 +9,9 @@
                 <div class="f-row" style="margin: 80px 20px 20px; justify-content: space-between;">
                     <div class="f-col">
                         <div style="font-size: 20px; font-weight: bold;">Datasets</div>
-                        <div style="font-style: italic; line-height: 12px;" v-if="$parent.datasets">{{ $parent.filteredCount > 0 && $parent.filteredCount < $parent.datasets.length ? $parent.filteredCount+' of ' : '' }} {{ $parent.datasets.length }} total</div>
+                        <div style="font-style: italic; line-height: 12px;" v-if="$parent.datasets">
+                            {{ $parent.filteredItems.length > 0 || $parent.filteredCount > 0  ? $parent.filteredCount > 0 && $parent.filteredCount < $parent.filteredItems.length ? $parent.filteredCount + ' of ' : $parent.filteredItems.length + ' of ' : '' }} {{ $parent.datasets.length }}
+                        </div>
                         <div :class="`loader ${!$parent.isLoading ? 'hidden' : ''}`">loading...</div>
                     </div>
                     <div class="col1" style="width:calc(100% - 265px)">
@@ -24,49 +26,43 @@
                     </div>
                 </div>
                 <div class="f-row content-wrap">
-                    <div class="f-col" style="min-width:250px; gap:15px; font-size:14px">
+                    <div class="input-overlay hidden"></div>
+                    <div class="f-col" style="min-width:250px; width:250px; gap:15px; font-size:14px">
+                        <!--{{ $parent.selectedFilters }}-->
                         <div class="f-row align-v-center bold border-bottom" style="height:32px">
                             Filters 
                         </div>
-                        <div class="f-col">
-                            <div class="label">Species</div>
-                            <select class="active-field-selector">
-                                <option value="" disabled selected>Select</option>
-                                <option value="human">Human</option>
-                                <option value="mouse">Mouse</option>
-                            </select>
-                        </div>
-                        <div class="f-col">
-                            <div class="label">Depot</div>
-                            <select class="active-field-selector">
-                                <option value="" disabled selected>Select</option>
-                                <option value="human">subcutaneous adipose tissue</option>
-                                <option value="mouse">omental fat pad</option>
-                            </select>
-                        </div>
-                        <div class="f-col">
-                            <div class="label">Method</div>
-                            <select class="active-field-selector">
-                                <option value="" disabled selected>Select</option>
-                                <option value="human">Single-nucleus RNA-seq</option>
-                                <option value="mouse">Single-cell RNA-seq</option>
-                            </select>
-                        </div>
-                        <div class="f-col">
-                            <div class="label">Sex</div>
-                            <select class="active-field-selector">
-                                <option value="" disabled selected>Select</option>
-                                <option value="human">Male</option>
-                                <option value="mouse">Female</option>
-                            </select>
-                        </div>
-                        <div class="f-col">
-                            <div class="label">Ethnicity</div>
-                            <select class="active-field-selector">
-                                <option value="" disabled selected>Select</option>
-                                <option value="human">Human</option>
-                                <option value="mouse">Mouse</option>
-                            </select>
+                        <div class="f-col" style="position:relative" v-for="(options, key) in $parent.filterOptions" :key="key">
+                            <div class="f-row matkp-input" style="height:auto;" :data-input-key="key" @click="$parent.showInputOptions($event)">
+                                <div class="f-row fill-width spread-out no-events">
+                                    <div class="label bold" style="text-transform:capitalize">{{$parent.fields.find(x => x.key === key)["label"]}}</div>
+                                    <div style="font-size:12px;">
+                                       {{ $parent.selectedFilters[key].length > 0 ? $parent.selectedFilters[key].length + ' of ' : '' }}{{ $parent.filterOptions[key].length }} ❯
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="input-list">
+                                <div 
+                                    class="input-list-item" 
+                                    v-for="value in $parent.selectedFilters[key]" 
+                                    @click="$parent.removeInputOption($event)"
+                                    :data-input-key="key"
+                                    :data-input-option="value"
+                                >
+                                {{ value }}
+                                </div>
+                            </div>
+                            <div class="f-col input-options hidden" :data-input-options-key="key">
+                                <div class="f-row align-v-center input-option" style="gap:5px" v-for="option in options">
+                                    <input
+                                    type="checkbox"
+                                    :id="`filter-${key}-${option.value}`"
+                                    :value="option.value"
+                                    v-model="$parent.selectedFilters[key]"
+                                    />
+                                    <label style="white-space: nowrap;" :for="`filter-${key}-${option.value}`">{{ option.text }}</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="f-col">
@@ -75,8 +71,8 @@
                                 striped
                                 small
                                 sort-icon-left
-                                :items="$parent.datasets" 
-                                :fields="$parent.datasetsFields"
+                                :items="$parent.filteredItems" 
+                                :fields="$parent.fields"
                                 :filter="$parent.filter"
                                 @filtered="$parent.onFiltered"
                             >
