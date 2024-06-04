@@ -12,6 +12,8 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
+
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
 new Vue({
     store,
@@ -26,6 +28,7 @@ new Vue({
         FilterEnumeration,
         SearchHeaderWrapper,
         TissueSelectPicker,
+        ResearchSingleSearch,
     },
     mixins: [pageMixin],
     data() {
@@ -47,6 +50,13 @@ new Vue({
     computed: {
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
         },
 
         frontContents() {
