@@ -10,9 +10,9 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
+                <!--
 
-                <div class="col filter-col-md">
+                    <div class="col filter-col-md">
                     <div class="label">Variant</div>
                     <input
                         v-model="$store.state.newVariantId"
@@ -23,30 +23,27 @@
                         @click="$parent.clearBadSearch()"
                     />
                 </div>
+
+                -->
+                <div class="region-search col filter-col-md">
+                    <div class="label">Begin new search</div>
+                    <research-single-search
+                        :single-search-config="null"
+                        :phenotypes="$parent.phenotypesInSession
+                            "
+                        :utils="$parent.utilsBox"
+                    ></research-single-search>
+                </div>
                 <div class="col filter-col-md">
                     <div class="label">Ancestry</div>
                     <ancestry-selectpicker
+                        :pageLevel="true"
                         :ancestries="
                             $store.state.bioPortal.datasets.map(
                                 (dataset) => dataset.ancestry
                             )
                         "
                     ></ancestry-selectpicker>
-                </div>
-                <div class="col filter-col-sm">
-                    <button
-                        id="variantSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="
-                            $store.dispatch(
-                                'queryVariant',
-                                $store.state.newVariantId
-                            )
-                        "
-                    >
-                        GO
-                    </button>
                 </div>
                 <div class="col divider"></div>
                 <div class="col filter-col-md search-example">
@@ -253,6 +250,7 @@
                                             position: absolute;
                                             right: 25px;
                                             z-index: 10;
+                                            margin-top: 20px;
                                         "
                                         >Re-render PheWAS plot</b-button
                                     >

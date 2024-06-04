@@ -2405,5 +2405,14 @@ span.spacer-5 {
     margin-left: -30px !important;
 }
 
+/* single search on gene, region, phenotype, variant pages */
+
+.search-header-content .byor-single-search {
+    width: 400px !important;
+}
+
+.search-header-content .byor-single-search-wrapper .reset-search {
+    top: 24px !important;
+}
 
 /* BYOR stuff */

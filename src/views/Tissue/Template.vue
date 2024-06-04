@@ -17,8 +17,7 @@
         <template v-else>
             <div class="container-fluid mdkp-body">
                 <search-header-wrapper>
-                    <!-- Wrap page level searchs with "pageSearchParameters" div -->
-                    <div class="col filter-col-md">
+                    <!--<div class="col filter-col-md">
                         <div class="label">Tissue</div>
                         <tissue-selectpicker
                             @tissue="$parent.newTissue"
@@ -35,6 +34,15 @@
                         >
                             GO
                         </button>
+                    </div>-->
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Begin new search</div>
+                        <research-single-search
+                            :single-search-config="null"
+                            :phenotypes="$parent.phenotypesInSession
+                                "
+                            :utils="$parent.utilsBox"
+                        ></research-single-search>
                     </div>
                 </search-header-wrapper>
                 <div class="card mdkp-card">

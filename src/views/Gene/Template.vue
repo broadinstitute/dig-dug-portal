@@ -24,26 +24,18 @@
         </div>
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
-                <span class="gene-search-tip">
-                    <sup>*</sup>
-                    Alias names are converted to gene symbols
-                </span>
-                <div class="col filter-col-md">
-                    <div class="label">Gene</div>
-                    <gene-selectpicker></gene-selectpicker>
-                </div>
-                <div class="col filter-col-md">
-                    <div class="label">Search</div>
-                    <button
-                        id="regionSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="$store.dispatch('queryGeneName')"
-                    >
-                        GO
-                    </button>
+
+             <search-header-wrapper>
+                <div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Begin new search</div>
+                        <research-single-search
+                            :single-search-config="null"
+                            :phenotypes="$parent.phenotypesInSession
+                                "
+                            :utils="$parent.utilsBox"
+                        ></research-single-search>
+                    </div>                        
                 </div>
             </search-header-wrapper>
             <div class="gene-page-header card mdkp-card">
