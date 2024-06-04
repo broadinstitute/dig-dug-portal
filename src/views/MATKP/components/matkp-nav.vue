@@ -1,12 +1,8 @@
 <template>
     <div class="mat-header f-row spread-out align-v-center" :class="glass ? 'glass' : ''">
-        <a class="logo f-row align-v-center"
-           href="/matkp/"
-        >
-            <!--<div style="width:40px; height: 40px; background: dimgray;"></div>-->
+        <a class="logo f-row align-v-center" href="/matkp/">
             <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png">
-            <span>MAT<span class="light">KP</span><span class="tagline">The place for fat.</span></span>
-            
+            <span style="font-weight: 600">MAT<span style="font-weight:300">KP</span><span class="tagline">The place for fat.</span></span>
         </a>
         <div class="f-row menu">
             <a href="/matkp/datasets.html">Datasets</a>
@@ -21,8 +17,7 @@
 import Vue from "vue";
 
 export default Vue.component("matkp-nav", {
-    components: {
-    },
+    components: {},
     props: {
         glass: {
             type: Boolean,
@@ -30,15 +25,34 @@ export default Vue.component("matkp-nav", {
         }
     },
     data() {
-        return {
-            
-        };
+        return {};
     },
-    computed: {
-    },
+    computed: {},
     created() {
+        this.injectFavicon('https://hugeampkpncms.org/sites/default/files/users/user32/matkp/favicon-32x32.png');
+        this.injectFont('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
     },
     methods: {
+        injectFavicon(faviconUrl) { //todo: make util
+            //faviconUrl eg: https://hugeampkpncms.org/sites/default/files/users/user32/matkp/favicon-32x32.png
+            let favicon = document.querySelector('link[rel="icon"]');
+            if (!favicon) {
+                favicon = document.createElement('link')
+                favicon.setAttribute('rel', 'icon')
+                favicon.setAttribute('type', 'image/png')
+                document.head.appendChild(favicon)
+            }
+            favicon.setAttribute('href', faviconUrl);
+        },
+        injectFont(fontUrl){ //todo: make util
+            //fontUrl eg: https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap
+			const linkTag = document.createElement('link');
+			linkTag.rel = 'stylesheet';
+			linkTag.href = fontUrl;
+			document.head.appendChild(linkTag);
+			linkTag.onload = () => {
+			};
+		}
     },
 });
 </script>
@@ -85,6 +99,6 @@ export default Vue.component("matkp-nav", {
     font-style:italic
 }
 .glass .tagline{
-    color:#ff04a7;
+    color:#ff6c02;
 }
 </style>

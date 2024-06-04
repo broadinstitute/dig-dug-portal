@@ -1,4 +1,5 @@
 <template>
+    <matkp-wrapper>
     <div class="mat-wrap f-col fill-height">
         <!-- NAV -->
         <matkp-nav></matkp-nav>
@@ -1094,6 +1095,7 @@
         <!-- FOOTER -->
         <matkp-footer></matkp-footer>
     </div>
+</matkp-wrapper>
 </template>
 
 <style scoped>
