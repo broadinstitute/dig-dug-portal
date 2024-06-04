@@ -74,6 +74,7 @@
                             "
                             >Click for options</span
                         >
+                        <br />
                     </span>
                 </div>
                 <canvas
@@ -154,64 +155,11 @@ import DownloadChart from "../DownloadChart.vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("ResearchPhewasPlot", {
-    props: {
-        canvasId: {
-            type: String,
-            default: "",
-        },
-        phenotypeMap: {
-            type: Object,
-            default: null,
-        },
-        phenotypesData: {
-            type: Array,
-            default: () => [],
-        },
-        renderConfig: {
-            type: Object,
-            default: () => ({}),
-        },
-        pkgData: {
-            type: Object,
-            default: null,
-        },
-        pkgDataSelected: {
-            type: Object,
-            default: null,
-        },
-        colors: {
-            type: Array,
-            default: () => [],
-        },
-        plotMargin: {
-            type: Object,
-            default: () => ({}),
-        },
-        filter: {
-            type: Function,
-            default: () => () => true,
-        },
-        options: {
-            type: Array,
-            default: () => [],
-        },
-        sectionId: {
-            type: String,
-            default: "",
-        },
-        utils: {
-            type: Object,
-            default: () => ({}),
-        },
-        plotName: {
-            type: String,
-            default: "",
-        },
-        nativeDlBtn: {
-            type: Boolean,
-            default: true,
-        },
-    },
+    props: [
+        "canvasId", "phenotypeMap", "phenotypesData", "renderConfig", "pkgData", "pkgDataSelected",
+        "colors", "plotMargin", "filter", "options", "sectionId", "sectionId", "utils", "plotName", "nativeDlBtn"
+    ],
+
     data() {
         return {
             pheWasData: null,
