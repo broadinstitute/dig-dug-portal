@@ -313,7 +313,6 @@
                                         :filter="filter"
                                         ref="rpPheWASPlot"
                                         :utils="$parent.utilsBox"
-                                        :options="['open phenotype page']"
                                     ></research-phewas-plot>
                                 </b-tab>
                                 <b-tab title="Forest plot">
