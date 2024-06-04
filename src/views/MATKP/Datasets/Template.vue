@@ -1,5 +1,5 @@
 <template>
-    <matkp-wrapper>
+    <div class="matkp">
         <div class="mat-wrap f-col fill-height">
             <!-- NAV -->
             <matkp-nav></matkp-nav>
@@ -113,13 +113,10 @@
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>
         </div>
-    </matkp-wrapper>
+    </div>
 </template>
 
 <style scoped>
-::v-deep .italic{
-    font-style: italic;
-}
 .content-wrap{
     padding: 20px;
     gap: 15px;
