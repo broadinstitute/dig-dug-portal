@@ -250,6 +250,7 @@
                                             position: absolute;
                                             right: 25px;
                                             z-index: 10;
+                                            margin-top: 20px;
                                         "
                                         >Re-render PheWAS plot</b-button
                                     >
