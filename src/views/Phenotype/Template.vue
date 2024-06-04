@@ -11,97 +11,27 @@
         <div class="container-fluid mdkp-body">
 
             <search-header-wrapper>
-
-                    <div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Begin new search</div>
-                            <research-single-search
-                                :single-search-config="null"
-                                :phenotypes="$parent.phenotypesInSession
-                                    "
-                                :utils="$parent.utilsBox"
-                            ></research-single-search>
-                        </div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Set Ancestry</div>
-                            <ancestry-selectpicker
-                                :ancestries="$store.state.bioPortal.datasets.map(
-                                    (dataset) => dataset.ancestry
-                                )
-                                    "
-                            ></ancestry-selectpicker>
-                        </div>
-                    </div>
-                </search-header-wrapper>
-            <!--<search-header-wrapper>
-                
-
-                <div
-                    class="col filter-col-md hidden"
-                    style="vertical-align: -8px !important"
-                >
-                    <div class="label">Phenotype</div>
-                    
-                    <div class="form-control new-phenotype-search-key">
-                        {{
-                            !$parent.newPhenotypeSearchKey
-                                ? "Search phenotype"
-                                : $parent.newPhenotypeSearchKey
-                        }}
-                    </div>
-                    <input
-                        v-model="$parent.phenotypeSearchKey"
-                        class="form-control phenotype-search-input"
-                        type="text"
-                    />
-
-                    <ul
-                        v-if="!!$parent.phenotypeSearchKey"
-                        class="page-phenotypes-list"
-                    >
-                        
-                        <template v-for="item in $parent.phenotypesInSession">
-                            <li
-                                v-if="
-                                    !!$parent.ifPhenotypeInSearch(
-                                        item.description
-                                    )
+                <div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Begin new search</div>
+                        <research-single-search
+                            :single-search-config="null"
+                            :phenotypes="$parent.phenotypesInSession
                                 "
-                                :key="item.name"
-                            >
-                                <a
-                                    href="javascript:;"
-                                    @click="$parent.setSelectedPhenotype(item)"
-                                    v-html="item.description"
-                                ></a>
-                            </li>
-                        </template>
-                    </ul>
-                </div>
-                <div class="col filter-col-md hidden">
-                    <div class="label">Ancestry</div>
-                    <ancestry-selectpicker
-                        :ancestries="
-                            $store.state.bioPortal.datasets.map(
+                            :utils="$parent.utilsBox"
+                        ></research-single-search>
+                    </div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Set Ancestry</div>
+                        <ancestry-selectpicker
+                            :ancestries="$store.state.bioPortal.datasets.map(
                                 (dataset) => dataset.ancestry
                             )
-                        "
-                    ></ancestry-selectpicker>
-                </div>
-                <div class="region-search col filter-col-md hidden">
-                    <div class="label">Search</div>
-                    <button
-                        id="regionSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="$store.dispatch('queryPhenotype')"
-                    >
-                        GO
-                    </button>
+                                "
+                        ></ancestry-selectpicker>
+                    </div>
                 </div>
             </search-header-wrapper>
-            -->
-
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">
