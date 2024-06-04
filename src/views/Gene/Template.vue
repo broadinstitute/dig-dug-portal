@@ -377,6 +377,7 @@
                                         :pkg-data-selected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
+                                        :options="['open phenotype page']"
                                     >
                                     </research-phewas-plot>
                                     <unauthorized-message
@@ -454,6 +455,7 @@
                                         :pkg-data-selected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
+                                        :options="['open phenotype page']"
                                     >
                                     </research-phewas-plot>
                                     <unauthorized-message
@@ -520,6 +522,7 @@
                                         :pkg-data-selected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
+                                        :options="['open phenotype page']"
                                     >
                                     </research-phewas-plot>
                                     <unauthorized-message
