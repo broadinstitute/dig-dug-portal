@@ -24,6 +24,7 @@
                     <div class="region-search col filter-col-md">
                         <div class="label">Set Ancestry</div>
                         <ancestry-selectpicker
+                            :pageLevel="true"
                             :ancestries="$store.state.bioPortal.datasets.map(
                                 (dataset) => dataset.ancestry
                             )

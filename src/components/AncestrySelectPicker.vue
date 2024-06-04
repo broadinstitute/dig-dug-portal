@@ -24,7 +24,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("ancestry-selectpicker", {
-    props: ["ancestries", "defaultMixed"],
+    props: ["ancestries", "defaultMixed", "pageLevel"],
 
     data() {
         return {
@@ -51,7 +51,9 @@ export default Vue.component("ancestry-selectpicker", {
     methods: {
         ancestryFormatter: Formatters.ancestryFormatter,
         onAncestrySelected() {
-            this.$store.dispatch("onAncestryChange");
+            if (this.pageLevel){
+                this.$store.dispatch("onAncestryChange");
+            }
         },
 
         setFocus() {

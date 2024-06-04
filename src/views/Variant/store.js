@@ -62,7 +62,6 @@ export default new Vuex.Store({
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
-            console.log("out newVarId is ", newVarId);
             if (newVarId) {
                 //if newVarId is a dbSNP, then we need to get the varId
                 if (newVarId.startsWith("rs")) {
