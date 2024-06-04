@@ -109,6 +109,9 @@ export default new Vuex.Store({
             //context.dispatch("regions/query", { q: `${chromosome}:${position}` });
             context.dispatch("datasetAssociations/query", { q: varId });
         },
+        onAncestryChange(context){
+            context.dispatch('queryVariant', context.state.newVariantId);
+        },
         // For custom phenotypes
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
