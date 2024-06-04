@@ -1,7 +1,8 @@
 <template>
     <select class="form-control"
         v-model="$store.state.selectedAncestry"
-        ref="ancestrySelect">
+        ref="ancestrySelect"
+        @change="onAncestrySelected($event.target.value)">
         <option value="" selected>
             {{ defaultMixed ? "Mixed (meta-analysis)" : "All ancestries" }}
         </option>

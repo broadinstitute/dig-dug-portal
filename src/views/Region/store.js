@@ -184,6 +184,11 @@ export default new Vuex.Store({
                 end: context.state.initial.end
             });
         },
+
+        onAncestryChange(context){
+            context.dispatch("queryRegion");
+        },
+
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
         },
