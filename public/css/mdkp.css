@@ -2411,5 +2411,8 @@ span.spacer-5 {
     width: 400px !important;
 }
 
+.search-header-content .byor-single-search-wrapper .reset-search {
+    top: 24px !important;
+}
 
 /* BYOR stuff */
