@@ -44,23 +44,6 @@
                         "
                     ></ancestry-selectpicker>
                 </div>
-                <!--
-                <div class="col filter-col-sm">
-                    <button
-                        id="variantSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="
-                            $store.dispatch(
-                                'queryVariant',
-                                $store.state.newVariantId
-                            )
-                        "
-                    >
-                        GO
-                    </button>
-                </div>
-                -->
                 <div class="col divider"></div>
                 <div class="col filter-col-md search-example">
                     <div class="label">Search format examples</div>
