@@ -1,5 +1,5 @@
 <template>
-    <matkp-wrapper>
+    <div class="matkp">
     <div class="mat-wrap f-col fill-height">
         <!-- NAV -->
         <matkp-nav></matkp-nav>
@@ -13,7 +13,7 @@
                     <div style="font-style: italic;">{{ $parent.getDatasetNamePart($parent.datasetsObj[$parent.activeDataset]["info"]["datasetName"], "credit") }}</div>
                     <div :class="`loader ${!$parent.isLoading ? 'hidden' : ''}`">loading...</div>
                 </div>
-                <div class="col1 header-wrapper" style="max-width:250px">
+                <div class="f-col header-wrapper" style="max-width:250px">
                     <template v-if="$parent.datasetsObj && Object.keys($parent.datasetsObj).length > 0">
                         <div class="dataset-wrapper">
                             <div class="f-row dataset-selector">
@@ -32,14 +32,14 @@
                 </div>
             </div>
 
-            <div class="row1 explore-wrapper" style="padding:20px 20px 150px" v-if="$parent.activeField">
+            <div class="f-row explore-wrapper" style="padding:20px 20px 150px" v-if="$parent.activeField">
 
-                <div class="col1" style="width:250px; gap:15px; font-size:14px">
+                <div class="f-col" style="width:250px; gap:15px; font-size:14px">
                     <div class="label underline" style="position:relative">
                         Dataset Info 
                     </div>
                     <!--
-                    <div class="col1">
+                    <div class="f-col">
                         <div class="label">Mammal</div>
                         <select class="active-field-selector" disabled>
                             <option value="" disabled hidden>Select</option>
@@ -50,7 +50,7 @@
                     -->
                     
                     <template>
-                        <div class="col1" style="width:250px;">
+                        <div class="f-col" style="width:250px;">
                             <div class="anatomogram">
                                 <img class="anatomy-human" :class="$parent.datasetsObj[$parent.activeDataset]['info']['species'][0] ==='Human' ? '' : 'hidden'" src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.male_.svg">
                                 <img class="anatomy-mouse" :class="$parent.datasetsObj[$parent.activeDataset]['info']['species'][0]==='Mouse' ? '' : 'hidden'" src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/mus_musculus.male_.svg">
@@ -58,20 +58,20 @@
                         </div>
                     </template>
                     <template v-if="$parent.activeField">
-                        <div class="col1 info-block">
+                        <div class="f-col info-block">
                             <!--
-                            <div class="row1 info-field">
+                            <div class="f-row info-field">
                                 <div class="info-field-label">Name</div><div class="info-field-data unknown">{{ Array.isArray($parent.activeDataset) ? $parent.activeDataset[0] : $parent.activeDataset }}</div>
                             </div>
                             -->
-                            <div class="row1 info-field">
+                            <div class="f-row info-field">
                                 <div class="info-field-label">Species</div><div class="info-field-data">
                                     <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['species']">
                                         <div>{{item}}</div>
                                     </template>
                                 </div>
                             </div>
-                            <div class="row1 info-field">
+                            <div class="f-row info-field">
                                 <div class="info-field-label">Depot</div><div class="info-field-data">
                                     <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['depot']">
                                         <div>{{item}}</div>
@@ -79,14 +79,14 @@
                                 </div>
                             </div>
                             <!--
-                            <div class="row1 info-field">
+                            <div class="f-row info-field">
                                 <div class="info-field-label">Method</div><div class="info-field-data">
                                     <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['method']">
                                         <div>{{item}}</div>
                                     </template>
                                 </div>
                             </div>
-                            <div class="row1 info-field">
+                            <div class="f-row info-field">
                                 <div class="info-field-label">Platform</div><div class="info-field-data">
                                     <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['platform']">
                                         <div>{{item}}</div>
@@ -97,7 +97,7 @@
                         </div>
                     </template>
                     <!--
-                    <div class="col1">
+                    <div class="f-col">
                         <div class="label">Depot</div>
                         <select class="active-field-selector" disabled>
                             <option value="" disabled hidden>Select</option>
@@ -107,7 +107,7 @@
                     </div>
                     -->
                     <template v-if="$parent.activeField && $parent.compareField">
-                        <div class="col1">
+                        <div class="f-col">
                             <div class="label bold">Compare Condition</div>
                             <select class="comapre-field-selector" @change="$parent.selectCompareField($event)">
                                 <option value="" selected disabled hidden>None</option>
@@ -124,7 +124,7 @@
                         </div>
                     </template>
                     <template v-if="$parent.activeField && $parent.datasetsObj[$parent.activeDataset]['genes']">
-                        <div class="col1 grow" style="margin:20px 0 0;">
+                        <div class="f-col " style="margin:20px 0 0;">
                             <div class="label" style="font-weight: bold;">Gene Search</div>
                             <input class="gene-search-input" type="text" placeholder="Gene Name(s)"
                                 @keyup.enter="$parent.searchGene($event)"
@@ -321,9 +321,9 @@
                             </table>
 
                             <template v-if="$parent.activeField && !$parent.compareField">  
-                                <div class="col1" style="gap: 30px;align-self:center; width:100%">
+                                <div class="f-col" style="gap: 30px;align-self:center; width:100%">
                                     <div class="hidden">x</div>
-                                    <div class="col1 grow">
+                                    <div class="f-col ">
                                         <div class="label" style="font-weight: bold;">Compare Condition</div>
                                         <select class="comapre-field-selector" @change="$parent.selectCompareField($event)">
                                             <option value="" selected disabled hidden>None</option>
@@ -342,7 +342,7 @@
                                     </div>
                                     
                                     <template v-if="!$parent.datasetsObj[$parent.activeDataset]['genes']">
-                                        <div class="col1 grow">
+                                        <div class="f-col ">
                                             <div class="label bold">Gene Search</div>
                                             <input class="gene-search-input" type="text" placeholder="Gene Name(s)"
                                                 @keyup.enter="$parent.searchGene($event)"
@@ -358,7 +358,7 @@
                         </div>
 
                         <template v-if="$parent.activeField && !$parent.datasetsObj[$parent.activeDataset]['genes'] && !!$parent.compareField">
-                            <div class="col1 grow" style="margin:20px 0 0;">
+                            <div class="f-col " style="margin:20px 0 0;">
                                 <div class="label" style="font-weight: bold;">Gene Search</div>
                                 <input class="gene-search-input" type="text" placeholder="Gene Name(s)"
                                     @keyup.enter="$parent.searchGene($event)"
@@ -385,25 +385,25 @@
 
                         <!-- GENE EXPRESSION MEAN/% -->
                         <template v-if="$parent.datasetsObj[$parent.activeDataset]['genes']">
-                            <div class="row1 label-wrapper">
+                            <div class="f-row label-wrapper">
                                 <div class="label underline">Gene Expression by Cell Type</div>
                                 <!-- legends -->
-                                <div class="row1 legends">
-                                    <div class="col1 legend">
+                                <div class="f-row legends">
+                                    <div class="f-col legend">
                                         <div class="label">Gene Expression</div>
                                         <div class="gradient" :style="`background: linear-gradient(to left, ${$parent.colorScalePlasmaColorsArray});`"></div>
-                                        <div class="row1 marks"><div>0.0</div><div>3.0</div></div>
+                                        <div class="f-row marks"><div>0.0</div><div>3.0</div></div>
                                     </div>
-                                    <div class="col1 legend">
+                                    <div class="f-col legend">
                                         <div class="label">Expressed in Cells (%)</div>
-                                        <div class="row1 circles">
+                                        <div class="f-row circles">
                                             <div class="circle" style="height:20%"></div>
                                             <div class="circle" style="height:40%"></div>
                                             <div class="circle" style="height:60%"></div>
                                             <div class="circle" style="height:80%"></div>
                                             <div class="circle" style="height:100%"></div>
                                         </div>
-                                        <div class="row1 marks"><div>0</div><div>100</div></div>
+                                        <div class="f-row marks"><div>0</div><div>100</div></div>
                                     </div>
                                 </div>
                             </div>
@@ -508,7 +508,7 @@
 
                         <!-- GENE EXPRESSION MEAN/% COMPARE WITH CONDITION -->
                         <template v-if="$parent.activeGene && $parent.compareSet && $parent.datasetsObj[$parent.activeDataset]['genes']">
-                            <div class="row1 label-wrapper">
+                            <div class="f-row label-wrapper">
                                 <div class="label underline" style="padding:0">
                                     <!--{{$parent.activeGene}}-->
                                     <select class="active-field-selector" 
@@ -527,22 +527,22 @@
                                     Expression by Cell Type & {{$parent.labelFromAnnotation($parent.compareField)}} Condition
                                 </div>
                                 <!-- legends -->
-                                <div class="row1 legends">
-                                    <div class="col1 legend">
+                                <div class="f-row legends">
+                                    <div class="f-col legend">
                                         <div class="label">Gene Expression</div>
                                         <div class="gradient" :style="`background: linear-gradient(to left, ${$parent.colorScalePlasmaColorsArray});`"></div>
-                                        <div class="row1 marks"><div>0.0</div><div>3.0</div></div>
+                                        <div class="f-row marks"><div>0.0</div><div>3.0</div></div>
                                     </div>
-                                    <div class="col1 legend">
+                                    <div class="f-col legend">
                                         <div class="label">Expressed in Cells (%)</div>
-                                        <div class="row1 circles">
+                                        <div class="f-row circles">
                                             <div class="circle" style="height:20%"></div>
                                             <div class="circle" style="height:40%"></div>
                                             <div class="circle" style="height:60%"></div>
                                             <div class="circle" style="height:80%"></div>
                                             <div class="circle" style="height:100%"></div>
                                         </div>
-                                        <div class="row1 marks"><div>0</div><div>100</div></div>
+                                        <div class="f-row marks"><div>0</div><div>100</div></div>
                                     </div>
                                 </div>
                             </div>
@@ -710,7 +710,7 @@
                         <!-- DIFFERENTIAL GENE EXPRESSION -->
                         <template v-if="$parent.compareDiffGeneSet && $parent.datasetsObj[$parent.activeDataset]['genes']">
                             <!-- label -->
-                            <div class="row1 label-wrapper">
+                            <div class="f-row label-wrapper">
                                 <div class="label underline" style="padding:0px">
                                     <select class="active-field-selector" 
                                             style="width:auto; border:0"
@@ -742,22 +742,22 @@
                                     {{$parent.labelFromAnnotation($parent.compareField)}}
                                 </div>
                                 <!-- legends -->
-                                <div class="row1 legends">
-                                    <div class="col1 legend">
+                                <div class="f-row legends">
+                                    <div class="f-col legend">
                                         <div class="label">Effect Size</div>
                                         <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleRedBlue(-1)},${$parent.colorScaleRedBlue(0)}, ${$parent.colorScaleRedBlue(1)});`"></div>
-                                        <div class="row1 marks"><div>-1.0</div><div>0.0</div><div>1.0</div></div>
+                                        <div class="f-row marks"><div>-1.0</div><div>0.0</div><div>1.0</div></div>
                                     </div>
-                                    <div class="col1 legend">
+                                    <div class="f-col legend">
                                         <div class="label">p-Value</div>
-                                        <div class="row1 circles">
+                                        <div class="f-row circles">
                                             <div class="circle" style="height:100%"></div>
                                             <div class="circle" style="height:80%"></div>
                                             <div class="circle" style="height:60%"></div>
                                             <div class="circle" style="height:40%"></div>
                                             <div class="circle" style="height:20%"></div>
                                         </div>
-                                        <div class="row1 marks"><div>{{`<=0.001`}}</div><div>{{`<=1`}}</div></div>
+                                        <div class="f-row marks"><div>{{`<=0.001`}}</div><div>{{`<=1`}}</div></div>
                                     </div>
                                 </div>
                             </div>
@@ -937,11 +937,11 @@
                     </template>
                 </div>
 
-                <div class="col1" style="width:250px" v-if="$parent.activeField">
+                <div class="f-col" style="width:250px" v-if="$parent.activeField">
                     <!-- hover data -->
                     <template v-if="$parent.activeDataset">
                         <div class="info-wrapper">
-                            <div :class="`col1 sidebar ${$parent.fixedSidebar ? 'fixed-sidebar' : ''}`">
+                            <div :class="`f-col sidebar ${$parent.fixedSidebar ? 'fixed-sidebar' : ''}`">
                                 <!--
                                 <div class="label" style="position:relative">
                                     Dataset Info 
@@ -949,19 +949,19 @@
                                 </div>
                                 -->
                                 <template v-if="$parent.activeField">
-                                    <div class="col1 info-block">
+                                    <div class="f-col info-block">
                                         <!--
-                                        <div class="row1 info-field">
+                                        <div class="f-row info-field">
                                             <div class="info-field-label">Name</div><div class="info-field-data unknown">{{ Array.isArray($parent.activeDataset) ? $parent.activeDataset[0] : $parent.activeDataset }}</div>
                                         </div>
-                                        <div class="row1 info-field">
+                                        <div class="f-row info-field">
                                             <div class="info-field-label">Species</div><div class="info-field-data">
                                                 <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['species']">
                                                     <div>{{item}}</div>
                                                 </template>
                                             </div>
                                         </div>
-                                        <div class="row1 info-field">
+                                        <div class="f-row info-field">
                                             <div class="info-field-label">Depot</div><div class="info-field-data">
                                                 <template v-for="item in $parent.datasetsObj[$parent.activeDataset]['info']['depot']">
                                                     <div>{{item}}</div>
@@ -969,7 +969,7 @@
                                             </div>
                                         </div>
                                         -->
-                                        <div class="row1 info-field">
+                                        <div class="f-row info-field">
                                             <div class="info-field-label">Total Cells</div><div class="info-field-data num">{{$parent.datasetsObj[$parent.activeDataset]["cells"].length.toLocaleString()}}</div>
                                         </div>
                                     </div>
@@ -1006,10 +1006,10 @@
                                             <div class="field-cluster-bg" :style="`background:${$parent.hoverInfo['cluster']['color']}; width:${$parent.hoverInfo['cluster']['cellPct']}%`"></div>
                                         </div>
                                         <div class="info-block">
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">Cell Count</div><div class="info-field-data num">{{$parent.hoverInfo["cluster"]["cellCount"].toLocaleString()}}</div>
                                             </div>
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">Cell %</div><div class="info-field-data num">{{$parent.hoverInfo["cluster"]["cellPct"]}}</div>
                                             </div>
                                         </div>
@@ -1026,10 +1026,10 @@
                                             `"></div>
                                         </div>
                                         <div class="info-block">
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">Cell Count</div><div class="info-field-data num">{{$parent.hoverInfo["condition"]["cellCount"].toLocaleString()}}</div>
                                             </div>
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">Cell %</div><div class="info-field-data num">{{$parent.hoverInfo["condition"]["cellPct"]}}</div>
                                             </div>
                                         </div>
@@ -1040,13 +1040,13 @@
                                     <template v-if="Object.keys($parent.hoverInfo['gene']).length > 0">
                                         <div class="info-header">{{$parent.hoverInfo["gene"]["name"]}}</div>
                                         <div class="info-block">
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">Cells Exp.</div><div class="info-field-data num">{{$parent.hoverInfo["gene"]["cellsExp"]}}</div>
                                             </div>
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">Cells Exp. %</div><div class="info-field-data num">{{($parent.hoverInfo["gene"]["expPct"]*100).toFixed(2)}}</div>
                                             </div>
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">Mean Exp.</div><div class="info-field-data num">{{$parent.hoverInfo["gene"]["expMean"].toFixed(4)}}</div>
                                             </div>
                                         </div>
@@ -1054,10 +1054,10 @@
                                     <template v-if="Object.keys($parent.hoverInfo['diff']).length > 0">
                                         <div class="info-header">{{$parent.hoverInfo["diff"]["name"]}}</div>
                                         <div class="info-block">
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">p-Value</div><div class="info-field-data num">{{$parent.hoverInfo["diff"]["pValue"].toFixed(8)}}</div>
                                             </div>
-                                            <div class="row1 info-field">
+                                            <div class="f-row info-field">
                                                 <div class="info-field-label">Effect Size</div><div class="info-field-data num">{{$parent.hoverInfo["diff"]["effectSize"].toFixed(8)}}</div>
                                             </div>
                                         </div>
@@ -1095,37 +1095,10 @@
         <!-- FOOTER -->
         <matkp-footer></matkp-footer>
     </div>
-</matkp-wrapper>
+</div>
 </template>
 
 <style scoped>
-*{
-    box-sizing: border-box;
-}
-select{
-    cursor: pointer;
-}
-.col1{
-    display: flex;
-    flex-direction: column;
-}
-.row1{
-    display:flex;
-    flex-direction: row;
-}
-.grow{
-    flex: 1;
-}
-.font-12{
-    font-size: 12px;
-}
-::v-deep .num{
-    font-family: monospace;
-    text-align: right;
-}
-::v-deep .bold{
-    font-weight: bold;
-}
 .loader{
     font-size: 14px;
     animation: blink 0.5s infinite;
@@ -1138,7 +1111,6 @@ select{
 }
 .overflow-h {
     overflow-x: auto;
-    /*box-shadow: inset -10px 0 5px -5px hsl(0deg 0% 0% / 4%);*/
 }
 .note {
     font-size: 13px;
@@ -1146,21 +1118,14 @@ select{
     padding: 10px 0;
     color: dimgray;
 }
-.label {
-    font-size: 16px;
-    margin-bottom: 5px;
-}
-.underline{
-    border-bottom: 1px solid dimgray;
-    width: fit-content;
-    padding: 5px 0;
-}
 .label-wrapper {
     justify-content: space-between;
     align-items: center;
     gap: 20px;
     margin: 20px 0 10px 0;
 }
+
+
 .legends {
     gap: 20px;
 }
@@ -1192,6 +1157,8 @@ select{
     font-size: 12px;
     margin-top: 3px;
 }
+
+
 .page-wrapper {
     align-items: center;
     gap: 20px;

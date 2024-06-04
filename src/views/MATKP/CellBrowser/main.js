@@ -6,9 +6,11 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-import matkpWrapper from '../components/matkp-wrapper.vue';
-import matkpNav from "../components/matkp-nav.vue"
-import matkpFooter from "../components/matkp-footer.vue"
+import "../assets/matkp-styles.css"
+
+import matkpNav from "../components/matkp-nav.vue";
+import matkpFooter from "../components/matkp-footer.vue";
+
 
 import * as d3 from "d3";
 import Formatters from "@/utils/formatters";
@@ -28,7 +30,6 @@ new Vue({
     store,
 
     components: {
-        matkpWrapper,
         matkpNav,
         matkpFooter
     },
