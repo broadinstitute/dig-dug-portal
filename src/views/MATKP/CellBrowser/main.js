@@ -19,8 +19,8 @@ import keyParams from "@/utils/keyParams";
 //import formatters from "@/utils/formatters";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"; 
-
 const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
+
 //const colors = ["#587c76","#f8d9fa","#8b6b8c","#82c2ff","#ffaa92","#00acdd","#ffb8f5","#01d7ee","#bdb0ff","#2b8647","#01d9bd","#bd4b8e","#aff590","#6f7e00","#0195fa","#af4fb1","#d43d4b","#02ffc3","#ae9800","#ff8efd","#ffae3e","#567bff","#ff5544","#e67500","#d71ba0","#9f6cff","#ff00ac","#b652ff","#82e900","#e600e3"];
 //const colors = ["#696969","#8b4513","#228b22","#808000","#483d8b","#008b8b","#9acd32","#00008b","#7f007f","#8fbc8f","#b03060","#ff0000","#ff8c00","#ffff00","#deb887","#7fff00","#8a2be2","#00ff7f","#dc143c","#00ffff","#00bfff","#0000ff","#da70d6","#ff00ff","#1e90ff","#fa8072","#90ee90","#add8e6","#ff1493","#ffb6c1"];
 const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"]
@@ -73,6 +73,8 @@ new Vue({
             zoom: null,
             pointBounds: {n: 0, s: 0, e: 0, w: 0},
             pointBoundsCalculated: false,
+            boundsSizeScaled: null,
+            boundsOffset: null,
 
             //scroll
             scrollThreshhold: 65,
@@ -281,6 +283,8 @@ new Vue({
                 return;
             }
 
+            this.pointBoundsCalculated = false;
+
             console.log('getting coordinates for: ', this.activeDataset);
             const json = await this.doFetch(`/api/raw/file/single_cell/${this.activeDataset}/coordinates.tsv.gz`);
             Vue.set(this.datasetsObj[this.activeDataset], "coordinates", json);
@@ -435,8 +439,7 @@ new Vue({
         },
 
         drawUMAP(field){
-            const canvasEl = document.querySelector(`canvas.umap`);
-            const canvas = canvasEl;
+            const canvas = document.querySelector(`canvas.umap`);
             const ctx = canvas.getContext("2d");
             const canvasWidth = 250;
 
@@ -454,34 +457,50 @@ new Vue({
 
             this.resetPlot(canvas);
 
+            const numericPointCloud = this.datasetsObj[this.activeDataset]["coordinates"].map(point => {
+                const x = parseFloat(point.X);
+                const y = parseFloat(point.Y);
+                if (isNaN(x) || isNaN(y)) return null;
+                return [x, y];
+            }).filter(point => point !== null);
+
             if(!this.pointBoundsCalculated){
+                console.log('calculating umap point bounds');
+                this.pointBounds = {n: 0, s: 0, e: 0, w: 0};
                 //get point bounds by storing outermost points in each cardinal direction
-                this.datasetsObj[this.activeDataset]["coordinates"].forEach(coord => {
-                    var px = parseFloat(coord.X);
-                    var py = parseFloat(coord.Y);
+                numericPointCloud.forEach(coord => {
+                    const px = coord[0];
+                    const py = coord[1];
                     if(px>0) this.pointBounds.e = px > this.pointBounds.e ? px : this.pointBounds.e;
                     if(px<0) this.pointBounds.w = px < this.pointBounds.w ? px : this.pointBounds.w;
                     if(py>0) this.pointBounds.s = py > this.pointBounds.s ? py : this.pointBounds.s;
                     if(py<0) this.pointBounds.n = py < this.pointBounds.n ? py : this.pointBounds.n;
-                })
+                });
+
+                console.log(this.pointBounds);
 
                 this.calculateScaleFactor(canvas);
 
                 this.pointBoundsCalculated = true;
             }
+            
+            const boundsCenter = {
+                x: (this.center.x ),
+                y: (this.center.y )
+            }
 
             //draw points
-            this.datasetsObj[this.activeDataset]["coordinates"].forEach((coord, index) => {
+            numericPointCloud.forEach((coord, index) => {
                 const fieldIdx = this.datasetsObj[this.activeDataset]["metadata"][pointsField][index];
                 const fieldName = this.labelNameFromIndex(pointsField, fieldIdx);
 
                 if(fieldIdx===undefined) return;
 
-                var px = parseFloat(coord.X);
-                var py = parseFloat(coord.Y);
+                const px = coord[0];
+                const py = coord[1];
 
-                var x = this.pointsCenter.x + px * this.zoom;
-                var y = this.pointsCenter.y - py * this.zoom;
+                const x = ((px - this.pointBounds.w) * this.zoom) + this.boundsOffset.x/2;
+                const y = ((this.pointBounds.s - py) * this.zoom) + this.boundsOffset.y/2;
 
                 const canvasEl = document.querySelector(`canvas.umap[${dataField}="${fieldName}"]`);
                 const canvas = canvasEl;
@@ -498,23 +517,41 @@ new Vue({
             ctx.beginPath();
             var x = this.center.x;
             var y = this.center.y;
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
             ctx.fillStyle = 'black';
             ctx.fill();
 
             ctx.beginPath();
-            var x = this.pointsCenter.x;
-            var y = this.pointsCenter.y;
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            var x = boundsCenter.x;
+            var y = boundsCenter.y;
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
             ctx.fillStyle = 'red';
             ctx.fill();
 
-            
-            const boundsWidth = (Math.abs(this.pointBounds.e)+Math.abs(this.pointBounds.w))*this.zoom;
-            const boundsHeight = (Math.abs(this.pointBounds.s)+Math.abs(this.pointBounds.n))*this.zoom;
-
             ctx.strokeStyle = "green";
-            ctx.strokeRect(this.center.x - boundsWidth/2, this.center.y - boundsHeight/2, boundsWidth, boundsHeight);
+            ctx.strokeRect(boundsCenter.x - boundsSizeScaled/2, boundsCenter.y - boundsHeight/2, boundsSizeScaled, boundsHeight);
+        },
+
+        calculateScaleFactor(canvas) {
+            const paddingPct = 10;
+            const boundsSize = {
+                w: Math.abs(this.pointBounds.w) + Math.abs(this.pointBounds.e),
+                h: Math.abs(this.pointBounds.n) + Math.abs(this.pointBounds.s)
+            }
+            const scaleDiff = {
+                w: canvas.width / boundsSize.w,
+                h: canvas.height / boundsSize.h
+            }
+            this.calculatedScaleFactor = Math.min(scaleDiff.w, scaleDiff.h) * ((100-paddingPct)/100);
+            this.zoom = this.calculatedScaleFactor;
+            this.boundsSizeScaled = {
+                w: (Math.abs(this.pointBounds.e)+Math.abs(this.pointBounds.w))*this.zoom,
+                h: (Math.abs(this.pointBounds.s)+Math.abs(this.pointBounds.n))*this.zoom
+            }
+            this.boundsOffset = {
+                x: canvas.width - this.boundsSizeScaled.w,
+                y: canvas.height - this.boundsSizeScaled.h
+            }
         },
 
         resetPlot(canvas){
@@ -1176,20 +1213,6 @@ new Vue({
 
             console.log('htmlTableObjectToCSV', csvContent);
             return csvContent;
-        },
-
-        calculateScaleFactor(canvas) {
-            const paddingPct = 10;
-            const pointsWidth = Math.abs(this.pointBounds.w) + Math.abs(this.pointBounds.e);
-            const pointsHeight = Math.abs(this.pointBounds.n) + Math.abs(this.pointBounds.s);
-            const scaleDiffWidth = canvas.width / pointsWidth;
-            const scaleDiffHeight = canvas.height / pointsHeight;
-            this.calculatedScaleFactor = Math.min(scaleDiffWidth, scaleDiffHeight) * ((100-paddingPct)/100);
-            this.zoom = this.calculatedScaleFactor;
-            this.pointsCenter = {
-                x: this.center.x - scaleDiffWidth,
-                y: this.center.y + scaleDiffHeight
-            }
         },
 
         handleScroll(){

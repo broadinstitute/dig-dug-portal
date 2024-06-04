@@ -1,6 +1,6 @@
 <template>
     <div class="matkp">
-        <div class="mat-wrap f-col fill-height">
+        <div class="f-col fill-height">
             <!-- NAV -->
             <matkp-nav></matkp-nav>
             <!-- BODY -->

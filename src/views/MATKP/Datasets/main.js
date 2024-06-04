@@ -17,7 +17,6 @@ import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"; 
-
 const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
 
 new Vue({
