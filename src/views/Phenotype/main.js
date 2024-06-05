@@ -23,11 +23,17 @@ import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import RawImage from "@/components/RawImage.vue";
-import keyParams from "@/utils/keyParams";
-import uiUtils from "@/utils/uiUtils";
-import sessionUtils from "@/utils/sessionUtils";
 
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
+import sessionUtils from "@/utils/sessionUtils";
+import regionUtils from "@/utils/regionUtils";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -43,6 +49,7 @@ import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGr
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 new Vue({
     store,
 
@@ -71,7 +78,8 @@ new Vue({
         SearchHeaderWrapper,
         ResearchMPlot,
         PhenotypeHugeScores,
-        C2ctTable
+        C2ctTable,
+        ResearchSingleSearch
     },
 
     created() {
@@ -117,12 +125,25 @@ new Vue({
 
             return isInPhenotype == searchKeys.length ? true : null;
         },
-        clickedTab(tabLabel){
+        clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === 'hugescore';
         }
     },
 
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+                regionUtils: regionUtils,
+            };
+            return utils;
+        },
         /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -154,11 +175,11 @@ new Vue({
             let data = this.$store.state.annotations.data;
             if (!!this.$store.state.ancestry) {
                 data = data.filter((annotation) =>
-                annotation.ancestry == this.$store.state.ancestry)
+                    annotation.ancestry == this.$store.state.ancestry)
             }
-            let filteredData = data.filter(d => d.pValue < 1e-5 );
-            if (filteredData.length < 20){
-                filteredData = data.sort((a,b) => a.pValue - b.pValue).slice(0,20);
+            let filteredData = data.filter(d => d.pValue < 1e-5);
+            if (filteredData.length < 20) {
+                filteredData = data.sort((a, b) => a.pValue - b.pValue).slice(0, 20);
             }
             return filteredData;
         },
@@ -214,12 +235,13 @@ new Vue({
 
             return focusedData;
         },
-        c2ctData(){
+        c2ctData() {
             let data = this.$store.state.c2ct.data;
-            data.forEach( d => {
+            data.forEach(d => {
                 // Makes biosamples show up alphabetically in the dropdown menu.
                 d.originalBiosample = d.biosample;
-                d.biosample = Formatters.tissueFormatter(d.biosample); });
+                d.biosample = Formatters.tissueFormatter(d.biosample);
+            });
             return data;
         }
     },
@@ -248,14 +270,14 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        hidePValueFilter(hide){
+        hidePValueFilter(hide) {
             let pValuePills = document.querySelectorAll(".geneLevelAssoc .filter-pill-pValue");
             let genePills = document.querySelectorAll(".geneLevelAssoc .filter-pill-gene");
             let allFilterPills = document.querySelectorAll(".geneLevelAssoc .filter-pill-collection");
-            if (hide){
-                if (pValuePills.length > 0 && genePills.length > 0){
+            if (hide) {
+                if (pValuePills.length > 0 && genePills.length > 0) {
                     pValuePills.forEach(e => e.hidden = true);
-                } else if(pValuePills.length > 0 && genePills.length === 0){
+                } else if (pValuePills.length > 0 && genePills.length === 0) {
                     allFilterPills.forEach(e => e.hidden = true);
                 }
             } else {
