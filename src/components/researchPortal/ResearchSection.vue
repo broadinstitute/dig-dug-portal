@@ -50,7 +50,7 @@
 					<button  v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
 						title="Capture data in section"><b-icon icon="camera"></b-icon></button>
 					<h4>
-						<small style="font-size: 0.7em;">Required parameters: </small>
+						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
 						<span class="required-parameters-wrapper">
 						<small :class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
 							v-for="parameter in dataPoint['parameters']" :key="parameter"
