@@ -31,7 +31,7 @@
 							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
 
 						-->
-						<small style="font-size: 0.7em;">Required parameters: </small>
+						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
 						<span class="required-parameters-wrapper">
 						<small :class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
 							v-for="parameter in dataPoint['parameters']" :key="parameter"
