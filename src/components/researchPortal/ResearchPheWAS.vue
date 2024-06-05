@@ -563,6 +563,11 @@ export default Vue.component("ResearchPhewasPlot", {
                 minY = Math.floor(minY);
                 maxY = Math.ceil(maxY);
 
+                if (minY == maxY) {
+                    minY -= 0.5;
+                    maxY += 0.5;
+                }
+
                 ctx.stroke();
 
                 let customPlotMargin = !!this.renderConfig["plot margin"]
