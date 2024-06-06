@@ -639,8 +639,12 @@ export default Vue.component("research-scatter-plot", {
 			let xMin = MINMAX_VALUES ? MINMAX_VALUES.xMin : Math.min.apply(Math, xAxisData);
 			let xMax = MINMAX_VALUES ? MINMAX_VALUES.xMax : Math.max.apply(Math, xAxisData);
 
+			if(xMin == xMax) { xMin -= 0.5; xMax += 0.5}
+
 			let yMin = MINMAX_VALUES ? MINMAX_VALUES.yMin : Math.min.apply(Math, yAxisData);
 			let yMax = MINMAX_VALUES ? MINMAX_VALUES.yMax : Math.max.apply(Math, yAxisData);
+
+			if (yMin == yMax) { yMin -= 0.5; yMax += 0.5 }
 
 			let MARGIN = {top: topMargin,bottom: bottomMargin,left: leftMargin,right: rightMargin,bump:bump }
 
