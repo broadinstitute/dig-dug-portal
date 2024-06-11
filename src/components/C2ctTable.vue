@@ -2,10 +2,7 @@
     <div id="c2ct">
         <div v-if="rows > 0">
             <div class="text-right mb-2">
-                <data-download
-                    :data="c2ctData"
-                    filename="c2ct"
-                ></data-download>
+                <data-download :data="c2ctData" filename="c2ct"></data-download>
             </div>
             <b-table
                 hover
@@ -18,11 +15,11 @@
             >
                 <template #cell(chromosome)="r">
                     <a
-                        :href="`/region.html?chr=${
-                            r.item.chromosome}&start=${
-                            r.item.clumpStart}&end=${
-                            r.item.clumpEnd}`">
-                        {{ `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}` }}
+                        :href="`/region.html?chr=${r.item.chromosome}&start=${r.item.clumpStart}&end=${r.item.clumpEnd}`"
+                    >
+                        {{
+                            `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
+                        }}
                     </a>
                 </template>
                 <template #cell(overlapLeadSNP)="r">
@@ -65,18 +62,18 @@ export default Vue.component("c2ct-table", {
                     key: "annotation",
                     label: "Annotation",
                     formatter: Formatters.annotationFormatter,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "tissue",
                     label: "Tissue",
                     formatter: Formatters.tissueFormatter,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "biosample",
                     label: "Biosample",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "chromosome",
@@ -84,45 +81,27 @@ export default Vue.component("c2ct-table", {
                 },
                 {
                     key: "overlapLeadSNP",
-                    label: "Overlap Lead SNP"
+                    label: "Overlap Lead SNP",
                 },
                 {
                     key: "posteriorProbability",
                     label: "Posterior probability",
                     formatter: Formatters.tpmFormatter,
-                    sortable: true
-                },
-                {
-                    key: "adjustedPP",
-                    label: "Adjusted PP",
-                    formatter: Formatters.tpmFormatter,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "totalEntropy",
                     label: "Total entropy",
                     formatter: Formatters.tpmFormatter,
-                    sortable: true
-                },
-                {
-                    key: "adjustedEntropy",
-                    label: "Adjusted entropy",
-                    formatter: Formatters.tpmFormatter,
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "Q",
                     label: "Q",
                     formatter: Formatters.tpmFormatter,
-                    sortable: true
-                },
-                { 
-                    key: "Q_adj",
-                    label: "Adjusted Q",
-                    formatter: Formatters.tpmFormatter,
                     sortable: true,
-                }
-        ]
+                },
+            ],
         };
     },
     computed: {
@@ -144,7 +123,7 @@ export default Vue.component("c2ct-table", {
         intFormatter: Formatters.intFormatter,
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
-        tpmFormatter: Formatters.tpmFormatter
+        tpmFormatter: Formatters.tpmFormatter,
     },
 });
 </script>

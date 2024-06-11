@@ -241,6 +241,7 @@
                             <b-tabs content-class="mt-3" align="center">
                                 <b-tab title="PheWAS plot" active>
                                     <b-button
+                                        v-if="$parent.pheWasData.length > 0"
                                         size="sm"
                                         variant="outline-secondary"
                                         @click="
@@ -248,9 +249,9 @@
                                         "
                                         style="
                                             position: absolute;
-                                            right: 25px;
+                                            right: 20px;
                                             z-index: 10;
-                                            margin-top: 20px;
+                                            margin-top: 35px;
                                         "
                                         >Re-render PheWAS plot</b-button
                                     >
