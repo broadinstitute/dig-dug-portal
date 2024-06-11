@@ -920,7 +920,7 @@ export default Vue.component("research-info-cards", {
 #showHideColumnsBox th,
 #showHideColumnsBox td {
 	border: none;
-}*/
+}
 [id*="showHideColumnsBox"] {
 	position: fixed;
 	background-color: #fff;
@@ -947,6 +947,7 @@ export default Vue.component("research-info-cards", {
 [id*="showHideColumnsBox"] td {
 	border: none;
 }
+*/
 .group-item-bubble {
 	margin-left: 3px;
 	margin-right: 3px;
