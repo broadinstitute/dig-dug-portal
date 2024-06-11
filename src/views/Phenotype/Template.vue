@@ -9,15 +9,13 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-
             <search-header-wrapper>
                 <div>
                     <div class="region-search col filter-col-md">
                         <div class="label">Begin new search</div>
                         <research-single-search
                             :single-search-config="null"
-                            :phenotypes="$parent.phenotypesInSession
-                                "
+                            :phenotypes="$parent.phenotypesInSession"
                             :utils="$parent.utilsBox"
                         ></research-single-search>
                     </div>
@@ -25,10 +23,11 @@
                         <div class="label">Set Ancestry</div>
                         <ancestry-selectpicker
                             :pageLevel="true"
-                            :ancestries="$store.state.bioPortal.datasets.map(
-                                (dataset) => dataset.ancestry
-                            )
-                                "
+                            :ancestries="
+                                $store.state.bioPortal.datasets.map(
+                                    (dataset) => dataset.ancestry
+                                )
+                            "
                         ></ancestry-selectpicker>
                     </div>
                 </div>
@@ -170,7 +169,7 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            C2CT results for
+                            Credible Sets to Cell Type (CS2CT) results for
                             {{ $store.state.phenotype.description }}
                             (Ancestry:
                             {{
@@ -180,6 +179,12 @@
                                           $store.state.ancestry
                                       )
                             }})
+                            <tooltip-documentation
+                                name="phenotype.cs2ct.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :is-hover="true"
+                                :no-icon="false"
+                            ></tooltip-documentation>
                         </h4>
                         <criterion-function-group>
                             <filter-enumeration-control
@@ -195,9 +200,7 @@
                             <filter-enumeration-control
                                 :field="'biosample'"
                                 :options="
-                                    $parent.c2ctData.map(
-                                        (d) => d.biosample
-                                    )
+                                    $parent.c2ctData.map((d) => d.biosample)
                                 "
                             >
                                 <div class="label">Biosample</div>
@@ -207,7 +210,7 @@
                                     :c2ctData="$parent.c2ctData"
                                     :filter="filter"
                                     :per-page="10"
-                                    >
+                                >
                                 </c2ct-table>
                             </template>
                         </criterion-function-group>
