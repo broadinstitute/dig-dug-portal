@@ -1,12 +1,12 @@
 <template>
     <div class="mbm-plot-content row">
         <div class="col-md-12 phewas-plot-wrapper">
-            <download-chart
+            <!--<download-chart
                 v-if="!nativeDlBtn"
                 :filename="!plotName ? 'PheWAS' : plotName"
                 :chartId="canvasId + 'pheWasPlot'"
             >
-            </download-chart>
+            </download-chart>-->
             <div
                 class="col-md-12"
                 :id="canvasId + 'pheWasPlotWrapper'"
@@ -95,7 +95,7 @@
                             : ''
                     "
                 ></canvas>
-                <div v-if="nativeDlBtn" class="download-images-setting">
+                <div class="download-images-setting">
                     <span class="btn btn-default options-gear"
                         >Download <b-icon icon="download"></b-icon
                     ></span>
@@ -157,7 +157,7 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("ResearchPhewasPlot", {
     props: [
         "canvasId", "phenotypeMap", "phenotypesData", "renderConfig", "pkgData", "pkgDataSelected",
-        "colors", "plotMargin", "filter", "options", "sectionId", "sectionId", "utils", "plotName", "nativeDlBtn"
+        "colors", "plotMargin", "filter", "options", "sectionId", "sectionId", "utils", "plotName"
     ],
 
     data() {
