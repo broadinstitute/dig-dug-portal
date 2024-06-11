@@ -198,6 +198,14 @@
                                 <div class="label">Annotation</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
+                                :field="'tissue'"
+                                :options="
+                                    $store.state.c2ct.data.map((d) => d.tissue)
+                                "
+                            >
+                                <div class="label">Tissue</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
                                 :field="'biosample'"
                                 :options="
                                     $parent.c2ctData.map((d) => d.biosample)
