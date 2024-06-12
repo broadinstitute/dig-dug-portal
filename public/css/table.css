@@ -146,10 +146,9 @@ td.border-color>div {
     white-space: nowrap;
 }
 
-
 .table.b-table>thead>tr>[aria-sort="none"],
 .table.b-table>thead>tr>[aria-sort=none] {
-    /*background-image: none;*/
+    background-image: none;
 }
 
 #covariances tr.b-table-details table td:first-child {

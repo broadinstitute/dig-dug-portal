@@ -6,7 +6,6 @@
       id="big-table"
       small
       responsive="sm"
-      sort-icon-left
       :items="tableData"
       sort-by="meanTpm"
       :sort-desc="true"
