@@ -160,3 +160,70 @@ td.border-color>div {
     border-left: 4px solid lightgray;
     width: calc(100% - 15px);
 }
+
+/* 
+b-table sort icons tweak 
+removes background image from header th elements
+*/
+
+.table.b-table > thead > tr > [aria-sort=ascending], 
+.table.b-table > tfoot > tr > [aria-sort=ascending]{
+    background-image: none;
+}
+
+.table.b-table > thead > tr > [aria-sort=descending], 
+.table.b-table > tfoot > tr > [aria-sort=descending]{
+    background-image: none;
+}
+
+.table.b-table > thead > tr > [aria-sort=none], 
+.table.b-table > tfoot > tr > [aria-sort=none]{
+    background-image: none;
+}
+
+/* 
+moves background image to label div
+adjust width of label to fit text + icon
+*/
+
+.table.b-table.table-sm > thead > tr > [aria-sort]:not(.b-table-sort-icon-left) > div:first-child, 
+.table.b-table.table-sm > tfoot > tr > [aria-sort]:not(.b-table-sort-icon-left) > div:first-child{
+    background-position: right calc(0.3rem / 2) center;
+    padding-right: calc(0.3rem + 0.75em);
+}
+
+.table.b-table > thead > tr > [aria-sort]:not(.b-table-sort-icon-left) > div:first-child, 
+.table.b-table > tfoot > tr > [aria-sort]:not(.b-table-sort-icon-left) > div:first-child{
+    background-position: right calc(0.75rem / 2) center;
+    padding-right: calc(0.75rem + 0.65em);
+}
+
+.table.b-table > thead > tr > [aria-sort]:not(.b-table-sort-icon-left) > div:first-child, 
+.table.b-table > tfoot > tr > [aria-sort]:not(.b-table-sort-icon-left) > div:first-child{
+    cursor: pointer;
+    background-image: none;
+    background-repeat: no-repeat;
+    background-size: 0.65em 1em;
+    width: fit-content;
+}
+
+.table.b-table > thead > tr > [aria-sort=ascending]:not(.b-table-sort-icon-left) > div:first-child, 
+.table.b-table > tfoot > tr > [aria-sort=ascending]:not(.b-table-sort-icon-left) > div:first-child{
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'%3e%3cpath fill='black' d='M51 1l25 23 24 22H1l25-22z'/%3e%3cpath fill='black' opacity='.3' d='M51 101l25-23 24-22H1l25 22z'/%3e%3c/svg%3e");
+}
+
+.table.b-table > thead > tr > [aria-sort=descending]:not(.b-table-sort-icon-left) > div:first-child, 
+.table.b-table > tfoot > tr > [aria-sort=descending]:not(.b-table-sort-icon-left) > div:first-child{
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'%3e%3cpath fill='black' opacity='.3' d='M51 1l25 23 24 22H1l25-22z'/%3e%3cpath fill='black' d='M51 101l25-23 24-22H1l25 22z'/%3e%3c/svg%3e");
+}
+
+/* 
+to SHOW sort icons by default, set image to URL(..)
+to HIDE sort icons by default, set image to none
+bu commenting out the appropriate line.
+*/
+.table.b-table > thead > tr > [aria-sort=none]:not(.b-table-sort-icon-left) > div:first-child, 
+.table.b-table > tfoot > tr > [aria-sort=none]:not(.b-table-sort-icon-left) > div:first-child{
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'%3e%3cpath fill='black' opacity='.3' d='M51 1l25 23 24 22H1l25-22zM51 101l25-23 24-22H1l25 22z'/%3e%3c/svg%3e");
+    /*background-image: none;*/
+}

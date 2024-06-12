@@ -45,6 +45,9 @@
     </b-pagination>
   </div>
 </template>
+<style>
+@import url("/css/table.css");
+</style>
 <script>
   import Vue from "vue";
   import { query } from "@/utils/bioIndexUtils";
