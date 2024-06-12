@@ -13,7 +13,14 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-                ><template #head(Q)="data">
+                ><template #head(posteriorProbability)="data">
+                    <span
+                        v-b-tooltip.hover
+                        title="Higher means greater overlap."
+                        >{{ data.label }}
+                    </span>
+                </template>
+                <template #head(Q)="data">
                     <span
                         v-b-tooltip.hover
                         title="This metric combines specificity and overlap probability. Higher means more confidence that the SNP overlaps a specific cell type."
@@ -22,7 +29,13 @@
                 </template>
                 <template #cell(chromosome)="r">
                     <a
-                        :href="`/region.html?chr=${r.item.chromosome}&start=${r.item.clumpStart}&end=${r.item.clumpEnd}`"
+                        :href="`research.html?pageid=kp_variant_sifter&phenotype=${
+                            phenotype.name
+                        }&region=${r.item.chromosome}:${
+                            r.item.clumpStart >= 250000
+                                ? r.item.clumpStart - 250000
+                                : 0
+                        }-${r.item.clumpEnd + 250000}`"
                     >
                         {{
                             `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
@@ -58,7 +71,7 @@ export default Vue.component("c2ct-table", {
     components: {
         DataDownload,
     },
-    props: ["c2ctData", "filter"],
+    props: ["c2ctData", "filter", "phenotype"],
     data() {
         return {
             perPage: 10,
@@ -92,7 +105,7 @@ export default Vue.component("c2ct-table", {
                 },
                 {
                     key: "posteriorProbability",
-                    label: "Posterior probability",
+                    label: "Overlap probability",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
@@ -104,7 +117,7 @@ export default Vue.component("c2ct-table", {
                 },
                 {
                     key: "Q",
-                    label: "Combined Score",
+                    label: "Combined score",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
