@@ -35,7 +35,9 @@
                             r.item.clumpStart >= 250000
                                 ? r.item.clumpStart - 250000
                                 : 0
-                        }-${r.item.clumpEnd + 250000}`"
+                        }-${r.item.clumpEnd + 250000}&annotation=${
+                            r.item.annotation
+                        }`"
                     >
                         {{
                             `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
@@ -111,7 +113,7 @@ export default Vue.component("c2ct-table", {
                 },
                 {
                     key: "totalEntropy",
-                    label: "Total entropy",
+                    label: "Genericity",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
