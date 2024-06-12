@@ -12,7 +12,13 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-            >
+                ><template #head(Q)="data">
+                    <span
+                        v-b-tooltip.hover
+                        title="This metric combines specificity and overlap probability. Higher means more confidence that the SNP overlaps a specific cell type."
+                        >{{ data.label }}
+                    </span>
+                </template>
                 <template #cell(chromosome)="r">
                     <a
                         :href="`/region.html?chr=${r.item.chromosome}&start=${r.item.clumpStart}&end=${r.item.clumpEnd}`"
@@ -97,7 +103,7 @@ export default Vue.component("c2ct-table", {
                 },
                 {
                     key: "Q",
-                    label: "Q",
+                    label: "Combined Score",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
