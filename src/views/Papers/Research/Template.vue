@@ -849,6 +849,12 @@ html, body, #app {
 
 .mdkp-body.flex-body {
 	overflow-x: hidden;
+	overflow-y: hidden;
+}
+
+
+label {
+	margin: 0 !important;
 }
 
 /* single search */
@@ -1017,7 +1023,7 @@ html, body, #app {
 .tab-ui-wrapper {
 	position: relative;
 	border-bottom: solid 1px #ddd;
-    margin: 5px 0 10px 0;
+    margin: 5px 0 -1px 0;
     padding: 0 25px;
 }
 
@@ -1071,6 +1077,23 @@ html, body, #app {
 	overflow: hidden;
 }
 
+.kp-tabs li.active {
+	position: relative;
+
+}
+
+.kp-tab-content .row {
+	width: calc(100% + 30px);
+}
+
+#view_data_content.kp-tab-content {
+	display: none;
+}
+
+#view_data_content.kp-tab-content.active {
+	display: flex;
+	width: 100%;
+}
 
 /* Summary Tab group, sticky */
 .tabgroup-fixed-bottom {

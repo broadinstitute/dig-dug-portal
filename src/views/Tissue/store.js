@@ -34,7 +34,7 @@ export default new Vuex.Store({
         getTissue(context) {
             context.state.tissueName = context.state.selectedTissue || context.state.tissueName;
             context.dispatch("tissue/query", {
-                q: context.state.tissueName.replaceAll(" ", "_"),
+                q: context.state.tissueName.replaceAll(" ", "_"), limit: 1000
             });
         },
         async getEvidence(context, { q }) {

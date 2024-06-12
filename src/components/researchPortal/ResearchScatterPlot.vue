@@ -10,8 +10,37 @@
 					<div :style="!!isDotPanelClick ? 'display:block' : 'display:none'" class="fixed-info-box-close" @click="checkPosition($event,'','click')">
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
-					<div class="scatter-dot-value-content" :id="'scatter_dot_value_content' + sectionId"></div>
+					<div class="scatter-dot-value-content" :id="'scatter_dot_value_content' + sectionId">
+					</div>
 				</div>
+				<!-- /// this has to replace the info box. DON'T REMOVE IT
+					<div :id="'fixedInfoBox'+sectionId" class="fixed-info-box hidden">
+				<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox' + sectionId)">
+					<b-icon icon="x-circle-fill"></b-icon>
+				</div>
+				<div class="fixed-info-box-content">
+					<div v-for="(d, dIndex) in dotsClicked">
+						<div>
+							<strong v-html="d"></strong>
+							<b-icon v-if="!!renderConfig['star key'] &&
+								checkStared(d,'fixed panel') == true
+								" icon="star-fill" style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							" @click="removeStarItem(d)"></b-icon>
+							<b-icon v-if="!!renderConfig['star key'] &&
+								checkStared(d,'fixed panel') == false
+								" icon="star" style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							" @click="addStarItem(d)"></b-icon>
+						</div>
+					</div>
+				</div>
+			</div>
+				-->
 				<canvas
 					v-if="renderData.length > 0 && !!renderConfig && !groupsList && !multiList"
 					:id="'scatterPlot' + sectionId"
@@ -240,6 +269,7 @@ export default Vue.component("research-scatter-plot", {
 		"compareGroupColors",
 		"isSectionPage",
 		"sectionId",
+		"starItems",
 		"utils"
 	],
 	data() {
@@ -542,6 +572,9 @@ export default Vue.component("research-scatter-plot", {
 		},
 		groupsList(LIST){
 			this.renderPlot()
+		},
+		starItems(STARS) {
+			this.renderPlot()
 		}
 	},
 	methods: {
@@ -606,8 +639,12 @@ export default Vue.component("research-scatter-plot", {
 			let xMin = MINMAX_VALUES ? MINMAX_VALUES.xMin : Math.min.apply(Math, xAxisData);
 			let xMax = MINMAX_VALUES ? MINMAX_VALUES.xMax : Math.max.apply(Math, xAxisData);
 
+			if(xMin == xMax) { xMin -= 0.5; xMax += 0.5}
+
 			let yMin = MINMAX_VALUES ? MINMAX_VALUES.yMin : Math.min.apply(Math, yAxisData);
 			let yMax = MINMAX_VALUES ? MINMAX_VALUES.yMax : Math.max.apply(Math, yAxisData);
+
+			if (yMin == yMax) { yMin -= 0.5; yMax += 0.5 }
 
 			let MARGIN = {top: topMargin,bottom: bottomMargin,left: leftMargin,right: rightMargin,bump:bump }
 
@@ -626,7 +663,7 @@ export default Vue.component("research-scatter-plot", {
 				this.colorsList.map(color =>{
 					let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] === color);
 					let dotColor = this.compareGroupColors[cIndex];
-					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 					//this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 					cIndex++;
 				})
@@ -644,7 +681,7 @@ export default Vue.component("research-scatter-plot", {
 						this.colorByList[ colorField ].map(color => {
 							let coloredData = DATA.filter(d => d.color[ colorField ] === color);
 							let dotColor = this.compareGroupColors[cIndex];
-							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
 						});
@@ -657,7 +694,7 @@ export default Vue.component("research-scatter-plot", {
 							if(GROUP === color){
 								let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
 								let dotColor = this.compareGroupColors[cIndex];
-								this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+								this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 								this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 								cIndex++;
 							}
@@ -689,7 +726,7 @@ export default Vue.component("research-scatter-plot", {
 									this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1]
 								);
 							}
-							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 						});
 
 						const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] >= this.gradientMinMax.currMin && d.color[ this.renderConfig["color field"] ] <= this.gradientMinMax.currMax);
@@ -718,7 +755,7 @@ export default Vue.component("research-scatter-plot", {
 								dotColor = dotColor.substring(0, dotColor.length - 2);
 								dotColor += highlight === color ? '90' : '05';
 							}
-							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
 						});
@@ -732,7 +769,7 @@ export default Vue.component("research-scatter-plot", {
 
 			} else {
 				let dotColor = this.compareGroupColors[0];
-				this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, DATA);
+				this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, DATA, this.starItems, this.renderConfig["star key"]);
 			}
 
 			
@@ -1031,6 +1068,13 @@ export default Vue.component("research-scatter-plot", {
 					//autoclose timeout
 					clearTimeout(this.dotPanelCloseTimer);
 					this.dotPanelCloseTimer = setTimeout(()=>{
+						this.isDotPanelClick = false;
+						wrapper.setAttribute("class", "scatter-dot-value hidden");
+					}, 10000);
+				}
+
+				if(EVENT_TYPE == 'move') {
+					this.dotPanelCloseTimer = setTimeout(() => {
 						this.isDotPanelClick = false;
 						wrapper.setAttribute("class", "scatter-dot-value hidden");
 					}, 10000);

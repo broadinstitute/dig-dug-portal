@@ -1,7 +1,8 @@
 <template>
     <select class="form-control"
         v-model="$store.state.selectedAncestry"
-        ref="ancestrySelect">
+        ref="ancestrySelect"
+        @change="onAncestrySelected()">
         <option value="" selected>
             {{ defaultMixed ? "Mixed (meta-analysis)" : "All ancestries" }}
         </option>
@@ -23,7 +24,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("ancestry-selectpicker", {
-    props: ["ancestries", "clearOnSelected", "defaultMixed"],
+    props: ["ancestries", "defaultMixed", "pageLevel"],
 
     data() {
         return {
@@ -49,11 +50,9 @@ export default Vue.component("ancestry-selectpicker", {
     },
     methods: {
         ancestryFormatter: Formatters.ancestryFormatter,
-        onAncestrySelected(userText) {
-            this.$store.dispatch("onAncestryChange", userText);
-            if (this.clearOnSelected) {
-                this.userText = "";
-                this.$refs.ancestrySelect.inputValue = "";
+        onAncestrySelected() {
+            if (this.pageLevel){
+                this.$store.dispatch("onAncestryChange");
             }
         },
 

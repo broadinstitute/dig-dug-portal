@@ -17,10 +17,10 @@ let colors = ["#007bff75",
     "#D5A76875",
     "#d4d4d475"]
 
-const plotColors = function(TRANSLUCENT=false){
+const plotColors = function (TRANSLUCENT = false) {
     let plotColors = colors;
-    if (!TRANSLUCENT){
-        plotColors = plotColors.map(c => c.slice(0,-2));
+    if (!TRANSLUCENT) {
+        plotColors = plotColors.map(c => c.slice(0, -2));
     }
     return plotColors;
 }
@@ -640,19 +640,26 @@ const renderStar = function (CTX, CX, CY, SPIKES, OR, IR, SCOLOR, FCOLOR) {
 }
 
 
-const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
+const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA, STARS, STAR_FIELD) {
 
     let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
     let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
     let xStep = plotWidth / (XMAX - XMIN);
     let yStep = plotHeight / (YMAX - YMIN);
 
+    let stared = [...new Set(STARS.filter(s => s.type == STAR_FIELD).map(s => s.id))];
+
     DATA.map(d => {
         let xVal = d.xValue ? d.xValue : d.x;
         let yVal = d.yValue ? d.yValue : d.y;
         let xPos = MARGIN.left + (xStep * (xVal - XMIN));
         let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
-        renderDot(CTX, xPos, yPos, COLOR);
+
+        if (stared.includes(d.key)) {
+            renderStar(CTX, xPos, yPos, 5, 10, 6, COLOR, COLOR);
+        } else {
+            renderDot(CTX, xPos, yPos, COLOR);
+        }
     })
 }
 

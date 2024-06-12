@@ -172,7 +172,7 @@ export default Vue.component("pigean-table", {
   },
 });
 </script>
-<style>
+<style scoped>
 @import url("/css/effectorGenes.css");
 
 label {

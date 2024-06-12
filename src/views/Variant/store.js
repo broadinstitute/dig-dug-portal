@@ -62,7 +62,6 @@ export default new Vuex.Store({
             newVarId = await variantUtils.parseVariant(
                 newVarId || context.state.newVariantId
             );
-            console.log("out newVarId is ", newVarId);
             if (newVarId) {
                 //if newVarId is a dbSNP, then we need to get the varId
                 if (newVarId.startsWith("rs")) {
@@ -108,6 +107,9 @@ export default new Vuex.Store({
             context.dispatch("transcriptionFactors/query", { q: varId });
             //context.dispatch("regions/query", { q: `${chromosome}:${position}` });
             context.dispatch("datasetAssociations/query", { q: varId });
+        },
+        onAncestryChange(context){
+            context.dispatch('queryVariant', context.state.newVariantId);
         },
         // For custom phenotypes
         phenotypesInSession(context, PHENOTYPES) {

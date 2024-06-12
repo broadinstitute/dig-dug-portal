@@ -66,6 +66,10 @@ export default new Vuex.Store({
             keyParams.set({ phenotype: phenotype.name });
         },
 
+        onAncestryChange(context){
+            context.dispatch("queryPhenotype");
+        },
+
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;

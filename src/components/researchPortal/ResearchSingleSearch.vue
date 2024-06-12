@@ -178,7 +178,7 @@ export default Vue.component("research-single-search", {
 	computed: {},
 	watch: {
 		singleSearchParam(PARAM) {
-			if (PARAM.length >= 2) {
+			if (!!PARAM && PARAM.length >= 2) {
 
 				// in case there is custom searchConfig, make sure kp gene search is there. Otherwise, gene search is active in default.
 				if(!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {

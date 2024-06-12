@@ -2384,7 +2384,7 @@ span.spacer-5 {
     display: block;
 }
 
-.greater-less-filter select{
+.greater-less-filter select {
     /* This can't be done at component level due to scope concerns.*/
     display: inline;
     width: inherit;
@@ -2393,12 +2393,26 @@ span.spacer-5 {
     border-bottom-right-radius: 0;
     height: 30px;
 }
+
 .greater-less-filter input {
     height: 30px;
     margin-left: -5px;
     border-top-left-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
 }
+
 .greater-less-filter .label {
     margin-left: -30px !important;
 }
+
+/* single search on gene, region, phenotype, variant pages */
+
+.search-header-content .byor-single-search {
+    width: 400px !important;
+}
+
+.search-header-content .byor-single-search-wrapper .reset-search {
+    top: 24px !important;
+}
+
+/* BYOR stuff */

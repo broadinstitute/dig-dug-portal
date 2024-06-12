@@ -242,6 +242,8 @@ export default Vue.component("research-sections-summary", {
 
 				});
 
+				console.log("collapsedData", collapsedData);
+
 				this.sectionData = collapsedData;
 				//document.getElementById('wrapper_' + this.sectionIndex).classList.remove('wait');
 				this.summarizing = null;
@@ -373,7 +375,6 @@ export default Vue.component("research-sections-summary", {
 								d[filterField] = [];
 							}
 							d[filterField].push(d[targetField]);
-							//returnData.push(d);
 						}
 					})
 

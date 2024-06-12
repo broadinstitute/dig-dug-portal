@@ -1,12 +1,12 @@
 <template>
     <div class="mbm-plot-content row">
         <div class="col-md-12 phewas-plot-wrapper">
-            <download-chart
+            <!--<download-chart
                 v-if="!nativeDlBtn"
                 :filename="!plotName ? 'PheWAS' : plotName"
                 :chartId="canvasId + 'pheWasPlot'"
             >
-            </download-chart>
+            </download-chart>-->
             <div
                 class="col-md-12"
                 :id="canvasId + 'pheWasPlotWrapper'"
@@ -74,6 +74,7 @@
                             "
                             >Click for options</span
                         >
+                        <br />
                     </span>
                 </div>
                 <canvas
@@ -94,7 +95,7 @@
                             : ''
                     "
                 ></canvas>
-                <div v-if="nativeDlBtn" class="download-images-setting">
+                <div class="download-images-setting">
                     <span class="btn btn-default options-gear"
                         >Download <b-icon icon="download"></b-icon
                     ></span>
@@ -154,64 +155,11 @@ import DownloadChart from "../DownloadChart.vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("ResearchPhewasPlot", {
-    props: {
-        canvasId: {
-            type: String,
-            default: "",
-        },
-        phenotypeMap: {
-            type: Object,
-            default: null,
-        },
-        phenotypesData: {
-            type: Array,
-            default: () => [],
-        },
-        renderConfig: {
-            type: Object,
-            default: () => ({}),
-        },
-        pkgData: {
-            type: Object,
-            default: null,
-        },
-        pkgDataSelected: {
-            type: Object,
-            default: null,
-        },
-        colors: {
-            type: Array,
-            default: () => [],
-        },
-        plotMargin: {
-            type: Object,
-            default: () => ({}),
-        },
-        filter: {
-            type: Function,
-            default: () => () => true,
-        },
-        options: {
-            type: Array,
-            default: () => [],
-        },
-        sectionId: {
-            type: String,
-            default: "",
-        },
-        utils: {
-            type: Object,
-            default: () => ({}),
-        },
-        plotName: {
-            type: String,
-            default: "",
-        },
-        nativeDlBtn: {
-            type: Boolean,
-            default: true,
-        },
-    },
+    props: [
+        "canvasId", "phenotypeMap", "phenotypesData", "renderConfig", "pkgData", "pkgDataSelected",
+        "colors", "plotMargin", "filter", "options", "sectionId", "sectionId", "utils", "plotName"
+    ],
+
     data() {
         return {
             pheWasData: null,
@@ -614,6 +562,11 @@ export default Vue.component("ResearchPhewasPlot", {
                 }
                 minY = Math.floor(minY);
                 maxY = Math.ceil(maxY);
+
+                if (minY == maxY) {
+                    minY -= 0.5;
+                    maxY += 0.5;
+                }
 
                 ctx.stroke();
 

@@ -156,7 +156,8 @@ export default Vue.component("multi-region-plot", {
 		"isSectionPage",
 		"sectionId",
 		"utils",
-		"starItems"
+		"starItems",
+		"colors"
 	],
 	data() {
 		return {
@@ -186,6 +187,7 @@ export default Vue.component("multi-region-plot", {
 			dotsClicked: [],
 			refProperties: { region: null, refVariants: {}, groups: [] },
 			fixedRefVariants: {},
+			starGroups:[],
 		};
 	},
 	modules: {
@@ -609,7 +611,8 @@ export default Vue.component("multi-region-plot", {
 		staredVariants(CONTENT) {
 			this.renderPlots();
 		},
-		starItems(CONTENT) {
+		starItems(STARS) {
+			this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
 			this.renderPlots();
 		}
 	},
@@ -1185,6 +1188,14 @@ export default Vue.component("multi-region-plot", {
 				xField = this.renderConfig["x axis field"],
 				yField = this.renderConfig["y axis field"];
 
+			let canvas = document.createElement('canvas'),
+				context = canvas.getContext('2d');
+
+			let getWidth = function (text, fontSize, fontFace) {
+				context.font = fontSize + 'px ' + fontFace;
+				return context.measureText(text).width;
+			}
+
 			if (TYPE == "asso") {
 				this.assoPos[GROUP] = {};
 
@@ -1196,17 +1207,40 @@ export default Vue.component("multi-region-plot", {
 
 					this.starItems.map(star => {
 						let xPos = xStart + (star.columns[xField] - xMin) * xPosByPixel;
+						let lineColor = this.colors.moderate[this.starGroups.indexOf(star.section) % 16];
 
-						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
-						this.renderDot(CTX, xPos, yPos2, "#FFAA0055", 5);
+						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, lineColor, [6, 2]); // "#FFAA0055"
+						this.renderDot(CTX, xPos, yPos2, lineColor, 5);// "#FFAA0055"
+					})
+
+
+					let xPos = this.adjPlotMargin.bump;
+
+					this.starGroups.map((group, gIndex) => {
+
+						let lineColor = this.colors.bold[gIndex]
+						let yPos = this.adjPlotMargin.top + HEIGHT + this.adjPlotMargin.bottom - this.adjPlotMargin.bump;
+						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos, xPos + 50, yPos, 3, lineColor, [12, 4]);
+
+						xPos += 60;
+
+						CTX.font = "24px Arial";
+						CTX.textAlign = "start";
+						CTX.fillStyle = lineColor;
+
+						CTX.fillText(
+							group,
+							xPos,
+							yPos
+						);
+
+						xPos += getWidth(group, 24, "Arial") + this.adjPlotMargin.bump;
 					})
 				}
 
 				if (GROUP != "Combined") {
 
 					// render dots
-					//console.log("this.assoData[GROUP].data", this.assoData[GROUP].data);
-					//console.log("this.ldData[GROUP].data", this.ldData[GROUP].data)
 
 					for (const [key, value] of Object.entries(
 						this.assoData[GROUP].data
