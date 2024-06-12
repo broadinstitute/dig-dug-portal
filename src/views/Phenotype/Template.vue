@@ -425,6 +425,28 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
                         <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'other_phenotype'"
+                                placeholder="Select a phenotype ..."
+                                :options="
+                                    $store.state.geneticCorrelation.data.map(
+                                        (d) => d.other_phenotype
+                                    )
+                                "
+                                :label-formatter="
+                                    (phenotype) =>
+                                        !!$store.state.bioPortal.phenotypeMap[
+                                            phenotype
+                                        ]
+                                            ? $store.state.bioPortal.phenotypeMap[
+                                                phenotype
+                                            ].description
+                                            : phenotype
+                                "
+                                :multiple="true"
+                            >
+                                <div class="label">Phenotype</div>
+                            </filter-enumeration-control>
                             <filter-pvalue-control :field="'pValue'">
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
