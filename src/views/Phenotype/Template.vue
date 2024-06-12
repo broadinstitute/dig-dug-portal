@@ -217,7 +217,7 @@
                                 <c2ct-table
                                     :c2ctData="$parent.c2ctData"
                                     :filter="filter"
-                                    :per-page="10"
+                                    :phenotype="$store.state.phenotype"
                                 >
                                 </c2ct-table>
                             </template>
@@ -438,9 +438,9 @@
                                         !!$store.state.bioPortal.phenotypeMap[
                                             phenotype
                                         ]
-                                            ? $store.state.bioPortal.phenotypeMap[
-                                                phenotype
-                                            ].description
+                                            ? $store.state.bioPortal
+                                                  .phenotypeMap[phenotype]
+                                                  .description
                                             : phenotype
                                 "
                                 :multiple="true"
