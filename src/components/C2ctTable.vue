@@ -27,6 +27,11 @@
                         >{{ data.label }}
                     </span>
                 </template>
+                <template #cell(tissue)="r">
+                    <a :href="`/tissue.html?tissue=${r.item.tissue}`">
+                        {{ tissueFormatter(r.item.tissue) }}
+                    </a>
+                </template>
                 <template #cell(chromosome)="r">
                     <a
                         :href="`research.html?pageid=kp_variant_sifter&phenotype=${
@@ -151,7 +156,6 @@ export default Vue.component("c2ct-table", {
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");
-
 label {
     margin: 10px;
 }
