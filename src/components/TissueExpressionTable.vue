@@ -24,7 +24,7 @@
           <b-button
               variant="outline-primary"
               size="sm"
-              @click="row.toggleDetails()"
+              @click="showEvidence(row)"
           >
               {{ row.detailsShowing ? "Hide" : "Show" }} Datasets
           </b-button>
@@ -84,9 +84,6 @@
               ],
           };
       },
-      mounted() {
-          this.populateEvidence(this.currentGenes);
-      },
       computed: {
         tableData(){
             let data = this.tissueData;
@@ -101,8 +98,9 @@
       },
       methods: {
         tissueFormatter: Formatters.tissueFormatter,
-        async showEvidence(gene) {
-          if (gene) {
+        async showEvidence(row) {
+          if (row.item.gene) {
+              let gene = row.item.gene;
               //check if evidence object already has key equal gene
               if (!this.evidence[gene]) {
                   let data = await query("gene-expression", gene);
@@ -112,10 +110,7 @@
                   Vue.set(this.evidence, gene, this.parseData(data));
               }
           }
-        },
-        async populateEvidence(genes) {
-          await Promise.all(genes.map((gene) => this.showEvidence(gene)));
-          this.$emit( "geneDataReady", genes.flatMap(gene => this.evidence[gene]));
+          row.toggleDetails();
         },
         parseData(data){
           data.forEach((entry) => {
@@ -140,11 +135,6 @@
         highlight(details) {
             this.$emit("highlight", details);
         },
-      },
-      watch: {
-          async currentGenes(latestGenes){
-              await this.populateEvidence(latestGenes);
-          }
       },
   });
 </script>
