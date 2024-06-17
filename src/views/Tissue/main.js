@@ -11,7 +11,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
-import PigeanPlot from "@/components/PigeanPlot.vue";
+import Scatterplot from "@/components/Scatterplot.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -38,7 +38,7 @@ new Vue({
         SearchHeaderWrapper,
         TissueSelectPicker,
         ResearchSingleSearch,
-        PigeanPlot
+        Scatterplot
     },
     mixins: [pageMixin],
     data() {
