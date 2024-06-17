@@ -8,7 +8,7 @@
       responsive="sm"
       sort-icon-left
       :items="tableData"
-      sort-by="meanTpm"
+      sort-by="Q"
       :sort-desc="true"
       :fields="newTableFields"
       :per-page="perPage"
@@ -76,6 +76,10 @@
                       label: "Mean TPM",
                       sortable: true,
                       formatter: Formatters.tpmFormatter },
+                  { key: "Q",
+                    label: "Q",
+                    sortable: true,
+                    formatter: Formatters.tpmFormatter },
                   { key: "show_datasets"}
               ],
           };

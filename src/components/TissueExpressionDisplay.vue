@@ -21,14 +21,6 @@
                 <div class="label">Mean TPM (≥)</div>
             </filter-greater-control>
             <template slot="filtered" slot-scope="{ filter }">
-                <div id="plot" v-if="genePlotData.length > 0" class="expression-plot-wrapper">
-                    <research-expression-plot 
-                        :plotData="genePlotData"
-                        :highlightedDataset="datasetDetails"
-                        :plotName="`gene_expression_${tissue.replaceAll(' ', '_')}`">
-                    </research-expression-plot>
-                </div>
-                <div v-else>Loading expression plot...</div>
                 <tissue-expression-table
                     :tissueData="tissueData"
                     :tissue="tissue"
