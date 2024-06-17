@@ -61,9 +61,6 @@
                             v-if="$parent.tissueData.length > 0"
                             :plotData="$parent.tissueData"
                             :config="$parent.plotConfig"
-                            :phenotype-map="
-                                $store.state.bioPortal.phenotypeMap
-                            "
                         >
                         </scatterplot>
                         <tissue-expression-display

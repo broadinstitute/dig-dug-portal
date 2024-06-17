@@ -21,7 +21,7 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("scatterplot", {
   components: {
   },
-  props: ["plotData", "config", "phenotypeMap", "filter"],
+  props: ["plotData", "config", "filter"],
   data() {
       return {
         plotId: `scatterplot-${Math.floor(Math.random() * 10e9)}`,
@@ -34,7 +34,6 @@ export default Vue.component("scatterplot", {
         xMedian: 0,
         tooltip: null,
         tooltipElement: null,
-        colorMap: this.groupColors(),
         allHoverFields: this.getHoverFields(),
         hoverBoxPosition: this.config.hoverBoxPosition || "left",
         dotOutlineColor: "#00000075"
@@ -96,8 +95,8 @@ export default Vue.component("scatterplot", {
       let yMin = this.extremeVal(this.config.yField);
       let xMax = this.extremeVal(this.config.xField, false);
       let yMax = this.extremeVal(this.config.yField, false);
-      xMin = xMin > 0 ? 0 : xMin;
-      yMin = yMin > 0 ? 0 : yMin;
+      //xMin = xMin > 0 ? 0 : xMin;
+      //yMin = yMin > 0 ? 0 : yMin;
       this.xMedian = (xMin + xMax) / 2;
       
       // add X-axis
@@ -144,7 +143,7 @@ export default Vue.component("scatterplot", {
               ? this.yScale(0) 
               : this.yScale(d[this.config.yField]))
           .attr("r", 5)
-          .attr("fill", d => this.dotColor(d.phenotype))
+          .attr("fill", d => "#007bff")
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
@@ -193,7 +192,6 @@ export default Vue.component("scatterplot", {
     },
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);
-      dot.phenotype = this.phDesc(dot.phenotype);
       let tooltipText = `${
         Formatters.tissueFormatter(this.config.dotKey)}: ${
           dot[this.config.dotKey]}`;
@@ -215,36 +213,6 @@ export default Vue.component("scatterplot", {
     },
     unHoverDot() {
       this.tooltip.style("opacity", 0);
-    },
-    groupColors(){
-      // Based on original Data not filtered data. Phenotypes should always match PheWAS
-      let groupsInUse = this.plotData.map(d => d.phenotype)
-        .map(p => !!this.phenotypeMap[p] ? this.phenotypeMap[p]["group"] : "")
-        .filter(g => g !== "");
-      let uniqueGroups = [];
-      groupsInUse.forEach(g => {
-        if (!uniqueGroups.includes(g)){
-          uniqueGroups.push(g);
-        }});
-      uniqueGroups.sort();
-      let colorMap = {};
-      let colors = plotUtils.plotColors();
-      for (let i = 0; i < uniqueGroups.length; i++){
-        colorMap[uniqueGroups[i]] = colors[i % colors.length];
-      }
-      return colorMap;
-    },
-    dotColor(phenotype){
-      if (!this.phenotypeMap[phenotype]){
-        return this.dotOutlineColor;
-      }
-      return this.colorMap[this.phenotypeMap[phenotype].group];
-    },
-    phDesc(phenotype){
-      if (!this.phenotypeMap[phenotype]){
-        return phenotype;
-      }
-      return Formatters.phenotypeFormatter(this.phenotypeMap[phenotype])
     },
     getHoverFields(){
       let fields = [];
