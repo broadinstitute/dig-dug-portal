@@ -17,24 +17,6 @@
         <template v-else>
             <div class="container-fluid mdkp-body">
                 <search-header-wrapper>
-                    <!--<div class="col filter-col-md">
-                        <div class="label">Tissue</div>
-                        <tissue-selectpicker
-                            @tissue="$parent.newTissue"
-                        >
-                        </tissue-selectpicker>
-                    </div>
-                    <div class="col filter-col-md">
-                        <div class="label">Search</div>
-                        <button
-                            id="regionSearchGo"
-                            class="btn btn-light btn-sm go"
-                            type="button"
-                            @click="$parent.updateTissueData"
-                        >
-                            GO
-                        </button>
-                    </div>-->
                     <div class="region-search col filter-col-md">
                         <div class="label">Begin new search</div>
                         <research-single-search
@@ -57,29 +39,28 @@
 
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <h4>
+                            {{
+                                `Gene expression for ${$parent.tissueFormatter($parent.tissue)}`
+                            }}
+                        </h4>
+                        <documentation
+                            name="tissue.gene-expression.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
                         <scatterplot
                             v-if="$parent.tissueData.length > 0"
                             :plotData="$parent.tissueData"
                             :config="$parent.plotConfig"
                         >
                         </scatterplot>
-                        <tissue-expression-display
-                            v-if="$parent.tissueData.length > 0"
-                            :tissue-data="$parent.tissueData"
+                        <tissue-expression-table
+                            :tissueData="$parent.tissueData"
                             :tissue="$parent.tissue"
-                        ></tissue-expression-display>
+                        >
+                        </tissue-expression-table>
                     </div>
                 </div>
-
-                <!-- Add filters here when data is ready -->
-                <!-- <div class="filtering-ui-wrapper container-fluid">
-                    <div class="row filtering-ui-content">
-                        <div class="col filter-col-md filter-col-lg">
-                            Filters
-                        </div>
-                    </div>
-                </div> -->
-
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <tissue-heritability-table

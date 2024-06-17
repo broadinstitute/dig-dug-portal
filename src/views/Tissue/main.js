@@ -5,7 +5,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
-import TissueExpressionDisplay from "@/components/TissueExpressionDisplay.vue";
+import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -31,7 +31,7 @@ new Vue({
         PageFooter,
         Documentation,
         TissueHeritabilityTable,
-        TissueExpressionDisplay,
+        TissueExpressionTable,
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
@@ -57,6 +57,7 @@ new Vue({
         };
     },
     methods: {
+        tissueFormatter: Formatters.tissueFormatter,
         newTissue(tissue) {
             this.selectTissue = tissue;
         },
