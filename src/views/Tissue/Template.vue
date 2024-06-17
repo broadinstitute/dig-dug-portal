@@ -52,6 +52,7 @@
                             v-if="$parent.tissueData.length > 0"
                             :plotData="$parent.tissueData"
                             :config="$parent.plotConfig"
+                            :plotName="`${$parent.tissue}_gene_expression`"
                         >
                         </scatterplot>
                         <tissue-expression-table

@@ -6,7 +6,6 @@
       id="big-table"
       small
       responsive="sm"
-      sort-icon-left
       :items="tableData"
       sort-by="Q"
       :sort-desc="true"
@@ -80,7 +79,9 @@
                     label: "Q",
                     sortable: true,
                     formatter: Formatters.tpmFormatter },
-                  { key: "show_datasets"}
+                  { key: "show_datasets",
+                    label: "Datasets"
+                  }
               ],
           };
       },
