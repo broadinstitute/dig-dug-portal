@@ -57,6 +57,15 @@
 
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <pigean-plot
+                            v-if="$parent.tissueData.length > 0"
+                            :pigean-data="$parent.tissueData"
+                            :config="$parent.plotConfig"
+                            :phenotype-map="
+                                $store.state.bioPortal.phenotypeMap
+                            "
+                        >
+                        </pigean-plot>
                         <tissue-expression-display
                             v-if="$parent.tissueData.length > 0"
                             :tissue-data="$parent.tissueData"

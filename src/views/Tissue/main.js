@@ -11,6 +11,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -37,12 +38,22 @@ new Vue({
         SearchHeaderWrapper,
         TissueSelectPicker,
         ResearchSingleSearch,
+        PigeanPlot
     },
     mixins: [pageMixin],
     data() {
         return {
             tissue: keyParams.tissue || "",
             selectTissue: "",
+            plotConfig: {
+                xField: "Q",
+                xAxisLabel: "Q",
+                yField: "meanTpm",
+                yAxisLabel: "tx/million (mean)",
+                dotKey: "gene",
+                hoverBoxPosition: "both",
+                hoverFields: ['nSamples']
+            }
         };
     },
     methods: {
