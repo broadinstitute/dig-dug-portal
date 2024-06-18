@@ -37,7 +37,6 @@
                 small
                 hover
                 responsive="sm"
-                sort-icon-left
                 :items="variants"
                 :fields="fields"
                 :per-page="perPage"
