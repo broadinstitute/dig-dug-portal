@@ -84,7 +84,7 @@ new Vue({
                     parameter: "gene",
                     "data point": {
                         type: "api",
-                        url: "https://bioindex-dev.hugeamp.org/api/bio/keys/pigean-gene/1",
+                        url: "https://bioindex-dev.hugeamp.org/api/bio/keys/pigean-gene/3?columns=gene",
                         "data type": "json",
                         "data wrapper": ["keys"],
                     },
