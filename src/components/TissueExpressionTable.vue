@@ -6,6 +6,7 @@
       id="big-table"
       small
       responsive="sm"
+      sort-icon-left
       :items="tableData"
       sort-by="meanTpm"
       :sort-desc="true"
@@ -45,6 +46,9 @@
     </b-pagination>
   </div>
 </template>
+<style>
+@import url("/css/table.css");
+</style>
 <script>
   import Vue from "vue";
   import { query } from "@/utils/bioIndexUtils";
