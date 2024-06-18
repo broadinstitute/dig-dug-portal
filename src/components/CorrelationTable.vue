@@ -11,13 +11,14 @@
                 hover
                 small
                 responsive="sm"
+                sort-icon-left
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
                 :sort-by.sync="sortBy"
             >
-                <template #cell(link)="r">
+                <template #cell(other_phenotype)="r">
                     <a
                         :href="`/phenotype.html?phenotype=${r.item['other_phenotype']}`"
                         >{{ getDescription(r.item["other_phenotype"]) }}
@@ -55,7 +56,7 @@ export default Vue.component("CorrelationTable", {
             sortBy: "pValue",
             fields: [
                 {
-                    key: "link",
+                    key: "other_phenotype",
                     label: "Phenotype",
                     sortable: true
                 },

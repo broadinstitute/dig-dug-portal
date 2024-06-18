@@ -8,14 +8,41 @@
                 hover
                 small
                 responsive="sm"
+                sort-icon-left
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-            >
+                ><template #head(posteriorProbability)="data">
+                    <span
+                        v-b-tooltip.hover
+                        title="Higher means greater overlap."
+                        >{{ data.label }}
+                    </span>
+                </template>
+                <template #head(Q)="data">
+                    <span
+                        v-b-tooltip.hover
+                        title="This metric combines specificity and overlap probability. Higher means more confidence that the SNP overlaps a specific cell type."
+                        >{{ data.label }}
+                    </span>
+                </template>
+                <template #cell(tissue)="r">
+                    <a :href="`/tissue.html?tissue=${r.item.tissue}`">
+                        {{ tissueFormatter(r.item.tissue) }}
+                    </a>
+                </template>
                 <template #cell(chromosome)="r">
                     <a
-                        :href="`/region.html?chr=${r.item.chromosome}&start=${r.item.clumpStart}&end=${r.item.clumpEnd}`"
+                        :href="`research.html?pageid=kp_variant_sifter&phenotype=${
+                            phenotype.name
+                        }&region=${r.item.chromosome}:${
+                            r.item.clumpStart >= 250000
+                                ? r.item.clumpStart - 250000
+                                : 0
+                        }-${r.item.clumpEnd + 250000}&annotation=${
+                            r.item.annotation
+                        }`"
                     >
                         {{
                             `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
@@ -51,7 +78,7 @@ export default Vue.component("c2ct-table", {
     components: {
         DataDownload,
     },
-    props: ["c2ctData", "filter"],
+    props: ["c2ctData", "filter", "phenotype"],
     data() {
         return {
             perPage: 10,
@@ -85,19 +112,19 @@ export default Vue.component("c2ct-table", {
                 },
                 {
                     key: "posteriorProbability",
-                    label: "Posterior probability",
+                    label: "Overlap probability",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
                 {
                     key: "totalEntropy",
-                    label: "Total entropy",
+                    label: "Genericity",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
                 {
                     key: "Q",
-                    label: "Q",
+                    label: "Combined score",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
@@ -129,7 +156,6 @@ export default Vue.component("c2ct-table", {
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");
-
 label {
     margin: 10px;
 }
