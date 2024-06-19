@@ -2,10 +2,11 @@
     <div class="filtering-ui-wrapper container-fluid search-header">
         <div
             id="pageSearchHeaderContent"
-            class="row filtering-ui-content search-header-content hidden"
+            class="row filtering-ui-content search-header-content"
         >
             <slot></slot>
         </div>
+       <!--
         <a
             v-on:click="() => this.showHideElement('search-header-content')"
             class="reset-page-parameters"
@@ -13,6 +14,7 @@
         >
             Set page level parameters
         </a>
+       --> 
     </div>
 </template>
 

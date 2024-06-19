@@ -3,6 +3,7 @@
         <div class="col-12">
             <b-table
                 class="dataset-subtable"
+                sort-icon-left
                 :items="row.item['Datasets']"
                 :current-page="row.item.currentPage"
                 :per-page="perPage"

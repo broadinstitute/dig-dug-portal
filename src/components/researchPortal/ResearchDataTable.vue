@@ -26,23 +26,23 @@
 			v-bind:isPlotByRow="false"
 		>
 		</research-summary-plot>
-		
+		<!-- table UI wrapper -->
 		<div v-if="!!dataset" class="table-ui-wrapper">
 			<div
 				class="convert-2-csv table-settings-opener btn-sm"
-				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
+				
 			>
 				<span class="btn btn-default options-gear" >Save data / set table <b-icon icon="gear-fill"></b-icon></span>
 				<!--{{ !!summarySection ? 'Set summary table' : 'Show/hide columns' }}-->
 			</div>
-			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="table-options-box hidden">
-				<div
+			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="table-options-box">
+				<!--<div
 					class="show-hide-columns-box-close"
 					@click="showHidePanel('#showHideColumnsBox'+sectionId)"
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
-				<h5 style="text-align: center">Settings</h5>
+				<h5 style="text-align: center">Settings</h5>-->
 				
 				<div class="table-wrapper">
 					<table class="table table-sm">
@@ -1212,7 +1212,7 @@ export default Vue.component("research-data-table", {
 }
 
 [id*="showHideColumnsBox"] {
-	position: fixed;
+	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;
 	border-radius: 5px;
@@ -1221,8 +1221,10 @@ export default Vue.component("research-data-table", {
 	width: 400px;
 	height: 50%;
 	text-align: left;
-	top: 25%;
-	left: calc(50% - 200px);
+	top: 30px;
+	right: 0;
+	/*top: 25%;
+	left: calc(50% - 200px);*/
 	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
 	padding: 20px;
 }
@@ -1330,6 +1332,15 @@ table.research-data-table {
 	text-align: right;
 	font-size: 12px;
 	float: right;
+	position: relative;
+}
+
+.table-ui-wrapper .table-options-box {
+	display: none;
+}
+
+.table-ui-wrapper:hover .table-options-box {
+	display: block;
 }
 
 .convert-2-csv {

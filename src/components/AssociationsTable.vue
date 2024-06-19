@@ -11,6 +11,7 @@
                 hover
                 small
                 responsive="sm"
+                sort-icon-left
                 :items="groupedAssociations"
                 :fields="fields"
                 :per-page="perPage"
@@ -118,6 +119,10 @@
         </div>
     </div>
 </template>
+
+<style>
+@import url("/css/table.css");
+</style>
 
 <script>
 import Vue from "vue";
