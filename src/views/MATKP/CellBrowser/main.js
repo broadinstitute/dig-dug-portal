@@ -564,13 +564,13 @@ new Vue({
         },
 
         calcFieldColors(){
+            //precomputes colors for all fields
             const fields = {};
             let colorIndex = 0;
-            for(const [key, value] of Object.entries(this.datasetsObj[this.activeDataset]["metadata"])){
+            for(const [key, value] of Object.entries(this.datasetsObj[this.activeDataset]["metadata_labels"])){
                 fields[key] = {};
                 for(var i=0; i<value.length; i++){
-                    const labelName = this.labelNameFromIndex(key, value[i]);
-                    fields[key][labelName] = {
+                    fields[key][value[i]] = {
                         idx: i.toString(),
                         color: this.colorScaleIndex(colorIndex)
                     }
