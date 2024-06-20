@@ -83,6 +83,16 @@ export default Vue.component("meta-analysis-bar-graph", {
         allMetas: 0
       };
   },
+  computed:{
+    tableData() {
+      let dataRows = this.graphData;
+      if (this.filter) {
+          dataRows = this.graphData.filter(this.filter);
+      }
+      this.collateData(dataRows);
+      return dataRows;
+    },
+  },
   methods: {
     collateData(data){
       let summary = {
@@ -110,7 +120,7 @@ export default Vue.component("meta-analysis-bar-graph", {
     }
   },
   watch: {
-    graphData(newData){
+    tableData(newData){
       this.collateData(newData);
     }
   }
