@@ -151,7 +151,11 @@
                             </filter-effect-direction-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
-                                <meta-analysis-bar-graph>
+                                <meta-analysis-bar-graph
+                                    :graphData="!$store.state.ancestry
+                                        ? $store.state.associations.data
+                                        : $store.state.ancestryGlobalAssoc.data"
+                                    :filter="filter">
                                 </meta-analysis-bar-graph>
                                 <associations-table
                                     :phenotypes="[$store.state.phenotype]"
