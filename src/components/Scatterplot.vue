@@ -193,20 +193,15 @@ export default Vue.component("scatterplot", {
     },
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);
-      let tooltipText = `${
-        Formatters.tissueFormatter(this.config.dotKey)}: ${
-          dot[this.config.dotKey]}`;
-      tooltipText = tooltipText.concat(
-        `<span>${this.config.xAxisLabel}: ${
-          dot[this.config.xField]}</span>`);
-      tooltipText = tooltipText.concat(
-        `<span>${this.config.yAxisLabel}: ${
-          dot[this.config.yField]}</span>`);
+      let tooltipText = "";
       if (this.config.hoverFields){
         this.config.hoverFields.forEach(field => {
           tooltipText = tooltipText.concat(
-            `<span>${Formatters.tissueFormatter(field.label)}: ${
-              dot[field.key]}</span>`
+            `<span>${field.label}: ${
+              field.formatter === undefined
+                ? dot[field.key] 
+                : field.formatter(dot[field.key])
+            }</span>`
           );
         });
       }

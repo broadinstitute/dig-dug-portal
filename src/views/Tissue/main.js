@@ -46,16 +46,35 @@ new Vue({
             tissue: keyParams.tissue || "",
             selectTissue: "",
             plotConfig: {
-                xField: "Q",
-                xAxisLabel: "Genericity",
-                yField: "H",
-                yAxisLabel: "Entropy",
+                xField: "H",
+                xAxisLabel: "Entropy (genericity)",
+                yField: "meanTpm",
+                yAxisLabel: "TPM (mean)",
                 dotKey: "gene",
                 hoverBoxPosition: "both",
-                hoverFields: [{
-                    key: "nSamples",
-                    label: "Samples"
-                }]
+                hoverFields: [
+                    { 
+                        key: "gene",
+                        label: "Gene",
+                    },
+                    {
+                        key: "H",
+                        label: "Genericity",
+                    },
+                    {
+                        key: "Q",
+                        label: "Combined score"
+                    },
+                    {
+                        key: "meanTpm",
+                        label: "TPM (mean)",
+                        formatter: Formatters.tpmFormatter
+                    },
+                    { 
+                        key: "nSamples",
+                        label: "Samples"
+                    }
+                ]
             }
         };
     },

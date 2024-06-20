@@ -76,13 +76,12 @@
                       sortable: true,
                       formatter: Formatters.tpmFormatter },
                   { key: "Q",
-                    label: "Genericity",
+                    label: "Combined score",
                     sortable: true,
                     formatter: Formatters.tpmFormatter },
                   { key: "H",
-                    label: "Entropy",
-                    sortable: true,
-                    formatter: Formatters.tpmFormatter },
+                    label: "Entropy (genericity)",
+                    sortable: true },
                   { key: "show_datasets",
                     label: "Datasets"
                   }
