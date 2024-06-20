@@ -151,6 +151,10 @@
                             </filter-effect-direction-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
+                                <documentation
+                                    name="pheno.top_assoc.subheader"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
                                 <associations-table
                                     :phenotypes="[$store.state.phenotype]"
                                     :associations="
