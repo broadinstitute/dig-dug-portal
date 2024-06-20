@@ -60,10 +60,12 @@ new Vue({
                     {
                         key: "H",
                         label: "Genericity",
+                        formatter: Formatters.pValueFormatter
                     },
                     {
                         key: "Q",
-                        label: "Combined score"
+                        label: "Combined score",
+                        formatter: Formatters.tpmFormatter
                     },
                     {
                         key: "meanTpm",
