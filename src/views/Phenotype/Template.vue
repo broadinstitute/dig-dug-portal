@@ -151,6 +151,8 @@
                             </filter-effect-direction-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
+                                <meta-analysis-bar-graph>
+                                </meta-analysis-bar-graph>
                                 <associations-table
                                     :phenotypes="[$store.state.phenotype]"
                                     :associations="

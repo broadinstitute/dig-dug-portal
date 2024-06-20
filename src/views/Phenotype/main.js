@@ -23,6 +23,7 @@ import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import RawImage from "@/components/RawImage.vue";
+import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -79,7 +80,8 @@ new Vue({
         ResearchMPlot,
         PhenotypeHugeScores,
         C2ctTable,
-        ResearchSingleSearch
+        ResearchSingleSearch,
+        MetaAnalysisBarGraph
     },
 
     created() {
