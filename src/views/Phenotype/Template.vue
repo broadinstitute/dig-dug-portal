@@ -167,6 +167,7 @@
                                     "
                                     :filter="filter"
                                     :per-page="10"
+                                    :showBottomLine="true"
                                 ></associations-table>
                             </template>
                         </criterion-function-group>

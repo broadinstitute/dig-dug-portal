@@ -117,6 +117,10 @@ export default Vue.component("meta-analysis-bar-graph", {
 });
 </script>
 <style scoped>
+  .meta-graph th {
+    text-align: right;
+    padding-right: 5px;
+  }
   .meta-graph td {
     text-align: center;
     border-left: 1px solid black;
@@ -145,7 +149,5 @@ export default Vue.component("meta-analysis-bar-graph", {
   }
   .summary td span {
     border-radius: 10px;
-    /*padding-left: 10px;
-    padding-right: 10px;*/
   }
 </style>

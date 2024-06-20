@@ -20,6 +20,10 @@
                 :sortable="true"
             >
                 <template #thead-top="data">
+                    <b-th v-if="showBottomLine"
+                        :colspan="1">
+                        Meta Types
+                    </b-th>
                     <b-th :colspan="!!showChiSquared ? 6 : 5">
                         <span class="sr-only">Variant</span>
                     </b-th>
@@ -146,7 +150,7 @@ export default Vue.component("AssociationsTable", {
     components: {
         DataDownload,
     },
-    props: ["associations", "phenotypes", "filter", "exclusive"],
+    props: ["associations", "phenotypes", "filter", "exclusive", "showBottomLine"],
     data() {
         return {
             perPage: 10,
@@ -184,7 +188,12 @@ export default Vue.component("AssociationsTable", {
             return this.phenotypes.length > 1;
         },
         fields() {
-            let fields = this.baseFields;
+            let metaTypes = {
+                key: "inMetaTypes",
+                label: "metatypes"
+            };
+            let startingFields = this.showBottomLine ? [metaTypes] : [];
+            let fields = startingFields.concat(this.baseFields);
 
             // show chi^2 if > 1 phenotype
             if (this.phenotypes.length > 1) {
@@ -254,6 +263,7 @@ export default Vue.component("AssociationsTable", {
                         nearest: r.nearest,
                         alt: r.alt,
                         maf: r.maf,
+                        inMetaTypes: r.inMetaTypes
                     });
                 }
 
