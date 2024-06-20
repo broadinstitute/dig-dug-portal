@@ -47,9 +47,9 @@ new Vue({
             selectTissue: "",
             plotConfig: {
                 xField: "Q",
-                xAxisLabel: "Q",
-                yField: "meanTpm",
-                yAxisLabel: "tx/million (mean)",
+                xAxisLabel: "Genericity",
+                yField: "H",
+                yAxisLabel: "Entropy",
                 dotKey: "gene",
                 hoverBoxPosition: "both",
                 hoverFields: ['nSamples']
