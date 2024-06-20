@@ -107,6 +107,12 @@ export default Vue.component("c2ct-table", {
                     label: "Clump start - end",
                 },
                 {
+                    key: "varTotal",
+                    label: "Variants",
+                    sortable: true,
+                    tdClass: "text-right",
+                },
+                {
                     key: "overlapLeadSNP",
                     label: "Overlap Lead SNP",
                 },

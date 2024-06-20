@@ -126,6 +126,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                 case "calculate":
 
+
                     let calType = c["calculation type"];
 
                     switch (calType) {
@@ -135,6 +136,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             break;
 
                         case "math":
+
                             let calcString = "";
 
                             c["expression"].map(e => {
@@ -143,6 +145,17 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             });
 
                             tempObj[c["field name"]] = eval(calcString);
+
+
+                            if ((!!c['min number'] || c['min number'] === 0) && tempObj[c["field name"]] < c['min number']) {
+
+                                tempObj[c["field name"]] = c['min number']
+                            }
+
+                            if ((!!c['max number'] || c['max number'] === 0) && tempObj[c["field name"]] > c['max number']) {
+                                tempObj[c["field name"]] = c['max number']
+                            }
+
                             d[c["field name"]] = tempObj[c["field name"]];
 
                     }
@@ -284,7 +297,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     }
                 })
             })
-            //console.log("rowsData", rowsData);
 
             DATA = rowsData;
         }
