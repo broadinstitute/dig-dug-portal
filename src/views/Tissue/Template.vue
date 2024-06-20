@@ -48,18 +48,40 @@
                             name="tissue.gene-expression.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
-                        <scatterplot
-                            v-if="$parent.tissueData.length > 0"
-                            :plotData="$parent.tissueData"
-                            :config="$parent.plotConfig"
-                            :plotName="`${$parent.tissue}_gene_expression`"
-                        >
-                        </scatterplot>
-                        <tissue-expression-table
-                            :tissueData="$parent.tissueData"
-                            :tissue="$parent.tissue"
-                        >
-                        </tissue-expression-table>
+                        <criterion-function-group>
+                            <filter-greater-control
+								class="filter-col-md"
+								field="meanTpm"
+							>
+								<div>
+									<strong>Mean TPM (&ge;)</strong>
+								</div>
+							</filter-greater-control>
+                            <filter-less-control
+								class="filter-col-md"
+								field="H"
+							>
+								<div>
+									<strong>Genericity (&le;)</strong>
+								</div>
+							</filter-less-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <scatterplot
+                                    v-if="$parent.tissueData.length > 0"
+                                    :plotData="$parent.tissueData"
+                                    :config="$parent.plotConfig"
+                                    :plotName="`${$parent.tissue}_gene_expression`"
+                                    :filter="filter"
+                                >
+                                </scatterplot>
+                                <tissue-expression-table
+                                    :tissueData="$parent.tissueData"
+                                    :tissue="$parent.tissue"
+                                    :filter="filter"
+                                >
+                                </tissue-expression-table>
+                            </template>
+                        </criterion-function-group>
                     </div>
                 </div>
                 <div class="card mdkp-card">

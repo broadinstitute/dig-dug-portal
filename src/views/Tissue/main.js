@@ -9,6 +9,8 @@ import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
@@ -35,6 +37,8 @@ new Vue({
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
+        FilterGreaterThan,
+        FilterLessThan,
         SearchHeaderWrapper,
         TissueSelectPicker,
         ResearchSingleSearch,
