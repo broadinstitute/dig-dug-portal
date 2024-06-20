@@ -213,6 +213,16 @@
                             >
                                 <div class="label">Biosample</div>
                             </filter-enumeration-control>
+                            <filter-less-control
+                                :field="'totalEntropy'"
+                                :pill-formatter="
+                                    (filterDefinition) =>
+                                        `genericity <= ${filterDefinition.threshold}`
+                                "
+                            >
+                                <div class="label">Genericity (&le;)</div>
+                            </filter-less-control>
+
                             <template slot="filtered" slot-scope="{ filter }">
                                 <c2ct-table
                                     :c2ctData="$parent.c2ctData"
@@ -609,5 +619,10 @@
     background-color: #fff;
     padding: 3px 12px;
     border-bottom: solid 1px #eeeeee;
+}
+
+div.card
+    >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-totalEntropy {
+    background-color: #14a433;
 }
 </style>
