@@ -205,8 +205,8 @@ export default Vue.component("scatterplot", {
       if (this.config.hoverFields){
         this.config.hoverFields.forEach(field => {
           tooltipText = tooltipText.concat(
-            `<span>${Formatters.tissueFormatter(field)}: ${
-              dot[field]}</span>`
+            `<span>${Formatters.tissueFormatter(field.label)}: ${
+              dot[field.key]}</span>`
           );
         });
       }

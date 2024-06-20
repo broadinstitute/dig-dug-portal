@@ -52,7 +52,10 @@ new Vue({
                 yAxisLabel: "Entropy",
                 dotKey: "gene",
                 hoverBoxPosition: "both",
-                hoverFields: ['nSamples']
+                hoverFields: [{
+                    key: "nSamples",
+                    label: "Samples"
+                }]
             }
         };
     },
