@@ -8,6 +8,7 @@
                 ></data-download>
             </div>
             <b-table
+                :class="!!showBottomLine ? 'assoc-table-bottom-line' : ''"
                 hover
                 small
                 responsive="sm"
@@ -37,9 +38,6 @@
                             phenotype.description
                         }}</span>
                     </b-th>
-                </template>
-                <template #cell(inMetaTypes)="r">
-                    &nbsp;
                 </template>
                 <template #cell(position)="r">
                     <a
@@ -193,10 +191,11 @@ export default Vue.component("AssociationsTable", {
             let metaTypes = {
                 key: "inMetaTypes",
                 label: "",
-                tdClass(x){
-                    return x === "bottom-line" ? "meta bottom-line-only"
-                        : x === "bottom-line;min_p" ? "meta bottom-line-min-p"
-                        : x === "bottom-line;min_p;largest" ? "meta all-meta-types"
+                formatter: (x) => "",
+                tdClass(x) {
+                    return x === "bottom-line" ? "bottom-line-only"
+                        : x === "bottom-line;min_p" ? "bottom-line-min-p"
+                        : x === "bottom-line;min_p;largest" ? "all-meta-types"
                         : "";
                 }
             };
@@ -372,20 +371,16 @@ export default Vue.component("AssociationsTable", {
 
             return 2 * pdf;
         },
+        backgroundColor(x){
+            let bottomLineOnly = '#6dcff6';
+            let bottomLineMinP = '#8781bd';
+            let allMetaTypes = '#b6aaa7';
+            let fallback = '#ffffff'
+            return x === "bottom-line" ? "bottom-line-only"
+                : x === "bottom-line;min_p" ? "bottom-line-min-p"
+                : x === "bottom-line;min_p;largest" ? "all-meta-types"
+                : "";
+        }
     },
 });
 </script>
-<style>
-    td.meta {
-        width: 10px;
-    }
-    td.bottom-line-only {
-        background-color: #6dcff6;
-    }
-    td.bottom-line-min-p {
-        background-color: #8781bd;
-    }
-    td.all-meta-types {
-        background-color: #b6aaa7;
-    }
-</style>
