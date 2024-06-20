@@ -122,11 +122,10 @@ export default Vue.component("meta-analysis-bar-graph", {
     },
     barWidth(barSize, minWidth = false){
       let total = this.bottomLineOnly + this.bottomLineMinP + this.allMetas;
-      let relativeWidth = barSize / total;
-      if (relativeWidth < 0.07 && minWidth){
-        relativeWidth = 0.07;
+      let relativeWidth = barSize / total * this.width;
+      if (relativeWidth < 40 && minWidth){
+        relativeWidth = 40;
       }
-      relativeWidth = relativeWidth * this.width;
       return `${relativeWidth}px`;
     }
   },
