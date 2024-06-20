@@ -1,17 +1,20 @@
 <template>
   <div>
       <h5>Meta-analysis types</h5>
-      <table class="meta-graph">
+      <table class="meta-graph"
+        :style="{'width': `${chartWidth}px`}">
         <tr class="bottom-line">
           <th scope="row">bottom-line</th>
-          <td colspan="3" class="filled">
+          <td colspan="3" class="filled"
+            :style="{'width': barWidth(this.bottomLineOnly + this.bottomLineMinP + this.allMetas)}">
             {{ this.bottomLineOnly + this.bottomLineMinP + this.allMetas }}
           </td>
         </tr>
         <tr class="min-p">
           <th scope="row">min_p</th>
           <td></td>
-          <td colspan="2"class="filled">
+          <td colspan="2"class="filled"
+            :style="{'width': barWidth(this.bottomLineMinP + this.allMetas)}">
             {{ this.bottomLineMinP + this.allMetas }}
           </td>
         </tr>
@@ -19,7 +22,8 @@
           <th scope="row">largest</th>
           <td></td>
           <td></td>
-          <td class="filled">
+          <td class="filled"
+            :style="{'width': barWidth(this.allMetas)}">
             {{ this.allMetas }}
           </td>
         </tr>
@@ -67,6 +71,7 @@ export default Vue.component("meta-analysis-bar-graph", {
   data() {
       return {
         width: 400,
+        chartWidth: 600,
         bottomLineOnly: 0,
         bottomLineMinP: 0,
         allMetas: 0
@@ -91,6 +96,11 @@ export default Vue.component("meta-analysis-bar-graph", {
       this.bottomLineMinP = summary["bottom-line;min_p"];
       this.allMetas = summary["bottom-line;min_p;largest"];
       return summary;
+    },
+    barWidth(barSize){
+      let total = this.bottomLineOnly + this.bottomLineMinP + this.allMetas;
+      let relativeWidth = barSize / total * this.width;
+      return `${relativeWidth}px`;
     }
   },
   watch: {
@@ -101,9 +111,6 @@ export default Vue.component("meta-analysis-bar-graph", {
 });
 </script>
 <style scoped>
-  .meta-graph {
-    width: 400px;
-  }
   .meta-graph td {
     text-align: center;
     border-left: 1px solid black;
