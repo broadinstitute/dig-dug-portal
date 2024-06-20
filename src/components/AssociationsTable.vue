@@ -39,9 +39,7 @@
                     </b-th>
                 </template>
                 <template #cell(inMetaTypes)="r">
-                    <span :class="`meta-types ${metaClass(r.item.inMetaTypes)}`">
-                        {{ r.item.inMetaTypes }}
-                    </span>
+                    &nbsp;
                 </template>
                 <template #cell(position)="r">
                     <a
@@ -194,7 +192,13 @@ export default Vue.component("AssociationsTable", {
         fields() {
             let metaTypes = {
                 key: "inMetaTypes",
-                label: ""
+                label: "",
+                tdClass(x){
+                    return x === "bottom-line" ? "meta bottom-line-only"
+                        : x === "bottom-line;min_p" ? "meta bottom-line-min-p"
+                        : x === "bottom-line;min_p;largest" ? "meta all-meta-types"
+                        : "";
+                }
             };
             let startingFields = this.showBottomLine ? [metaTypes] : [];
             let fields = startingFields.concat(this.baseFields);
@@ -368,23 +372,20 @@ export default Vue.component("AssociationsTable", {
 
             return 2 * pdf;
         },
-        metaClass(inMetaTypes){
-            return inMetaTypes === "bottom-line" ? "bottom-line-only"
-                : inMetaTypes === "bottom-line;min_p" ? "bottom-line-min-p"
-                : inMetaTypes === "bottom-line;min_p;largest" ? "all-meta-types"
-                : "";
-        }
     },
 });
 </script>
-<style scoped>
-    span.bottom-line-only {
+<style>
+    td.meta {
+        width: 10px;
+    }
+    td.bottom-line-only {
         background-color: #6dcff6;
     }
-    span.bottom-line-min-p {
+    td.bottom-line-min-p {
         background-color: #8781bd;
     }
-    span.all-meta-types {
+    td.all-meta-types {
         background-color: #b6aaa7;
     }
 </style>
