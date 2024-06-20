@@ -22,7 +22,6 @@
                 <template #thead-top="data">
                     <b-th v-if="showBottomLine"
                         :colspan="1">
-                        Meta Types
                     </b-th>
                     <b-th :colspan="!!showChiSquared ? 6 : 5">
                         <span class="sr-only">Variant</span>
@@ -38,6 +37,11 @@
                             phenotype.description
                         }}</span>
                     </b-th>
+                </template>
+                <template #cell(inMetaTypes)="r">
+                    <span :class="`meta-types ${metaClass(r.item.inMetaTypes)}`">
+                        {{ r.item.inMetaTypes }}
+                    </span>
                 </template>
                 <template #cell(position)="r">
                     <a
@@ -190,7 +194,7 @@ export default Vue.component("AssociationsTable", {
         fields() {
             let metaTypes = {
                 key: "inMetaTypes",
-                label: "metatypes"
+                label: ""
             };
             let startingFields = this.showBottomLine ? [metaTypes] : [];
             let fields = startingFields.concat(this.baseFields);
@@ -364,6 +368,23 @@ export default Vue.component("AssociationsTable", {
 
             return 2 * pdf;
         },
+        metaClass(inMetaTypes){
+            return inMetaTypes === "bottom-line" ? "bottom-line-only"
+                : inMetaTypes === "bottom-line;min_p" ? "bottom-line-min-p"
+                : inMetaTypes === "bottom-line;min_p;largest" ? "all-meta-types"
+                : "";
+        }
     },
 });
 </script>
+<style scoped>
+    span.bottom-line-only {
+        background-color: #6dcff6;
+    }
+    span.bottom-line-min-p {
+        background-color: #8781bd;
+    }
+    span.all-meta-types {
+        background-color: #b6aaa7;
+    }
+</style>
