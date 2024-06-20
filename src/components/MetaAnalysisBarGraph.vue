@@ -4,33 +4,48 @@
       <table class="meta-graph">
         <tr class="bottom-line">
           <th scope="row">bottom-line</th>
-          <td class="filled"></td>
-          <td class="filled"></td>
-          <td class="filled">{{ this.bottomLineOnly + this.bottomLineMinP + this.allMetas }}</td>
+          <td colspan="3" class="filled">
+            {{ this.bottomLineOnly + this.bottomLineMinP + this.allMetas }}
+          </td>
         </tr>
         <tr class="min-p">
           <th scope="row">min_p</th>
           <td></td>
-          <td class=filled></td>
-          <td class=filled>{{ this.bottomLineMinP + this.allMetas }}</td>
+          <td colspan="2"class="filled">
+            {{ this.bottomLineMinP + this.allMetas }}
+          </td>
         </tr>
         <tr class="largest">
           <th scope="row">largest</th>
           <td></td>
           <td></td>
-          <td class="filled">{{ this.allMetas }}</td>
+          <td class="filled">
+            {{ this.allMetas }}
+          </td>
         </tr>
-        <tr class="thin-bar">
+        <tr class="empty-bar">
           <th scope="row"></th>
-          <td></td>
-          <td></td>
-          <td></td>
+          <td class="summary1"></td>
+          <td class="summary2"></td>
+          <td class="summary3"></td>
         </tr>
         <tr class="summary">
           <th scope="row"></th>
-          <td>{{ this.bottomLineOnly }}</td>
-          <td>{{ this.bottomLineMinP }}</td>
-          <td>{{ this.allMetas }}</td>
+          <td>
+            <span class="summary1">
+              {{ this.bottomLineOnly }}
+            </span>
+          </td>
+          <td>
+            <span class="summary2">
+              {{ this.bottomLineMinP }}
+            </span>
+          </td>
+          <td>
+            <span class="summary3">
+              {{ this.allMetas }}
+            </span>
+          </td>
         </tr>
       </table>
   </div>
@@ -90,6 +105,7 @@ export default Vue.component("meta-analysis-bar-graph", {
     width: 400px;
   }
   .meta-graph td {
+    text-align: center;
     border-left: 1px solid black;
     border-right: 1px solid black;
   }
@@ -101,5 +117,22 @@ export default Vue.component("meta-analysis-bar-graph", {
   }
   .meta-graph .largest td.filled {
     background-color: #fff200;
+  }
+  .empty-bar {
+    height: 10px;
+  }
+  .summary1 {
+    background-color: #6dcff6;
+  }
+  .summary2 {
+    background-color: #8781bd;
+  }
+  .summary3 {
+    background-color: #b6aaa7;
+  }
+  .summary td span {
+    border-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 </style>
