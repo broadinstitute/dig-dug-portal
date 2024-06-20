@@ -3,18 +3,25 @@
       <h5>Meta-analysis types</h5>
       <table class="meta-graph"
         :style="{'width': `${chartWidth}px`}">
+        <colgroup>
+          <col class="header-col" />
+          <col class="bottom-line-col"
+            :style="{'width': barWidth(this.bottomLineOnly)}" />
+          <col class="bottom-line-min-p-col" 
+            :style="{'width': barWidth(this.bottomLineMinP)}" />
+          <col class="all-metas-col"
+            :style="{'width': barWidth(this.allMetas)}" />
+        </colgroup>
         <tr class="bottom-line">
           <th scope="row">bottom-line</th>
-          <td colspan="3" class="filled"
-            :style="{'width': barWidth(this.bottomLineOnly + this.bottomLineMinP + this.allMetas)}">
+          <td colspan="3" class="filled">
             {{ this.bottomLineOnly + this.bottomLineMinP + this.allMetas }}
           </td>
         </tr>
         <tr class="min-p">
           <th scope="row">min_p</th>
           <td></td>
-          <td colspan="2"class="filled"
-            :style="{'width': barWidth(this.bottomLineMinP + this.allMetas)}">
+          <td colspan="2"class="filled">
             {{ this.bottomLineMinP + this.allMetas }}
           </td>
         </tr>
@@ -22,8 +29,7 @@
           <th scope="row">largest</th>
           <td></td>
           <td></td>
-          <td class="filled"
-            :style="{'width': barWidth(this.allMetas)}">
+          <td class="filled">
             {{ this.allMetas }}
           </td>
         </tr>
@@ -139,7 +145,7 @@ export default Vue.component("meta-analysis-bar-graph", {
   }
   .summary td span {
     border-radius: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
+    /*padding-left: 10px;
+    padding-right: 10px;*/
   }
 </style>
