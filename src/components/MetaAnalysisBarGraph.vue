@@ -39,19 +39,26 @@
           <td class="summary2"></td>
           <td class="summary3"></td>
         </tr>
+      </table>
+      <table :style="{'width': `${chartWidth}px`}">
         <tr class="summary">
-          <th scope="row"></th>
-          <td>
+          <th scope="row" 
+            :style="{'width': `${chartWidth-width}px`}">
+          </th>
+          <td
+            :style="{'width': barWidth(this.bottomLineOnly, true)}">
             <span class="summary1">
               {{ this.bottomLineOnly }}
             </span>
           </td>
-          <td>
+          <td
+            :style="{'width': barWidth(this.bottomLineMinP, true)}">
             <span class="summary2">
               {{ this.bottomLineMinP }}
             </span>
           </td>
-          <td>
+          <td
+            :style="{'width': barWidth(this.allMetas, true)}">
             <span class="summary3">
               {{ this.allMetas }}
             </span>
@@ -113,9 +120,13 @@ export default Vue.component("meta-analysis-bar-graph", {
       this.allMetas = summary["bottom-line;min_p;largest"];
       return summary;
     },
-    barWidth(barSize){
+    barWidth(barSize, minWidth = false){
       let total = this.bottomLineOnly + this.bottomLineMinP + this.allMetas;
-      let relativeWidth = barSize / total * this.width;
+      let relativeWidth = barSize / total;
+      if (relativeWidth < 0.07 && minWidth){
+        relativeWidth = 0.07;
+      }
+      relativeWidth = relativeWidth * this.width;
       return `${relativeWidth}px`;
     }
   },
@@ -148,6 +159,9 @@ export default Vue.component("meta-analysis-bar-graph", {
   .empty-bar {
     height: 10px;
   }
+  .summary td {
+    text-align: center;
+  }
   .summary1 {
     background-color: #6dcff6;
   }
@@ -159,5 +173,7 @@ export default Vue.component("meta-analysis-bar-graph", {
   }
   .summary td span {
     border-radius: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
   }
 </style>
