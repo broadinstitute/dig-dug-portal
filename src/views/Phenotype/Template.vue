@@ -149,6 +149,20 @@
                             <filter-effect-direction-control :field="'beta'">
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
+                            <filter-enumeration-control
+                                :field="'inMetaTypes'"
+                                :options="
+                                    $store.state.associations.data.map(
+                                        (association) => association.inMetaTypes
+                                    )
+                                "
+                                :label-formatter="
+                                    (metaTypes) =>
+                                        $parent.maFormatter(metaTypes)
+                                "
+                            >
+                                <div class="label">Meta-analysis</div>
+                            </filter-enumeration-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <documentation
@@ -156,7 +170,7 @@
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
                                 <meta-analysis-bar-graph
-                                    :graphData="
+                                    :graph-data="
                                         !$store.state.ancestry
                                             ? $store.state.associations.data
                                             : $store.state.ancestryGlobalAssoc
@@ -165,18 +179,20 @@
                                     :filter="filter"
                                 >
                                 </meta-analysis-bar-graph>
-                                <associations-table
-                                    :phenotypes="[$store.state.phenotype]"
-                                    :associations="
-                                        !$store.state.ancestry
-                                            ? $store.state.associations.data
-                                            : $store.state.ancestryGlobalAssoc
-                                                  .data
-                                    "
-                                    :filter="filter"
-                                    :per-page="10"
-                                    :showBottomLine="true"
-                                ></associations-table>
+                                <div style="margin-top: -2rem">
+                                    <associations-table
+                                        :phenotypes="[$store.state.phenotype]"
+                                        :associations="
+                                            !$store.state.ancestry
+                                                ? $store.state.associations.data
+                                                : $store.state
+                                                      .ancestryGlobalAssoc.data
+                                        "
+                                        :filter="filter"
+                                        :per-page="10"
+                                        :showBottomLine="true"
+                                    ></associations-table>
+                                </div>
                             </template>
                         </criterion-function-group>
                     </div>

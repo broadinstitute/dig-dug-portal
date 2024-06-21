@@ -92,17 +92,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-    data() {
-        return {
-            phenotypeSearchKey: null,
-            newPhenotypeSearchKey: null,
-            hidePValueFilter: true,
-        };
-    },
     methods: {
         ...uiUtils,
         ...sessionUtils,
@@ -112,6 +101,12 @@ new Vue({
         closeAlert,
         intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        maFormatter(value) {
+            return value
+                .split(";")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" + ");
+        },
         setSelectedPhenotype(PHENOTYPE) {
             this.newPhenotypeSearchKey = PHENOTYPE.description;
             this.phenotypeSearchKey = null;
@@ -132,6 +127,17 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
+    data() {
+        return {
+            phenotypeSearchKey: null,
+            newPhenotypeSearchKey: null,
+            hidePValueFilter: true,
+        };
     },
 
     computed: {
