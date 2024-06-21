@@ -1,12 +1,19 @@
 <template>
     <div>
         <div v-if="tableData.length > 0">
-            <div class="text-right mb-2">
-                <data-download
-                    :data="sortedAssociations"
-                    filename="associations"
-                ></data-download>
-            </div>
+            <b-row class="mb-2">
+                <b-col class="d-flex align-items-center">
+                    <strong class="mr-2">Total Rows:</strong>
+                    {{ tableData.length }}</b-col
+                >
+                <b-col class="text-right"
+                    ><data-download
+                        :data="sortedAssociations"
+                        filename="associations"
+                    ></data-download
+                ></b-col>
+            </b-row>
+
             <b-table
                 :class="!!showBottomLine ? 'assoc-table-bottom-line' : ''"
                 hover
