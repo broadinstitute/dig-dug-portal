@@ -21,15 +21,13 @@
                         <div class="label">Begin new search</div>
                         <research-single-search
                             :single-search-config="null"
-                            :phenotypes="$parent.phenotypesInSession
-                                "
+                            :phenotypes="$parent.phenotypesInSession"
                             :utils="$parent.utilsBox"
                         ></research-single-search>
                     </div>
                 </search-header-wrapper>
                 <div class="card mdkp-card">
                     <div class="card-body temporary-card">
-                        
                         <documentation
                             name="tissue.explore.subheader"
                             :content-fill="$parent.documentationMap"
@@ -41,7 +39,9 @@
                     <div class="card-body">
                         <h4>
                             {{
-                                `Gene expression for ${$parent.tissueFormatter($parent.tissue)}`
+                                `Gene expression for ${$parent.tissueFormatter(
+                                    $parent.tissue
+                                )}`
                             }}
                         </h4>
                         <documentation
@@ -50,21 +50,23 @@
                         ></documentation>
                         <criterion-function-group>
                             <filter-greater-control
-								class="filter-col-md"
-								field="meanTpm"
-							>
-								<div>
-									<strong>Mean TPM (&ge;)</strong>
-								</div>
-							</filter-greater-control>
+                                class="filter-col-md"
+                                field="meanTpm"
+                            >
+                                <div>
+                                    <strong>Mean TPM (&ge;)</strong>
+                                </div>
+                            </filter-greater-control>
                             <filter-less-control
-								class="filter-col-md"
-								field="H"
-							>
-								<div>
-									<strong>Genericity (&le;)</strong>
-								</div>
-							</filter-less-control>
+                                class="filter-col-md"
+                                field="H"
+                                :pill-formatter="
+                                    (filterDefinition) =>
+                                        `genericity ≤ ${filterDefinition.threshold}`
+                                "
+                            >
+                                <div class="label">Genericity (&le;)</div>
+                            </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <scatterplot
                                     v-if="$parent.tissueData.length > 0"
@@ -74,6 +76,7 @@
                                     :filter="filter"
                                 >
                                 </scatterplot>
+                                <div class="mt-4"></div>
                                 <tissue-expression-table
                                     :tissueData="$parent.tissueData"
                                     :tissue="$parent.tissue"
@@ -100,7 +103,7 @@
     </div>
 </template>
 
-<style>
+<style scoped>
 .row .pagination.b-pagination {
     border: none !important;
     margin-bottom: 10px !important;
@@ -116,5 +119,9 @@
 
 tr.b-table-details > td {
     padding: 0 !important;
+}
+
+div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
+    background-color: #14a433;
 }
 </style>
