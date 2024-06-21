@@ -2416,3 +2416,17 @@ span.spacer-5 {
 }
 
 /* BYOR stuff */
+
+/* Associations table color coding - can't do scoped because it is within table template*/
+.assoc-table-bottom-line td.meta {
+    width: 10px;
+}
+.assoc-table-bottom-line td.bottom-line-only {
+    background-color: #6dcff6;
+}
+.assoc-table-bottom-line td.bottom-line-min-p {
+    background-color: #8781bd;
+}
+.assoc-table-bottom-line td.all-meta-types {
+    background-color: #b6aaa7;
+}
