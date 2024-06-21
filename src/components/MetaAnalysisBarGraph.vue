@@ -1,7 +1,7 @@
 <template>
     <div>
-        <h5>Meta-analysis types</h5>
         <table class="meta-graph" :style="{ width: `${chartWidth}px` }">
+            <th colspan="4" class="text-center">Meta-analysis types</th>
             <colgroup>
                 <col class="header-col" />
                 <col
@@ -52,17 +52,29 @@
                     :style="{ width: `${chartWidth - width}px` }"
                 ></th>
                 <td :style="{ width: barWidth(bottomLineOnly, true) }">
-                    <span class="summary1">
+                    <span
+                        v-b-tooltip.hover
+                        title="bottom-line only"
+                        class="summary1"
+                    >
                         {{ bottomLineOnly }}
                     </span>
                 </td>
-                <td :style="{ width: barWidth(this.bottomLineMinP, true) }">
-                    <span class="summary2">
+                <td :style="{ width: barWidth(bottomLineMinP, true) }">
+                    <span
+                        v-b-tooltip.hover
+                        title="bottom-line + min_p"
+                        class="summary2"
+                    >
                         {{ bottomLineMinP }}
                     </span>
                 </td>
-                <td :style="{ width: barWidth(this.allMetas, true) }">
-                    <span class="summary3">
+                <td :style="{ width: barWidth(allMetas, true) }">
+                    <span
+                        v-b-tooltip.hover
+                        title="bottom-line + min_p + largest"
+                        class="summary3"
+                    >
                         {{ allMetas }}
                     </span>
                 </td>
@@ -178,5 +190,6 @@ export default Vue.component("meta-analysis-bar-graph", {
     border-radius: 10px;
     padding-left: 5px;
     padding-right: 5px;
+    cursor: pointer;
 }
 </style>
