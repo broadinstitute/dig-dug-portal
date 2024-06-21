@@ -7,7 +7,7 @@
       small
       responsive="sm"
       :items="tableData"
-      sort-by="meanTpm"
+      sort-by="Q"
       :sort-desc="true"
       :fields="newTableFields"
       :per-page="perPage"
@@ -23,7 +23,7 @@
           <b-button
               variant="outline-primary"
               size="sm"
-              @click="row.toggleDetails()"
+              @click="showEvidence(row)"
           >
               {{ row.detailsShowing ? "Hide" : "Show" }} Datasets
           </b-button>
@@ -65,22 +65,29 @@
               datasetDetails: {},
               newTableFields: [
                   { key: "gene",
-                      label: "Gene",
-                      sortable: true,
-                      tdClass: "gene-findable" },
+                    label: "Gene",
+                    sortable: true,
+                    tdClass: "gene-findable" },
                   { key: "nSamples",
-                      label: "Samples",
-                      sortable: true },
+                    label: "Samples",
+                    sortable: true },
                   { key: "meanTpm",
-                      label: "Mean TPM",
-                      sortable: true,
-                      formatter: Formatters.tpmFormatter },
-                  { key: "show_datasets"}
+                    label: "Mean TPM",
+                    sortable: true,
+                    formatter: Formatters.tpmFormatter },
+                  { key: "Q",
+                    label: "Combined score",
+                    sortable: true,
+                    formatter: Formatters.tpmFormatter },
+                  { key: "H",
+                    label: "Entropy (genericity)",
+                    sortable: true,
+                    formatter: Formatters.pValueFormatter },
+                  { key: "show_datasets",
+                    label: "Datasets"
+                  }
               ],
           };
-      },
-      mounted() {
-          this.populateEvidence(this.currentGenes);
       },
       computed: {
         tableData(){
@@ -96,8 +103,9 @@
       },
       methods: {
         tissueFormatter: Formatters.tissueFormatter,
-        async showEvidence(gene) {
-          if (gene) {
+        async showEvidence(row) {
+          if (row.item.gene) {
+              let gene = row.item.gene;
               //check if evidence object already has key equal gene
               if (!this.evidence[gene]) {
                   let data = await query("gene-expression", gene);
@@ -107,10 +115,7 @@
                   Vue.set(this.evidence, gene, this.parseData(data));
               }
           }
-        },
-        async populateEvidence(genes) {
-          await Promise.all(genes.map((gene) => this.showEvidence(gene)));
-          this.$emit( "geneDataReady", genes.flatMap(gene => this.evidence[gene]));
+          row.toggleDetails();
         },
         parseData(data){
           data.forEach((entry) => {
@@ -135,11 +140,6 @@
         highlight(details) {
             this.$emit("highlight", details);
         },
-      },
-      watch: {
-          async currentGenes(latestGenes){
-              await this.populateEvidence(latestGenes);
-          }
       },
   });
 </script>

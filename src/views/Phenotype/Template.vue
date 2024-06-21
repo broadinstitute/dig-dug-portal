@@ -156,10 +156,14 @@
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
                                 <meta-analysis-bar-graph
-                                    :graphData="!$store.state.ancestry
-                                        ? $store.state.associations.data
-                                        : $store.state.ancestryGlobalAssoc.data"
-                                    :filter="filter">
+                                    :graphData="
+                                        !$store.state.ancestry
+                                            ? $store.state.associations.data
+                                            : $store.state.ancestryGlobalAssoc
+                                                  .data
+                                    "
+                                    :filter="filter"
+                                >
                                 </meta-analysis-bar-graph>
                                 <associations-table
                                     :phenotypes="[$store.state.phenotype]"
@@ -228,7 +232,7 @@
                                 :field="'totalEntropy'"
                                 :pill-formatter="
                                     (filterDefinition) =>
-                                        `genericity <= ${filterDefinition.threshold}`
+                                        `genericity ≤ ${filterDefinition.threshold}`
                                 "
                             >
                                 <div class="label">Genericity (&le;)</div>
