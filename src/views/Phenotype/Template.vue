@@ -155,6 +155,12 @@
                                     name="pheno.top_assoc.subheader"
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
+                                <meta-analysis-bar-graph
+                                    :graphData="!$store.state.ancestry
+                                        ? $store.state.associations.data
+                                        : $store.state.ancestryGlobalAssoc.data"
+                                    :filter="filter">
+                                </meta-analysis-bar-graph>
                                 <associations-table
                                     :phenotypes="[$store.state.phenotype]"
                                     :associations="
@@ -165,6 +171,7 @@
                                     "
                                     :filter="filter"
                                     :per-page="10"
+                                    :showBottomLine="true"
                                 ></associations-table>
                             </template>
                         </criterion-function-group>

@@ -8,7 +8,6 @@
                 hover
                 small
                 responsive="sm"
-                sort-icon-left
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"

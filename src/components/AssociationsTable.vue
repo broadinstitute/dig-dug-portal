@@ -8,10 +8,10 @@
                 ></data-download>
             </div>
             <b-table
+                :class="!!showBottomLine ? 'assoc-table-bottom-line' : ''"
                 hover
                 small
                 responsive="sm"
-                sort-icon-left
                 :items="groupedAssociations"
                 :fields="fields"
                 :per-page="perPage"
@@ -20,6 +20,9 @@
                 :sortable="true"
             >
                 <template #thead-top="data">
+                    <b-th v-if="showBottomLine"
+                        :colspan="1">
+                    </b-th>
                     <b-th :colspan="!!showChiSquared ? 6 : 5">
                         <span class="sr-only">Variant</span>
                     </b-th>
@@ -146,7 +149,7 @@ export default Vue.component("AssociationsTable", {
     components: {
         DataDownload,
     },
-    props: ["associations", "phenotypes", "filter", "exclusive"],
+    props: ["associations", "phenotypes", "filter", "exclusive", "showBottomLine"],
     data() {
         return {
             perPage: 10,
@@ -184,7 +187,19 @@ export default Vue.component("AssociationsTable", {
             return this.phenotypes.length > 1;
         },
         fields() {
-            let fields = this.baseFields;
+            let metaTypes = {
+                key: "inMetaTypes",
+                label: "",
+                formatter: (x) => "",
+                tdClass(x) {
+                    return x === "bottom-line" ? "bottom-line-only"
+                        : x === "bottom-line;min_p" ? "bottom-line-min-p"
+                        : x === "bottom-line;min_p;largest" ? "all-meta-types"
+                        : "";
+                }
+            };
+            let startingFields = this.showBottomLine ? [metaTypes] : [];
+            let fields = startingFields.concat(this.baseFields);
 
             // show chi^2 if > 1 phenotype
             if (this.phenotypes.length > 1) {
@@ -254,6 +269,7 @@ export default Vue.component("AssociationsTable", {
                         nearest: r.nearest,
                         alt: r.alt,
                         maf: r.maf,
+                        inMetaTypes: r.inMetaTypes
                     });
                 }
 
@@ -354,6 +370,16 @@ export default Vue.component("AssociationsTable", {
 
             return 2 * pdf;
         },
+        backgroundColor(x){
+            let bottomLineOnly = '#6dcff6';
+            let bottomLineMinP = '#8781bd';
+            let allMetaTypes = '#b6aaa7';
+            let fallback = '#ffffff'
+            return x === "bottom-line" ? "bottom-line-only"
+                : x === "bottom-line;min_p" ? "bottom-line-min-p"
+                : x === "bottom-line;min_p;largest" ? "all-meta-types"
+                : "";
+        }
     },
 });
 </script>
