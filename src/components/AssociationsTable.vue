@@ -133,8 +133,8 @@
 @import url("/css/table.css");
 div.assoc-table-bottom-line >>> table.table-sm th:first-child,
 div.assoc-table-bottom-line >>> table.table-sm td:first-child {
-    width: 5px;
-    max-width: 5px;
+    width: 10px;
+    max-width: 10px;
     padding: 0;
 }
 </style>
