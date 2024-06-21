@@ -20,8 +20,7 @@
                 :sortable="true"
             >
                 <template #thead-top="data">
-                    <b-th v-if="showBottomLine"
-                        :colspan="1">
+                    <b-th v-if="showBottomLine" :colspan="1" class="bl-bar">
                     </b-th>
                     <b-th :colspan="!!showChiSquared ? 6 : 5">
                         <span class="sr-only">Variant</span>
@@ -123,8 +122,14 @@
     </div>
 </template>
 
-<style>
+<style scoped>
 @import url("/css/table.css");
+div.assoc-table-bottom-line >>> table.table-sm th:first-child,
+div.assoc-table-bottom-line >>> table.table-sm td:first-child {
+    width: 5px;
+    max-width: 5px;
+    padding: 0;
+}
 </style>
 
 <script>
@@ -149,7 +154,13 @@ export default Vue.component("AssociationsTable", {
     components: {
         DataDownload,
     },
-    props: ["associations", "phenotypes", "filter", "exclusive", "showBottomLine"],
+    props: [
+        "associations",
+        "phenotypes",
+        "filter",
+        "exclusive",
+        "showBottomLine",
+    ],
     data() {
         return {
             perPage: 10,
@@ -192,11 +203,14 @@ export default Vue.component("AssociationsTable", {
                 label: "",
                 formatter: (x) => "",
                 tdClass(x) {
-                    return x === "bottom-line" ? "bottom-line-only"
-                        : x === "bottom-line;min_p" ? "bottom-line-min-p"
-                        : x === "bottom-line;min_p;largest" ? "all-meta-types"
+                    return x === "bottom-line"
+                        ? "bottom-line-only"
+                        : x === "bottom-line;min_p"
+                        ? "bottom-line-min-p"
+                        : x === "bottom-line;min_p;largest"
+                        ? "all-meta-types"
                         : "";
-                }
+                },
             };
             let startingFields = this.showBottomLine ? [metaTypes] : [];
             let fields = startingFields.concat(this.baseFields);
@@ -269,7 +283,7 @@ export default Vue.component("AssociationsTable", {
                         nearest: r.nearest,
                         alt: r.alt,
                         maf: r.maf,
-                        inMetaTypes: r.inMetaTypes
+                        inMetaTypes: r.inMetaTypes,
                     });
                 }
 
@@ -370,16 +384,19 @@ export default Vue.component("AssociationsTable", {
 
             return 2 * pdf;
         },
-        backgroundColor(x){
-            let bottomLineOnly = '#6dcff6';
-            let bottomLineMinP = '#8781bd';
-            let allMetaTypes = '#b6aaa7';
-            let fallback = '#ffffff'
-            return x === "bottom-line" ? "bottom-line-only"
-                : x === "bottom-line;min_p" ? "bottom-line-min-p"
-                : x === "bottom-line;min_p;largest" ? "all-meta-types"
+        backgroundColor(x) {
+            let bottomLineOnly = "#6dcff6";
+            let bottomLineMinP = "#8781bd";
+            let allMetaTypes = "#b6aaa7";
+            let fallback = "#ffffff";
+            return x === "bottom-line"
+                ? "bottom-line-only"
+                : x === "bottom-line;min_p"
+                ? "bottom-line-min-p"
+                : x === "bottom-line;min_p;largest"
+                ? "all-meta-types"
                 : "";
-        }
+        },
     },
 });
 </script>
