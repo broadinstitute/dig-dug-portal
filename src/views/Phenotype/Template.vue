@@ -179,18 +179,20 @@
                                     :filter="filter"
                                 >
                                 </meta-analysis-bar-graph>
-                                <associations-table
-                                    :phenotypes="[$store.state.phenotype]"
-                                    :associations="
-                                        !$store.state.ancestry
-                                            ? $store.state.associations.data
-                                            : $store.state.ancestryGlobalAssoc
-                                                  .data
-                                    "
-                                    :filter="filter"
-                                    :per-page="10"
-                                    :showBottomLine="true"
-                                ></associations-table>
+                                <div style="margin-top: -2rem">
+                                    <associations-table
+                                        :phenotypes="[$store.state.phenotype]"
+                                        :associations="
+                                            !$store.state.ancestry
+                                                ? $store.state.associations.data
+                                                : $store.state
+                                                      .ancestryGlobalAssoc.data
+                                        "
+                                        :filter="filter"
+                                        :per-page="10"
+                                        :showBottomLine="true"
+                                    ></associations-table>
+                                </div>
                             </template>
                         </criterion-function-group>
                     </div>
