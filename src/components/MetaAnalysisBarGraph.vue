@@ -20,14 +20,22 @@
             <tr class="bottom-line">
                 <th scope="row">bottom-line</th>
                 <td colspan="3" class="filled">
-                    {{ bottomLineOnly + bottomLineMinP + allMetas }}
+                    {{
+                        bottomLineOnly + bottomLineMinP + allMetas
+                            ? bottomLineOnly + bottomLineMinP + allMetas
+                            : ""
+                    }}
                 </td>
             </tr>
             <tr class="min-p">
                 <th scope="row">min_p</th>
                 <td></td>
                 <td colspan="2" class="filled">
-                    {{ bottomLineMinP + allMetas }}
+                    {{
+                        bottomLineMinP + allMetas
+                            ? bottomLineMinP + allMetas
+                            : ""
+                    }}
                 </td>
             </tr>
             <tr class="largest">
@@ -35,7 +43,7 @@
                 <td></td>
                 <td></td>
                 <td class="filled">
-                    {{ allMetas }}
+                    {{ allMetas ? allMetas : "" }}
                 </td>
             </tr>
             <tr class="empty-bar">
