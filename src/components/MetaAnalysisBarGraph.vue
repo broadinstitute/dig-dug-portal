@@ -190,6 +190,6 @@ export default Vue.component("meta-analysis-bar-graph", {
     border-radius: 10px;
     padding-left: 5px;
     padding-right: 5px;
-    cursor: pointer;
+    cursor: help;
 }
 </style>
