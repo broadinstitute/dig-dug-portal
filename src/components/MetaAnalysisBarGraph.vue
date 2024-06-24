@@ -6,15 +6,15 @@
                 <col class="header-col" />
                 <col
                     class="bottom-line-col"
-                    :style="{ width: barWidth(this.bottomLineOnly) }"
+                    :style="{ width: barWidth(bottomLineOnly) }"
                 />
                 <col
                     class="bottom-line-min-p-col"
-                    :style="{ width: barWidth(this.bottomLineMinP) }"
+                    :style="{ width: barWidth(bottomLineMinP) }"
                 />
                 <col
                     class="all-metas-col"
-                    :style="{ width: barWidth(this.allMetas) }"
+                    :style="{ width: barWidth(allMetas) }"
                 />
             </colgroup>
             <tr class="bottom-line">
