@@ -21,7 +21,7 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("scatterplot", {
   components: {
   },
-  props: ["plotData", "config", "filter", "plotName"],
+  props: ["plotData", "config", "filter", "plotName", "logScale"],
   data() {
       return {
         plotId: `scatterplot-${Math.floor(Math.random() * 10e9)}`,
@@ -228,6 +228,9 @@ export default Vue.component("scatterplot", {
   watch: {
     chartData(){
       this.drawChart();
+    },
+    logScale(){
+      console.log(this.logScale);
     }
   }
 });
