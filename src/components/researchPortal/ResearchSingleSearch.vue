@@ -140,6 +140,7 @@
 import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-single-search", {
 	props: ["singleSearchConfig", "phenotypes","utils"],
@@ -257,6 +258,7 @@ export default Vue.component("research-single-search", {
 		},
 	},
 	methods: {
+		...alertUtils,
 		resetSearch() {
 			this.singleSearchParam = null;
 
@@ -349,6 +351,20 @@ export default Vue.component("research-single-search", {
 			) {
 				//on search for a variant in chr3_12489012-C-T format
 				location.href = "/variant.html?variant=" + searchKey;
+			} else {
+				let anyResults = this.anyResults();
+				
+				if(anyResults === 0) {
+					console.log("There is no matching search options. ");
+					alertUtils.popAlert("There is no matching search options. ")
+				} else if (anyResults === 1) {
+
+				} else if (anyResults > 1) {
+
+				}
+
+				console.log("this.anyResults()", anyResults)
+				console.log("this.singleSearchResult",this.singleSearchResult)
 			}
 		},
 		isParameterActive(PARAM) {
