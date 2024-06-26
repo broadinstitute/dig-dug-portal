@@ -56,6 +56,16 @@
                                     <option :value="true">Logarithmic: log10(TPM+1)</option>
                                 </select>
                             </div>
+                            <filter-enumeration-control
+                                field="gene"
+                                placeholder="Select a gene ..."
+                                :options="
+                                    $parent.tissueData.map(d => d.gene)
+                                "
+                                :multiple="true"
+                            >
+                                <div class="label">Filter by Genes</div>
+                            </filter-enumeration-control>
                             <filter-greater-control
                                 class="filter-col-md"
                                 field="meanTpm"
