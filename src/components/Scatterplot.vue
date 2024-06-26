@@ -54,7 +54,6 @@ export default Vue.component("scatterplot", {
       data.forEach(entry => {
         entry[`${this.config.yField}_log`] = Math.log10(entry[this.config.yField] + 1);
       });
-      console.log(JSON.stringify(data));
       return data;
     },
     chartData(){
@@ -103,11 +102,11 @@ export default Vue.component("scatterplot", {
         ? `${this.config.yField}_log` 
         : this.config.yField;
 
-      // Use unfiltered data so the scales do not change
-      let xMin = this.extremeVal(this.config.xField);
-      let yMin = this.extremeVal(yFieldScaled);
-      let xMax = this.extremeVal(this.config.xField, false);
-      let yMax = this.extremeVal(yFieldScaled, false);
+      // Use chart data to adjust scale on the fly
+      let xMin = this.extremeVal(this.chartData, this.config.xField);
+      let yMin = this.extremeVal(this.chartData, yFieldScaled);
+      let xMax = this.extremeVal(this.chartData, this.config.xField, false);
+      let yMax = this.extremeVal(this.chartData, yFieldScaled, false);
       //xMin = xMin > 0 ? 0 : xMin;
       //yMin = yMin > 0 ? 0 : yMin;
       this.xMedian = (xMin + xMax) / 2;
@@ -161,8 +160,8 @@ export default Vue.component("scatterplot", {
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
     },
-    extremeVal(field, min=true){
-      let filteredData = this.dataWithLogs.filter(d => 
+    extremeVal(data, field, min=true){
+      let filteredData = data.filter(d => 
         d[field] !== undefined && !Number.isNaN(d[field]));
       let val = filteredData[0][field];
       filteredData.forEach(d => {
@@ -242,7 +241,6 @@ export default Vue.component("scatterplot", {
       this.drawChart();
     },
     logScale(){
-      console.log(this.logScale);
       this.drawChart();
     }
   }
