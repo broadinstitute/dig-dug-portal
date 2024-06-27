@@ -31,6 +31,18 @@ const popAlert = function (MESSAGE) {
     }, 2000);
 }
 
+const popModal = function (CONTENT) {
+
+    const el = document.createElement('div');
+    el.classList.add('modal-pop-up');
+    el.setAttribute("id", "modal_pop_up");
+    el.innerHTML = CONTENT;
+
+    document.body.appendChild(el);
+
+    let wrapper = document.getElementById("alert_pop_up");
+}
+
 const popSectionAlert = function (MESSAGE, ID) {
     let poppedAlerts = document.querySelectorAll(".section-alert-pop-up");
 
@@ -58,6 +70,7 @@ const popSectionAlert = function (MESSAGE, ID) {
 
 export default {
     popAlert,
-    popSectionAlert
+    popSectionAlert,
+    popModal
 };
 

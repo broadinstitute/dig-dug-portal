@@ -355,12 +355,78 @@ export default Vue.component("research-single-search", {
 				let anyResults = this.anyResults();
 				
 				if(anyResults === 0) {
-					console.log("There is no matching search options. ");
-					alertUtils.popAlert("There is no matching search options. ")
+					alertUtils.popModal("<strong><a href=''>There is no matching search options.</a></strong>")
 				} else if (anyResults === 1) {
+					
+					let reDirectUrl;
+
+					if (!this.singleSearchConfig) {
+
+						for (const [sKey, sValue] of Object.entries(this.singleSearchResult)) {
+							if(sValue.length == 1) {
+								switch (sKey) {
+									case 'phenotypes':
+										reDirectUrl = "/phenotype.html?phenotype=" + sValue[0].name;
+										break;
+									case 'genes':
+										reDirectUrl = "/gene.html?gene=" + sValue[0];
+										break;
+									case 'tissues':
+										reDirectUrl = "/tissue.html?tissue=" + sValue[0].value;
+										break;
+									case 'diseases':
+										reDirectUrl = "/disease.html?disease=" + sValue[0].value;
+										break;
+								}
+							}
+						}
+
+						location.href = reDirectUrl;
+					}
 
 				} else if (anyResults > 1) {
+					let modalContent = "";
+					if (!this.singleSearchConfig) {
+						for (const [sKey, sValue] of Object.entries(this.singleSearchResult)) {
+							if (sValue.length > 0) {
+								switch (sKey) {
+									case 'phenotypes':
+										sValue.map(s => {
+											modalContent += "<div><span>"+s.description+"</span><a href='/phenotype.html?phenotype="+s.name+"'>Search phenotype</a></div>"
+										})
+										
+										break;
+									case 'genes':
+										sValue.map(s => {
+											let region = this.utils.regionUtils.parseRegion(s, true, 50000);
+											let regionPageUrl =
+												"/region.html?chr=" +
+												region.chr +
+												"&end=" +
+												region.end +
+												"&start=" +
+												region.start;
 
+											modalContent += "<div><span>" + s + "</span><a href='/gene.html?gene=" + s + "'>Search gene</a>\
+												<a href='" + regionPageUrl + "'>Search region</a></div>"
+										})
+
+										break;
+									case 'tissues':
+										sValue.map(s => {
+											modalContent += "<div><span>" + s.label + "</span><a href='/tissue.html?tissue=" + s.value + "'>Search tissue</a></div>"
+										})
+
+										break;
+									case 'diseases':
+										break;
+
+								}
+							}
+						}
+
+						alertUtils.popModal(modalContent);
+					}
 				}
 
 				console.log("this.anyResults()", anyResults)
@@ -380,7 +446,7 @@ export default Vue.component("research-single-search", {
 						} else if(!!param['target page']['url']) {
 							returnParam.url = param['target page']['url'];
 						}
-						//returnParam.url = '/research.html?pageid='+param['target page']['page id'];
+						
 						returnParam.url += (!!param['target page']['entity'])? '&' + param['target page']['entity parameter'] + '='+param['target page']['entity']:"";
 						
 						if (!!param['target page']['page id']) {
@@ -398,10 +464,9 @@ export default Vue.component("research-single-search", {
 							} else if (!!param['target page']['url']) {
 								returnParam.url = param['target page']['url'];
 							}
-							/*returnParam.url = '/research.html?pageid='
-								+ param['target page']['page id'];*/
+							
 							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
-							//returnParam.url += '&' + param['parameter'] + '=';
+							
 							if (!!param['target page']['page id']) {
 								returnParam.url += '&' + param['parameter'] + '=';
 							} else if (!!param['target page']['url']) {
