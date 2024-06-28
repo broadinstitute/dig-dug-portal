@@ -355,7 +355,7 @@ export default Vue.component("research-single-search", {
 				let anyResults = this.anyResults();
 				
 				if(anyResults === 0) {
-					alertUtils.popModal("<strong><a href=''>There is no matching search options.</a></strong>")
+					alertUtils.popAlert("Your search term was not found. Please try again.")
 				} else if (anyResults === 1) {
 					
 					let reDirectUrl;
@@ -385,52 +385,8 @@ export default Vue.component("research-single-search", {
 					}
 
 				} else if (anyResults > 1) {
-					let modalContent = "";
-					if (!this.singleSearchConfig) {
-						for (const [sKey, sValue] of Object.entries(this.singleSearchResult)) {
-							if (sValue.length > 0) {
-								switch (sKey) {
-									case 'phenotypes':
-										sValue.map(s => {
-											modalContent += "<div><span>"+s.description+"</span><a href='/phenotype.html?phenotype="+s.name+"'>Search phenotype</a></div>"
-										})
-										
-										break;
-									case 'genes':
-										sValue.map(s => {
-											let region = this.utils.regionUtils.parseRegion(s, true, 50000);
-											let regionPageUrl =
-												"/region.html?chr=" +
-												region.chr +
-												"&end=" +
-												region.end +
-												"&start=" +
-												region.start;
-
-											modalContent += "<div><span>" + s + "</span><a href='/gene.html?gene=" + s + "'>Search gene</a>\
-												<a href='" + regionPageUrl + "'>Search region</a></div>"
-										})
-
-										break;
-									case 'tissues':
-										sValue.map(s => {
-											modalContent += "<div><span>" + s.label + "</span><a href='/tissue.html?tissue=" + s.value + "'>Search tissue</a></div>"
-										})
-
-										break;
-									case 'diseases':
-										break;
-
-								}
-							}
-						}
-
-						alertUtils.popModal(modalContent);
-					}
+					alertUtils.popAlert("Multiple search options are available. Please select one from the list.")
 				}
-
-				console.log("this.anyResults()", anyResults)
-				console.log("this.singleSearchResult",this.singleSearchResult)
 			}
 		},
 		isParameterActive(PARAM) {
@@ -591,6 +547,9 @@ export default Vue.component("research-single-search", {
 </script>
 
 <style scoped>
+/* alert UI */
+
+
 .reset-search {
 	position: absolute;
     top: 4px;
