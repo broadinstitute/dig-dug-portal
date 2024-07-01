@@ -2421,12 +2421,29 @@ span.spacer-5 {
 .assoc-table-bottom-line td.meta {
     width: 10px;
 }
+
 .assoc-table-bottom-line td.bottom-line-only {
     background-color: #6dcff6;
 }
+
 .assoc-table-bottom-line td.bottom-line-min-p {
     background-color: #8781bd;
 }
+
 .assoc-table-bottom-line td.all-meta-types {
     background-color: #b6aaa7;
+}
+
+.alert-pop-up {
+    position: fixed;
+    z-index: 200;
+    width: 400px;
+    top: 50%;
+    left: calc(50% - 200px);
+    background-color: #ffefef;
+    padding: 15px 30px;
+    border: solid 1px #ff8888;
+    border-radius: 5px;
+    font-size: 1.15em;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
