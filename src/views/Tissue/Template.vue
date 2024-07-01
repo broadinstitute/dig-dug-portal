@@ -49,6 +49,23 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
                         <criterion-function-group>
+                            <div class="col filter-col-md">
+                                <div class="label">Plot Scale</div>
+                                <select v-model="$parent.logScale" class="form-control">
+                                    <option :value="false">Linear</option>
+                                    <option :value="true">Logarithmic: log10(TPM+1)</option>
+                                </select>
+                            </div>
+                            <filter-enumeration-control
+                                field="gene"
+                                placeholder="Select a gene ..."
+                                :options="
+                                    $parent.tissueData.map(d => d.gene)
+                                "
+                                :multiple="true"
+                            >
+                                <div class="label">Filter by Genes</div>
+                            </filter-enumeration-control>
                             <filter-greater-control
                                 class="filter-col-md"
                                 field="meanTpm"
@@ -70,6 +87,7 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <scatterplot
                                     v-if="$parent.tissueData.length > 0"
+                                    :logScale="$parent.logScale"
                                     :plotData="$parent.tissueData"
                                     :config="$parent.plotConfig"
                                     :plotName="`${$parent.tissue}_gene_expression`"

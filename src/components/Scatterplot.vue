@@ -21,7 +21,7 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("scatterplot", {
   components: {
   },
-  props: ["plotData", "config", "filter", "plotName"],
+  props: ["plotData", "config", "filter", "plotName", "logScale"],
   data() {
       return {
         plotId: `scatterplot-${Math.floor(Math.random() * 10e9)}`,
@@ -49,8 +49,15 @@ export default Vue.component("scatterplot", {
     this.drawChart();
   },
   computed: {
+    dataWithLogs(){
+      let data = structuredClone(this.plotData);
+      data.forEach(entry => {
+        entry[`${this.config.yField}_log`] = Math.log10(entry[this.config.yField] + 1);
+      });
+      return data;
+    },
     chartData(){
-      let data = this.plotData;
+      let data = this.dataWithLogs;
       if (this.filter){
         data = data.filter(this.filter);
       }
@@ -91,11 +98,15 @@ export default Vue.component("scatterplot", {
       // Access the tooltip as an HTML element
       this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
 
-      // Use unfiltered data so the scales do not change
-      let xMin = this.extremeVal(this.config.xField);
-      let yMin = this.extremeVal(this.config.yField);
-      let xMax = this.extremeVal(this.config.xField, false);
-      let yMax = this.extremeVal(this.config.yField, false);
+      let yFieldScaled = this.logScale 
+        ? `${this.config.yField}_log` 
+        : this.config.yField;
+
+      // Use chart data to adjust scale on the fly
+      let xMin = this.extremeVal(this.chartData, this.config.xField);
+      let yMin = this.extremeVal(this.chartData, yFieldScaled);
+      let xMax = this.extremeVal(this.chartData, this.config.xField, false);
+      let yMax = this.extremeVal(this.chartData, yFieldScaled, false);
       //xMin = xMin > 0 ? 0 : xMin;
       //yMin = yMin > 0 ? 0 : yMin;
       this.xMedian = (xMin + xMax) / 2;
@@ -140,17 +151,17 @@ export default Vue.component("scatterplot", {
               ? this.xScale(0) 
               : this.xScale(d[this.config.xField]))
           .attr("cy", d => 
-            d[this.config.yField] === undefined 
-              ? this.yScale(0) 
-              : this.yScale(d[this.config.yField]))
+            d[yFieldScaled] === undefined 
+              ? this.yScale(0) // Is this an issue for log scale? 
+              : this.yScale(d[yFieldScaled]))
           .attr("r", 5)
           .attr("fill", d => "#007bff")
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
     },
-    extremeVal(field, min=true){
-      let filteredData = this.plotData.filter(d => 
+    extremeVal(data, field, min=true){
+      let filteredData = data.filter(d => 
         d[field] !== undefined && !Number.isNaN(d[field]));
       let val = filteredData[0][field];
       filteredData.forEach(d => {
@@ -227,6 +238,9 @@ export default Vue.component("scatterplot", {
   },
   watch: {
     chartData(){
+      this.drawChart();
+    },
+    logScale(){
       this.drawChart();
     }
   }

@@ -49,6 +49,7 @@ new Vue({
         return {
             tissue: keyParams.tissue || "",
             selectTissue: "",
+            logScale: false,
             plotConfig: {
                 xField: "H",
                 xAxisLabel: "Entropy (genericity)",
