@@ -1,6 +1,5 @@
 <template>
     <div v-html="documentationContent">
-        <slot></slot>
     </div>
 </template>
 
@@ -11,7 +10,7 @@ import documentationParser from "@/utils/documentationUtils";
 import queryString from "query-string";
 
 export default Vue.component("documentation", {
-    props: ["name", "group", "contentFill"],
+    props: ["name", "group", "contentFill", "contentMap"],
 
     data: context => {
         return {
@@ -19,9 +18,9 @@ export default Vue.component("documentation", {
             converter: null
         };
     },
-
+ 
     mounted() {
-        if (!!this.name) {
+        /* if (!!this.name) {
             // fetch the documentation data and resolve it in data
             let docGroup = !!this.group ? this.group : "md";
             let qs = queryString.stringify({
@@ -57,25 +56,37 @@ export default Vue.component("documentation", {
                         );
                     }
                 });
-        }
+        } */
     },
     computed: {
         documentationContent() {
-            if (!!this.content) {
-                return this.converter.makeHtml(this.content);
+            if (!!this.contentMap){
+                let content = this.contentMap[this.name].content;
+                let converter = documentationParser.makeConverter(
+                    content,
+                    this.contentFill,
+                    this.name
+                );
+                return converter.makeHtml(content);
             }
+            return "";
         }
     },
-    watch: {
-        contentFill: function(newContentFill) {
-            //create a new convertor that overides the one we are storing in data
-            this.converter = documentationParser.makeConverter(
-                this.content,
-                newContentFill,
-                this.name
-            );
-        }
-    },
+    // watch: {
+    //     contentMap(newContentMap){
+    //         if(!!newContentMap){
+    //             this.content = this.contentMap[this.name];
+    //         }
+    //     },
+    //     contentFill: function(newContentFill) {
+    //         //create a new convertor that overides the one we are storing in data
+    //         this.converter = documentationParser.makeConverter(
+    //             this.content,
+    //             newContentFill,
+    //             this.name
+    //         );
+    //     }
+    // },
 
     methods: {}
 });
