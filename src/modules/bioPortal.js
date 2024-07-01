@@ -51,6 +51,14 @@ export default {
                     state.phenotypes[i];
             }
         },
+        setDocumentations(state, data){
+            state.documentations = data;
+            state.documentationsMap = {};
+            for (let i in state.documentations) {
+                state.documentationsMap[state.documentations[i].name] =
+                    state.documentations[i];
+            }
+        },
         setAncestries(state, data) {
             state.ancestries = data;
             state.ancestryMap = {};
@@ -152,6 +160,18 @@ export default {
 
             // set the list of phenotypes
             commit("setPhenotypes", json.data);
+        },
+        async getDocumentations({state, commit}){
+            let qs = queryString.stringify(
+                { q: state.host.subDomain || "md" },
+                { skipNull: true }
+            );
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/documentations?${qs}`
+            ).then(resp => resp.json());
+
+            // set the list of phenotypes
+            commit("setDocumentations", json.data);
         },
         async getAncestries({ state, commit }){
             let qs = queryString.stringify(
