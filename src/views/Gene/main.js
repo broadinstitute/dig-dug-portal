@@ -549,7 +549,7 @@ new Vue({
             );
         },
 
-        documentationMap() {
+        docDetails() {
             let symbol = this.geneSymbol;
             let r = this.region;
 

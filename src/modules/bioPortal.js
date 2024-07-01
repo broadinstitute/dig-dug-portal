@@ -52,11 +52,10 @@ export default {
             }
         },
         setDocumentations(state, data){
-            state.documentations = data;
-            state.documentationsMap = {};
-            for (let i in state.documentations) {
-                state.documentationsMap[state.documentations[i].name] =
-                    state.documentations[i];
+            state.documentations = {};
+            for (let i in data) {
+                state.documentations[data[i].name] =
+                    data[i];
             }
         },
         setAncestries(state, data) {
