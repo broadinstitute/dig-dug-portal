@@ -351,8 +351,6 @@ new Vue({
                 "desc"
             );
 
-            //console.log(data);
-
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
                 data = sessionUtils.getInSession(
                     data,
@@ -362,9 +360,6 @@ new Vue({
             }
 
             let hugeMap = {};
-
-            //console.log('3', Math.log(3))
-            //console.log('30', Math.log(30))
 
             for (let i in data) {
                 const score = data[i];
@@ -571,9 +566,6 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
-        documentationsMap(){
-            return this.$store.state.bioPortal.documentationsMap;
-        }
     },
 
     watch: {
@@ -657,8 +649,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDocumentations");
 
         this.pushCriterionPhenotype("T2D");
-
-        console.log("gene name", this.$store.state.geneName);
         this.checkGeneName(this.$store.state.geneName);
     },
 
@@ -676,8 +666,6 @@ new Vue({
             let gene = await regionUtils.geneSymbol(KEY);
 
             if (!!gene && gene != KEY) {
-                console.log("gene", gene);
-                console.log("not a gene symbol!!");
                 document.getElementById("invalidGeneMessage").innerHTML =
                     "Your search term is an alias name for gene symbol " +
                     gene +
@@ -752,7 +740,6 @@ new Vue({
         },
         filterPhenotype(newFilters) {
             this.phenotypeFilterList = newFilters;
-            console.log(JSON.stringify(this.phenotypeFilterList));
         },
         clearCriterion(criterion) {
             if (criterion === "transcript") {

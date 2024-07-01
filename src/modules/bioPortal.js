@@ -170,7 +170,7 @@ export default {
                 `${BIO_INDEX_HOST}/api/portal/documentations?${qs}`
             ).then(resp => resp.json());
 
-            // set the list of phenotypes
+            // set the list of documentations
             commit("setDocumentations", json.data);
         },
         async getAncestries({ state, commit }){

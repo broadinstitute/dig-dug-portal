@@ -111,6 +111,7 @@
                                             </tooltip-documentation>
                                         </h4>
                                         <div>{{ $parent.geneFunction }}</div>
+                                        <div>THIS IS IT: {{ $store.state.bioPortal.documentationsMap }}</div>
                                     </div>
                                     <div v-else>
                                         <h5>Gene function not found</h5>
