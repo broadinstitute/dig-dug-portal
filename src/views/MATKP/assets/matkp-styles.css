@@ -33,6 +33,13 @@ body.kp-default{
     .border-top{
         border-top: 1px solid black;
     }
+
+    .gold-bg{
+        background:#ffd10c;
+    }
+    .gold-txt{
+        color: #ffd10c;
+    }
     
     .mat-header, .mat-footer{
         flex: 0 0 auto;

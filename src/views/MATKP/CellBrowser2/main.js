@@ -13,6 +13,7 @@ import "../assets/matkp-styles.css"
 
 import matkpNav from "../components/matkp-nav.vue";
 import matkpFooter from "../components/matkp-footer.vue";
+import StackedBarChart from '../components/StackedBarChart.vue';
 
 import * as d3 from "d3";
 import * as _ from "lodash";
@@ -34,34 +35,35 @@ new Vue({
     },
     components: {
         matkpNav,
-        matkpFooter
+        matkpFooter,
+        StackedBarChart
     },
     data() {
       return {
         colorScaleIndex: d3.scaleOrdinal(colors),
+        colorIndex: 0,
+
         d: '::',
         rawData: null,
-        transformedData: null,
         fieldColors: null,
-        categoryOptions: [], // Replace with dynamic options if needed
-        calculationOptions: ['counts', 'relative_abundance', 'log2_fold_change'],
-        selectedCategories: {
-            categoryA: 'cell_type__custom', 
-            categoryB: 'sex', 
-            categoryC: 'bmi__group'
-        },
-        selectedCalculations: ['counts', 'relative_abundance'],
-        leftSelects: 1,
-        rightSelects: 1,
+        categoryCombos: {},
         categoriesLeft: ['cell_type__custom'],
-        categoriesRight: ['sex'],
+        categoriesRight: ['bmi__group'],
+        lockedCategoriesLeft: [],
+        lockedCategoriesRight: [],
         referenceField: null,
-        metrics: {},
-        fields: [],
-        items: [],
-        headerColumns2: null,
-        headerColumns3: null,
-        calcDir: ['xBCyA', 'xAyBC']
+        sortedItems: [],
+
+        headers: [],
+        headers2: [],
+
+        rows: [],
+        aRows: [],
+        bRows: [],
+        
+        footer: [],
+
+        
       };
     },
     created() {
@@ -69,19 +71,15 @@ new Vue({
         this.fetchFields();
     },
     watch:{
-        selectedCategories: {
-            handler(newVal, oldVal) {
-                console.log('--', newVal, oldVal);
-                this.calculateTable();
-            },
-            deep: true,
+    },
+    computed: {
+        listOfCategories: function() {
+            if(!this.rawData) return null;
+            const source = this.rawData["metadata_labels"];
+            const allCategories = Object.keys(source);
+            const filtered = allCategories.filter(category => source[category].length>1);
+            return filtered.sort();
         },
-        selectedCalculations: {
-            handler(newVal) {
-                this.calculateTable();
-            },
-            deep: true,
-        }
     },
     methods: {
         async fetchFields() {
@@ -92,8 +90,8 @@ new Vue({
                 console.log('rawData', rawData);
 
                 this.rawData = rawData;
-                this.categoryOptions = this.getCategories(rawData);
                 this.fieldColors = this.calcFieldColors(rawData);
+                console.log('fieldColors', this.fieldColors);
 
                 this.calculateTable();
                 
@@ -102,464 +100,254 @@ new Vue({
             }
         },
         calculateTable(){
-            //remove nulls
             const categories = {
                 left: this.categoriesLeft.filter(item => item !== null),
                 right: this.categoriesRight.filter(item => item !== null)
             }
-            //this.categories = categories;
             
-
-            console.log('!!',categories);
-
-            //this.transformedData = this.transformData2(this.rawData, this.selectedCategories)
-            this.transformedData = this.transformData3(this.rawData, categories);
-            if(this.selectedCalculations.includes('relative_abundance')) 
-                    this.calculatePercentages3(this.transformedData, categories);
-
-            if(this.selectedCategories.categoryB){
-                if(this.selectedCalculations.includes('log2_fold_change'))
-                    this.calculateLog2FoldChange(this.transformedData);
-            }
-
-            console.log('final', this.transformedData)
-
-            this.transformForBTable3(this.transformedData, categories);
-        },
-        getCategories(rawData){
-             return Object.keys(rawData["metadata_labels"]);
+            this.processData(this.rawData, categories);
         },
         calcFieldColors(rawData){
             const colors = {};
-            let colorIndex = 0;
             for(const [key, value] of Object.entries(rawData["metadata_labels"])){
                 colors[key] = {};
                 for(var i=0; i<value.length; i++){
-                    colors[key][value[i]] = {
-                        idx: i,
-                        color: this.colorScaleIndex(colorIndex)
-                    }
-                    colorIndex++;
+                    colors[key][value[i]] = this.colorScaleIndex(this.colorIndex)
+                    this.colorIndex++;
                 }
             }
-            console.log('colors', colors);
             return colors;
         },
-
-        transformData2(rawData, categories){
-            let { categoryA, categoryB, categoryC } = categories;
-
-            // populate labels arrays
-            let labelsA = Object.values(rawData.metadata_labels[categoryA]);
-            let labelsB = categoryB ? Object.values(rawData.metadata_labels[categoryB]) : [];
-            let labelsC = categoryC ? Object.values(rawData.metadata_labels[categoryC]) : [];
-
-            const matrix = {}
-            rawData.NAME.forEach((cellId, index) => {
-                const labelA = labelsA[rawData.metadata[categoryA][index]];
-                const labelB = categoryB ? labelsB[rawData.metadata[categoryB][index]] : -1;
-                const labelC = categoryC ? labelsC[rawData.metadata[categoryC][index]] : -1;
-
-                if(categoryA){
-                    const countLabelA = `${labelA}${this.d}_count`;
-                    if(!matrix[countLabelA]) matrix[countLabelA] = 0;
-                    matrix[countLabelA]++;
-                }
-                if(categoryB && !categoryC){
-                    const countLabelB = `${labelA}${this.d}${labelB}${this.d}_count`;
-                    if(!matrix[countLabelB]) matrix[countLabelB] = 0;
-                    matrix[countLabelB]++;
-                }
-                if(categoryB && categoryC){
-                    const countLabelC = `${labelA}${this.d}${labelB}${this.d}${labelC}${this.d}_count`;
-                    if(!matrix[countLabelC]) matrix[countLabelC] = 0;
-                    matrix[countLabelC]++;
-                }
-            });
-
-            console.log('counts', matrix);
-            return matrix;
-        },
-
-        //current data struct
-        /*
-        rawData = {
-            NAMES: [cell_id, cell_id, ...],                 //len: all cells
-            metadata: {
-                category: [label_idx, label_idx, ...],      //len: all cells
-                category: [label_idx, label_idx, ...],      //len: all cells
-                ...
-            },
-            metadata_labels: {
-                category: [label, label, ...],              //len: all labels in category
-                category: [label, label, ...],              //len: all labels in gategory
-                ...
+        calcCombinedFieldColors(comboCategory, fields){
+            const colors = {};
+            colors[comboCategory] = {};
+            for(var i=0; i<fields.length; i++){
+                colors[comboCategory][fields[i]] = this.colorScaleIndex(this.colorIndex)
+                this.colorIndex++;
             }
-        }
-        categories = {
-            left: ["category", "category", ...],            //row (index)
-            right: ["category", "category", ...]            //columns
-        }
-        */
-        //TODO: add param to accept aggregation function (or multiple)
-        //e.g. transformData2(rawData, categories, aggFunc)
-        //aggregationType: SUM, MEAN, MIN, MAX ...           //aggregation function
-        transformData3(rawData, categories) {
-            const { left: leftCategories, right: rightCategories } = categories;
-            const matrix = {};
-        
-            rawData.NAME.forEach((cellId, index) => {
-                // Construct the label for each cell using the left categories
-                const leftLabelParts = leftCategories.map(category => {
-                    const labelIndex = rawData.metadata[category][index];
-                    return rawData.metadata_labels[category][labelIndex];
-                });
-                const leftLabel = leftLabelParts.join(this.d);
-        
-                // Construct the label for each cell using the right categories
-                const rightLabelParts = rightCategories.map(category => {
-                    const labelIndex = rawData.metadata[category][index];
-                    return rawData.metadata_labels[category][labelIndex];
-                });
-                const rightLabel = rightLabelParts.join(this.d);
-        
-                // Create the left label and update the matrix count
-                const leftLabelCount = `${leftLabel}${this.d}_count`;
-                if (!matrix[leftLabelCount]) {
-                    matrix[leftLabelCount] = 0;
-                }
-                matrix[leftLabelCount]++;
-        
-                // Create the combined label for left and right and update the matrix count
-                const combinedLabelCount = `${leftLabel}${this.d}${rightLabel}${this.d}_count`;
-                if (!matrix[combinedLabelCount]) {
-                    matrix[combinedLabelCount] = 0;
-                }
-                matrix[combinedLabelCount]++;
-            });
-        
-            console.log('matrix', matrix);
-            return matrix;
+            console.log('calcCombinedFieldColors', colors);
+            return colors;
+        },
+        categoryString(category){
+            return category.join('|');
+        },
+        categoryKeys(category) {
+            if(!this.rawData) return [];
+            const isMulti = Array.isArray(category) && category.length>1;
+            if(!isMulti) return this.rawData["metadata_labels"][category];
+            return this.categoryCombos[category.join('|')];
+        },
+        categoryColors(category){
+            if(!category) return [];
+            return this.fieldColors ? Object.values(this.fieldColors[category]) : [];
         },
 
-        //TODO: generalize this method to perform calculations based on given category structure
-        //currently assumes AxBC format. 
-        //should be able to do BCxA, ABxBC
-        //ideally any length of categories A..NxB..N
-        calculatePercentages(flattenedObject, categories) {
-            const percentagesData = {};
+        processData(rawData, categories) {
+            const processedData = [];
 
-            for (const key in flattenedObject) {
-                const parts = key.split(this.d);
-                const depth = parts.length-1;
-                
-                if (depth===1) percentagesData[`${parts[0]}${this.d}_percent`] = (flattenedObject[key] / this.rawData.NAME.length * 100).toFixed(2);
-                if (depth===2) percentagesData[`${parts[0]}${this.d}${parts[1]}${this.d}_percent`] = (flattenedObject[key] / flattenedObject[`${parts[0]}${this.d}_count`] * 100).toFixed(2);
-                if (depth===3) percentagesData[`${parts[0]}${this.d}${parts[1]}${this.d}${parts[2]}${this.d}_percent`] = (flattenedObject[key] / flattenedObject[`${parts[0]}${this.d}_count`] * 100).toFixed(2);
+            const { NAME, metadata, metadata_labels } = rawData;
+            const allUserSelectedCategories = categories.left.concat(categories.right);
+
+            console.log('allUserSelectedCategories', allUserSelectedCategories)
+          
+            //process data based on user selected categories
+            for (let i = 0; i < NAME.length; i++) {
+              const record = {};
+              for (const cat in allUserSelectedCategories) {
+                const category = allUserSelectedCategories[cat];
+                if (metadata.hasOwnProperty(category)) {
+                  const labelIdx = metadata[category][i];
+                  const label = metadata_labels[category][labelIdx];
+                  record[category] = label;
+                }
+              }
+          
+              processedData.push(record);
             }
-            console.log(percentagesData);
-            this.transformedData  = {...this.transformedData, ...percentagesData};
-            //return percentagesData;
-        },
+          
+            console.log('processData', processedData);
 
-        calculatePercentages3(flattenedObject, categories) {
-            const { left: leftCategories, right: rightCategories } = categories;
-            const leftLength = leftCategories.length;
-            const rightLength = rightCategories.length;
-            const totalLength = leftLength + rightLength;
-        
-            const percentagesData = {};
-        
-            for (const key in flattenedObject) {
-                const parts = key.split(this.d);
-                const depth = parts.length - 1;
-                
-                if (depth <= leftLength) {
-                    // Percentages for left categories only
-                    const baseKey = parts.slice(0, depth).join(this.d) + this.d;
-                    const percentageKey = baseKey + '_percent';
-                    percentagesData[percentageKey] = (flattenedObject[key] / this.rawData.NAME.length * 100).toFixed(2);
-                } else {
-                    // Percentages for combined left and right categories
-                    const baseKey = parts.slice(0, leftLength).join(this.d) + this.d;
-                    const percentageKey = parts.slice(0, depth).join(this.d) + this.d + '_percent';
-                    percentagesData[percentageKey] = (flattenedObject[key] / flattenedObject[baseKey + '_count'] * 100).toFixed(2);
+            //clear previous data
+            this.headers = [];
+            this.headers2 = [];
+            this.rows = [];
+            this.footer = [];
+            this.sortedItems = [];
+            this.aRows = [];
+            this.bRows = [];
+
+            //generate tables from processed data
+            if(categories.left.length > 0 && categories.right.length > 0){
+                console.log('AB selected')
+                const crossTabData = this.crossTabulation(processedData, categories.left, categories.right);
+                console.log('crossTabulation', crossTabData);
+                this.frequencyCrossTable(crossTabData);
+            }
+
+            if(categories.left.length > 0){
+                console.log('A- selected')
+                const aFreq = this.frequencyDistribution(processedData, categories.left);
+                const aTable = this.frequencyTable(aFreq, categories.left);
+                this.aRows = aTable.rows;
+                console.log('A frequency', aFreq);
+                console.log('A distribution', aTable);
+                if(categories.right.length === 0){
+                    this.headers = aTable.header;
+                    this.rows = aTable.rows;
+                    this.sortedItems = aTable.rows;
+                    this.headers2 = [];
+                    this.footer = aTable.footer;
                 }
             }
-            
-            console.log('percentagesData', percentagesData);
-            this.transformedData = { ...this.transformedData, ...percentagesData };
-            // return percentagesData;
-        },
-        
-        //TODO: same as above
-        calculateLog2FoldChange(flattenedObject) {
-            const log2FoldChangeData = {};
-            let referenceField = null;
 
-            if(this.selectedCategories.categoryB && !this.selectedCategories.categoryC){
-                // Use first field in category if reference field if not provided
-                if (!referenceField) {
-                    const fieldsInCategoryB = Object.values(this.rawData.metadata_labels[this.selectedCategories.categoryB]).sort();
-                    referenceField = fieldsInCategoryB[0];
-                    this.referenceField = referenceField;
+            if(categories.right.length > 0){
+                console.log('-B selected')
+                const bFreq = this.frequencyDistribution(processedData, categories.right);
+                const bTable = this.frequencyTable(bFreq, categories.right);
+                this.bRows = bTable.rows;
+                console.log('B frequency', bFreq);
+                console.log('B distribution', bTable);
+                if(categories.left.length === 0){
+                    this.headers = bTable.header;
+                    this.rows = bTable.rows;
+                    this.sortedItems = bTable.rows;
+                    this.headers2 = [];
+                    this.footer = bTable.footer;
                 }
+            }
+        },
+
+        frequencyDistribution(data, category) {
+            const isMulti = Array.isArray(category) && category.length>1;
+
+            const result = data.reduce((acc, record) => {
+                //TODO: isMulti only assumes 2 catgories, make dynamic
+                const label = !isMulti ? record[category] : `${record[category[0]]}|${record[category[1]]}`;
+                if (!acc[label]) acc[label] = 0;
+                acc[label]++;
+                return acc;
+            }, {});
+
+            if(isMulti){
+                const combinedCategoryLabel = category.join('|');
+                const combinedFieldLabels = Object.keys(result);
+                if(!this.fieldColors[combinedCategoryLabel]){
+                    const combinedColors = this.calcCombinedFieldColors(combinedCategoryLabel, combinedFieldLabels);
+                    Vue.set(this.fieldColors, combinedCategoryLabel, combinedColors[combinedCategoryLabel]);
+                }
+                if(!this.categoryCombos[combinedCategoryLabel]){
+                    Vue.set(this.categoryCombos, combinedCategoryLabel, combinedFieldLabels);
+                }
+            }
+
+            return result;
+        },
+
+        crossTabulation(data, categoryA, categoryB) {
+            const isMultiA = Array.isArray(categoryA) && categoryA.length>1;
+            const isMultiB = Array.isArray(categoryB) && categoryB.length>1;
+            return data.reduce((acc, record) => {
+                //TODO: only assumes 2 catgories at most, make dynamic
+                const label1 = !isMultiA ? record[categoryA] : `${record[categoryA[0]]}|${record[categoryA[1]]}`;
+                const label2 = !isMultiB ? record[categoryB] : `${record[categoryB[0]]}|${record[categoryB[1]]}`;
             
-                // Calculate log2 fold change relative to the reference field
-                for (const key in flattenedObject) {
-                    const parts = key.split(this.d);
-                    const depth = parts.length - 1;
+                if (!acc[label1]) {
+                    acc[label1] = {};
+                }
+                if (!acc[label1][label2]) {
+                    acc[label1][label2] = 0;
+                }
+                acc[label1][label2]++;
             
-                    if (depth===2) {
-                        const currentCategory = parts[0];
-                        const currentField = parts[1];
-                        const currentCount = flattenedObject[`${currentCategory}${this.d}${currentField}${this.d}_count`];
-                        const referenceCount = flattenedObject[`${currentCategory}${this.d}${referenceField}${this.d}_count`];
-                        if (referenceCount > 0) {
-                            log2FoldChangeData[`${currentCategory}${this.d}${currentField}${this.d}_log2FoldChange`] = Math.log2(currentCount / referenceCount).toFixed(2);
-                        } else {
-                            log2FoldChangeData[`${currentCategory}${this.d}${currentField}${this.d}_log2FoldChange`] = '--';
-                        }
+                return acc;
+            }, {});
+        },
+
+        frequencyTable(data, categories){
+            const rows = [];
+            let grandTotal = 0;
+            const category = categories.join('|');
+            for(const [key, value] of Object.entries(data)){
+                const row = {[category]: key, 'Total': value};
+                grandTotal += value;
+                rows.push(row);
+            }
+            let keys = Object.keys(rows[0]);
+            const header = keys.map(key => (
+                { key, label: key, sortable: true}
+            ));
+            const footer = {[category]: 'Total'};
+            footer['Total'] = grandTotal;
+            return {rows, header, footer};
+        },
+
+        frequencyCrossTable(data){
+            const rows = [];
+            const totals = {};
+            let grandTotal = 0;
+
+            // all possible column keys
+            const allColumnKeys = new Set();
+            for (const value of Object.values(data)) {
+                for (const keyB of Object.keys(value)) {
+                    allColumnKeys.add(keyB);
+                }
+            }
+
+            // calculate the rows and keep track of column totals
+            for(const [key, value] of Object.entries(data)){
+                const row = {[this.categoriesLeft.join('|')]: key, 'Total': 0};
+
+                for (const keyB of allColumnKeys) {
+                    if (value.hasOwnProperty(keyB)) {
+                        row[keyB] = value[keyB];
+                        row['Total'] += value[keyB];
+                        if (!totals[keyB]) totals[keyB] = 0;
+                        totals[keyB] += value[keyB];
+                    } else {
+                        row[keyB] = 0;
                     }
                 }
+
+                grandTotal += row['Total'];
+                rows.push(row);
             }
 
-            if(this.selectedCategories.categoryB && this.selectedCategories.categoryC){
-                const categoryCombos = this.makeCategoryCombos(this.selectedCategories.categoryB, this.selectedCategories.categoryC).sort();
-                // Use first field in category if reference field if not provided
-                const combinedReferenceField = categoryCombos[0];
-                this.referenceField = combinedReferenceField;
-
-                for (const key in flattenedObject) {
-                    const parts = key.split(this.d);
-                    const depth = parts.length - 1;
-            
-                    if (depth===3) {
-                        const currentCategory = parts[0];
-                        const currentCombinedField = `${parts[1]}${this.d}${parts[2]}`;
-                        const currentCount = flattenedObject[`${currentCategory}${this.d}${currentCombinedField}${this.d}_count`];
-                        const referenceCount = flattenedObject[`${currentCategory}${this.d}${combinedReferenceField}${this.d}_count`];
-                        if (referenceCount > 0) {
-                            log2FoldChangeData[`${currentCategory}${this.d}${currentCombinedField}${this.d}_log2FoldChange`] = Math.log2(currentCount / referenceCount).toFixed(2);
-                        } else {
-                            log2FoldChangeData[`${currentCategory}${this.d}${currentCombinedField}${this.d}_log2FoldChange`] = '--';
-                        }
-                    }
-                }
+            // Add footer row for totals
+            const footerRow = {[this.categoriesLeft]: 'Total'};
+            for (const [key, value] of Object.entries(totals)) {
+                footerRow[key] = value;
             }
-        
-            console.log(log2FoldChangeData);
-            this.transformedData  = {...this.transformedData, ...log2FoldChangeData};
-            return log2FoldChangeData;
-        },
-        makeCategoryCombos(category1, category2){
-            const combinedLabels = [];
-            const category1Labels = Object.values(this.rawData.metadata_labels[category1]);
-            const category2Labels = Object.values(this.rawData.metadata_labels[category2]);
-            category1Labels.forEach(label1 => {
-                category2Labels.forEach(label2 => {
-                    combinedLabels.push(`${label1}${this.d}${label2}`);
-                })
-            })
-            return combinedLabels;
-        },
-        //TODO: generalize this method to perform calculations based on given category structure (same as above)
-        transformForBTable(flattenedObject, categories) {
-            const categoriesA = new Set();
-            var categoriesBC = new Set();
-            const data = {};
+            footerRow['Total'] = grandTotal;
 
-            const showCounts = this.selectedCalculations.includes('counts');
-            const showPct = this.selectedCalculations.includes('relative_abundance');
-            const showLog2FC = this.selectedCalculations.includes('log2_fold_change');
-        
-            // Extract unique categories
-            for (const key in flattenedObject) {
-                const parts = key.split(this.d);
-                categoriesA.add(parts[0]);
-                if (parts.length > 3) {
-                    categoriesBC.add(`${parts[1]}${this.d}${parts[2]}`);
-                }else if(parts.length > 2){
-                    categoriesBC.add(`${parts[1]}`);
-                }
-            }
-            categoriesBC = Array.from(categoriesBC).sort();
+            const firstRow = rows[0];
+            let keys = Object.keys(firstRow);
+            keys = keys.filter(key => key !== 'Total');
+            keys.push('Total');
 
-            console.log('categoriesA', categoriesA);
-            console.log('categoriesBC', categoriesBC);
-            console.log('selectedCalculations', this.selectedCalculations)
-        
-            // Populate rows
-            categoriesA.forEach(categoryA => {
-                //catA data
-                const row = { [this.selectedCategories.categoryA]: categoryA };
-                if(showCounts) row[`count`] = flattenedObject[`${categoryA}${this.d}_count`] || 0;
-                if(showPct) row[`percent`] = (flattenedObject[`${categoryA}${this.d}_percent`] || 0)+'%';
-                //catBC data
-                categoriesBC.forEach(categoryBC => {
-                    if(showCounts) row[`${categoryBC}${this.d}_count`] = flattenedObject[`${categoryA}${this.d}${categoryBC}${this.d}_count`] || 0;
-                    if(showPct) row[`${categoryBC}${this.d}_percentage`] = (flattenedObject[`${categoryA}${this.d}${categoryBC}${this.d}_percent`] || 0)+'%';
-                    if(showLog2FC) row[`${categoryBC}${this.d}_log2FoldChange`] = flattenedObject[`${categoryA}${this.d}${categoryBC}${this.d}_log2FoldChange`] || 0;
-                });
-                //add to data obj
-                data[categoryA] = row;
-            });
-            console.log('data', data);
-            // Convert data object to array
-            const rows = Object.values(data);
+            const headers = keys.map(key => (
+                { key, label: key, sortable: true}
+            ));
 
+            console.log('allColumnKeys', allColumnKeys, Object.keys(allColumnKeys).length)
 
-            // Create headers
-            //flat header
-            //catA headers
-            const headers = [{
-                key: this.selectedCategories.categoryA,
-                label: 'label',
-                class: showCounts || showPct ? 'bold' : 'bold border-right2',
-                thClass: showCounts || showPct ? '' : 'border-right2',
-            }];
-            if(showCounts) headers.push({key: `count`, label: 'count', class: `num bold ${!showPct ? 'border-right2' : ''}`, thClass: `${!showPct ? 'border-right2' : ''}`});
-            if(showPct) headers.push({key: 'percent', label: 'percent', class: 'num border-right2', thClass: 'border-right2'});
-            //catBC headers
-            categoriesBC.forEach(category => {
-                if(showCounts) headers.push({key: `${category}${this.d}_count`, label: 'count', class: 'num'});
-                if(showPct) headers.push({key: `${category}${this.d}_percentage`, label: 'percent', class: 'num'});
-                if(showLog2FC) headers.push({key: `${category}${this.d}_log2FoldChange`, label: 'log2FC', class: 'num', thClass: `${this.referenceField === category ? 'isRef' : ''}`});
-            });
+            //TODO: all additional headers should be added to a headers array of headers
+            //that way we dont need to keep track of the layers
+            const headers2 = [{label: '', colspan: 1}]
+            headers2.push({label: this.categoriesRight.join('|'), colspan:allColumnKeys.size})
+            //need an array of the B fields
+            /*rightFields?.forEach(leftCategory => {
+                headers2.push({label: `${leftCategory}`, colspan:categoryBCcolspan});
+            });*/
 
-            //TODO calculate colspans dunamically
-
-            const categoryAcolspan = 1 + showPct + showCounts;
-            const categoryBCcolspan = showCounts + showPct + showLog2FC;
-
-            const headers2 = [{label: this.selectedCategories.categoryA, colspan: categoryAcolspan}]
-            categoriesBC.forEach(category => {
-                headers2.push({label: `${category}`, colspan:categoryBCcolspan});
-            });
-
-            const headers3 = [{label: '', colspan: this.selectedCalculations.length + (this.selectedCalculations.includes('log2_fold_change') ? 0 : 1)}]
-            headers3.push({label: `${this.selectedCategories.categoryB}${ this.selectedCategories.categoryC ? '::'+this.selectedCategories.categoryC : ''}`, colspan: categoriesBC.length * this.selectedCalculations.length});
-            categoriesBC.forEach(category => {
-                //headers3.push({label: `${category}`, colspan:9});
-            });
-            
-            //set b-table data
-            this.fields = headers.map(header => ({ key: header.key, label: header.label, sortable: true, tdClass: header.class || '', thClass: header.thClass || '' }));
-            this.items = rows;
-
-            this.headerColumns2 = headers2;
-            this.headerColumns3 = headers3;
-
-            console.log('headers3', this.headerColumns3)
-            console.log('headers2', this.headerColumns2)
-            console.log('headers', headers)
-            console.log('rows', rows);
-        },
-
-        transformForBTable3(flattenedObject, categories) {
-            const { left: leftCategories, right: rightCategories } = categories;
-            const leftLength = leftCategories.length;
-
-            const leftFields = new Set();
-            var rightFields = new Set();
-
-            const data = {};
-
-            const showCounts = this.selectedCalculations.includes('counts');
-            const showPct = this.selectedCalculations.includes('relative_abundance');
-            const showLog2FC = this.selectedCalculations.includes('log2_fold_change');
-
-            //aggregate left/right fields by category
-            for (const key in flattenedObject) {
-                const parts = key.split(this.d);
-                const depth = parts.length - 1;
-                if (depth <= leftLength) {
-                    leftFields.add(parts.slice(0, depth).join(this.d));
-                } else {
-                    rightFields.add(parts.slice(leftLength, depth).join(this.d));
-                }
-            }
-            //sort right side
-            rightFields = Array.from(rightFields).sort();
-            //set to null if right fields empty
-            if(rightFields.length===1 && rightFields[0]==='') rightFields = null;
-
-            //if no left fields, no table
-            if(leftFields.size===0) {
-                this.fields = null;
-                this.items = null;
-                return;
-            }
-
-            console.log('leftFields', leftFields);
-            console.log('rightFields', rightFields);
-            console.log('selectedCalculations', this.selectedCalculations)
-        
-            // Populate rows
-            leftFields.forEach(leftCategory => {
-                //catA data
-                const row = { [leftCategories.join(this.d)]: leftCategory };
-                if(showCounts) row[`count`] = flattenedObject[`${leftCategory}${this.d}_count`] || 0;
-                if(showPct) row[`percent`] = (flattenedObject[`${leftCategory}${this.d}_percent`] || 0)+'%';
-                //catBC data
-                rightFields?.forEach(rightCategory => {
-                    if(showCounts) row[`${rightCategory}${this.d}_count`] = flattenedObject[`${leftCategory}${this.d}${rightCategory}${this.d}_count`] || 0;
-                    if(showPct) row[`${rightCategory}${this.d}_percentage`] = (flattenedObject[`${leftCategory}${this.d}${rightCategory}${this.d}_percent`] || 0)+'%';
-                    if(showLog2FC) row[`${rightCategory}${this.d}_log2FoldChange`] = flattenedObject[`${leftCategory}${this.d}${rightCategory}${this.d}_log2FoldChange`] || 0;
-                });
-                //add to data obj
-                data[leftCategory] = row;
-            });
-            console.log('data', data);
-            // Convert data object to array
-            const rows = Object.values(data);
-
-
-            // Create headers
-            //flat header
-            //catA headers
-            const headers = [{
-                key: leftCategories.join(this.d),
-                label: 'label',
-                class: showCounts || showPct ? 'bold' : 'bold border-right2',
-                thClass: showCounts || showPct ? '' : 'border-right2',
-            }];
-            if(showCounts) headers.push({key: `count`, label: 'count', class: `num bold ${!showPct ? 'border-right2' : ''}`, thClass: `${!showPct ? 'border-right2' : ''}`});
-            if(showPct) headers.push({key: 'percent', label: 'percent', class: 'num border-right2', thClass: 'border-right2'});
-            //catBC headers
-            rightFields?.forEach(rightCategory => {
-                if(showCounts) headers.push({key: `${rightCategory}${this.d}_count`, label: 'count', class: 'num'});
-                if(showPct) headers.push({key: `${rightCategory}${this.d}_percentage`, label: 'percent', class: 'num'});
-                if(showLog2FC) headers.push({key: `${rightCategory}${this.d}_log2FoldChange`, label: 'log2FC', class: 'num', thClass: `${this.referenceField === rightCategory ? 'isRef' : ''}`});
-            });
-
-            //TODO calculate colspans dunamically
-
-            const categoryAcolspan = 1 + showPct + showCounts;
-            const categoryBCcolspan = showCounts + showPct + showLog2FC;
-
-            const headers2 = [{label: leftCategories.join(this.d), colspan: categoryAcolspan}]
-            rightFields?.forEach(category => {
-                headers2.push({label: `${category}`, colspan:categoryBCcolspan});
-            });
-
-            const headers3 = [{label: '', colspan: this.selectedCalculations.length + (this.selectedCalculations.includes('log2_fold_change') ? 0 : 1)}]
-            headers3.push({label: rightCategories.join(this.d), colspan: rightFields?.length | 0 * this.selectedCalculations.length});
-            rightFields?.forEach(category => {
-                //headers3.push({label: `${category}`, colspan:9});
-            });
-            
-            //set b-table data
-            this.fields = headers.map(header => ({ key: header.key, label: header.label, sortable: true, tdClass: header.class || '', thClass: header.thClass || '' }));
-            this.items = rows;
-
-            this.headerColumns2 = headers2;
-            //this.headerColumns3 = headers3;
-
-            console.log('headers3', this.headerColumns3)
-            console.log('headers2', this.headerColumns2)
-            console.log('headers', headers)
-            console.log('rows', rows);
+            this.rows = rows;
+            this.sortedItems = rows;
+            this.footer = footerRow;
+            this.headers = headers;
+            this.headers2 = headers2;
+            console.log('new head', headers);
+            console.log('new rows', rows);
+            console.log('new foot', this.footer);
         },
         handleCategorySelect(e, side, index) {
             const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
@@ -573,11 +361,123 @@ new Vue({
             const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
             categories.push(null);
         },
-        swapSides(){
-            const categoriesleftTmp = this.categoriesLeft;
-            this.categoriesLeft = this.categoriesRight;
-            this.categoriesRight = categoriesleftTmp;
+        toggleCategory(e, side){
+            const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
+            const lockedCategories = side==='left'?this.lockedCategoriesLeft:this.lockedCategoriesRight;
+            const clickedCategory = e.target.dataset.category;
+            const isLocked = lockedCategories.includes(clickedCategory);
+            const lockedIdx = categories.indexOf(lockedCategories[0])
+            if(isLocked) return;
+            if(categories.includes(clickedCategory)){
+                categories.splice(categories.indexOf(clickedCategory), 1);
+            }else{
+                if(lockedCategories.length>0){
+                    if(categories.length===2){
+                        categories[lockedIdx===0?1:0] = clickedCategory;
+                    }else{
+                        categories.push(clickedCategory);
+                    }
+                }else{
+                    categories[0] = clickedCategory;
+                }
+            }
             this.calculateTable();
-        }
+        },
+        lockCategory(e, side){
+            e.stopPropagation();
+            const lockedCategories = side==='left'?this.lockedCategoriesLeft:this.lockedCategoriesRight;
+            const clickedCategory = e.target.parentNode.dataset.category;
+            if(lockedCategories.includes(clickedCategory)){
+                lockedCategories.splice(lockedCategories.indexOf(clickedCategory), 1);
+            }else{
+                lockedCategories.push(clickedCategory);
+            }
+            console.log('locked', side, lockedCategories)
+        },
+        swapSides(){
+            const categoriesLeftTmp = this.categoriesLeft;
+            const lockedCategoriesLeftTmp = this.lockedCategoriesLeft;
+            this.categoriesLeft = this.categoriesRight;
+            this.categoriesRight = categoriesLeftTmp;
+            this.lockedCategoriesLeft = this.lockedCategoriesRight;
+            this.lockedCategoriesRight = lockedCategoriesLeftTmp;
+            this.calculateTable();
+        },
+        onSortChanged(ctx) {
+            const sortBy = ctx.sortBy;
+            const sortDesc = ctx.sortDesc;
+            const compareType = typeof this.rows[0][sortBy];
+            this.sortedItems = this.rows.slice().sort((a, b) => {
+                let result = 0;
+                if(compareType === 'string'){
+                    const valueA = a[sortBy].toString().toLowerCase();
+                    const valueB = b[sortBy].toString().toLowerCase();
+                    return sortDesc ? valueB.localeCompare(valueA) : valueA.localeCompare(valueB);
+                }
+                if (a[sortBy] < b[sortBy]) result = -1;
+                if (a[sortBy] > b[sortBy]) result = 1;
+                return sortDesc ? -result : result;
+                
+            });
+            console.log('sorted', this.sortedItems);
+          },
     }
 }).$mount("#app");
+
+//
+//TODO:
+//
+
+/*
+methods:
+    A, B      : chi**2(A,B)
+
+visualizations:
+    chi**2(A,B): heatmap (cell color by "contributions")
+    points: UMAP (color by A), UMAP (color by B)
+*/
+
+//
+//current data struct
+//
+
+/*
+NAMES is the main index.
+"metadata" categories are parallel arrays to NAMES and values are indeces of "metadat_labels" categories.
+
+rawData = {
+    NAMES: [cell_id, cell_id, ...],                 //len: all cells, type: string
+    metadata: {
+        category: [label_idx, label_idx, ...],      //len: all cells, type: int
+        category: [label_idx, label_idx, ...],      //len: all cells, type: int
+        ...
+    },
+    metadata_labels: {
+        category: [label, label, ...],              //len: all labels in category, type: string
+        category: [label, label, ...],              //len: all labels in gategory, type: string
+        ...
+    }
+}
+
+colors object mirrors metadata_labels
+
+fieldColors = {
+    category: {
+        label: "#color", 
+        label: "#color", 
+        ...
+    },
+    ...
+}
+
+//processed data is a flattened array of objects, parallells NAMES, contains only user selected categories
+
+processedData = [
+    {categoryA: "label", categoryB:"label"},
+    {categoryA: "label", categoryB:"label"},
+    {categoryA: "label", categoryB:"label"},
+    {categoryA: "label", categoryB:"label"},
+    ...
+]
+
+*/
