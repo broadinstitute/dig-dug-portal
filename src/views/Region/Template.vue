@@ -75,6 +75,7 @@
                             name="region.genesoverlapping.header.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
 
@@ -109,6 +110,7 @@
                             name="region.mostsignificantassoc.header.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
                     <documentation
@@ -238,6 +240,7 @@
                             name="region.ancestrytopassoc.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
                     <documentation
@@ -287,6 +290,7 @@
                                         name="region.add.phenotypes.tooltip"
                                         :is-hover="true"
                                         :no-icon="false"
+                                        :contentMap="$store.state.bioPortal.documentations"
                                     ></tooltip-documentation>
                                 </div>
                                 <template
@@ -318,19 +322,6 @@
                         </div>
                     </div>
                     <pre />
-                    <!--<h5 v-if="$parent.selectedPhenotypes.length > 0">
-						Add tracks &nbsp;<tooltip-documentation
-							name="region.add.phenotypes.tooltip"
-							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
-						| Filter tracks and table &nbsp;
-						<tooltip-documentation
-							name="region.filter.topassoc.tooltip"
-							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
-					</h5>-->
 
                     <b-alert
                         class="text-center my-3"
@@ -497,6 +488,7 @@
                                 name="region.topassoc.tooltip"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <documentation
