@@ -18,11 +18,12 @@ export default Vue.component("documentation", {
     },
     computed: {
         documentationContent() {
-            if (!!this.contentMap){
+            if (!!this.contentMap && !!this.contentMap[this.name]){
                 let content = this.contentMap[this.name].content;
+                let contentFill = this.contentFill || {};
                 let converter = documentationParser.makeConverter(
                     content,
-                    this.contentFill,
+                    contentFill,
                     this.name
                 );
                 return converter.makeHtml(content);
