@@ -11,7 +11,9 @@
 		<div class="container-fluid mdkp-body">
 			<div class="card mdkp-card">
 				<div class="card-body temporary-card">
-					<documentation name="gait.header.info"></documentation>
+					<documentation name="gait.header.info"
+						:contentMap="$store.state.bioPortal.documentations">
+					</documentation>
 				</div>
 			</div>
 			<div class="card mdkp-card dataset-page-header">
@@ -22,6 +24,7 @@
 						<documentation
 							style="margin-top: 20px"
 							name="tools.gait.subheader"
+							:contentMap="$store.state.bioPortal.documentations"
 						></documentation>
 					</div>
 				</div>
