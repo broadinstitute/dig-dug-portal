@@ -140,6 +140,7 @@
 import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-single-search", {
 	props: ["singleSearchConfig", "phenotypes","utils"],
@@ -257,6 +258,7 @@ export default Vue.component("research-single-search", {
 		},
 	},
 	methods: {
+		...alertUtils,
 		resetSearch() {
 			this.singleSearchParam = null;
 
@@ -349,6 +351,42 @@ export default Vue.component("research-single-search", {
 			) {
 				//on search for a variant in chr3_12489012-C-T format
 				location.href = "/variant.html?variant=" + searchKey;
+			} else {
+				let anyResults = this.anyResults();
+				
+				if(anyResults === 0) {
+					alertUtils.popAlert("Your search term was not found. Please try again.")
+				} else if (anyResults === 1) {
+					
+					let reDirectUrl;
+
+					if (!this.singleSearchConfig) {
+
+						for (const [sKey, sValue] of Object.entries(this.singleSearchResult)) {
+							if(sValue.length == 1) {
+								switch (sKey) {
+									case 'phenotypes':
+										reDirectUrl = "/phenotype.html?phenotype=" + sValue[0].name;
+										break;
+									case 'genes':
+										reDirectUrl = "/gene.html?gene=" + sValue[0];
+										break;
+									case 'tissues':
+										reDirectUrl = "/tissue.html?tissue=" + sValue[0].value;
+										break;
+									case 'diseases':
+										reDirectUrl = "/disease.html?disease=" + sValue[0].value;
+										break;
+								}
+							}
+						}
+
+						location.href = reDirectUrl;
+					}
+
+				} else if (anyResults > 1) {
+					alertUtils.popAlert("Multiple search options are available. Please select one from the list.")
+				}
 			}
 		},
 		isParameterActive(PARAM) {
@@ -364,7 +402,7 @@ export default Vue.component("research-single-search", {
 						} else if(!!param['target page']['url']) {
 							returnParam.url = param['target page']['url'];
 						}
-						//returnParam.url = '/research.html?pageid='+param['target page']['page id'];
+						
 						returnParam.url += (!!param['target page']['entity'])? '&' + param['target page']['entity parameter'] + '='+param['target page']['entity']:"";
 						
 						if (!!param['target page']['page id']) {
@@ -382,10 +420,9 @@ export default Vue.component("research-single-search", {
 							} else if (!!param['target page']['url']) {
 								returnParam.url = param['target page']['url'];
 							}
-							/*returnParam.url = '/research.html?pageid='
-								+ param['target page']['page id'];*/
+							
 							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
-							//returnParam.url += '&' + param['parameter'] + '=';
+							
 							if (!!param['target page']['page id']) {
 								returnParam.url += '&' + param['parameter'] + '=';
 							} else if (!!param['target page']['url']) {
@@ -510,6 +547,9 @@ export default Vue.component("research-single-search", {
 </script>
 
 <style scoped>
+/* alert UI */
+
+
 .reset-search {
 	position: absolute;
     top: 4px;

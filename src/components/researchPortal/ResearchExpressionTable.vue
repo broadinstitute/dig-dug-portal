@@ -5,7 +5,6 @@
             id="big-table"
             small
             responsive="sm"
-            sort-icon-left
             :items="tableData"
             :fields="tableConfig['top rows']"
             :per-page="perPage"

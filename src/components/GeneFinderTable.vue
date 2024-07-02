@@ -29,7 +29,6 @@
                 hover
                 small
                 responsive="sm"
-                sort-icon-left
                 :items="groupedAssociations"
                 :fields="fields"
                 :per-page="rowsPerPage"

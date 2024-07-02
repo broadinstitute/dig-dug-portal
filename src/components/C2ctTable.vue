@@ -8,7 +8,6 @@
                 hover
                 small
                 responsive="sm"
-                sort-icon-left
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
@@ -105,6 +104,12 @@ export default Vue.component("c2ct-table", {
                 {
                     key: "chromosome",
                     label: "Clump start - end",
+                },
+                {
+                    key: "varTotal",
+                    label: "Variants",
+                    sortable: true,
+                    tdClass: "text-right",
                 },
                 {
                     key: "overlapLeadSNP",

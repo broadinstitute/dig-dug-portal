@@ -30,7 +30,6 @@
         <b-table
             small
             responsive="sm"
-            sort-icon-left
             :items="tableData[`${toSpace(tissue)},${ancestry}`]"
             :fields="fields"
             :per-page="perPage"
@@ -55,7 +54,6 @@
                 <div class="row">
                     <div class="col-12">
                         <b-table
-                            sort-icon-left
                             :items="getSubTableData(r.item)"
                             :fields="subTableFields"
                             :per-page="perPage"

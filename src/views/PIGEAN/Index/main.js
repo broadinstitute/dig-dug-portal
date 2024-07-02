@@ -25,6 +25,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 import Alert, {
     postAlert,
@@ -84,7 +85,7 @@ new Vue({
                     parameter: "gene",
                     "data point": {
                         type: "api",
-                        url: "https://bioindex-dev.hugeamp.org/api/bio/keys/pigean-gene/3?columns=gene",
+                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene/3?columns=gene`,
                         "data type": "json",
                         "data wrapper": ["keys"],
                     },
@@ -97,7 +98,7 @@ new Vue({
                     parameter: "geneset",
                     "data point": {
                         type: "api",
-                        url: "https://bioindex-dev.hugeamp.org/api/bio/keys/pigean-gene-set/1",
+                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene-set/3?columns=gene_set`,
                         "data type": "json",
                         "data wrapper": ["keys"],
                     },
@@ -235,7 +236,7 @@ new Vue({
                 datasets.map((d) => {
                     d.phenotypes.map((dp) => {
                         for (const [key, data] of Object.entries(pGroups)) {
-                            if (!!data.phenotypes.includes(dp)) {
+                            if (data.phenotypes.includes(dp)) {
                                 data.datasets.push(d.name);
                             }
                         }
@@ -262,7 +263,7 @@ new Vue({
 
                 Object.keys(dGroups).map((dg) => {
                     dGroups[dg].phenotypes.map((p) => {
-                        if (!!pGroups[p]) {
+                        if (pGroups[p]) {
                             let tempDatasetsArr = [].concat(
                                 dGroups[dg].datasets,
                                 pGroups[p].datasets

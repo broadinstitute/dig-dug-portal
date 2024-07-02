@@ -28,7 +28,27 @@ const popAlert = function (MESSAGE) {
     let wrapper = document.getElementById("alert_pop_up");
     setTimeout(function () {
         wrapper.remove();
-    }, 2000);
+    }, 3000);
+}
+
+const popModal = function (CONTENT) {
+
+    const el = document.createElement('div');
+
+    el.classList.add('modal-pop-up');
+    el.setAttribute("id", "modal_pop_up");
+
+    const elContent = document.createElement('div');
+    elContent.classList.add('modal-pop-up-content');
+
+    elContent.innerHTML = CONTENT;
+
+    el.appendChild(elContent);
+
+    document.body.appendChild(el);
+
+
+    let wrapper = document.getElementById("modal_pop_up");
 }
 
 const popSectionAlert = function (MESSAGE, ID) {
@@ -58,6 +78,7 @@ const popSectionAlert = function (MESSAGE, ID) {
 
 export default {
     popAlert,
-    popSectionAlert
+    popSectionAlert,
+    popModal
 };
 

@@ -23,6 +23,7 @@ import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import RawImage from "@/components/RawImage.vue";
+import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -44,6 +45,7 @@ import Alert, {
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
@@ -73,13 +75,15 @@ new Vue({
         CriterionListGroup,
         FilterPValue,
         FilterGreaterThan,
+        FilterLessThan,
         FilterEnumeration,
         FilterEffectDirection,
         SearchHeaderWrapper,
         ResearchMPlot,
         PhenotypeHugeScores,
         C2ctTable,
-        ResearchSingleSearch
+        ResearchSingleSearch,
+        MetaAnalysisBarGraph,
     },
 
     created() {
@@ -87,17 +91,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-    data() {
-        return {
-            phenotypeSearchKey: null,
-            newPhenotypeSearchKey: null,
-            hidePValueFilter: true,
-        };
     },
     methods: {
         ...uiUtils,
@@ -108,6 +101,12 @@ new Vue({
         closeAlert,
         intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        maFormatter(value) {
+            return value
+                .split(";")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" + ");
+        },
         setSelectedPhenotype(PHENOTYPE) {
             this.newPhenotypeSearchKey = PHENOTYPE.description;
             this.phenotypeSearchKey = null;
@@ -126,8 +125,19 @@ new Vue({
             return isInPhenotype == searchKeys.length ? true : null;
         },
         clickedTab(tabLabel) {
-            this.hidePValueFilter = tabLabel === 'hugescore';
-        }
+            this.hidePValueFilter = tabLabel === "hugescore";
+        },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
+    data() {
+        return {
+            phenotypeSearchKey: null,
+            newPhenotypeSearchKey: null,
+            hidePValueFilter: true,
+        };
     },
 
     computed: {
@@ -174,12 +184,16 @@ new Vue({
         ancestryAnnotations() {
             let data = this.$store.state.annotations.data;
             if (!!this.$store.state.ancestry) {
-                data = data.filter((annotation) =>
-                    annotation.ancestry == this.$store.state.ancestry)
+                data = data.filter(
+                    (annotation) =>
+                        annotation.ancestry == this.$store.state.ancestry
+                );
             }
-            let filteredData = data.filter(d => d.pValue < 1e-5);
+            let filteredData = data.filter((d) => d.pValue < 1e-5);
             if (filteredData.length < 20) {
-                filteredData = data.sort((a, b) => a.pValue - b.pValue).slice(0, 20);
+                filteredData = data
+                    .sort((a, b) => a.pValue - b.pValue)
+                    .slice(0, 20);
             }
             return filteredData;
         },
@@ -237,13 +251,13 @@ new Vue({
         },
         c2ctData() {
             let data = this.$store.state.c2ct.data;
-            data.forEach(d => {
+            data.forEach((d) => {
                 // Makes biosamples show up alphabetically in the dropdown menu.
                 d.originalBiosample = d.biosample;
                 d.biosample = Formatters.tissueFormatter(d.biosample);
             });
             return data;
-        }
+        },
     },
 
     watch: {
@@ -271,19 +285,25 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         hidePValueFilter(hide) {
-            let pValuePills = document.querySelectorAll(".geneLevelAssoc .filter-pill-pValue");
-            let genePills = document.querySelectorAll(".geneLevelAssoc .filter-pill-gene");
-            let allFilterPills = document.querySelectorAll(".geneLevelAssoc .filter-pill-collection");
+            let pValuePills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-pValue"
+            );
+            let genePills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-gene"
+            );
+            let allFilterPills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-collection"
+            );
             if (hide) {
                 if (pValuePills.length > 0 && genePills.length > 0) {
-                    pValuePills.forEach(e => e.hidden = true);
+                    pValuePills.forEach((e) => (e.hidden = true));
                 } else if (pValuePills.length > 0 && genePills.length === 0) {
-                    allFilterPills.forEach(e => e.hidden = true);
+                    allFilterPills.forEach((e) => (e.hidden = true));
                 }
             } else {
-                allFilterPills.forEach(e => e.hidden = false);
-                pValuePills.forEach(e => e.hidden = false);
+                allFilterPills.forEach((e) => (e.hidden = false));
+                pValuePills.forEach((e) => (e.hidden = false));
             }
-        }
+        },
     },
 }).$mount("#app");
