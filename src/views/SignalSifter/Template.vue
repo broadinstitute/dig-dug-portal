@@ -10,6 +10,7 @@
                 <div class="card-body temporary-card">
                     <documentation
                         name="signalsifter.header.info"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                 </div>
             </div>
@@ -20,6 +21,7 @@
                     <documentation
                         style="margin-bottom: 30px"
                         name="tools.variantfinder.subheader"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>

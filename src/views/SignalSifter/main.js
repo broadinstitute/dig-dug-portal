@@ -69,7 +69,9 @@ new Vue({
             displayedFilterList: {}
         };
     },
-
+    mounted(){
+        this.$store.dispatch("bioPortal/getDocumentations");
+    },
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
