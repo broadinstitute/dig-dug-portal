@@ -799,6 +799,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("bioPortal/getDocumentations");
         this.$store.dispatch("getEglsFullList");
         this.$store.dispatch("getGeneExpression", 'PCSK9');// don't remove this. It is added to get list of available tissues
         //check if parameter is passed, set criterion
@@ -817,27 +818,6 @@ new Vue({
                 pValueLimit,
                 true
             );
-
-            /*
-            this.updateAssociations(
-                this.geneFinderPhenotypes,
-                this.geneFinderPValue,
-                true
-            );
-            if (keyParams.rareVariant) {
-                keyParams.rareVariant.split(",").forEach((e) => {
-                    this.geneFinderSearchCriterion.push({
-                        field: "rareVariant",
-                        threshold: e,
-                    });
-                });
-
-                this.updateRareAssociations(
-                    this.geneFinderRareVariant,
-                    this.geneFinderRarePValue,
-                    true
-                );
-            }*/
 
             if (keyParams.egl) {
                 keyParams.egl.split(",").forEach((e) => {
