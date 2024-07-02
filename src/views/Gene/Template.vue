@@ -91,6 +91,7 @@
                             :contentFill="$parent.docDetails"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         >
                         </tooltip-documentation>
                     </h4>
@@ -108,6 +109,7 @@
                                                 "
                                                 :is-hover="true"
                                                 :no-icon="false"
+                                                :contentMap="$store.state.bioPortal.documentations"
                                             >
                                             </tooltip-documentation>
                                         </h4>
@@ -191,6 +193,7 @@
                             :contentFill="$parent.docDetails"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         >
                         </tooltip-documentation>
                     </h4>
@@ -424,6 +427,7 @@
                                             "
                                             :is-hover="true"
                                             :no-icon="false"
+                                            :contentMap="$store.state.bioPortal.documentations"
                                         >
                                         </tooltip-documentation>
                                     </h4>
@@ -493,6 +497,7 @@
                                             "
                                             :is-hover="true"
                                             :no-icon="false"
+                                            :contentMap="$store.state.bioPortal.documentations"
                                         ></tooltip-documentation>
                                     </h4>
                                     <research-phewas-plot
@@ -548,6 +553,7 @@
                             :contentFill="$parent.docDetails"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         >
                         </tooltip-documentation>
                     </h4>
@@ -584,6 +590,7 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             >
                             </tooltip-documentation>
                         </h4>
@@ -603,6 +610,7 @@
                             <tooltip-documentation
                                 name="gene.xref.tooltip.hover"
                                 :contentFill="$parent.docDetails"
+                                :contentMap="$store.state.bioPortal.documentations"
                                 :is-hover="true"
                                 :no-icon="false"
                             >
