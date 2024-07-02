@@ -126,6 +126,7 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
 
@@ -214,6 +215,7 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <criterion-function-group>
@@ -319,6 +321,7 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
 
@@ -432,6 +435,7 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <pathway-table
@@ -458,6 +462,7 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <documentation
@@ -530,6 +535,7 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <documentation
@@ -588,6 +594,7 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
 
