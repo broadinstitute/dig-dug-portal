@@ -50,7 +50,7 @@
                 <div class="card-body temporary-card">
                     <documentation
                         name="phenotype.page.subheader"
-                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                 </div>
             </div>
@@ -167,7 +167,7 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <documentation
                                     name="pheno.top_assoc.subheader"
-                                    :contentFill="$parent.docDetails"
+                                    :contentMap="$store.state.bioPortal.documentations"
                                 ></documentation>
                                 <meta-analysis-bar-graph
                                     :graph-data="
@@ -280,7 +280,7 @@
                         </h4>
                         <documentation
                             name="pheno.assocdatasets.subheader"
-                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
 
                         <criterion-function-group>
@@ -462,7 +462,7 @@
                         </h4>
                         <documentation
                             name="phenotype.correlation.subheader"
-                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
                         <criterion-function-group>
                             <filter-enumeration-control
@@ -534,7 +534,7 @@
                         </h4>
                         <documentation
                             name="pheno.globalenrich.subheader"
-                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
 
                         <criterion-function-group>
