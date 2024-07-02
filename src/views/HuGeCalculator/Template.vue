@@ -93,7 +93,7 @@
 							<div class="card-body">
 								<hugecal-score-section
 									currentPage="huge calculator"
-									:documentationMap="$parent.docDetails"
+									:docDetails="$parent.docDetails"
 									:commonAssociations="
 										$store.state.associations.data
 									"

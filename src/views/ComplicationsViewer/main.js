@@ -174,7 +174,7 @@ new Vue({
             return 0.05;
         },
 
-        documentationMap() {
+        docDetails() {
             let phenotype = this.complicationViewerPhenotypes[0];
             let secondaryphenotype = this.complicationViewerPhenotypes[1];
             return {
