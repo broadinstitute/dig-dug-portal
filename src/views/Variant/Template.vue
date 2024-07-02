@@ -53,6 +53,7 @@
                         <tooltip-documentation
                             name="variant.alleles.tooltip.hover"
                             :isHover="true"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </div>
                     <div class="col-md-3 gene-page-header-title">Navigate</div>
