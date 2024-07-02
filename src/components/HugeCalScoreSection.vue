@@ -6,7 +6,8 @@
 					HuGE Score (Combined Evidence)
 					<tooltip-documentation
 						name="hugecal.combined.tooltip.hover"
-						:content-fill="documentationMap"
+						:contentFill="documentationMap"
+						:contentMap="$store.state.bioPortal.documentations"
 						:isHover="true"
 						:noIcon="false"
 					></tooltip-documentation>
