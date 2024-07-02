@@ -87,7 +87,7 @@ new Vue({
             }
             return contents;
         },
-        documentationMap() {
+        docDetails() {
             let dataset = this.$store.state.selectedDataset;
             let phenotype = this.$store.state.selectedPhenotype;
 

@@ -98,7 +98,8 @@
 							{{ $store.state.selectedDataset.description }}
 							<tooltip-documentation
 								name="dinspector.topAssociations.tooltip.hover"
-								:content-fill="$parent.documentationMap"
+								:contentFill="$parent.docDetails"
+								:contentMap="$store.state.bioPortal.documentations"
 								:isHover="true"
 								:noIcon="false"
 							></tooltip-documentation>
