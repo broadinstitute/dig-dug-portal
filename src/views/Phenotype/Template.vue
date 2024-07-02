@@ -50,7 +50,7 @@
                 <div class="card-body temporary-card">
                     <documentation
                         name="phenotype.page.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
                     ></documentation>
                 </div>
             </div>
@@ -123,7 +123,7 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.topvariants.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
                             ></tooltip-documentation>
@@ -167,7 +167,7 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <documentation
                                     name="pheno.top_assoc.subheader"
-                                    :content-fill="$parent.documentationMap"
+                                    :contentFill="$parent.docDetails"
                                 ></documentation>
                                 <meta-analysis-bar-graph
                                     :graph-data="
@@ -211,7 +211,7 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.cs2ct.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
                             ></tooltip-documentation>
@@ -280,7 +280,7 @@
                         </h4>
                         <documentation
                             name="pheno.assocdatasets.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
                         ></documentation>
 
                         <criterion-function-group>
@@ -316,7 +316,7 @@
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
                             ></tooltip-documentation>
@@ -429,7 +429,7 @@
                                       )
                             }})&nbsp;<tooltip-documentation
                                 name="phenotype.pathway.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
                             ></tooltip-documentation>
@@ -455,14 +455,14 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.correlation.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="phenotype.correlation.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
                         ></documentation>
                         <criterion-function-group>
                             <filter-enumeration-control
@@ -527,14 +527,14 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.annot.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="pheno.globalenrich.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
                         ></documentation>
 
                         <criterion-function-group>
@@ -585,7 +585,7 @@
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="phenotype.effector-gene.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
                             ></tooltip-documentation>
