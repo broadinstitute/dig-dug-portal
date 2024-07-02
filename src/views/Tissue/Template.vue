@@ -30,7 +30,8 @@
                     <div class="card-body temporary-card">
                         <documentation
                             name="tissue.explore.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
                     </div>
                 </div>
@@ -46,7 +47,8 @@
                         </h4>
                         <documentation
                             name="tissue.gene-expression.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
                         <criterion-function-group>
                             <div class="col filter-col-md">

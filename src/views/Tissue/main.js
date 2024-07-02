@@ -138,7 +138,7 @@ new Vue({
         tissueData() {
             return this.$store.getters["tissueData"];
         },
-        documentationMap() {
+        docDetails() {
             return {
                 tissue: this.tissue
                     ? this.tissue.toUpperCase().replaceAll("_", " ")
@@ -151,6 +151,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("bioPortal/getDocumentations");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         if (this.tissue) {
             this.$store.dispatch("getTissue");
