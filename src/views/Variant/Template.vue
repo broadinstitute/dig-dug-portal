@@ -10,21 +10,6 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!--
-
-                    <div class="col filter-col-md">
-                    <div class="label">Variant</div>
-                    <input
-                        v-model="$store.state.newVariantId"
-                        type="text"
-                        class="form-control"
-                        placeholder="Search Variant"
-                        id="variant_search_input"
-                        @click="$parent.clearBadSearch()"
-                    />
-                </div>
-
-                -->
                 <div class="region-search col filter-col-md">
                     <div class="label">Begin new search</div>
                     <research-single-search
@@ -96,7 +81,8 @@
                 <div class="card-body temporary-card">
                     <documentation
                         name="variant.explore.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                 </div>
             </div>
@@ -106,7 +92,8 @@
                     <h4 class="card-title">Closest genes</h4>
                     <documentation
                         name="variant.genes.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                     <div
                         v-if="
@@ -135,14 +122,16 @@
                             Predicted variant consequences
                             <tooltip-documentation
                                 name="variant.consequences.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
+                                :contentMap="$store.state.bioPortal.documentations"
                                 :isHover="true"
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="variant.effect.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
 
                         <transcript-consequence-table
@@ -188,7 +177,8 @@
                         }})
                         <tooltip-documentation
                             name="variant.assoc.tooltip"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                             :isHover="true"
                             :noIcon="false"
                         ></tooltip-documentation>
@@ -196,7 +186,8 @@
 
                     <documentation
                         name="variant.phewas.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                     <unauthorized-message
                         :restricted="$store.state.phewas.restricted"
@@ -371,14 +362,16 @@
                         {{ $parent.variantName }}
                         <tooltip-documentation
                             name="variant.tfbinding.tooltip"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                             :isHover="true"
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h4>
                     <documentation
                         name="variant.tfbinding.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                     <unauthorized-message
                         :restricted="
@@ -397,64 +390,6 @@
                     </div>
                 </div>
             </div>
-            <!--
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<h4 class="card-title">
-						Annotated regions overlapping {{ $parent.variantName }}
-						<tooltip-documentation
-							name="variant.annotregions.tooltip"
-							:content-fill="$parent.documentationMap"
-							:isHover="true"
-							:noIcon="false"
-						></tooltip-documentation>
-					</h4>
-					<documentation
-						name="variant.annotated.subheader"
-						:content-fill="$parent.documentationMap"
-					></documentation>
-					<unauthorized-message
-						:restricted="$store.state.regions.restricted"
-					></unauthorized-message>
-
-					<criterion-function-group>
-						<filter-enumeration-control
-							:field="'annotation'"
-							:options="
-								$parent.regions.map(
-									(region) => region.annotation
-								)
-							"
-						>
-							<div class="label">Annotations</div>
-						</filter-enumeration-control>
-
-						<filter-enumeration-control
-							:field="'method'"
-							:options="
-								$parent.regions.map((region) => region.method)
-							"
-						>
-							<div class="label">Methods</div>
-						</filter-enumeration-control>
-
-						<filter-enumeration-control
-							:field="'tissue'"
-							:options="
-								$parent.regions.map((region) => region.tissue)
-							"
-						>
-							<div class="label">Tissues</div>
-						</filter-enumeration-control>
-						<template slot="filtered" slot-scope="{ filter }">
-							<regions-table
-								:regions="$parent.regions"
-								:filter="filter"
-							></regions-table>
-						</template>
-					</criterion-function-group>
-				</div>
-			</div>-->
         </div>
 
         <!-- Footer-->
