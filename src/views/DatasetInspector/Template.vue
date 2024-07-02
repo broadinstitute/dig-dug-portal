@@ -71,7 +71,7 @@
 										:src="$parent.manhattanPlot"
 										alt="Card image cap"
 										:documentation="'dinspector.associationplots.manhattan'"
-										:content-fill="$parent.documentationMap"
+										:contentFill="$parent.documentationMap"
 									/>
 								</div>
 							</div>
@@ -85,7 +85,7 @@
 										:src="$parent.qqPlot"
 										alt="Card image cap"
 										:documentation="'dinspector.associationplots.qq'"
-										:content-fill="$parent.documentationMap"
+										:contentFill="$parent.documentationMap"
 									/>
 								</div>
 							</div>

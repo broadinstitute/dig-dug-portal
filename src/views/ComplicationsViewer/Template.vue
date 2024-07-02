@@ -107,7 +107,7 @@
                                         :src="`/api/raw/plot/phenotype/${pheno}/manhattan.png`"
                                         alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
-                                        :content-fill="{
+                                        :contentFill="{
                                             phenotype:
                                                 $store.state.bioPortal
                                                     .phenotypeMap[pheno]
@@ -123,7 +123,7 @@
                                         :src="`/api/raw/plot/phenotype/${pheno}/qq.png`"
                                         alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
-                                        :content-fill="{
+                                        :contentFill="{
                                             phenotype:
                                                 $store.state.bioPortal
                                                     .phenotypeMap[pheno]
