@@ -116,6 +116,7 @@
                 <documentation
                     id="aligned-beta"
                     name="table.clumped-associations.alignment"
+                    :contentMap="$store.state.bioPortal.documentations"
                 ></documentation>
             </div>
         </div>
