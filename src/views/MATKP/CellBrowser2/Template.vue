@@ -65,7 +65,7 @@
                 <div class="f-row" style="margin-top:70px; gap:20px">
                     
                     <div class="f-col" style="width:250px;">
-                        <div class="f-row spread-out" style="margin-bottom:3px">
+                        <div class="f-row spread-out" style="margin-bottom:10px">
                             <div>Dataset Categories</div>
                             <button 
                                 v-if="$parent.categoriesLeft.length>0 && $parent.categoriesRight.length>0"
@@ -90,7 +90,10 @@
                                         :style="`left:-15px;display:${($parent.categoriesLeft.includes(category) && $parent.lockedCategoriesLeft.length<1) || $parent.lockedCategoriesLeft.includes(category) ? 'block' : 'none'}`"
                                         @click="$parent.lockCategory($event, 'left')"
                                         >
+                                        &
+                                        <!-- plus, ampersand, lock
                                         <svg class="no-events" height="800" width="800" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 330" xml:space="preserve"><path d="M65 330h200c8.284 0 15-6.716 15-15V145c0-8.284-6.716-15-15-15h-15V85c0-46.869-38.131-85-85-85S80 38.131 80 85v45H65c-8.284 0-15 6.716-15 15v170c0 8.284 6.716 15 15 15zm115-95.014V255c0 8.284-6.716 15-15 15s-15-6.716-15-15v-20.014c-6.068-4.565-10-11.824-10-19.986 0-13.785 11.215-25 25-25s25 11.215 25 25c0 8.162-3.932 15.421-10 19.986zM110 85c0-30.327 24.673-55 55-55s55 24.673 55 55v45H110V85z"/></svg>
+                                        -->
                                     </div>
                                 </div>
                                 <div 
@@ -105,7 +108,10 @@
                                         :style="`left:unset;right:-15px;display:${($parent.categoriesRight.includes(category) && $parent.lockedCategoriesRight.length<1) || $parent.lockedCategoriesRight.includes(category) ? 'block' : 'none'}`"
                                         @click="$parent.lockCategory($event, 'right')"
                                         >
+                                        &
+                                        <!--
                                         <svg class="no-events" height="800" width="800" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 330" xml:space="preserve"><path d="M65 330h200c8.284 0 15-6.716 15-15V145c0-8.284-6.716-15-15-15h-15V85c0-46.869-38.131-85-85-85S80 38.131 80 85v45H65c-8.284 0-15 6.716-15 15v170c0 8.284 6.716 15 15 15zm115-95.014V255c0 8.284-6.716 15-15 15s-15-6.716-15-15v-20.014c-6.068-4.565-10-11.824-10-19.986 0-13.785 11.215-25 25-25s25 11.215 25 25c0 8.162-3.932 15.421-10 19.986zM110 85c0-30.327 24.673-55 55-55s55 24.673 55 55v45H110V85z"/></svg>
+                                        -->
                                     </div>
                                 </div>
                             </div>
@@ -203,9 +209,48 @@
                                     />
                                 </div>
                             </div>
+                            <div class="f-col" style="gap:20px">
+                                <div class="f-row" style="gap:20px" v-if="$parent.categoriesLeft.length>0 || $parent.categoriesRight.length>0">
+                                    <div class="f-col" v-if="$parent.categoriesLeft.length>0">
+                                        <div style="margin:0 0 10px 0">UMAP A</div>
+                                        <div class="f-col align-v-center align-h-center" style="width:200px; height:200px; background:#dddddd"></div>
+                                    </div>
+                                    <div class="f-col" v-if="$parent.categoriesRight.length>0">
+                                        <div style="margin:0 0 10px 0">UMAP B</div>
+                                        <div class="f-col align-v-center align-h-center" style="width:200px; height:200px; background:#dddddd"></div>
+                                    </div>
+                                </div>
+                                <div class="f-row" style="gap:20px" v-if="$parent.categoriesLeft.length>0 || $parent.categoriesRight.length>0">
+                                    <div class="f-col" v-if="$parent.categoriesLeft.length>0">
+                                        <div class="f-col" style="gap:5px; margin:0 0 5px 0">
+                                            <div>Legend A</div>
+                                            <div style="font-size:12px; line-height: 12px; color: gray;">{{ $parent.categoriesLeft.join('|') }}</div>
+                                        </div>
+                                        <div class="f-col" style="flex-wrap: wrap">
+                                            <div class="f-row align-v-center" style="gap:5px; font-size: 12px;" v-for="category in $parent.categoryKeys($parent.categoriesLeft)">
+                                                <div :style="`width:15px; height:15px; background:${$parent.fieldColors[$parent.categoriesLeft.join('|')][category]}`"></div>
+                                                <div style="white-space: nowrap;">{{ category }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="f-col" v-if="$parent.categoriesRight.length>0">
+                                        <div class="f-col" style="gap:5px; margin:0 0 5px 0">
+                                            <div>Legend B</div>
+                                            <div style="font-size:12px; line-height: 12px; color: gray;">{{ $parent.categoriesRight.join('|') }}</div>
+                                        </div>
+                                        <div class="f-col" style="flex-wrap: wrap">
+                                            <div class="f-row align-v-center" style="gap:5px; font-size: 12px;" v-for="category in $parent.categoryKeys($parent.categoriesRight)">
+                                                <div :style="`width:15px; height:15px; background:${$parent.fieldColors[$parent.categoriesRight.join('|')][category]}`"></div>
+                                                <div style="white-space: nowrap;">{{ category }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="f-row" style="max-width: 500px;">
+                    <div class="f-col table-drawer" v-if="$parent.rows.length>0">
+                        <div class="table-drawer-handle" data-state="closed" @click="$parent.toggleTableDrawer($event)"></div>
                         <b-table 
                         style="font-size: 14px; width:auto;"
                         small
@@ -248,6 +293,23 @@
   
 <style>
 /*@import url("/css/table.css");*/
+.table-drawer{
+    max-width: calc(100vw - 300px);
+    position: absolute;
+    top: calc(145px - 30px);
+    left: calc(100vw - 60px);
+    background: white;
+    padding: 30px;
+}
+.table-drawer-handle{
+    width:10px;
+    height:100%;
+    background:#ddd;
+    cursor: pointer;
+    position: absolute;
+    left:0;
+    top:0;
+}
 table.table{
     width:auto;
 }
@@ -313,10 +375,13 @@ button.add-factor {
 
 .category-label-lock {
     width: 12px;
-    height: 12px;
+    height: auto;
     position: absolute;
     top: -1px;
     opacity: 0.2;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: normal;
 }
 .category-label-lock svg {
     width: 100%;
@@ -327,6 +392,8 @@ button.add-factor {
 }
 .category-locked{
     opacity: 1;
+    font-weight: bold;
+    color:#ff6c02;
 }
 
 .f-tooltip{

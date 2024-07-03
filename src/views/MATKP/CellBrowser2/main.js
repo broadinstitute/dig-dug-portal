@@ -385,10 +385,12 @@ new Vue({
         },
         lockCategory(e, side){
             e.stopPropagation();
+            const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
             const lockedCategories = side==='left'?this.lockedCategoriesLeft:this.lockedCategoriesRight;
             const clickedCategory = e.target.parentNode.dataset.category;
             if(lockedCategories.includes(clickedCategory)){
                 lockedCategories.splice(lockedCategories.indexOf(clickedCategory), 1);
+                categories.splice(1,1);
             }else{
                 lockedCategories.push(clickedCategory);
             }
@@ -420,6 +422,21 @@ new Vue({
                 
             });
             console.log('sorted', this.sortedItems);
+          },
+          toggleTableDrawer(e){
+            const el = e.target.parentNode;
+            const tableWidth = Math.floor(el.getBoundingClientRect().width);
+            const state = e.target.dataset.state;
+            console.log('toggleTableDrawer', el, tableWidth, state);
+            if(state==='closed'){
+                el.style.left = `calc(100vw - ${tableWidth}px)`;
+                e.target.dataset.state = 'open';
+            }else{
+                console.log('there')
+                el.style.left = `calc(100vw - 60px)`;
+                e.target.dataset.state = 'closed';
+            }
+            
           },
     }
 }).$mount("#app");
