@@ -240,5 +240,6 @@ tr.b-table-details > td {
 
 .row .col-12 table.b-table {
     margin-bottom: 0 !important;
+    font-size: 14px;
 }
 </style>
