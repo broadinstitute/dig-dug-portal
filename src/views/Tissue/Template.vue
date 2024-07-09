@@ -94,6 +94,7 @@
                                     :config="$parent.plotConfig"
                                     :plotName="`${$parent.tissue}_gene_expression`"
                                     :filter="filter"
+                                    :translucentDots="true"
                                 >
                                 </scatterplot>
                                 <div class="mt-4"></div>
