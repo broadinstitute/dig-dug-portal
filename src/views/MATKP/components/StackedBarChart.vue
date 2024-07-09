@@ -144,7 +144,7 @@
             console.log('margins', marginTop, marginRight, marginBottom, marginLeft);
     
             const width = this.width;
-            const height = (isSingleCategory && normalize ? 1 : data.length) * 26 + marginTop + marginBottom;
+            const height = (isSingleCategory && normalize ? 1 : data.length) * 15 + marginTop + marginBottom; //26
     
             const graphWidth = width - marginLeft - marginRight;
             

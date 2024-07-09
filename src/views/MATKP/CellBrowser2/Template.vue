@@ -5,143 +5,115 @@
             <matkp-nav></matkp-nav>
 
             <div class="mat-body" style="padding:20px">
-                <div class="f-row" style="gap:20px;">
-                    <!--
-                    <div class="f-col" style="border:1px solid;padding:10px;">
-                        <div class="f-row align-h-center" style="font-size:12px;margin:10px 0 0;font-weight:bold;">
-                            Cell
-                            <span v-for="(selected, index) in $parent.selectedCalculations">
-                                &nbsp;{{$parent.calculationOptions[selected].label}}{{$parent.selectedCalculations.length <= 1 ? '' : index === $parent.selectedCalculations.length-2 ? ', and ' : index < $parent.selectedCalculations.length - 1 ? ', ' : ''}}
-                            </span>
-                        </div>
-                        <div class="f-row" style="gap:10px;font-size:12px;margin:10px 0;font-weight: bold;">
-                            <div style="width:250px;text-align:center;">of</div>
-                            <div style="width:22px;text-align:center;"></div>
-                            <div style="width:250px;text-align:center;">by</div>
-                        </div>
-
-                        <div class="f-row align-v-center" style="gap:10px;font-weight:bold;font-size:12px;margin: 0 0 40px 0;">
-                            <div class="f-col align-v-center" style="gap:10px;width:250px;position:relative">
-                                <template v-for="(select, index) in $parent.categoriesRight">
-                                <select @change="$parent.handleCategorySelect($event, 'right', index)">
-                                    <option :value="null">none</option>
-                                    <option v-for="option in $parent.listOfCategories" 
-                                        :value="option"
-                                        :selected="select===option ? true: false"
-                                    >{{option}}</option>
-                                </select>
-                                </template>
-                                <button class="add-factor round-white" @click="$parent.addFactor('right')">+ and</button>
-                            </div>
-                            <button @click="$parent.swapSides()" class="round-white" style="padding:0 5px;">⇄</button>
-                            <div class="f-col align-v-center" style="gap:10px;width:250px;position:relative">
-                                <template v-for="(select, index) in $parent.categoriesLeft">
-                                <select @change="$parent.handleCategorySelect($event, 'left', index)">
-                                    <option :value="null">none</option>
-                                    <option v-for="option in $parent.listOfCategories" 
-                                        :value="option"
-                                        :selected="select===option ? true: false"
-                                    >{{option}}</option>
-                                </select>
-                                </template>
-                                <button class="add-factor round-white" @click="$parent.addFactor('left')">+ and</button>
+                <div class="f-col" v-if="$parent.currentDataset">
+                    <div class="f-row" style="gap:20px">
+                        <div class="f-col" style="min-width:250px;">
+                            <div class="anatomogram">
+                                <img class="anatomy-human" :class="$parent.currentDataset['species'][0] ==='Human' ? '' : 'hidden'" src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.male_.svg">
+                                <img class="anatomy-mouse" :class="$parent.currentDataset['species'][0] ==='Mouse' ? '' : 'hidden'" src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/mus_musculus.male_.svg">
                             </div>
                         </div>
-                    </div>
-                    -->
-                    <!--
-                    <div class="f-col" style="border:1px solid;padding:10px;">
-                        <div class="f-row" style="gap:10px;font-size:12px;margin:10px 0;font-weight: bold;">
-                            <div style="width:250px;text-align:center;">measure</div>
+                        <div class="f-col" style="gap:5px;">
+                            <div class="bold">{{ $parent.currentDataset['datasetName'] }}</div>
+                            <div style="font-size:12px;">{{ $parent.currentDataset['summary'] }}</div>
+                            <div class="f-col" style="font-size:14px">
+                                <div class="f-row" style="gap:5px;"><div class="bold">Species:</div> <div>{{$parent.currentDataset['species'][0]}}</div></div>
+                                <div class="f-row" style="gap:5px;"><div class="bold">Depot:</div> <div>{{$parent.currentDataset['tissue'].join(', ')}}</div></div>
+                                <div class="f-row" style="gap:5px;"><div class="bold">Samples:</div> <div>{{$parent.currentDataset['totalCells'].toLocaleString()}}</div></div>
+                            </div>
                         </div>
-                        <select v-model="$parent.selectedCalculations" multiple style="width:250px;flex-grow:1;">
-                            <option v-for="(value, key) in Object.keys($parent.calculationOptions)" 
-                                :value="value"
-                            >{{value}}</option>
-                        </select>
+                        
                     </div>
-                    -->
                 </div>
-                <div class="f-row" style="margin-top:70px; gap:20px">
-                    
+                <div class="f-row" style="margin:40px 0; gap:20px; position: relative;">
                     <div class="f-col" style="width:250px;">
-                        <div class="f-row spread-out" style="margin-bottom:10px">
+                        <div class="f-row spread-out" style="margin-bottom:5px; position:relative">
                             <div>Dataset Categories</div>
+                            <div class="f-row" style="gap:10px;margin:0 4px;"><div>A</div><div>B</div></div>
+                            
                             <button 
                                 v-if="$parent.categoriesLeft.length>0 && $parent.categoriesRight.length>0"
                                 @click="$parent.swapSides()" 
-                                class="round-white" 
+                                class="round-white swapBtn" 
                                 style="font-size:12px;margin-right:0px;width:40px;"
                                 >⇄
                             </button>
+                            
                         </div>
-                        <div class="f-row spread-out categories" style="font-size: 12px; padding: 2px 2px 2px 13px;" v-for="category in $parent.listOfCategories">
+                        
+                        <div class="f-row spread-out categories" style="font-size: 14px; padding: 2px 2px 2px 13px;" 
+                            v-for="category in $parent.listOfCategories"
+                        >
                             <div class="category-label" :title="category">{{category}}</div>
-                            <div class="f-row" style="gap:5px;">
-                                <div 
-                                    class="category-label-select" 
-                                    :class="`${ $parent.categoriesLeft.includes(category) ? 'round-white gold-bg bold' : ''}`" 
-                                    :data-category="category" 
-                                    @click="$parent.toggleCategory($event, 'left')"
+                            <div class="f-col align-v-center categories-list" :class="`${$parent.categoriesLeft.length===2?'maxA':''} ${$parent.categoriesRight.length===2?'maxB':''}`">
+                                <div class="f-row" style="gap:5px;">
+                                    <input 
+                                        type="checkbox" 
+                                        class="category-label-select"
+                                        :class="`${ $parent.categoriesLeft.includes(category) ? 'category-label-selected' : ''}`" 
+                                        :checked="$parent.categoriesLeft.includes(category)"
+                                        :data-category="category" 
+                                        :data-side="'left'"
+                                        @click="$parent.toggleCategory"
                                     >
-                                    A
-                                    <div 
-                                        :class="`category-label-lock ${$parent.lockedCategoriesLeft.includes(category) ? 'category-locked' : ''}`" 
-                                        :style="`left:-15px;display:${($parent.categoriesLeft.includes(category) && $parent.lockedCategoriesLeft.length<1) || $parent.lockedCategoriesLeft.includes(category) ? 'block' : 'none'}`"
-                                        @click="$parent.lockCategory($event, 'left')"
-                                        >
-                                        &
-                                        <!-- plus, ampersand, lock
-                                        <svg class="no-events" height="800" width="800" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 330" xml:space="preserve"><path d="M65 330h200c8.284 0 15-6.716 15-15V145c0-8.284-6.716-15-15-15h-15V85c0-46.869-38.131-85-85-85S80 38.131 80 85v45H65c-8.284 0-15 6.716-15 15v170c0 8.284 6.716 15 15 15zm115-95.014V255c0 8.284-6.716 15-15 15s-15-6.716-15-15v-20.014c-6.068-4.565-10-11.824-10-19.986 0-13.785 11.215-25 25-25s25 11.215 25 25c0 8.162-3.932 15.421-10 19.986zM110 85c0-30.327 24.673-55 55-55s55 24.673 55 55v45H110V85z"/></svg>
-                                        -->
-                                    </div>
-                                </div>
-                                <div 
-                                    class="category-label-select" 
-                                    :class="`${ $parent.categoriesRight.includes(category) ? 'round-white gold-bg bold' : ''}`"  
-                                    :data-category="category" 
-                                    @click="$parent.toggleCategory($event, 'right')"
+                                    <input 
+                                        type="checkbox" 
+                                        class="category-label-select"
+                                        :class="`${ $parent.categoriesRight.includes(category) ? 'category-label-selected' : ''}`" 
+                                        :checked="$parent.categoriesRight.includes(category)" 
+                                        :data-category="category" 
+                                        :data-side="'right'"
+                                        @click="$parent.toggleCategory"
                                     >
-                                    B
+                                    <!--
                                     <div 
-                                        :class="`category-label-lock ${$parent.lockedCategoriesRight.includes(category) ? 'category-locked' : ''}`" 
-                                        :style="`left:unset;right:-15px;display:${($parent.categoriesRight.includes(category) && $parent.lockedCategoriesRight.length<1) || $parent.lockedCategoriesRight.includes(category) ? 'block' : 'none'}`"
-                                        @click="$parent.lockCategory($event, 'right')"
+                                        class="category-label-select round-white" 
+                                        :class="`${ $parent.categoriesLeft.includes(category) ? 'category-label-selected' : ''}`" 
+                                        :data-category="category" 
+                                        :data-side="'left'"
+                                        @click="$parent.toggleCategory"
                                         >
-                                        &
-                                        <!--
-                                        <svg class="no-events" height="800" width="800" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 330" xml:space="preserve"><path d="M65 330h200c8.284 0 15-6.716 15-15V145c0-8.284-6.716-15-15-15h-15V85c0-46.869-38.131-85-85-85S80 38.131 80 85v45H65c-8.284 0-15 6.716-15 15v170c0 8.284 6.716 15 15 15zm115-95.014V255c0 8.284-6.716 15-15 15s-15-6.716-15-15v-20.014c-6.068-4.565-10-11.824-10-19.986 0-13.785 11.215-25 25-25s25 11.215 25 25c0 8.162-3.932 15.421-10 19.986zM110 85c0-30.327 24.673-55 55-55s55 24.673 55 55v45H110V85z"/></svg>
-                                        -->
+                                        A
                                     </div>
+                                    <div 
+                                        class="category-label-select round-white" 
+                                        :class="`${ $parent.categoriesRight.includes(category) ? 'category-label-selected' : ''}`"  
+                                        :data-category="category" 
+                                        :data-side="'right'"
+                                        @click="$parent.toggleCategory"
+                                        >
+                                        B
+                                    </div>
+                                    -->
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="f-col">
+                    <div class="f-col" v-if="$parent.categoriesLeft.length>0 || $parent.categoriesRight.length>0">
+                        <div>Cell Composition</div>
                         <div class="f-row" style="gap:20px; min-width: max-content">
                             <div class="f-col">
-                                <div v-if="$parent.aRows.length>0">
-                                    Proportion of A across all cells
+                                <div v-if="$parent.categoriesLeft.length>0">
+                                    <div class="chart-title">Proportion of A across all cells</div>
                                     <stacked-bar-chart
-                                        :data="$parent.aRows"
+                                        :data="$parent.sortedRowsA"
                                         :categoryKey="$parent.categoriesLeft.join('|')"
                                         totalKey="Total"
-                                        :colors="$parent.categoryColors($parent.categoriesLeft.join('|'))"
+                                        :colors="$parent.categoryColors('left')"
                                         :normalize="true"
                                         :width="300"
-                                        :labelTop="`count`"
-                                        :labelBottom="`percent`"
+                                        :labelTop="`percent`"
                                         :margins="{top: 30, right: 10, bottom: 50, left:95}"
                                     />
                                 </div>
                                 <div v-if="$parent.categoriesLeft.length>0 && $parent.categoriesRight.length>0">
-                                    Proportion of B within A
+                                    <div class="chart-title">Distribution of B within A</div>
                                     <stacked-bar-chart 
-                                        :data="$parent.sortedItems"
+                                        :data="$parent.sortedRows"
                                         :categoryKey="$parent.categoriesLeft.join('|')"
                                         totalKey="Total"
-                                        :subCategoryKeys="$parent.categoryKeys($parent.categoriesRight)"
-                                        :colors="$parent.categoryColors($parent.categoriesRight.join('|'))"
+                                        :subCategoryKeys="$parent.categoryKeysRight"
+                                        :colors="$parent.categoryColors('right')"
                                         :normalize="false"
                                         :width="300"
                                         :labelTop="`count`"
@@ -150,12 +122,12 @@
                                     />
                                 </div>
                                 <div v-else-if="$parent.categoriesLeft.length>0">
-                                    Proportion of A across all cells
+                                    <div class="chart-title">Distribution of A across all cells</div>
                                     <stacked-bar-chart
-                                        :data="$parent.aRows"
+                                        :data="$parent.sortedRowsA"
                                         :categoryKey="$parent.categoriesLeft.join('|')"
                                         totalKey="Total"
-                                        :colors="$parent.categoryColors($parent.categoriesLeft.join('|'))"
+                                        :colors="$parent.categoryColors('left')"
                                         :normalize="false"
                                         :width="300"
                                         :labelTop="`count`"
@@ -167,27 +139,26 @@
                             </div>
                             <div class="f-col">
                                 <div v-if="$parent.categoriesRight.length>0">
-                                    Proportion of B across all cells
+                                    <div class="chart-title">Proportion of B across all cells</div>
                                     <stacked-bar-chart
-                                        :data="$parent.bRows"
+                                        :data="$parent.sortedRowsB"
                                         :categoryKey="$parent.categoriesRight.join('|')"
                                         totalKey="Total"
-                                        :colors="$parent.categoryColors($parent.categoriesRight.join('|'))"
+                                        :colors="$parent.categoryColors('right')"
                                         :normalize="true"
                                         :width="300"
-                                        :labelTop="`count`"
-                                        :labelBottom="`percent`"
+                                        :labelTop="`percent`"
                                         :margins="{top: 30, right: 10, bottom: 50, left:95}"
                                     />
                                 </div>
                                 <div v-if="$parent.categoriesLeft.length>0 && $parent.categoriesRight.length>0">
-                                    Proportion of B within A (normalized)
+                                    <div class="chart-title">Proportion of B within A</div>
                                     <stacked-bar-chart
-                                        :data="$parent.sortedItems"
+                                        :data="$parent.sortedRows"
                                         :categoryKey="$parent.categoriesLeft.join('|')"
                                         totalKey="Total"
-                                        :subCategoryKeys="$parent.categoryKeys($parent.categoriesRight)"
-                                        :colors="$parent.categoryColors($parent.categoriesRight.join('|'))"
+                                        :subCategoryKeys="$parent.categoryKeysRight"
+                                        :colors="$parent.categoryColors('right')"
                                         :normalize="true"
                                         :width="300"
                                         :labelTop="`percent`"
@@ -195,12 +166,12 @@
                                     />
                                 </div>
                                 <div v-else-if="$parent.categoriesRight.length>0">
-                                    Proportion of B across all cells
+                                    <div class="chart-title">Distribution of B across all cells</div>
                                     <stacked-bar-chart
-                                        :data="$parent.bRows"
+                                        :data="$parent.sortedRowsB"
                                         :categoryKey="$parent.categoriesRight.join('|')"
                                         totalKey="Total"
-                                        :colors="$parent.categoryColors($parent.categoriesRight.join('|'))"
+                                        :colors="$parent.categoryColors('right')"
                                         :normalize="false"
                                         :width="300"
                                         :labelTop="`count`"
@@ -210,38 +181,49 @@
                                 </div>
                             </div>
                             <div class="f-col" style="gap:20px">
-                                <div class="f-row" style="gap:20px" v-if="$parent.categoriesLeft.length>0 || $parent.categoriesRight.length>0">
+                                <div class="f-row" style="gap:20px" v-if="$parent.coordinateColorsA.length>0 || $parent.coordinateColorsB.length>0">
                                     <div class="f-col" v-if="$parent.categoriesLeft.length>0">
-                                        <div style="margin:0 0 10px 0">UMAP A</div>
-                                        <div class="f-col align-v-center align-h-center" style="width:200px; height:200px; background:#dddddd"></div>
+                                        <div class="chart-title" style="margin:0 0 10px 0">UMAP A</div>
+                                        <div class="f-col align-v-center align-h-center" style="width:200px; height:200px; background:none; border:1px solid #ccc">
+                                            <umap-plot 
+                                                :points="$parent.coordinates"
+                                                :colors="$parent.coordinateColorsA"
+                                                :width="200"
+                                            />
+                                        </div>
                                     </div>
                                     <div class="f-col" v-if="$parent.categoriesRight.length>0">
-                                        <div style="margin:0 0 10px 0">UMAP B</div>
-                                        <div class="f-col align-v-center align-h-center" style="width:200px; height:200px; background:#dddddd"></div>
+                                        <div class="chart-title" style="margin:0 0 10px 0">UMAP B</div>
+                                        <div class="f-col align-v-center align-h-center" style="width:200px; height:200px; background:none; border:1px solid #ccc;">
+                                            <umap-plot 
+                                                :points="$parent.coordinates"
+                                                :colors="$parent.coordinateColorsB"
+                                                :width="200"
+                                            /></div>
                                     </div>
                                 </div>
                                 <div class="f-row" style="gap:20px" v-if="$parent.categoriesLeft.length>0 || $parent.categoriesRight.length>0">
-                                    <div class="f-col" v-if="$parent.categoriesLeft.length>0">
+                                    <div class="f-col" style="width:auto;" v-if="$parent.categoriesLeft.length>0">
                                         <div class="f-col" style="gap:5px; margin:0 0 5px 0">
-                                            <div>Legend A</div>
+                                            <div class="chart-title">Legend A</div>
                                             <div style="font-size:12px; line-height: 12px; color: gray;">{{ $parent.categoriesLeft.join('|') }}</div>
                                         </div>
                                         <div class="f-col" style="flex-wrap: wrap">
-                                            <div class="f-row align-v-center" style="gap:5px; font-size: 12px;" v-for="category in $parent.categoryKeys($parent.categoriesLeft)">
-                                                <div :style="`width:15px; height:15px; background:${$parent.fieldColors[$parent.categoriesLeft.join('|')][category]}`"></div>
-                                                <div style="white-space: nowrap;">{{ category }}</div>
+                                            <div class="f-row align-v-center" style="gap:5px; font-size: 11px; line-height: 12px;" v-for="category in $parent.sortedRowsA">
+                                                <div :style="`width:10px; height:10px; background:${$parent.fieldColors[$parent.categoriesLeft.join('|')][category[$parent.categoriesLeft.join('|')]]}`"></div>
+                                                <div style="white-space: nowrap;">{{ category[$parent.categoriesLeft.join('|')] }}</div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="f-col" v-if="$parent.categoriesRight.length>0">
                                         <div class="f-col" style="gap:5px; margin:0 0 5px 0">
-                                            <div>Legend B</div>
+                                            <div class="chart-title">Legend B</div>
                                             <div style="font-size:12px; line-height: 12px; color: gray;">{{ $parent.categoriesRight.join('|') }}</div>
                                         </div>
                                         <div class="f-col" style="flex-wrap: wrap">
-                                            <div class="f-row align-v-center" style="gap:5px; font-size: 12px;" v-for="category in $parent.categoryKeys($parent.categoriesRight)">
-                                                <div :style="`width:15px; height:15px; background:${$parent.fieldColors[$parent.categoriesRight.join('|')][category]}`"></div>
-                                                <div style="white-space: nowrap;">{{ category }}</div>
+                                            <div class="f-row align-v-center" style="gap:5px; font-size: 11px; line-height: 12px" v-for="category in $parent.sortedRowsB">
+                                                <div :style="`width:10px; height:10px; background:${$parent.fieldColors[$parent.categoriesRight.join('|')][category[$parent.categoriesRight.join('|')]]}`"></div>
+                                                <div style="white-space: nowrap;">{{ category[$parent.categoriesRight.join('|')] }}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -249,8 +231,24 @@
                             </div>
                         </div>
                     </div>
-                    <div class="f-col table-drawer" v-if="$parent.rows.length>0">
-                        <div class="table-drawer-handle" data-state="closed" @click="$parent.toggleTableDrawer($event)"></div>
+                    <!--
+                    <div v-else>
+                        Instructions
+                        <div style="font-size:14px">
+                            <div>Select a dataset category by selecting it as an A or B component.</div>
+                            <div>Compare categories by select one as A and another as B.</div>
+                            <div>To combine categories you can select up to 2 A and B categories each.</div>
+                        </div>
+                    </div>
+                    -->
+                    <div class="f-col table-drawer" data-state="closed" v-if="$parent.sortedRows.length>0" >
+                        <div class="f-col align-h-center table-drawer-handle" style="gap:10px; padding:25px 0" @click="$parent.toggleTableDrawer">
+                            <div class="f-col no-events align-h-center">
+                                <div style="font-size: 12px;">❮</div>
+                                <div style="width:25px;"><svg viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.048"></g><g id="SVGRepo_iconCarrier"> <path d="M3 9.5H21M3 14.5H21M8 4.5V19.5M6.2 19.5H17.8C18.9201 19.5 19.4802 19.5 19.908 19.282C20.2843 19.0903 20.5903 18.7843 20.782 18.408C21 17.9802 21 17.4201 21 16.3V7.7C21 6.5799 21 6.01984 20.782 5.59202C20.5903 5.21569 20.2843 4.90973 19.908 4.71799C19.4802 4.5 18.9201 4.5 17.8 4.5H6.2C5.0799 4.5 4.51984 4.5 4.09202 4.71799C3.71569 4.90973 3.40973 5.21569 3.21799 5.59202C3 6.01984 3 6.57989 3 7.7V16.3C3 17.4201 3 17.9802 3.21799 18.408C3.40973 18.7843 3.71569 19.0903 4.09202 19.282C4.51984 19.5 5.07989 19.5 6.2 19.5Z" stroke="#000000" stroke-width="1.2"></path> </g></svg></div>
+                            </div>
+                            <div class="no-events" style="transform: rotate(-90deg);">Table</div>
+                        </div>
                         <b-table 
                         style="font-size: 14px; width:auto;"
                         small
@@ -258,7 +256,7 @@
                         striped
                         ref="cellTable"
                         @sort-changed="$parent.onSortChanged"
-                        :items="$parent.rows" 
+                        :items="$parent.sortedRows" 
                         :fields="$parent.headers">
                             <template #thead-top>
                                 <tr>
@@ -274,9 +272,9 @@
                                 <span class="bold">{{ data.value }}</span>
                             </template>
                             <template v-slot:[`cell(${$parent.categoryString($parent.categoriesLeft)})`]="data">
-                                <span class="table-swatch" :style="`background:${$parent.fieldColors[data.field.key][data.value]}`"></span><span>{{ data.value }}</span> 
+                                <span class="table-swatch" :style="`background:${$parent.fieldColors[data.field.key][data.value]}`"></span><span style="white-space: nowrap;">{{ data.value }}</span> 
                             </template>
-                            <template v-for="category in $parent.categoryKeys($parent.categoriesRight)" v-slot:[`head(${category})`]="data">
+                            <template v-for="category in $parent.categoryKeysRight" v-slot:[`head(${category})`]="data">
                                 <span class="table-swatch" :style="`background:${$parent.fieldColors[$parent.categoriesRight.join('|')][data.label]}`"></span><span>{{ data.label }}</span>
                             </template>
                         </b-table>
@@ -293,18 +291,36 @@
   
 <style>
 /*@import url("/css/table.css");*/
+.no-select {
+  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+}
+.cursor-grabbing{
+    /*cursor: grabbing !important;*/
+}
+
+.anatomogram {
+    display: flex;
+    justify-content: center;
+}
+.anatomogram img {
+    width: 130px;
+}
+
 .table-drawer{
     max-width: calc(100vw - 300px);
     position: absolute;
-    top: calc(145px - 30px);
-    left: calc(100vw - 60px);
+    top: -30px;
+    left: calc(100vw - 80px);
     background: white;
-    padding: 30px;
+    padding: 30px 30px 30px 60px;
 }
 .table-drawer-handle{
-    width:10px;
+    width:40px;
     height:100%;
-    background:#ddd;
+    background:#ffd10c;
     cursor: pointer;
     position: absolute;
     left:0;
@@ -352,9 +368,16 @@ button.add-factor {
     height: 100%;
 }
 
+.swapBtn {
+    position: absolute;
+    right: 0;
+    top: -100%;
+}
+
 .categories:nth-child(even) {
     background: #dddddd;
 }
+
 .category-label{
     overflow: hidden;
     margin: 0 30px 0 0;
@@ -362,15 +385,31 @@ button.add-factor {
 .category-label-select {
     width: 15px;
     text-align: center;
-    opacity:0.25;
+    opacity:0.75;
+    color: #ddd;
     cursor: pointer;
     position: relative;
+    /*box-shadow: inset 0 0 2px 0px #bbb;
+    border: 0.5px solid #bbbbbb;*/
+}
+.categories-list.maxA .category-label-select[data-side='left']:not(.category-label-selected),
+.categories-list.maxB .category-label-select[data-side='right']:not(.category-label-selected) {
+    opacity: 0.2;
+    cursor:default;
+}
+body.cursor-grabbing .category-label-select{
+    cursor:inherit;
 }
 .category-label-select:hover{
     opacity:1;
+    color: black;
+    background: #ffd10c;
 }
-.category-label-select.round-white{
+.category-label-select.category-label-selected{
     opacity:1;
+    font-weight: bold;
+    color: black;
+    background: #ffd10c;
 }
 
 .category-label-lock {
@@ -394,6 +433,11 @@ button.add-factor {
     opacity: 1;
     font-weight: bold;
     color:#ff6c02;
+}
+
+.chart-title{
+    font-size: 14px;
+    font-style: italic;
 }
 
 .f-tooltip{

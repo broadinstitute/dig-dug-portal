@@ -49,6 +49,8 @@ body.kp-default{
     }
     .mat-body{
         flex-grow: 1;
+        position: relative;
+        overflow-x: clip;
         /*background: #fff7d0;*/
     }
     .table-wrap {

@@ -14,6 +14,7 @@ import "../assets/matkp-styles.css"
 import matkpNav from "../components/matkp-nav.vue";
 import matkpFooter from "../components/matkp-footer.vue";
 import StackedBarChart from '../components/StackedBarChart.vue';
+import UMAPPlot from '../components/UMAPPlot.vue';
 
 import * as d3 from "d3";
 import * as _ from "lodash";
@@ -30,13 +31,17 @@ const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#55
 
 new Vue({
     //store,
+    mounted() {
+        this.injectScript('https://cdn.jsdelivr.net/gh/stdlib-js/stats-chi2test@umd/browser.js');
+    },
     render(createElement, context) {
         return createElement(Template);
     },
     components: {
         matkpNav,
         matkpFooter,
-        StackedBarChart
+        StackedBarChart,
+        UMAPPlot
     },
     data() {
       return {
@@ -44,15 +49,12 @@ new Vue({
         colorIndex: 0,
 
         d: '::',
+        datasets: null,
         rawData: null,
         fieldColors: null,
-        categoryCombos: {},
-        categoriesLeft: [],
-        categoriesRight: [],
-        lockedCategoriesLeft: [],
-        lockedCategoriesRight: [],
+    
+        expressionData: [],
         referenceField: null,
-        sortedItems: [],
 
         headers: [],
         headers2: [],
@@ -60,28 +62,76 @@ new Vue({
         rows: [],
         aRows: [],
         bRows: [],
+
+        sortedRows: [],
+        sortedRowsA: [],
+        sortedRowsB: [],
         
         footer: [],
 
-        
+        coordinates: [],
+        coordinateColorsA: [],
+        coordinateColorsB: [],
+
+        categoryCombos: {},
+        categoriesLeft: [],
+        categoriesRight: [],
+        lastCategoriesLeft: [],
+        lastCategoriesRight: [],
       };
     },
-    created() {
+    async created() {
+        this.fetchDatasets();
         this.activeDataset = keyParams.dataset ? keyParams.dataset : this.datasetsList[0];
+        this.fetchCoordinates();
         this.fetchFields();
+        //this.fetchGeneExpression('PPARG');
     },
     watch:{
     },
     computed: {
-        listOfCategories: function() {
+        listOfCategories() {
             if(!this.rawData) return null;
             const source = this.rawData["metadata_labels"];
             const allCategories = Object.keys(source);
             const filtered = allCategories.filter(category => source[category].length>1);
             return filtered.sort();
         },
+        categoryKeysLeft() {
+            return this.categoryKeys(this.categoriesLeft);
+        },
+        categoryKeysRight() {
+            return this.categoryKeys(this.categoriesRight);
+        },
+        currentDataset() {
+            if(!this.datasets || !this.activeDataset) return null;
+            return this.datasets.filter(dataset => dataset.datasetId === this.activeDataset)[0];
+        },
     },
     methods: {
+        injectScript(scriptPath){
+            // Dynamically create a <script> tag to load library from CDN
+            const script = document.createElement('script');
+            script.src = scriptPath;
+            script.onload = () => {
+                console.log('Library loaded', scriptPath);
+            };
+            script.onerror = () => {
+                console.error('Error loading library', scriptPath);
+            };
+            document.head.appendChild(script);
+        },
+        async fetchDatasets(){
+            console.log('getting datasets');
+            const fetchPath = '/api/raw/file/single_cell_metadata/dataset_metadata.json.gz';
+            const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
+            const dataText = await response.text();
+            const lines = dataText.split('\n').filter(line => line.trim() !== '');
+            const jsonObjects = lines.map(line => JSON.parse(line));
+            this.datasets = jsonObjects;//.map(item => item["datasetId"]);
+            console.log('datasets', this.datasets);
+
+        },
         async fetchFields() {
             try {
                 const response = await fetch(`${BIO_INDEX_HOST}/api/raw/file/single_cell/${this.activeDataset}/fields.json.gz`);
@@ -93,19 +143,76 @@ new Vue({
                 this.fieldColors = this.calcFieldColors(rawData);
                 console.log('fieldColors', this.fieldColors);
 
+                //this.categoriesLeft.push(this.rawData["metadata_labels"]["cell_type__custom"] ? "cell_type__custom" : "cluster");
+            
                 this.calculateTable();
                 
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('Error fetching fields:', error);
             }
         },
+        async fetchCoordinates() {
+            try {
+                console.log('getting coordinates for: ', this.activeDataset);
+                const response = await fetch(`${BIO_INDEX_HOST}/api/raw/file/single_cell/${this.activeDataset}/coordinates.tsv.gz`)
+                const json = this.tsvToJson(await response.text());
+                this.coordinates = json;
+                console.log('fetchCoordinates', json);
+            }catch (error){
+                console.error('Error fetching coordinates:', error);
+            }
+        },
+        async fetchGeneExpression(gene){
+            try{
+                console.log('getting gene expression for: ', gene, this.activeDataset);
+                const response = await fetch(`${BIO_INDEX_HOST}/api/bio/query/single-cell-lognorm?q=${this.activeDataset},${gene}`);
+                const json = await response.json();
+                const expression = json.data[0]['expression'];
+                this.expressionData[gene] = expression;
+                console.log(gene, 'fetchGeneExpression', json);
+            }catch(error){
+                console.error('Error fetching gene expression', error);
+            }
+        },
+        tsvToJson (tsvString) {
+            const lines = tsvString.split('\n');
+            const headers = lines.shift().split('\t');
+            const jsonArray = [];
+            const ifNumber = (str) => {
+                return !isNaN(str) && str.trim() !== '' ? Number(str) : str;
+            }
+            lines.forEach(line => {
+                const values = line.split('\t');
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = ifNumber(values[index]);
+                });
+                jsonArray.push(obj);
+            });
+            return jsonArray;
+        },
         calculateTable(){
+            //get selected categories
             const categories = {
                 left: this.categoriesLeft.filter(item => item !== null),
                 right: this.categoriesRight.filter(item => item !== null)
             }
+
+            //clear previous data
+            this.headers = [];
+            this.headers2 = [];
+            this.rows = [];
+            this.footer = [];
+            this.sortedRows = [];
+            this.sortedRowsA = [];
+            this.sortedRowsB = [];
+            this.aRows = [];
+            this.bRows = [];
             
+            //calculate new data
             this.processData(this.rawData, categories);
+
+            this.$nextTick(() => this.updateTableDrawer());
         },
         calcFieldColors(rawData){
             const colors = {};
@@ -132,55 +239,77 @@ new Vue({
             return category.join('|');
         },
         categoryKeys(category) {
+            if(!this.rawData || category.length<1) return [];
+            const isMulti = Array.isArray(category) && category.length>1;
+            return isMulti ? this.categoryCombos[category.join('|')] : this.rawData["metadata_labels"][category];
+            /*
             if(!this.rawData) return [];
             const isMulti = Array.isArray(category) && category.length>1;
-            if(!isMulti) return this.rawData["metadata_labels"][category];
-            return this.categoryCombos[category.join('|')];
+            const c = isMulti ? this.categoryCombos[category.join('|')] : this.rawData["metadata_labels"][category];
+            sort ? c.sort() : c;
+            console.log('categoryKeys', category, sort, c);
+            return c;
+            */
         },
-        categoryColors(category){
+        categoryColors(side){
+            const category = side === 'left' ? this.categoriesLeft.join('|') : this.categoriesRight.join('|')
             if(!category) return [];
-            return this.fieldColors ? Object.values(this.fieldColors[category]) : [];
+            //return this.fieldColors ? Object.values(this.fieldColors[category]) : [];
+            console.log('categoryColors', category, side, this.aRows.length);
+            if(side === 'right') return this.sortedRowsB.map(item => this.fieldColors[category][item[category]]);
+            return this.sortedRowsA.map(item => this.fieldColors[category][item[category]]);
+        },
+        
+        areArraysEqual(arr1, arr2){
+            if (arr1.length !== arr2.length) return false;
+            const sortedArr1 = arr1.slice().sort();
+            const sortedArr2 = arr2.slice().sort();
+            for (let i = 0; i < sortedArr1.length; i++) {
+                if (sortedArr1[i] !== sortedArr2[i]) return false;
+            }
+            return true;
         },
 
         processData(rawData, categories) {
-            const processedData = [];
-
-            const { NAME, metadata, metadata_labels } = rawData;
             const allUserSelectedCategories = categories.left.concat(categories.right);
+            console.log('allUserSelectedCategories', allUserSelectedCategories);
 
-            console.log('allUserSelectedCategories', allUserSelectedCategories)
+            if(allUserSelectedCategories.length===0) return;
+
+            const processedData = [];
+            const { NAME, metadata, metadata_labels } = rawData;
+            const hasLeft = categories.left.length>0;
+            const hasRight = categories.right.length>0;
+            const pointColors = {left:[], right:[]};
+
+            const leftIsNew = !this.areArraysEqual(categories.left, this.lastCategoriesLeft);
+            const rightIsNew = !this.areArraysEqual(categories.right, this.lastCategoriesRight);
           
             //process data based on user selected categories
             for (let i = 0; i < NAME.length; i++) {
-              const record = {};
-              for (const cat in allUserSelectedCategories) {
-                const category = allUserSelectedCategories[cat];
-                if (metadata.hasOwnProperty(category)) {
-                  const labelIdx = metadata[category][i];
-                  const label = metadata_labels[category][labelIdx];
-                  record[category] = label;
+                const record = {};
+                for (const cat in allUserSelectedCategories) {
+                    const category = allUserSelectedCategories[cat];
+                    if (metadata.hasOwnProperty(category)) {
+                        const labelIdx = metadata[category][i];
+                        const label = metadata_labels[category][labelIdx];
+                        record[category] = label;
+                    }
                 }
-              }
-          
-              processedData.push(record);
+                processedData.push(record);
             }
           
             console.log('processData', processedData);
 
-            //clear previous data
-            this.headers = [];
-            this.headers2 = [];
-            this.rows = [];
-            this.footer = [];
-            this.sortedItems = [];
-            this.aRows = [];
-            this.bRows = [];
+            this.lastCategoriesLeft = categories.left;
+            this.lastCategoriesRight = categories.right;
 
             //generate tables from processed data
             if(categories.left.length > 0 && categories.right.length > 0){
                 console.log('AB selected')
                 const crossTabData = this.crossTabulation(processedData, categories.left, categories.right);
                 console.log('crossTabulation', crossTabData);
+                //this.crossTabAnalysis(crossTabData);
                 this.frequencyCrossTable(crossTabData);
             }
 
@@ -189,14 +318,13 @@ new Vue({
                 const aFreq = this.frequencyDistribution(processedData, categories.left);
                 const aTable = this.frequencyTable(aFreq, categories.left);
                 this.aRows = aTable.rows;
+                this.sortedRowsA = this.localSort(this.aRows, this.categoriesLeft.join('|'), false);
                 console.log('A frequency', aFreq);
                 console.log('A distribution', aTable);
                 if(categories.right.length === 0){
                     this.headers = aTable.header;
-                    this.rows = aTable.rows;
-                    this.sortedItems = aTable.rows;
-                    this.headers2 = [];
-                    this.footer = aTable.footer;
+                    this.rows = this.sortedRowsA;
+                    this.sortedRows = this.sortedRowsA;
                 }
             }
 
@@ -205,21 +333,51 @@ new Vue({
                 const bFreq = this.frequencyDistribution(processedData, categories.right);
                 const bTable = this.frequencyTable(bFreq, categories.right);
                 this.bRows = bTable.rows;
+                this.sortedRowsB = this.localSort(this.bRows, this.categoriesRight.join('|'), false);
                 console.log('B frequency', bFreq);
                 console.log('B distribution', bTable);
                 if(categories.left.length === 0){
                     this.headers = bTable.header;
-                    this.rows = bTable.rows;
-                    this.sortedItems = bTable.rows;
-                    this.headers2 = [];
-                    this.footer = bTable.footer;
+                    this.rows = this.sortedRowsB;
+                    this.sortedRows = this.sortedRowsB;
                 }
             }
+
+            //set colors for umaps
+            const categoryLeft = categories.left.join('|');
+            const categoryLeftCount = categories.left.length;
+            const categoryRight = categories.right.join('|');
+            const categoryRightCount = categories.right.length;
+            for (let i = 0; i < NAME.length; i++) {
+                if(hasLeft && leftIsNew){
+                    const labelIdx1 = metadata[categories.left[0]][i];
+                    const label1 = metadata_labels[categories.left[0]][labelIdx1];
+                    if(categoryLeftCount<2){
+                        pointColors.left[i] = this.fieldColors[categoryLeft][`${label1}`];
+                    }else{
+                        const labelIdx2 = metadata[categories.left[1]][i];
+                        const label2 = metadata_labels[categories.left[1]][labelIdx2];
+                        pointColors.left[i] = this.fieldColors[categoryLeft][`${label1}|${label2}`];
+                    }
+                }
+                if(hasRight && rightIsNew){
+                    const labelIdx1 = metadata[categories.right[0]][i];
+                    const label1 = metadata_labels[categories.right[0]][labelIdx1];
+                    if(categoryRightCount<2){
+                        pointColors.right[i] = this.fieldColors[categoryRight][`${label1}`];
+                    }else{
+                        const labelIdx2 = metadata[categories.right[1]][i];
+                        const label2 = metadata_labels[categories.right[1]][labelIdx2];
+                        pointColors.right[i] = this.fieldColors[categoryRight][`${label1}|${label2}`];
+                    }
+                }
+            }
+            if(leftIsNew) this.coordinateColorsA = pointColors.left;
+            if(rightIsNew) this.coordinateColorsB = pointColors.right;
         },
 
         frequencyDistribution(data, category) {
             const isMulti = Array.isArray(category) && category.length>1;
-
             const result = data.reduce((acc, record) => {
                 //TODO: isMulti only assumes 2 catgories, make dynamic
                 const label = !isMulti ? record[category] : `${record[category[0]]}|${record[category[1]]}`;
@@ -263,6 +421,56 @@ new Vue({
             }, {});
         },
 
+        crossTabAnalysis(data){
+            let rowTotals = {};
+            let columnTotals = {};
+            let grandTotal = 0;
+            
+            // row totals, column totals, and grand total
+            for (let row in data) {
+                rowTotals[row] = 0;
+                for (let col in data[row]) {
+                    rowTotals[row] += data[row][col];
+                    columnTotals[col] = (columnTotals[col] || 0) + data[row][col];
+                    grandTotal += data[row][col];
+                }
+            }
+
+            // degrees of freedom
+            //let numRows = Object.keys(data).length;
+            //let numCols = Object.keys(columnTotals).length;
+            //const degreesOfFreedom = (numRows - 1) * (numCols - 1);
+
+            // expected frequencies, chi-squared statistic, and contributions
+            const expected = {};
+            const contributions = {};
+            let observedArray = [];
+
+            for (let row in data) {
+                expected[row] = {};
+                contributions[row] = {};
+                let rowArray = [];
+                for (let col in data[row]) {
+                    let observedValue = data[row][col];
+                    let expectedValue = (rowTotals[row] * columnTotals[col]) / grandTotal;
+                    expected[row][col] = expectedValue;
+                    
+                    let contribution = Math.pow(observedValue - expectedValue, 2) / expectedValue;
+                    contributions[row][col] = contribution;
+
+                    rowArray.push(observedValue);
+                }
+                observedArray.push(rowArray);
+            }
+            
+            console.log('observedArray', observedArray);
+            //return;
+            let testResult = chi2test(observedArray, {'correct': false});
+            this.chiSquared = testResult.statistic;
+            this.pValue = testResult.pValue;
+            console.warn('crossTabAnalysis', testResult, testResult.toString({'decision': true}));
+        },
+
         frequencyTable(data, categories){
             const rows = [];
             let grandTotal = 0;
@@ -294,11 +502,14 @@ new Vue({
                 }
             }
 
+            //sort column keys
+            const allColumnKeysSorted = Array.from(allColumnKeys).sort();
+
             // calculate the rows and keep track of column totals
             for(const [key, value] of Object.entries(data)){
                 const row = {[this.categoriesLeft.join('|')]: key, 'Total': 0};
 
-                for (const keyB of allColumnKeys) {
+                for (const keyB of allColumnKeysSorted) {
                     if (value.hasOwnProperty(keyB)) {
                         row[keyB] = value[keyB];
                         row['Total'] += value[keyB];
@@ -329,7 +540,7 @@ new Vue({
                 { key, label: key, sortable: true}
             ));
 
-            console.log('allColumnKeys', allColumnKeys, Object.keys(allColumnKeys).length)
+            console.log('allColumnKeysSorted', allColumnKeysSorted, allColumnKeysSorted.length);
 
             //TODO: all additional headers should be added to a headers array of headers
             //that way we dont need to keep track of the layers
@@ -341,75 +552,45 @@ new Vue({
             });*/
 
             this.rows = rows;
-            this.sortedItems = rows;
+            this.sortedRows = this.localSort(rows, this.categoriesLeft.join('|'), false);
             this.footer = footerRow;
             this.headers = headers;
             this.headers2 = headers2;
             console.log('new head', headers);
-            console.log('new rows', rows);
+            console.log('new rows', this.sortedRows);
             console.log('new foot', this.footer);
         },
-        handleCategorySelect(e, side, index) {
-            const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
-            //selected none
-            categories[index] = e.target.value || null;
-            console.log(side, categories, e.target.value);
-            console.log('!!', this.categoriesLeft, this.categoriesRight);
-            this.calculateTable();
-        },
-        addFactor(side) {
-            const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
-            categories.push(null);
-        },
-        toggleCategory(e, side){
-            const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
-            const lockedCategories = side==='left'?this.lockedCategoriesLeft:this.lockedCategoriesRight;
+        toggleCategory(e){
+            const categories = e.target.dataset.side==='left'?this.categoriesLeft:this.categoriesRight;
             const clickedCategory = e.target.dataset.category;
-            const isLocked = lockedCategories.includes(clickedCategory);
-            const lockedIdx = categories.indexOf(lockedCategories[0])
-            if(isLocked) return;
             if(categories.includes(clickedCategory)){
                 categories.splice(categories.indexOf(clickedCategory), 1);
             }else{
-                if(lockedCategories.length>0){
-                    if(categories.length===2){
-                        categories[lockedIdx===0?1:0] = clickedCategory;
-                    }else{
-                        categories.push(clickedCategory);
-                    }
-                }else{
-                    categories[0] = clickedCategory;
+                if(categories.length===2){
+                    console.warn('reached category combo limit');
+                    return;
                 }
+                categories.push(clickedCategory);
             }
             this.calculateTable();
         },
-        lockCategory(e, side){
-            e.stopPropagation();
-            const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
-            const lockedCategories = side==='left'?this.lockedCategoriesLeft:this.lockedCategoriesRight;
-            const clickedCategory = e.target.parentNode.dataset.category;
-            if(lockedCategories.includes(clickedCategory)){
-                lockedCategories.splice(lockedCategories.indexOf(clickedCategory), 1);
-                categories.splice(1,1);
-            }else{
-                lockedCategories.push(clickedCategory);
-            }
-            console.log('locked', side, lockedCategories)
-        },
         swapSides(){
             const categoriesLeftTmp = this.categoriesLeft;
-            const lockedCategoriesLeftTmp = this.lockedCategoriesLeft;
             this.categoriesLeft = this.categoriesRight;
             this.categoriesRight = categoriesLeftTmp;
-            this.lockedCategoriesLeft = this.lockedCategoriesRight;
-            this.lockedCategoriesRight = lockedCategoriesLeftTmp;
             this.calculateTable();
         },
         onSortChanged(ctx) {
             const sortBy = ctx.sortBy;
             const sortDesc = ctx.sortDesc;
-            const compareType = typeof this.rows[0][sortBy];
-            this.sortedItems = this.rows.slice().sort((a, b) => {
+            this.sortedRows = this.localSort(this.rows, sortBy, sortDesc);
+            if(this.aRows.length>0) this.sortedRowsA = this.localSort(this.aRows, sortBy, sortDesc);
+            if(this.aRows.length<1 && this.bRows.length>0) this.sortedRowsB = this.localSort(this.bRows, sortBy, sortDesc);
+            console.log('sorted', this.sortedRows);
+        },
+        localSort(rows, sortBy, sortDesc){
+            const compareType = typeof rows[0][sortBy];
+            return rows.slice().sort((a, b) => {
                 let result = 0;
                 if(compareType === 'string'){
                     const valueA = a[sortBy].toString().toLowerCase();
@@ -419,25 +600,25 @@ new Vue({
                 if (a[sortBy] < b[sortBy]) result = -1;
                 if (a[sortBy] > b[sortBy]) result = 1;
                 return sortDesc ? -result : result;
-                
             });
-            console.log('sorted', this.sortedItems);
-          },
-          toggleTableDrawer(e){
-            const el = e.target.parentNode;
-            const tableWidth = Math.floor(el.getBoundingClientRect().width);
-            const state = e.target.dataset.state;
-            console.log('toggleTableDrawer', el, tableWidth, state);
-            if(state==='closed'){
+        },
+        toggleTableDrawer(){
+            const el = document.querySelector('.table-drawer');
+            const tableWidth = Math.floor(el.getBoundingClientRect().width)+15;
+            if(el.dataset.state==='closed'){
                 el.style.left = `calc(100vw - ${tableWidth}px)`;
-                e.target.dataset.state = 'open';
+                el.dataset.state = 'open';
             }else{
-                console.log('there')
-                el.style.left = `calc(100vw - 60px)`;
-                e.target.dataset.state = 'closed';
+                el.style.left = `calc(100vw - 80px)`;
+                el.dataset.state = 'closed';
             }
-            
-          },
+        },
+        updateTableDrawer(){
+            const el = document.querySelector('.table-drawer');
+            if(!el) return;
+            const tableWidth = Math.floor(el.getBoundingClientRect().width)+15;
+            if(el.dataset.state==='open') el.style.left = `calc(100vw - ${tableWidth}px)`;
+        },
     }
 }).$mount("#app");
 
@@ -490,10 +671,10 @@ fieldColors = {
 //processed data is a flattened array of objects, parallells NAMES, contains only user selected categories
 
 processedData = [
-    {categoryA: "label", categoryB:"label"},
-    {categoryA: "label", categoryB:"label"},
-    {categoryA: "label", categoryB:"label"},
-    {categoryA: "label", categoryB:"label"},
+    {categoryA: "label_a1", categoryB:"label_b1"},
+    {categoryA: "label_a1", categoryB:"label_b1"},
+    {categoryA: "label_a2", categoryB:"label_b2"},
+    {categoryA: "label_a2", categoryB:"label_b2"},
     ...
 ]
 
