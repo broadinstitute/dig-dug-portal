@@ -81,6 +81,7 @@ export default Vue.component("scatterplot", {
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .attr("id", `chart-${this.plotId}`)
+          .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
@@ -219,7 +220,12 @@ export default Vue.component("scatterplot", {
       return tooltipText;
     },
     unHoverDot() {
-      this.tooltip.style("opacity", 0);
+      this.hideTooltip();
+    },
+    hideTooltip(){
+      if (!!this.tooltip){
+        this.tooltip.style("opacity", 0);
+      }
     },
     getHoverFields(){
       let fields = [];
