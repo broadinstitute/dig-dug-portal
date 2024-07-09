@@ -133,7 +133,7 @@ export default Vue.component("TissueExpressionSubtable", {
 </script>
 <style scoped>
 .row {
-    /*font-size: smaller;*/
+    font-size: 14px;
     margin-left: 15px;
     margin-right: 0;
     background-color: #efefef;
