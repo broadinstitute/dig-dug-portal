@@ -690,7 +690,8 @@ export default Vue.component("multi-region-plot", {
 				let tempObj = {
 					type: this.renderConfig["star key"],
 					id: ITEM,
-					columns: this.getColumns(ITEM)
+					columns: this.getColumns(ITEM),
+					section: this.sectionId
 				}
 				stard.push(tempObj);
 				this.$emit('on-star', stard);
