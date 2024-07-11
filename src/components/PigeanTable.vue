@@ -39,7 +39,7 @@
                 <b-button
                     variant="outline-primary"
                     size="sm"
-                    @click="getSubtable(row)"
+                    @click="getSubtable(row, 1)"
                 >
                     {{ row.detailsShowing ? "Hide" : "Show" }}
                 </b-button>
@@ -48,21 +48,22 @@
                 <b-button
                     variant="outline-primary"
                     size="sm"
-                    @click="getSubtable(row)"
+                    @click="getSubtable(row, 2)"
                 >
                     {{ row.detailsShowing ? "Hide" : "Show" }}
                 </b-button>
             </template>
             <template #row-details="row">
               <pigean-table
-                :pigeanData="subtableData[subtableKey(row.item)]"
-                :config="{fields:config.subtableFields}"
+                v-if="showTable2(row)"
+                :pigeanData="subtable2Data[subtableKey(row.item)]"
+                :config="{fields:config.subtable2Fields}"
                 :isSubtable="true">
               </pigean-table>
               <pigean-table
-                v-if="!!config.subtable2Endpoint"
-                :pigeanData="subtable2Data[subtableKey(row.item)]"
-                :config="{fields:config.subtable2Fields}"
+                v-else
+                :pigeanData="subtableData[subtableKey(row.item)]"
+                :config="{fields:config.subtableFields}"
                 :isSubtable="true">
               </pigean-table>
             </template>
@@ -141,7 +142,8 @@ export default Vue.component("pigean-table", {
       annotationFormatter: Formatters.annotationFormatter,
       tissueFormatter: Formatters.tissueFormatter,
       tpmFormatter: Formatters.tpmFormatter,
-      async getSubtable(row) {
+      async getSubtable(row, whichSubtable) {
+        row.item.subtableActive = whichSubtable;
         let queryKey = this.subtableKey(row.item);
         if (!this.subtableData[queryKey]) {
           let data = await query(this.config.subtableEndpoint, queryKey);
@@ -153,6 +155,9 @@ export default Vue.component("pigean-table", {
           Vue.set(this.subtable2Data, queryKey, data2);
         }
         row.toggleDetails();
+      },
+      showTable2(row){
+        return row.item.subtableActive === 2;
       },
       subtableKey(item){
         if (this.config.queryParam === 'cluster'){
