@@ -169,6 +169,9 @@ new Vue({
                         sortable: true },
                     { key: "expand",
                         label: "Show top genes"
+                    },
+                    { key: "expand2",
+                        label: "Show top gene sets"
                     }
                 ],
                 queryParam: "cluster",

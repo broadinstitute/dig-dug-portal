@@ -44,10 +44,25 @@
                     {{ row.detailsShowing ? "Hide" : "Show" }}
                 </b-button>
             </template>
+            <template #cell(expand2)="row">
+                <b-button
+                    variant="outline-primary"
+                    size="sm"
+                    @click="getSubtable(row)"
+                >
+                    {{ row.detailsShowing ? "Hide" : "Show" }}
+                </b-button>
+            </template>
             <template #row-details="row">
               <pigean-table
                 :pigeanData="subtableData[subtableKey(row.item)]"
                 :config="{fields:config.subtableFields}"
+                :isSubtable="true">
+              </pigean-table>
+              <pigean-table
+                v-if="!!config.subtable2Endpoint"
+                :pigeanData="subtable2Data[subtableKey(row.item)]"
+                :config="{fields:config.subtable2Fields}"
                 :isSubtable="true">
               </pigean-table>
             </template>
@@ -85,6 +100,7 @@ export default Vue.component("pigean-table", {
           perPage: 10,
           currentPage: 1,
           subtableData: {},
+          subtable2Data: {},
           probFields: ["combined"],
           probData: this.computeProbabilities(), // only need to do this once
           probFields: this.collateFields()
@@ -130,6 +146,11 @@ export default Vue.component("pigean-table", {
         if (!this.subtableData[queryKey]) {
           let data = await query(this.config.subtableEndpoint, queryKey);
           Vue.set(this.subtableData, queryKey, data);
+        }
+        // Populate both subtables at once if applicable
+        if (!!this.config.subtable2Endpoint && !this.subtable2Data[queryKey]){
+          let data2 = await query(this.config.subtable2Endpoint, queryKey);
+          Vue.set(this.subtable2Data, queryKey, data2);
         }
         row.toggleDetails();
       },
