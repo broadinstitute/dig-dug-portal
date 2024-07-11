@@ -134,6 +134,9 @@ export default Vue.component("pigean-table", {
         row.toggleDetails();
       },
       subtableKey(item){
+        if (this.config.queryParam === 'cluster'){
+          return `${item.phenotype},${this.sigma},${this.genesetSize},${item.cluster}`;
+        }
         return `${item.phenotype},${item[this.config.queryParam]},${this.sigma},${this.genesetSize}`;
       },
       probability(val, prior=0.05){

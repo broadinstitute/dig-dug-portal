@@ -155,6 +155,37 @@ new Vue({
                 yAxisLabel: "Effect (joint)",
                 dotKey: "gene_set",
                 hoverBoxPosition: "both",
+            },
+            factorTableConfig: {
+                fields: [
+                    { key: "label",
+                        label: "Label",
+                        sortable: true },
+                    { key: "gene_set_score",
+                        label: "Gene set score",
+                        sortable: true },
+                    { key: "gene_score",
+                        label: "Gene score",
+                        sortable: true },
+                    { key: "expand",
+                        label: "Show top genes"
+                    }
+                ],
+                queryParam: "cluster",
+                subtableEndpoint: "pigean-gene-factor",
+                subtable2Endpoint: "pigean-gene-set-factor",
+                subtableFields: [
+                    "gene",
+                    "combined",
+                    "factor_value",
+                    "log_bf",
+                    "prior"],
+                subtable2Fields: [
+                    "gene_set",
+                    "factor_value",
+                    "beta",
+                    "beta_uncorrected"
+                ]
             }
         };
     },
@@ -218,6 +249,7 @@ new Vue({
         plotReady(){
             return this.$store.state.genesetPhenotype.data.length > 0
                 && this.$store.state.pigeanPhenotype.data.length > 0
+                && this.$store.state.pigeanFactor.data.length > 0
                 && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
         }
     },
