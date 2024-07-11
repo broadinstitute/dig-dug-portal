@@ -55,7 +55,7 @@
             </template>
             <template #row-details="row">
               <pigean-table
-                v-if="showTable2(row)"
+                v-if="row.item.subtableActive === 2"
                 :pigeanData="subtable2Data[subtableKey(row.item)]"
                 :config="{fields:config.subtable2Fields}"
                 :isSubtable="true">
@@ -145,19 +145,16 @@ export default Vue.component("pigean-table", {
       async getSubtable(row, whichSubtable) {
         row.item.subtableActive = whichSubtable;
         let queryKey = this.subtableKey(row.item);
-        if (!this.subtableData[queryKey]) {
+        if (!this.subtableData[queryKey] && whichSubtable === 1) {
           let data = await query(this.config.subtableEndpoint, queryKey);
           Vue.set(this.subtableData, queryKey, data);
         }
-        // Populate both subtables at once if applicable
-        if (!!this.config.subtable2Endpoint && !this.subtable2Data[queryKey]){
+        if (!!this.config.subtable2Endpoint && !this.subtable2Data[queryKey]
+          && whichSubtable === 2){
           let data2 = await query(this.config.subtable2Endpoint, queryKey);
           Vue.set(this.subtable2Data, queryKey, data2);
         }
         row.toggleDetails();
-      },
-      showTable2(row){
-        return row.item.subtableActive === 2;
       },
       subtableKey(item){
         if (this.config.queryParam === 'cluster'){
