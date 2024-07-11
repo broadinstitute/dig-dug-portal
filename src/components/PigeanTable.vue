@@ -39,6 +39,7 @@
                 <b-button
                     variant="outline-primary"
                     size="sm"
+                    :disabled="row.detailsShowing && row.item.subtableActive !== 1"
                     @click="getSubtable(row, 1)"
                 >
                     {{ row.detailsShowing ? "Hide" : "Show" }}
@@ -48,6 +49,7 @@
                 <b-button
                     variant="outline-primary"
                     size="sm"
+                    :disabled="row.detailsShowing && row.item.subtableActive !== 2"
                     @click="getSubtable(row, 2)"
                 >
                     {{ row.detailsShowing ? "Hide" : "Show" }}
