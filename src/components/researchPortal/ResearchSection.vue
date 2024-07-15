@@ -872,7 +872,7 @@ export default Vue.component("research-section", {
 			}
 
 			//5. Check if return the first item in the queryParamsString
-			console.log("queryParamsString", queryParamsString)
+			//console.log("queryParamsString", queryParamsString)
 			if (queryParamsString.length > 0) {
 				return queryParamsString[0];
 			} else {
@@ -900,7 +900,7 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString();
 
-			console.log("paramsString", paramsString)
+			//console.log("paramsString", paramsString)
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
@@ -1485,7 +1485,50 @@ export default Vue.component("research-section", {
 
 				this.loadingDataFlag = "down";
 				this.noLoadedData = "No data is returned. Please check query parameters.";
-				
+			}
+
+			if(!!this.sectionConfig["after data load"]) {
+				console.log('this.sectionConfig["after data load"]', this.sectionConfig["after data load"])
+
+				this.sectionConfig["after data load"].map(act =>{
+					switch(act.type) {
+						case "set parameter":
+							let VALUE;
+
+							switch(act.row) {
+								case "first":
+									VALUE = this.sectionData[0][act.field]
+									break;
+
+								case "last":
+									let vIndex = this.sectionData.length - 1;
+									VALUE = this.sectionData[vIndex][act.field]
+									break;
+							}
+							 
+
+
+							let PARAMETERS = act.parameters;
+							
+							
+							//let targetSections = SECTION == "all" ? "":[SECTION];
+
+							if (typeof PARAMETERS === "object") {
+								let values = VALUE.split(",");
+
+								PARAMETERS.map((p, pIndex) => {
+									document.getElementById("search_param_" + p).value = values[pIndex];
+									this.$root.$refs.multiSectionSearch.updateSearch(p, "");
+								})
+
+							} else {
+								document.getElementById("search_param_" + PARAMETERS).value = VALUE;
+								this.$root.$refs.multiSectionSearch.updateSearch(PARAMETERS, "");
+							}
+							
+						break;
+					}
+				})
 			}
 		}
 
