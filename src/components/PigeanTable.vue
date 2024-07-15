@@ -1,5 +1,5 @@
 <template>
-    <div id="pigean-gene" :class="`${!!isSubtable ? 'pigean-subtable' : ''}`">
+    <div id="pigean-gene" :class="isSubtable ? 'pigean-subtable' : ''">
         <div v-if="tableData.length > 0">
             <div v-if="!isSubtable" class="text-right mb-2">
                 <data-download
