@@ -99,6 +99,7 @@
                         </filter-enumeration-control>
                         <filter-greater-less
                             v-for="filterField in $parent.filterFields"
+                            :key="filterField.key"
                             :field="filterField.key"
                             :label="filterField.label"
                         >
