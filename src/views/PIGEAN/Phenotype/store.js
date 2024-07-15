@@ -15,6 +15,7 @@ export default new Vuex.Store({
         kp4cd,
         pigeanPhenotype: bioIndex("pigean-gene-phenotype"),
         genesetPhenotype: bioIndex("pigean-gene-set-phenotype"),
+        pigeanFactor: bioIndex("pigean-factor"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -75,6 +76,7 @@ export default new Vuex.Store({
             let query = { q: `${name},${sigmaInt},${genesetSize}`, limit: 1000 };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
+            context.dispatch("pigeanFactor/query", query);
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);

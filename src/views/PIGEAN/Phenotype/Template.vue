@@ -161,6 +161,14 @@
                     </criterion-function-group>
                 </div>
             </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <pigean-table v-if="$parent.plotReady"
+                        :pigeanData="$store.state.pigeanFactor.data"
+                        :config="$parent.factorTableConfig">
+                    </pigean-table>
+                </div>
+            </div>
         </div>
 
         <!-- Footer-->
