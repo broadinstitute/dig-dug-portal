@@ -19,7 +19,6 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 
-
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -34,8 +33,7 @@ Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
-    modules: {
-    },
+    modules: {},
     components: {
         PageHeader,
         PageFooter,
@@ -48,78 +46,76 @@ new Vue({
         GenesetSizeSelectPicker,
         CriterionFunctionGroup,
         FilterEnumeration,
-        FilterGreaterLess
+        FilterGreaterLess,
     },
 
     data() {
         return {
             filterFields: [
                 { key: "beta_uncorrected", label: "Effect (marginal)" },
-                { key: "beta", label: "Effect (joint)" }
+                { key: "beta", label: "Effect (joint)" },
             ],
             tableConfig: {
                 fields: [
-                    { key: "phenotype", 
-                        label: "Phenotype",
-                        sortable: true, },
-                    { key: "beta_uncorrected", 
+                    { key: "phenotype", label: "Phenotype", sortable: true },
+                    {
+                        key: "beta_uncorrected",
                         label: "Effect (marginal)",
-                        sortable: true },
-                    { key: "beta", 
-                        label: "Effect (joint)",
-                        sortable: true },
-                    { key: "expand", 
-                        label: "Genes"},
+                        sortable: true,
+                    },
+                    { key: "beta", label: "Effect (joint)", sortable: true },
+                    { key: "expand", label: "Genes" },
                 ],
                 queryParam: "gene_set",
                 subtableEndpoint: "pigean-joined-gene-set",
                 subtableFields: [
-                    { key: "gene", 
-                        label: "Gene",
-                        sortable: true },
-                    { key: "combined", 
+                    { key: "gene", label: "Gene", sortable: true },
+                    {
+                        key: "combined",
                         label: "Combined",
                         showProbability: true,
-                        sortable: true },
-                    { key: "log_bf", 
+                        sortable: true,
+                    },
+                    {
+                        key: "log_bf",
                         label: "GWAS evidence weighted",
-                        sortable: true },
-                    { key: "prior",
+                        sortable: true,
+                    },
+                    {
+                        key: "prior",
                         label: "Gene set evidence",
-                        sortable: true },
-                ]
+                        sortable: true,
+                    },
+                ],
             },
             pigeanPlotConfig: {
                 xField: "beta_uncorrected",
                 xAxisLabel: "Effect (marginal)",
                 yField: "beta",
                 yAxisLabel: "Effect (joint)",
-                dotKey: "phenotype"
+                dotKey: "phenotype",
             },
             plotColors: plotUtils.plotColors(),
             renderConfig: {
-                type: 'phewas plot',
-                'render by': 'phenotype',
-                'group by': 'group',
-                'phenotype map': 'kp phenotype map',
-                'y axis field': 'beta_uncorrected',
-                'convert y -log10': 'false',
-                'y axis label': 'Beta (uncorrected)',
-                'x axis label': '',
-                'beta field': 'beta_uncorrected',
-                'hover content': [
-                    'beta',
-                    'beta_uncorrected'
-                ],
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "beta_uncorrected",
+                "convert y -log10": "false",
+                "y axis label": "Beta (uncorrected)",
+                "x axis label": "",
+                "beta field": "beta_uncorrected",
+                "hover content": ["beta", "beta_uncorrected"],
                 thresholds: [0.01, 0.1],
-                'label in black': 'greater than',
-                height: '535',
+                "label in black": "greater than",
+                height: "535",
                 "plot margin": {
-                    "left": 150,
-                    "right": 180,
-                    "top": 250,
-                    "bottom": 300
-                }
+                    left: 150,
+                    right: 180,
+                    top: 250,
+                    bottom: 300,
+                },
             },
         };
     },
@@ -143,23 +139,26 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
-            }
+            };
             return utils;
         },
-        plotReady(){
-            return this.$store.state.pigeanGeneset.data.length > 0
-                && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
+        plotReady() {
+            return (
+                this.$store.state.pigeanGeneset.data.length > 0 &&
+                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
+            );
         },
-        phewasAdjustedData(){
-            let adjustedData = JSON.parse(JSON.stringify(
-                this.$store.state.pigeanGeneset.data)); // Deep copy
-            for (let i = 0; i < adjustedData.length; i++){
-                if (adjustedData[i].beta_uncorrected < 0){
+        phewasAdjustedData() {
+            let adjustedData = JSON.parse(
+                JSON.stringify(this.$store.state.pigeanGeneset.data)
+            ); // Deep copy
+            for (let i = 0; i < adjustedData.length; i++) {
+                if (adjustedData[i].beta_uncorrected < 0) {
                     adjustedData[i].beta_uncorrected = 0;
                 }
             }
             return adjustedData;
-        }
+        },
     },
     watch: {
         diseaseGroup(group) {
@@ -173,8 +172,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
-    methods: {
-    },
+    methods: {},
 
     render(createElement, context) {
         return createElement(Template);
