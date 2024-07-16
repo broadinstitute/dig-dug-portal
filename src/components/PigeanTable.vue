@@ -177,7 +177,7 @@ export default Vue.component("pigean-table", {
                     </a>
                 </template>
                 <template #cell(top_genes)="r">
-                    <ul>
+                    <ul class="top-list">
                         <li v-for="gene in r.item.top_genes.split(';')">
                             <a :href="`/pigean/gene.html?gene=${gene}${suffix}`">
                                 {{ gene }}
@@ -186,7 +186,7 @@ export default Vue.component("pigean-table", {
                     </ul>
                 </template>
                 <template #cell(top_gene_sets)="r">
-                    <ul>
+                    <ul class="top-list">
                         <li v-for="geneSet in r.item.top_gene_sets.split(';')">
                             <a
                                 :href="`/pigean/geneset.html?geneset=${geneSet}${suffix}`"
@@ -287,17 +287,20 @@ export default Vue.component("pigean-table", {
     </div>
 </template>
 <style scoped>
-@import url("/css/effectorGenes.css");
+    @import url("/css/effectorGenes.css");
 
-label {
-    margin: 10px;
-}
-.pigean-subtable {
-    font-size: smaller;
-    margin-left: 15px;
-    background-color: #efefef;
-}
-.pigean-subtable .row .col-12 {
-    padding: 0 0 0 5px !important;
-}
+    label {
+        margin: 10px;
+    }
+    .pigean-subtable {
+        font-size: smaller;
+        margin-left: 15px;
+        background-color: #efefef;
+    }
+    .pigean-subtable .row .col-12 {
+        padding: 0 0 0 5px !important;
+    }
+    ul.top-list {
+        font-size: 0.8rem;
+    }
 </style>
