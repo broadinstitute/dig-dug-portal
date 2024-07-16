@@ -1,19 +1,27 @@
 <template>
     <div>
-        <div id="sitequalitymetrics" style="width: 100%; height: 500px">
+        <div id="sitequalitymetrics" style="width: 100%; height: 600px">
             <h4 class="card-title">
                 Site Quality Metrics
             </h4>
             <b-tabs content-class="mt-3">
                 <b-tab title="Metrics distribution" active>
                     <div id="metricsdistribution" style="width: 100%; height: 100%"></div>
-                    <div style="width: 20%;">
+                    <div style="width: 30%;">
                         Metric:
                         <b-form-select v-model="selected" 
                                 @change="build_chart(selected)"
                                 :options="options">
                         </b-form-select>
-                        Value: {{selectedValue}}
+                        
+                    </div>
+                    <div style="width: 100%;">
+                        <p>
+                        <br/>
+                        {{notes[selected]}}<br/>
+                        Value: {{selectedValue}}<br/>
+                        Note: These are site-level quality metrics, they may be unpredictable for multi-allelic sites.
+                        </p>
                     </div>
                 </b-tab>
                 <b-tab title="All metrics values">
@@ -89,6 +97,17 @@ export default Vue.component("sitequalitymetrics-tab", {
                         "data": ["AS_SOR", 3408970, 4506631, 1817060, 872882, 375835, 183484, 94535, 53825, 30259, 20698, 14665, 12325, 10177, 8671, 7091, 6166, 5258, 4476, 3819, 3056, 2537, 1941, 1587, 1183, 955, 635, 512, 342, 271, 157, 95, 74, 62, 38, 17, 11, 10, 1, 1, 1]}, 
                 "AS_VQSLOD": {"x": ["x", -106.0, -104.0, -102.0, -100.0, -98.0, -96.0, -94.0, -92.0, -90.0, -88.0, -86.0, -84.0, -82.0, -80.0, -78.0, -76.0, -74.0, -72.0, -70.0, -68.0, -66.0, -64.0, -62.0, -60.0, -58.0, -56.0, -54.0, -52.0, -50.0, -48.0, -46.0, -44.0, -42.0, -40.0, -38.0, -36.0, -34.0, -32.0, -30.0, -28.0, -26.0, -24.0, -22.0, -20.0, -18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0], 
                             "data": ["AS_VQSLOD", 10696, 255, 255, 261, 304, 275, 283, 334, 315, 304, 414, 356, 469, 446, 478, 496, 534, 505, 537, 513, 690, 626, 704, 720, 753, 819, 904, 912, 1057, 1096, 1251, 1221, 1385, 1527, 1701, 1873, 2076, 2213, 2549, 2788, 3235, 3887, 4593, 5794, 7335, 10081, 21403, 59001, 67415, 45149, 57557, 127154, 593797, 1320760, 2021802, 2486405, 3138942, 1297995, 133110, 3]}
+            },
+            notes: {
+                "SiteQuality": "", //"Site quality approximation for all variants with 0.05 <= AF < 0.1.", 
+                "AS_FS": "Allele-specific phred-scaled p-value of Fisher's exact test for strand bias.",
+                "InbreedingCoeff": "", //"inbreeding_coeff for all variants with AF >= 0.0005.", 
+                "AS_MQ": "Allele-specific root mean square of the mapping quality of reads across all samples.", 
+                "AS_MQRankSum": "Allele-specific z-score from Wilcoxon rank sum test of alternate vs. reference read mapping qualities.", 
+                "AS_QD": "Allele-specific variant call confidence normalized by depth of sample reads supporting a variant.", 
+                "AS_ReadPosRankSum": "Allele-specific z-score from Wilcoxon rank sum test of alternate vs. reference read position bias.", 
+                "AS_SOR": "Allele-specific strand bias estimated by the symmetric odds ratio test.", 
+                "AS_VQSLOD": "Allele-specific log-odds ratio of being a true variant versus being a false positive under the trained VQSR Gaussian mixture model."
             },
             fields: [
                 {
