@@ -11,14 +11,21 @@ import PageFooter from "@/components/PageFooter.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
+import Formatters from "@/utils/formatters";
+import { query } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
+import alertUtils from "@/utils/alertUtils";
+import plotUtils from "@/utils/plotUtils";
 import sessionUtils from "@/utils/sessionUtils";
+import sortUtils from "@/utils/sortUtils";
+import dataConvert from "@/utils/dataConvert";
 import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
@@ -43,6 +50,10 @@ new Vue({
     },
     data() {
         return {
+            plotColors: plotUtils.plotColors(),
+            phewasPlotData: [],
+            phewasPlotDataAll: {},
+            phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
@@ -151,26 +162,51 @@ new Vue({
                         label: "Gene set score",
                         sortable: true,
                     },
+                    { key: "top_gene_sets", label: "Top gene sets"},
                     { key: "gene_score", label: "Gene score", sortable: true },
+                    { key: "top_genes", label: "Top genes" },
+                    { key: "phewasPlot", label: "Show PheWAS" },
                     { key: "expand", label: "Show top genes" },
                     { key: "expand2", label: "Show top gene sets" },
                 ],
                 queryParam: "cluster",
+                sortBy: "gene_set_score",
                 subtableEndpoint: "pigean-gene-factor",
                 subtable2Endpoint: "pigean-gene-set-factor",
                 subtableFields: [
-                    "gene",
-                    "combined",
-                    "factor_value",
-                    "log_bf",
-                    "prior",
+                    { key: "gene", label: "Gene", sortable: true},
+                    { key: "combined", label: "Combined", sortable: true},
+                    { key: "factor_value", label: "Factor value", sortable: true},
+                    { key: "log_bf", label: "GWAS evidence weighted", sortable: true},
+                    { key: "prior", label: "Prior", sortable: true}
                 ],
                 subtable2Fields: [
-                    "gene_set",
-                    "factor_value",
-                    "beta",
-                    "beta_uncorrected",
+                    { key: "gene_set", label: "Gene set", sortable: true},
+                    { key: "factor_value", label: "Factor value", sortable: true},
+                    { key: "beta", label: "Effect (joint)", sortable: true },
+                    { key: "beta_uncorrected", label: "Effect (marginal)", sortable: true },
                 ],
+            },
+            renderConfig: {
+                type: "phewas plot",
+                "render by": "other_phenotype",
+                "group by": "group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "",
+                "beta field": "null",
+                "hover content": ["Z", "pValue"],
+                thresholds: [Math.log(3), Math.log(30)],
+                "label in black": "greater than",
+                height: "535",
+                "plot margin": {
+                    left: 150,
+                    right: 180,
+                    top: 250,
+                    bottom: 300,
+                },
             },
         };
     },
@@ -214,6 +250,18 @@ new Vue({
                 this.$store.state.pigeanFactor.data.length > 0 &&
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
+        },
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            };
+            return utils;
         },
     },
 
@@ -267,6 +315,18 @@ new Vue({
         },
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
+        },
+        async getPhewas(DETAILS) {
+            let queryString = `${DETAILS.phenotype},${
+                DETAILS.sigma},${
+                DETAILS.gene_set_size},${
+                DETAILS.factor}`;
+            if (!this.phewasPlotDataAll[queryString]){
+                let data = await query("pigean-phewas", queryString);
+                Vue.set(this.phewasPlotDataAll, queryString, data);
+            }
+            this.phewasPlotData = this.phewasPlotDataAll[queryString];
+            this.phewasPlotLabel = DETAILS.factorLabel;
         },
     },
 
