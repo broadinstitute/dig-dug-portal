@@ -12,6 +12,7 @@ import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
+import { query } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -24,6 +25,7 @@ import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
@@ -49,6 +51,7 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
+            phewasPlotDetails: [],
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
@@ -246,9 +249,6 @@ new Vue({
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
         },
-        phewasReady(){
-            return this.$store.state.pigeanPheWAS.data.length > 0;
-        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -318,8 +318,17 @@ new Vue({
             this.hidePValueFilter = tabLabel === "hugescore";
         },
         phewasPlot(plotDetails){
-            this.$store.dispatch("queryPheWAS", plotDetails);
-        }
+            //this.$store.dispatch("queryPheWAS", plotDetails);
+            this.getPhewas(plotDetails);
+        },
+        async getPhewas(DETAILS) {
+            let myQuery = `${DETAILS.phenotype},${
+                DETAILS.sigma},${
+                DETAILS.gene_set_size},${
+                DETAILS.factor}`;
+            let data = await query("pigean-phewas", myQuery);
+            this.phewasPlotDetails = data;
+        },
     },
 
     render(createElement, context) {
