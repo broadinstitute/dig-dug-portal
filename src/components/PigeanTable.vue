@@ -268,7 +268,7 @@ export default Vue.component("pigean-table", {
                         <b-dropdown-item
                             v-for="geneSet in row.item.top_gene_sets.split(';')"
                             :key="geneSet"
-                            href="#"
+                            :href="`/pigean/geneset.html?geneset=${geneSet}${suffix}`"
                         >
                             {{
                                 geneSet.length > 40
