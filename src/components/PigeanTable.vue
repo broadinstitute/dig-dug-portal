@@ -169,14 +169,22 @@ export default Vue.component("pigean-table", {
                 <template #cell(top_genes)="r">
                     <ul>
                         <li v-for="gene in r.item.top_genes.split(';')">
-                            {{ gene }}
+                            <a :href="`/pigean/gene.html?gene=${gene}${suffix}`">
+                                {{ gene }}
+                            </a>
                         </li>
                     </ul>
                 </template>
                 <template #cell(top_gene_sets)="r">
                     <ul>
                         <li v-for="geneSet in r.item.top_gene_sets.split(';')">
-                            {{ geneSet }}
+                            <a
+                                :href="`/pigean/geneset.html?geneset=${geneSet}${suffix}`"
+                            >
+                                {{ geneSet.length > 40
+                                    ? `${geneSet.slice(0,40)}...`
+                                    : geneSet }}
+                            </a>
                         </li>
                     </ul>
                 </template>
