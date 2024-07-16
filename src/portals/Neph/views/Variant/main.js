@@ -12,6 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/portals/Neph/components/TranscriptConsequenceTable.vue";
 import VariantPhenotypeTable from "@/portals/Neph/components/VariantPhenotypeTable.vue";
 import GenotypeQualityMetricsTabs from "@/portals/Neph/components/GenotypeQualityMetricsTabs.vue";
+import AllGenoQualityMetricsTabs from "@/portals/Neph/components/AllGenoQualityMetricsTabs.vue";
 import SiteQualityMetricsTabs from "@/portals/Neph/components/SiteQualityMetricsTabs.vue";
 import GnomInfoCard from "@/portals/Neph/components/GnomInfoCard.vue";
 import VariantSampleTable from "@/portals/Neph/components/VariantSampleTable.vue";
@@ -76,6 +77,7 @@ new Vue({
         SearchHeaderWrapper,
         GenotypeQualityMetricsTabs,
         SiteQualityMetricsTabs,
+        AllGenoQualityMetricsTabs,
     },
 
     created() {
