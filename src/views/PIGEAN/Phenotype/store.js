@@ -16,6 +16,7 @@ export default new Vuex.Store({
         pigeanPhenotype: bioIndex("pigean-gene-phenotype"),
         genesetPhenotype: bioIndex("pigean-gene-set-phenotype"),
         pigeanFactor: bioIndex("pigean-factor"),
+        pigeanPheWAS: bioIndex("pigean-phewas")
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -88,5 +89,13 @@ export default new Vuex.Store({
             console.log("onState", PHENOTYPE);
             context.commit("setSelectedPhenotype", PHENOTYPE);
         },
+        queryPheWAS(context, DETAILS){
+            let query = `${DETAILS.phenotype},${
+                DETAILS.sigma},${
+                DETAILS.gene_set_size},${
+                DETAILS.factor}`;
+            console.log(query);
+            context.dispatch("pigeanPheWAS/query", query);
+        }
     },
 });

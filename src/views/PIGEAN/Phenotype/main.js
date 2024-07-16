@@ -182,6 +182,27 @@ new Vue({
                     { key: "beta_uncorrected", label: "Effect (marginal)", sortable: true },
                 ],
             },
+            renderConfig: {
+                type: "phewas plot",
+                "render by": "other_phenotype",
+                "group by": "group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "",
+                "beta field": "null",
+                "hover content": ["Z", "pValue"],
+                thresholds: [Math.log(3), Math.log(30)],
+                "label in black": "greater than",
+                height: "535",
+                "plot margin": {
+                    left: 150,
+                    right: 180,
+                    top: 250,
+                    bottom: 300,
+                },
+            },
         };
     },
 
@@ -225,6 +246,9 @@ new Vue({
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
         },
+        phewasReady(){
+            return this.$store.state.pigeanPheWAS.data.length > 0;
+        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -259,6 +283,9 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        "$store.state.pigeanPheWAS.data": function(data){
+            console.log(JSON.stringify(data));
+        }
     },
 
     created() {
@@ -291,7 +318,7 @@ new Vue({
             this.hidePValueFilter = tabLabel === "hugescore";
         },
         phewasPlot(plotDetails){
-            console.log(JSON.stringify(plotDetails));
+            this.$store.dispatch("queryPheWAS", plotDetails);
         }
     },
 

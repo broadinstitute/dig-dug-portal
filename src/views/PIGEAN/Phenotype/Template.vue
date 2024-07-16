@@ -181,11 +181,11 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <research-phewas-plot
-                        v-if="false"
+                        v-if="$parent.phewasReady"
                         canvas-id="pigeanPhenotypePheWAS"
                         :plot-name="`PIGEAN_${$store.state.phenotype}`"
                         :phenotypes-data="
-                            $parent.phewasAdjustedData
+                            $store.state.pigeanPheWAS.data
                         "
                         :phenotype-map="
                             $store.state.bioPortal.phenotypeMap
