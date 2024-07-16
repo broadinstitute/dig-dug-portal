@@ -89,13 +89,5 @@ export default new Vuex.Store({
             console.log("onState", PHENOTYPE);
             context.commit("setSelectedPhenotype", PHENOTYPE);
         },
-        queryPheWAS(context, DETAILS){
-            let query = `${DETAILS.phenotype},${
-                DETAILS.sigma},${
-                DETAILS.gene_set_size},${
-                DETAILS.factor}`;
-            console.log(query);
-            context.dispatch("pigeanPheWAS/query", query);
-        }
     },
 });

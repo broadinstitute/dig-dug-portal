@@ -283,9 +283,6 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        "$store.state.pigeanPheWAS.data": function(data){
-            console.log(JSON.stringify(data));
-        }
     },
 
     created() {
@@ -318,7 +315,6 @@ new Vue({
             this.hidePValueFilter = tabLabel === "hugescore";
         },
         phewasPlot(plotDetails){
-            //this.$store.dispatch("queryPheWAS", plotDetails);
             this.getPhewas(plotDetails);
         },
         async getPhewas(DETAILS) {
