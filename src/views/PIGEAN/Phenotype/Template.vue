@@ -184,6 +184,7 @@
                         v-if="$parent.plotReady"
                         :pigeanData="$store.state.pigeanFactor.data"
                         :config="$parent.factorTableConfig"
+                        @phewasPlotShow="(details) => $parent.phewasPlot(details)"
                     >
                     </pigean-table>
                 </div>

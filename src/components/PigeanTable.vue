@@ -140,6 +140,15 @@ export default Vue.component("pigean-table", {
             });
             return allFields;
         },
+        phewasPlotShow(item){
+            let phewasDetails = {
+                phenotype: item.phenotype,
+                sigma: this.sigma,
+                gene_set_size: this.genesetSize,
+                factor: item.cluster
+            }
+            this.$emit("phewasPlotShow", phewasDetails);
+        },
     },
 });
 </script>
@@ -205,6 +214,13 @@ export default Vue.component("pigean-table", {
                     >
                         {{ r.item.gene_set }}
                     </a>
+                </template>
+                <template #cell(phewasPlot)="row">
+                    <b-button
+                        size="sm"
+                        @click="phewasPlotShow(row.item)">
+                            Show PheWAS Plot
+                    </b-button>
                 </template>
                 <template #cell(expand)="row">
                     <b-button

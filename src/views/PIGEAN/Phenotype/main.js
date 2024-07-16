@@ -153,7 +153,8 @@ new Vue({
                     },
                     { key: "top_gene_sets", label: "Top gene sets"},
                     { key: "gene_score", label: "Gene score", sortable: true },
-                    { key: "top_genes", label: "Top genes"},
+                    { key: "top_genes", label: "Top genes" },
+                    { key: "phewasPlot", label: "Show PheWAS" },
                     { key: "expand", label: "Show top genes" },
                     { key: "expand2", label: "Show top gene sets" },
                 ],
@@ -271,6 +272,9 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
+        phewasPlot(plotDetails){
+            console.log(JSON.stringify(plotDetails));
+        }
     },
 
     render(createElement, context) {
