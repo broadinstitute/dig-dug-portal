@@ -316,17 +316,21 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
-        async getPhewas(DETAILS) {
-            let queryString = `${DETAILS.phenotype},${
+        queryString(DETAILS){
+            return `${DETAILS.phenotype},${
                 DETAILS.sigma},${
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
-            if (!this.phewasPlotDataAll[queryString]){
-                let data = await query("pigean-phewas", queryString);
-                Vue.set(this.phewasPlotDataAll, queryString, data);
-            }
-            this.phewasPlotData = this.phewasPlotDataAll[queryString];
-            this.phewasPlotLabel = DETAILS.factorLabel;
+        },
+        plotPhewas(details){
+            this.phewasPlotData = [];
+            this.getPhewas(details);
+        },
+        async getPhewas(details) {
+            let queryKey = this.queryString(details);
+            let data = await query("pigean-phewas", queryKey);
+            this.phewasPlotData = data;
+            this.phewasPlotLabel = details.factorLabel;
         },
     },
 
