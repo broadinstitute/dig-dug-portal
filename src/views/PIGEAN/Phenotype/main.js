@@ -162,17 +162,17 @@ new Vue({
                 subtableEndpoint: "pigean-gene-factor",
                 subtable2Endpoint: "pigean-gene-set-factor",
                 subtableFields: [
-                    "gene",
-                    "combined",
-                    "factor_value",
-                    "log_bf",
-                    "prior",
+                    { key: "gene", label: "Gene", sortable: true},
+                    { key: "combined", label: "Combined", sortable: true},
+                    { key: "factor_value", label: "Factor value", sortable: true},
+                    { key: "log_bf", label: "GWAS evidence weighted", sortable: true},
+                    { key: "prior", label: "Prior", sortable: true}
                 ],
                 subtable2Fields: [
-                    "gene_set",
-                    "factor_value",
-                    "beta",
-                    "beta_uncorrected",
+                    { key: "gene_set", label: "Gene set", sortable: true},
+                    { key: "factor_value", label: "Factor value", sortable: true},
+                    { key: "beta", label: "Effect (joint)", sortable: true },
+                    { key: "beta_uncorrected", label: "Effect (marginal)", sortable: true },
                 ],
             },
         };
