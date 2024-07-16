@@ -52,6 +52,7 @@ new Vue({
         return {
             plotColors: plotUtils.plotColors(),
             phewasPlotData: [],
+            phewasPlotDataAll: {},
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
@@ -315,17 +316,17 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
-        phewasPlot(plotDetails){
-            this.getPhewas(plotDetails);
-            this.phewasPlotLabel = plotDetails.factorLabel;
-        },
         async getPhewas(DETAILS) {
-            let myQuery = `${DETAILS.phenotype},${
+            let queryString = `${DETAILS.phenotype},${
                 DETAILS.sigma},${
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
-            let data = await query("pigean-phewas", myQuery);
-            this.phewasPlotData = data;
+            if (!this.phewasPlotDataAll[queryString]){
+                let data = await query("pigean-phewas", queryString);
+                Vue.set(this.phewasPlotDataAll, queryString, data);
+            }
+            this.phewasPlotData = this.phewasPlotDataAll[queryString];
+            this.phewasPlotLabel = DETAILS.factorLabel;
         },
     },
 

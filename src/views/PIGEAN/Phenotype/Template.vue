@@ -185,7 +185,7 @@
                     </h4>
                     <research-phewas-plot
                         v-if="$parent.phewasPlotData.length > 0"
-                        canvas-id="pigeanPhenotypePheWAS"
+                        :canvas-id="`pigean_${$store.state.phenotype.name}_${$parent.phewasPlotLabel}`"
                         :plot-name="`PIGEAN_${$store.state.phenotype.name}`"
                         :phenotypes-data="
                             $parent.phewasPlotData
@@ -203,7 +203,7 @@
                         v-if="$parent.plotReady"
                         :pigeanData="$store.state.pigeanFactor.data"
                         :config="$parent.factorTableConfig"
-                        @phewasPlotShow="(details) => $parent.phewasPlot(details)"
+                        @phewasPlotShow="(details) => $parent.getPhewas(details)"
                     >
                     </pigean-table>
                 </div>
