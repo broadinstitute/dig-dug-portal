@@ -166,6 +166,20 @@ export default Vue.component("pigean-table", {
                         {{ r.item.gene }}
                     </a>
                 </template>
+                <template #cell(top_genes)="r">
+                    <ul>
+                        <li v-for="gene in r.item.top_genes.split(';')">
+                            {{ gene }}
+                        </li>
+                    </ul>
+                </template>
+                <template #cell(top_gene_sets)="r">
+                    <ul>
+                        <li v-for="geneSet in r.item.top_gene_sets.split(';')">
+                            {{ geneSet }}
+                        </li>
+                    </ul>
+                </template>
                 <template #cell(phenotype)="r">
                     <a
                         v-if="!!phenotypeMap[r.item.phenotype]"
