@@ -180,10 +180,30 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 v-if="$parent.phewasPlotData.length > 0">
+                        {{$store.state.phenotype.name}}, {{ $parent.phewasPlotLabel }}
+                    </h4>
+                    <research-phewas-plot
+                        v-if="$parent.phewasPlotData.length > 0"
+                        :canvas-id="`pigean_${$store.state.phenotype.name}_${$parent.phewasPlotLabel}`"
+                        :plot-name="`PIGEAN_${$store.state.phenotype.name}`"
+                        :phenotypes-data="
+                            $parent.phewasPlotData
+                        "
+                        :phenotype-map="
+                            $store.state.bioPortal.phenotypeMap
+                        "
+                        :colors="$parent.plotColors"
+                        :render-config="$parent.renderConfig"
+                        :utils="$parent.utilsBox"
+                        :native-dl-btn="false"
+                    >
+                    </research-phewas-plot>
                     <pigean-table
                         v-if="$parent.plotReady"
                         :pigeanData="$store.state.pigeanFactor.data"
                         :config="$parent.factorTableConfig"
+                        @phewasPlotShow="(details) => $parent.getPhewas(details)"
                     >
                     </pigean-table>
                 </div>

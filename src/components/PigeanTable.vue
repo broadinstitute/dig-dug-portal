@@ -17,8 +17,6 @@ export default Vue.component("pigean-table", {
             currentPage: 1,
             subtableData: {},
             subtable2Data: {},
-            // probFields: ["combined"],
-            //probData: this.computeProbabilities(), // only need to do this once
         };
     },
     computed: {
@@ -33,11 +31,13 @@ export default Vue.component("pigean-table", {
         },
         sortBy() {
             return this.pigeanData.length === 0
-                ? 0
-                : this.config.sortBy
-                ? this.config.sortBy
-                : this.pigeanData[0]["combined"] !== undefined
-                ? "combined"
+                ? 0 
+                : this.config.fields.map(field => field.key).includes("factor_value") 
+                ? "factor_value" 
+                : this.config.sortBy 
+                ? this.config.sortBy 
+                : this.pigeanData[0]["combined"] !== undefined 
+                ? "combined" 
                 : "beta_uncorrected";
         },
         tableData() {
@@ -138,6 +138,16 @@ export default Vue.component("pigean-table", {
             });
             return allFields;
         },
+        phewasPlotShow(item){
+            let phewasDetails = {
+                factorLabel: item.label,
+                phenotype: item.phenotype,
+                sigma: this.sigma,
+                gene_set_size: this.genesetSize,
+                factor: item.cluster
+            }
+            this.$emit("phewasPlotShow", phewasDetails);
+        },
     },
 });
 </script>
@@ -166,6 +176,28 @@ export default Vue.component("pigean-table", {
                         {{ r.item.gene }}
                     </a>
                 </template>
+                <template #cell(top_genes)="r">
+                    <ul class="top-list">
+                        <li v-for="gene in r.item.top_genes.split(';')">
+                            <a :href="`/pigean/gene.html?gene=${gene}${suffix}`">
+                                {{ gene }}
+                            </a>
+                        </li>
+                    </ul>
+                </template>
+                <template #cell(top_gene_sets)="r">
+                    <ul class="top-list">
+                        <li v-for="geneSet in r.item.top_gene_sets.split(';')">
+                            <a
+                                :href="`/pigean/geneset.html?geneset=${geneSet}${suffix}`"
+                            >
+                                {{ geneSet.length > 40
+                                    ? `${geneSet.slice(0,40)}...`
+                                    : geneSet }}
+                            </a>
+                        </li>
+                    </ul>
+                </template>
                 <template #cell(phenotype)="r">
                     <a
                         v-if="!!phenotypeMap[r.item.phenotype]"
@@ -181,6 +213,14 @@ export default Vue.component("pigean-table", {
                     >
                         {{ r.item.gene_set }}
                     </a>
+                </template>
+                <template #cell(phewasPlot)="row">
+                    <b-button
+                        variant="outline-secondary"
+                        size="sm"
+                        @click="phewasPlotShow(row.item)">
+                            PheWAS Plot
+                    </b-button>
                 </template>
                 <template #cell(expand)="row">
                     <b-button
@@ -247,17 +287,20 @@ export default Vue.component("pigean-table", {
     </div>
 </template>
 <style scoped>
-@import url("/css/effectorGenes.css");
+    @import url("/css/effectorGenes.css");
 
-label {
-    margin: 10px;
-}
-.pigean-subtable {
-    font-size: smaller;
-    margin-left: 15px;
-    background-color: #efefef;
-}
-.pigean-subtable .row .col-12 {
-    padding: 0 0 0 5px !important;
-}
+    label {
+        margin: 10px;
+    }
+    .pigean-subtable {
+        font-size: smaller;
+        margin-left: 15px;
+        background-color: #efefef;
+    }
+    .pigean-subtable .row .col-12 {
+        padding: 0 0 0 5px !important;
+    }
+    ul.top-list {
+        font-size: 0.8rem;
+    }
 </style>
