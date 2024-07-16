@@ -51,7 +51,8 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
-            phewasPlotDetails: [],
+            phewasPlotData: [],
+            phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
@@ -316,6 +317,7 @@ new Vue({
         },
         phewasPlot(plotDetails){
             this.getPhewas(plotDetails);
+            this.phewasPlotLabel = plotDetails.factorLabel;
         },
         async getPhewas(DETAILS) {
             let myQuery = `${DETAILS.phenotype},${
@@ -323,7 +325,7 @@ new Vue({
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
             let data = await query("pigean-phewas", myQuery);
-            this.phewasPlotDetails = data;
+            this.phewasPlotData = data;
         },
     },
 

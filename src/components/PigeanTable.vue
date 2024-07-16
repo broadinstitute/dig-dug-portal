@@ -17,8 +17,6 @@ export default Vue.component("pigean-table", {
             currentPage: 1,
             subtableData: {},
             subtable2Data: {},
-            // probFields: ["combined"],
-            //probData: this.computeProbabilities(), // only need to do this once
         };
     },
     computed: {
@@ -142,6 +140,7 @@ export default Vue.component("pigean-table", {
         },
         phewasPlotShow(item){
             let phewasDetails = {
+                factorLabel: item.label,
                 phenotype: item.phenotype,
                 sigma: this.sigma,
                 gene_set_size: this.genesetSize,

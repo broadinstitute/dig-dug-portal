@@ -180,12 +180,15 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 v-if="$parent.phewasPlotData.length > 0">
+                        {{$store.state.phenotype.name}}, {{ $parent.phewasPlotLabel }}
+                    </h4>
                     <research-phewas-plot
-                        v-if="$parent.phewasPlotDetails.length > 0"
+                        v-if="$parent.phewasPlotData.length > 0"
                         canvas-id="pigeanPhenotypePheWAS"
-                        :plot-name="`PIGEAN_${$store.state.phenotype}`"
+                        :plot-name="`PIGEAN_${$store.state.phenotype.name}`"
                         :phenotypes-data="
-                            $parent.phewasPlotDetails
+                            $parent.phewasPlotData
                         "
                         :phenotype-map="
                             $store.state.bioPortal.phenotypeMap
