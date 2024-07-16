@@ -159,6 +159,23 @@
                 <div class="card-body">
                     <div
                             v-if="
+                                $store.state.gqualitymetrics.data.length > 0
+                            "
+                        >
+                        <allgenoqualitymetrics-tab v-bind:chartdata="
+                                        $store.state.gqualitymetrics.data[0]
+                                    ">
+                            
+                        </allgenoqualitymetrics-tab>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div
+                            v-if="
                                 $store.state.squalitymetrics.data.length > 0
                             "
                         >
