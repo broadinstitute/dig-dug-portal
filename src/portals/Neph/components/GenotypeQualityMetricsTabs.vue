@@ -2,13 +2,13 @@
     <div>
         <div id="gqualitymetrics" style="width: 100%; height: 500px">
             <h4 class="card-title">
-                Genotype Quality Metrics
+                Variant Quality Metrics
             </h4>
             <b-tabs content-class="mt-3">
-                <b-tab title="Genotype Quality" active>
+                <!-- <b-tab title="Genotype Quality" active>
                     <div id="genotypequalitymetrics" style="width: 100%; height: 100%"></div>
-                </b-tab>
-                <b-tab title="Depth">
+                </b-tab> -->
+                <b-tab title="Depth" active>
                     <div id="depthmatrics" style="width: 100%; height: 100%"></div>
                 </b-tab>
                 <b-tab title="Allele balance for heterozygotes">
@@ -55,12 +55,12 @@ export default Vue.component("genotypequalitymetrics-tab", {
             data1 = ["All Indivuals"].concat(data1);
             data2 = ["Variant Carriers"].concat(data2);
 
-            let xaxis = ['x', '0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-45', '45-50', 
-                            '50-55', '55-60','60-65', '65-70','70-75', '75-80','80-85', '85-90','90-95', '95-100'];
+            let xaxis = ['x', '<0', '0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-45', '45-50', 
+                            '50-55', '55-60','60-65', '65-70','70-75', '75-80','80-85', '85-90','90-95', '95-100','>100'];
 
             // attach to the dom
             // bindto: "#qualitymatrics",
-            this.chart1 = c3.generate({
+            /*this.chart1 = c3.generate({
                 bindto: "#genotypequalitymetrics",
                 data: {
                     x: 'x',
@@ -71,8 +71,8 @@ export default Vue.component("genotypequalitymetrics-tab", {
                     ],
                     type: 'bar',
                     axes: {
-                        'Variant Carriers':'y',
-                        'All Indivuals': 'y2'
+                        'All Indivuals':'y',
+                        'Variant Carriers': 'y2'
                     },
                     
                 },
@@ -86,15 +86,18 @@ export default Vue.component("genotypequalitymetrics-tab", {
                 axis: {
                     y: {
                         label: {
-                            text: 'Variant Carriers',
+                            text: 'All Indivuals',
                             position: 'outer-middle'
                         }
                     },
                     y2: {
                         show: true,
                         label: {
-                            text: 'All Indivuals',
+                            text: 'Variant Carriers',
                             position: 'outer-middle'
+                        },
+                        tick: {
+                            format: function(x) { return x % 1 === 0 ? x : ''; }
                         }
                     },
                     x: {
@@ -107,7 +110,7 @@ export default Vue.component("genotypequalitymetrics-tab", {
                     }
                 },
                 
-            });
+            });*/
 
             let data3 = this.chartdata.depth_bins;
             let data4 = this.chartdata.alt_depth_bins;
@@ -115,8 +118,8 @@ export default Vue.component("genotypequalitymetrics-tab", {
             data3 = ["All Indivuals"].concat(data3);
             data4 = ["Variant Carriers"].concat(data4);
 
-            let xaxis2 = ['x', '0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-45', '45-50', 
-                            '50-55', '55-60','60-65', '65-70','70-75', '75-80','80-85', '85-90','90-95', '95-100'];
+            let xaxis2 = ['x', '<0', '0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-45', '45-50', 
+                            '50-55', '55-60','60-65', '65-70','70-75', '75-80','80-85', '85-90','90-95', '95-100','>100'];
 
             
 
@@ -170,8 +173,8 @@ export default Vue.component("genotypequalitymetrics-tab", {
             let data5 = this.chartdata.het_ab_bins;
             data5 = ["Allele Balance"].concat(data5);
 
-            let xaxis3 = ['x', '0-0.05', '0.05-0.10', '0.10-0.15', '0.15-0.20', '0.20-0.25', '0.25-0.30', '0.30-0.35', '0.35-0.40', '0.40-0.45', '0.45-0.50', 
-                            '0.50-0.55', '0.55-0.60','0.60-0.65', '0.65-0.70','0.70-0.75', '0.75-0.80','0.80-0.85', '0.85-0.90','0.90-0.95', '0.95-1'];
+            let xaxis3 = ['x', '<0', '0-0.05', '0.05-0.10', '0.10-0.15', '0.15-0.20', '0.20-0.25', '0.25-0.30', '0.30-0.35', '0.35-0.40', '0.40-0.45', '0.45-0.50', 
+                            '0.50-0.55', '0.55-0.60','0.60-0.65', '0.65-0.70','0.70-0.75', '0.75-0.80','0.80-0.85', '0.85-0.90','0.90-0.95', '0.95-1','>1'];
 
             this.chart3 = c3.generate({
                 bindto: "#allelebalancematrics",
@@ -182,6 +185,9 @@ export default Vue.component("genotypequalitymetrics-tab", {
                         data5,
                     ],
                     type: 'bar',
+                    colors: {
+                        "Allele Balance": '#ff7f0e'
+                    },
                 },
                 bar: {
                     width: {
