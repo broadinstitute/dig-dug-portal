@@ -39,18 +39,7 @@ new Vue({
         PigeanPlot,
         CriterionFunctionGroup,
         FilterEnumeration,
-        FilterGreaterLess
-    },
-
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
+        FilterGreaterLess,
     },
     data() {
         return {
@@ -62,42 +51,41 @@ new Vue({
                 { key: "combined_probability", label: "Combined probability" },
                 { key: "huge_score", label: "GWAS evidence unweighted" },
                 { key: "log_bf", label: "GWAS evidence weighted" },
-                { key: "prior", label: "Gene set evidence"}
+                { key: "prior", label: "Gene set evidence" },
             ],
             tableConfig: {
                 fields: [
-                    { key: "gene", 
-                        label: "Gene",
-                        sortable: true },
-                    { key: "combined",
+                    { key: "gene", label: "Gene", sortable: true },
+                    {
+                        key: "combined",
                         label: "Combined",
                         showProbability: true,
-                        sortable: true },
-                    { key: "huge_score",
+                        sortable: true,
+                    },
+                    {
+                        key: "huge_score",
                         label: "GWAS evidence unweighted",
-                        sortable: true },
-                    { key: "log_bf", 
+                        sortable: true,
+                    },
+                    {
+                        key: "log_bf",
                         label: "GWAS evidence weighted",
-                        sortable: true },
-                    { key: "prior", 
+                        sortable: true,
+                    },
+                    {
+                        key: "prior",
                         label: "Gene set evidence",
-                        sortable: true },
-                    { key: "n",
-                        label: "Number of gene sets",
-                        sortable: true },
-                    { key: "expand", 
-                        label: "Gene sets"}
+                        sortable: true,
+                    },
+                    { key: "n", label: "Number of gene sets", sortable: true },
+                    { key: "expand", label: "Gene sets" },
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
                 subtableFields: [
-                    { key: "gene_set", 
-                        label: "Gene set",
-                        sortable: true },
-                    { key: "beta", 
-                        label: "Effect (joint)",
-                        sortable: true },
-                  ],
+                    { key: "gene_set", label: "Gene set", sortable: true },
+                    { key: "beta", label: "Effect (joint)", sortable: true },
+                ],
             },
             genePigeanPlotConfig: {
                 xField: "prior",
@@ -106,47 +94,46 @@ new Vue({
                 yAxisLabel: "GWAS evidence weighted",
                 dotKey: "gene",
                 hoverBoxPosition: "both",
-                hoverFields: ['combined']
+                hoverFields: ["combined"],
             },
             genesetFilterFields: [
                 { key: "beta", label: "Effect (joint)" },
-                { key: "beta_uncorrected", label: "Effect (marginal)" }
+                { key: "beta_uncorrected", label: "Effect (marginal)" },
             ],
             genesetTableConfig: {
                 fields: [
-                    { key: "gene_set", 
-                        label: "Gene set",
-                        sortable: true },
-                    { key: "beta", 
-                        label: "Effect (joint)",
-                        sortable: true },
-                    { key: "beta_uncorrected", 
+                    { key: "gene_set", label: "Gene set", sortable: true },
+                    { key: "beta", label: "Effect (joint)", sortable: true },
+                    {
+                        key: "beta_uncorrected",
                         label: "Effect (marginal)",
-                        sortable: true },
-                    { key: "n",
-                        label: "Number of genes",
-                        sortable: true },
-                    { key: "expand", 
-                        label: "Genes"}
+                        sortable: true,
+                    },
+                    { key: "n", label: "Number of genes", sortable: true },
+                    { key: "expand", label: "Genes" },
                 ],
                 queryParam: "gene_set",
                 sortBy: "beta",
                 subtableEndpoint: "pigean-joined-gene-set",
                 subtableFields: [
-                    { key: "gene", 
-                        label: "Gene",
-                        sortable: true },
-                    { key: "combined", 
+                    { key: "gene", label: "Gene", sortable: true },
+                    {
+                        key: "combined",
                         label: "Combined",
                         showProbability: true,
-                        sortable: true },
-                    { key: "log_bf",
+                        sortable: true,
+                    },
+                    {
+                        key: "log_bf",
                         label: "GWAS evidence weighted",
-                        sortable: true },
-                    { key: "prior", 
+                        sortable: true,
+                    },
+                    {
+                        key: "prior",
                         label: "Gene set evidence",
-                        sortable: true },
-                ]
+                        sortable: true,
+                    },
+                ],
             },
             genesetPigeanPlotConfig: {
                 xField: "beta_uncorrected",
@@ -158,21 +145,15 @@ new Vue({
             },
             factorTableConfig: {
                 fields: [
-                    { key: "label",
-                        label: "Label",
-                        sortable: true },
-                    { key: "gene_set_score",
+                    { key: "label", label: "Label", sortable: true },
+                    {
+                        key: "gene_set_score",
                         label: "Gene set score",
-                        sortable: true },
-                    { key: "gene_score",
-                        label: "Gene score",
-                        sortable: true },
-                    { key: "expand",
-                        label: "Show top genes"
+                        sortable: true,
                     },
-                    { key: "expand2",
-                        label: "Show top gene sets"
-                    }
+                    { key: "gene_score", label: "Gene score", sortable: true },
+                    { key: "expand", label: "Show top genes" },
+                    { key: "expand2", label: "Show top gene sets" },
                 ],
                 queryParam: "cluster",
                 subtableEndpoint: "pigean-gene-factor",
@@ -182,39 +163,16 @@ new Vue({
                     "combined",
                     "factor_value",
                     "log_bf",
-                    "prior"],
+                    "prior",
+                ],
                 subtable2Fields: [
                     "gene_set",
                     "factor_value",
                     "beta",
-                    "beta_uncorrected"
-                ]
-            }
+                    "beta_uncorrected",
+                ],
+            },
         };
-    },
-    methods: {
-        ...uiUtils,
-        ...sessionUtils,
-        setSelectedPhenotype(PHENOTYPE) {
-            this.newPhenotypeSearchKey = PHENOTYPE.description;
-            this.phenotypeSearchKey = null;
-            this.$store.dispatch("selectedPhenotype", PHENOTYPE);
-        },
-        ifPhenotypeInSearch(DESCRIPTION) {
-            let searchKeys = this.phenotypeSearchKey.split(" ");
-            let isInPhenotype = 0;
-
-            searchKeys.map((w) => {
-                if (!!DESCRIPTION.toLowerCase().includes(w.toLowerCase())) {
-                    isInPhenotype++;
-                }
-            });
-
-            return isInPhenotype == searchKeys.length ? true : null;
-        },
-        clickedTab(tabLabel){
-            this.hidePValueFilter = tabLabel === 'hugescore';
-        }
     },
 
     computed: {
@@ -249,12 +207,14 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
-        plotReady(){
-            return this.$store.state.genesetPhenotype.data.length > 0
-                && this.$store.state.pigeanPhenotype.data.length > 0
-                && this.$store.state.pigeanFactor.data.length > 0
-                && Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0;
-        }
+        plotReady() {
+            return (
+                this.$store.state.genesetPhenotype.data.length > 0 &&
+                this.$store.state.pigeanPhenotype.data.length > 0 &&
+                this.$store.state.pigeanFactor.data.length > 0 &&
+                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
+            );
+        },
     },
 
     watch: {
@@ -262,7 +222,7 @@ new Vue({
             let name = keyParams.phenotype;
             let phenotype = phenotypeMap[name];
 
-            if (!!phenotype) {
+            if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
                 keyParams.set({ phenotype: phenotype.name });
             }
@@ -277,5 +237,40 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+    },
+
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+    },
+    methods: {
+        ...uiUtils,
+        ...sessionUtils,
+        setSelectedPhenotype(PHENOTYPE) {
+            this.newPhenotypeSearchKey = PHENOTYPE.description;
+            this.phenotypeSearchKey = null;
+            this.$store.dispatch("selectedPhenotype", PHENOTYPE);
+        },
+        ifPhenotypeInSearch(DESCRIPTION) {
+            let searchKeys = this.phenotypeSearchKey.split(" ");
+            let isInPhenotype = 0;
+
+            searchKeys.map((w) => {
+                if (DESCRIPTION.toLowerCase().includes(w.toLowerCase())) {
+                    isInPhenotype++;
+                }
+            });
+
+            return isInPhenotype == searchKeys.length ? true : null;
+        },
+        clickedTab(tabLabel) {
+            this.hidePValueFilter = tabLabel === "hugescore";
+        },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
     },
 }).$mount("#app");

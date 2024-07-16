@@ -1,108 +1,3 @@
-<template>
-    <div id="pigean-gene" :class="isSubtable ? 'pigean-subtable' : ''">
-        <div v-if="tableData.length > 0">
-            <div v-if="!isSubtable" class="text-right mb-2">
-                <data-download
-                    :data="probData"
-                    filename="pigean_gene"
-                ></data-download>
-            </div>
-            <b-table
-                :hover="isSubtable"
-                small
-                responsive="sm"
-                :items="tableData"
-                :fields="probFields"
-                :per-page="perPage"
-                :current-page="currentPage"
-                :sort-by="sortBy"
-                :sort-desc="true"
-            >
-                <template #cell(gene)="r">
-                    <a :href="`/pigean/gene.html?gene=${r.item.gene}${suffix}`">
-                        {{ r.item.gene }}
-                    </a>
-                </template>
-                <template #cell(phenotype)="r">
-                    <a
-                        v-if="!!phenotypeMap[r.item.phenotype]"
-                        :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
-                    >
-                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
-                    </a>
-                    <span v-else>{{ r.item.phenotype }}</span>
-                </template>
-                <template #cell(gene_set)="r">
-                    <a
-                        :href="`/pigean/geneset.html?geneset=${r.item.gene_set}${suffix}`"
-                    >
-                        {{ r.item.gene_set }}
-                    </a>
-                </template>
-                <template #cell(expand)="row">
-                    <b-button
-                        variant="outline-primary"
-                        size="sm"
-                        @click="showDetails(row, 1)"
-                    >
-                        {{
-                            row.detailsShowing && row.item.subtableActive === 1
-                                ? "Hide"
-                                : "Show"
-                        }}
-                    </b-button>
-                </template>
-                <template #cell(expand2)="row">
-                    <b-button
-                        variant="outline-primary"
-                        size="sm"
-                        @click="showDetails(row, 2)"
-                    >
-                        {{
-                            row.detailsShowing && row.item.subtableActive === 2
-                                ? "Hide"
-                                : "Show"
-                        }}
-                    </b-button>
-                </template>
-                <template #row-details="row">
-                    <pigean-table
-                        v-if="
-                            row.item.subtableActive === 2 &&
-                            subtable2Data[subtableKey(row.item)]?.length > 0
-                        "
-                        :pigeanData="subtable2Data[subtableKey(row.item)]"
-                        :config="{ fields: config.subtable2Fields }"
-                        :isSubtable="true"
-                    >
-                    </pigean-table>
-                    <pigean-table
-                        v-if="
-                            row.item.subtableActive === 1 &&
-                            subtableData[subtableKey(row.item)]?.length > 0
-                        "
-                        :pigeanData="subtableData[subtableKey(row.item)]"
-                        :config="{ fields: config.subtableFields }"
-                        :isSubtable="true"
-                    >
-                    </pigean-table>
-                </template>
-            </b-table>
-            <b-pagination
-                v-model="currentPage"
-                class="pagination-sm justify-content-center"
-                :total-rows="tableData.length"
-                :per-page="perPage"
-            ></b-pagination>
-        </div>
-        <div v-else>
-            <b-alert show variant="warning" class="text-center">
-                <b-icon icon="exclamation-triangle"></b-icon> No data available
-                for this query.
-            </b-alert>
-        </div>
-    </div>
-</template>
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
@@ -246,6 +141,111 @@ export default Vue.component("pigean-table", {
     },
 });
 </script>
+<template>
+    <div id="pigean-gene" :class="isSubtable ? 'pigean-subtable' : ''">
+        <div v-if="tableData.length > 0">
+            <div v-if="!isSubtable" class="text-right mb-2">
+                <data-download
+                    :data="probData"
+                    filename="pigean_gene"
+                ></data-download>
+            </div>
+            <b-table
+                :hover="isSubtable"
+                small
+                responsive="sm"
+                :items="tableData"
+                :fields="probFields"
+                :per-page="perPage"
+                :current-page="currentPage"
+                :sort-by="sortBy"
+                :sort-desc="true"
+            >
+                <template #cell(gene)="r">
+                    <a :href="`/pigean/gene.html?gene=${r.item.gene}${suffix}`">
+                        {{ r.item.gene }}
+                    </a>
+                </template>
+                <template #cell(phenotype)="r">
+                    <a
+                        v-if="!!phenotypeMap[r.item.phenotype]"
+                        :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
+                    >
+                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+                    </a>
+                    <span v-else>{{ r.item.phenotype }}</span>
+                </template>
+                <template #cell(gene_set)="r">
+                    <a
+                        :href="`/pigean/geneset.html?geneset=${r.item.gene_set}${suffix}`"
+                    >
+                        {{ r.item.gene_set }}
+                    </a>
+                </template>
+                <template #cell(expand)="row">
+                    <b-button
+                        variant="outline-primary"
+                        size="sm"
+                        @click="showDetails(row, 1)"
+                    >
+                        {{
+                            row.detailsShowing && row.item.subtableActive === 1
+                                ? "Hide"
+                                : "Show"
+                        }}
+                    </b-button>
+                </template>
+                <template #cell(expand2)="row">
+                    <b-button
+                        variant="outline-primary"
+                        size="sm"
+                        @click="showDetails(row, 2)"
+                    >
+                        {{
+                            row.detailsShowing && row.item.subtableActive === 2
+                                ? "Hide"
+                                : "Show"
+                        }}
+                    </b-button>
+                </template>
+                <template #row-details="row">
+                    <pigean-table
+                        v-if="
+                            row.item.subtableActive === 2 &&
+                            subtable2Data[subtableKey(row.item)]?.length > 0
+                        "
+                        :pigeanData="subtable2Data[subtableKey(row.item)]"
+                        :config="{ fields: config.subtable2Fields }"
+                        :isSubtable="true"
+                    >
+                    </pigean-table>
+                    <pigean-table
+                        v-if="
+                            row.item.subtableActive === 1 &&
+                            subtableData[subtableKey(row.item)]?.length > 0
+                        "
+                        :pigeanData="subtableData[subtableKey(row.item)]"
+                        :config="{ fields: config.subtableFields }"
+                        :isSubtable="true"
+                    >
+                    </pigean-table>
+                </template>
+            </b-table>
+            <b-pagination
+                v-model="currentPage"
+                class="pagination-sm justify-content-center"
+                :total-rows="tableData.length"
+                :per-page="perPage"
+            ></b-pagination>
+        </div>
+        <div v-else>
+            <b-alert show variant="warning" class="text-center">
+                <b-icon icon="exclamation-triangle"></b-icon> No data available
+                for this query.
+            </b-alert>
+        </div>
+    </div>
+</template>
 <style scoped>
 @import url("/css/effectorGenes.css");
 
