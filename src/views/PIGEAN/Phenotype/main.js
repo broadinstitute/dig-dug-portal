@@ -11,8 +11,13 @@ import PageFooter from "@/components/PageFooter.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
+import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import alertUtils from "@/utils/alertUtils";
+import plotUtils from "@/utils/plotUtils";
 import sessionUtils from "@/utils/sessionUtils";
+import sortUtils from "@/utils/sortUtils";
+import dataConvert from "@/utils/dataConvert";
 import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
@@ -43,6 +48,7 @@ new Vue({
     },
     data() {
         return {
+            plotColors: plotUtils.plotColors(),
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
@@ -218,6 +224,18 @@ new Vue({
                 this.$store.state.pigeanFactor.data.length > 0 &&
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
+        },
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            };
+            return utils;
         },
     },
 
