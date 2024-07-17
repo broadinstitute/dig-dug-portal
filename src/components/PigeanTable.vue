@@ -185,32 +185,6 @@ export default Vue.component("pigean-table", {
                         {{ r.item.gene }}
                     </a>
                 </template>
-                <template #cell(top_genes)="r">
-                    <ul class="top-list">
-                        <li v-for="gene in r.item.top_genes.split(';')">
-                            <a
-                                :href="`/pigean/gene.html?gene=${gene}${suffix}`"
-                            >
-                                {{ gene }}
-                            </a>
-                        </li>
-                    </ul>
-                </template>
-                <template #cell(top_gene_sets)="r">
-                    <ul class="top-list">
-                        <li v-for="geneSet in r.item.top_gene_sets.split(';')">
-                            <a
-                                :href="`/pigean/geneset.html?geneset=${geneSet}${suffix}`"
-                            >
-                                {{
-                                    geneSet.length > 40
-                                        ? `${geneSet.slice(0, 40)}...`
-                                        : geneSet
-                                }}
-                            </a>
-                        </li>
-                    </ul>
-                </template>
                 <template #cell(phenotype)="r">
                     <a
                         v-if="!!phenotypeMap[r.item.phenotype]"
@@ -243,11 +217,36 @@ export default Vue.component("pigean-table", {
                         @click="showDetails(row, 1)"
                     >
                         {{
-                            row.detailsShowing && row.item.subtableActive === 1
+                            row.detailsShowing
                                 ? "Hide"
                                 : "Show"
                         }}
                     </b-button>
+                </template>
+                <template #cell(expand1)="row">
+                    <b-dropdown
+                        split
+                        right
+                        :text="
+                            row.detailsShowing && row.item.subtableActive === 1
+                                ? 'Hide'
+                                : 'Show'
+                        "
+                        variant="outline-primary"
+                        size="sm"
+                        @click="showDetails(row, 1)"
+                    >
+                        <b-dropdown-header id="dropdown-header-label">
+                            Top 5 Genes
+                        </b-dropdown-header>
+                        <b-dropdown-item
+                            v-for="gene in row.item.top_genes.split(';')"
+                            :key="gene"
+                            :href="`/pigean/gene.html?gene=${gene}${suffix}`"
+                        >
+                            {{ gene }}
+                        </b-dropdown-item>
+                    </b-dropdown>
                 </template>
                 <template #cell(expand2)="row">
                     <b-dropdown
