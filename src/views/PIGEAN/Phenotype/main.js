@@ -277,6 +277,7 @@ new Vue({
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
+            this.phewasPlotData = [];
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
