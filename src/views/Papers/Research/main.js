@@ -950,6 +950,9 @@ new Vue({
     },
 
     watch: {
+        sectionsData(DATA) {
+            console.log("sectionsData", DATA)
+        },
         sectionConfigs(CONFIGS) {
             let context;
 

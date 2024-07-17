@@ -8,6 +8,7 @@
 			:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction']? singleSearchConfig['search instruction'] 
 			:'Search gene, variant, region, phenotype, or tissue'"
 			@keyup.enter="onSearch"
+			autocomplete="off"
 		/>
 		<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()"><b-icon icon="x-circle-fill"></b-icon></span>
 		
@@ -37,6 +38,9 @@
 							"Search region"
 						}}</a></span
 					>
+					<div>
+								Options
+							</div>
 				</div>
 				<template v-if="!!isParameterActive('kp phenotypes').active">
 					<div
@@ -51,6 +55,9 @@
 						><span class="search-word-group">{{
 							phenotype.group
 						}}</span>
+						<div>
+								Options
+							</div>
 					</div>
 				</template>
 
@@ -68,7 +75,11 @@
 									'Search '+param['parameter']
 								}}</a
 								>
+								<div>
+							Options
+						</div>
 							</div>
+							
 						</template>
 					</template>
 				</template>
@@ -409,6 +420,10 @@ export default Vue.component("research-single-search", {
 							returnParam.url += '&' + param['parameter'] + '=';
 						} else if (!!param['target page']['url']) {
 							returnParam.url += param['parameter'] + '=';
+						}
+
+						if(!!param.options) {
+							
 						}
 						
 					} else {

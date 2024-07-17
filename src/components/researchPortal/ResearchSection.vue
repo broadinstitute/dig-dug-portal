@@ -2,7 +2,7 @@
 	<!--<div class="multi-section" :class="'wrapper-' + sectionIndex"
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
-	<div class="multi-section-card">
+	<div :class="(!!sectionConfig.display && sectionConfig.display == 'false')? 'multi-section-card hidden':'multi-section-card'">
 		<div v-if="dataPoint.type == 'component'">
 			<research-section-components
 				:component="dataPoint.name"
@@ -1504,14 +1504,24 @@ export default Vue.component("research-section", {
 									let vIndex = this.sectionData.length - 1;
 									VALUE = this.sectionData[vIndex][act.field]
 									break;
+								case "condition":
+									let cField = act['condition field'];
+
+									let cDataArray = [];
+									this.sectionData.map(s => {
+										let tempObj = {
+											'cField': s[cField], 'pField': s[act.field]
+										}
+										cDataArray.push(tempObj);
+									});
+
+									let sortedArr = (act.condition == "lowest")? this.utils.sortUtils.sortArrOfObjects(cDataArray, 'cField', 'number', "asc")
+													:this.utils.sortUtils.sortArrOfObjects(cDataArray, 'cField', 'number', "desc")
+
+									VALUE = sortedArr[0].pField;
 							}
 							 
-
-
 							let PARAMETERS = act.parameters;
-							
-							
-							//let targetSections = SECTION == "all" ? "":[SECTION];
 
 							if (typeof PARAMETERS === "object") {
 								let values = VALUE.split(",");

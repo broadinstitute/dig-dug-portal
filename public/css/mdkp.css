@@ -2238,6 +2238,12 @@ span.volcano-score-2 {
     border: solid 1px #ddd;
 }
 
+.kp-tabs-contents.not-active {
+    background: none;
+    padding: 1.25em;
+    border: none;
+}
+
 .kp-tab-content {
     visibility: hidden;
     height: 0px !important;

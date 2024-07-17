@@ -244,7 +244,7 @@
 			</div>
 			<!-- tabs content -->
 
-			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':''" id="rp_tabs_contents">
+			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':'kp-tabs-contents not-active'" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
 						<template
