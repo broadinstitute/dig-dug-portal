@@ -327,7 +327,8 @@ new Vue({
             let queryKey = this.queryString(details);
             let data = await query("pigean-phewas", queryKey);
             this.phewasPlotData = data;
-            this.phewasPlotLabel = details.factorLabel;
+            // Leaving in the commas blocks the phewas plot from being rendered.
+            this.phewasPlotLabel = details.factorLabel.replaceAll(",", "");
         },
     },
 

@@ -185,7 +185,8 @@
                     </h4>
                     <research-phewas-plot
                         v-if="$parent.phewasPlotData.length > 0"
-                        :canvas-id="`pigean_${$store.state.phenotype.name}_${$parent.phewasPlotLabel}`"
+                        :canvas-id="`pigean_${$store.state.phenotype.name}_${
+                            $parent.phewasPlotLabel}`"
                         :plot-name="`PIGEAN_${$store.state.phenotype.name}`"
                         :phenotypes-data="
                             $parent.phewasPlotData
