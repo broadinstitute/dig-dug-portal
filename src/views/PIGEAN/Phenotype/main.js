@@ -157,16 +157,12 @@ new Vue({
             factorTableConfig: {
                 fields: [
                     { key: "label", label: "Label", sortable: true },
-                    {
-                        key: "gene_set_score",
-                        label: "Gene set score",
-                        sortable: true,
-                    },
-                    { key: "top_gene_sets", label: "Top gene sets"},
                     { key: "gene_score", label: "Gene score", sortable: true },
-                    { key: "top_genes", label: "Top genes" },
+                    { key: "gene_set_score",
+                        label: "Gene set score",
+                        sortable: true },
                     { key: "phewasPlot", label: "Show PheWAS" },
-                    { key: "expand", label: "Show top genes" },
+                    { key: "expand1", label: "Show top genes" },
                     { key: "expand2", label: "Show top gene sets" },
                 ],
                 queryParam: "cluster",
@@ -281,6 +277,7 @@ new Vue({
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
+            this.phewasPlotData = [];
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
