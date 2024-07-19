@@ -64,9 +64,10 @@ export default Vue.component("pigean-table", {
         },
         tableData() {
             let data = this.probData;
-            //add subtableActive to each row
+            //add subtableActive and phewasActive to each row
             data.forEach((row) => {
                 row.subtableActive = 0;
+                row.phewasActive = false;
             });
             if (this.filter) {
                 data = data.filter(this.filter);
@@ -93,7 +94,10 @@ export default Vue.component("pigean-table", {
         tpmFormatter: Formatters.tpmFormatter,
         phewasPlotShow(row){
             this.getPhewas(row);
-            row.toggleDetails();
+            row.item.phewasActive = !row.item.phewasActive;
+            if (row.item.phewasActive && !row.detailsShowing){
+                row.toggleDetails();
+            }
         },
         async getSubtable(row, whichSubtable) {
             let queryKey = this.subtableKey(row.item);
@@ -234,7 +238,7 @@ export default Vue.component("pigean-table", {
                         size="sm"
                         @click="phewasPlotShow(row)"
                     >
-                        {{ row.detailsShowing ? "Hide" : "Show" }}
+                        {{ row.item.phewasActive ? "Hide" : "Show" }}
                     </b-button>
                 </template>
                 <template #cell(expand)="row">
@@ -307,6 +311,7 @@ export default Vue.component("pigean-table", {
                 <template #row-details="row">
                     <research-phewas-plot
                         v-if="phewasData[phewasKey(row.item)]?.length > 0"
+                        :hidden="!row.item.phewasActive"
                         style="width:100%"
                         :canvas-id="`pigean_${row.item.phenotype}_${
                             row.item.label.replaceAll(',','')}`"
