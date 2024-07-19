@@ -94,6 +94,7 @@ export default Vue.component("pigean-table", {
         tpmFormatter: Formatters.tpmFormatter,
         phewasPlotShow(row){
             this.getPhewas(row);
+            this.toggleTable(!row.item.phewasActive, 'phewas');
             row.item.phewasActive = !row.item.phewasActive;
             if (row.item.phewasActive && !row.detailsShowing){
                 row.toggleDetails();
@@ -125,11 +126,16 @@ export default Vue.component("pigean-table", {
             }
         },
         showDetails(row, tableNum) {
+            this.toggleTable(tableNum !== row.item.subtableActive, tableNum);
             if (!row.detailsShowing || tableNum === row.item.subtableActive) {
                 row.toggleDetails();
             }
             row.item.subtableActive = tableNum;
             this.getSubtable(row, tableNum);
+            
+        },
+        toggleTable(showOrHide, subtable){
+            console.log(`${showOrHide ? 'showing' : 'hiding'} ${subtable}`);
         },
         phewasKey(item){
             return `${item.phenotype},${
