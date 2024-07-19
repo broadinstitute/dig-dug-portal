@@ -347,7 +347,7 @@ export default Vue.component("research-single-search", {
 
 			if(summary.error == null && !!Array.isArray(summary.data) && summary.data.length > 0) {
 
-				let summaryHeader = CONFIG["summary text"]+"<br />";
+				let summaryHeader = "<b>"+CONFIG["summary text"]+"</b><br />";
 
 				CONFIG['data point'].parameters.map(parameter => {
 					summaryHeader = summaryHeader.replace('$' + parameter, KEY)
@@ -355,8 +355,21 @@ export default Vue.component("research-single-search", {
 
 				let summaryData = "";
 
-				for(let i=0; i < CONFIG['data rows']; i++) {
-					summaryData += summary.data[i].tissue + summary.data[i].biosample + summary.data[i].tstat+'<br />'
+				summaryData += "<div class='summary-row'>";
+
+				for (let j = 0; j < CONFIG['summary columns'].length; j++) {
+					summaryData += "<span class='summary-column-header'>" + CONFIG['summary columns'][j].header + "</span>"
+				}
+
+				summaryData += "</div>";
+
+				for(let i=0; i < CONFIG['summary rows']; i++) {
+					summaryData += "<div class='summary-row'>";
+						for (let j = 0; j < CONFIG['summary columns'].length; j++) {
+							summaryData += "<span class='summary-column'>"+summary.data[i][CONFIG['summary columns'][j].field] + "</span>"
+						}
+
+					summaryData += "</div>";
 				}
 
 				summaryData = summaryHeader + summaryData;
@@ -675,7 +688,7 @@ let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 });
 </script>
 
-<style scoped>
+<style>
 /* alert UI */
 
 
@@ -768,5 +781,22 @@ let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
 .search-gene-link:hover .gene-link-tip {
 	display: block;
+}
+.summary-row {
+	display:table-row;
+	font-size: 13px;
+	width: 100%;
+}
+.summary-column {
+	padding: 0 10px;
+	border-left: solid 1px #dddddd;
+	display: table-cell
+}
+
+.summary-column-header {
+	padding: 0 10px;
+	border-left: solid 1px #dddddd;
+	display: table-cell;
+	font-weight: bold;
 }
 </style>
