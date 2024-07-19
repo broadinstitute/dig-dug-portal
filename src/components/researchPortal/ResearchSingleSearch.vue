@@ -21,6 +21,41 @@
 				v-if="anyResults() > 0"
 			>
 				<div v-for="gene in singleSearchResult.genes" :key="gene" class="single-search-option">
+					<a v-if="!!isParameterActive('kp genes').active && !isParameterActive('kp genes').options"
+						class="search-gene-link"
+						@click="searchGene(gene)"
+						href="javascript:;"
+						>{{ gene }}</a>
+
+					<a v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options"
+						class="search-gene-link"
+						href="javascript:;"
+						>{{ gene }}
+						<span class="more-options">
+							<template v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options">
+								<div class="ss-options-wrapper">
+									<div v-for="option in isParameterActive('kp genes').options">
+										<span v-if="option.type == 'summary'"><a href="javascript:;" 
+											@click="generateSummary(gene, option.label, option.summary)">{{ option.label }}</a></span>
+										<span v-if="option.type == 'target page'"><a :href="option.url + gene">{{ option.label }}</a></span>
+									</div>
+								</div>
+							</template>
+						</span>
+					</a>
+					<div :id="'summary_panel'+gene">
+						<div :id="'summary_header' + gene">
+						
+							</div>
+						<div :id="'summary_content' + gene">
+							<div v-for="item in summary" v-if="item.key == gene" v-html="item.data">
+							</div>
+						</div>
+						<div>
+							<a :id="'summary_next_action' + gene"></a>
+						</div>
+					</div>
+					<!--
 					{{ gene
 					}}<span class="search-word-group"
 						><a v-if="!!isParameterActive('kp genes').active"
@@ -36,11 +71,21 @@
 						<a v-if="!!isParameterActive('kp region').active" 
 							@click="searchRegion(gene)" href="javascript:;">{{
 							"Search region"
-						}}</a></span
-					>
-					<div>
-								Options
-							</div>
+						}}</a>
+						<span v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options" class="more-options">
+							Explore options >>
+							<template v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options">
+								<div class="ss-options-wrapper">
+									<div v-for="option in isParameterActive('kp genes').options">
+										<span v-if="option.type == 'summary'">{{ option.label }}</span>
+										<span v-if="option.type == 'target page'"><a :href="option.url + gene">{{ option.label }}</a></span>
+									</div>
+								</div>
+							</template>
+						</span>
+					</span>
+				-->
+					
 				</div>
 				<template v-if="!!isParameterActive('kp phenotypes').active">
 					<div
@@ -166,7 +211,8 @@ export default Vue.component("research-single-search", {
 				tissues: [],
 				diseases: []
 			},
-			customList:{}
+			customList:{},
+			summary: []
 		};
 	},
 	created() {
@@ -270,6 +316,76 @@ export default Vue.component("research-single-search", {
 	},
 	methods: {
 		...alertUtils,
+		generateSummary(KEY,HEADER,summaryConfig){
+			console.log(KEY, HEADER, summaryConfig);
+			document.getElementById("summary_header"+KEY).innerText = HEADER+": "+KEY;
+			//document.getElementById("summary_content" + KEY).innerText = summaryConfig;
+
+			if(!!summaryConfig.url){
+				document.getElementById("summary_next_action" + KEY).setAttribute('href', summaryConfig.url+KEY);
+				document.getElementById("summary_next_action" + KEY).innerText = summaryConfig["url label"];
+			}
+
+			summaryConfig.sections.map(section =>{
+
+				//this.summary[KEY] = [];
+
+				this.getSummarySection(section,KEY)
+			})
+		},
+		async getSummarySection(CONFIG,KEY){
+			let fetchUrl = CONFIG['data point'].url;
+
+			CONFIG['data point'].parameters.map(parameter =>{
+				
+				fetchUrl = fetchUrl.replace('$'+parameter,KEY)
+			})
+
+			console.log("fetchUrl", fetchUrl);
+
+			let summary = await fetch(fetchUrl).then(resp => resp.json());
+
+			if(summary.error == null && !!Array.isArray(summary.data) && summary.data.length > 0) {
+
+				let summaryHeader = CONFIG["summary text"]+"<br />";
+
+				CONFIG['data point'].parameters.map(parameter => {
+					summaryHeader = summaryHeader.replace('$' + parameter, KEY)
+				})
+
+				let summaryData = "";
+
+				for(let i=0; i < CONFIG['data rows']; i++) {
+					summaryData += summary.data[i].tissue + summary.data[i].biosample + summary.data[i].tstat+'<br />'
+				}
+
+				summaryData = summaryHeader + summaryData;
+				
+				this.summary.push({key:KEY,data: summaryData });
+
+				console.log("this.summary", summary.data);
+
+			} else {
+				console.log("summary null");
+			}
+
+			/*
+let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+				this.processLoadedBI(contentJson, QUERY);
+			} else {
+				// fetch failed 
+				if (!!this.dataPoint["cumulate data"]) {
+					this.sectionData = this.sectionData
+				} else {
+					this.sectionData = null;
+				}
+				this.loadingDataFlag = "down";
+				this.noLoadedData = "No data is returned. Please check query parameters.";
+			}
+			*/
+		},
 		resetSearch() {
 			this.singleSearchParam = null;
 
@@ -310,8 +426,6 @@ export default Vue.component("research-single-search", {
 				let tissues = tissues1.concat(tissues2);
 
 				let uniqueList = [...new Set(tissues)];
-
-				//console.log(uniqueList);
 
 				let tissuesList = [];
 				uniqueList.map(tissue => {
@@ -401,7 +515,8 @@ export default Vue.component("research-single-search", {
 			}
 		},
 		isParameterActive(PARAM) {
-			let returnParam = {active: null, url:''};
+
+			let returnParam = {active: null, url:'', options:null};
 
 			if(!!this.singleSearchConfig) {
 				this.singleSearchConfig["search parameters"].map(param =>{
@@ -423,7 +538,7 @@ export default Vue.component("research-single-search", {
 						}
 
 						if(!!param.options) {
-							
+							returnParam.options = param.options;
 						}
 						
 					} else {
@@ -442,6 +557,10 @@ export default Vue.component("research-single-search", {
 								returnParam.url += '&' + param['parameter'] + '=';
 							} else if (!!param['target page']['url']) {
 								returnParam.url += param['parameter'] + '=';
+							}
+
+							if (!!param.options) {
+								returnParam.options = param.options;
 							}
 						}
 					}
@@ -474,8 +593,6 @@ export default Vue.component("research-single-search", {
 							dataEntity = (TYPE == "json") ? JSON.parse(dataEntity) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(dataEntity) : dataEntity;
 						}
 
-						//console.log("dataEntity", PARAM, typeof dataEntity)
-
 						let values = [];
 
 						if (dataEntity.length > 0) {
@@ -489,9 +606,6 @@ export default Vue.component("research-single-search", {
 							}
 							})
 						}
-
-
-						//list = dataEntity;
 
 						list = values;
 
@@ -608,6 +722,23 @@ export default Vue.component("research-single-search", {
 .single-search-option:hover {
 	border-bottom: solid 2px #dddddd;
 	margin-bottom: -2px;
+}
+
+.single-search-option .ss-options-wrapper {
+	display: none;
+	position:absolute;
+	background-color: #fff;
+	z-index: 101;
+	border: solid 1px #dddddd;
+	border-radius: 5px;
+	white-space: nowrap;
+	padding: 5px 15px;
+	margin-left: 5px;
+	box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.2);
+}
+
+.single-search-option:hover .ss-options-wrapper {
+	display: inline-block;
 }
 
 .search-word-group {
