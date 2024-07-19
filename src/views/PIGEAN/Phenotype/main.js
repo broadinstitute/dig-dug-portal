@@ -157,16 +157,12 @@ new Vue({
             factorTableConfig: {
                 fields: [
                     { key: "label", label: "Label", sortable: true },
-                    {
-                        key: "gene_set_score",
-                        label: "Gene set score",
-                        sortable: true,
-                    },
-                    { key: "top_gene_sets", label: "Top gene sets"},
                     { key: "gene_score", label: "Gene score", sortable: true },
-                    { key: "top_genes", label: "Top genes" },
+                    { key: "gene_set_score",
+                        label: "Gene set score",
+                        sortable: true },
                     { key: "phewasPlot", label: "Show PheWAS" },
-                    { key: "expand", label: "Show top genes" },
+                    { key: "expand1", label: "Show top genes" },
                     { key: "expand2", label: "Show top gene sets" },
                 ],
                 queryParam: "cluster",
@@ -281,6 +277,7 @@ new Vue({
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
+            this.phewasPlotData = [];
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
@@ -316,17 +313,22 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
-        async getPhewas(DETAILS) {
-            let queryString = `${DETAILS.phenotype},${
+        queryString(DETAILS){
+            return `${DETAILS.phenotype},${
                 DETAILS.sigma},${
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
-            if (!this.phewasPlotDataAll[queryString]){
-                let data = await query("pigean-phewas", queryString);
-                Vue.set(this.phewasPlotDataAll, queryString, data);
-            }
-            this.phewasPlotData = this.phewasPlotDataAll[queryString];
-            this.phewasPlotLabel = DETAILS.factorLabel;
+        },
+        plotPhewas(details){
+            this.phewasPlotData = [];
+            this.getPhewas(details);
+        },
+        async getPhewas(details) {
+            let queryKey = this.queryString(details);
+            let data = await query("pigean-phewas", queryKey);
+            this.phewasPlotData = data;
+            // Leaving in the commas blocks the phewas plot from being rendered.
+            this.phewasPlotLabel = details.factorLabel.replaceAll(",", "");
         },
     },
 
