@@ -94,11 +94,7 @@ export default Vue.component("pigean-table", {
         tpmFormatter: Formatters.tpmFormatter,
         phewasPlotShow(row){
             this.getPhewas(row);
-            this.toggleTable(!row.item.phewasActive, 'phewas');
-            row.item.phewasActive = !row.item.phewasActive;
-            if (row.item.phewasActive && !row.detailsShowing){
-                row.toggleDetails();
-            }
+            this.toggleTable(row, 'phewas');
         },
         async getSubtable(row, whichSubtable) {
             let queryKey = this.subtableKey(row.item);
@@ -126,16 +122,39 @@ export default Vue.component("pigean-table", {
             }
         },
         showDetails(row, tableNum) {
-            this.toggleTable(tableNum !== row.item.subtableActive, tableNum);
-            if (!row.detailsShowing || tableNum === row.item.subtableActive) {
-                row.toggleDetails();
-            }
-            row.item.subtableActive = tableNum;
+            this.toggleTable(row, tableNum);
             this.getSubtable(row, tableNum);
             
         },
-        toggleTable(showOrHide, subtable){
-            console.log(`${showOrHide ? 'showing' : 'hiding'} ${subtable}`);
+        toggleTable(row, subtable){
+            let show = false;
+            if (subtable === 'phewas'){
+                show = !row.item.phewasActive;
+            } else if (subtable === row.item.subtableActive) {
+                show = false;
+            } else {
+                show = true;
+            }
+            // Toggle active table
+            if (subtable === 'phewas'){
+                row.item.phewasActive = !row.item.phewasActive;
+            } else {
+                row.item.subtableActive = !show ? 0 : subtable;
+            }
+            // Hide details if it's currently showing and no tables should be active
+            if (!show 
+                && row.detailsShowing 
+                && !row.item.phewasActive 
+                && row.item.subtableActive === 0){
+                row.toggleDetails();
+            }
+            // Show details if it's currently not showing but it should be
+            if (show 
+                && !row.detailsShowing 
+                && (row.item.phewasActive || row.item.subtableActive !== 0)){
+                    row.toggleDetails();
+                }
+            
         },
         phewasKey(item){
             return `${item.phenotype},${
