@@ -230,11 +230,11 @@ export default Vue.component("pigean-table", {
                 </template>
                 <template #cell(phewasPlot)="row">
                     <b-button
-                        variant="outline-secondary"
+                        variant="outline-primary"
                         size="sm"
                         @click="phewasPlotShow(row)"
                     >
-                        PheWAS Plot
+                        {{ row.detailsShowing ? "Hide" : "Show" }}
                     </b-button>
                 </template>
                 <template #cell(expand)="row">
