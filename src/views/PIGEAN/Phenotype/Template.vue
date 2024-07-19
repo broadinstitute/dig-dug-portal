@@ -205,6 +205,7 @@
                         :pigeanData="$store.state.pigeanFactor.data"
                         :config="$parent.factorTableConfig"
                         @phewasPlotShow="(details) => $parent.plotPhewas(details)"
+                        :phewasRenderConfig="$parent.renderConfig"
                     >
                     </pigean-table>
                 </div>
