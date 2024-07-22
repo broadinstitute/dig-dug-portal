@@ -5,21 +5,41 @@ import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import PigeanTable from "./PigeanTable.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import uiUtils from "@/utils/uiUtils";
+import alertUtils from "@/utils/alertUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import dataConvert from "@/utils/dataConvert";
 export default Vue.component("pigean-table", {
     components: {
         DataDownload,
         PigeanTable,
     },
-    props: ["pigeanData", "phenotypeMap", "config", "isSubtable", "filter"],
+    props: ["pigeanData", "phenotypeMap", "config", "isSubtable", "filter", "phewasRenderConfig"],
     data() {
         return {
             perPage: 10,
             currentPage: 1,
             subtableData: {},
             subtable2Data: {},
+            phewasData: {},
+            plotColors: plotUtils.plotColors(),
         };
     },
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            };
+            return utils;
+        },
         probFields() {
             return this.collateFields();
         },
@@ -44,9 +64,10 @@ export default Vue.component("pigean-table", {
         },
         tableData() {
             let data = this.probData;
-            //add subtableActive to each row
+            //add subtableActive and phewasActive to each row
             data.forEach((row) => {
                 row.subtableActive = 0;
+                row.phewasActive = false;
             });
             if (this.filter) {
                 data = data.filter(this.filter);
@@ -71,6 +92,10 @@ export default Vue.component("pigean-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
+        phewasPlotShow(row){
+            this.getPhewas(row);
+            this.toggleTable(row, 'phewas');
+        },
         async getSubtable(row, whichSubtable) {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
@@ -89,12 +114,53 @@ export default Vue.component("pigean-table", {
                 Vue.set(this.subtable2Data, queryKey, data2);
             }
         },
+        async getPhewas(row) {
+            let queryKey = this.phewasKey(row.item);
+            if (!this.phewasData[queryKey]){
+                let data = await query("pigean-phewas", queryKey);
+                Vue.set(this.phewasData, queryKey, data);
+            }
+        },
         showDetails(row, tableNum) {
-            if (!row.detailsShowing || tableNum === row.item.subtableActive) {
+            this.toggleTable(row, tableNum);
+            this.getSubtable(row, tableNum);
+            
+        },
+        toggleTable(row, subtable){
+            let show = false;
+            if (subtable === 'phewas'){
+                show = !row.item.phewasActive;
+            } else if (subtable === row.item.subtableActive) {
+                show = false;
+            } else {
+                show = true;
+            }
+            // Toggle active table
+            if (subtable === 'phewas'){
+                row.item.phewasActive = !row.item.phewasActive;
+            } else {
+                row.item.subtableActive = !show ? 0 : subtable;
+            }
+            // Hide details if it's currently showing and no tables should be active
+            if (!show 
+                && row.detailsShowing 
+                && !row.item.phewasActive 
+                && row.item.subtableActive === 0){
                 row.toggleDetails();
             }
-            row.item.subtableActive = tableNum;
-            this.getSubtable(row, tableNum);
+            // Show details if it's currently not showing but it should be
+            if (show 
+                && !row.detailsShowing 
+                && (row.item.phewasActive || row.item.subtableActive !== 0)){
+                    row.toggleDetails();
+                }
+            
+        },
+        phewasKey(item){
+            return `${item.phenotype},${
+                this.sigma},${
+                this.genesetSize},${
+                item.cluster}`;
         },
         subtableKey(item) {
             if (this.config.queryParam === "cluster") {
@@ -103,6 +169,10 @@ export default Vue.component("pigean-table", {
             return `${item.phenotype},${item[this.config.queryParam]},${
                 this.sigma
             },${this.genesetSize}`;
+        },
+        generateId(label){
+            return label.replaceAll(",","")
+                .replaceAll(" ", "_");
         },
         probability(val, prior = 0.05) {
             let a = Math.exp(Math.log(prior) + val);
@@ -139,16 +209,6 @@ export default Vue.component("pigean-table", {
                 allFields.push(field);
             });
             return allFields;
-        },
-        phewasPlotShow(item) {
-            let phewasDetails = {
-                factorLabel: item.label,
-                phenotype: item.phenotype,
-                sigma: this.sigma,
-                gene_set_size: this.genesetSize,
-                factor: item.cluster,
-            };
-            this.$emit("phewasPlotShow", phewasDetails);
         },
     },
 });
@@ -203,11 +263,11 @@ export default Vue.component("pigean-table", {
                 </template>
                 <template #cell(phewasPlot)="row">
                     <b-button
-                        variant="outline-secondary"
+                        variant="outline-primary"
                         size="sm"
-                        @click="phewasPlotShow(row.item)"
+                        @click="phewasPlotShow(row)"
                     >
-                        PheWAS Plot
+                        {{ row.item.phewasActive ? "Hide" : "Show" }}
                     </b-button>
                 </template>
                 <template #cell(expand)="row">
@@ -278,6 +338,25 @@ export default Vue.component("pigean-table", {
                     </b-dropdown>
                 </template>
                 <template #row-details="row">
+                    <research-phewas-plot
+                        v-if="phewasData[phewasKey(row.item)]?.length > 0"
+                        :hidden="!row.item.phewasActive"
+                        style="width:100%"
+                        :canvas-id="`pigean_${row.item.phenotype}_${
+                            generateId(row.item.label)}`"
+                        :plot-name="`PIGEAN_${row.item.phenotype}`"
+                        :phenotypes-data="
+                            phewasData[phewasKey(row.item)]
+                        "
+                        :phenotype-map="
+                            $store.state.bioPortal.phenotypeMap
+                        "
+                        :colors="plotColors"
+                        :render-config="phewasRenderConfig"
+                        :utils="utilsBox"
+                        :native-dl-btn="false"
+                    >
+                    </research-phewas-plot>
                     <pigean-table
                         v-if="
                             row.item.subtableActive === 2 &&
