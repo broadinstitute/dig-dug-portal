@@ -67,6 +67,7 @@ new Vue({
             tableConfig: {
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
+                    { key: "label", label: "Factor", sortable: true },
                     {
                         key: "combined",
                         label: "Combined",
@@ -114,6 +115,7 @@ new Vue({
             genesetTableConfig: {
                 fields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
+                    { key: "label", label: "Factor", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },
                     {
                         key: "beta_uncorrected",
@@ -156,7 +158,7 @@ new Vue({
             },
             factorTableConfig: {
                 fields: [
-                    { key: "label", label: "Label", sortable: true },
+                    { key: "label", label: "Factor", sortable: true },
                     { key: "gene_score", label: "Gene score", sortable: true },
                     { key: "gene_set_score",
                         label: "Gene set score",
@@ -321,17 +323,6 @@ new Vue({
                 DETAILS.sigma},${
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
-        },
-        plotPhewas(details){
-            this.phewasPlotData = [];
-            this.getPhewas(details);
-        },
-        async getPhewas(details) {
-            let queryKey = this.queryString(details);
-            let data = await query("pigean-phewas", queryKey);
-            this.phewasPlotData = data;
-            // Leaving in the commas blocks the phewas plot from being rendered.
-            this.phewasPlotLabel = details.factorLabel.replaceAll(",", "");
         },
     },
 
