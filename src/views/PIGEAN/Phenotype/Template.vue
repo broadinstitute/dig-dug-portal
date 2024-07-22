@@ -112,7 +112,7 @@
                         </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$parent.plotReady"
+                                v-if="$parent.phewasPlotReady"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="
