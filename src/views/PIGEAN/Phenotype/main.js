@@ -58,10 +58,10 @@ new Vue({
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
             geneFilterFields: [
-                { key: "combined", label: "Combined" },
+                { key: "combined", label: "Combined genetic support" },
                 { key: "combined_probability", label: "Combined probability" },
-                { key: "huge_score", label: "GWAS evidence unweighted" },
-                { key: "log_bf", label: "GWAS evidence weighted" },
+                { key: "huge_score", label: "Direct support (w/o gene sets)" },
+                { key: "log_bf", label: "Direct support (w/ gene sets)" },
                 { key: "prior", label: "Gene set evidence" },
             ],
             tableConfig: {
@@ -70,18 +70,18 @@ new Vue({
                     { key: "label", label: "Factor", sortable: true },
                     {
                         key: "combined",
-                        label: "Combined",
+                        label: "Combined genetic support",
                         showProbability: true,
                         sortable: true,
                     },
                     {
                         key: "huge_score",
-                        label: "GWAS evidence unweighted",
+                        label: "Direct support (w/o gene sets)",
                         sortable: true,
                     },
                     {
                         key: "log_bf",
-                        label: "GWAS evidence weighted",
+                        label: "Direct support (w/ gene sets)",
                         sortable: true,
                     },
                     {
@@ -103,7 +103,7 @@ new Vue({
                 xField: "prior",
                 xAxisLabel: "Gene set evidence",
                 yField: "log_bf",
-                yAxisLabel: "GWAS evidence weighted",
+                yAxisLabel: "Direct support (w/ gene sets)",
                 dotKey: "gene",
                 hoverBoxPosition: "both",
                 hoverFields: ["combined"],
@@ -132,13 +132,13 @@ new Vue({
                     { key: "gene", label: "Gene", sortable: true },
                     {
                         key: "combined",
-                        label: "Combined",
+                        label: "Combined genetic support",
                         showProbability: true,
                         sortable: true,
                     },
                     {
                         key: "log_bf",
-                        label: "GWAS evidence weighted",
+                        label: "Direct support (w/ gene sets)",
                         sortable: true,
                     },
                     {
@@ -173,9 +173,9 @@ new Vue({
                 subtable2Endpoint: "pigean-gene-set-factor",
                 subtableFields: [
                     { key: "gene", label: "Gene", sortable: true},
-                    { key: "combined", label: "Combined", sortable: true},
+                    { key: "combined", label: "Combined genetic support", sortable: true},
                     { key: "factor_value", label: "Factor value", sortable: true},
-                    { key: "log_bf", label: "GWAS evidence weighted", sortable: true},
+                    { key: "log_bf", label: "Direct support (w/ gene sets)", sortable: true},
                     { key: "prior", label: "Prior", sortable: true}
                 ],
                 subtable2Fields: [

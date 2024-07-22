@@ -72,13 +72,13 @@ new Vue({
                     { key: "gene", label: "Gene", sortable: true },
                     {
                         key: "combined",
-                        label: "Combined",
+                        label: "Combined genetic support",
                         showProbability: true,
                         sortable: true,
                     },
                     {
                         key: "log_bf",
-                        label: "GWAS evidence weighted",
+                        label: "Direct support (w/ gene sets)",
                         sortable: true,
                     },
                     {

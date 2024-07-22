@@ -52,7 +52,7 @@ new Vue({
     data() {
         return {
             filterFields: [
-                { key: "combined", label: "Combined" },
+                { key: "combined", label: "Combined genetic support" },
                 { key: "huge_score", label: "GWAS unweighted" },
                 { key: "log_bf", label: "GWAS weighted" },
                 { key: "prior", label: "Gene set evidence" },
@@ -60,7 +60,7 @@ new Vue({
             tableConfig: {
                 fields: [
                     { key: "phenotype", label: "Phenotype", sortable: true },
-                    { key: "combined", label: "Combined", sortable: true },
+                    { key: "combined", label: "Combined genetic support", sortable: true },
                     {
                         key: "huge_score",
                         label: "GWAS evidence unweighted",
@@ -68,7 +68,7 @@ new Vue({
                     },
                     {
                         key: "log_bf",
-                        label: "GWAS evidence weighted",
+                        label: "Direct support (w/ gene sets)",
                         sortable: true,
                     },
                     {
@@ -89,7 +89,7 @@ new Vue({
                 xField: "prior",
                 xAxisLabel: "Gene set evidence",
                 yField: "log_bf",
-                yAxisLabel: "GWAS evidence weighted",
+                yAxisLabel: "Direct support (w/ gene sets)",
                 dotKey: "phenotype",
                 hoverFields: ["gene", "combined"],
             },
@@ -101,7 +101,7 @@ new Vue({
                 "phenotype map": "kp phenotype map",
                 "y axis field": "combined",
                 "convert y -log10": "false",
-                "y axis label": "Combined",
+                "y axis label": "Combined genetic support",
                 "x axis label": "",
                 "beta field": "null",
                 "hover content": ["combined", "huge_score", "log_bf", "prior"],
