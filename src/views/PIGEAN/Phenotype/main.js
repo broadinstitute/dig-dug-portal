@@ -195,7 +195,7 @@ new Vue({
                 "y axis label": "-Log10(p-value)",
                 "x axis label": "",
                 "beta field": "null",
-                "hover content": ["Z", "pValue"],
+                "hover content": ["Z", "pValue", "pValue_marginal", "pValue_orig", "pValue_robust"],
                 thresholds: [0.05, 0.00005],
                 "label in black": "lower than",
                 height: "475",
