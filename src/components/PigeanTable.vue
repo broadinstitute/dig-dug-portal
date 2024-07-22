@@ -202,7 +202,6 @@ export default Vue.component("pigean-table", {
                 if (field.showProbability) {
                     allFields.push({
                         key: `${field.key}_probability`,
-                        label: `${field.label} Probability`,
                         sortable: true,
                     });
                 }
