@@ -63,7 +63,7 @@ new Vue({
                     { key: "combined", label: "Combined genetic support", sortable: true },
                     {
                         key: "huge_score",
-                        label: "GWAS evidence unweighted",
+                        label: "Direct support (w/o gene sets)",
                         sortable: true,
                     },
                     {

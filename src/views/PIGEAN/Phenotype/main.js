@@ -110,7 +110,7 @@ new Vue({
             },
             genesetFilterFields: [
                 { key: "beta", label: "Effect (joint)" },
-                { key: "beta_uncorrected", label: "Effect (marginal)" },
+                { key: "beta_uncorrected", label: "Effect (uncorrected)" },
             ],
             genesetTableConfig: {
                 fields: [
@@ -119,7 +119,7 @@ new Vue({
                     { key: "beta", label: "Effect (joint)", sortable: true },
                     {
                         key: "beta_uncorrected",
-                        label: "Effect (marginal)",
+                        label: "Effect (uncorrected)",
                         sortable: true,
                     },
                     { key: "n", label: "Number of genes", sortable: true },
@@ -150,7 +150,7 @@ new Vue({
             },
             genesetPigeanPlotConfig: {
                 xField: "beta_uncorrected",
-                xAxisLabel: "Effect (marginal)",
+                xAxisLabel: "Effect (uncorrected)",
                 yField: "beta",
                 yAxisLabel: "Effect (joint)",
                 dotKey: "gene_set",
@@ -182,7 +182,7 @@ new Vue({
                     { key: "gene_set", label: "Gene set", sortable: true},
                     { key: "factor_value", label: "Factor value", sortable: true},
                     { key: "beta", label: "Effect (joint)", sortable: true },
-                    { key: "beta_uncorrected", label: "Effect (marginal)", sortable: true },
+                    { key: "beta_uncorrected", label: "Effect (uncorrected)", sortable: true },
                 ],
             },
             renderConfig: {

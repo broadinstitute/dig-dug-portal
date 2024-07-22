@@ -52,7 +52,7 @@ new Vue({
     data() {
         return {
             filterFields: [
-                { key: "beta_uncorrected", label: "Effect (marginal)" },
+                { key: "beta_uncorrected", label: "Effect (uncorrected)" },
                 { key: "beta", label: "Effect (joint)" },
             ],
             tableConfig: {
@@ -60,7 +60,7 @@ new Vue({
                     { key: "phenotype", label: "Phenotype", sortable: true },
                     {
                         key: "beta_uncorrected",
-                        label: "Effect (marginal)",
+                        label: "Effect (uncorrected)",
                         sortable: true,
                     },
                     { key: "beta", label: "Effect (joint)", sortable: true },
@@ -90,7 +90,7 @@ new Vue({
             },
             pigeanPlotConfig: {
                 xField: "beta_uncorrected",
-                xAxisLabel: "Effect (marginal)",
+                xAxisLabel: "Effect (uncorrected)",
                 yField: "beta",
                 yAxisLabel: "Effect (joint)",
                 dotKey: "phenotype",
@@ -103,7 +103,7 @@ new Vue({
                 "phenotype map": "kp phenotype map",
                 "y axis field": "beta_uncorrected",
                 "convert y -log10": "false",
-                "y axis label": "Beta (uncorrected)",
+                "y axis label": "Effect (uncorrected)",
                 "x axis label": "",
                 "beta field": "beta_uncorrected",
                 "hover content": ["beta", "beta_uncorrected"],
