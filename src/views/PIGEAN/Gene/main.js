@@ -60,7 +60,10 @@ new Vue({
             tableConfig: {
                 fields: [
                     { key: "phenotype", label: "Phenotype", sortable: true },
-                    { key: "combined", label: "Combined genetic support", sortable: true },
+                    { key: "combined", 
+                        label: "Combined genetic support", 
+                        showProbability: true,
+                        sortable: true },
                     {
                         key: "huge_score",
                         label: "Direct support (w/o gene sets)",

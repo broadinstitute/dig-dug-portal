@@ -67,7 +67,7 @@ new Vue({
             tableConfig: {
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
-                    { key: "label", label: "Factor", sortable: true },
+                    { key: "label", label: "Mechanism", sortable: true },
                     {
                         key: "combined",
                         label: "Combined genetic support",
@@ -110,16 +110,16 @@ new Vue({
             },
             genesetFilterFields: [
                 { key: "beta", label: "Effect (joint)" },
-                { key: "beta_uncorrected", label: "Effect (uncorrected)" },
+                { key: "beta_uncorrected", label: "Effect (marginal)" },
             ],
             genesetTableConfig: {
                 fields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
-                    { key: "label", label: "Factor", sortable: true },
+                    { key: "label", label: "Mechanism", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },
                     {
                         key: "beta_uncorrected",
-                        label: "Effect (uncorrected)",
+                        label: "Effect (marginal)",
                         sortable: true,
                     },
                     { key: "n", label: "Number of genes", sortable: true },
@@ -150,7 +150,7 @@ new Vue({
             },
             genesetPigeanPlotConfig: {
                 xField: "beta_uncorrected",
-                xAxisLabel: "Effect (uncorrected)",
+                xAxisLabel: "Effect (marginal)",
                 yField: "beta",
                 yAxisLabel: "Effect (joint)",
                 dotKey: "gene_set",
@@ -158,14 +158,13 @@ new Vue({
             },
             factorTableConfig: {
                 fields: [
-                    { key: "label", label: "Factor", sortable: true },
-                    { key: "gene_score", label: "Gene score", sortable: true },
+                    { key: "label", label: "Mechanism", sortable: true },
                     { key: "gene_set_score",
-                        label: "Gene set score",
+                        label: "Relevance to trait",
                         sortable: true },
-                    { key: "phewasPlot", label: "Show PheWAS" },
-                    { key: "expand1", label: "Show top genes" },
-                    { key: "expand2", label: "Show top gene sets" },
+                    { key: "phewasPlot", label: "PheWAS" },
+                    { key: "expand1", label: "Top gene loadings" },
+                    { key: "expand2", label: "Top gene set loadings" },
                 ],
                 queryParam: "cluster",
                 sortBy: "gene_set_score",
@@ -174,15 +173,15 @@ new Vue({
                 subtableFields: [
                     { key: "gene", label: "Gene", sortable: true},
                     { key: "combined", label: "Combined genetic support", sortable: true},
-                    { key: "factor_value", label: "Factor value", sortable: true},
+                    { key: "factor_value", label: "Mechanism value", sortable: true},
                     { key: "log_bf", label: "Direct support (w/ gene sets)", sortable: true},
                     { key: "prior", label: "Prior", sortable: true}
                 ],
                 subtable2Fields: [
                     { key: "gene_set", label: "Gene set", sortable: true},
-                    { key: "factor_value", label: "Factor value", sortable: true},
+                    { key: "factor_value", label: "Mechanism value", sortable: true},
                     { key: "beta", label: "Effect (joint)", sortable: true },
-                    { key: "beta_uncorrected", label: "Effect (uncorrected)", sortable: true },
+                    { key: "beta_uncorrected", label: "Effect (marginal)", sortable: true },
                 ],
             },
             renderConfig: {
