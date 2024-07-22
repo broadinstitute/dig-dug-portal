@@ -243,9 +243,12 @@ new Vue({
             return (
                 this.$store.state.genesetPhenotype.data.length > 0 &&
                 this.$store.state.pigeanPhenotype.data.length > 0 &&
-                this.$store.state.pigeanFactor.data.length > 0 &&
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
+        },
+        phewasPlotReady(){
+            this.$store.state.pigeanFactor.data.length > 0 &&
+                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
         },
         utilsBox() {
             let utils = {
