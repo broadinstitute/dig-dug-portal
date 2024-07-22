@@ -170,6 +170,10 @@ export default Vue.component("pigean-table", {
                 this.sigma
             },${this.genesetSize}`;
         },
+        generateId(label){
+            return label.replaceAll(",","")
+                .replaceAll(" ", "_");
+        },
         probability(val, prior = 0.05) {
             let a = Math.exp(Math.log(prior) + val);
             return a / (1 + a);
@@ -339,7 +343,7 @@ export default Vue.component("pigean-table", {
                         :hidden="!row.item.phewasActive"
                         style="width:100%"
                         :canvas-id="`pigean_${row.item.phenotype}_${
-                            row.item.label.replaceAll(',','')}`"
+                            generateId(row.item.label)}`"
                         :plot-name="`PIGEAN_${row.item.phenotype}`"
                         :phenotypes-data="
                             phewasData[phewasKey(row.item)]
