@@ -195,7 +195,7 @@ new Vue({
                 "beta field": "null",
                 "hover content": ["Z", "pValue"],
                 thresholds: [0.05, 0.00005],
-                "label in black": "greater than",
+                "label in black": "lower than",
                 height: "475",
                 "plot margin": {
                     left: 150,

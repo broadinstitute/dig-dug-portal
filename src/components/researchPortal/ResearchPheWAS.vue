@@ -466,7 +466,6 @@ export default Vue.component("ResearchPhewasPlot", {
             }
         },
         renderPheWas() {
-            console.log(this.canvasId);
             if (
                 !!this.renderConfig["thresholds"] &&
                 this.renderConfig["thresholds"] == "calculate"
