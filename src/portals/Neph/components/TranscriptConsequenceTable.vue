@@ -60,17 +60,7 @@
                         }}</a>
                     </template>
                     <template #head(transcriptId)="data">
-                        <span class="external_source"
-                            >Feature
-                            <b-badge
-                                pill
-                                disabled
-                                class="ml-1"
-                                variant="secondary"
-                                title="Link to external source."
-                                >E</b-badge
-                            ></span
-                        >
+                        <span class="external_source">Feature</span>
                     </template>
                     <template #cell(transcriptId)="data">
                         <a
