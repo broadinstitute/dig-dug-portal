@@ -368,7 +368,10 @@
     </div>
 </template>
 
-<style>
+<style scoped>
+div >>> #pageSearchHeaderContent.hidden {
+    display: block;
+}
 .color-bar-plot-wrapper {
     width: calc(100% - 32px);
     margin-left: 16px;
