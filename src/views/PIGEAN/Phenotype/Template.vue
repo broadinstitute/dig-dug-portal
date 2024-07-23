@@ -200,12 +200,14 @@
                 <div class="card-body">
                     <h4 class="card-title">
                         Biological mechanisms underlying the trait
-                        <a class="mechanism-info"
-                            v-b-tooltip="{ variant: 'light'}"
-                            :title="$parent.mechanismTooltip">
-                            <b-icon-info-circle-fill>
-                            </b-icon-info-circle-fill>
-                        </a>
+                        <tooltip-documentation
+                            name="gene.translator.tooltip.hover"
+                            :content-fill="$parent.documentationMap"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :supplyText="$parent.mechanismTooltip"
+                        >
+                        </tooltip-documentation>
                     </h4>
                     <div>
                         Mechanisms are determined by latent factorization 

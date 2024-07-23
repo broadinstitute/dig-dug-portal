@@ -30,6 +30,7 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 new Vue({
     store,
@@ -49,7 +50,8 @@ new Vue({
         FilterEnumeration,
         FilterGreaterLess,
         BootstrapVue,
-        BootstrapVueIcons
+        BootstrapVueIcons,
+        TooltipDocumentation
     },
     data() {
         return {
