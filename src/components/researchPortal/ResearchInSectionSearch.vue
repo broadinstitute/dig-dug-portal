@@ -166,6 +166,8 @@ export default Vue.component("research-in-section-search", {
 	},
 	created() {
 		this.$root.$refs.inSectionSearch = this;
+
+		
 		
 	},
 	mounted() {
@@ -195,7 +197,7 @@ export default Vue.component("research-in-section-search", {
 			let totalSearchNum = this.searchParameters.length;
 
 			this.searchParameters.map(s => {
-				console.log("s", s)
+				//console.log("s", s)
 				if (s.display && s.display == "false") {
 					totalSearchNum--;
 				}
@@ -280,7 +282,7 @@ export default Vue.component("research-in-section-search", {
 			this.searchParameters.map(s => {
 				let paramValue = document.getElementById("section_search_param_" + s.parameter).value;
 
-				console.log(s.parameter, paramValue)
+				//console.log(s.parameter, paramValue)
 
 				if (!!this.utils.keyParams[s.parameter]) {
 					//paramValue = (!!this.utils.keyParams[s.parameter]) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];

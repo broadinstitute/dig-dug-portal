@@ -10,6 +10,17 @@
 						<span v-html="parameter.label"></span>
 					</div>
 
+					
+					<select v-if="parameter.type == 'api list'"
+						:id="'search_param_' + parameter.parameter"  class="custom-select custom-select-search"
+						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
+
+						<option value="">{{ 'Set ' + parameter.parameter }}</option>
+						
+						<option v-for="param in parameterOptions[paramIndex]" :key="param.value" :value="param.value"
+								v-html="param.label.trim()"></option>
+				</select>
+
 					<select v-if="parameter.type == 'list' &&
 						parameter.values.length <= 10
 						" :id="'search_param_' + parameter.parameter" class="custom-select custom-select-search"
@@ -61,7 +72,8 @@
 												parameter.parameter,
 												paramIndex,
 												true,
-												parameter['expand region by']
+												parameter['expand region by'],
+												parameter['search point']
 											)
 											: setGene(
 												gene,
@@ -121,6 +133,9 @@ export default Vue.component("research-multi-sections-search", {
 				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
 			},
+			parameterOptions: {
+0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: []
+			},
 			searchingValues: {},
 			kpGenes: [],
 			listOptions: {},
@@ -128,6 +143,12 @@ export default Vue.component("research-multi-sections-search", {
 	},
 	created() {
 		this.$root.$refs.multiSectionSearch = this;
+		console.log("searchParameters", this.searchParameters);
+		this.searchParameters.map((param, pIndex) =>{
+			if(param.type == 'api list') {
+				this.getList(param["data point"], pIndex);
+			}
+		})
 	},
 	beforeUpdate() {
 
@@ -148,17 +169,21 @@ export default Vue.component("research-multi-sections-search", {
 		window.removeEventListener("scroll", this.onScroll);
 	},
 	computed: {
-		tableTop() {
+		/*tableTop() {
 			let eglTable = document.getElementsByClassName("multi-page-search")[0];
-			let rect = eglTable.getBoundingClientRect();
-			let scrollTop = document.documentElement.scrollTop
-				? document.documentElement.scrollTop
-				: document.body.scrollTop;
+			if(!!eglTable) {
+				let rect = eglTable.getBoundingClientRect();
+				let scrollTop = document.documentElement.scrollTop
+					? document.documentElement.scrollTop
+					: document.body.scrollTop;
 
-			let tableTop = rect.top + scrollTop;
+				let tableTop = rect.top + scrollTop;
 
-			return tableTop;
-		},
+				return tableTop;
+			} else {
+				return null;
+			}			
+		},*/
 		displyingSearchNum() {
 			let totalSearchNum = this.searchParameters.length;
 
@@ -173,13 +198,67 @@ export default Vue.component("research-multi-sections-search", {
 		}
 	},
 	watch: {
+		
 	},
 	methods: {
+		async getList(apiPoint, INDEX) {
+			
+			let searchPoint = apiPoint.url;
+			let values = []; 
+
+			if (!!apiPoint["parameters type"] && apiPoint["parameters type"] == "replace") {
+
+				let PARAMS = apiPoint.parameters
+
+				PARAMS.map((param, pIndex) => {
+					searchPoint = searchPoint.replace("$" + param, this.utils.keyParams[param]);
+				})
+			}
+
+			let valuesJson = await fetch(searchPoint).then((resp) => resp.json());
+
+			if (valuesJson.error == null) {
+				console.log("valuesJson", valuesJson)
+
+				let data = valuesJson;
+
+				if (!!apiPoint["data wrapper"]) {
+					apiPoint["data wrapper"].map(mapper => {
+						data = data[mapper];
+					})
+				}
+
+				if (data.length > 0) {
+					data.map(item => {
+						if(typeof item == 'string' || typeof item == 'number') {
+							values.push({"label":item, "value":item}) 
+						} else if(typeof item == 'object' && !!Array.isArray(item)) {
+							values.push({ "label": item[0], "value": item[0] })
+						} else if(typeof item == 'object' && !Array.isArray(item)) {
+							values.push(item);
+						}
+					})
+				}
+
+				this.parameterOptions[INDEX] = values
+			}
+			
+			
+
+		},
 		onScroll(e) {
 			let windowTop = window.top.scrollY;
 
 			let element = document.getElementsByClassName("multi-page-search")[0];
-			if (windowTop > this.tableTop) {
+			let contentsTop = document.getElementsByClassName("kp-tabs-contents")[0];
+			let rect = contentsTop.getBoundingClientRect();
+			let scrollTop = document.documentElement.scrollTop
+				? document.documentElement.scrollTop
+				: document.body.scrollTop;
+
+			let tableTop = rect.top + scrollTop;
+
+			if (windowTop > tableTop) {
 				if (!element.classList.contains("fixed-header")) {
 					element.classList.add("fixed-header");
 				}
@@ -197,15 +276,12 @@ export default Vue.component("research-multi-sections-search", {
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
-
-						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				//if (options.length > 1) {
-					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				//}
-				this.listOptions[PARAM.parameter] = options;
+				let shorterFirst = options.sort((a, b) => a.label.length - b.label.length);
+
+				this.listOptions[PARAM.parameter] = shorterFirst;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
 			}
@@ -277,7 +353,10 @@ export default Vue.component("research-multi-sections-search", {
 				} else {
 					this.sections.map(s => {
 						if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+							console.log("s['section id']",s['section id'])
+							if (!!document.getElementById("section_" + s['section id'])) {
 							this.$root.$refs[s['section id']].getData();
+							}
 						}
 					})
 				}
@@ -295,17 +374,29 @@ export default Vue.component("research-multi-sections-search", {
 			})
 			this.utils.keyParams.set(paramsObj);
 
+			console.log("paramsObj", paramsObj);
+
 			this.sections.map(s => {
 				if (!!s["data point"] && !!s["data point"]["parameters"]) {
-					this.$root.$refs[s['section id']].resetAll();
+					if(!!document.getElementById("section_"+ s['section id'])) {
+
+						this.$root.$refs[s['section id']].resetAll();
+
+					}
+					
 				}
 			})
-			
 		},
-		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND) {
+		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND,SEARCH_POINT) {
+			
 			if (!!CONVERT_REGION) {
-				let searchPoint =
-					this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				let searchPoint;
+				if(!!SEARCH_POINT) {
+					searchPoint = SEARCH_POINT + "/api/bio/query/gene?q=" + KEY;
+				} else {
+					searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				}
+				
 
 				let regionExpand = !!DEFALT_EXPAND? DEFALT_EXPAND/2 : 0;
 

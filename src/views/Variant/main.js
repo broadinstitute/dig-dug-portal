@@ -30,6 +30,7 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
+import regionUtils from "@/utils/regionUtils";
 
 import sessionUtils from "@/utils/sessionUtils";
 
@@ -47,6 +48,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 
 new Vue({
     store,
@@ -76,6 +78,7 @@ new Vue({
         FilterGreaterThan,
 
         SearchHeaderWrapper,
+        ResearchSingleSearch,
     },
 
     computed: {
@@ -88,6 +91,7 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
+                regionUtils: regionUtils,
             };
             return utils;
         },
@@ -127,7 +131,9 @@ new Vue({
             return data;
         },
         variantData() {
-            return this.$store.state.variantData.data;
+            return this.$store.state.variantData?.data?.length
+                ? this.$store.state.variantData.data[0]
+                : {};
         },
         varId() {
             return this.$store.state.pageVariant &&
@@ -258,11 +264,9 @@ new Vue({
             let pos = this.chromPos;
 
             if (pos) {
-                window.location.href = `./region.html?chr=${
-                    pos.chromosome
-                }&start=${pos.position - expanded}&end=${
-                    pos.position + expanded
-                }&variant=${this.$store.state.pageVariant.varId}`;
+                window.location.href = `./region.html?chr=${pos.chromosome
+                    }&start=${pos.position - expanded}&end=${pos.position + expanded
+                    }&variant=${this.$store.state.pageVariant.varId}`;
             }
         },
         clearBadSearch() {

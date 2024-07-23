@@ -1,13 +1,11 @@
 <template>
-    <div>
+    <div v-if="associations">
         <div v-show="showPlot">
-            <manhattan-plot
-                :associations="combinedAssociations"
-                :phenotypes="phenotypes"
-                :phenotype-map="phenotypeMap"
-                :color-by-phenotype="true"
-                style="margin-bottom: 10px"
-            ></manhattan-plot>
+            <research-m-plot
+                v-if="plotData.length > 0"
+                :plotData="plotData"
+                :renderConfig="assocPlotConfig"
+            ></research-m-plot>
             <center style="margin-bottom: 30px">
                 <b v-show="!!showChiSquared">
                     Combined P-Value(Χ²) across
@@ -20,7 +18,6 @@
                 </b>
             </center>
         </div>
-
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
                 <data-download
@@ -47,7 +44,7 @@
                     <b-th
                         v-for="(phenotype, i) in phenotypes"
                         :key="phenotype"
-                        colspan="3"
+                        colspan="1"
                         class="reference"
                         :class="'color-' + (i + 1)"
                     >
@@ -61,16 +58,16 @@
                     </b-th>
                 </template>
                 <template #cell(geneName)="r">
-                    <a :href="`/gene.html?gene=${r.item.gene}`">{{
-                        r.item.gene
-                    }}</a>
+                    <a :href="`/gene.html?gene=${r.item.gene}`">
+                        {{ r.item.gene }}
+                    </a>
                 </template>
                 <template
                     v-for="p in phenotypes"
                     #[phenotypePValueColumn(p)]="r"
                     >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
                 >
-                <template
+                <!-- <template
                     v-for="p in phenotypes"
                     #[phenotypeVariantsColumn(p)]="r"
                     >{{ intFormatter(r.item[`${p}:nParam`]) }}</template
@@ -79,7 +76,7 @@
                     v-for="p in phenotypes"
                     #[phenotypeSubjectsColumn(p)]="r"
                     >{{ intFormatter(r.item[`${p}:subjects`]) }}</template
-                >
+                > -->
             </b-table>
             <b-pagination
                 v-model="currentPage"
@@ -132,19 +129,29 @@ export default Vue.component("GeneFinderTable", {
                     label: "Gene",
                 },
             ],
+            assocPlotConfig: {
+                type: "manhattan plot",
+                "x axis field": "position",
+                "y axis field": "minusLogP",
+                "render by": "gene",
+                "x axis label": "Position",
+                "y axis label": "-log10(p-value)",
+                height: 300,
+                "link to": "/region.html",
+                "hover content": ["p"],
+            },
         };
     },
 
     computed: {
-        rows() {
-            return this.tableData.length;
-        },
-
         tableData() {
             if (this.filter) {
                 return this.associations.filter(this.filter);
             }
             return this.associations;
+        },
+        plotData() {
+            return this.formatAssocData(this.tableData) || [];
         },
 
         fields() {
@@ -174,14 +181,14 @@ export default Vue.component("GeneFinderTable", {
                         },
                         sortable: true,
                     },
-                    {
-                        key: `${p}:nParam`,
-                        label: "Variants",
-                    },
-                    {
-                        key: `${p}:subjects`,
-                        label: "Samples",
-                    },
+                    // {
+                    //     key: `${p}:nParam`,
+                    //     label: "Variants",
+                    // },
+                    // {
+                    //     key: `${p}:subjects`,
+                    //     label: "Samples",
+                    // },
                 ]);
             }
 
@@ -192,8 +199,6 @@ export default Vue.component("GeneFinderTable", {
             let data = [];
             let groups = {};
             let associations = this.tableData;
-
-            //console.log("this.tableData.length", this.tableData);
 
             for (let i in associations) {
                 let r = associations[i];
@@ -219,8 +224,8 @@ export default Vue.component("GeneFinderTable", {
                 // add the phenotype columns
                 data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
                 data[dataIndex][`${r.phenotype}:zStat`] = r.zStat;
-                data[dataIndex][`${r.phenotype}:nParam`] = r.nParam;
-                data[dataIndex][`${r.phenotype}:subjects`] = r.subjects;
+                // data[dataIndex][`${r.phenotype}:nParam`] = r.nParam;
+                // data[dataIndex][`${r.phenotype}:subjects`] = r.subjects;
 
                 // lowest p-value across all phenotypes
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
@@ -260,41 +265,31 @@ export default Vue.component("GeneFinderTable", {
 
             return content;
         },
-
-        combinedAssociations() {
-            let groups = [];
-
-            this.groupedAssociations.forEach((a) => {
-                a.phenotypes.forEach((phenotype) => {
-                    groups.push({
-                        phenotype,
-                        pValue: a[`${phenotype}:pValue`],
-                        chromosome: a.chromosome,
-                        position: Math.floor((a.start + a.end) / 2),
-                    });
-                });
-            });
-
-            return groups;
-        },
     },
 
     methods: {
         intFormatter: Formatters.intFormatter,
         floatFormatter: Formatters.floatFormatter,
         pValueFormatter: Formatters.pValueFormatter,
-
+        formatAssocData(assocData) {
+            assocData.forEach((entry) => {
+                entry.position = `${entry.chromosome} : ${entry.start} - ${entry.end}`;
+                entry.minusLogP = -Math.log10(entry.pValue);
+                entry.p = this.pValueFormatter(entry.pValue);
+            });
+            return assocData;
+        },
         phenotypePValueColumn(phenotype) {
             return `cell(${phenotype}:pValue)`;
         },
 
-        phenotypeVariantsColumn(phenotype) {
-            return `cell(${phenotype}:nParam)`;
-        },
+        // phenotypeVariantsColumn(phenotype) {
+        //     return `cell(${phenotype}:nParam)`;
+        // },
 
-        phenotypeSubjectsColumn(phenotype) {
-            return `cell(${phenotype}:subjects)`;
-        },
+        // phenotypeSubjectsColumn(phenotype) {
+        //     return `cell(${phenotype}:subjects)`;
+        // },
 
         chiSquared(row) {
             let X = 0.0;

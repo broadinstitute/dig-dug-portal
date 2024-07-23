@@ -22,6 +22,32 @@
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-m-bitmap-plot>
+		<!-- Box plot-->
+		<research-box-plot
+			v-if="plotConfig != null && plotConfig['type'] == 'box plot'"
+			:phenotypesData="plotData"
+			:phenotypeMap="phenotypeMap"
+			:colors="colors.extraBold"
+			:plotMargin="plotMargin"
+			:renderConfig="plotConfig"
+			:pkgData="null"
+			:pkgDataSelected="null"
+			:canvasId="sectionId"
+			:utils="utils"
+		></research-box-plot>
+			<!-- Bar plot-->
+		<research-bar-plot
+			v-if="plotConfig != null && plotConfig['type'] == 'bar plot'"
+			:phenotypesData="plotData"
+			:phenotypeMap="phenotypeMap"
+			:colors="colors.extraBold"
+			:plotMargin="plotMargin"
+			:renderConfig="plotConfig"
+			:pkgData="null"
+			:pkgDataSelected="null"
+			:canvasId="sectionId"
+			:utils="utils"
+		></research-bar-plot>
 		<!-- PheWAS plot-->
 		<research-phewas-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'phewas plot'"
@@ -79,6 +105,7 @@
 			:sectionId="sectionId"
 			:utils="utils"
 			:starItems="starItems"
+			:colors="colors"
 			@on-star="starColumn"
 		></multi-region-plot>
 		
@@ -137,6 +164,7 @@
 			:compareGroupColors="colors.moderate"
 			:isSectionPage="true"
 			:sectionId="sectionId"
+			:starItems="starItems"
 			:utils="utils"
 		></research-scatter-plot>
 		
@@ -158,6 +186,8 @@ import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
 import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
+import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 
@@ -176,6 +206,8 @@ export default Vue.component("research-section-visualizers", {
 		ResearchVolcanoPlot,
 		ResearchHeatmap,
 		ResearchPheWAS,
+		ResearchBarPlot,
+		ResearchBoxPlot,
 		ResearchRegionTrack,
 		ResearchRegionDotsTrack
     },

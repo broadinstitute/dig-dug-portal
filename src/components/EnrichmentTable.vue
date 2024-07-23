@@ -14,9 +14,11 @@
                 :items="tableData"
                 :fields="fields"
                 :sort-by="sortBy"
-                :sort-desc="false"
                 :per-page="perPage"
                 :current-page="currentPage"
+                :sort-null-last="true"
+                :sortable="true"
+                :no-sort-reset="true"
             >
                 <template #thead-top="data">
                     <b-th colspan="3">
@@ -33,6 +35,15 @@
                             phenotype.description
                         }}</span>
                     </b-th>
+                </template>
+                <template #cell(tissue)="r">
+                    <a
+                        :href="`/tissue.html?tissue=${toSnakeFormatter(
+                            r.item.tissue
+                        )}`"
+                    >
+                        {{ tissueFormatter(r.item.tissue) }}
+                    </a>
                 </template>
             </b-table>
             <b-pagination
@@ -123,6 +134,7 @@ export default Vue.component("EnrichmentTable", {
                                 ? "variant-table-cell high"
                                 : "";
                         },
+                        sortable: true,
                     },
                 ]);
             }
@@ -203,6 +215,10 @@ export default Vue.component("EnrichmentTable", {
             }
             return dataRows;
         },
+    },
+    methods: {
+        tissueFormatter: Formatters.tissueFormatter,
+        toSnakeFormatter: Formatters.toSnakeFormatter,
     },
 });
 </script>

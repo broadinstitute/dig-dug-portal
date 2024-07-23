@@ -26,59 +26,69 @@
 			v-bind:isPlotByRow="false"
 		>
 		</research-summary-plot>
-		<div
-			v-if="!!dataset"
-			v-html="'Total rows: ' + this.rows"
-			class="table-total-rows"
-		></div>
+		<!-- table UI wrapper -->
 		<div v-if="!!dataset" class="table-ui-wrapper">
-			<label
-				>Rows per page:
-				<select v-model="perPageNumber" class="number-per-page">
-					<option value="10">10</option>
-					<option value="20">20</option>
-					<option value="40">40</option>
-					<option value="100">100</option>
-					<option value="0">
-						<span style="color: #f00">All</span>
-					</option>
-				</select>
-			</label>
 			<div
-				class="convert-2-csv btn-sm"
-				@click="convertJson2Csv(filteredData, pageID + sectionId+ '_filtered')"
+				class="convert-2-csv table-settings-opener btn-sm"
+				
 			>
-				Save as CSV
+				<span class="btn btn-default options-gear" >Save data / set table <b-icon icon="gear-fill"></b-icon></span>
+				<!--{{ !!summarySection ? 'Set summary table' : 'Show/hide columns' }}-->
 			</div>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
-			>
-				Save as JSON
-			</div>
-			<div
-				class="convert-2-csv btn-sm"
-				@click="showHidePanel('#showHideColumnsBox' + sectionId)"
-			>
-				show/hide columns
-			</div>
-			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="hidden">
-				<div
+			<div v-if="!!tableFormat" :id="'showHideColumnsBox'+sectionId" class="table-options-box">
+				<!--<div
 					class="show-hide-columns-box-close"
 					@click="showHidePanel('#showHideColumnsBox'+sectionId)"
 				>
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
-				<h4 style="text-align: center">Show/hide columns</h4>
-				<p></p>
+				<h5 style="text-align: center">Settings</h5>-->
+				
 				<div class="table-wrapper">
 					<table class="table table-sm">
-						<thead>
-							<tr>
-								<th></th>
-							</tr>
-						</thead>
+						
 						<tbody>
+							<tr>
+								<td>
+									<label
+										><strong>Rows per page: </strong>
+										<select v-model="perPageNumber" class="number-per-page">
+											<option value="10">10</option>
+											<option value="20">20</option>
+											<option value="40">40</option>
+											<option value="100">100</option>
+											<option value="0">
+												<span style="color: #f00">All</span>
+											</option>
+										</select>
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<strong>Save data in section: </strong>
+									<div
+										class="convert-2-csv btn-sm"
+										@click="convertJson2Csv(filteredData, pageID + sectionId + '_filtered')"
+									>
+										CSV
+									</div>
+									<div
+										class="convert-2-csv btn-sm"
+										@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
+									>
+										JSON
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<Strong>Hide table: </Strong><input type="checkbox" class="chkbox"
+									@click="utils.uiUtils.showHideElement(sectionId + '_table_wrapper')"
+								/>
+								</td>
+							</tr>
+							<tr><td><strong>Show / hide columns</strong></td></tr>
 							<tr
 								v-for="column in tableFormat['top rows']"
 								:key="column"
@@ -97,9 +107,34 @@
 							</tr>
 						</tbody>
 					</table>
+					<div v-if="!!summarySection">
+						<h4 style="text-align: center">Number of rows in evidence tables</h4>
+						<label
+							>Set rows:
+							<select v-model="featureRowsNumber" class="number-per-page">
+								<option value="10" selected>10</option>
+								<option value="15">15</option>
+								<option value="20">20</option>
+								<option value="25">25</option>
+								<option value="30">30</option>
+								<option value="35">35</option>
+								<option value="40">40</option>
+								<option value="45">45</option>
+								<option value="50">50</option>
+							</select>
+						</label>
+						<div style="color:red;">*Updating this value requires rebuilding of the summary table, which may take long time depends on 
+							the number of the evidence groups and their data rows.</div>
+					</div>
 				</div>
 			</div>
 		</div>
+		<span :id="sectionId+'_table_wrapper'">
+			<div
+				v-if="!!dataset"
+				v-html="'Total rows: ' + this.rows"
+				class="table-total-rows"
+			></div>
 		<div class="table-wrapper">
 		<table
 			:class="'table table-sm research-data-table ' + pageID"
@@ -109,12 +144,21 @@
 		>
 			<thead class="">
 				<tr>
-					<th v-if="!!tableFormat['star column']">
+					<th v-if="!!tableFormat['star column']" class="star-items-control">
 						<b-icon
 							:icon="!!stared ? 'star-fill' : 'star'"
 							style="color: #ffcc00; cursor: pointer"
-							@click="showHideStared()"
-						></b-icon>
+							
+							
+						>
+						
+					</b-icon>
+					<span class="star-items-options">
+								<ul>
+									<li><a href="javascript:;" @click="showHideStared()">Show stard only</a></li>
+									<li><a href="javascript:;" @click="starAll()">Star / unstar all</a></li>
+								</ul>
+							</span>
 					</th>
 					<template v-for="(value, index) in topRows">
 						<th
@@ -144,7 +188,7 @@
 						class="th-evidence"
 						v-if="tableFormat['features'] != undefined"
 					>
-						Evidence
+						{{(!!tableFormat['features header'])? tableFormat['features header']: "Evidence"}}
 					</th>
 				</tr>
 			</thead>
@@ -234,9 +278,11 @@
 				>
 					<td :colspan="topRowNumber" class="features-td">
 						<research-data-table-features
+							:featureRowsNumber="featureRowsNumber"
 							:featuresData="value.features"
 							:featuresFormat="tableFormat"
 							:utils="utils"
+							:summarySection="summarySection"
 						></research-data-table-features>
 					</td>
 				</tr>
@@ -257,6 +303,7 @@
 				:phenotypeMap="phenotypeMap"
 			></b-pagination>
 		</b-container>
+		</span>
 	</div>
 </template>
 
@@ -278,6 +325,7 @@ export default Vue.component("research-data-table", {
 		"pkgDataSelected",
 		"phenotypeMap",
 		"multiSectionPage",
+		"summarySection",
 		"starItems",
 		"sectionId",
 		"utils",
@@ -289,8 +337,10 @@ export default Vue.component("research-data-table", {
 		return {
 			currentPage: 1,
 			perPageNumber: null,
+			featureRowsNumber: 10,
 			compareGroups: [],
 			stared: false,
+			staredAll: false,
 		};
 	},
 	modules: {},
@@ -300,7 +350,6 @@ export default Vue.component("research-data-table", {
 
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
-		//console.log(this.dataset);
 	},
 	updated() {},
 	computed: {
@@ -423,17 +472,13 @@ export default Vue.component("research-data-table", {
 			let startPos = !!this.viewingRegion? this.viewingRegion.start:null;
 			let endPos = !!this.viewingRegion ? this.viewingRegion.end:null;
 
-			//console.log("posField", posField, "startPos", startPos, "endPos", endPos );
-
-			//console.log("this.dataset", this.dataset);
-
 			let formattedData = [];
 
 			if (this.dataComparisonConfig == null) {
 
 				let rawData = [...new Set(this.dataset)];
 
-				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
+				if (!!this.tableFormat["data zoom"] && !!startPos && !!endPos) {
 					rawData = rawData.filter(vValue => vValue[posField] >= startPos && vValue[posField] <= endPos);
 				}
 
@@ -443,6 +488,10 @@ export default Vue.component("research-data-table", {
 					this.tableFormat["top rows"].map((t) => {
 						tempObj[t] = d[t];
 					});
+
+					if(!!this.tableFormat["star column"] && !tempObj[this.tableFormat["star column"]]) {
+						tempObj[this.tableFormat["star column"]] = d[this.tableFormat["star column"]]
+					}
 
 					if (this.tableFormat["features"] != undefined) {
 						tempObj["features"] = {};
@@ -468,17 +517,21 @@ export default Vue.component("research-data-table", {
 
 				let rawData = {...this.dataset};
 
-				if (!!this.tableFormat["data zoom"] && !!startPos && endPos) {
+				if (!!this.tableFormat["data zoom"] && !!startPos && !!endPos) {
 
 					for (const [vKey, vValue] of Object.entries(rawData)) {
+						
 						if (
-							vValue[posField] >= startPos &&
-							vValue[posField] <= endPos
+							vValue[posField] < startPos ||
+							vValue[posField] > endPos
 						) {
 							delete rawData[vKey];
+							deleteCount++;
 						}
 					}
 				}
+
+				
 
 				for (const [key, value] of Object.entries(rawData)) {
 					let tempObj = {};
@@ -486,6 +539,10 @@ export default Vue.component("research-data-table", {
 					this.tableFormat["top rows"].map((t) => {
 						tempObj[t] = value[t];
 					});
+
+					if (!!this.tableFormat["star column"] && !tempObj[this.tableFormat["star column"]]) {
+						tempObj[this.tableFormat["star column"]] = d[this.tableFormat["star column"]]
+					}
 
 					if (this.tableFormat["features"] != undefined) {
 						tempObj["features"] = {};
@@ -579,6 +636,9 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	watch: {
+		featureRowsNumber(NUMBER) {
+			this.$emit('on-feature-rows-change', NUMBER);
+		},
 		dataset(DATA) {
 			if (this.dataComparisonConfig != null) {
 				this.compareGroups = [];
@@ -603,8 +663,6 @@ export default Vue.component("research-data-table", {
 	},
 	methods: {
 		setParameter(VALUE,KEY,SECTION,PARAMETERS){
-
-			console.log("section component", VALUE, ":", KEY, ":", SECTION, ":", PARAMETERS);
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
 
@@ -678,6 +736,73 @@ export default Vue.component("research-data-table", {
 			}
 			return item;
 		},
+		starAll() {
+
+			if(this.staredAll == true) {
+				this.staredAll = false;
+
+				if (!!this.multiSectionPage) {
+
+					let stard = [...new Set(this.starItems)]
+
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						//stard = stard.filter(s => s.section != this.sectionId);
+					})
+
+					stard = stard.filter(s => s.section != this.sectionId);
+
+					this.$emit('on-star', stard);
+				} else {
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						this.$store.dispatch("pkgDataSelected", {
+							type: this.tableFormat["star column"],
+							id: value,
+							action: "remove",
+						});
+
+					})
+				}
+
+			} else {
+				this.staredAll = true;
+
+				if (!!this.multiSectionPage) {
+
+					let stard = [...new Set(this.starItems)]
+
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						let tempObj = {
+							type: this.tableFormat["star column"],
+							id: value,
+							columns: this.getColumns(value),
+							section: this.sectionId,
+						}
+						stard.push(tempObj);
+					})
+
+					this.$emit('on-star', stard);
+				} else {
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						this.$store.dispatch("pkgDataSelected", {
+							type: this.tableFormat["star column"],
+							id: value,
+							action: "add",
+						});
+
+					})
+				}
+
+			}
+			
+		},
 		addStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
 			if (!!this.multiSectionPage) {
@@ -686,7 +811,8 @@ export default Vue.component("research-data-table", {
 				let tempObj = {
 					type: this.tableFormat["star column"],
 					id: value,
-					columns: this.getColumns(value)
+					columns: this.getColumns(value),
+					section: this.sectionId,
 				}
 				stard.push(tempObj);
 				this.$emit('on-star', stard);
@@ -815,6 +941,7 @@ export default Vue.component("research-data-table", {
 						null
 					);
 				}
+				
 			} else {
 				content = tdValue;
 			}
@@ -939,7 +1066,6 @@ export default Vue.component("research-data-table", {
 				});
 
 				let isNumeric = this.checkIfNumeric(filtered, key);
-				//console.log("isNumeric",isNumeric)
 
 				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = this.utils.sortUtils
@@ -1010,7 +1136,69 @@ export default Vue.component("research-data-table", {
 });
 </script>
 
-<style>
+<style scoped>
+.byor-shortened-string {
+    position: relative;
+}
+
+.byor-shortened-string .raw-string {
+    position: absolute;
+    display: none;
+    z-index: 2;
+}
+
+.byor-shortened-string:hover .raw-string {
+    display: block;
+}
+.star-items-control {
+	position: relative;
+}
+.star-items-options {
+	display: none;
+    position: absolute;
+    background-color: #ffffff;
+    padding: 10px;
+    border: solid 1px #dddddd;
+    border-radius: 5px;
+    z-index: 10;
+    top: 0;
+    left: 20px;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.star-items-options ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.star-items-control:hover .star-items-options {
+	display: block;
+}
+
+.table-settings-opener {
+	border: solid 1px #dddddd !important;
+	margin-bottom: 5px ;
+}
+
+.table-settings-opener span.options-gear {
+	padding: 0px;
+	font-size: 12px;
+	color: #333333;
+}
+
+.table-settings-opener:hover span.options-gear {
+	color: #000000;
+}
+
+.table-settings-opener span.options-gear > svg {
+	font-size: 12px !important
+}
+
+.table-options-box {
+	height: auto !important;
+}
+
 .show-hide-columns-box-close {
 	position: absolute;
 	top: 5px;
@@ -1022,34 +1210,9 @@ export default Vue.component("research-data-table", {
 .show-hide-columns-box-close:hover {
 	color: #36c;
 }
-/*#showHideColumnsBox {
-	position: fixed;
-	background-color: #fff;
-	border: solid 1px #ddd;
-	border-radius: 5px;
-	z-index: 11;
-	font-size: 14px;
-	width: 400px;
-	height: 50%;
-	text-align: left;
-	top: 25%;
-	left: calc(50% - 200px);
-	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
-	padding: 20px;
-}
 
-#showHideColumnsBox .table-wrapper {
-	overflow: auto !important;
-	padding: 0;
-	height: calc(100% - 35px);
-}
-
-#showHideColumnsBox th,
-#showHideColumnsBox td {
-	border: none;
-}*/
 [id*="showHideColumnsBox"] {
-	position: fixed;
+	position: absolute;
 	background-color: #fff;
 	border: solid 1px #ddd;
 	border-radius: 5px;
@@ -1058,8 +1221,10 @@ export default Vue.component("research-data-table", {
 	width: 400px;
 	height: 50%;
 	text-align: left;
-	top: 25%;
-	left: calc(50% - 200px);
+	top: 30px;
+	right: 0;
+	/*top: 25%;
+	left: calc(50% - 200px);*/
 	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
 	padding: 20px;
 }
@@ -1167,6 +1332,15 @@ table.research-data-table {
 	text-align: right;
 	font-size: 12px;
 	float: right;
+	position: relative;
+}
+
+.table-ui-wrapper .table-options-box {
+	display: none;
+}
+
+.table-ui-wrapper:hover .table-options-box {
+	display: block;
 }
 
 .convert-2-csv {

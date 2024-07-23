@@ -20,6 +20,29 @@
 			"
 		>
 		</canvas>
+		<div class="download-images-setting">
+			<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+			<ul class="options" >
+				<li>
+					<a href="javascript:;"
+					@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_volcanoPlot', 'svg')">Download SVG</a>
+				</li>
+				<li>
+					<a href="javascript:;"
+					@click="downloadImage('volcanoPlot' + sectionId, sectionId + '_volcanoPlot', 'png')">Download PNG</a>
+				</li>
+			</ul>
+		</div>
+		<research-volcano-plot-vector
+		v-if="!!renderData"
+			:renderData="renderData"
+			:renderConfig="renderConfig"
+			:margin="adjPlotMargin"
+			:sectionId="sectionId"
+			:utils="utils"
+			:ref="sectionId + '_volcanoPlot'"
+		>
+		</research-volcano-plot-vector>
 		<div
 			v-if="!!renderConfig.label"
 			class="volcano-plot-label"
@@ -32,20 +55,45 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import volcanoPlotVector from "@/components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-volcano-plot", {
-	props: ["plotData", "renderConfig", "geneOfInterest","utils","sectionId"],
+	props: ["plotData", "renderConfig", "geneOfInterest","utils","sectionId","colors"],
 	data() {
 		return { posData: {} };
 	},
 	modules: {
 	},
+	components: {
+		volcanoPlotVector,
+	},
 	mounted: function () {
 		this.renderPlot();
 	},
 	computed: {
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 5,
+			} :
+				{
+					left: 80,
+					right: 20,
+					top: 20,
+					bottom: 60,
+					bump: 5
+				};
+
+			return plotMargin;
+		},
 		renderingGene() {
 			return this.geneOfInterest;
 		},
@@ -79,6 +127,14 @@ export default Vue.component("research-volcano-plot", {
 		},
 	},
 	methods: {
+		downloadImage(ID, NAME, TYPE) {
+			if (TYPE == 'svg') {
+				this.$refs[this.sectionId + '_volcanoPlot'].renderPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_volcano_plot_" + this.sectionId);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 		hidePanel() {
 			this.utils.uiUtils.hideElement("clicked_dot_value"+this.sectionId);
 			//this.renderPlot();
@@ -157,6 +213,35 @@ export default Vue.component("research-volcano-plot", {
 			);
 		},
 		renderPlot(REDDOTS) {
+			
+// Dynamically add thresholds
+			let calculateCondition = function(EXP,LENGTH) {
+				let calcString = "";
+
+				EXP.map(e => {
+					let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e :
+						(typeof e === 'number') ? e :
+							(typeof e === 'string') ? (e == "data length") ? LENGTH : e : null;
+
+					calcString += eValue;
+				});
+
+				console.log("calcString",calcString);
+
+				let threshold = eval(calcString);
+				return threshold;
+			}
+
+			let conditions = [["x condition","lower than"], ["x condition", "greater than"],
+								["y condition", "lower than"], ["y condition", "greater than"]]
+
+			conditions.map(condition =>{
+				if(this.renderConfig[condition[0]][condition[1]] && this.renderConfig[condition[0]][condition[1]] == "calculate") {
+					let expression = this.renderConfig[condition[0]]["condition calculate"][condition[1]];
+					this.renderConfig[condition[0]][condition[1]] = calculateCondition(expression, this.renderData.length)
+				}
+			})			
+
 			let xAxisData = [];
 			let yAxisData = [];
 
@@ -419,7 +504,7 @@ export default Vue.component("research-volcano-plot", {
 
 				ctx.lineWidth = 0;
 				ctx.beginPath();
-				ctx.arc(xPos, yPos, 6, 0, 2 * Math.PI);
+				ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
 				ctx.fill();
 
 				if (
@@ -432,7 +517,7 @@ export default Vue.component("research-volcano-plot", {
 					ctx.fillText(
 						d[this.renderConfig["render by"]],
 						xPos,
-						yPos - 8
+						yPos - 16
 					);
 				}
 			});

@@ -10,85 +10,28 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
-
-                <div
-                    class="col filter-col-md hidden"
-                    style="vertical-align: -8px !important"
-                >
-                    <div class="label">Phenotype</div>
-                    <!--<phenotype-selectpicker
-						v-if="$store.state.phenotype"
-						:phenotypes="$parent.phenotypesInSession"
-					></phenotype-selectpicker>-->
-                    <div class="form-control new-phenotype-search-key">
-                        {{
-                            !$parent.newPhenotypeSearchKey
-                                ? "Search phenotype"
-                                : $parent.newPhenotypeSearchKey
-                        }}
+                <div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Begin new search</div>
+                        <research-single-search
+                            :single-search-config="null"
+                            :phenotypes="$parent.phenotypesInSession"
+                            :utils="$parent.utilsBox"
+                        ></research-single-search>
                     </div>
-                    <input
-                        v-model="$parent.phenotypeSearchKey"
-                        class="form-control phenotype-search-input"
-                        type="text"
-                    />
-
-                    <ul
-                        v-if="!!$parent.phenotypeSearchKey"
-                        class="page-phenotypes-list"
-                    >
-                        <!--<li
-							v-for="item in $parent.phenotypesInSession"
-							v-if="
-								!!item.description
-									.toLowerCase()
-									.includes(
-										$parent.phenotypeSearchKey.toLowerCase()
-									)
-							"
-						>-->
-                        <template v-for="item in $parent.phenotypesInSession">
-                            <li
-                                v-if="
-                                    !!$parent.ifPhenotypeInSearch(
-                                        item.description
-                                    )
-                                "
-                                :key="item.name"
-                            >
-                                <a
-                                    href="javascript:;"
-                                    @click="$parent.setSelectedPhenotype(item)"
-                                    v-html="item.description"
-                                ></a>
-                            </li>
-                        </template>
-                    </ul>
-                </div>
-                <div class="col filter-col-md hidden">
-                    <div class="label">Ancestry</div>
-                    <ancestry-selectpicker
-                        :ancestries="
-                            $store.state.bioPortal.datasets.map(
-                                (dataset) => dataset.ancestry
-                            )
-                        "
-                    ></ancestry-selectpicker>
-                </div>
-                <div class="region-search col filter-col-md hidden">
-                    <div class="label">Search</div>
-                    <button
-                        id="regionSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="$store.dispatch('queryPhenotype')"
-                    >
-                        GO
-                    </button>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Set Ancestry</div>
+                        <ancestry-selectpicker
+                            :pageLevel="true"
+                            :ancestries="
+                                $store.state.bioPortal.datasets.map(
+                                    (dataset) => dataset.ancestry
+                                )
+                            "
+                        ></ancestry-selectpicker>
+                    </div>
                 </div>
             </search-header-wrapper>
-
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">
@@ -206,8 +149,37 @@
                             <filter-effect-direction-control :field="'beta'">
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
+                            <filter-enumeration-control
+                                :field="'inMetaTypes'"
+                                :options="
+                                    $store.state.associations.data.map(
+                                        (association) => association.inMetaTypes
+                                    )
+                                "
+                                :label-formatter="
+                                    (metaTypes) =>
+                                        $parent.maFormatter(metaTypes)
+                                "
+                            >
+                                <div class="label">Meta-analysis</div>
+                            </filter-enumeration-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
+                                <documentation
+                                    name="pheno.top_assoc.subheader"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                                <meta-analysis-bar-graph
+                                    :graph-data="
+                                        !$store.state.ancestry
+                                            ? $store.state.associations.data
+                                            : $store.state.ancestryGlobalAssoc
+                                                  .data
+                                    "
+                                    :filter="filter"
+                                >
+                                </meta-analysis-bar-graph>
+
                                 <associations-table
                                     :phenotypes="[$store.state.phenotype]"
                                     :associations="
@@ -218,12 +190,80 @@
                                     "
                                     :filter="filter"
                                     :per-page="10"
+                                    :showBottomLine="true"
                                 ></associations-table>
                             </template>
                         </criterion-function-group>
                     </div>
                 </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Credible Sets to Cell Type (CS2CT) results for
+                            {{ $store.state.phenotype.description }}
+                            (Ancestry:
+                            {{
+                                $store.state.ancestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.ancestry
+                                      )
+                            }})
+                            <tooltip-documentation
+                                name="phenotype.cs2ct.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :is-hover="true"
+                                :no-icon="false"
+                            ></tooltip-documentation>
+                        </h4>
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'annotation'"
+                                :options="
+                                    $store.state.c2ct.data.map(
+                                        (d) => d.annotation
+                                    )
+                                "
+                            >
+                                <div class="label">Annotation</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'tissue'"
+                                :options="
+                                    $store.state.c2ct.data.map((d) => d.tissue)
+                                "
+                            >
+                                <div class="label">Tissue</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'biosample'"
+                                :options="
+                                    $parent.c2ctData.map((d) => d.biosample)
+                                "
+                            >
+                                <div class="label">Biosample</div>
+                            </filter-enumeration-control>
+                            <filter-less-control
+                                :field="'totalEntropy'"
+                                :pill-formatter="
+                                    (filterDefinition) =>
+                                        `genericity ≤ ${filterDefinition.threshold}`
+                                "
+                            >
+                                <div class="label">Genericity (&le;)</div>
+                            </filter-less-control>
 
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <c2ct-table
+                                    :c2ctData="$parent.c2ctData"
+                                    :filter="filter"
+                                    :phenotype="$store.state.phenotype"
+                                >
+                                </c2ct-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
@@ -270,19 +310,10 @@
                 </div>
 
                 <div class="card mdkp-card">
-                    <div class="card-body">
+                    <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">
-                            Top common variant gene-level associations for
+                            Top gene-level associations for
                             {{ $store.state.phenotype.description }}
-                            with P-Value &le; 0.05 (Ancestry:
-                            {{
-                                $store.state.ancestry == ""
-                                    ? "All"
-                                    : $parent.ancestryFormatter(
-                                          $store.state.ancestry
-                                      )
-                            }})
-
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
                                 :content-fill="$parent.documentationMap"
@@ -303,21 +334,82 @@
                                 <div class="label">Gene</div>
                             </filter-enumeration-control>
 
-                            <filter-pvalue-control :field="'pValue'">
+                            <filter-pvalue-control
+                                :field="'pValue'"
+                                v-if="!$parent.hidePValueFilter"
+                            >
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
-                                <gene-finder-table
-                                    :phenotypes="[$store.state.phenotype.name]"
-                                    :phenotype-map="
-                                        $store.state.bioPortal.phenotypeMap
-                                    "
-                                    :associations="$store.state.genes.data"
-                                    :rows-per-page="10"
-                                    :filter="filter"
-                                    :show-plot="true"
-                                ></gene-finder-table>
+                                <b-tabs>
+                                    <b-tab
+                                        title="HuGE Scores"
+                                        @click="$parent.clickedTab('hugescore')"
+                                    >
+                                        <phenotype-huge-scores
+                                            :scores="
+                                                $store.state.hugePhenotype.data
+                                            "
+                                            :filter="filter"
+                                            :phenotypeMap="
+                                                $store.state.bioPortal
+                                                    .phenotypeMap
+                                            "
+                                            :phenotype="
+                                                $store.state.phenotype.name
+                                            "
+                                        >
+                                        </phenotype-huge-scores>
+                                    </b-tab>
+                                    <b-tab
+                                        @click="$parent.clickedTab('commmon')"
+                                        :title="`Common variant
+                                        (Ancestry: ${
+                                            !$store.state.ancestry
+                                                ? 'All'
+                                                : $parent.ancestryFormatter(
+                                                      $store.state.ancestry
+                                                  )
+                                        })`"
+                                    >
+                                        <gene-finder-table
+                                            :phenotypes="[
+                                                $store.state.phenotype.name,
+                                            ]"
+                                            :phenotype-map="
+                                                $store.state.bioPortal
+                                                    .phenotypeMap
+                                            "
+                                            :associations="
+                                                $store.state.genes.data
+                                            "
+                                            :rows-per-page="10"
+                                            :filter="filter"
+                                            :show-plot="true"
+                                        ></gene-finder-table>
+                                    </b-tab>
+                                    <b-tab
+                                        @click="$parent.clickedTab('rare')"
+                                        title="Rare variant (all ancestries)"
+                                    >
+                                        <gene-finder-table
+                                            :phenotypes="[
+                                                $store.state.phenotype.name,
+                                            ]"
+                                            :phenotype-map="
+                                                $store.state.bioPortal
+                                                    .phenotypeMap
+                                            "
+                                            :associations="
+                                                $store.state.genes52k.data
+                                            "
+                                            :rows-per-page="10"
+                                            :filter="filter"
+                                            :show-plot="true"
+                                        ></gene-finder-table>
+                                    </b-tab>
+                                </b-tabs>
                             </template>
                         </criterion-function-group>
                     </div>
@@ -373,6 +465,28 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
                         <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'other_phenotype'"
+                                placeholder="Select a phenotype ..."
+                                :options="
+                                    $store.state.geneticCorrelation.data.map(
+                                        (d) => d.other_phenotype
+                                    )
+                                "
+                                :label-formatter="
+                                    (phenotype) =>
+                                        !!$store.state.bioPortal.phenotypeMap[
+                                            phenotype
+                                        ]
+                                            ? $store.state.bioPortal
+                                                  .phenotypeMap[phenotype]
+                                                  .description
+                                            : phenotype
+                                "
+                                :multiple="true"
+                            >
+                                <div class="label">Phenotype</div>
+                            </filter-enumeration-control>
                             <filter-pvalue-control :field="'pValue'">
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
@@ -476,10 +590,7 @@
                                 :no-icon="false"
                             ></tooltip-documentation>
                         </h4>
-                        <documentation
-                            name="pheno.eglsSection.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
+
                         <egls-section :phenotype="$store.state.phenotype">
                         </egls-section>
                     </div>
@@ -538,5 +649,10 @@
     background-color: #fff;
     padding: 3px 12px;
     border-bottom: solid 1px #eeeeee;
+}
+
+div.card
+    >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-totalEntropy {
+    background-color: #14a433;
 }
 </style>

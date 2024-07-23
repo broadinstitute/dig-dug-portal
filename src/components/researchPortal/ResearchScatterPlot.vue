@@ -7,11 +7,40 @@
 				<div :id="'scatter_dot_value' + sectionId" 
 					class="scatter-dot-value hidden"
 					>
-					<div :style="!!isDotPanelClick ? 'display:block' : 'display:none'" class="fixed-info-box-close" @click="utils.uiUtils.showHidePanel('#scatter_dot_value'+ sectionId)">
+					<div :style="!!isDotPanelClick ? 'display:block' : 'display:none'" class="fixed-info-box-close" @click="checkPosition($event,'','click')">
 						<b-icon icon="x-circle-fill"></b-icon>
 					</div>
-					<div class="scatter-dot-value-content" :id="'scatter_dot_value_content' + sectionId"></div>
+					<div class="scatter-dot-value-content" :id="'scatter_dot_value_content' + sectionId">
+					</div>
 				</div>
+				<!-- /// this has to replace the info box. DON'T REMOVE IT
+					<div :id="'fixedInfoBox'+sectionId" class="fixed-info-box hidden">
+				<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox' + sectionId)">
+					<b-icon icon="x-circle-fill"></b-icon>
+				</div>
+				<div class="fixed-info-box-content">
+					<div v-for="(d, dIndex) in dotsClicked">
+						<div>
+							<strong v-html="d"></strong>
+							<b-icon v-if="!!renderConfig['star key'] &&
+								checkStared(d,'fixed panel') == true
+								" icon="star-fill" style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							" @click="removeStarItem(d)"></b-icon>
+							<b-icon v-if="!!renderConfig['star key'] &&
+								checkStared(d,'fixed panel') == false
+								" icon="star" style="
+								color: #ffcc00;
+								cursor: pointer;
+								margin-left: 4px;
+							" @click="addStarItem(d)"></b-icon>
+						</div>
+					</div>
+				</div>
+			</div>
+				-->
 				<canvas
 					v-if="renderData.length > 0 && !!renderConfig && !groupsList && !multiList"
 					:id="'scatterPlot' + sectionId"
@@ -107,10 +136,10 @@
 							@change="setColorField($event)">
 							<option 
 								v-for="(option, index) in renderConfig['color by']" 
-								:value="option"
+								:value="typeof option === 'object' ? option['field'] : option"
 								:selected="renderConfig['color by'] === index"
 							>
-								{{ option }}
+								{{ typeof option === 'object' ? option['field'] : option }}
 							</option>
 						</select>
 
@@ -240,6 +269,7 @@ export default Vue.component("research-scatter-plot", {
 		"compareGroupColors",
 		"isSectionPage",
 		"sectionId",
+		"starItems",
 		"utils"
 	],
 	data() {
@@ -253,6 +283,7 @@ export default Vue.component("research-scatter-plot", {
 			gradientMinMax:{},
 			posData:{},
 			isDotPanelClick: false,
+			dotPanelCloseTimer: null
 		};
 	},
 	modules: {},
@@ -374,11 +405,17 @@ export default Vue.component("research-scatter-plot", {
 			//eg: colorsBy: { "Sex": ["male", "female"], "Field": [1, 2, 3], ... }
 			colorsBy = {};
 			this.renderConfig["color by"].forEach(colorBy => {
-				colorsBy = { ...colorsBy, [colorBy]:[] };
+				if(typeof colorBy === 'object'){
+					colorsBy = { ...colorsBy, [colorBy["field"]]:[] };
+				}else{
+					colorsBy = { ...colorsBy, [colorBy]:[] };
+				}
+				
 			})
 			this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
 			this.renderConfig["color highlight"] = null;
-
+			
+			//console.log('colorsBy', colorsBy);
 			//console.log('alex render config', this.renderConfig);
 
 			//use filtereredDATA here
@@ -412,8 +449,10 @@ export default Vue.component("research-scatter-plot", {
 					//loop through each axis fields pair
 					this.renderConfig["axis fields"].forEach(fieldpair => {
 						//get x,y values for each pair
-						let xvalue = typeof(r[fieldpair["x axis field"]]) == 'string' ? 0 : r[fieldpair["x axis field"]]; //TODO: filter out? not here though
-						let yvalue = typeof(r[fieldpair["y axis field"]]) == 'string' ? 0 : r[fieldpair["y axis field"]]; //TODO: filter out? not here though
+						let xvalue = (r[fieldpair["x axis field"]] === 0)? 0 : typeof(r[fieldpair["x axis field"]]) == 'string' ? Number(r[field]) : r[fieldpair["x axis field"]]; //TODO: filter out? not here though
+						let yvalue = (r[fieldpair["y axis field"]] === 0) ? 0 : typeof(r[fieldpair["y axis field"]]) == 'string' ? Number(r[field]) : r[fieldpair["y axis field"]]; //TODO: filter out? not here though
+						
+						
 						tempObj["x"] = { ...tempObj["x"], [fieldpair["x axis field"]]:xvalue };
 						tempObj["y"] = { ...tempObj["y"], [fieldpair["y axis field"]]:yvalue };
 
@@ -455,15 +494,22 @@ export default Vue.component("research-scatter-plot", {
 						//create object of objects containing the fields and their values as requested in "color by"
 						//renderConfig["color by"]: [ "Sex", "Time of Day" ]
 						//   >    tempObj["color"]: { "Sex": ["male", "female"], "Time of Day": ["night", "day", "all day"], ...}
-						
+						//console.log('this.renderConfig["color by"]', this.renderConfig["color by"]);
 						this.renderConfig["color by"].forEach((colorBy, index) => {
-							tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
-	
-							if( !colorsBy[colorBy].includes( r[ this.renderConfig["color by"][index] ] ) ){
-								colorsBy[colorBy].push( r[ this.renderConfig["color by"][index] ] )
+							if(typeof colorBy === 'object'){
+								tempObj["color"] = { ...tempObj["color"], [colorBy["field"]]: r[ colorBy["field"] ] };
+								if( !colorsBy[colorBy["field"]].includes( r[ colorBy["field"] ] ) ){
+									colorsBy[colorBy["field"]].push( r[ colorBy["field"] ] )
+								}
+							}else{
+								tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
+								if( !colorsBy[colorBy].includes( r[ this.renderConfig["color by"][index] ] ) ){
+									colorsBy[colorBy].push( r[ this.renderConfig["color by"][index] ] )
+								}
 							}
 						});
 					}else{
+						//UNUSED?
 						this.renderConfig["color by"].forEach((colorBy, index) => {
 							tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ colorBy ] };
 	
@@ -482,22 +528,25 @@ export default Vue.component("research-scatter-plot", {
 				massagedData.push(tempObj);
 			});
 
-			//console.log('alex data mapped (used for visuals)', massagedData);
+			//console.log('alex render config', this.renderConfig);
+			//console.log('alex data mapped (tempObj)', massagedData);
 
 			//TODO: create gratient style legends for 'color by' fields
 			//should be settable in JSON config
+			//console.log('colorsBy', colorsBy)
 			if(colorsBy){
 				let cb = Object.keys(colorsBy);
+				//console.log('cb', cb);
 				cb.forEach(colorBy => {
-					if(colorsBy[colorBy].length > 10){
-						//console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
+					//console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
+					//if(colorsBy[colorBy].length > 10){
 						if(typeof colorsBy[colorBy][0] === 'number'){
 							const numbersOnly = colorsBy[colorBy].filter(value => typeof value === 'number');
 							numbersOnly.sort( (a, b) => a - b );
 							colorsBy[colorBy] = numbersOnly;
 							//console.log(`	it is numerical; make gradient`);
 						}
-					}
+					//}
 				})
 			}
 
@@ -505,22 +554,27 @@ export default Vue.component("research-scatter-plot", {
 			this.colorsList = colors.length > 0? colors.sort() : null;
 			this.multiList = multi.length > 0 ? multi : null;
 			this.colorByList = Object.keys(colorsBy).length > 0 ? colorsBy : null;
-
-			/*console.log('alex groups list', this.groupsList);
+			/*
+			console.log('alex groups list', this.groupsList);
 			console.log('alex colorsby list', this.colorByList );
 			console.log('alex colors list', this.colorsList);
 			console.log('alex multi', this.multiList);
 
-			console.log('\n- - - - - - - -\n\n')*/
-
+			console.log('\n- - - - - - - -\n\n')
+			*/
 			return massagedData;
 		}
 	},
 	watch: {
 		renderData(DATA){
-			
+			console.log(DATA);
+			this.renderPlot()
 		},
 		groupsList(LIST){
+			this.renderPlot()
+		},
+		starItems(STARS) {
+			this.renderPlot()
 		}
 	},
 	methods: {
@@ -529,6 +583,9 @@ export default Vue.component("research-scatter-plot", {
 			
 		},
 		renderIndividualPlot(DATA, ID, GROUP, MINMAX_VALUES) {
+			//TODO this function get called twice every time a new plot renders, investigate
+			//console.log('new plot renderConfig', this.renderConfig);
+
 			let xAxisData = [];
 			let yAxisData = [];
 
@@ -582,8 +639,12 @@ export default Vue.component("research-scatter-plot", {
 			let xMin = MINMAX_VALUES ? MINMAX_VALUES.xMin : Math.min.apply(Math, xAxisData);
 			let xMax = MINMAX_VALUES ? MINMAX_VALUES.xMax : Math.max.apply(Math, xAxisData);
 
+			if(xMin == xMax) { xMin -= 0.5; xMax += 0.5}
+
 			let yMin = MINMAX_VALUES ? MINMAX_VALUES.yMin : Math.min.apply(Math, yAxisData);
 			let yMax = MINMAX_VALUES ? MINMAX_VALUES.yMax : Math.max.apply(Math, yAxisData);
+
+			if (yMin == yMax) { yMin -= 0.5; yMax += 0.5 }
 
 			let MARGIN = {top: topMargin,bottom: bottomMargin,left: leftMargin,right: rightMargin,bump:bump }
 
@@ -602,7 +663,7 @@ export default Vue.component("research-scatter-plot", {
 				this.colorsList.map(color =>{
 					let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] === color);
 					let dotColor = this.compareGroupColors[cIndex];
-					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 					//this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 					cIndex++;
 				})
@@ -620,7 +681,7 @@ export default Vue.component("research-scatter-plot", {
 						this.colorByList[ colorField ].map(color => {
 							let coloredData = DATA.filter(d => d.color[ colorField ] === color);
 							let dotColor = this.compareGroupColors[cIndex];
-							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
 						});
@@ -633,7 +694,7 @@ export default Vue.component("research-scatter-plot", {
 							if(GROUP === color){
 								let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
 								let dotColor = this.compareGroupColors[cIndex];
-								this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+								this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 								this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 								cIndex++;
 							}
@@ -665,7 +726,7 @@ export default Vue.component("research-scatter-plot", {
 									this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1]
 								);
 							}
-							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 						});
 
 						const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] >= this.gradientMinMax.currMin && d.color[ this.renderConfig["color field"] ] <= this.gradientMinMax.currMax);
@@ -694,7 +755,7 @@ export default Vue.component("research-scatter-plot", {
 								dotColor = dotColor.substring(0, dotColor.length - 2);
 								dotColor += highlight === color ? '90' : '05';
 							}
-							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
+							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
 						});
@@ -708,7 +769,7 @@ export default Vue.component("research-scatter-plot", {
 
 			} else {
 				let dotColor = this.compareGroupColors[0];
-				this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, DATA);
+				this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, DATA, this.starItems, this.renderConfig["star key"]);
 			}
 
 			
@@ -803,8 +864,9 @@ export default Vue.component("research-scatter-plot", {
 
 			this.colorByField = this.renderConfig["color field"] = e.target.value;
 			//TEMP
-			//TODO
-			if(this.renderConfig["color field"] === "Ambient Temp. (C)") {
+			//if(this.renderConfig["color field"] === "Ambient Temp. (C)" ||
+			//this.renderConfig["color field"] === "Duration (hrs)") {
+			if(!this.renderConfig["color by"].includes(this.renderConfig["color field"])){
 				this.colorByGradient = this.renderConfig["color field gradient"] = this.renderConfig["color field"];
 				this.gradientMinMax.max = this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1];
 				this.gradientMinMax.min = this.colorByList[ this.renderConfig["color field"] ][0];
@@ -922,17 +984,19 @@ export default Vue.component("research-scatter-plot", {
 			this.renderPlot()
 		},
 		checkPosition(e, GROUP, EVENT_TYPE) {
-
+			//every frame
 			let data = (!!GROUP) ? this.posData[GROUP] : this.posData;
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
 			let wrapperContent = document.querySelector('#scatter_dot_value_content' + this.sectionId);
 			//let canvas = document.querySelector('#scatterPlot' + this.sectionId + GROUP);
 			let canvas = e.target;
 
+			//get mouse position
 			let rect = e.target.getBoundingClientRect();
 			let x = Math.floor(e.clientX - rect.left);
 			let y = Math.floor(e.clientY - rect.top);
 
+			//check for dots under mouse
 			let posData = this.utils.plotUtils.getDotsInPos(x, y, data)
 
 			if (posData.length > 0) {
@@ -947,22 +1011,16 @@ export default Vue.component("research-scatter-plot", {
 						
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
-								if(typeof hValue === Number){
-								posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
-							}else{
-								posContent += hValue + "</span><br />";
-							}
+
+							posContent += this.utils.Formatters.getHoverValue(hValue) + "</span><br />";
+							
 						}
 					} else if(EVENT_TYPE == 'click'){
 						posContent += "<strong>" + d.key + "</strong><br />";
 						//console.log('alex dot', d.key, d.hover);
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
-							if(typeof hValue === Number){
-								posContent += this.utils.Formatters.pValueFormatter(hValue) + "</span><br />";
-							}else{
-								posContent += hValue + "</span><br />";
-							}
+							posContent += this.utils.Formatters.getHoverValue(hValue) + "</span><br />";
 							
 						}
 					}
@@ -970,6 +1028,25 @@ export default Vue.component("research-scatter-plot", {
 				})
 
 				if (EVENT_TYPE == 'move' && !this.isDotPanelClick){
+					wrapperContent.innerHTML = posContent;
+
+					const width = wrapper.offsetWidth;
+					const height = wrapper.offsetHeight;
+					const distanceFrom = {
+						top: 	e.clientY,
+						right: 	window.innerWidth  - e.clientX,
+						bottom: window.innerHeight - e.clientY,
+						left: 	e.clientX
+					}
+					const pad = 10;
+					const offset = {
+						x: distanceFrom.right  < width + pad  ? - width  - pad : pad,
+						y: distanceFrom.bottom < height + pad ? - height - pad : pad,
+					}
+					wrapper.style.left = distanceFrom.left + offset.x + 'px';
+					wrapper.style.top =  distanceFrom.top  + offset.y + 'px';
+					
+					/*
 					wrapper.style.top = x + canvas.offsetLeft + 150 > canvas.width
 						? y + canvas.offsetTop + 15 + "px" : y + canvas.offsetTop + "px";
 					wrapper.style.left =
@@ -978,24 +1055,41 @@ export default Vue.component("research-scatter-plot", {
 							: x + canvas.offsetLeft + 15 + "px";
 					wrapper.style.width =
 						x + canvas.offsetLeft + 150 > canvas.width ? "auto" : "auto";
-					wrapper.setAttribute("class", "scatter-dot-value")
+					*/
 
-					wrapperContent.innerHTML = posContent;
+					wrapper.setAttribute("class", "scatter-dot-value")
 				}
 
 				if (EVENT_TYPE == 'click') {
 					this.isDotPanelClick = true;
 					wrapper.setAttribute("class", "scatter-dot-value fixed-panel");
 					wrapperContent.innerHTML = posContent;
+
+					//autoclose timeout
+					clearTimeout(this.dotPanelCloseTimer);
+					this.dotPanelCloseTimer = setTimeout(()=>{
+						this.isDotPanelClick = false;
+						wrapper.setAttribute("class", "scatter-dot-value hidden");
+					}, 10000);
+				}
+
+				if(EVENT_TYPE == 'move') {
+					this.dotPanelCloseTimer = setTimeout(() => {
+						this.isDotPanelClick = false;
+						wrapper.setAttribute("class", "scatter-dot-value hidden");
+					}, 10000);
 				}
 
 			} else {
 				if (EVENT_TYPE == 'click') {
 					this.isDotPanelClick = false;
+					wrapper.setAttribute("class", "scatter-dot-value hidden");
+					clearTimeout(this.dotPanelCloseTimer);
 				}
 				if (EVENT_TYPE == 'move' && !this.isDotPanelClick) {
 					wrapperContent.innerHTML = "";
-					wrapper.setAttribute("class", "scatter-dot-value hidden")
+					wrapper.setAttribute("class", "scatter-dot-value hidden");
+					clearTimeout(this.dotPanelCloseTimer);
 				}
 			}
 
@@ -1114,13 +1208,14 @@ $(function () { });
 }
 
 .scatter-dot-value {
-	position: absolute;
+	position: fixed;
     background-color: #fff;
     border: solid 1px #ddd;
     border-radius: 5px;
     padding: 20px 0 0 15px;
     z-index: 11;
     font-size: 14px;
+	width: 350px;
 }
 
 .scatter-dot-value.hidden {
@@ -1129,23 +1224,27 @@ $(function () { });
 
 .scatter-dot-value.fixed-panel {
 	position: fixed;
-	width: auto;
+	/*width: auto;*/
 	height: auto;
 	max-width: 50%;
 	max-height: 50%;
-	left: calc(50% - 200px) !important;
-	top: calc(50% - 150px) !important;
+	/*left: calc(50% - 200px) !important;
+	top: calc(50% - 150px) !important;*/
 	padding: 20px 0 0 15px;
 	border-radius: 5px;
 	border: solid 1px #ddd;
 	background-color: #fff;
 	z-index: 100;
 	box-shadow: 0px 5px 15px #00000050;
+	overflow: auto;
 }
 
 .scatter-dot-value-content {
-	height: 450px;
+	height: auto;
+	max-height: 350px;
     overflow: auto;
+	padding-right: 15px;
+	padding-bottom: 15px;
 }
 
 .fixed-info-box-close {

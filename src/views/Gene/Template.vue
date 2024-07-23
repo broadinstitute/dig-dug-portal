@@ -24,26 +24,18 @@
         </div>
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
-                <span class="gene-search-tip">
-                    <sup>*</sup>
-                    Alias names are converted to gene symbols
-                </span>
-                <div class="col filter-col-md">
-                    <div class="label">Gene</div>
-                    <gene-selectpicker></gene-selectpicker>
-                </div>
-                <div class="col filter-col-md">
-                    <div class="label">Search</div>
-                    <button
-                        id="regionSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="$store.dispatch('queryGeneName')"
-                    >
-                        GO
-                    </button>
+
+             <search-header-wrapper>
+                <div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Begin new search</div>
+                        <research-single-search
+                            :single-search-config="null"
+                            :phenotypes="$parent.phenotypesInSession
+                                "
+                            :utils="$parent.utilsBox"
+                        ></research-single-search>
+                    </div>                        
                 </div>
             </search-header-wrapper>
             <div class="gene-page-header card mdkp-card">
@@ -363,6 +355,7 @@
                                         v-if="$parent.hugeScores.length > 0"
                                         ref="hugeScorePheWASPlot"
                                         canvas-id="hugeScorePlot"
+                                        :plotName="`huge_scores_${$store.state.geneName}`"
                                         :phenotypes-data="$parent.hugeScores"
                                         :phenotype-map="
                                             $store.state.bioPortal.phenotypeMap
@@ -376,6 +369,7 @@
                                         :pkg-data-selected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
+                                        :options="['open phenotype page']"
                                     >
                                     </research-phewas-plot>
                                     <unauthorized-message
@@ -387,9 +381,10 @@
                                     </unauthorized-message>
                                     <huge-scores-table
                                         v-if="$parent.hugeScores.length > 0"
-                                        :gene="$store.state.gene.data[0]"
-                                        :huge-scores="$parent.hugeScores"
-                                        :phenotype-map="
+                                        :pageKey="$store.state.gene.data[0]"
+                                        leadTableField="phenotype"
+                                        :hugeScores="$parent.hugeScores"
+                                        :phenotypeMap="
                                             $store.state.bioPortal.phenotypeMap
                                         "
                                         :filter="filter"
@@ -436,6 +431,7 @@
                                         "
                                         ref="commonVariantPheWASPlot"
                                         canvas-id="commonVariantPlot"
+                                        :plotName="`common_variant_${$store.state.geneName}`"
                                         :phenotypes-data="
                                             $parent.filteredAssociations
                                         "
@@ -451,6 +447,7 @@
                                         :pkg-data-selected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
+                                        :options="['open phenotype page']"
                                     >
                                     </research-phewas-plot>
                                     <unauthorized-message
@@ -501,6 +498,7 @@
                                         "
                                         ref="rareVariantPheWASPlot"
                                         canvas-id="rareVariantPlot"
+                                        :plotName="`rare_variant_${$store.state.geneName}`"
                                         :phenotypes-data="
                                             $parent.transcriptOr52k
                                         "
@@ -516,6 +514,7 @@
                                         :pkg-data-selected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
+                                        :options="['open phenotype page']"
                                     >
                                     </research-phewas-plot>
                                     <unauthorized-message
@@ -554,15 +553,16 @@
                         :content-fill="$parent.documentationMap"
                     >
                     </documentation>
-                    <research-expression-plot
+                    <research-expression-display
                         v-if="$parent.geneExpression.length > 0"
                         :raw-data="$parent.geneExpression"
+                        :plotName="`tissue_specific_expression_${$store.state.geneName}`"
                         @expression="
                             (raw) =>
                                 ($parent.geneExpressionTable = JSON.parse(raw))
                         "
                     >
-                    </research-expression-plot>
+                    </research-expression-display>
                 </div>
             </div>
             <div class="card mdkp-card">

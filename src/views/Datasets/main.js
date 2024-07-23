@@ -18,7 +18,7 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
 new Vue({
@@ -58,7 +58,7 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
     },
 
     computed: {
@@ -96,7 +96,9 @@ new Vue({
         },
         phenotypeGroups: function () {
             let content = [
-                ...new Set(this.$store.state.bioPortal.phenotypes.map((p) => p.group)),
+                ...new Set(
+                    this.$store.state.bioPortal.phenotypes.map((p) => p.group)
+                ),
             ].sort();
 
             return content;
@@ -124,15 +126,15 @@ new Vue({
 
             let datasetsInSession = [];
 
-            allDatasets.map(d => {
+            allDatasets.map((d) => {
                 let inSession = 0;
-                this.phenotypesInSession.map(p => {
+                this.phenotypesInSession.map((p) => {
                     if (!!d.phenotypes.includes(p.name) && inSession == 0) {
                         datasetsInSession.push(d);
                         inSession = 1;
                     }
-                })
-            })
+                });
+            });
 
             return datasetsInSession;
         },
@@ -159,64 +161,64 @@ new Vue({
                     });
 
                     x["phenotype_group"] = datasetPGroup;
-                    x["ancestry_name"] = formatters.ancestryFormatter(x.ancestry);
+                    x["ancestry_name"] = formatters.ancestryFormatter(
+                        x.ancestry
+                    );
                     x["data_type"] = formatters.dataTypeFormatter(x.tech);
                 });
 
                 if (this.datasetsSearchCriterion.length > 0) {
                     let filtered = [];
-                    contents.map(d => {
-                        this.datasetsSearchCriterion.map(s => {
+                    contents.map((d) => {
+                        this.datasetsSearchCriterion.map((s) => {
                             if (d[s.field].includes(s.threshold) == true) {
                                 filtered.push(d);
                             }
-                        })
-                    })
+                        });
+                    });
 
                     return filtered;
-
                 } else {
                     return contents;
                 }
             }
-
         },
 
         datasetsPhenotypeOptions() {
-
             //let uniqueOptions = [...new Set(this.$store.state.bioPortal.phenotypes.map(p => p.name).sort())]
 
-            let uniqueOptions = [...new Set(this.phenotypesInSession.map(p => p.name).sort())]
+            let uniqueOptions = [
+                ...new Set(this.phenotypesInSession.map((p) => p.name).sort()),
+            ];
 
             return uniqueOptions;
         },
         phenotypeGroupOptions() {
-
             let pGroups = [];
 
-            this.datasetsList.map(d => {
-                d.phenotype_group.map(g => {
+            this.datasetsList.map((d) => {
+                d.phenotype_group.map((g) => {
                     pGroups.push(g);
                 });
-            })
+            });
 
             let uniqueOptions = [...new Set(pGroups)].sort();
 
             return uniqueOptions;
-
         },
         techOptions() {
-            let uniqueOptions = [...new Set(this.datasetsList.map(d => d["data_type"]))].sort();
+            let uniqueOptions = [
+                ...new Set(this.datasetsList.map((d) => d["data_type"])),
+            ].sort();
 
             return uniqueOptions;
-        }
+        },
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
+            // this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
         },
-
-    }
+    },
 }).$mount("#app");

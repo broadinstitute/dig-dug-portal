@@ -11,6 +11,7 @@
 
 		<!--  Research page Header -->
 		<research-page-header
+			v-if="!!$parent.sectionConfigs"
 			:class="
 				$parent.displayOnKP == true
 					? 'research-portal-header-compact'
@@ -22,96 +23,120 @@
 					? null
 					: $parent.headerLogo
 			"
+			:sectionConfig="$parent.sectionConfigs['header menu']"
+			:utils="$parent.utilsBox"
 		></research-page-header>
-
-		<!-- Body -->
-		<div
-			class="container-fluid mdkp-body"
-			v-if="$parent.researchMode == 'no_set'"
-		>
-			<div class="card mdkp-card dataset-page-header">
-				<div class="row card-body">
-					<div class="col-md-12">
-						<h3>
-							Sorry, this page is not published yet. Please come
-							back later.
-						</h3>
-					</div>
+	<div class="single-search-wrapper" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['single search']">
+		<research-single-search
+			:single-search-config="$parent.sectionConfigs['single search']"
+			:phenotypes="$parent.phenotypesInSession"
+			:utils="$parent.utilsBox"
+		></research-single-search>   
+		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
+			<span v-html="'examples: '"></span>
+			<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
+			v-html="$parent.getExampleLink(example)">
+			</span>
+		</div> 
+		<!-- KC Set context -->
+		<div v-if="!!$parent.sectionConfigs['context']" class="context-btns-wrapper">
+			<span v-for="value, key, index in $parent.sectionConfigs['context']['contexts']" class="context-btn btn btn-sm btn-primary" 
+			:class="!!$parent.context && key.toLowerCase().replace(' ', '_') == $parent.context?' active':''"
+				@click="$parent.setContext(key, value)">{{ key }}</span>
+			<span class="context-btn-default btn btn-sm btn-warning" 
+				@click="$parent.setContext('remove', null)">Remove context</span>
+		</div>
+	</div>
+	<!-- Body -->
+	<div
+		class="container-fluid mdkp-body"
+		v-if="$parent.researchMode == 'no_set'"
+	>
+		<div class="card mdkp-card dataset-page-header">
+			<div class="row card-body">
+				<div class="col-md-12">
+					<h3>
+						Sorry, this page is not published yet. Please come
+						back later.
+					</h3>
 				</div>
 			</div>
 		</div>
+	</div>
 
-		<div
-			class="container-fluid mdkp-body"
-			v-if="$parent.researchMode == 'dev' && $parent.researchPage == null"
-		>
-			<div class="card mdkp-card dataset-page-header">
-				<div class="row card-body">
-					<div class="col-md-12">
-						<div class="filtering-ui-wrapper">
-							<div class="filtering-ui-content row">
-								<div class="col">
-									<div class="label">Reviewer ID</div>
-									<div>
-										<input
-											type="text"
-											class="form-control"
-											v-model="$parent.devID"
-										/>
-									</div>
-								</div>
-								<div class="col">
-									<div class="label">Reviewer P/W</div>
-									<div>
-										<input
-											type="password"
-											class="form-control"
-											v-model="$parent.devPW"
-										/>
-									</div>
-								</div>
-								<div class="col">
-									<div class="label">&nbsp;</div>
-									<div>
-										<button
-											type="button"
-											class="btn btn-primary"
-											@click="$parent.fetchDevPage()"
-										>
-											Load page 
-										</button>
-									</div>
+	<div
+		class="container-fluid mdkp-body"
+		v-if="$parent.researchMode == 'dev' && $parent.researchPage == null"
+	>
+		<div class="card mdkp-card dataset-page-header">
+			<div class="row card-body">
+				<div class="col-md-12">
+					<div class="filtering-ui-wrapper">
+						<div class="filtering-ui-content row">
+							<div class="col">
+								<div class="label">Reviewer ID</div>
+								<div>
+									<input
+										type="text"
+										class="form-control"
+										v-model="$parent.devID"
+									/>
 								</div>
 							</div>
-							<div class="row">
-								<label class="col">
-									<input 
-										type="checkbox" 
-										v-model="$parent.devCK"
+							<div class="col">
+								<div class="label">Reviewer P/W</div>
+								<div>
+									<input
+										type="password"
+										class="form-control"
+										v-model="$parent.devPW"
+									/>
+								</div>
+							</div>
+							<div class="col">
+								<div class="label">&nbsp;</div>
+								<div>
+									<button
+										type="button"
+										class="btn btn-primary"
+										@click="$parent.fetchDevPage()"
 									>
-									Remember me for 2 weeks.
-								</label>
+										Load page 
+									</button>
+								</div>
 							</div>
+						</div>
+						<div class="row">
+							<label class="col">
+								<input 
+									type="checkbox" 
+									v-model="$parent.devCK"
+								>
+								Remember me for 2 weeks.
+							</label>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+	</div>
 
 		<research-front-page 
 			v-if="$parent.researchPage !== null && $parent.sectionConfigs['is front page']"
 			:sectionConfigs="$parent.sectionConfigs"
 			:pageDescription="$parent.pageDescription"
-			:utilsBox="$parent.utilsBox">
+			:utilsBox="$parent.utilsBox"
+			:phenotypeMap="$parent.phenotypeMap"
+			:phenotypesInUse="$parent.phenotypesInSession"
+			>
 		</research-front-page>
-		
 
 		<div
 			class="container-fluid mdkp-body"
 			:class="!!$parent.sectionConfigs['is multi section']?'flex-body':''"
-			v-if="$parent.researchPage !== null && !$parent.sectionConfigs['is front page']"
+			v-if="$parent.researchPage !== null"
 		>
-			<div class="card mdkp-card dataset-page-header">
+			<div class="card mdkp-card dataset-page-header" v-if="!$parent.sectionConfigs['is front page']">
 				<div class="row card-body">
 					<div class="col-md-8">
 						<h3 v-html="$parent.pageTitle"></h3>
@@ -170,7 +195,7 @@
 				</div>
 			</div>
 
-			<div class="card mdkp-card" v-if="$parent.pageDescription != null">
+			<div class="card mdkp-card" v-if="$parent.pageDescription != null && !$parent.sectionConfigs['is front page']">
 				<div class="row card-body">
 					<div class="col-md-12">
 						<research-page-description
@@ -219,7 +244,7 @@
 			</div>
 			<!-- tabs content -->
 
-			<div class="kp-tabs-contents" id="rp_tabs_contents">
+			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':''" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
 						<template
@@ -587,7 +612,7 @@
 							>
 							</research-gem-data-table>
 						</div>
-						<!-- multi section test-->
+						<!-- multi section -->
 						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
 
 							<research-multi-sections-search 
@@ -599,8 +624,10 @@
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								>
 							</research-multi-sections-search>
+							
+								<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
-									  v-for="group, groupIndex in $parent.sectionConfigs['tab groups']" >
+									  v-for="group, groupIndex in $parent.getTabGroups($parent.sectionConfigs['tab groups'])" >
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
 									style="position:relative"
 								>
@@ -610,8 +637,7 @@
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
 										$parent.utilsBox.uiUtils.showHideSvg('tabContentGroup' + groupIndex);
 										$parent.utilsBox.uiUtils.addRemoveClass('tabsOpener' + groupIndex,'closed');" title="Show / hide section">
-										<span :id="'groupLabel'+ + groupIndex">{{ "Show/hide "+group.label+"  " }}</span><b-icon
-											icon="eye-slash-fill"></b-icon>
+										<span :id="'groupLabel'+ + groupIndex">{{ "Show / hide section" }}</span>
 									</button>
 
 									<div v-if="group.type && group.type === 'fixed bottom'" class="fixed-group-toggle-wrapper">
@@ -632,7 +658,7 @@
 											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
 												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
 											{{ tab.label }} <span class="flag"><b-icon
-												icon="cloud-download-fill"></b-icon></span>
+												icon="circle-fill"></b-icon></span>
 										</div>
 									</div>
 									
@@ -650,7 +676,8 @@
 													:uId="$parent.uid"
 													:sectionConfig="config"
 													:description="!!$parent.sectionDescriptions? 
-														$parent.sectionDescriptions[config['section id']]:''"
+														$parent.sectionDescriptions[config['section id']]
+															: $parent.initialDescriptions[config['section id']]"
 													:phenotypeMap="$parent.phenotypeMap"
 													:phenotypesInUse="$parent.phenotypesInSession"
 													:colors="$parent.colors"
@@ -673,6 +700,9 @@
 													:uId="$parent.uid"
 													:key="index"
 													:sectionsConfig="config"
+													:description="!!$parent.sectionDescriptions ?
+														$parent.sectionDescriptions[config['section id']]
+														: $parent.initialDescriptions[config['section id']]"
 													:sectionsData="$parent.sectionsData"
 													:utils="$parent.utilsBox"
 													:starItems="$parent.starItems"
@@ -687,15 +717,15 @@
 									</div>
 								</div>
 							</template>
-							
-							<template v-for="config, index in $parent.sectionConfigs.sections">
+							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">	
 								<research-section
 									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:sectionConfig="config"
 									:description="!!$parent.sectionDescriptions ?
-										$parent.sectionDescriptions[config['section id']] : ''"
+										$parent.sectionDescriptions[config['section id']]
+										: $parent.initialDescriptions[config['section id']]"
 									:phenotypeMap="$parent.phenotypeMap"
 									:phenotypesInUse="$parent.phenotypesInSession"
 									:colors="$parent.colors"
@@ -717,6 +747,9 @@
 									:uId="$parent.uid"
 									:key="index"
 									:sectionsConfig="config"
+									:description="!!$parent.sectionDescriptions ?
+										$parent.sectionDescriptions[config['section id']]
+										: $parent.initialDescriptions[config['section id']]"
 									:sectionsData="$parent.sectionsData"
 									:utils="$parent.utilsBox"
 									:starItems="$parent.starItems"
@@ -816,7 +849,30 @@ html, body, #app {
 
 .mdkp-body.flex-body {
 	overflow-x: hidden;
+	overflow-y: hidden;
 }
+
+
+label {
+	margin: 0 !important;
+}
+
+/* single search */
+.single-search-wrapper {
+	padding: 15px;
+}
+
+.fp-search-examples,
+.fp-search-examples a {
+    color: white !important;
+    font-size: 1.15em;
+}
+
+.fp-search-examples span {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+/* */
 
 .card.hidden {
 	display: none !important;
@@ -967,7 +1023,7 @@ html, body, #app {
 .tab-ui-wrapper {
 	position: relative;
 	border-bottom: solid 1px #ddd;
-    margin: 5px 0 10px 0;
+    margin: 5px 0 -1px 0;
     padding: 0 25px;
 }
 
@@ -999,6 +1055,7 @@ html, body, #app {
 .tab-ui-wrapper .tab-ui-tab.loading > .flag {
  	display: inline-block;
 	color:#05bd02;
+	font-size: 0.7em;
 }
 
 .tab-ui-wrapper.hidden-svg {
@@ -1020,6 +1077,23 @@ html, body, #app {
 	overflow: hidden;
 }
 
+.kp-tabs li.active {
+	position: relative;
+
+}
+
+.kp-tab-content .row {
+	width: calc(100% + 30px);
+}
+
+#view_data_content.kp-tab-content {
+	display: none;
+}
+
+#view_data_content.kp-tab-content.active {
+	display: flex;
+	width: 100%;
+}
 
 /* Summary Tab group, sticky */
 .tabgroup-fixed-bottom {

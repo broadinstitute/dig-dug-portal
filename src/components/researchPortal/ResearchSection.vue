@@ -2,221 +2,284 @@
 	<!--<div class="multi-section" :class="'wrapper-' + sectionIndex"
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
-
-	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
-
-
-		<div class="row section-header" v-if="!isInTab">
-			<div class="col-md-12">
-				<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
-					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-				<button class="btn btn-sm show-evidence-btn show-hide-section" :class="(sectionHidden != true) ? '' : 'red-background'"
-					@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden=(sectionHidden == true)?false:true" title="Show / hide section"><b-icon
-						icon="eye"></b-icon></button>
-				<h4>{{ sectionConfig.header }}
-
-					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
-						v-for="parameter in dataPoint['parameters']" :key="parameter"
-						style="font-size:0.7em"
-						v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-					<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-						:id="'flag_' + sectionID">Loading data...</small>
-				</h4>
-			</div>
+	<div class="multi-section-card">
+		<div v-if="dataPoint.type == 'component'">
+			<research-section-components
+				:component="dataPoint.name"
+				:phenotypesInUse="phenotypesInUse"
+				:utilsBox="utils"
+				:sectionConfigs="sectionConfig">
+			</research-section-components>
 		</div>
+		<div class="multi-section" :class="'wrapper-' + sectionIndex" 
+			v-if="(!!sectionConfig['required parameters to display'] && !!meetRequirements()) 
+				|| !sectionConfig['required parameters to display']">
 
-		<div class="row section-header" v-if="!!isInTab">
-			<div class="col-md-12">
-				<button  v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
-					title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-				<h4>
-					<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
-						v-for="parameter in dataPoint['parameters']" :key="parameter"
-						style="font-size:0.7em"
-						v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-					
-					<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-						:id="'flag_' + sectionID">Loading data...</small>-->
-						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
-				</h4>
-			</div>
-		</div>
+			<div class="row section-header" v-if="!isInTab">
+				<div class="col-md-12">
+					<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
+						title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+					<button class="btn btn-sm show-evidence-btn show-hide-section" :class="(sectionHidden != true) ? '' : 'red-background'"
+						@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden=(sectionHidden == true)?false:true" title="Show / hide section"><b-icon
+							icon="eye"></b-icon></button>
+					<h4>{{ sectionConfig.header }}
 
-		<div class="row" :id="'section_' + sectionID">
+						<!--
+						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
+							v-for="parameter in dataPoint['parameters']" :key="parameter"
+							style="font-size:0.7em"
+							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
 
-			<div class="col-md-12" v-if="!!groups">
-				<span v-for="key in groups" @click="removeData(key)"
-					class="btn section-search-bbl show-evidence-btn">{{ key.label + " x" }}</span></div>
-
-			<div class="col-md-12" :class="'wrapper-' + sectionIndex">
-
-				<research-in-section-search v-if="!!sectionConfig['search parameters']"
-					:class="!!sectionConfig['search parameters'].display && sectionConfig['search parameters'].display == 'false' ? 'hidden-search' : ''"
-					:searchParameters="sectionConfig['search parameters']" :phenotypesInUse="phenotypesInUse"
-					:section="sectionConfig" :utils="utils">
-				</research-in-section-search>
-
-				<research-page-description v-if="!!sectionDescription" :content="sectionDescription"
-					:utils="utils"></research-page-description>
-
-				<research-section-filters v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
-					:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
-					:dataComparisonConfig="null" @on-filtering="updateData"></research-section-filters>
-					
-				<div
-					class="zoom-ui-wrapper" v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0"
-				>
-					<span>Zoom</span>
-
-					<form class="zoom-radio-wrapper">
-						<span
-							class="zoom-radio-number"
-							@click="setZoom('regionZoom',
-								regionZoom -=
-								regionZoom != 0 ? 10 : 0)
-								"
-							><b-icon icon="zoom-out"></b-icon
-						></span>
-
-						<input
-							v-for="value in [
-								0, 10, 20, 30, 40, 50, 60, 70, 80, 90,
-							]"
-							type="radio"
-							name="regionZoom"
-							:value="value"
-							@click="setZoom('regionZoom', value)"
-							:class="regionZoom == value
-								? 'zoom-radio checked'
-								: 'zoom-radio'
-								"
-							:key="value"
-						/>
-
-						<span
-							class="zoom-radio-number"
-							@click="setZoom('regionZoom',
-								regionZoom +=
-								regionZoom != 90 ? 10 : 0)
-								"
-							><b-icon icon="zoom-in"></b-icon
-						></span>
-					</form>
-
-					<span>Move viewing area</span>
-					<form class="zoom-radio-wrapper">
-						<span
-							class="zoom-radio-number"
-							@click="setZoom('regionViewArea',
-								regionViewArea -=
-								regionViewArea != -100 &&
-									regionZoom != 0
-									? 20
-									: 0)
-								"
-							><b-icon icon="arrow-left-circle"></b-icon
-						></span>
-						<input
-							v-for="value in [
-								-100, -80, -60, -40, -20, 0, 20, 40, 60,
-								80, 100,
-							]"
-							type="radio"
-							name="regionViewArea"
-							:value="value"
-							@click="setZoom('regionViewArea',
-								regionZoom != 0
-									? value
-									: '')
-								"
-							:class="regionViewArea == value
-								? 'zoom-radio checked'
-								: value == 0
-									? 'zoom-radio center'
-									: 'zoom-radio'
-								"
-							:key="value"
-						/>
-						<span
-							class="zoom-radio-number"
-							@click="setZoom('regionViewArea',
-								regionViewArea +=
-								regionViewArea != 100 &&
-									regionZoom != 0
-									? 20
-									: 0)
-								"
-							><b-icon icon="arrow-right-circle"></b-icon
-						></span>
-					</form>
+						-->
+						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
+						<span class="required-parameters-wrapper">
+						<small :class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
+							v-for="parameter in dataPoint['parameters']" :key="parameter"
+							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
+						</span>
+						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
+							:id="'flag_' + sectionID">Loading data...</small>-->
+							<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
+							<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
+					</h4>
 				</div>
-				
-				<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
-					<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
-						<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
-							class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
-								'tabUiGroup' + sectionID,
-								'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
-							{{ tab.label }}
+			</div>
+
+			<div class="row section-header" v-if="!!isInTab">
+				<div class="col-md-12">
+					<button  v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data" @click="captureData()"
+						title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+					<h4>
+						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
+						<span class="required-parameters-wrapper">
+						<small :class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
+							v-for="parameter in dataPoint['parameters']" :key="parameter"
+							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
+
+						</span>
+
+						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color"></research-loading-spinner>
+						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
+					</h4>
+				</div>
+			</div>
+
+			<div class="row" :id="'section_' + sectionID">
+
+				<div class="col-md-12" v-if="!!groups">
+					<span v-for="key in groups" @click="removeData(key)"
+						class="btn section-search-bbl show-evidence-btn" v-html="utils.Formatters.getShortName(key.label) + ' x'"></span></div>
+
+				<div class="" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'left'" 
+					:style="'width: '+ sectionConfig['filters vertical']['width']+'px; margin-right: 15px'">
+					<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
+					:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
+					:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
+				</div>
+
+				<div :class="(!sectionConfig['filters vertical'])?'col-md-12 wrapper-' + sectionIndex: 'wrapper-' + sectionIndex"
+					:style="(!!sectionConfig['filters vertical'])?(!openInfoCard)?'width: calc(100% - ' + (sectionConfig['filters vertical']['width']+15) + 'px);':'':''">
+
+					<research-in-section-search v-if="!!sectionConfig['search parameters']"
+						:class="!!sectionConfig['search parameters'].display && sectionConfig['search parameters'].display == 'false' ? 'hidden-search' : ''"
+						:searchParameters="sectionConfig['search parameters']" :phenotypesInUse="phenotypesInUse"
+						:section="sectionConfig" :utils="utils">
+					</research-in-section-search>
+
+					<research-page-description v-if="!!sectionDescription" :content="sectionDescription"
+						:utils="utils"></research-page-description>
+
+					<research-section-filters v-if="!!filters && !sectionConfig['filters vertical']" :filters="filters" :filterWidth="sectionConfig['filter width']"
+						:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
+						:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters>
+						
+					<div
+						class="zoom-ui-wrapper" v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0"
+					>
+						<span>Zoom</span>
+
+						<form class="zoom-radio-wrapper">
+							<span
+								class="zoom-radio-number"
+								@click="setZoom('regionZoom',
+									regionZoom -=
+									regionZoom != 0 ? 10 : 0)
+									"
+								><b-icon icon="zoom-out"></b-icon
+							></span>
+
+							<input
+								v-for="value in [
+									0, 10, 20, 30, 40, 50, 60, 70, 80, 90,
+								]"
+								type="radio"
+								name="regionZoom"
+								:value="value"
+								@click="setZoom('regionZoom', value)"
+								:class="regionZoom == value
+									? 'zoom-radio checked'
+									: 'zoom-radio'
+									"
+								:key="value"
+							/>
+
+							<span
+								class="zoom-radio-number"
+								@click="setZoom('regionZoom',
+									regionZoom +=
+									regionZoom != 90 ? 10 : 0)
+									"
+								><b-icon icon="zoom-in"></b-icon
+							></span>
+						</form>
+
+						<span>Move viewing area</span>
+						<form class="zoom-radio-wrapper">
+							<span
+								class="zoom-radio-number"
+								@click="setZoom('regionViewArea',
+									regionViewArea -=
+									regionViewArea != -100 &&
+										regionZoom != 0
+										? 20
+										: 0)
+									"
+								><b-icon icon="arrow-left-circle"></b-icon
+							></span>
+							<input
+								v-for="value in [
+									-100, -80, -60, -40, -20, 0, 20, 40, 60,
+									80, 100,
+								]"
+								type="radio"
+								name="regionViewArea"
+								:value="value"
+								@click="setZoom('regionViewArea',
+									regionZoom != 0
+										? value
+										: '')
+									"
+								:class="regionViewArea == value
+									? 'zoom-radio checked'
+									: value == 0
+										? 'zoom-radio center'
+										: 'zoom-radio'
+									"
+								:key="value"
+							/>
+							<span
+								class="zoom-radio-number"
+								@click="setZoom('regionViewArea',
+									regionViewArea +=
+									regionViewArea != 100 &&
+										regionZoom != 0
+										? 20
+										: 0)
+									"
+								><b-icon icon="arrow-right-circle"></b-icon
+							></span>
+						</form>
+					</div>
+					
+					<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
+						<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
+							<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
+								class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
+									'tabUiGroup' + sectionID,
+									'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
+								{{ tab.label }}
+							</div>
+						</div>
+					</template>
+					<div v-if="!!multiVisualizers && !!sectionData"
+						:id="multiVisualizersType == 'tabs' ? 'tabContentGroup' + sectionID : ''">
+
+						<div v-for="plotConfig, plotIndex in multiVisualizers"
+							:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex : ''"
+							class="plot-tab-content-wrapper"
+							:class="(multiVisualizersType == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
+							<h6 v-html="plotConfig.label" v-if="multiVisualizersType != 'tabs'"></h6>
+							<research-section-visualizers :plotConfig="plotConfig"
+								:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+								:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
+								:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
+								:utils="utils" :dataComparisonConfig="dataComparisonConfig"
+								:searchParameters="groupSearchParameters"
+								:regionZoom="regionZoom"
+								:regionViewArea="regionViewArea"
+								:region="regionParam"
+								:starItems="starItems"
+								@on-star="starColumn">
+							</research-section-visualizers>
 						</div>
 					</div>
-				</template>
-				<div v-if="!!multiVisualizers && !!sectionData"
-					:id="multiVisualizersType == 'tabs' ? 'tabContentGroup' + sectionID : ''">
-
-					<div v-for="plotConfig, plotIndex in multiVisualizers"
-						:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex : ''"
-						class="plot-tab-content-wrapper"
-						:class="(multiVisualizersType == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
-						<h6 v-html="plotConfig.label" v-if="multiVisualizersType != 'tabs'"></h6>
-						<research-section-visualizers :plotConfig="plotConfig"
-							:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-							:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
-							:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
-							:utils="utils" :dataComparisonConfig="dataComparisonConfig"
-							:searchParameters="groupSearchParameters"
+					<research-section-visualizers v-if="!multiVisualizers && !!visualizer && !!sectionData"
+						:plotConfig="visualizer"
+						:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+						:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
+						:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
+						:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
+						:regionZoom="regionZoom"
+						:regionViewArea="regionViewArea"
+						:region="regionParam"
+						:starItems="starItems"
+						@on-star="starColumn">
+					</research-section-visualizers>
+					<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
+						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+						:tableFormat="tableFormat"
+						:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
+						:tableLegend="sectionTableLegend" 
+						:dataComparisonConfig="dataComparisonConfig" 
+						:searchParameters="groupSearchParameters" 
+						:pkgData="null" 
+						:pkgDataSelected="null" 
+						:phenotypeMap="phenotypeMap" 
+						:sectionId="sectionID"
+						:multiSectionPage="true" 
+						:starItems="starItems"
+						:utils="utils" 
+						@clicked-sort="sortData"
+						:region="regionParam"
+						:regionZoom="regionZoom"
+						:regionViewArea="regionViewArea"
+						@on-star="starColumn"
+						@on-filtering="updateData"
+						>
+					</research-data-table>
+					<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
+							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+							:tableFormat="tableFormat"
+							:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
+							:tableLegend="sectionTableLegend" 
+							:dataComparisonConfig="dataComparisonConfig" 
+							:searchParameters="groupSearchParameters" 
+							:pkgData="null" 
+							:pkgDataSelected="null" 
+							:phenotypeMap="phenotypeMap" 
+							:sectionId="sectionID"
+							:multiSectionPage="true" 
+							:starItems="starItems"
+							:utils="utils" 
+							:thumbnailWidth="!!sectionConfig['filters vertical'] && !!sectionConfig['filters vertical']['width']? 
+											sectionConfig['filters vertical']['width']: 250"
+							@clicked-sort="sortData"
+							:region="regionParam"
 							:regionZoom="regionZoom"
 							:regionViewArea="regionViewArea"
-							:region="regionParam"
-							:starItems="starItems"
-							@on-star="starColumn">
-						</research-section-visualizers>
-					</div>
+							:openCardPreset="openInfoCard"
+							@on-star="starColumn"
+							@on-filtering="updateData"
+							@on-openCard="setOpenInfoCard"
+							>
+						</research-info-cards>
 				</div>
-				<research-section-visualizers v-if="!multiVisualizers && !!visualizer && !!sectionData"
-					:plotConfig="visualizer"
-					:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-					:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
-					:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
-					:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
-					:regionZoom="regionZoom"
-					:regionViewArea="regionViewArea"
-					:region="regionParam"
-					:starItems="starItems"
-					@on-star="starColumn">
-				</research-section-visualizers>
-				<research-data-table v-if="!!tableFormat" :pageID="sectionIndex"
-					:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-					:tableFormat="tableFormat"
-					:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
-					:tableLegend="sectionTableLegend" 
-					:dataComparisonConfig="dataComparisonConfig" 
-					:searchParameters="groupSearchParameters" 
-					:pkgData="null" 
-					:pkgDataSelected="null" 
-					:phenotypeMap="phenotypeMap" 
-					:sectionId="sectionID"
-					:multiSectionPage="true" 
-					:starItems="starItems"
-					:utils="utils" 
-					@clicked-sort="sortData"
-					:region="regionParam"
-					:regionZoom="regionZoom"
-					:regionViewArea="regionViewArea"
-					@on-star="starColumn"
-					@on-filtering="updateData"
-					>
-				</research-data-table>
+				<div class="vertical-filter" v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'" 
+								:style="'width: ' + sectionConfig['filters vertical']['width'] + 'px;margin-left: 15px;'">
+		<research-section-filters-vertical v-if="!!filters" :filters="filters" :filterWidth="sectionConfig['filter width']"
+								:dataset="sectionData" :unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils"
+								:dataComparisonConfig="null" @on-filtering="updateData" @clicked-sort="sortData"></research-section-filters-vertical>
+							</div>
 			</div>
 		</div>
 	</div>
@@ -227,8 +290,11 @@ import Vue from "vue";
 import $ from "jquery";
 import ResearchInSectionSearch from "@/components/researchPortal/ResearchInSectionSearch.vue";
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
+import ResearchSectionFiltersVertical from "@/components/researchPortal/ResearchSectionFiltersVertical.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
+import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue";
 
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse", 
@@ -236,13 +302,17 @@ export default Vue.component("research-section", {
 		"regionViewArea","isInTab"],
 	components: {
 		ResearchSectionFilters,
+		ResearchSectionFiltersVertical,
 		ResearchSectionVisualizers,
+		ResearchSectionComponents,
 		ResearchDataTable,
+		ResearchInfoCards,
 		ResearchInSectionSearch
 	},
 	data() {
 		return {
 			sectionData: null,
+			noLoadedData: null,
 			mergedData: null,
 			originalData: null,
 			tableFormat: null,
@@ -250,12 +320,13 @@ export default Vue.component("research-section", {
 			remoteFilters: null,
 			remoteVisualizer: null,
 			remoteSectionDecription: null,
-			//interSectionsFilters: [],
 			groups: null,
 			searched: [],
 			loadingDataFlag: "down",
 			regionParam:null,
 			sectionHidden: false,
+			openInfoCard: null,
+			customList:{},
 		};
 	},
 	modules: {
@@ -266,11 +337,29 @@ export default Vue.component("research-section", {
 		if (!!this.sectionConfig["table format"] &&
 			(!this.sectionConfig["table format"]["type"] || this.sectionConfig["table format"]["type"] != "remote")) {
 			this.tableFormat = this.sectionConfig["table format"];
+
+			/* for info cards option, open card value */
+			let infoCardConfig = !!this.tableFormat['rows as info cards']? this.tableFormat['rows as info cards']:null;
+			if (!!infoCardConfig && !!infoCardConfig['key'] && !!this.utils.keyParams[infoCardConfig['key']]) {
+				this.openInfoCard = this.utils.keyParams[infoCardConfig['key']];
+			}
 		}
 
+		if(!!this.sectionConfig["data point"] && !!this.sectionConfig["data point"]["parameters point"]) {
+			let listPoint = this.sectionConfig["data point"]["parameters point"];
+			this.getList(
+				listPoint["parameter"],
+				listPoint["url"],
+				listPoint["data type"],
+				listPoint["data wrapper"]
+			)
+		}
 	},
 	mounted() {
-		this.getData();
+		if(!!this.sectionConfig["data point"] && !this.sectionConfig["data point"]["parameters point"]) {
+			this.getData();
+		}
+		
 	},
 	computed: {
 		sectionID() {
@@ -311,7 +400,7 @@ export default Vue.component("research-section", {
 			}
 		},
 		sectionDescription() {
-			if (!!this.sectionData) {
+			//if (!!this.sectionData) {
 				if (!!this.description) {
 					return this.description;
 				} else if (!!this.remoteSectionDecription) {
@@ -319,9 +408,9 @@ export default Vue.component("research-section", {
 				} else {
 					return null;
 				}
-			} else {
-				return null
-			}
+			//} else {
+				//return null
+			//}
 		},
 		filters() {
 			if (!!this.sectionData) {
@@ -434,6 +523,50 @@ export default Vue.component("research-section", {
 		},
 	},
 	methods: {
+		meetRequirements(){
+			let required = this.sectionConfig['required parameters to display'];
+			let meetRequired = true;
+
+			/*required.map(r=>{
+				if(!this.utils.keyParams[r]){
+					meetRequired = null
+				}
+			})*/
+
+			required.map(R => {
+				for (const [rKey, rValue] of Object.entries(R)) {
+					
+					let rValues = rValue.split(",");
+
+					rValues.map(V=>{
+						if (!this.utils.keyParams[V]) {
+							meetRequired = null
+						}
+					})
+				}
+			})
+
+			/*
+			let testRequired = true;
+
+					required.map(R => {
+						for (const [rKey, rValue] of Object.entries(R)) {
+							let rKeyParam = keyParams[rKey];
+							let rValues = rValue.split(",");
+
+							if (!rKeyParam || (!!rKeyParam && !rValues.includes(rKeyParam))) {
+								testRequired = false;
+							}
+						}
+					})
+
+					if (!!testRequired) {
+						sections.push(S);
+					}
+					*/
+
+			return meetRequired;
+		},
 		setZoom(PROP,VALUE){
 			this.$emit('on-zoom', { property: PROP, value: VALUE });
 		},
@@ -486,43 +619,14 @@ export default Vue.component("research-section", {
 			this.sectionData = null,
 				this.mergedData = null,
 				this.originalData = null,
-				//this.interSectionsFilters = [],
 				this.groups = null,
 				this.searched = [],
-				this.loadingDataFlag = "down"
+				this.loadingDataFlag = "down";
+				this.noLoadedData = null;
 				if(document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
 		},
-		/*filterAcrossSections(FROM, FILTER_DATA, FILTER, RESET) {
-			let interSectionsFilters = [...new Set(this.interSectionsFilters)];
-			this.interSectionsFilters = [];
-			if (RESET != "reset") {
-				FILTER["data"] = FILTER_DATA;
-				FILTER["from"] = FROM;
-
-				let isFilter = false;
-				if (interSectionsFilters.length > 0) {
-					interSectionsFilters.map(f => {
-						if (f.from == FROM) {
-							f = FILTER;
-							isFilter = true;
-						}
-					})
-				}
-
-				if (!isFilter) {
-					interSectionsFilters.push(FILTER);
-				}
-
-
-			} else if (RESET == 'reset') {
-				interSectionsFilters = interSectionsFilters.filter(f => f.from != FROM);
-				this.sectionData = this.originalData;
-			}
-
-			this.interSectionsFilters = interSectionsFilters;
-		},*/
 		filterSectionData(GROUP) {
 			let groupValues = GROUP.split(", ");
 			let groupKeys = this.sectionConfig["table format"]["group by"];
@@ -592,11 +696,24 @@ export default Vue.component("research-section", {
 		updateData(data) {
 			this.sectionData = data;
 		},
+		setOpenInfoCard(KEY) {
+			this.openInfoCard = KEY;
+
+			let infoCardConfig = this.tableFormat['rows as info cards'];
+
+			let keyName = infoCardConfig['key'];
+			let keyObj = {};
+			keyObj[keyName] = KEY;
+
+			this.utils.keyParams.set(keyObj)
+		},
 		sortData(KEY) {
+			
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {
 				this.sectionData = this.utils.sortUtils.sortLocusField(this.sectionData, KEY.key, KEY.direction);
 			} else {
 				let isNumeric = this.checkIfNumeric(this.sectionData, KEY.key);
+				//this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, KEY.key, isNumeric, KEY.direction==='asc'?true:false);
 				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, KEY.key, isNumeric, KEY.direction);
 			}
 		},
@@ -640,7 +757,7 @@ export default Vue.component("research-section", {
 			return ifNumber;
 		},
 		removeData(KEY) {
-			//console.log("key",KEY);
+			
 			let groupKeys = this.sectionConfig["table format"]["group by"];
 
 			let newSectionData = [];
@@ -713,8 +830,6 @@ export default Vue.component("research-section", {
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
 						queryParams[p] = this.utils.keyParams[p].toString().split(","); ///  work on this line
-
-						//console.log("queryParams[p]", queryParams[p]);
 					} else {
 						queryParamsSet = null;
 					}
@@ -755,7 +870,6 @@ export default Vue.component("research-section", {
 				queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 			}
 
-			//console.log("queryParamsString", queryParamsString)
 			//5. Check if return the first item in the queryParamsString
 
 			if (queryParamsString.length > 0) {
@@ -768,12 +882,13 @@ export default Vue.component("research-section", {
 				}
 			}
 		},
-		getData() {
+		getData(FROM) {
 			this.loadingDataFlag = "up";
-			this.queryData();
+			this.noLoadedData = null;
+			this.queryData(FROM);
 		},
 
-		queryData() {
+		queryData(FROM) {
 			let queryType = this.dataPoint["type"];
 			let paramsType = this.dataPoint["parameters type"]
 			let params = this.dataPoint["parameters"]
@@ -791,7 +906,7 @@ export default Vue.component("research-section", {
 				switch (queryType) {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
-						this.queryBioindex(paramsString);
+						this.queryBioindex(paramsString, paramsType, params);
 						break;
 					case "api":
 						this.queryApi(paramsString, paramsType, params);
@@ -800,20 +915,96 @@ export default Vue.component("research-section", {
 						let parameter = this.dataPoint["parameter"]
 						this.queryFile(parameter);
 						break;
+					case "graphQl":
+						// first added for CFDE project, to query data from IDG(pharos)
+						let urlString;
+
+						if (paramsType == "array") {
+							urlString = this.dataPoint["query string"].replace("$parameter", paramsString)
+						} else if (paramsType == "replace to field") {
+
+							urlString = this.dataPoint["query string"]
+
+							params.map((param, pIndex) => {
+								let paramList = this.customList[param]
+								let replaceFrom = this.dataPoint["replace from"];
+								let replaceTo = this.dataPoint["replace to"];
+
+								let paramValue = paramList.filter(item => item[replaceFrom] == paramsString.split(",")[pIndex])[0][replaceTo];
+
+								urlString = urlString.replace("$" + param, paramValue);
+							})
+						}
+
+						let query = `${urlString}`;
+
+						this.queryGraphQl(query,  this.dataPoint["url"],paramsString, paramsType, params)
+						break;
+					case "component":
+						this.loadingDataFlag = "down";
+						break;
 				}
 			} else {
 				this.loadingDataFlag = "down";
+				this.noLoadedData = "Please set valid parameters for this query.";
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
 			}
 		},
 
-		async queryBioindex(QUERY) {
+		queryGraphQl(QUERY, URL, PARAM,TYPE, PARAMS) {
+
+			const graphqlQuery = QUERY;
+
+			async function fetchGraphQL(query) {
+				const response = await fetch(URL, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ query }),
+				});
+
+				if (!response.ok) {
+					throw new Error(`GraphQL request failed with status ${response.status}`);
+				}
+
+				return response.json();
+			}
+
+			fetchGraphQL(graphqlQuery)
+				.then(data => {
+					this.processLoadedApi(data, PARAM, TYPE, PARAMS);
+				})
+				.catch(error => console.error('Error fetching GraphQL:', error));
+		},
+
+		async queryBioindex(QUERY, TYPE, PARAMS) {
+
+			console.log("PARAMS", PARAMS);
+			console.log("QUERY", QUERY);
 
 			this.searched.push(QUERY);
-			
-			let dataUrl = this.dataPoint.url + "query/" + this.dataPoint.index + "?q=" + QUERY;
+
+			let dataUrl = this.dataPoint.url;
+
+			if(TYPE == "replace") {
+				PARAMS.map((param, pIndex) => {
+					if(!!QUERY.split(",")[pIndex]) {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					} else {
+						dataUrl = dataUrl.replace("$" + param + ",", '');
+						dataUrl = dataUrl.replace(",$" + param, '');
+						dataUrl = dataUrl.replace("$" + param, '');
+					}
+				})
+				
+			} else {
+				 dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
+			}
+
+			console.log("dataUrl replaced", dataUrl);
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -821,19 +1012,32 @@ export default Vue.component("research-section", {
 				this.processLoadedBI(contentJson, QUERY);
 			} else {
 				// fetch failed 
-				if(!!this.dataPoint["cumulate data"]) {
+				if (!!this.dataPoint["cumulate data"]) {
 					this.sectionData = this.sectionData
 				} else {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				
+				this.noLoadedData = "No data is returned. Please check query parameters.";
 			}
 		},
 
 		async queryBiContinue(TOKEN, QUERY) {
 			
-			let dataUrl = this.dataPoint.url + "cont?token=" + TOKEN;
+			let dataUrl;
+			let PARAMS =  this.dataPoint["parameters"];
+
+			if (this.dataPoint["parameters type"] == "replace") {
+				dataUrl = this.dataPoint["continue url"];
+
+				PARAMS.map((param, pIndex) => {
+					dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+				})
+
+				dataUrl += TOKEN;
+			} else {
+				dataUrl = this.dataPoint.url + "cont?token=" + TOKEN;
+			}
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -847,12 +1051,10 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				
 			}
 		},
 
 		async queryApi(QUERY, TYPE, PARAMS) {
-
 
 			if(QUERY != "") {
 				this.searched.push(QUERY);
@@ -872,10 +1074,28 @@ export default Vue.component("research-section", {
 
 			} else if(!!PARAMS && TYPE == "array") {
 				dataUrl += QUERY;
+			} else if(!!PARAMS && TYPE == "replace") {
+
+				PARAMS.map((param,pIndex)=>{
+					dataUrl = dataUrl.replace("$"+param,QUERY.split(",")[pIndex]);
+				})	
+			}  else if (!!PARAMS && TYPE == "replace to field") {
+
+				PARAMS.map((param, pIndex) => {
+					let paramList = this.customList[param]
+					let replaceFrom = this.dataPoint["replace from"];
+					let replaceTo = this.dataPoint["replace to"];
+
+					let paramValue = paramList.filter(item => item[replaceFrom] == QUERY.split(",")[pIndex])[0][replaceTo];
+
+					dataUrl = dataUrl.replace("$" + param, paramValue);
+				})
 			}
+
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
 			if (contentJson.error == null) {
+				
 				this.processLoadedApi(contentJson,QUERY, TYPE, PARAMS);
 			} else {
 				// fetch failed
@@ -885,7 +1105,7 @@ export default Vue.component("research-section", {
 					this.sectionData = null;
 				}
 				this.loadingDataFlag = "down";
-				
+				this.noLoadedData = "No data is returned. Please check query parameters.";
 			}
 		},
 
@@ -896,13 +1116,52 @@ export default Vue.component("research-section", {
 			if(!!file) {
 				let dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset="
 				dataUrl += (file.includes("http") || file.includes("https")) ? file : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + file;
-				console.log("dataUrl", dataUrl);
+				
 				let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 				if (contentJson.error == null) {
 					this.processLoadedApi(contentJson, file, null, null)
 				}
 			}
 			
+		},
+		async getList(PARAM, URL, TYPE, WRAPPER) {
+			if (!!URL) {
+
+				let paramList = await fetch(URL).then((resp) => resp.json());
+				let list;
+
+				if (paramList.error == null) {
+
+					if (typeof paramList == "string") {
+						paramList = (TYPE == "json") ? JSON.parse(paramList) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(paramList) : paramList;
+					}
+					if (!!WRAPPER) {
+
+						let dataEntity = paramList;
+
+						WRAPPER.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+
+						if (typeof dataEntity == "string") {
+							dataEntity = (TYPE == "json") ? JSON.parse(dataEntity) : (TYPE == "csv") ? this.utils.dataConvert.csv2Json(dataEntity) : dataEntity;
+						}
+
+						list = dataEntity;
+
+					} else {
+						list = paramList
+					}
+					this.customList[PARAM] = list;
+
+					this.getData('custom');
+
+				} else {
+					console.log("there is an error");
+				}
+			}
+
 		},
 
 		processLoadedBI(CONTENT, QUERY) {
@@ -982,6 +1241,7 @@ export default Vue.component("research-section", {
 		},
 
 		processLoadedApi(CONTENT, QUERY, TYPE, PARAMS) {
+			
 
 			// remote table format
 			if (!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"]
@@ -1055,11 +1315,16 @@ export default Vue.component("research-section", {
 
 				case "json":
 					if (!!dataWrapper) {
+						
 						let dataEntity = CONTENT;
 
 						dataWrapper.map(w => {
 							dataEntity = dataEntity[w];
 						})
+
+						if(!Array.isArray(dataEntity)) {
+							dataEntity = [dataEntity];
+						}
 
 						data = dataEntity;
 
@@ -1087,13 +1352,19 @@ export default Vue.component("research-section", {
 					break;
 			}
 
+
 			// if loaded data is processed
 			if (data.length > 0) {
-
+				if (typeof data == "string") {
+					data = JSON.parse(data)
+				}
+				
 				let tableFormat = (!!this.remoteTableFormat) ? this.remoteTableFormat : this.sectionConfig["table format"];
+				
 
 				if (!!tableFormat && !!tableFormat["data convert"]) {
 					let convertConfig = tableFormat["data convert"];
+					
 					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
 				}
 
@@ -1102,6 +1373,7 @@ export default Vue.component("research-section", {
 				let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 					true : null;
 
+				
 				if (!!cumulateData) {
 
 					let queryKeyName = (!!this.dataPoint["query key name"]) ? this.dataPoint["query key name"] : "queryKey";
@@ -1137,6 +1409,7 @@ export default Vue.component("research-section", {
 						this.queryApi(paramsString, TYPE, PARAMS)
 					}
 				} else {
+					
 					this.sectionData = this.checkPreFilters(data);
 					this.loadingDataFlag = "down";
 					
@@ -1144,16 +1417,13 @@ export default Vue.component("research-section", {
 				}
 
 			} else {
+				this.loadingDataFlag = "down";
 				this.sectionData = null;
+				this.noLoadedData = "No data is returned. Please check query parameters.";
 			}
-
 		},
 
 		processLoadedFile(CONTENT) {
-
-			//console.log(CONTENT)
-
-			
 		},
 
 		checkPreFilters(DATA) {
@@ -1179,6 +1449,7 @@ export default Vue.component("research-section", {
 				let sortBy = this.sectionConfig["table format"]["initial sort by"]
 				let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
 				/* implement sort direction */
+				
 				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);
 			}
 
@@ -1214,7 +1485,8 @@ export default Vue.component("research-section", {
 					this.sectionID
 				);
 
-				this.loadingDataFlag = "down"
+				this.loadingDataFlag = "down";
+				this.noLoadedData = "No data is returned. Please check query parameters.";
 				
 			}
 		}
@@ -1257,6 +1529,15 @@ button.red-background {
 	border: solid 1px #aa5555 !important;
 }
 
+.required-parameter {
+	font-size: 0.7em;
+	text-transform: capitalize;
+}
+
+.required-parameters-wrapper > .required-parameter:not(:last-child):after {
+  content: ", ";
+}
+
 .no-search-value {
 	color: #ff0000 !important;
 }
@@ -1282,6 +1563,12 @@ button.red-background {
 	padding: 0 15px;
 	margin-right: 10px;
 	color: #006633;
+}
+
+.no-data-flag {
+	font-size: 0.7em;
+    font-weight: 600;
+	color: #33cc77;
 }
 
 .data-loading-flag.hidden {
@@ -1315,4 +1602,25 @@ button.red-background {
 	border-bottom: solid 1px #fff;
 	background-color: #fff;
 }
+
+.byor-shortened-string {
+    position: relative;
+}
+
+.byor-shortened-string .raw-string {
+    position: absolute;
+    display: none;
+	background-color: #333333;
+	color: #ffffff;
+	padding: 3px 8px;
+	border: solid 1px #ddd;
+	border-radius: 3px;
+    z-index: 2;
+	top: -20px;
+}
+
+.byor-shortened-string:hover .raw-string {
+    display: block;
+}
+
 </style>

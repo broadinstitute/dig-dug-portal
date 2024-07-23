@@ -25,12 +25,12 @@
             &lt;=1</span
         >
         <b-table
-            v-if="gene && rows > 0"
+            v-if="pageKey && rows > 0"
             hover
             small
             responsive="sm"
             :items="tableData"
-            :fields="fields"
+            :fields="leadTableField !== 'phenotype' ? fields.filter(f => f.key !== 'group') : fields"
             :per-page="perPage"
             :current-page="currentPage"
         >
@@ -48,7 +48,7 @@
                         <div>
                             <a
                                 v-if="phenotypeMap"
-                                :href="`/region.html?phenotype=${r.item.phenotype}&chr=${gene.chromosome}&start=${gene.start}&end=${gene.end}`"
+                                :href="`/region.html?phenotype=${r.item.phenotype}&chr=${r.item.chromosome}&start=${r.item.start}&end=${r.item.end}`"
                                 >Open region page with selected phenotype</a
                             >
                         </div>
@@ -56,12 +56,15 @@
                 </a>
                 &nbsp;
             </template>
+            <template #cell(gene)="r">
+                <a :href="`/gene.html?gene=${r.item.gene}`">
+                    {{ r.item.gene }}
+                </a>
+            </template>
             <template #cell(link)="r">
-                <a
-                    target="_blank"
-                    class="btn view-features-btn btn-secondary"
+                <a class="btn view-features-btn btn-secondary"
                     style="color: #ffffff !important"
-                    :href="`/hugecalculator.html?gene=${gene.name}&phenotype=${r.item.phenotype}&prior=0.3696`"
+                    :href="`/hugecalculator.html?gene=${r.item.gene}&phenotype=${r.item.phenotype}&prior=0.3696`"
                     >Open</a
                 >
             </template>
@@ -97,15 +100,15 @@ export default Vue.component("HugeScoresTable", {
     components: {
         DataDownload,
     },
-    props: ["gene", "hugeScores", "phenotypeMap", "filter"],
+    props: ["leadTableField", "pageKey", "hugeScores", "phenotypeMap", "filter"],
     data() {
         return {
             perPage: 10,
             currentPage: 1,
             fields: [
                 {
-                    key: "phenotype",
-                    label: "Phenotype",
+                    key: `${this.$props.leadTableField}`,
+                    label: `${this.capitalizedFormatter(this.$props.leadTableField)}`,
                 },
                 {
                     key: "group",
@@ -163,20 +166,22 @@ export default Vue.component("HugeScoresTable", {
         },
 
         tableData() {
-            //console.log("this.hugeScores", this.hugeScores);
             let assocs = this.hugeScores;
             let phenotypeMap = this.phenotypeMap;
 
             if (!phenotypeMap) {
                 return [];
             }
-
+            assocs.forEach(item => {
+                if (!item.range){
+                    item.range = this.getRange(item.huge);
+                }
+            });
             // remove unknown phenotypes
             assocs = assocs.filter((a) => phenotypeMap[a.phenotype]);
             if (this.filter) {
                 return assocs.filter(this.filter);
             }
-
             return assocs;
         },
     },
@@ -189,6 +194,24 @@ export default Vue.component("HugeScoresTable", {
     methods: {
         phenotypeFormatter: Formatters.phenotypeFormatter,
         floatFormatter: Formatters.floatFormatter,
+        capitalizedFormatter: Formatters.capitalizedFormatter,
+        getRange(x){
+            return x
+                ? x >= 350
+                    ? "Compelling"
+                    : x >= 100
+                    ? "Extreme"
+                    : x >= 30
+                    ? "Very strong"
+                    : x >= 10
+                    ? "Strong"
+                    : x >= 3
+                    ? "Moderate"
+                    : x > 1
+                    ? "Anecdotal"
+                    : "No evidence"
+                : "";  
+        }
     },
 });
 </script>

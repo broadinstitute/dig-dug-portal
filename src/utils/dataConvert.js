@@ -28,7 +28,13 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
             } else {
                 fieldValue += fData[FIELDS[i]];
             }
+        }
 
+        if (jBy.length >= FIELDS.length) {
+            let startIndex = jBy.length - ((jBy.length - FIELDS.length) + 1);
+            for (let i = startIndex; i < jBy.length; i++) {
+                fieldValue += jBy[i];
+            }
         }
         return fieldValue;
     }
@@ -120,6 +126,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                 case "calculate":
 
+
                     let calType = c["calculation type"];
 
                     switch (calType) {
@@ -129,6 +136,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             break;
 
                         case "math":
+
                             let calcString = "";
 
                             c["expression"].map(e => {
@@ -137,6 +145,17 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             });
 
                             tempObj[c["field name"]] = eval(calcString);
+
+
+                            if ((!!c['min number'] || c['min number'] === 0) && tempObj[c["field name"]] < c['min number']) {
+
+                                tempObj[c["field name"]] = c['min number']
+                            }
+
+                            if ((!!c['max number'] || c['max number'] === 0) && tempObj[c["field name"]] > c['max number']) {
+                                tempObj[c["field name"]] = c['max number']
+                            }
+
                             d[c["field name"]] = tempObj[c["field name"]];
 
                     }
@@ -148,9 +167,17 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "raw":
+
                     let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
-                    tempObj[c["field name"]] = rawValue; //d[c["raw field"]];
-                    d[c["field name"]] = tempObj[c["field name"]];
+
+                    if (d[c["raw field"]] === 0) {
+                        rawValue = "0";
+                    }
+                    if (!!rawValue) {
+                        tempObj[c["field name"]] = rawValue;
+                        d[c["field name"]] = tempObj[c["field name"]];
+                    }
+
                     break;
 
                 case "string to number":
@@ -165,6 +192,19 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                 case "array to string":
                     tempObj[c["field name"]] = array2String(d[c["raw field"]], c["separate by"]);
+                    d[c["field name"]] = tempObj[c["field name"]];
+                    break;
+
+                case "string to array":
+                    let sArray = d[c["raw field"]].split(c["separate by"]);
+
+                    let takeIndex = (c["take index"] === 0 || !!c["take index"]) ? sArray[c["take index"]] : null;
+
+                    if (takeIndex) {
+                        tempObj[c["field name"]] = sArray[c["take index"]]
+                    } else {
+                        tempObj[c["field name"]] = sArray
+                    }
                     d[c["field name"]] = tempObj[c["field name"]];
                     break;
 
@@ -201,7 +241,68 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
         return tempObj;
     }
 
+    let flatten = (obj, path = '') => {
+        if (!(obj instanceof Object)) return { [path.replace(/\.$/g, '')]: obj };
+
+        return Object.keys(obj).reduce((output, key) => {
+            return obj instanceof Array ?
+                { ...output, ...flatten(obj[key], path + '[' + key + '].') } :
+                { ...output, ...flatten(obj[key], path + key + '.') };
+        }, {});
+    }
+
     if (CONVERT != "no convert") {
+        let data2Rows = CONVERT.filter(c => c.type == "data to rows");
+
+        if (data2Rows.length > 0) {
+
+            let rowsData = [];
+            data2Rows.map(f => {
+                DATA.map(d => {
+                    let row = d[f["raw field"]];
+                    let orgList = f["group by"];
+
+                    if (!!row) {
+                        let rowData = {};
+                        orgList.map((field, fIndex) => {
+                            rowData[field] = [];
+                            rowData["_key" + fIndex] = []
+                        })
+                        // first, flatten data, then get the list of flatten keys
+                        let flattenRow = flatten(row);
+                        let flattenKeys = Object.keys(flattenRow);
+
+                        flattenKeys.map(key => {
+                            orgList.map((field, fIndex) => {
+                                if (!!key.includes(field)) {
+                                    rowData[field].push(flattenRow[key]);
+                                    rowData["_key" + fIndex].push(key)
+                                }
+                            })
+                        })
+
+
+
+                        let rowsLength = rowData[orgList[0]].length;
+
+                        for (let i = 0; i < rowsLength; i++) {
+                            let tempObj = {};
+                            orgList.map((field, fIndex) => {
+                                tempObj[field] = rowData[field][i];
+                                tempObj["_key" + fIndex] = rowData["_key" + fIndex][i];
+                            })
+
+                            rowsData.push(tempObj);
+                        }
+                    }
+                })
+            })
+
+            DATA = rowsData;
+        }
+
+
+
         DATA.map(d => {
 
             let tempObj = applyConvert(d, CONVERT, PHENOTYPE_MAP);
@@ -211,15 +312,18 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
             let newTempObj = {};
 
+            // here is the problem
             dKeys.map((dKey) => {
                 if (
                     typeof tempObj[dKey] == "object" &&
                     (Array.isArray(tempObj[dKey]) == true && tempObj[dKey].length > 0)
                 ) {
+
                     let tempArr = [];
 
                     tempObj[dKey].map((fd) => {
                         if (typeof fd == "object" && Array.isArray(fd) == false) {
+
                             let tempFDObj = applyConvert(
                                 fd,
                                 CONVERT,

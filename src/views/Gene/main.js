@@ -22,7 +22,7 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
-import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
+import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 
@@ -32,6 +32,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
@@ -85,7 +86,7 @@ new Vue({
         LocusZoom,
         LocusZoomPhewasPanel,
         ResearchPheWAS,
-        ResearchExpressionPlot,
+        ResearchExpressionDisplay,
         ResearchDataTable,
         SearchHeaderWrapper,
         ResultsDashboard,
@@ -96,6 +97,7 @@ new Vue({
         HugeCalScoreSection,
         HugeScoresTable,
         EffectorGenesSectionOnGene,
+        ResearchSingleSearch,
     },
 
     data() {
@@ -234,6 +236,7 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
+                regionUtils: regionUtils,
             }
             return utils;
         },
@@ -370,22 +373,6 @@ new Vue({
                 score["group"] = phenotypeEntity
                     ? phenotypeEntity.group
                     : "No group info";
-                let range =
-                    data[i].huge >= 350
-                        ? "Compelling"
-                        : data[i].huge >= 100
-                            ? "Extreme"
-                            : data[i].huge >= 30
-                                ? "Very Strong"
-                                : data[i].huge >= 10
-                                    ? "Strong"
-                                    : data[i].huge >= 3
-                                        ? "Moderate"
-                                        : data[i].huge > 1
-                                            ? "Anecdotal"
-                                            : "No Evidence";
-
-                score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
 
                 // skip associations not part of the disease group
@@ -624,7 +611,7 @@ new Vue({
         // the region for the gene was found
         region(region) {
             if (region) {
-                uiUtils.hideElement("pageSearchHeaderContent");
+                //uiUtils.hideElement("pageSearchHeaderContent");
                 this.$store.dispatch("queryGeneRegion", region);
             }
         },
@@ -698,7 +685,7 @@ new Vue({
                     .getElementById("invalidGeneRedirect")
                     .setAttribute("href", "/gene.html?gene=" + gene);
                 uiUtils.showElement("invalidGeneWarning");
-                uiUtils.showElement("pageSearchHeaderContent");
+                //uiUtils.showElement("pageSearchHeaderContent");
             }
         },
 

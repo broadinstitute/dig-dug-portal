@@ -38,6 +38,7 @@ import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingSpinner.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -47,6 +48,8 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 import filterUtils from "@/utils/filterUtils";
+import regionUtils from "@/utils/regionUtils";
+import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
 
 import Alert, {
@@ -83,12 +86,14 @@ new Vue({
         ResearchSection,
         ResearchSectionsSummary,
         ResearchMultiSectionsSearch,
+        ResearchSingleSearch,
         ResearchLoadingSpinner
     },
     data() {
         return {
             starItems: [],
             sectionsData: [],
+            sectionDescriptions: null,
             pageID: null,
             regionZoom: 0,
             regionViewArea: 0,
@@ -97,6 +102,7 @@ new Vue({
             devCK: null,
             dataFiles: [],
             dataTableFormat: null,
+            context: null,
             colors: {
                 mild: [
                     "#007bff25",
@@ -180,6 +186,18 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
+
+        /*this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");*/
+        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
+        if (this.pageID) {
+            this.$store.dispatch("hugeampkpncms/getResearchMode", {
+                pageID: this.pageID,
+            });
+        }
+
+
     },
 
     render(createElement, context) {
@@ -187,6 +205,7 @@ new Vue({
     },
 
     mounted() {
+
 
     },
     beforeDestroy() {
@@ -204,6 +223,8 @@ new Vue({
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
                 filterUtils: filterUtils,
+                regionUtils: regionUtils,
+                userUtils: userUtils,
             }
             return utils;
         },
@@ -217,15 +238,16 @@ new Vue({
                 return JSON.parse(contents[0]["field_data_table_format"]);
             }
         },
-        sectionDescriptions() {
+        initialDescriptions() {
             let contents = this.researchPage;
 
             if (contents === null || contents[0]["body"] == false) {
-                return null;
+                return {};
             } else {
 
                 if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
+
                     let description = document.createElement('div');
                     description.setAttribute("style", "visibility: hidden;height: 1px")
                     description.innerHTML = contents[0]["body"];
@@ -234,17 +256,28 @@ new Vue({
                     let sectionDescriptions = {};
 
                     this.sectionConfigs.sections.map(section => {
-                        let sDescription = (!!document.getElementById(section["section id"] + "_description")) ?
-                            document.getElementById(section["section id"] + "_description").innerHTML : '';
-                        if (!!sDescription) {
-                            sectionDescriptions[section["section id"]] = sDescription;
+
+                        let context = !!keyParams["context"] ? "_" + keyParams["context"] : "";
+
+                        let defaultDescription = document.getElementById(section["section id"] + "_description");
+                        let contextDescription = document.getElementById(section["section id"] + "_description" + context);
+
+                        let sDescription = '';
+
+                        if (!!contextDescription) {
+                            sDescription = contextDescription.innerHTML;
+                        } else if (!!defaultDescription) {
+                            sDescription = defaultDescription.innerHTML;
                         }
+
+                        sectionDescriptions[section["section id"]] = sDescription;
+
                     })
                     description.parentNode.removeChild(description);
 
                     return sectionDescriptions;
                 } else {
-                    return null
+                    return {}
                 }
             }
         },
@@ -338,9 +371,13 @@ new Vue({
                         pr.parameter == "phenotype" &&
                         pr.values == "kp phenotypes"
                     ) {
-                        let values = this.phenotypesInSession
+                        //console.log("this.phenotypesInSession", this.phenotypesInSession)
+
+                        let shorterFirst = this.phenotypesInSession.sort((a, b) => a.description.length - b.description.length);
+
+                        let values = shorterFirst
                             .map((p) => p.name)
-                            .sort();
+                        //.sort();
                         pr.values = values;
                     }
                 });
@@ -430,8 +467,6 @@ new Vue({
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
-            console.log('frontContents', contents);
-
             if (contents.length === 0) {
                 return {};
             }
@@ -472,7 +507,9 @@ new Vue({
                 return null;
             } else {
 
-                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                if (!!this.sectionConfigs["is front page"]) {
+                    return contents[0]["body"];
+                } else if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
                     let description = document.createElement('div');
                     description.style.display = 'none';
@@ -729,9 +766,6 @@ new Vue({
                                 : convertedData;
                     }
 
-                    //console.log("typeof convertedData", typeof convertedData);
-                    //console.log("returnData", returnData);
-
                     let processedData =
                         this.dataTableFormat != null &&
                             !!this.dataTableFormat["data convert"]
@@ -877,7 +911,6 @@ new Vue({
         },
         dataFilesLabels() {
 
-
             let content = null;
 
             if (!!this.researchPage && !!this.$store.state.bioPortal.phenotypes && this.$store.state.bioPortal.phenotypes.length > 0) {
@@ -917,6 +950,22 @@ new Vue({
     },
 
     watch: {
+        sectionConfigs(CONFIGS) {
+            let context;
+
+            if (!!CONFIGS['context']) {
+                let group = "_context_" + CONFIGS['context']['group'];
+                context = this.utilsBox.userUtils.getContext(group);
+            }
+
+            if (!!context) {
+                let keyId = context.toLowerCase().replace(" ", "_");
+                keyParams.set({ "context": keyId });
+                this.context = keyId;
+            } else {
+                this.context = null;
+            }
+        },
         filteredData(DATA) {
             this.getSubHeader();
         },
@@ -1176,17 +1225,7 @@ new Vue({
         },
     },
 
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
-        if (this.pageID) {
-            this.$store.dispatch("hugeampkpncms/getResearchMode", {
-                pageID: this.pageID,
-            });
-        }
-    },
+
 
     methods: {
         ...uiUtils,
@@ -1195,7 +1234,61 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ///single search
+        getExampleLink(EXAMPLE) {
+            let exampleLink;
+            this.sectionConfigs['single search']['search parameters'].map(param => {
+                if (param.parameter == EXAMPLE.parameter) {
+                    exampleLink = "<a href='/research.html?pageid=" + param["target page"]["page id"];
+                    exampleLink += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
+                    exampleLink += "&" + param.parameter + "=" + EXAMPLE.value + "'>" + EXAMPLE.value + "</a>";
+                }
+            })
+            return exampleLink;
+        },
         /// multi-sections use
+        updateSectionDescriptions() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["body"] == false) {
+                return null;
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
+                    && !!this.sectionConfigs["is multi section"] == true) {
+                    let description = document.createElement('div');
+                    description.setAttribute("style", "visibility: hidden;height: 1px")
+                    description.innerHTML = contents[0]["body"];
+                    document.body.appendChild(description);
+
+                    let sectionDescriptions = {};
+
+                    this.sectionConfigs.sections.map(section => {
+
+                        let context = !!keyParams["context"] ? "_" + keyParams["context"] : "";
+
+                        let defaultDescription = document.getElementById(section["section id"] + "_description");
+                        let contextDescription = document.getElementById(section["section id"] + "_description" + context);
+
+                        let sDescription = '';
+
+                        if (!!contextDescription) {
+                            sDescription = contextDescription.innerHTML;
+                        } else if (!!defaultDescription) {
+                            sDescription = defaultDescription.innerHTML;
+                        }
+
+                        sectionDescriptions[section["section id"]] = sDescription;
+
+                    })
+                    description.parentNode.removeChild(description);
+
+                    this.sectionDescriptions = sectionDescriptions;
+                } else {
+                    this.sectionDescriptions = null
+                }
+            }
+        },
         setZoom(SETTING) {
             this[SETTING.property] = SETTING.value;
         },
@@ -1229,6 +1322,186 @@ new Vue({
             }
 
             return sectionInGroup;
+        },
+        isInEntity(SECTION) {
+            let entity = keyParams['entity'];
+            let pageEntities = this.sectionConfigs['entity'];
+            let sectionInEntity = !pageEntities || (!!pageEntities && !!entity && !!pageEntities[entity].includes(SECTION)) ? true : null;
+
+            return sectionInEntity;
+        },
+        setContext(KEY, SECTIONS) {
+            let group = "_context_" + this.sectionConfigs['context']['group'];
+
+            if (KEY == 'remove') {
+                keyParams.set({ "context": '' });
+
+                this.context = null;
+
+                this.utilsBox.userUtils.clearContext(group);
+            } else {
+                let keyId = KEY.toLowerCase().replace(" ", "_");
+                keyParams.set({ "context": keyId });
+
+                this.context = keyId;
+
+                this.utilsBox.userUtils.saveContext(group, keyId);
+            }
+
+            location.reload();
+
+            //this.updateSectionDescriptions();
+        },
+        getTabGroups(TAB_GROUPS) {
+
+            if (TAB_GROUPS) {
+                let groups = [];
+
+                TAB_GROUPS.map(G => {
+                    if (!!G["required parameters to display"]) {
+                        let required = G["required parameters to display"];
+
+                        let testRequired = true;
+
+                        required.map(R => {
+                            for (const [rKey, rValue] of Object.entries(R)) {
+                                let rKeyParam = keyParams[rKey];
+                                let rValues = rValue.split(",");
+
+                                if (!rKeyParam || (!!rKeyParam && !rValues.includes(rKeyParam))) {
+                                    testRequired = false;
+                                }
+                            }
+                        })
+
+                        if (!!testRequired) {
+                            groups.push(G);
+                        }
+                    } else {
+                        groups.push(G);
+                    }
+                })
+
+                let context = keyParams["context"];
+                let pageContext;
+
+                if (!!this.sectionConfigs['context'] && this.sectionConfigs['context']['contexts']) {
+                    let contextItmes = Object.keys(this.sectionConfigs['context']['contexts']);
+
+                    contextItmes.map(c => {
+                        if (c.toLowerCase().replace(" ", "_") == context) {
+                            pageContext = this.sectionConfigs['context']['contexts'][c];
+                        }
+                    })
+                }
+
+                if (!!context) {
+                    let gInOrder = [];
+
+                    if (!!context && !!pageContext) {
+                        pageContext.map(c => {
+                            groups.map(g => {
+                                if (g["group id"] == c) {
+                                    gInOrder.push(g)
+                                }
+                            })
+                        })
+                    }
+                    groups = gInOrder
+                }
+
+                return groups;
+            } else {
+                return null;
+            }
+
+        },
+        getSections(SECTIONS) {
+
+            let sections = [];
+
+            SECTIONS.map(S => {
+                if (!!S["required parameters to display"]) {
+                    let required = S["required parameters to display"];
+
+                    let testRequired = true;
+
+                    required.map(R => {
+                        for (const [rKey, rValue] of Object.entries(R)) {
+                            let rKeyParam = keyParams[rKey];
+                            let rValues = rValue.split(",");
+
+                            if (!rKeyParam || (!!rKeyParam && !rValues.includes(rKeyParam))) {
+                                testRequired = false;
+                            }
+                        }
+                    })
+
+                    if (!!testRequired) {
+                        sections.push(S);
+                    }
+                } else {
+                    sections.push(S);
+                }
+            })
+
+            /// check entities setting
+
+            let entity = keyParams["entity"];
+            let pageEntity = (this.sectionConfigs['entity']) ? this.sectionConfigs['entity'][entity] : null;
+
+            if (!!entity && !!pageEntity) {
+                let sInOrder = [];
+
+                pageEntity.map(e => {
+
+                    sections.map(s => {
+                        if (s["section id"] == e) {
+                            sInOrder.push(s)
+                        }
+                    })
+                })
+
+                sections = sInOrder
+            }
+
+
+            /// check context setting
+
+            let context = keyParams["context"];
+            let pageContext;
+
+            if (!!this.sectionConfigs['context'] && this.sectionConfigs['context']['contexts']) {
+                let contextItmes = Object.keys(this.sectionConfigs['context']['contexts']);
+
+                contextItmes.map(c => {
+                    if (c.toLowerCase().replace(" ", "_") == context) {
+                        pageContext = this.sectionConfigs['context']['contexts'][c];
+                    }
+                })
+            }
+
+
+
+            if (!!context && !!pageContext) {
+
+                let sInOrder = [];
+
+
+                pageContext.map(c => {
+
+                    sections.map(s => {
+                        if (s["section id"] == c) {
+                            sInOrder.push(s)
+                        }
+                    })
+
+                })
+
+                sections = sInOrder
+            }
+
+            return sections;
         },
         saveCapturedData(TYPE, TITLE) {
             let data = this.$store.state.capturedData.filter(d => d.title == TITLE);
@@ -1564,7 +1837,7 @@ new Vue({
 
                             replaceArr.map((r) => {
                                 newString = sIndex == 0 ? rawString : newString;
-                                //console.log("newString", newString);
+
                                 if (newString) {
                                     newString = newString.replaceAll(
                                         r.from,
@@ -1591,7 +1864,7 @@ new Vue({
             };
 
             if (CONVERT != "no convert") {
-                //console.log(this.$store.state.bioPortal.phenotypeMap);
+
                 let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
                 DATA.map((d) => {

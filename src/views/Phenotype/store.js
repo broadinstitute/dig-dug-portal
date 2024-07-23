@@ -15,9 +15,12 @@ export default new Vuex.Store({
         associations: bioIndex("global-associations"),
         annotations: bioIndex("global-enrichment"),
         genes: bioIndex("gene-finder"),
+        genes52k: bioIndex("gene-finder-52k"),
+        hugePhenotype: bioIndex("huge-phenotype"),
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
         geneticCorrelation: bioIndex("genetic-correlation"),
-        pathwayAssoc: bioIndex("pathway-associations")
+        pathwayAssoc: bioIndex("pathway-associations"),
+        c2ct: bioIndex("c2ct"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -29,7 +32,7 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
-        manhattanPlotAvailable: true
+        manhattanPlotAvailable: true,
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -47,15 +50,15 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
-        }
+        },
     },
     getters: {
         documentationMap(state) {
             return {
                 phenotype: state.phenotype.description,
-                ancestry: state.ancestry
-            }
-        }
+                ancestry: state.ancestry,
+            };
+        },
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
@@ -63,25 +66,53 @@ export default new Vuex.Store({
             keyParams.set({ phenotype: phenotype.name });
         },
 
+        onAncestryChange(context){
+            context.dispatch("queryPhenotype");
+        },
+
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
             let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
-            let ancestryQuery = { q: `${context.state.phenotype.name},${context.state.ancestry}` };
+            let ancestryQuery = {
+                q: `${context.state.phenotype.name},${context.state.ancestry}`,
+            };
             let ancestryAssocQuery = { ...ancestryQuery, limit: 1000 };
-            let ancestryOptionalQuery = !context.state.ancestry ? query : ancestryQuery;
-            let geneQuery = { ...ancestryOptionalQuery, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
+            let ancestryOptionalQuery = !context.state.ancestry
+                ? query
+                : ancestryQuery;
+            let geneQuery = {
+                ...ancestryOptionalQuery,
+                limitWhile: (r) => r.pValue <= 0.05,
+                limit: 1000,
+            };
+            let gene52kQuery = {
+                ...query,
+                limitWhile: (r) => r.pValue <= 0.05,
+                limit: 1000,
+            };
+            let hugePhenotypeQuery = { ...query, limit: 1000 };
+            let pathwayAssocQuery = { ...ancestryOptionalQuery, limit: 100 };
 
-            if (context.state.ancestry == "" || context.state.ancestry == null) {
+            if (
+                context.state.ancestry == "" ||
+                context.state.ancestry == null
+            ) {
                 context.dispatch("associations/query", assocQuery);
             } else {
-                context.dispatch("ancestryGlobalAssoc/query", ancestryAssocQuery);
+                context.dispatch(
+                    "ancestryGlobalAssoc/query",
+                    ancestryAssocQuery
+                );
             }
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
+            context.dispatch("genes52k/query", gene52kQuery);
+            context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
-            context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
+            context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
+            context.dispatch("c2ct/query", ancestryOptionalQuery);
             context.state.manhattanPlotAvailable = true;
         },
         phenotypesInSession(context, PHENOTYPES) {
@@ -98,7 +129,5 @@ export default new Vuex.Store({
             console.log("onState", PHENOTYPE);
             context.commit("setSelectedPhenotype", PHENOTYPE);
         },
-
-
-    }
+    },
 });

@@ -21,7 +21,7 @@
 				class="m-plot-legend"
 				v-html="renderConfig.legend"
 			></div>
-			<div v-for="item in plotsList" :key="item">
+			<div v-for="item in plotsList" :key="item" :id="sectionId + 'mPlotWrapper'">
 				<h4 v-if="item != 'default'">{{ item }}</h4>
 
 				<canvas
@@ -35,7 +35,33 @@
 					height=""
 				>
 				</canvas>
+				<div class="download-images-setting">
+					<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+					<ul class="options" >
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_mPlot', 'svg', 'vector_m_plot_' + sectionId, item, sectionId + '_mPlot')">Download SVG</a>
+						</li>
+						<li>
+							<a href="javascript:;"
+							@click="downloadImage('mPlot' + sectionId + item, sectionId+ item + '_mPlot', 'png')">Download PNG</a>
+						</li>
+					</ul>
+				</div>
 			</div>
+
+			<research-m-bitmap-plot-vector
+				v-if="!!renderData"
+				:renderData="renderData"
+				:renderConfig="mPlotRenderConfig"
+				:colors="chromosomeColors"
+				:margin="adjPlotMargin"
+				:chrLengths="chromosomeLength"
+				:sectionId="sectionId"
+				:utils="utils"
+				:ref="sectionId + '_mPlot'"
+			>
+			</research-m-bitmap-plot-vector>
 			<div
 				v-if="!!renderConfig.label"
 				class="m-plot-label"
@@ -63,7 +89,7 @@
 				class="qq-plot-legend"
 				v-html="renderConfig.legend"
 			></div>
-			<div v-for="item in plotsList" :key="item">
+			<div v-for="item in plotsList" :key="item" :id="sectionId + 'qqPlotWrapper'">
 				<h4 v-if="item != 'default'">{{ item }}</h4>
 
 				<canvas
@@ -77,7 +103,32 @@
 					height=""
 				>
 				</canvas>
+				<div class="download-images-setting">
+						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+						<ul class="options" >
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_qqPlot', 'svg', 'vector_qq_plot_' + sectionId, item, sectionId + '_qqPlot')">Download SVG</a>
+							</li>
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('qqPlot' + sectionId + item, sectionId + item + '_qqPlot', 'png')">Download PNG</a>
+							</li>
+						</ul>
+					</div>
 			</div>
+			<research-qq-plot-vector
+					v-if="!!renderData"
+					:renderData="renderData"
+					:renderConfig="mqQPlotRenderConfig"
+					:colors="chromosomeColors"
+					:margin="adjPlotMargin"
+					:chrLengths="chromosomeLength"
+					:sectionId="sectionId"
+					:utils="utils"
+					:ref="sectionId + '_qqPlot'"
+				>
+				</research-qq-plot-vector>
 			<div
 				v-if="!!renderConfig.label"
 				class="qq-plot-label"
@@ -90,10 +141,9 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
-//import sortUtils from "@/utils/sortUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
+import ResearchMPlotBitmapVector from "@/components/researchPortal/vectorPlots/ResearchMPlotBitmapVector.vue";
+import ResearchQQPlotVector from "@/components/researchPortal/vectorPlots/ResearchQqPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -155,10 +205,11 @@ export default Vue.component("research-m-qq-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
 	},
-	components: {},
+	components: {
+		ResearchMPlotBitmapVector,
+		ResearchQQPlotVector
+	},
 	mounted: function () {
 		this.renderPlot(this.renderData);
 		window.addEventListener("resize", this.onResize);
@@ -167,6 +218,44 @@ export default Vue.component("research-m-qq-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+			} :
+				{
+					left: this.leftMargin,
+					right: this.rightMargin,
+					top: this.topMargin,
+					bottom: this.bottomMargin,
+					bump: 10,
+				};
+
+			return plotMargin;
+		},
+		mPlotRenderConfig() {
+			let renderConfig = JSON.parse(JSON.stringify(this.renderConfig));
+
+			renderConfig["y axis label"] = this.renderConfig["m-plot y axis label"]
+			renderConfig["x axis label"] = this.renderConfig["m-plot x axis label"]
+			renderConfig["thresholds"] = this.renderConfig["m-plot thresholds"]
+
+			return renderConfig;
+		},
+		mqQPlotRenderConfig() {
+			let renderConfig = JSON.parse(JSON.stringify(this.renderConfig));
+
+			renderConfig["y axis label"] = this.renderConfig["qq-plot y axis label"]
+			renderConfig["x axis label"] = this.renderConfig["qq-plot x axis label"]
+
+			return renderConfig;
+		},
 		plotsList() {
 			let rawData = this.plotData;
 			let compareGroups = [];
@@ -195,11 +284,9 @@ export default Vue.component("research-m-qq-plot", {
 			let compareGroups = [];
 			let massagedData = {};
 			let plotsList = [...this.plotsList];
-			let lambdaValue = !!this.plotData[0].lambda
-				? this.plotData[0].lambda
+			let lambdaValue = !!this.plotData[0][this.renderConfig["lambda"]]
+				? this.plotData[0][this.renderConfig["lambda"]]
 				: null;
-
-			//console.log("lambdaValue", lambdaValue);
 
 			plotsList.map((c) => {
 				let tempObj = { lambda: lambdaValue, sorted: {}, unsorted: [] };
@@ -307,8 +394,6 @@ export default Vue.component("research-m-qq-plot", {
 				});
 			}
 
-			//console.log("massagedData", massagedData);
-
 			return massagedData;
 		},
 	},
@@ -321,7 +406,15 @@ export default Vue.component("research-m-qq-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
+		downloadImage(ID, NAME, TYPE, SVG, DATA, ref) {
+			if (TYPE == 'svg') {
+				let refName = ref;
+				this.$refs[refName].renderPlot(DATA);
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, SVG);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 		hidePanel(element) {
 			this.utils.uiUtils.hideElement(element);
 		},
@@ -506,7 +599,6 @@ export default Vue.component("research-m-qq-plot", {
 				(this.topMargin + yBump + this.bottomMargin);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
-				//console.log("renderData", dKey, dValue);
 
 				let c = document.getElementById("qqPlot" + this.sectionId + dKey);
 
@@ -560,8 +652,6 @@ export default Vue.component("research-m-qq-plot", {
 						"number",
 						"desc"
 					);
-
-					//console.log("DATA.lambda", dValue.lambda);
 
 					if (!!dValue.lambda) {
 						ctx.font = "26px Arial";
@@ -774,7 +864,7 @@ export default Vue.component("research-m-qq-plot", {
 				(this.topMargin + yBump + this.bottomMargin);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
-				//console.log("renderData", dKey, dValue);
+				
 				let c = document.getElementById("mPlot" + this.sectionId + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
@@ -1007,8 +1097,6 @@ export default Vue.component("research-m-qq-plot", {
 					if (!!this.renderConfig["m-plot thresholds"]) {
 						this.renderConfig["m-plot thresholds"].map((t) => {
 							let tValue = -Math.log10(Number(t));
-
-							//console.log("thresholds", t, tValue);
 
 							let yPosByPixel = plotHeight / (yMax - yMin);
 

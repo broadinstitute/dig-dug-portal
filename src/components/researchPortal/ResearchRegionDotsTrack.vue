@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="region_track_wrapper" class="region-track-wrapper">
+        <div :id="'region_track_wrapper'+sectionId" class="region-track-wrapper">
             
             <div :id="'block_data_' + sectionId" class="block-data hidden">
                 <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
@@ -17,6 +17,32 @@
                 @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
                 width="" height="">
             </canvas>
+             <div class="download-images-setting">
+                <span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+                <ul class="options" >
+                    <li>
+                        <a href="javascript:;"
+                        @click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_regionDots', 'svg')">Download SVG</a>
+                    </li>
+                    <li>
+                        <a href="javascript:;"
+                        @click="downloadImage('track_' + sectionId, sectionId + '_regionDots', 'png')">Download PNG</a>
+                    </li>
+                </ul>
+            </div>
+            <research-region-dots-vector
+            v-if="!!plotData"
+                :renderData="renderData"
+                :renderConfig="plotConfig"
+                :colorGroups="colorGroups"
+                :colors="colors"
+                :margin="adjPlotMargin"
+                :region="viewingRegion"
+                :sectionId="sectionId"
+                :utils="utils"
+                :ref="sectionId + '_regionDots'"
+            >
+            </research-region-dots-vector>
         </div>
     </div>
 </template>
@@ -25,6 +51,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import regionDotsVector from "@/components/researchPortal/vectorPlots/ResearchRegionDotsVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -52,7 +79,7 @@ export default Vue.component("research-region-dots-track", {
     },
     modules: {
     },
-    components: {},
+    components: { regionDotsVector },
     mounted: function () {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);
@@ -147,12 +174,21 @@ export default Vue.component("research-region-dots-track", {
         }
     },
     methods: {
+        downloadImage(ID, NAME, TYPE) {
+            if (TYPE == 'svg') {
+                this.$refs[this.sectionId + '_regionDots'].renderPlot();
+                this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_region_dots_" + this.sectionId);
+            } else if (TYPE == 'png') {
+                this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+            }
+
+        },
         renderPlot(cKey) {
             
             this.posData = {};
 
             let track = this.plotConfig["track height"]*2;
-            let canvasWidth = document.querySelector("#region_track_wrapper").clientWidth * 2;
+            let canvasWidth = document.querySelector("#region_track_wrapper"+this.sectionId).clientWidth * 2;
             let canvasHeight = track+ this.adjPlotMargin.top + this.adjPlotMargin.bottom;
 
             let c, ctx;
@@ -180,7 +216,7 @@ export default Vue.component("research-region-dots-track", {
             let plotWidth = canvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
             let region = this.viewingRegion;
 
-            console.log(region);
+            //console.log(region);
             let xPerPixel = plotWidth / (region.end - region.start);
             let yPerPixel = plotHeight / (this.renderData.high - this.renderData.low);
 
