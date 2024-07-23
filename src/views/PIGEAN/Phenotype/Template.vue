@@ -89,6 +89,9 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Genes with genetic support
+                    </h4>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene"
@@ -134,6 +137,9 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Gene sets that affect genetic support
+                    </h4>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene_set"
@@ -180,7 +186,8 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4> Mechanisms
+                    <h4 class="card-title">
+                        Biological mechanisms underlying the trait
                     </h4>
                     <pigean-table
                         v-if="$parent.plotReady"
