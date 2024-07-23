@@ -178,10 +178,12 @@
                         >
 
                         <b-th
+                            v-b-tooltip.hover
                             colspan="3"
                             class="text-center"
                             variant="secondary"
                             style="border-left: 1px solid #dee2e6"
+                            title="gnomAD exomes r2.0.1"
                             >gnomAD Allele</b-th
                         >
                         <b-th colspan="1"
@@ -206,7 +208,7 @@
                 </template>
                 <template #cell(allelefrequency)="data">
                     <div align="right">
-                        {{ data.item.allelefrequency.toFixed(5) }}
+                        {{ formatAlleleFrequency(data.item.allelefrequency) }}
                     </div>
                 </template>
                 <template #cell(homozygouscount)="data">
@@ -317,7 +319,11 @@
                                 </template>
                                 <template #cell(allelefrequency)="row">
                                     <div align="right">
-                                        {{ row.item.allelefrequency }}
+                                        {{
+                                            formatAlleleFrequency(
+                                                row.item.allelefrequency
+                                            )
+                                        }}
                                     </div>
                                 </template>
                                 <template #cell(n_hom_var_case)="row">
@@ -518,6 +524,7 @@ export default Vue.component("VariantSearch", {
                     sortable: true,
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
+                    formatter: "formatAlleleFrequency",
                 },
                 {
                     key: "homozygouscount",
@@ -606,6 +613,7 @@ export default Vue.component("VariantSearch", {
                     sortable: true,
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
+                    formatter: "formatAlleleFrequency",
                 },
             ],
             variantData: null,
@@ -800,7 +808,7 @@ export default Vue.component("VariantSearch", {
                                     hp.n_het_case +
                                     hp.n_hom_var_case);
                             hpdisplay[j].allelefrequency =
-                                this.formatAlleleFrequency(
+                                this.calculateAlleleFrequency(
                                     hpdisplay[j].allelecount,
                                     hpdisplay[j].allelnumber
                                 );
@@ -871,9 +879,17 @@ export default Vue.component("VariantSearch", {
             if (!item || type !== "row") return;
             if (item.PICK === true) return "row-pick";
         },
-        formatAlleleFrequency(count, number) {
-            if (count === 0 || number === 0) return "0.00000";
-            else return Number.parseFloat(count / number).toFixed(5);
+        calculateAlleleFrequency(count, number) {
+            if (count === 0 || number === 0) return "";
+            else return count / number;
+        },
+        formatAlleleFrequency(frequency) {
+            if (!frequency) return "";
+            if (frequency < 0.0001) {
+                return parseFloat(frequency).toExponential(5);
+            } else {
+                return parseFloat(frequency).toFixed(5);
+            }
         },
         toToggle(row, buttonClicked, isShowing) {
             console.log(

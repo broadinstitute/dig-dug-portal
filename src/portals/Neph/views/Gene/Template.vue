@@ -12,6 +12,7 @@
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-md">
+                    <div class="label">Gene</div>
                     <gene-selectpicker
                         @onGeneChange="$store.dispatch('queryGeneName', $event)"
                     ></gene-selectpicker>
