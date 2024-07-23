@@ -338,8 +338,7 @@ export default Vue.component("pigean-table", {
                 </template>
                 <template #row-details="row">
                     <research-phewas-plot
-                        v-if="phewasData[phewasKey(row.item)]?.length > 0"
-                        :hidden="!row.item.phewasActive"
+                        v-if="phewasData[phewasKey(row.item)]?.length > 0 && row.item.phewasActive"
                         style="width:100%"
                         :canvas-id="`pigean_${row.item.phenotype}_${
                             generateId(row.item.label)}`"

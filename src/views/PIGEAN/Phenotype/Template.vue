@@ -89,6 +89,9 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Genes with genetic support
+                    </h4>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene"
@@ -112,7 +115,7 @@
                         </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$parent.phewasPlotReady"
+                                v-if="$parent.plotReady"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="
@@ -134,6 +137,9 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Gene sets that affect genetic support
+                    </h4>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene_set"
@@ -180,8 +186,8 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 v-if="$parent.phewasPlotData.length > 0">
-                        {{$store.state.phenotype.name}}, {{ $parent.phewasPlotLabel }}
+                    <h4 class="card-title">
+                        Biological mechanisms underlying the trait
                     </h4>
                     <pigean-table
                         v-if="$parent.plotReady"
