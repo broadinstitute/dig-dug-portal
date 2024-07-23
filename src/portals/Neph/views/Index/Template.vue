@@ -46,90 +46,51 @@
                             </div>
 
                             <div class="col-md-12 portal-front-tabs">
-                                <b-tabs content-class="mt-3" align="center">
-                                    <b-tab
-                                        title="Gene, region or variant"
-                                        active
-                                    >
-                                        <div class="front-gene-search-wrapper">
-                                            <div
-                                                class="col-md-12 input-wrapper"
-                                            >
-                                                <autocomplete
-                                                    :placeholder="'Search'"
-                                                    :matches="
-                                                        $parent.matchingGenes
-                                                    "
-                                                    :match-key="null"
-                                                    @input-change="
-                                                        $store.dispatch(
-                                                            'lookupGenes',
-                                                            $event
-                                                        )
-                                                    "
-                                                    @keyup-enter="
-                                                        $store.dispatch(
-                                                            'exploreRegionOrVariant',
-                                                            $event
-                                                        )
-                                                    "
-                                                    @item-select="
-                                                        $store.dispatch(
-                                                            'onGeneChange',
-                                                            $event
-                                                        )
-                                                    "
-                                                ></autocomplete>
-                                            </div>
-                                            <div class="region-search-examples">
-                                                <documentation
-                                                    name="home.example"
-                                                    :group="
-                                                        $parent.diseaseGroup
-                                                            .name
-                                                    "
-                                                ></documentation>
-                                            </div>
-
-                                            <div
-                                                v-show="
-                                                    $store.state
-                                                        .invalidGeneOrRegion
-                                                "
-                                                class="text-danger"
-                                            >
-                                                Invalid gene name or region or
-                                                variant
-                                            </div>
-                                        </div>
-                                    </b-tab>
-
-                                    <b-tab title="Phenotypes">
-                                        <div
-                                            class="front-phenotype-search-wrapper"
-                                        >
-                                            <phenotype-selectpicker
-                                                :phenotypes="$parent.phenotypes"
-                                            ></phenotype-selectpicker>
-                                        </div>
-                                    </b-tab>
-
-                                    <b-tab
-                                        v-if="
-                                            $store.getters[
-                                                'bioPortal/isRootPortal'
-                                            ]
-                                        "
-                                        title="Disease-specific portals"
-                                    >
-                                        <disease-group-select
-                                            :disease-groups="
-                                                $store.state.bioPortal
-                                                    .diseaseGroups
+                                <div class="front-gene-search-wrapper">
+                                    <h4 class="text-center white">
+                                        Search gene, region or variant
+                                    </h4>
+                                    <div class="col-md-12 input-wrapper">
+                                        <autocomplete
+                                            :placeholder="'Search'"
+                                            :matches="$parent.matchingGenes"
+                                            :match-key="null"
+                                            @input-change="
+                                                $store.dispatch(
+                                                    'lookupGenes',
+                                                    $event
+                                                )
                                             "
-                                        ></disease-group-select>
-                                    </b-tab>
-                                </b-tabs>
+                                            @keyup-enter="
+                                                $store.dispatch(
+                                                    'exploreRegionOrVariant',
+                                                    $event
+                                                )
+                                            "
+                                            @item-select="
+                                                $store.dispatch(
+                                                    'onGeneChange',
+                                                    $event
+                                                )
+                                            "
+                                        ></autocomplete>
+                                    </div>
+                                    <div class="region-search-examples">
+                                        <documentation
+                                            name="home.example"
+                                            :group="$parent.diseaseGroup.name"
+                                        ></documentation>
+                                    </div>
+
+                                    <div
+                                        v-show="
+                                            $store.state.invalidGeneOrRegion
+                                        "
+                                        class="text-danger"
+                                    >
+                                        Invalid gene name or region or variant
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -169,3 +130,8 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+<style scoped>
+h4.white {
+    color: white;
+}
+</style>
