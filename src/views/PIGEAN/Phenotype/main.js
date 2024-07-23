@@ -1,9 +1,10 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
 Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
 import PageHeader from "@/components/PageHeader.vue";
@@ -47,6 +48,8 @@ new Vue({
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
+        BootstrapVue,
+        BootstrapVueIcons
     },
     data() {
         return {
@@ -203,6 +206,23 @@ new Vue({
                     bottom: 300,
                 },
             },
+            mechanismTooltip: 
+                'Genes with genetic support for this trait ' +
+                'and gene sets with strong effects on genetic support ' +
+                'for the trait are compiled into a membership matrix. ' +
+                'Bayesian non-negative matrix factorization with ' +
+                'automatic relevance determination is then applied ' +
+                'to the membership matrix to determine latent factors, '+
+                'each of which is characterized by loadings of both ' +
+                'genes and gene sets within the factor. The relevance ' +
+                'of each factor to this trait is calculated as the sum ' +
+                'of gene set effects within the factor. The gene factors ' +
+                'are finally included in a joint regression model to ' +
+                'independently predict genetic support for each trait ' +
+                'in the portal, producing a PheWAS that independently ' +
+                'determines additional traits affected by the mechanism. ' +
+                'Associations with other traits are used only to ' +
+                'construct the PheWAS and not to determine the factor weights.'
         };
     },
 
@@ -290,6 +310,10 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
+        getToolTipPosition(ELEMENT) {
+            console.log(ELEMENT);
+            uiUtils.getToolTipPosition(ELEMENT);
+        },
         setSelectedPhenotype(PHENOTYPE) {
             this.newPhenotypeSearchKey = PHENOTYPE.description;
             this.phenotypeSearchKey = null;

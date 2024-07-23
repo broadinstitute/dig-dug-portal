@@ -200,6 +200,10 @@
                 <div class="card-body">
                     <h4 class="card-title">
                         Biological mechanisms underlying the trait
+                        <b-button
+                            :title="$parent.mechanismTooltip">
+                                Info
+                        </b-button>
                     </h4>
                     <div>
                         Mechanisms are determined by latent factorization 
