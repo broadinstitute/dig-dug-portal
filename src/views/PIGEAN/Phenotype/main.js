@@ -51,8 +51,6 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
-            phewasPlotData: [],
-            phewasPlotDataAll: {},
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
@@ -247,10 +245,6 @@ new Vue({
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
         },
-        phewasPlotReady(){
-            this.$store.state.pigeanFactor.data.length > 0 &&
-                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
-        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -281,7 +275,6 @@ new Vue({
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
-            this.phewasPlotData = [];
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
