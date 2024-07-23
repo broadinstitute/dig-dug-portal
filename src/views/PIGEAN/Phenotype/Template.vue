@@ -180,8 +180,7 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 v-if="$parent.phewasPlotData.length > 0">
-                        {{$store.state.phenotype.name}}, {{ $parent.phewasPlotLabel }}
+                    <h4> Mechanisms
                     </h4>
                     <pigean-table
                         v-if="$parent.plotReady"
