@@ -200,10 +200,11 @@
                 <div class="card-body">
                     <h4 class="card-title">
                         Biological mechanisms underlying the trait
-                        <b-button
-                            :title="$parent.mechanismTooltip">
-                                Info
-                        </b-button>
+                        <span class="mechanism-info">
+                            <b-icon-info-circle-fill
+                                :title="$parent.mechanismTooltip">
+                            </b-icon-info-circle-fill>
+                        </span>
                     </h4>
                     <div>
                         Mechanisms are determined by latent factorization 
@@ -261,5 +262,10 @@
     background-color: #fff;
     padding: 3px 12px;
     border-bottom: solid 1px #eeeeee;
+}
+
+.mechanism-info {
+    font-size: 0.75em;
+    color: #007bff;
 }
 </style>
