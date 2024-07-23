@@ -200,11 +200,12 @@
                 <div class="card-body">
                     <h4 class="card-title">
                         Biological mechanisms underlying the trait
-                        <span class="mechanism-info">
-                            <b-icon-info-circle-fill
-                                :title="$parent.mechanismTooltip">
+                        <a class="mechanism-info"
+                            v-b-tooltip="{ variant: 'light'}"
+                            :title="$parent.mechanismTooltip">
+                            <b-icon-info-circle-fill>
                             </b-icon-info-circle-fill>
-                        </span>
+                        </a>
                     </h4>
                     <div>
                         Mechanisms are determined by latent factorization 
@@ -225,7 +226,7 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
-<style scoped>
+<style>
 .phenotype-search-input {
     display: block !important;
     position: absolute;
@@ -267,5 +268,8 @@
 .mechanism-info {
     font-size: 0.75em;
     color: #007bff;
+}
+.b-tooltip {
+    color: green !important;
 }
 </style>
