@@ -51,36 +51,35 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
-            phewasPlotData: [],
-            phewasPlotDataAll: {},
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
             geneFilterFields: [
-                { key: "combined", label: "Combined" },
+                { key: "combined", label: "Combined genetic support" },
                 { key: "combined_probability", label: "Combined probability" },
-                { key: "huge_score", label: "GWAS evidence unweighted" },
-                { key: "log_bf", label: "GWAS evidence weighted" },
+                { key: "huge_score", label: "Direct support (w/o gene sets)" },
+                { key: "log_bf", label: "Direct support (w/ gene sets)" },
                 { key: "prior", label: "Gene set evidence" },
             ],
             tableConfig: {
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
+                    { key: "label", label: "Mechanism", sortable: true },
                     {
                         key: "combined",
-                        label: "Combined",
+                        label: "Combined genetic support",
                         showProbability: true,
                         sortable: true,
                     },
                     {
                         key: "huge_score",
-                        label: "GWAS evidence unweighted",
+                        label: "Direct support (w/o gene sets)",
                         sortable: true,
                     },
                     {
                         key: "log_bf",
-                        label: "GWAS evidence weighted",
+                        label: "Direct support (w/ gene sets)",
                         sortable: true,
                     },
                     {
@@ -102,7 +101,7 @@ new Vue({
                 xField: "prior",
                 xAxisLabel: "Gene set evidence",
                 yField: "log_bf",
-                yAxisLabel: "GWAS evidence weighted",
+                yAxisLabel: "Direct support (w/ gene sets)",
                 dotKey: "gene",
                 hoverBoxPosition: "both",
                 hoverFields: ["combined"],
@@ -114,6 +113,7 @@ new Vue({
             genesetTableConfig: {
                 fields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
+                    { key: "label", label: "Mechanism", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },
                     {
                         key: "beta_uncorrected",
@@ -130,13 +130,13 @@ new Vue({
                     { key: "gene", label: "Gene", sortable: true },
                     {
                         key: "combined",
-                        label: "Combined",
+                        label: "Combined genetic support",
                         showProbability: true,
                         sortable: true,
                     },
                     {
                         key: "log_bf",
-                        label: "GWAS evidence weighted",
+                        label: "Direct support (w/ gene sets)",
                         sortable: true,
                     },
                     {
@@ -156,14 +156,13 @@ new Vue({
             },
             factorTableConfig: {
                 fields: [
-                    { key: "label", label: "Label", sortable: true },
-                    { key: "gene_score", label: "Gene score", sortable: true },
+                    { key: "label", label: "Mechanism", sortable: true },
                     { key: "gene_set_score",
-                        label: "Gene set score",
+                        label: "Relevance to trait",
                         sortable: true },
-                    { key: "phewasPlot", label: "Show PheWAS" },
-                    { key: "expand1", label: "Show top genes" },
-                    { key: "expand2", label: "Show top gene sets" },
+                    { key: "phewasPlot", label: "PheWAS" },
+                    { key: "expand1", label: "Top gene loadings" },
+                    { key: "expand2", label: "Top gene set loadings" },
                 ],
                 queryParam: "cluster",
                 sortBy: "gene_set_score",
@@ -171,14 +170,14 @@ new Vue({
                 subtable2Endpoint: "pigean-gene-set-factor",
                 subtableFields: [
                     { key: "gene", label: "Gene", sortable: true},
-                    { key: "combined", label: "Combined", sortable: true},
-                    { key: "factor_value", label: "Factor value", sortable: true},
-                    { key: "log_bf", label: "GWAS evidence weighted", sortable: true},
+                    { key: "combined", label: "Combined genetic support", sortable: true},
+                    { key: "factor_value", label: "Mechanism value", sortable: true},
+                    { key: "log_bf", label: "Direct support (w/ gene sets)", sortable: true},
                     { key: "prior", label: "Prior", sortable: true}
                 ],
                 subtable2Fields: [
                     { key: "gene_set", label: "Gene set", sortable: true},
-                    { key: "factor_value", label: "Factor value", sortable: true},
+                    { key: "factor_value", label: "Mechanism value", sortable: true},
                     { key: "beta", label: "Effect (joint)", sortable: true },
                     { key: "beta_uncorrected", label: "Effect (marginal)", sortable: true },
                 ],
@@ -193,14 +192,14 @@ new Vue({
                 "y axis label": "-Log10(p-value)",
                 "x axis label": "",
                 "beta field": "null",
-                "hover content": ["Z", "pValue"],
-                thresholds: [Math.log(3), Math.log(30)],
-                "label in black": "greater than",
-                height: "535",
+                "hover content": ["Z", "pValue", "pValue_marginal", "pValue_orig", "pValue_robust"],
+                thresholds: [0.05, 0.00005],
+                "label in black": "lower than",
+                height: "475",
                 "plot margin": {
                     left: 150,
                     right: 180,
-                    top: 250,
+                    top: 300,
                     bottom: 300,
                 },
             },
@@ -243,7 +242,6 @@ new Vue({
             return (
                 this.$store.state.genesetPhenotype.data.length > 0 &&
                 this.$store.state.pigeanPhenotype.data.length > 0 &&
-                this.$store.state.pigeanFactor.data.length > 0 &&
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
         },
@@ -277,7 +275,6 @@ new Vue({
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
-            this.phewasPlotData = [];
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
@@ -318,17 +315,6 @@ new Vue({
                 DETAILS.sigma},${
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
-        },
-        plotPhewas(details){
-            this.phewasPlotData = [];
-            this.getPhewas(details);
-        },
-        async getPhewas(details) {
-            let queryKey = this.queryString(details);
-            let data = await query("pigean-phewas", queryKey);
-            this.phewasPlotData = data;
-            // Leaving in the commas blocks the phewas plot from being rendered.
-            this.phewasPlotLabel = details.factorLabel.replaceAll(",", "");
         },
     },
 

@@ -90,8 +90,7 @@
             <div class="card mdkp-card">
                 <div class="card-body pigean-title">
                     <h4 class="card-title">
-                        Gene
-                        {{ $store.state.geneName }}
+                        Traits with genetic support
                     </h4>
                 </div>
                 <div class="card-body">

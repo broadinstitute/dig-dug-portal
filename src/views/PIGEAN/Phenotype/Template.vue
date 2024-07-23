@@ -89,6 +89,9 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Genes with genetic support
+                    </h4>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene"
@@ -134,6 +137,9 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Gene sets that affect genetic support
+                    </h4>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene_set"
@@ -180,31 +186,14 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 v-if="$parent.phewasPlotData.length > 0">
-                        {{$store.state.phenotype.name}}, {{ $parent.phewasPlotLabel }}
+                    <h4 class="card-title">
+                        Biological mechanisms underlying the trait
                     </h4>
-                    <research-phewas-plot
-                        v-if="$parent.phewasPlotData.length > 0"
-                        :canvas-id="`pigean_${$store.state.phenotype.name}_${
-                            $parent.phewasPlotLabel}`"
-                        :plot-name="`PIGEAN_${$store.state.phenotype.name}`"
-                        :phenotypes-data="
-                            $parent.phewasPlotData
-                        "
-                        :phenotype-map="
-                            $store.state.bioPortal.phenotypeMap
-                        "
-                        :colors="$parent.plotColors"
-                        :render-config="$parent.renderConfig"
-                        :utils="$parent.utilsBox"
-                        :native-dl-btn="false"
-                    >
-                    </research-phewas-plot>
                     <pigean-table
                         v-if="$parent.plotReady"
                         :pigeanData="$store.state.pigeanFactor.data"
                         :config="$parent.factorTableConfig"
-                        @phewasPlotShow="(details) => $parent.plotPhewas(details)"
+                        :phewasRenderConfig="$parent.renderConfig"
                     >
                     </pigean-table>
                 </div>

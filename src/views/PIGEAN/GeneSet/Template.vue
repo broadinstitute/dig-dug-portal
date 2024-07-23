@@ -69,8 +69,7 @@
             <div class="card mdkp-card">
                 <div class="card-body pigean-title">
                     <h4 class="card-title">
-                        Gene set
-                        {{ $store.state.geneset }}
+                        Traits in which gene set affects genetic support
                     </h4>
                 </div>
                 <div class="card-body">
