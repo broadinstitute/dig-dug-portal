@@ -228,7 +228,7 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
-<style>
+<style scoped>
 .phenotype-search-input {
     display: block !important;
     position: absolute;
