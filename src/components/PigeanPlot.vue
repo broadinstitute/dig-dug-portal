@@ -144,7 +144,7 @@ export default Vue.component("pigean-plot", {
               ? this.yScale(0) 
               : this.yScale(d[this.config.yField]))
           .attr("r", 5)
-          .attr("fill", d => this.dotColor(d.phenotype))
+          .attr("fill", d => `${this.dotColor(d.phenotype)}aa`)
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
