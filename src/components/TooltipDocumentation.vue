@@ -37,7 +37,7 @@
             :id="contentID"
         >
             <div
-                v-html="tooltipDocumentationContent"
+                v-html="!!supplyText ? supplyText : tooltipDocumentationContent"
                 class="help-content-wrapper"
             ></div>
         </div>
@@ -62,7 +62,7 @@ Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("tooltip-documentation", {
-    props: ["name", "group", "contentFill", "isHover", "noIcon"],
+    props: ["name", "group", "contentFill", "isHover", "noIcon", "supplyText"],
     components: {
         Documentation,
     },
