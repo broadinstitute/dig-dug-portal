@@ -74,6 +74,7 @@ export default Vue.component("pigean-plot", {
         .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
+          .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
@@ -118,7 +119,7 @@ export default Vue.component("pigean-plot", {
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
-        .domain([yMin - (0.035 * yRange), yMax])
+        .domain([yMin - (0.05 * yRange), yMax])
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale));
@@ -216,7 +217,12 @@ export default Vue.component("pigean-plot", {
       return tooltipText;
     },
     unHoverDot() {
-      this.tooltip.style("opacity", 0);
+      this.hideTooltip;
+    },
+    hideTooltip(){
+      if (!!this.tooltip){
+        this.tooltip.style("opacity", 0);
+      }
     },
     groupColors(){
       // Based on pigeanData not filtered data. Phenotypes should always match PheWAS
