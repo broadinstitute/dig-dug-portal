@@ -251,11 +251,7 @@
                         size="sm"
                         class="btn-mini mr-2"
                         variant="outline-primary"
-                        @click="
-                            toToggle(data, 1, data.detailsShowing)
-                                ? data.toggleDetails()
-                                : ''
-                        "
+                        @click="toToggle(data, 1)"
                     >
                         {{
                             data.detailsShowing && data.item.showButton === 1
@@ -279,9 +275,7 @@
                         class="btn-mini showData"
                         @click="
                             //showVariantData(data.item.varid);
-                            toToggle(data, 2, data.detailsShowing)
-                                ? data.toggleDetails()
-                                : ''
+                            toToggle(data, 2)
                         "
                         ><span v-if="!!loadingData[data.item.varid]"
                             ><b-spinner small></b-spinner>
@@ -678,7 +672,7 @@ export default Vue.component("VariantSearch", {
             this.variants = await query("variants", this.gene, {}, true);
 
             if (this.variants && this.variants.length) {
-                this.variantData = [...this.variants]; //copy data
+                this.variantData = structuredClone(this.variants); //copy data
 
                 //add showButton property to each variant
                 this.variantData.map((variant) => {
@@ -912,35 +906,13 @@ export default Vue.component("VariantSearch", {
                 return parseFloat(frequency).toFixed(5);
             }
         },
-        toToggle(row, buttonClicked, isShowing) {
-            console.log(
-                "toToggle",
-                row.item.showButton,
-                buttonClicked,
-                isShowing
-            );
-            if (isShowing) {
-                if (buttonClicked === row.item.showButton) return true;
-                else {
-                    Vue.set(row.item, "showButton", buttonClicked);
-                    console.log(
-                        "after set",
-                        row.item.showButton,
-                        buttonClicked,
-                        isShowing
-                    );
-                    return false;
-                }
-            } else {
-                Vue.set(row.item, "showButton", buttonClicked);
-                console.log(
-                    "after set",
-                    row.item.showButton,
-                    buttonClicked,
-                    isShowing
-                );
-                return true;
+
+        toToggle(row, buttonClicked) {
+            if (!row.detailsShowing || buttonClicked === row.item.showButton) {
+                row.toggleDetails();
             }
+
+            Vue.set(row.item, "showButton", buttonClicked);
         },
 
         addfilter() {
