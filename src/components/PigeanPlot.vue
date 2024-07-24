@@ -96,13 +96,15 @@ export default Vue.component("pigean-plot", {
       let yMin = this.extremeVal(this.config.yField);
       let xMax = this.extremeVal(this.config.xField, false);
       let yMax = this.extremeVal(this.config.yField, false);
+      let xRange = xMax - xMin;
+      let yRange = yMax - yMin;
       xMin = xMin > 0 ? 0 : xMin;
       yMin = yMin > 0 ? 0 : yMin;
       this.xMedian = (xMin + xMax) / 2;
       
       // add X-axis
       this.xScale = d3.scaleLinear()
-        .domain([xMin, xMax])
+        .domain([xMin - (0.01 * xRange), xMax])
         .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
@@ -116,7 +118,7 @@ export default Vue.component("pigean-plot", {
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
-        .domain([yMin, yMax])
+        .domain([yMin - (0.035 * yRange), yMax])
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale));
