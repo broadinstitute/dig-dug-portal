@@ -86,6 +86,7 @@ export default Vue.component("GnominfoCard", {
                     sortable: true,
                     tdClass: "text-left pl-5",
                     thClass: "text-left pl-5",
+                    formatter: "formatAlleleFrequency",
                 },
             ],
             gnomAD_info: [],
@@ -133,6 +134,14 @@ export default Vue.component("GnominfoCard", {
             }
 
             this.gnomAD_info = gnomdisplay;
+        },
+        formatAlleleFrequency(frequency) {
+            if (!frequency) return "";
+            if (frequency < 0.0001) {
+                return parseFloat(frequency).toExponential(5);
+            } else {
+                return parseFloat(frequency).toFixed(5);
+            }
         },
     },
 });

@@ -483,8 +483,8 @@ export default Vue.component("VariantSearch", {
             currentPage: 1,
             variants: [],
             consequences: {},
-            currentSort: "allelecount",
-            currentSortDir: "desc",
+            // currentSort: "allelecount",
+            // currentSortDir: "desc",
             fields: [
                 {
                     key: "varid",
@@ -817,14 +817,35 @@ export default Vue.component("VariantSearch", {
                             j++;
                             //}
                         }
+                        //no longer sort by allelecount
+                        // hpdisplay = hpdisplay.sort(function (a, b) {
+                        //     //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
+                        //     if (a.allelecount > b.allelecount) {
+                        //         return -1;
+                        //     } else if (a.allelecount < b.allelecount) {
+                        //         return 1;
+                        //     }
+                        //     return 0;
+                        // });
+                        let sortOrder = [
+                            "AllSamples",
+                            "Resistant",
+                            "PediatricResistant",
+                            "AdultResistant",
+                            "Sensitive",
+                            "PediatricSensitive",
+                            "AdultSensitive",
+                            "Uncategorized",
+                            "PediatricUncategorized",
+                            "AdultUncategorized",
+                            "Healthy",
+                            "AllNephroticSyndCases",
+                        ];
                         hpdisplay = hpdisplay.sort(function (a, b) {
-                            //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
-                            if (a.allelecount > b.allelecount) {
-                                return -1;
-                            } else if (a.allelecount < b.allelecount) {
-                                return 1;
-                            }
-                            return 0;
+                            return (
+                                sortOrder.indexOf(a.hp) -
+                                sortOrder.indexOf(b.hp)
+                            );
                         });
                         this.variants[i].hpdisplay2 = hpdisplay;
                         this.variants[i].hpdisplay = hpdisplay;

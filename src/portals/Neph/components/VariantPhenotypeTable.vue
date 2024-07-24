@@ -142,6 +142,7 @@ export default Vue.component("variant-phenotype-table", {
                     sortable: true,
                     tdClass: "text-left pl-5",
                     thClass: "text-left pl-5",
+                    formatter: "formatAlleleFrequency",
                 },
             ],
             hprecords: [],
@@ -201,7 +202,7 @@ export default Vue.component("variant-phenotype-table", {
                     2 * hp.n_hom_var_case + hp.n_het_case;
                 hpdisplay[j].allelnumber =
                     2 * (hp.n_hom_ref_case + hp.n_het_case + hp.n_hom_var_case);
-                hpdisplay[j].allelefrequency = this.formatAlleleFrequency(
+                hpdisplay[j].allelefrequency = this.calculateAlleleFrequency(
                     hpdisplay[j].allelecount,
                     hpdisplay[j].allelnumber
                 );
@@ -224,14 +225,16 @@ export default Vue.component("variant-phenotype-table", {
             let sortOrder = [
                 "AllSamples",
                 "Resistant",
-                "AdultResistant",
                 "PediatricResistant",
+                "AdultResistant",
                 "Sensitive",
-                "AdultSensitive",
                 "PediatricSensitive",
+                "AdultSensitive",
                 "Uncategorized",
-                "AdultUncategorized",
                 "PediatricUncategorized",
+                "AdultUncategorized",
+                "Healthy",
+                "AllNephroticSyndCases",
             ];
 
             //remove Healthy and AllNephroticSyndCases
@@ -248,10 +251,17 @@ export default Vue.component("variant-phenotype-table", {
 
             //console.log("results:"+JSON.stringify(this.variant[0].hprecords));
         },
-        formatAlleleFrequency(count, number) {
-            // console.log(count + "|" + number);
-            if (count === 0 || number === 0) return 0;
-            else return (count / number).toFixed(8);
+        calculateAlleleFrequency(count, number) {
+            if (count === 0 || number === 0) return "";
+            else return count / number;
+        },
+        formatAlleleFrequency(frequency) {
+            if (!frequency) return "";
+            if (frequency < 0.0001) {
+                return parseFloat(frequency).toExponential(5);
+            } else {
+                return parseFloat(frequency).toFixed(5);
+            }
         },
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
