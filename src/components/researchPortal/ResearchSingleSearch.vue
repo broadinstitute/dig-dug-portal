@@ -1,5 +1,11 @@
 <template>
 	<div class="byor-single-search-wrapper">
+		<div id="summary_popup" :class="(!!summaryPopup)?'ss-summary-popup': 'ss-summary-popup hidden'">
+			<span class="btn btn-default reset-search" @click="summaryPopup = !summaryPopup ? true : null;"><b-icon icon="arrow-down-left-square"></b-icon></span>
+			<h4>summary popup</h4>
+			<div v-html="summaryPopupContent">
+			</div>
+		</div>
 		<input
 			class="form-control byor-single-search"
 			type="text"
@@ -36,23 +42,21 @@
 								<div class="ss-options-wrapper">
 									<div v-for="option in isParameterActive('kp genes').options">
 										<span v-if="option.type == 'summary'"><a href="javascript:;" 
-											@click="generateSummary(gene, option.label, option.summary)">{{ option.label }}</a></span>
+											@click="generateSummary(gene, option['summary id'],option.label, option.summary)">{{ option.label }}</a></span>
 										<span v-if="option.type == 'target page'"><a :href="option.url + gene">{{ option.label }}</a></span>
 									</div>
 								</div>
 							</template>
 						</span>
 					</a>
-					<div :id="'summary_panel'+gene">
-						<div :id="'summary_header' + gene">
-						
-							</div>
-						<div :id="'summary_content' + gene">
-							<div v-for="item in summary" v-if="item.key == gene" v-html="item.data">
+					<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary': 'in-search-summary hidden'">
+						<span class="btn btn-default reset-search" @click="summaryPopup = !summaryPopup? true: null;"><b-icon icon="arrow-up-right-square"></b-icon></span>
+						<div :id="'summary_content' + gene" class="summary-content">
+							<div v-for="item in summaryByKey" v-if="item.key == gene" v-html="item.data">
 							</div>
 						</div>
-						<div>
-							<a :id="'summary_next_action' + gene"></a>
+						<div class="summary-following-action">
+							<a :id="'summary_next_action' + gene" class="summary-next-action"></a>
 						</div>
 					</div>
 					<!--
@@ -212,7 +216,12 @@ export default Vue.component("research-single-search", {
 				diseases: []
 			},
 			customList:{},
-			summary: []
+			summary: [],
+			summarySearch:[],
+			summaryByKey:[],
+			summaryAll:[],
+			summaryPopup: null,
+			summaryPopupContent:""
 		};
 	},
 	created() {
@@ -235,6 +244,60 @@ export default Vue.component("research-single-search", {
 	mounted() {},
 	computed: {},
 	watch: {
+		summary(summaryArr) {
+			console.log("watch",summaryArr)
+
+			//First get the list of keys searched
+
+			let searchedKeys = [...new Set(this.summarySearch.map(s => s.key))];
+
+			console.log("searchedKeys", searchedKeys);
+
+			this.summaryByKey = [];
+
+			searchedKeys.map(s =>{
+				let keySearched = this.summarySearch.filter(ss => ss.key == s);
+				let sId = keySearched[keySearched.length-1].id;
+
+				this.summary.map(sItem => {
+					if(sItem.key == s && sItem.id == sId){
+						this.summaryByKey.push(sItem);
+					}
+				})
+			})
+
+
+
+			/*let byKey = {};
+			let allItems = {};
+
+			summaryArr.map(item => {
+				
+
+				if(!byKey[item.key]) {
+					byKey[item.key] = {id: item.id, data:[item]};
+				} else {
+					if(byKey[item.key].id == item.id) {
+						byKey[item.key].data.push(item);
+					} else if (byKey[item.key].id != item.id) {
+						byKey[item.key].id = item.id;
+						byKey[item.key].data = [item];
+					}
+				}
+
+				if(!allItems[item.key]) {
+					allItems[item.key] = {}
+					allItems[item.key][item.id] = item;
+				} else {
+					if(!allItems[item.key][item.id]) {
+						allItems[item.key][item.id] = item;
+					} else {
+						allItems[item.key][item.id].data += item.data;
+					}
+				}
+			});*/
+
+		},
 		singleSearchParam(PARAM) {
 			if (!!PARAM && PARAM.length >= 2) {
 
@@ -316,38 +379,50 @@ export default Vue.component("research-single-search", {
 	},
 	methods: {
 		...alertUtils,
-		generateSummary(KEY,HEADER,summaryConfig){
-			console.log(KEY, HEADER, summaryConfig);
-			document.getElementById("summary_header"+KEY).innerText = HEADER+": "+KEY;
+		
+		generateSummary(KEY,ID,HEADER,summaryConfig){
+			console.log(KEY, ID,HEADER, summaryConfig);
+			//document.getElementById("summary_panel" + KEY).classList.add("active");
+			//document.getElementById("summary_header"+KEY).innerText = HEADER+": "+KEY;
 			//document.getElementById("summary_content" + KEY).innerText = summaryConfig;
 
-			if(!!summaryConfig.url){
-				document.getElementById("summary_next_action" + KEY).setAttribute('href', summaryConfig.url+KEY);
-				document.getElementById("summary_next_action" + KEY).innerText = summaryConfig["url label"];
+			let ifSearched = this.summarySearch.filter(search => search.key == KEY && search.id == ID);
+
+			if(ifSearched.length === 0) {
+				summaryConfig.sections.map(section => {
+					switch (section['data point'].type) {
+						case 'bioindex':
+							this.getBiSummary(section, ID, KEY)
+							break;
+					}
+				})
+
+				this.summarySearch.push({key:KEY, id:ID});
+
+			} else {
+				console.log("item already searched")
 			}
 
-			summaryConfig.sections.map(section =>{
+			/*if(!!summaryConfig.url){
+				document.getElementById("summary_next_action" + KEY).setAttribute('href', summaryConfig.url+KEY);
+				document.getElementById("summary_next_action" + KEY).innerText = summaryConfig["url label"];
+			}*/
 
-				//this.summary[KEY] = [];
-
-				this.getSummarySection(section,KEY)
-			})
+			
 		},
-		async getSummarySection(CONFIG,KEY){
+		async getBiSummary(CONFIG,ID,KEY){
+
 			let fetchUrl = CONFIG['data point'].url;
 
 			CONFIG['data point'].parameters.map(parameter =>{
-				
 				fetchUrl = fetchUrl.replace('$'+parameter,KEY)
 			})
-
-			console.log("fetchUrl", fetchUrl);
 
 			let summary = await fetch(fetchUrl).then(resp => resp.json());
 
 			if(summary.error == null && !!Array.isArray(summary.data) && summary.data.length > 0) {
 
-				let summaryHeader = "<b>"+CONFIG["summary text"]+"</b><br />";
+				let summaryHeader = "<b class='summary-data-header'>"+CONFIG["summary text"]+"</b><br />";
 
 				CONFIG['data point'].parameters.map(parameter => {
 					summaryHeader = summaryHeader.replace('$' + parameter, KEY)
@@ -374,30 +449,22 @@ export default Vue.component("research-single-search", {
 
 				summaryData = summaryHeader + summaryData;
 				
-				this.summary.push({key:KEY,data: summaryData });
+				this.summary.push({key:KEY, id: ID,data: summaryData });
 
-				console.log("this.summary", summary.data);
+				//console.log("this.summary", summary.data);
 
 			} else {
-				console.log("summary null");
-			}
+				let summaryHeader = "<b class='summary-data-header'>" + CONFIG["summary text"] + "</b><br />";
 
-			/*
-let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+				CONFIG['data point'].parameters.map(parameter => {
+					summaryHeader = summaryHeader.replace('$' + parameter, KEY)
+				})
 
-			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
-				this.processLoadedBI(contentJson, QUERY);
-			} else {
-				// fetch failed 
-				if (!!this.dataPoint["cumulate data"]) {
-					this.sectionData = this.sectionData
-				} else {
-					this.sectionData = null;
-				}
-				this.loadingDataFlag = "down";
-				this.noLoadedData = "No data is returned. Please check query parameters.";
+				summaryHeader += "<div class='summary-row'>N/A</div>"
+
+				this.summary.push({ key: KEY, id: ID, data: summaryHeader });
+				
 			}
-			*/
 		},
 		resetSearch() {
 			this.singleSearchParam = null;
@@ -705,6 +772,7 @@ let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 }
 .byor-single-search-wrapper {
 	width: 100%;
+	position: relative;
 }
 .byor-single-search {
 	width: 100%;
@@ -782,21 +850,58 @@ let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 .search-gene-link:hover .gene-link-tip {
 	display: block;
 }
-.summary-row {
+
+.in-search-summary.hidden {
+	display: none;
+}
+
+.in-search-summary {
+	/*border-left: solid 3px #dfdfdf;
+	padding: 5px 0 5px 15px;*/
+}
+
+.in-search-summary .summary-data-header {
+	padding: 5px 0;
+    display: inline-block;
+}
+.in-search-summary .summary-row {
 	display:table-row;
 	font-size: 13px;
 	width: 100%;
 }
-.summary-column {
+.in-search-summary .summary-column {
 	padding: 0 10px;
-	border-left: solid 1px #dddddd;
+	border-right: solid 1px #dddddd;
 	display: table-cell
 }
 
-.summary-column-header {
+.in-search-summary .summary-column-header {
 	padding: 0 10px;
-	border-left: solid 1px #dddddd;
+	border-right: solid 1px #dddddd;
 	display: table-cell;
 	font-weight: bold;
+}
+
+.in-search-summary .summary-next-action {
+	display: inline-block;
+    padding: 7px 0px 0px 0px;
+    font-weight: bold;
+}
+
+.ss-summary-popup {
+	position: fixed;
+	top: 60px;
+	right: 0px;
+	width: 500px;
+	height: calc(100% - 60px);
+	padding: 15px;
+	border: solid 1px #ddd;
+	background-color: #fff;
+	box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.2);
+	z-index: 1000;
+}
+
+.ss-summary-popup.hidden {
+	display: none;
 }
 </style>
