@@ -45,15 +45,16 @@
 						href="javascript:;"
 						>{{ gene }}
 						<span class="more-options">
-							<template v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options">
-								<div class="ss-options-wrapper">
-									<div v-for="option in isParameterActive('kp genes').options">
-										<span v-if="option.type == 'summary'"><a href="javascript:;" 
-											@click="generateSummary(gene, option['summary id'],option.label, option.summary)">{{ option.label }}</a></span>
-										<span v-if="option.type == 'target page'"><a :href="option.url + gene">{{ option.label }}</a></span>
-									</div>
+							<div class="ss-options-wrapper">
+								<div v-for="option in isParameterActive('kp genes').options">
+									<span v-if="option.type == 'summary'">
+										<a :href="(option.url)? option.url+gene:'javascript:;'">{{ option['url label'] }}</a>
+										{{ '  |  ' }}
+										<a href="javascript:;" 
+										@click="generateSummary(gene, option['summary id'],option['summary label'], option.sections)">{{ option['summary label'] }}</a></span>
+									<span v-if="option.type == 'target page'"><a :href="option.url + gene">{{ option['url label'] }}</a></span>
 								</div>
-							</template>
+							</div>
 						</span>
 					</a>
 					<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary': 'in-search-summary hidden'">
@@ -61,42 +62,10 @@
 							<div v-for="item in summaryByKey" v-if="item.key == gene" v-html="item.data">
 							</div>
 						</div>
-						<div :id="'summary_next_action' + gene" class="summary-following-action">
-						</div>
 					</div>
-					<!--
-					{{ gene
-					}}<span class="search-word-group"
-						><a v-if="!!isParameterActive('kp genes').active"
-							class="search-gene-link"
-							@click="searchGene(gene)"
-							href="javascript:;"
-							>{{ "Search gene"
-							}}<span class="gene-link-tip"
-								>Alias names are converted to gene symbols</span
-							></a
-						>
-						<span v-if="!!isParameterActive('kp region').active">|</span>
-						<a v-if="!!isParameterActive('kp region').active" 
-							@click="searchRegion(gene)" href="javascript:;">{{
-							"Search region"
-						}}</a>
-						<span v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options" class="more-options">
-							Explore options >>
-							<template v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options">
-								<div class="ss-options-wrapper">
-									<div v-for="option in isParameterActive('kp genes').options">
-										<span v-if="option.type == 'summary'">{{ option.label }}</span>
-										<span v-if="option.type == 'target page'"><a :href="option.url + gene">{{ option.label }}</a></span>
-									</div>
-								</div>
-							</template>
-						</span>
-					</span>
-				-->
 					
 				</div>
-				<template v-if="!!isParameterActive('kp phenotypes').active">
+				<template v-if="!!isParameterActive('kp phenotypes').active && !isParameterActive('kp phenotypes').options">
 					<div
 						v-for="phenotype in singleSearchResult.phenotypes"
 						:value="phenotype.name"
@@ -105,13 +74,47 @@
 					>
 						<a :href="isParameterActive('kp phenotypes').url + phenotype.name">{{
 							phenotype.description
-						}}</a
+						}}
+						</a
 						><span class="search-word-group">{{
 							phenotype.group
 						}}</span>
-						<div>
-								Options
+					</div>
+				</template>
+
+				<template v-if="!!isParameterActive('kp phenotypes').active && !!isParameterActive('kp phenotypes').options">
+					<div
+						v-for="phenotype in singleSearchResult.phenotypes"
+						:value="phenotype.name"
+						:key="phenotype.name"
+							class="single-search-option"
+					>
+						<a href="javascript:;">{{
+							phenotype.description
+						}}
+							<span class="more-options">
+								
+								<div class="ss-options-wrapper">
+									<div v-for="option in isParameterActive('kp phenotypes').options">
+										<span v-if="option.type == 'summary'">
+											<a :href="(option.url) ? option.url + phenotype.name : 'javascript:;'">{{ option['url label'] }}</a>
+											{{ '  |  ' }}
+											<a href="javascript:;" 
+											@click="generateSummary(phenotype.name, option['summary id'], option['summary label'], option.sections)">{{ option['summary label'] }}</a></span>
+										<span v-if="option.type == 'target page'"><a :href="option.url + phenotype.name">{{ option['url label'] }}</a></span>
+									</div>
+								</div>
+							</span>
+						</a
+						><span class="search-word-group">{{
+							phenotype.group
+						}}</span>
+						<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary' : 'in-search-summary hidden'">
+							<div :id="'summary_content' + phenotype.name" class="summary-content">
+								<div v-for="item in summaryByKey" v-if="item.key == phenotype.name" v-html="item.data">
+								</div>
 							</div>
+						</div>
 					</div>
 				</template>
 
@@ -360,13 +363,13 @@ export default Vue.component("research-single-search", {
 				})
 			})
 		},
-		generateSummary(KEY,ID,HEADER,summaryConfig){
-			console.log(KEY, ID,HEADER, summaryConfig);
+		generateSummary(KEY,ID,HEADER,sections){
+			console.log(KEY, ID,HEADER, sections);
 
 			let ifSearched = this.summarySearch.filter(search => search.key == KEY && search.id == ID);
 
 			if(ifSearched.length === 0) {
-				summaryConfig.sections.map(section => {
+				sections.map(section => {
 					switch (section['data point'].type) {
 						case 'bioindex':
 							this.getBiSummary(section, ID, KEY)
@@ -383,7 +386,7 @@ export default Vue.component("research-single-search", {
 				console.log("item already searched")
 			}
 
-			if(!!summaryConfig.url){
+			/*if(!!summaryConfig.url){
 				let nextHtml = "<a class='summary-next-action' href='"+ summaryConfig.url + KEY +"'>"+ summaryConfig["url label"] +"</a>";
 
 				console.log(KEY, nextHtml);
@@ -391,7 +394,7 @@ export default Vue.component("research-single-search", {
 				console.log(KEY, document.getElementById("summary_next_action" + KEY));
 
 				document.getElementById("summary_next_action" + KEY).innerHTML = nextHtml;
-			}
+			}*/
 
 			
 		},
@@ -585,20 +588,24 @@ export default Vue.component("research-single-search", {
 				this.singleSearchConfig["search parameters"].map(param =>{
 					if(param.values == PARAM) {
 						returnParam.active = true;
-						if(!!param['target page']['page id']) {
-							returnParam.url = '/research.html?pageid='
-								+ param['target page']['page id'];
-						} else if(!!param['target page']['url']) {
-							returnParam.url = param['target page']['url'];
+
+						if(!!param['target page']) {
+							if (!!param['target page']['page id']) {
+								returnParam.url = '/research.html?pageid='
+									+ param['target page']['page id'];
+							} else if (!!param['target page']['url']) {
+								returnParam.url = param['target page']['url'];
+							}
+
+							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
+
+							if (!!param['target page']['page id']) {
+								returnParam.url += '&' + param['parameter'] + '=';
+							} else if (!!param['target page']['url']) {
+								returnParam.url += param['parameter'] + '=';
+							}
 						}
 						
-						returnParam.url += (!!param['target page']['entity'])? '&' + param['target page']['entity parameter'] + '='+param['target page']['entity']:"";
-						
-						if (!!param['target page']['page id']) {
-							returnParam.url += '&' + param['parameter'] + '=';
-						} else if (!!param['target page']['url']) {
-							returnParam.url += param['parameter'] + '=';
-						}
 
 						if(!!param.options) {
 							returnParam.options = param.options;
@@ -607,19 +614,22 @@ export default Vue.component("research-single-search", {
 					} else {
 						if(param.parameter == PARAM) {
 							returnParam.active = true;
-							if (!!param['target page']['page id']) {
-								returnParam.url = '/research.html?pageid='
-									+ param['target page']['page id'];
-							} else if (!!param['target page']['url']) {
-								returnParam.url = param['target page']['url'];
-							}
-							
-							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
-							
-							if (!!param['target page']['page id']) {
-								returnParam.url += '&' + param['parameter'] + '=';
-							} else if (!!param['target page']['url']) {
-								returnParam.url += param['parameter'] + '=';
+
+							if (!!param['target page']) {
+								if (!!param['target page']['page id']) {
+									returnParam.url = '/research.html?pageid='
+										+ param['target page']['page id'];
+								} else if (!!param['target page']['url']) {
+									returnParam.url = param['target page']['url'];
+								}
+
+								returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
+
+								if (!!param['target page']['page id']) {
+									returnParam.url += '&' + param['parameter'] + '=';
+								} else if (!!param['target page']['url']) {
+									returnParam.url += param['parameter'] + '=';
+								}
 							}
 
 							if (!!param.options) {
@@ -843,29 +853,29 @@ export default Vue.component("research-single-search", {
 	padding: 5px 0 5px 15px;*/
 }
 
-.in-search-summary .summary-data-header {
+.in-search-summary .summary-data-header, .ss-summary-popup .summary-data-header {
 	padding: 5px 0;
     display: inline-block;
 }
-.in-search-summary .summary-row {
+.in-search-summary .summary-row, .ss-summary-popup .summary-row {
 	display:table-row;
 	font-size: 13px;
 	width: 100%;
 }
-.in-search-summary .summary-column {
+.in-search-summary .summary-column, .ss-summary-popup .summary-column {
 	padding: 0 10px;
 	border-right: solid 1px #dddddd;
 	display: table-cell
 }
 
-.in-search-summary .summary-column-header {
+.in-search-summary .summary-column-header, .ss-summary-popup .summary-column-header {
 	padding: 0 10px;
 	border-right: solid 1px #dddddd;
 	display: table-cell;
 	font-weight: bold;
 }
 
-.in-search-summary .summary-next-action {
+.in-search-summary .summary-next-action, .ss-summary-popup .summary-next-action {
 	display: inline-block;
     padding: 3px 0px 0px 10px;
     font-weight: bold;
