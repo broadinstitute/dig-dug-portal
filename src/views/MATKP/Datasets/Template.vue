@@ -68,7 +68,7 @@
                         <div class="f-col" style="width: 100%;">
                             <div class="f-row spread-out align-v-center border-bottom" style="height:32px;font-size: 14px;">
                                 <div style="font-style: italic;" v-if="$parent.datasets">
-                                    <span class="bold"><span :class="`${$parent.rows < $parent.datasets.length ? 'highlight-dataset-count' : ''}`">{{ $parent.rows }}</span> of {{ $parent.datasets.length }}</span> datasets
+                                    showing <span class="bold"><span :class="`${$parent.rows < $parent.datasets.length ? 'highlight-dataset-count' : ''}`">{{ $parent.rows }}</span> of {{ $parent.datasets.length }}</span> datasets
                                 </div>
                                 <div class="f-row align-v-center" style="gap:20px">
                                     <select class="matkp-input" v-model="$parent.perPage" style="height:31px;padding:5px;">
@@ -108,7 +108,7 @@
                                         <a :href="data.value" target="_blank">download</a>
                                     </template>
                                     <template #cell(datasetId)="data">
-                                        <a class="dataset-explore-link" :href="`/matkp/cellbrowser.html?dataset=${data.value}`" style="font-weight:bold">explore ❯</a>
+                                        <a class="dataset-explore-link" :href="`/matkp/cellbrowser2.html?dataset=${data.value}`" style="font-weight:bold">explore ❯</a>
                                     </template>
                                     <template #cell(totalCells)="data">
                                         {{data.value.toLocaleString()}}

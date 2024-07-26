@@ -54,7 +54,7 @@
     margin: 10px auto 40px;
 }
 .content-wrap{
-    padding: 20px;
+    padding: 20px 20px 100px 20px;
     line-height: normal;
     opacity: 0.4;
 }

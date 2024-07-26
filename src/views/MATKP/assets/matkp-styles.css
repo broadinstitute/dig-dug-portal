@@ -182,6 +182,18 @@ body.kp-default{
     .f-row.align-h-center{
         justify-content: center;
     }
+    .f-col.align-v-bottom{
+        justify-content: flex-end;
+    }
+    .f-row.align-v-bottom{
+        align-items: flex-end;
+    }
+    .f-col.align-h-bottom{
+        align-items: flex-end;
+    }
+    .f-row.align-h-bottom{
+        justify-content: flex-end;
+    }
     .f-col.spread-out,
     .f-row.spread-out{
         justify-content: space-between;

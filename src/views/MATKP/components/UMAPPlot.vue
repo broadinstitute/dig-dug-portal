@@ -53,6 +53,7 @@
       drawUMAP(){
             const {points, colors, width} = this;
 
+            //console.log('drawingUMAP');
             console.log('drawUMAP', points, colors);
 
             if(!points) return;
@@ -72,7 +73,7 @@
             this.resetPlot(canvas);
 
             if(!this.pointBoundsCalculated){
-                console.log('calculating umap point bounds');
+                //console.log('calculating umap point bounds');
                 this.pointBounds = {n: 0, s: 0, e: 0, w: 0};
                 //get point bounds by storing outermost points in each cardinal direction
                 points.forEach(coord => {
@@ -84,7 +85,7 @@
                     if(py<0) this.pointBounds.n = py < this.pointBounds.n ? py : this.pointBounds.n;
                 });
 
-                console.log(this.pointBounds);
+                //console.log(this.pointBounds);
 
                 this.calculateScaleFactor(canvas);
 

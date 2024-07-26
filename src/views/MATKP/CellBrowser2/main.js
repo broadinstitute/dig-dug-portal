@@ -15,12 +15,17 @@ import matkpNav from "../components/matkp-nav.vue";
 import matkpFooter from "../components/matkp-footer.vue";
 import StackedBarChart from '../components/StackedBarChart.vue';
 import UMAPPlot from '../components/UMAPPlot.vue';
+import BoxPlot from '../components/BoxPlot.vue';
+import ViolinPlot from '../components/ViolinPlot.vue';
+import RidgelinePlot from '../components/RidgelinePlot.vue';
+import HeatmapDotPlot from '../components/HeatmapDotPlot.vue';
 
 import * as d3 from "d3";
 import * as _ from "lodash";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
+import { dropRightWhile } from "lodash";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"; 
 const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
@@ -32,7 +37,13 @@ const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#55
 new Vue({
     //store,
     mounted() {
+        //add scroll listener
+        window.addEventListener('scroll', this.handleScroll);
+
+        this.injectScript('https://cdn.jsdelivr.net/gh/stdlib-js/stats-ttest2@umd/browser.js');
         this.injectScript('https://cdn.jsdelivr.net/gh/stdlib-js/stats-chi2test@umd/browser.js');
+        this.injectScript('https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js');
+        //this.injectScript('https://cdn.jsdelivr.net/gh/stdlib-js/stats-chi2test@umd/browser.js');
     },
     render(createElement, context) {
         return createElement(Template);
@@ -41,7 +52,10 @@ new Vue({
         matkpNav,
         matkpFooter,
         StackedBarChart,
-        UMAPPlot
+        UMAPPlot,
+        BoxPlot,
+        ViolinPlot,
+        HeatmapDotPlot
     },
     data() {
       return {
@@ -53,7 +67,18 @@ new Vue({
         rawData: null,
         fieldColors: null,
     
+        activeGene: '',
+        geneNames: [],
         expressionData: [],
+        statistics: null,
+        geneExpressionA: null,
+        geneExpressionB: null,
+        combinedExpression: null,
+        expressionRows: [],
+        expressionHeaders: [],
+        dgeRows: [],
+        dgeHeaders: [],
+
         referenceField: null,
 
         headers: [],
@@ -72,20 +97,27 @@ new Vue({
         coordinates: [],
         coordinateColorsA: [],
         coordinateColorsB: [],
+        coordinateColorsGene: null,
 
         categoryCombos: {},
         categoriesLeft: [],
         categoriesRight: [],
         lastCategoriesLeft: [],
         lastCategoriesRight: [],
+
+        doNormalize: false,
+        doStack: false,
+        combinedBarsFstat: null,
+        combinedBarsPval: null,
+
+        //sidebar
+        scrollThreshhold: 65,
+        fixedSidebar: false,
       };
     },
     async created() {
-        this.fetchDatasets();
-        this.activeDataset = keyParams.dataset ? keyParams.dataset : this.datasetsList[0];
-        this.fetchCoordinates();
-        this.fetchFields();
-        //this.fetchGeneExpression('PPARG');
+        //start
+        this.init();
     },
     watch:{
     },
@@ -98,10 +130,10 @@ new Vue({
             return filtered.sort();
         },
         categoryKeysLeft() {
-            return this.categoryKeys(this.categoriesLeft);
+            return this.categoryKeys(this.categoriesLeft, 'left');//.sort((a, b) => a.localeCompare(b));
         },
         categoryKeysRight() {
-            return this.categoryKeys(this.categoriesRight);
+            return this.categoryKeys(this.categoriesRight, 'right');//.sort((a, b) => a.localeCompare(b));
         },
         currentDataset() {
             if(!this.datasets || !this.activeDataset) return null;
@@ -109,6 +141,30 @@ new Vue({
         },
     },
     methods: {
+        async init(){
+            this.datasets = await this.fetchDatasets();
+            this.activeDataset = keyParams.dataset ? keyParams.dataset : this.datasetsList[0];
+            await this.fetchCoordinates();
+            this.rawData = await this.fetchFields();
+            this.fieldColors = this.calcFieldColors(this.rawData);
+
+            this.calculateTable();
+
+            const rect = document.querySelector('.sidebar-parent').getBoundingClientRect();
+            this.scrollThreshhold = rect.top + window.scrollY;
+            console.log('scrollThreshhold', rect, window.scrollY, this.scrollThreshhold);
+        },
+        toggleStack() {
+            this.doStack = !this.doStack;
+            console.log('toggleStack', this.doStack)
+        },
+        toggleNormalize() {
+            this.doNormalize = !this.doNormalize;
+            console.log('toggleNormalize', this.doNormalize)
+        },
+        handleScroll(){
+            this.fixedSidebar = window.scrollY>this.scrollThreshhold;
+        },
         injectScript(scriptPath){
             // Dynamically create a <script> tag to load library from CDN
             const script = document.createElement('script');
@@ -123,56 +179,221 @@ new Vue({
         },
         async fetchDatasets(){
             console.log('getting datasets');
-            const fetchPath = '/api/raw/file/single_cell_metadata/dataset_metadata.json.gz';
-            const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
-            const dataText = await response.text();
-            const lines = dataText.split('\n').filter(line => line.trim() !== '');
-            const jsonObjects = lines.map(line => JSON.parse(line));
-            this.datasets = jsonObjects;//.map(item => item["datasetId"]);
-            console.log('datasets', this.datasets);
-
+            try{
+                const fetchPath = '/api/raw/file/single_cell_metadata/dataset_metadata.json.gz';
+                const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
+                const dataText = await response.text();
+                const lines = dataText.split('\n').filter(line => line.trim() !== '');
+                const jsonObjects = lines.map(line => JSON.parse(line));
+                console.log('   datasets', jsonObjects);
+                return jsonObjects;
+            }catch (error){
+                console.error('Error fetching datasets:', error);
+            }
+            
         },
         async fetchFields() {
+            console.log('getting fields');
             try {
                 const response = await fetch(`${BIO_INDEX_HOST}/api/raw/file/single_cell/${this.activeDataset}/fields.json.gz`);
                 const rawData = await response.json();
 
-                console.log('rawData', rawData);
-
-                this.rawData = rawData;
-                this.fieldColors = this.calcFieldColors(rawData);
-                console.log('fieldColors', this.fieldColors);
-
-                //this.categoriesLeft.push(this.rawData["metadata_labels"]["cell_type__custom"] ? "cell_type__custom" : "cluster");
-            
-                this.calculateTable();
-                
+                console.log('   fields', rawData);
+                return rawData;
             } catch (error) {
                 console.error('Error fetching fields:', error);
             }
         },
         async fetchCoordinates() {
+            console.log('getting coordinates');
             try {
-                console.log('getting coordinates for: ', this.activeDataset);
                 const response = await fetch(`${BIO_INDEX_HOST}/api/raw/file/single_cell/${this.activeDataset}/coordinates.tsv.gz`)
                 const json = this.tsvToJson(await response.text());
+                console.log('   coordinates', json);
                 this.coordinates = json;
-                console.log('fetchCoordinates', json);
+                
             }catch (error){
                 console.error('Error fetching coordinates:', error);
             }
         },
         async fetchGeneExpression(gene){
+            console.log('fetchGeneExpression', gene);
             try{
-                console.log('getting gene expression for: ', gene, this.activeDataset);
                 const response = await fetch(`${BIO_INDEX_HOST}/api/bio/query/single-cell-lognorm?q=${this.activeDataset},${gene}`);
                 const json = await response.json();
                 const expression = json.data[0]['expression'];
+                this.geneNames.push(gene);
                 this.expressionData[gene] = expression;
-                console.log(gene, 'fetchGeneExpression', json);
+                console.log('   ', this.expressionData);
+
+                this.parseGeneExpression();
             }catch(error){
-                console.error('Error fetching gene expression', error);
+                console.error('   Error fetching gene expression', error);
             }
+        },
+        parseGeneExpression(){
+            //const categories = side==='left'?this.categoriesLeft:this.categoriesRight;
+
+            console.log('parseGeneExpression');
+
+            
+            const sortObjectKeysLocale = (obj) => {
+                const sortedObj = {};
+                const keys = Object.keys(obj).sort((a, b) => a.localeCompare(b));
+                keys.forEach(key => {
+                  sortedObj[key] = obj[key];
+                });
+                return sortedObj;
+            };
+
+            // Get expressinon values for user selected categories
+            const expressionByCategory = (category) => {
+                const categoryLabels = this.rawData['metadata_labels'][category];
+
+                const categoryData = this.rawData['metadata'][category];
+                const geneExpression = {};
+
+                this.geneNames.forEach(gene => {
+                    if(!geneExpression[gene]) geneExpression[gene] = {};
+                    categoryData.forEach((labelIdx, cellIdx) => {
+                        const label = categoryLabels[labelIdx];
+                        if (!geneExpression[gene][label]) {
+                            geneExpression[gene][label] = [];
+                        }
+                        geneExpression[gene][label].push(this.expressionData[gene][cellIdx]);
+                    });
+                    geneExpression[gene] = sortObjectKeysLocale(geneExpression[gene]);
+                })
+
+                return geneExpression;
+            }
+
+            //set individual category expression data
+            if(this.categoriesLeft.length===1){
+                this.geneExpressionA = expressionByCategory(this.categoriesLeft);
+            }
+            if(this.categoriesRight.length===1){
+                this.geneExpressionB = expressionByCategory(this.categoriesRight);
+            }
+
+            console.log('   A, B', this.geneExpressionA, this.geneExpressionB);
+
+
+            //if only one category was selected, stop here.
+            if(this.categoriesLeft===0 || this.categoriesRight.length===0) return;
+
+
+            //if both categories selected, parse combined gene expression
+
+            //combined categories
+            const expressionCombined = (gene) => {
+                const categoryLabelsA = this.rawData['metadata_labels'][this.categoriesLeft];
+                const categoryDataA = this.rawData['metadata'][this.categoriesLeft];
+
+                const categoryLabelsB = this.rawData['metadata_labels'][this.categoriesRight];
+                const categoryDataB = this.rawData['metadata'][this.categoriesRight];
+
+                const geneExpression = [];
+
+                for(var i=0; i<this.expressionData[gene].length; i++){
+                    const labelA = categoryLabelsA[categoryDataA[i]];
+                    const labelB = categoryLabelsB[categoryDataB[i]];
+                    if(!geneExpression[labelA]) geneExpression[labelA] = {}
+                    if(!geneExpression[labelA][labelB]) geneExpression[labelA][labelB] = [];
+                    geneExpression[labelA][labelB].push(this.expressionData[gene][i])
+                }
+
+                const sortedGeneExpression = {};
+                for (const labelA in geneExpression) {
+                    if (geneExpression.hasOwnProperty(labelA)) {
+                        sortedGeneExpression[labelA] = sortObjectKeysLocale(geneExpression[labelA]);
+                    }
+                }
+
+                const sortedExpression = sortObjectKeysLocale(sortedGeneExpression);
+
+                //console.log('sortedExpression', sortedExpression);
+
+                return sortedExpression;
+            }
+
+            //loop through each gene and calc combined expressino data
+            const combinedExpression = {};
+            this.geneNames.forEach(gene => {
+                const combinedGeneExpression = expressionCombined(gene);
+                combinedExpression[gene] = combinedGeneExpression;
+            })
+            this.combinedExpression = combinedExpression;
+            console.log('   AB', combinedExpression);
+
+            //umap colors for expression data by each gene
+            const expressionColors = {};
+            this.geneNames.forEach(gene => {
+                expressionColors[gene] = [];
+                const geneData = this.expressionData[gene];
+                //console.log('---', this.expressionData, this.geneNames, this.expressionData[gene])
+                const color = d3.scaleSequential(d3.interpolatePlasma)
+                    .domain([d3.max(geneData), 0]);
+                    
+                for(var i=0; i<geneData.length; i++){
+                    expressionColors[gene][i] = color(geneData[i]);
+                }
+            })
+            this.coordinateColorsGene = expressionColors;
+            console.log('   AB UMAP expressionColors', this.coordinateColorsGene);
+
+
+            //gene expression ttest
+
+            // Function to calculate mean
+            function mean(arr) {
+                return arr.reduce((acc, val) => acc + val, 0) / arr.length;
+            }
+
+            // Function to calculate standard deviation
+            function std(arr) {
+                const mu = mean(arr);
+                return Math.sqrt(arr.reduce((acc, val) => acc + Math.pow(val - mu, 2), 0) / (arr.length - 1));
+            }
+
+            // Function to calculate Cohen's d
+            function cohenD(groupA, groupB) {
+                const meanA = mean(groupA);
+                const meanB = mean(groupB);
+                const stdA = std(groupA);
+                const stdB = std(groupB);
+                const pooledStd = Math.sqrt(((groupA.length - 1) * Math.pow(stdA, 2) + (groupB.length - 1) * Math.pow(stdB, 2)) / (groupA.length + groupB.length - 2));
+                return (meanA - meanB) / pooledStd;
+            }
+
+            // Function to perform t-test and calculate Cohen's d
+            function dynamicTTest(data) {
+                const columnKeys = Object.keys(Object.values(data)[0]);
+                const results = {};
+
+                Object.keys(data).forEach(rowKey => {
+                    const groupData = columnKeys.map(group => data[rowKey][group]);
+                    results[rowKey] = {};
+
+                    for (let i = 0; i < columnKeys.length; i++) {
+                        for (let j = i + 1; j < columnKeys.length; j++) {
+                            const groupA = groupData[i] || [0];
+                            const groupB = groupData[j] || [0];
+                            //console.log('+++++', columnKeys[i], 'v', columnKeys[j], groupA, groupB);
+                            const pValue = ttest2(groupA, groupB).pValue;
+                            const effectSize = cohenD(groupA, groupB);
+                            results[rowKey][`${columnKeys[i]} vs ${columnKeys[j]}`] = { pValue, effectSize };
+                        }
+                    }
+                });
+                return results;
+            }
+
+            this.geneNames.forEach(gene => {
+                const results = dynamicTTest(this.combinedExpression[gene]);
+                console.log(`   AB ${gene} pValues and effect sizes`, results);
+
+            });
         },
         tsvToJson (tsvString) {
             const lines = tsvString.split('\n');
@@ -212,6 +433,10 @@ new Vue({
             //calculate new data
             this.processData(this.rawData, categories);
 
+            if(this.geneNames.length>0){
+                this.parseGeneExpression();
+            }
+
             this.$nextTick(() => this.updateTableDrawer());
         },
         calcFieldColors(rawData){
@@ -223,6 +448,7 @@ new Vue({
                     this.colorIndex++;
                 }
             }
+            console.log('fieldColors', colors);
             return colors;
         },
         calcCombinedFieldColors(comboCategory, fields){
@@ -238,24 +464,22 @@ new Vue({
         categoryString(category){
             return category.join('|');
         },
-        categoryKeys(category) {
+        categoryKeys(category, side) {
             if(!this.rawData || category.length<1) return [];
             const isMulti = Array.isArray(category) && category.length>1;
-            return isMulti ? this.categoryCombos[category.join('|')] : this.rawData["metadata_labels"][category];
-            /*
-            if(!this.rawData) return [];
-            const isMulti = Array.isArray(category) && category.length>1;
-            const c = isMulti ? this.categoryCombos[category.join('|')] : this.rawData["metadata_labels"][category];
-            sort ? c.sort() : c;
-            console.log('categoryKeys', category, sort, c);
-            return c;
-            */
+            console.log('categoryKeys', {category, side, isMulti, combos:this.categoryCombos, keys: this.rawData["metadata_labels"][category]})
+            if(isMulti){
+                return this.categoryCombos[category.join('|')];
+            }else{
+                if(side==='right') return this.sortedRowsB.map(item => item[category]);
+                return this.sortedRowsA.map(item => item[category]);
+            }
         },
         categoryColors(side){
             const category = side === 'left' ? this.categoriesLeft.join('|') : this.categoriesRight.join('|')
             if(!category) return [];
             //return this.fieldColors ? Object.values(this.fieldColors[category]) : [];
-            console.log('categoryColors', category, side, this.aRows.length);
+            //console.log('categoryColors', category, side, this.aRows.length);
             if(side === 'right') return this.sortedRowsB.map(item => this.fieldColors[category][item[category]]);
             return this.sortedRowsA.map(item => this.fieldColors[category][item[category]]);
         },
@@ -304,23 +528,14 @@ new Vue({
             this.lastCategoriesLeft = categories.left;
             this.lastCategoriesRight = categories.right;
 
-            //generate tables from processed data
-            if(categories.left.length > 0 && categories.right.length > 0){
-                console.log('AB selected')
-                const crossTabData = this.crossTabulation(processedData, categories.left, categories.right);
-                console.log('crossTabulation', crossTabData);
-                //this.crossTabAnalysis(crossTabData);
-                this.frequencyCrossTable(crossTabData);
-            }
-
             if(categories.left.length > 0){
-                console.log('A- selected')
+                console.log('   A- selected')
                 const aFreq = this.frequencyDistribution(processedData, categories.left);
                 const aTable = this.frequencyTable(aFreq, categories.left);
                 this.aRows = aTable.rows;
                 this.sortedRowsA = this.localSort(this.aRows, this.categoriesLeft.join('|'), false);
-                console.log('A frequency', aFreq);
-                console.log('A distribution', aTable);
+                console.log('      A frequency', aFreq);
+                console.log('      A distribution', aTable);
                 if(categories.right.length === 0){
                     this.headers = aTable.header;
                     this.rows = this.sortedRowsA;
@@ -329,18 +544,27 @@ new Vue({
             }
 
             if(categories.right.length > 0){
-                console.log('-B selected')
+                console.log('   -B selected')
                 const bFreq = this.frequencyDistribution(processedData, categories.right);
                 const bTable = this.frequencyTable(bFreq, categories.right);
                 this.bRows = bTable.rows;
                 this.sortedRowsB = this.localSort(this.bRows, this.categoriesRight.join('|'), false);
-                console.log('B frequency', bFreq);
-                console.log('B distribution', bTable);
+                console.log('      B frequency', bFreq);
+                console.log('      B distribution', bTable);
                 if(categories.left.length === 0){
                     this.headers = bTable.header;
                     this.rows = this.sortedRowsB;
                     this.sortedRows = this.sortedRowsB;
                 }
+            }
+
+             //generate tables from processed data
+             if(categories.left.length > 0 && categories.right.length > 0){
+                console.log('   AB selected')
+                const crossTabData = this.crossTabulation(processedData, categories.left, categories.right);
+                console.log('      crossTabulation', crossTabData);
+                //this.crossTabAnalysis(crossTabData);
+                this.frequencyCrossTable(crossTabData);
             }
 
             //set colors for umaps
@@ -503,7 +727,10 @@ new Vue({
             }
 
             //sort column keys
-            const allColumnKeysSorted = Array.from(allColumnKeys).sort();
+            const allColumnKeysSorted = Array.from(allColumnKeys).sort((a, b) => a.localeCompare(b));
+            //const allColumnKeysSorted2 = this.localSort(allColumnKeys, 0, false);
+            console.log('frequencyCrossTable');
+            console.log('   columnKeys', allColumnKeys, Array.from(allColumnKeys), allColumnKeysSorted);
 
             // calculate the rows and keep track of column totals
             for(const [key, value] of Object.entries(data)){
@@ -540,7 +767,7 @@ new Vue({
                 { key, label: key, sortable: true}
             ));
 
-            console.log('allColumnKeysSorted', allColumnKeysSorted, allColumnKeysSorted.length);
+            //console.log('allColumnKeysSorted', allColumnKeysSorted, allColumnKeysSorted.length);
 
             //TODO: all additional headers should be added to a headers array of headers
             //that way we dont need to keep track of the layers
@@ -556,21 +783,461 @@ new Vue({
             this.footer = footerRow;
             this.headers = headers;
             this.headers2 = headers2;
-            console.log('new head', headers);
-            console.log('new rows', this.sortedRows);
-            console.log('new foot', this.footer);
+            console.log('   new head', headers);
+            console.log('   new rows', this.sortedRows);
+            console.log('   new foot', this.footer);
+
+
+            //chi sqaured
+
+            console.log('   chi2')
+            const rowKeys = this.sortedRows.map(row => row[this.categoriesLeft.join('|')]);
+            const columnKeys = [];
+            const groups = [];
+
+            allColumnKeysSorted.forEach(columnKey => {
+                columnKeys.push(columnKey);
+                const group = [];
+                this.sortedRows.forEach(row => {
+                    const value = row[columnKey] || 0;
+                    group.push(value);
+                });
+                groups.push(group);
+            });
+
+            console.log('      groups', { columnKeys, rowKeys, groups });
+
+            function calculateChiSquare(observed) {
+                const total = observed.reduce((acc, val) => acc + val, 0);
+                const expected = observed.map(() => total / observed.length);
+                const chiSquare = observed.reduce((sum, obs, idx) => {
+                    const exp = expected[idx];
+                    return exp > 0 ? sum + Math.pow(obs - exp, 2) / exp : sum;
+                }, 0);
+                return chiSquare;
+            }
+
+            function getPValue(chiSquare, dof) {
+                return 1 - jStat.chisquare.cdf(chiSquare, dof);
+            }
+
+            const pValues = rowKeys.map((rowKey, i) => {
+                const observed = columnKeys.map((_, k) => groups[k][i]);
+                const chiSquare = calculateChiSquare(observed);
+                const pValue = getPValue(chiSquare, observed.length - 1);
+                return { rowKey, pValue };
+            });
+
+            console.log('      pValues', pValues);
+
+            const alpha = 0.01;
+            const bonferroniCorrectedAlpha = alpha / pValues.length;
+
+            const correctedPValues = pValues.map(({ rowKey, pValue }) => {
+                const correctedPValue = pValue * pValues.length;
+                return {
+                    rowKey,
+                    pValue: Math.min(correctedPValue, 1),
+                    isSignificant: correctedPValue <= bonferroniCorrectedAlpha
+                };
+            });
+
+            console.log('      pValues after Bonferroni correction', correctedPValues);
+
+            function fdrCorrection(pValues, alpha = 0.01) {
+                const sortedPValues = [...pValues].sort((a, b) => a.pValue - b.pValue);
+                const n = pValues.length;
+                let threshold = alpha;
+            
+                sortedPValues.forEach((item, index) => {
+                    const rank = index + 1;
+                    const fdrThreshold = (rank / n) * alpha;
+                    item.isSignificant = item.pValue <= fdrThreshold;
+                    threshold = fdrThreshold;
+                });
+            
+                return sortedPValues.map((item, index) => ({
+                    ...item,
+                    fdrThreshold: (index + 1) / n * alpha,
+                    isSignificant: item.pValue <= threshold
+                }));
+            }
+            
+            const correctedPValuesFDR = fdrCorrection(pValues);
+            
+            console.log('      pValues after FDR correction', correctedPValuesFDR);
+            
+
+            /*
+
+            const observed = {};
+            const columnTotals = []
+            console.log('this.sortedRowsB', this.sortedRowsB);
+            this.sortedRows.forEach((row, i) => {
+                const rowLabel = row[this.categoriesLeft.join('|')];
+                if(!observed[rowLabel]) observed[rowLabel] = [];
+                allColumnKeysSorted.forEach((columnKey, k) => {
+                    const value = !row[columnKey] ? 0 : row[columnKey];
+                    //console.log(k, columnKey, this.sortedRowsB[k]['Total'])
+                    columnTotals[k] = this.sortedRowsB[k]['Total'];
+                    observed[rowLabel].push(value)
+                })
+            })
+
+            console.log('observed', observed, columnTotals);
+
+            for (const [key, value] of Object.entries(observed)) {
+                console.log(key, value);
+            
+                // Prepare the data for chi2test
+                // stdlib-js expects a flat array of observed frequencies
+                const flatObserved = [value, columnTotals];
+
+                console.log('flatObserved', flatObserved)
+            
+                
+                // Calculate expected frequencies
+                const rowTotals = flatObserved.reduce((a, b) => a + b, 0);//value.map(row => row[0] + row[1]);
+                const colTotals = columnTotals.reduce((a, b) => a + b, 0);
+                console.log('totals', {rowTotals, colTotals});
+                const total = rowTotals + colTotals;
+                console.log('total', total);
+                const expected = [];
+                for (let i = 0; i < value.length; i++) {
+                    for (let j = 0; j < 2; j++) {
+                        expected.push((rowTotals[i] * colTotals[j]) / total);
+                    }
+                }
+                
+            
+                // Perform chi-square test
+                const result = chi2test(flatObserved);
+            
+                console.log(`Chi-square statistic: ${result.statistic}`);
+                console.log(`p-value: ${result.pValue}`);
+                console.log(`degrees of freedom: ${result.df}`);
+            }
+
+            //return;
+
+            */
+
+            /*
+
+            const observed = {};
+
+            console.log('this.sortedRowsB', this.sortedRowsB);
+            this.sortedRows.forEach((row, i) => {
+                const rowLabel = row[this.categoriesLeft.join('|')];
+                if(!observed[rowLabel]) observed[rowLabel] = [];
+                allColumnKeysSorted.forEach((columnKey, k) => {
+                    const value = !row[columnKey] ? 0 : row[columnKey];
+                    //console.log(k, columnKey, this.sortedRowsB[k]['Total'])
+                    observed[rowLabel].push([value, this.sortedRowsB[k]['Total']])
+                })
+            })
+
+            function calculateChiSquare(observed) {
+                let total = observed.reduce((sum, row) => sum + row[0] + row[1], 0);
+                let rowTotals = observed.map(row => row[0] + row[1]);
+                let colTotals = [
+                    observed.reduce((sum, row) => sum + row[0], 0),
+                    observed.reduce((sum, row) => sum + row[1], 0)
+                ];
+                
+                let chiSquare = 0;
+                observed.forEach((row, i) => {
+                    [0, 1].forEach(j => {
+                        let expected = (rowTotals[i] * colTotals[j]) / total;
+                        chiSquare += Math.pow(row[j] - expected, 2) / expected;
+                    });
+                });
+                
+                return chiSquare;
+            }
+
+            for (const [key, value] of Object.entries(observed)) {
+                //console.log(key, value);
+                // Calculate chi-square statistic
+                const chiSquare = calculateChiSquare(value);
+                //console.log('Chi-square result:', JSON.stringify(chiSquare, null, 2));
+                // Calculate p-value
+                // Degrees of freedom = (rows-1) * (columns-1) = (2-1) * (value.length-1)
+                const dof = 1 * (value.length - 1);
+                const pValue = 1 - jStat.chisquare.pdf(chiSquare, dof);
+            
+                //if(pValue < 0.05){
+                    console.log(key);
+                    console.log(`    Chi-square: ${chiSquare}, df: ${dof}, p-value: ${pValue}`);
+                //}
+                
+            }
+            */
+
+            //return;
+
+            /*
+            //anova test for cell distribution variance
+            const columnKeys = [];
+            const groups = [];
+
+            console.log('this.sortedRowsB', this.sortedRowsB);
+
+            const refGroup = [];
+
+            this.sortedRowsB.forEach(row => {
+                //columnKeys.push(row[this.categoriesLeft.join('|')])
+                //const group = [];
+                //allColumnKeysSorted.forEach(columnKey => {
+                    const value = !row['Total'] ? 0 : row['Total'];
+                    refGroup.push(value);
+                //})
+                //refGroup.push(group);
+            })
+
+            console.log('refGroup', refGroup);
+            
+            allColumnKeysSorted.forEach((columnKey, i) => {
+                columnKeys.push(columnKey)
+                const group = [];
+                this.sortedRows.forEach((row, k) => {
+                    const value = !row[columnKey] ? 0 : row[columnKey];
+                    group.push(value);
+                })
+                groups.push(group);
+            })
+            
+            
+            this.sortedRows.forEach(row => {
+                columnKeys.push(row[this.categoriesLeft.join('|')])
+                const group = [];
+                allColumnKeysSorted.forEach(columnKey => {
+                    const value = !row[columnKey] ? 0 : row[columnKey];
+                    group.push(value);
+                })
+                groups.push(group);
+            })
+            
+
+            console.log('columnKeys', columnKeys);
+            console.log('groups', groups);
+            
+            // Perform one-way ANOVA
+            const fStatistic = jStat.anovafscore(...groups);
+            console.log(`F-statistic: ${fStatistic}`);
+
+            // Degrees of freedom
+            const dfb = groups.length-1;  // number of groups - 1
+            const dfw = groups.reduce((sum, array) => sum + array.length, 0) - groups.length; // total number of data points - number of groups
+
+            const pValue = jStat.ftest(fStatistic, dfb, dfw);
+            console.log(`p-value: ${pValue}`);
+
+            this.combinedBarsFstat = fStatistic;
+            this.combinedBarspVal = pValue;
+
+            //columnKeys.unshift('ref');
+            //groups.unshift(refGroup);
+
+            if (pValue < 1) {
+                const tukeyResults = jStat.tukeyhsd(groups);
+
+                console.log('tukeyResults results:', tukeyResults);
+
+                const pairwiseResults = tukeyResults.map(result => {
+                    if(result[1] < 0.05){
+                        console.log('!!', result[0][0], columnKeys[result[0][0]], result[1]);
+                        console.log('  !!', result[0][1], columnKeys[result[0][1]], result[1]);
+                    }
+                    return {
+                        idx1: result[0][0],
+                        idx2: result[0][1],
+                        group1: columnKeys[result[0][0]],
+                        group2: columnKeys[result[0][1]],
+                        pValue: result[1]
+                    }
+                });
+
+                console.log('Pairwise comparison results:', pairwiseResults);
+            } else {
+                console.log('ANOVA is not significant, no post-hoc tests performed.');
+            }
+            */
+            
+
+            return;
+            
+            
+
+            /*
+
+            // ChiSquared
+            function chiSquaredTest(group1, group2) {
+                const observed = [group1, group2];
+                const total1 = jStat.sum(group1);
+                const total2 = jStat.sum(group2);
+                const grandTotal = total1 + total2;
+
+                const expected = [
+                    group1.map((_, i) => (group1[i] + group2[i]) * (total1 / grandTotal)),
+                    group2.map((_, i) => (group1[i] + group2[i]) * (total2 / grandTotal))
+                ];
+
+                let chiSquared = 0;
+                for (let i = 0; i < observed[0].length; i++) {
+                    chiSquared += Math.pow(observed[0][i] - expected[0][i], 2) / expected[0][i];
+                    chiSquared += Math.pow(observed[1][i] - expected[1][i], 2) / expected[1][i];
+                }
+
+                const df = observed[0].length - 1;
+                const pValue = 1 - jStat.chisquare.cdf(chiSquared, df);
+
+                return pValue;
+            }
+            
+            // Perform pairwise Chi-squared tests
+            const pairwiseResults = [];
+            for (let i = 0; i < groups.length; i++) {
+                for (let j = i + 1; j < groups.length; j++) {
+                    const pValue = chiSquaredTest(groups[i], groups[j]);
+                    pairwiseResults.push({
+                        group1: allColumnKeysSorted[i],
+                        group2: allColumnKeysSorted[j],
+                        pValue: pValue
+                    });
+                }
+            }
+            
+            console.log('Pairwise Chi-squared test results:', pairwiseResults);
+
+            */
+            
         },
+
+        kernelDensityEstimator(kernel, x){
+            return function(sample){
+                return x.map(function(xi) {
+                    return [xi, d3.mean(sample, function(v){
+                        return kernel(xi-v);
+                    })]
+                })
+            }
+        },
+        kernelEpanechnikov(k){
+            return function(v){
+                return Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0;
+            }
+        },
+
+        calculateStatistics() {
+            const categoryData = this.rawData['metadata'][this.categoriesLeft];
+            const categoryLabels = this.rawData['metadata_labels'][this.categoriesLeft];
+            const gene = this.activeGene;
+        
+            const geneExpressionByLabel = {};
+        
+            // Organize data points by category
+            categoryData.forEach((labelIdx, cellIdx) => {
+                const label = categoryLabels[labelIdx];
+                if (!geneExpressionByLabel[label]) {
+                    geneExpressionByLabel[label] = {};
+                    //this.geneNames.forEach(gene => {
+                        geneExpressionByLabel[label][gene] = [];
+                    //});
+                }
+                //this.geneNames.forEach(gene => {
+                    geneExpressionByLabel[label][gene].push(this.expressionData[gene][cellIdx]);
+                //});
+            });
+
+            console.log('geneExpressionByLabel', geneExpressionByLabel);
+        
+            const statistics = {};
+        
+            for (const label in geneExpressionByLabel) {
+                statistics[label] = {};
+                this.geneNames.forEach(gene => {
+                    const dataPoints = geneExpressionByLabel[label][gene];
+                    dataPoints.sort((a, b) => a - b);
+            
+                    const n = dataPoints.length;
+                    const mean = dataPoints.reduce((sum, val) => sum + val, 0) / n;
+                    const median = (dataPoints[Math.floor((n - 1) / 2)] + dataPoints[Math.ceil((n - 1) / 2)]) / 2;
+                    const min = dataPoints[0];
+                    const max = dataPoints[n - 1];
+                    const range = max - min;
+                    const q1 = dataPoints[Math.floor((n - 1) / 4)];
+                    const q3 = dataPoints[Math.floor((3 * (n - 1)) / 4)];
+                    const iqr = q3 - q1;
+                    const variance = dataPoints.reduce((sum, val) => sum + (val - mean) ** 2, 0) / n;
+                    const stdDev = Math.sqrt(variance);
+                    const pctExpressed = (dataPoints.filter(val => val > 0).length / n) * 100;
+
+                    const kde = this.kernelDensityEstimator(this.kernelEpanechnikov(7), d3.range(min, max, (max-min) / 100));
+                    const density = kde(dataPoints);
+            
+                    statistics[label][gene] = {
+                        data:dataPoints,
+                        mean,
+                        median,
+                        min,
+                        max,
+                        range,
+                        q1,
+                        q3,
+                        iqr,
+                        variance,
+                        stdDev,
+                        pctExpressed,
+                        density
+                    };
+                });
+            }
+        
+            this.statistics = statistics;
+            console.log('statistics', statistics);
+            return statistics;
+        },
+
+        createHeatmapData() {
+            const statistics = this.calculateStatistics();
+            const tableData = [];
+        
+            for (const label in statistics) {
+                const row = { label };
+                this.geneNames.forEach(gene => {
+                    row[`${gene}_mean`] = statistics[label][gene].mean;
+                    row[`${gene}_percent`] = statistics[label][gene].pctExpressed;
+                });
+                tableData.push(row);
+            }
+
+            const fields = [
+                { key: 'label', label: 'Label' },
+                ...this.geneNames.map(gene => ({ key: `${gene}_mean`, label: `${gene} Mean Expression` })),
+                ...this.geneNames.map(gene => ({ key: `${gene}_percent`, label: `${gene} % Expressed` }))
+            ]
+
+            this.expressionRows = tableData;
+            this.expressionHeaders = fields;
+
+            console.log('createHeatmapData', this.expressionRows, this.expressionHeaders);
+        
+            //return tableData;
+        },
+
         toggleCategory(e){
             const categories = e.target.dataset.side==='left'?this.categoriesLeft:this.categoriesRight;
             const clickedCategory = e.target.dataset.category;
             if(categories.includes(clickedCategory)){
                 categories.splice(categories.indexOf(clickedCategory), 1);
             }else{
-                if(categories.length===2){
+                if(categories.length===1){
                     console.warn('reached category combo limit');
                     return;
                 }
                 categories.push(clickedCategory);
+                //this.parseGeneExpression(e.target.dataset.side);
             }
             this.calculateTable();
         },
@@ -589,6 +1256,7 @@ new Vue({
             console.log('sorted', this.sortedRows);
         },
         localSort(rows, sortBy, sortDesc){
+            //console.log("localSort", rows);
             const compareType = typeof rows[0][sortBy];
             return rows.slice().sort((a, b) => {
                 let result = 0;
@@ -602,23 +1270,41 @@ new Vue({
                 return sortDesc ? -result : result;
             });
         },
-        toggleTableDrawer(){
-            const el = document.querySelector('.table-drawer');
-            const tableWidth = Math.floor(el.getBoundingClientRect().width)+15;
+        toggleTableDrawer(e=null){
+            const el = !e ? document.querySelector('.table-drawer') : e.target.parentNode;
+            const tableWidth = Math.floor(el.getBoundingClientRect().width)-20;
             if(el.dataset.state==='closed'){
-                el.style.left = `calc(100vw - ${tableWidth}px)`;
+                el.style.left = `calc(100% - ${tableWidth}px)`;
                 el.dataset.state = 'open';
             }else{
-                el.style.left = `calc(100vw - 80px)`;
+                el.style.left = `calc(100% - 80px)`;
                 el.dataset.state = 'closed';
             }
         },
         updateTableDrawer(){
-            const el = document.querySelector('.table-drawer');
-            if(!el) return;
-            const tableWidth = Math.floor(el.getBoundingClientRect().width)+15;
-            if(el.dataset.state==='open') el.style.left = `calc(100vw - ${tableWidth}px)`;
+            const els = document.querySelectorAll('.table-drawer');
+            if(!els || els.length<1) return;
+            els.forEach(el => {
+                const tableWidth = Math.floor(el.getBoundingClientRect().width)-20;
+                if(el.dataset.state==='open') el.style.left = `calc(100vw - ${tableWidth}px)`;
+            });
+            
         },
+
+        searchGene(e){
+            const parts = e.target.value.split(/[,\s]+/);
+            e.target.value = '';
+            //TODO: should be a queue
+            parts.forEach(async (gene) => {
+                await this.fetchGeneExpression(gene.toUpperCase());
+            })
+        },
+        removeGene(e){
+            const geneToRemove = e.target.dataset.gene;
+            console.log("removing gene", geneToRemove);
+            this.geneNames.splice(this.geneNames.indexOf(geneToRemove), 1);
+            //TODO: remove gene from data and visualizations
+        }
     }
 }).$mount("#app");
 
@@ -640,6 +1326,7 @@ visualizations:
 //
 
 /*
+//step1 pull raw data from api
 NAMES is the main index.
 "metadata" categories are parallel arrays to NAMES and values are indeces of "metadat_labels" categories.
 
@@ -657,6 +1344,23 @@ rawData = {
     }
 }
 
+//step2 process raw data based on user selected categories
+//processed data is a flattened array of objects, parallells NAMES, contains only user selected categories
+processedData = [
+    {categoryA: "label_a1", categoryB:"label_b1"},
+    {categoryA: "label_a1", categoryB:"label_b1"},
+    {categoryA: "label_a2", categoryB:"label_b2"},
+    {categoryA: "label_a2", categoryB:"label_b2"},
+    ...
+]
+
+//using processedData and user selected categories, create a gene expression table
+//gene expression data, parallels NAMES
+expression = {
+    ['gene_name']: [0, 1.3, 0, 2.23, 1.2, .8, 0, ...]    //len: all cells, type: number
+}
+
+
 colors object mirrors metadata_labels
 
 fieldColors = {
@@ -667,15 +1371,5 @@ fieldColors = {
     },
     ...
 }
-
-//processed data is a flattened array of objects, parallells NAMES, contains only user selected categories
-
-processedData = [
-    {categoryA: "label_a1", categoryB:"label_b1"},
-    {categoryA: "label_a1", categoryB:"label_b1"},
-    {categoryA: "label_a2", categoryB:"label_b2"},
-    {categoryA: "label_a2", categoryB:"label_b2"},
-    ...
-]
 
 */
