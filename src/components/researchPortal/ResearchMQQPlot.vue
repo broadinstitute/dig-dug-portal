@@ -284,11 +284,9 @@ export default Vue.component("research-m-qq-plot", {
 			let compareGroups = [];
 			let massagedData = {};
 			let plotsList = [...this.plotsList];
-			let lambdaValue = !!this.plotData[0].lambda
-				? this.plotData[0].lambda
+			let lambdaValue = !!this.plotData[0][this.renderConfig["lambda"]]
+				? this.plotData[0][this.renderConfig["lambda"]]
 				: null;
-
-			//console.log("lambdaValue", lambdaValue);
 
 			plotsList.map((c) => {
 				let tempObj = { lambda: lambdaValue, sorted: {}, unsorted: [] };
@@ -601,7 +599,6 @@ export default Vue.component("research-m-qq-plot", {
 				(this.topMargin + yBump + this.bottomMargin);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
-				//console.log("renderData", dKey, dValue);
 
 				let c = document.getElementById("qqPlot" + this.sectionId + dKey);
 
@@ -655,8 +652,6 @@ export default Vue.component("research-m-qq-plot", {
 						"number",
 						"desc"
 					);
-
-					//console.log("DATA.lambda", dValue.lambda);
 
 					if (!!dValue.lambda) {
 						ctx.font = "26px Arial";
@@ -869,7 +864,7 @@ export default Vue.component("research-m-qq-plot", {
 				(this.topMargin + yBump + this.bottomMargin);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
-				//console.log("renderData", dKey, dValue);
+				
 				let c = document.getElementById("mPlot" + this.sectionId + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
@@ -1102,8 +1097,6 @@ export default Vue.component("research-m-qq-plot", {
 					if (!!this.renderConfig["m-plot thresholds"]) {
 						this.renderConfig["m-plot thresholds"].map((t) => {
 							let tValue = -Math.log10(Number(t));
-
-							//console.log("thresholds", t, tValue);
 
 							let yPosByPixel = plotHeight / (yMax - yMin);
 

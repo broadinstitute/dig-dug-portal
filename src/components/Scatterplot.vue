@@ -21,7 +21,7 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("scatterplot", {
   components: {
   },
-  props: ["plotData", "config", "filter", "plotName", "logScale"],
+  props: ["plotData", "config", "filter", "plotName", "logScale", "translucentDots"],
   data() {
       return {
         plotId: `scatterplot-${Math.floor(Math.random() * 10e9)}`,
@@ -81,6 +81,7 @@ export default Vue.component("scatterplot", {
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .attr("id", `chart-${this.plotId}`)
+          .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
@@ -107,13 +108,15 @@ export default Vue.component("scatterplot", {
       let yMin = this.extremeVal(this.chartData, yFieldScaled);
       let xMax = this.extremeVal(this.chartData, this.config.xField, false);
       let yMax = this.extremeVal(this.chartData, yFieldScaled, false);
+      let xRange = xMax - xMin;
+      let yRange = yMax - yMin;
       //xMin = xMin > 0 ? 0 : xMin;
       //yMin = yMin > 0 ? 0 : yMin;
       this.xMedian = (xMin + xMax) / 2;
       
       // add X-axis
       this.xScale = d3.scaleLinear()
-        .domain([xMin, xMax])
+        .domain([xMin - (0.01 * xRange), xMax])
         .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
@@ -127,7 +130,7 @@ export default Vue.component("scatterplot", {
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
-        .domain([yMin, yMax])
+        .domain([yMin - (0.035 * yRange), yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale));
@@ -155,7 +158,7 @@ export default Vue.component("scatterplot", {
               ? this.yScale(0) // Is this an issue for log scale? 
               : this.yScale(d[yFieldScaled]))
           .attr("r", 5)
-          .attr("fill", d => "#007bff")
+          .attr("fill", d => `#007bff${this.translucentDots ? 'aa' : ''}`)
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
@@ -219,7 +222,12 @@ export default Vue.component("scatterplot", {
       return tooltipText;
     },
     unHoverDot() {
-      this.tooltip.style("opacity", 0);
+      this.hideTooltip();
+    },
+    hideTooltip(){
+      if (!!this.tooltip){
+        this.tooltip.style("opacity", 0);
+      }
     },
     getHoverFields(){
       let fields = [];

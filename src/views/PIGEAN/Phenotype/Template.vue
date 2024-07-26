@@ -89,36 +89,53 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Genes with genetic support
+                    </h4>
+                    <div style="margin-bottom: 1rem;">
+                        Combined genetic support is composed of direct support
+                        (from GWAS associations near the gene) and indirect support
+                        (membership in gene sets with genetic support). 
+                        Units are log-odds of probability.
+                    </div>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene"
                             placeholder="Select a gene ..."
                             :options="
-                                $store.state.pigeanPhenotype.data.map(d => d.gene)
+                                $store.state.pigeanPhenotype.data.map(
+                                    (d) => d.gene
+                                )
                             "
                             :multiple="true"
                         >
                             <div class="label">Filter by Genes</div>
                         </filter-enumeration-control>
-                        <filter-greater-less 
-                            v-for="filterField in 
-                                $parent.geneFilterFields"
+                        <filter-greater-less
+                            v-for="filterField in $parent.geneFilterFields"
+                            :key="filterField.key"
                             :field="filterField.key"
                             :label="filterField.label"
                         >
-                            <div class="label">{{ filterField.label}}</div>
+                            <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
-                            <pigean-plot v-if="$parent.plotReady"
+                            <pigean-plot
+                                v-if="$parent.plotReady"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
-                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                :filter="filter">
+                                :phenotypeMap="
+                                    $store.state.bioPortal.phenotypeMap
+                                "
+                                :filter="filter"
+                            >
                             </pigean-plot>
-                            <pigean-table v-if="$parent.plotReady"
+                            <pigean-table
+                                v-if="$parent.plotReady"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.tableConfig"
-                                :filter="filter">
+                                :filter="filter"
+                            >
                             </pigean-table>
                         </template>
                     </criterion-function-group>
@@ -126,39 +143,83 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Gene sets that affect genetic support
+                    </h4>
+                    <div style="margin-bottom: 1rem;">
+                        Gene sets affect the log-odds of the probability 
+                        that a gene is involved in a trait. Effect sizes are 
+                        calculated for the gene set in isolation (marginal) 
+                        and in a joint model with all gene sets together (joint).
+                    </div>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene_set"
                             placeholder="Select a gene set..."
                             :options="
-                                $store.state.genesetPhenotype.data.map(d => d.gene_set)
+                                $store.state.genesetPhenotype.data.map(
+                                    (d) => d.gene_set
+                                )
                             "
                             :multiple="true"
                         >
                             <div class="label">Filter by Gene Sets</div>
                         </filter-enumeration-control>
-                        <filter-greater-less 
-                            v-for="filterField in 
-                                $parent.genesetFilterFields"
+                        <filter-greater-less
+                            v-for="filterField in $parent.genesetFilterFields"
+                            :key="filterField.key"
                             :field="filterField.key"
                             :label="filterField.label"
                         >
-                            <div class="label">{{ filterField.label}}</div>
+                            <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
+
                         <template slot="filtered" slot-scope="{ filter }">
-                            <pigean-plot v-if="$parent.plotReady"
+                            <pigean-plot
+                                v-if="$parent.plotReady"
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
-                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                :filter="filter">
+                                :phenotypeMap="
+                                    $store.state.bioPortal.phenotypeMap
+                                "
+                                :filter="filter"
+                            >
                             </pigean-plot>
-                            <pigean-table v-if="$parent.plotReady"
+                            <pigean-table
+                                v-if="$parent.plotReady"
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetTableConfig"
-                                :filter="filter">
+                                :filter="filter"
+                            >
                             </pigean-table>
                         </template>
                     </criterion-function-group>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Biological mechanisms underlying the trait
+                        <tooltip-documentation
+                            name="gene.translator.tooltip.hover"
+                            :content-fill="$parent.documentationMap"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :supplyText="$parent.mechanismTooltip"
+                        >
+                        </tooltip-documentation>
+                    </h4>
+                    <div>
+                        Mechanisms are determined by latent factorization 
+                        of the membership matrix of significant genes and gene sets.
+                    </div>
+                    <pigean-table
+                        v-if="$parent.plotReady"
+                        :pigeanData="$store.state.pigeanFactor.data"
+                        :config="$parent.factorTableConfig"
+                        :phewasRenderConfig="$parent.renderConfig"
+                    >
+                    </pigean-table>
                 </div>
             </div>
         </div>
@@ -204,5 +265,13 @@
     background-color: #fff;
     padding: 3px 12px;
     border-bottom: solid 1px #eeeeee;
+}
+
+.mechanism-info {
+    font-size: 0.75em;
+    color: #007bff;
+}
+.b-tooltip {
+    color: green !important;
 }
 </style>
