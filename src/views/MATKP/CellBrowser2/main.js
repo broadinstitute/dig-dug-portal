@@ -59,7 +59,11 @@ new Vue({
     },
     data() {
       return {
+        isLoading: false, 
+
         colorScaleIndex: d3.scaleOrdinal(colors),
+        colorScalePlasma: d3.scaleSequential(d3.interpolatePlasma),
+        colorScalePlasmaColorsArray: [],
         colorIndex: 0,
 
         d: '::',
@@ -82,6 +86,8 @@ new Vue({
         referenceField: null,
 
         headers: [],
+        headersA: [],
+        headersB: [],
         headers2: [],
 
         rows: [],
@@ -147,8 +153,10 @@ new Vue({
             await this.fetchCoordinates();
             this.rawData = await this.fetchFields();
             this.fieldColors = this.calcFieldColors(this.rawData);
-
+    
             this.calculateTable();
+
+            this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ')
 
             const rect = document.querySelector('.sidebar-parent').getBoundingClientRect();
             this.scrollThreshhold = rect.top + window.scrollY;
@@ -218,6 +226,8 @@ new Vue({
         },
         async fetchGeneExpression(gene){
             console.log('fetchGeneExpression', gene);
+            this.isLoading = true;
+            await Vue.nextTick();
             try{
                 const response = await fetch(`${BIO_INDEX_HOST}/api/bio/query/single-cell-lognorm?q=${this.activeDataset},${gene}`);
                 const json = await response.json();
@@ -227,6 +237,9 @@ new Vue({
                 console.log('   ', this.expressionData);
 
                 this.parseGeneExpression();
+
+                this.isLoading = false;
+                //await Vue.nextTick();
             }catch(error){
                 console.error('   Error fetching gene expression', error);
             }
@@ -421,6 +434,8 @@ new Vue({
 
             //clear previous data
             this.headers = [];
+            this.headersA = [];
+            this.headersB = [];
             this.headers2 = [];
             this.rows = [];
             this.footer = [];
@@ -534,6 +549,7 @@ new Vue({
                 const aTable = this.frequencyTable(aFreq, categories.left);
                 this.aRows = aTable.rows;
                 this.sortedRowsA = this.localSort(this.aRows, this.categoriesLeft.join('|'), false);
+                this.headersA = aTable.header;
                 console.log('      A frequency', aFreq);
                 console.log('      A distribution', aTable);
                 if(categories.right.length === 0){
@@ -549,6 +565,7 @@ new Vue({
                 const bTable = this.frequencyTable(bFreq, categories.right);
                 this.bRows = bTable.rows;
                 this.sortedRowsB = this.localSort(this.bRows, this.categoriesRight.join('|'), false);
+                this.headersB = bTable.header;
                 console.log('      B frequency', bFreq);
                 console.log('      B distribution', bTable);
                 if(categories.left.length === 0){
@@ -1303,6 +1320,9 @@ new Vue({
             const geneToRemove = e.target.dataset.gene;
             console.log("removing gene", geneToRemove);
             this.geneNames.splice(this.geneNames.indexOf(geneToRemove), 1);
+            delete this.combinedExpression[geneToRemove];
+            delete this.geneExpressionA[geneToRemove];
+            delete this.geneExpressionB[geneToRemove];
             //TODO: remove gene from data and visualizations
         }
     }
