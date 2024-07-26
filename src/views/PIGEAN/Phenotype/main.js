@@ -26,6 +26,8 @@ import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import Heatmap from "@/components/Heatmap.vue";
+import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -51,7 +53,9 @@ new Vue({
         FilterGreaterLess,
         BootstrapVue,
         BootstrapVueIcons,
-        TooltipDocumentation
+        TooltipDocumentation,
+        Heatmap,
+        ResearchHeatmap
     },
     data() {
         return {
@@ -227,7 +231,7 @@ new Vue({
                 'construct the PheWAS and not to determine the factor weights.',
             heatmapConfig: {
                 "type": "heat map",
-                "label": "cluster phenotypes heatmap",
+                "label": "Mechanisms",
                 "main": {
                     "field": "Z", 
                     "label": "Z-score",
@@ -240,7 +244,9 @@ new Vue({
                     "label": "P-value",
                     "type": "steps",
                     "direction": "negative",
-                    "value range": [0, 1]},
+                    "valueRange": [0, 1],
+                    "value range": [0, 1]
+                },
                 "column field": "other_phenotype",
                 "column label": "Other phenotype",
                 "row field": "factor",
