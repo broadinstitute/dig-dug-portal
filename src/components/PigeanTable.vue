@@ -233,11 +233,13 @@ export default Vue.component("pigean-table", {
                 :sort-desc="true"
             >
                 <template #cell(label)="r">
-                    {{
-                        r.item.label.length > 50
-                            ? `${r.item.label.slice(0, 50)}...`
-                            : r.item.label
-                    }}
+                    <span v-if="!!r.item.label">
+                        {{
+                            r.item.label.length > 50
+                                ? `${r.item.label.slice(0, 50)}...`
+                                : r.item.label
+                        }}    
+                    </span>
                 </template>
                 <template #cell(gene)="r">
                     <a :href="`/pigean/gene.html?gene=${r.item.gene}${suffix}`">
