@@ -224,7 +224,29 @@ new Vue({
                 'in the portal, producing a PheWAS that independently ' +
                 'determines additional traits affected by the mechanism. ' +
                 'Associations with other traits are used only to ' +
-                'construct the PheWAS and not to determine the factor weights.'
+                'construct the PheWAS and not to determine the factor weights.',
+            heatmapConfig: {
+                "type": "heat map",
+                "label": "cluster phenotypes heatmap",
+                "main": {
+                    "field": "Z", 
+                    "label": "Z-score",
+                    "type": "scale",
+                    "direction": "positive",
+                    "low": -5, "middle": 0, "high": 5
+                },
+                "sub": {
+                    "field": "pValue",
+                    "label": "P-value",
+                    "type": "steps",
+                    "direction": "negative",
+                    "value range": [0, 1]},
+                "column field": "other_phenotype",
+                "column label": "Other phenotype",
+                "row field": "factor",
+                "row label": "Mechanism",
+                "font size": 12
+            }
         };
     },
 
