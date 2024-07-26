@@ -237,15 +237,15 @@ new Vue({
                     "label": "Z-score",
                     "type": "scale",
                     "direction": "positive",
-                    "low": -5, "middle": 0, "high": 5
+                    "low": -3.0, "middle": 0, "high": 5.0
                 },
                 "sub": {
                     "field": "pValue",
                     "label": "P-value",
                     "type": "steps",
                     "direction": "negative",
-                    "valueRange": [0, 1],
-                    "value range": [0, 1]
+                    "valueRange": [0.00001, 1.0],
+                    "value range": [0.00001, 1.0]
                 },
                 "column field": "other_phenotype",
                 "column label": "Other phenotype",

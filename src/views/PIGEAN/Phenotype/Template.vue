@@ -216,8 +216,9 @@
                     <research-heatmap
                         v-if="$store.state.pigeanTopPhewas.data.length > 0"
                         :heatmapData="$store.state.pigeanTopPhewas.data"
-                        :renderConfig="$parent.heatmapConfig">
-
+                        :renderConfig="$parent.heatmapConfig"
+                        :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                        :utils="$parent.utilsBox">
                     </research-heatmap>
                     <pigean-table
                         v-if="$parent.plotReady"
