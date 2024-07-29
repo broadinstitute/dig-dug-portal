@@ -378,6 +378,10 @@ new Vue({
         },
         filterHeatmapData(p){
             let phewasData = structuredClone(this.$store.state.pigeanTopPhewas.data);
+            if (p === '' || Number.isNaN(p)){
+                console.log("Not a number");
+                return phewasData;
+            }
             let significantEntries = phewasData.filter(item => item.pValue <= p);
             let significantPhenotypes = significantEntries.map(item => item.other_phenotype);
             return phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
