@@ -26,10 +26,13 @@ import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import Heatmap from "@/components/Heatmap.vue";
+import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 new Vue({
@@ -51,7 +54,10 @@ new Vue({
         FilterGreaterLess,
         BootstrapVue,
         BootstrapVueIcons,
-        TooltipDocumentation
+        TooltipDocumentation,
+        Heatmap,
+        ResearchHeatmap,
+        FilterPValue
     },
     data() {
         return {
@@ -224,7 +230,32 @@ new Vue({
                 'in the portal, producing a PheWAS that independently ' +
                 'determines additional traits affected by the mechanism. ' +
                 'Associations with other traits are used only to ' +
-                'construct the PheWAS and not to determine the factor weights.'
+                'construct the PheWAS and not to determine the factor weights.',
+            heatmapConfig: {
+                "type": "heat map",
+                "label": "Mechanisms",
+                "main": {
+                    "field": "Z", 
+                    "label": "Z-score",
+                    "type": "scale",
+                    "direction": "positive",
+                    "low": -3.0, "middle": 0, "high": 5.0
+                },
+                "sub": {
+                    "field": "pValue",
+                    "label": "P-value",
+                    "type": "steps",
+                    "direction": "negative",
+                    "valueRange": [0.00001, 0.001],
+                    "value range": [0.00001, 0.001]
+                },
+                "column field": "otherPhenotypeShort",
+                "column label": "Other phenotype",
+                "row field": "factor",
+                "row label": "Mechanism",
+                "font size": 12
+            },
+            heatmapMaxP: 0.001,
         };
     },
 
@@ -247,7 +278,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        ///
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -266,6 +296,9 @@ new Vue({
                 this.$store.state.pigeanPhenotype.data.length > 0 &&
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
+        },
+        heatmapData(){
+            return this.filterHeatmapData(this.heatmapMaxP);
         },
         utilsBox() {
             let utils = {
@@ -342,6 +375,25 @@ new Vue({
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
         },
+        filterHeatmapData(p){
+            let phewasData = structuredClone(this.$store.state.pigeanTopPhewas.data);
+            if (p === '' || Number.isNaN(p)){
+                return this.trimPhenotypeNames(phewasData);
+            }
+            let significantEntries = phewasData.filter(item => item.pValue <= p);
+            let significantPhenotypes = significantEntries.map(item => item.other_phenotype);
+            phewasData = phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
+            return this.trimPhenotypeNames(phewasData);
+        },
+        trimPhenotypeNames(originalData){
+            let data = structuredClone(originalData);
+            for (let i = 0; i < data.length; i++){
+                let longName = data[i].other_phenotype;
+                data[i].otherPhenotypeShort = 
+                    longName.length <= 25 ? longName : `${longName.slice(0,25)}...`;
+            }
+            return data;
+        }
     },
 
     render(createElement, context) {

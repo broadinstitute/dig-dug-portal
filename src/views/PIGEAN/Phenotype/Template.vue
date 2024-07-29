@@ -198,6 +198,28 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4>PheWAS Heatmap</h4>
+                    <criterion-function-group>
+                        <div class="col filter-col-md">
+                            <div class="label">P-value (<=)</div>
+                            <input type="number" 
+                                class="form-control"
+                                v-model="$parent.heatmapMaxP"/>
+                        </div>
+                    </criterion-function-group>
+                    
+                        
+                    <research-heatmap
+                        v-if="$store.state.pigeanTopPhewas.data.length > 0"
+                        :heatmapData="$parent.heatmapData"
+                        :renderConfig="$parent.heatmapConfig"
+                        :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                        :utils="$parent.utilsBox">
+                    </research-heatmap>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <h4 class="card-title">
                         Biological mechanisms underlying the trait
                         <tooltip-documentation
@@ -213,13 +235,13 @@
                         Mechanisms are determined by latent factorization 
                         of the membership matrix of significant genes and gene sets.
                     </div>
-                    <pigean-table
-                        v-if="$parent.plotReady"
-                        :pigeanData="$store.state.pigeanFactor.data"
-                        :config="$parent.factorTableConfig"
-                        :phewasRenderConfig="$parent.renderConfig"
-                    >
-                    </pigean-table>
+                        <pigean-table
+                            v-if="$parent.plotReady"
+                            :pigeanData="$store.state.pigeanFactor.data"
+                            :config="$parent.factorTableConfig"
+                            :phewasRenderConfig="$parent.renderConfig"
+                        >
+                        </pigean-table>
                 </div>
             </div>
         </div>
