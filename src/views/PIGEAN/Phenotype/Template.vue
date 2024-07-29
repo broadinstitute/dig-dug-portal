@@ -199,10 +199,16 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>PheWAS Heatmap</h4>
-                    <label>
-                        P-value (<=)
-                        <input type="number" v-model="$parent.heatmapMaxP"/>
-                    </label>
+                    <criterion-function-group>
+                        <div class="col filter-col-md">
+                            <div class="label">P-value (<=)</div>
+                            <input type="number" 
+                                class="form-control"
+                                v-model="$parent.heatmapMaxP"/>
+                        </div>
+                    </criterion-function-group>
+                    
+                        
                     <research-heatmap
                         v-if="$store.state.pigeanTopPhewas.data.length > 0"
                         :heatmapData="$parent.heatmapData"
