@@ -249,7 +249,7 @@ new Vue({
                     "valueRange": [0.00001, 0.001],
                     "value range": [0.00001, 0.001]
                 },
-                "column field": "other_phenotype",
+                "column field": "otherPhenotypeShort",
                 "column label": "Other phenotype",
                 "row field": "factor",
                 "row label": "Mechanism",
@@ -278,7 +278,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        ///
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -384,8 +383,18 @@ new Vue({
             }
             let significantEntries = phewasData.filter(item => item.pValue <= p);
             let significantPhenotypes = significantEntries.map(item => item.other_phenotype);
-            return phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
+            phewasData = phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
+            return this.trimPhenotypeNames(phewasData);
         },
+        trimPhenotypeNames(originalData){
+            let data = structuredClone(originalData);
+            for (let i = 0; i < data.length; i++){
+                let longName = data[i].other_phenotype;
+                data[i].otherPhenotypeShort = 
+                    longName.length <= 25 ? longName : `${longName.slice(0,25)}...`;
+            }
+            return data;
+        }
     },
 
     render(createElement, context) {
