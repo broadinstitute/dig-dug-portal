@@ -32,6 +32,7 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 new Vue({
@@ -55,7 +56,8 @@ new Vue({
         BootstrapVueIcons,
         TooltipDocumentation,
         Heatmap,
-        ResearchHeatmap
+        ResearchHeatmap,
+        FilterPValue
     },
     data() {
         return {
@@ -244,8 +246,8 @@ new Vue({
                     "label": "P-value",
                     "type": "steps",
                     "direction": "negative",
-                    "valueRange": [0.00001, 1.0],
-                    "value range": [0.00001, 1.0]
+                    "valueRange": [0.00001, 0.001],
+                    "value range": [0.00001, 0.001]
                 },
                 "column field": "other_phenotype",
                 "column label": "Other phenotype",
@@ -370,6 +372,12 @@ new Vue({
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
         },
+        filterHeatmapData(p=0.001){
+            let phewasData = structuredClone(this.$store.state.pigeanTopPhewas.data);
+            let significantEntries = phewasData.filter(item => item.pValue <= p);
+            let significantPhenotypes = significantEntries.map(item => item.other_phenotype);
+            return phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
+        }
     },
 
     render(createElement, context) {

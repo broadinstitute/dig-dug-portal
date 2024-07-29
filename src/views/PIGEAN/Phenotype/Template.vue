@@ -198,6 +198,18 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4>PheWAS Heatmap</h4>
+                    <research-heatmap
+                        v-if="$store.state.pigeanTopPhewas.data.length > 0"
+                        :heatmapData="$parent.filterHeatmapData()"
+                        :renderConfig="$parent.heatmapConfig"
+                        :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                        :utils="$parent.utilsBox">
+                    </research-heatmap>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <h4 class="card-title">
                         Biological mechanisms underlying the trait
                         <tooltip-documentation
@@ -213,20 +225,13 @@
                         Mechanisms are determined by latent factorization 
                         of the membership matrix of significant genes and gene sets.
                     </div>
-                    <research-heatmap
-                        v-if="$store.state.pigeanTopPhewas.data.length > 0"
-                        :heatmapData="$store.state.pigeanTopPhewas.data"
-                        :renderConfig="$parent.heatmapConfig"
-                        :sectionId="`${$store.state.phenotype.name}_topPhewas`"
-                        :utils="$parent.utilsBox">
-                    </research-heatmap>
-                    <pigean-table
-                        v-if="$parent.plotReady"
-                        :pigeanData="$store.state.pigeanFactor.data"
-                        :config="$parent.factorTableConfig"
-                        :phewasRenderConfig="$parent.renderConfig"
-                    >
-                    </pigean-table>
+                        <pigean-table
+                            v-if="$parent.plotReady"
+                            :pigeanData="$store.state.pigeanFactor.data"
+                            :config="$parent.factorTableConfig"
+                            :phewasRenderConfig="$parent.renderConfig"
+                        >
+                        </pigean-table>
                 </div>
             </div>
         </div>
