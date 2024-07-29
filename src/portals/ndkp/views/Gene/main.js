@@ -52,6 +52,8 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 
+import VariantSearch from "@/portals/ndkp/components/VariantSearch.vue";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -98,6 +100,7 @@ new Vue({
         HugeScoresTable,
         EffectorGenesSectionOnGene,
         ResearchSingleSearch,
+        VariantSearch,
     },
 
     data() {
