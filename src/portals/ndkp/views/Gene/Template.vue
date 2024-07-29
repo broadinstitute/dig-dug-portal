@@ -38,6 +38,20 @@
                     </div>                        
                 </div>
             </search-header-wrapper>
+            
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">Variants in NephKP database</h4>
+                    <documentation
+                        name="variantsearch.subheader"
+                        group="ndkp"
+                    ></documentation>
+                    <variant-search
+                        :gene="$store.state.geneName"
+                    ></variant-search>
+                </div>
+            </div>
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">Gene</div>
