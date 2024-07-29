@@ -254,7 +254,8 @@ new Vue({
                 "row field": "factor",
                 "row label": "Mechanism",
                 "font size": 12
-            }
+            },
+            heatmapMaxP: 0.001,
         };
     },
 
@@ -296,6 +297,9 @@ new Vue({
                 this.$store.state.pigeanPhenotype.data.length > 0 &&
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
+        },
+        heatmapData(){
+            return this.filterHeatmapData(this.heatmapMaxP);
         },
         utilsBox() {
             let utils = {
@@ -372,12 +376,12 @@ new Vue({
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
         },
-        filterHeatmapData(p=0.001){
+        filterHeatmapData(p){
             let phewasData = structuredClone(this.$store.state.pigeanTopPhewas.data);
             let significantEntries = phewasData.filter(item => item.pValue <= p);
             let significantPhenotypes = significantEntries.map(item => item.other_phenotype);
             return phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
-        }
+        },
     },
 
     render(createElement, context) {

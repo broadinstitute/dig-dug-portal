@@ -199,9 +199,13 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>PheWAS Heatmap</h4>
+                    <label>
+                        P-value (<=)
+                        <input type="number" v-model="$parent.heatmapMaxP"/>
+                    </label>
                     <research-heatmap
                         v-if="$store.state.pigeanTopPhewas.data.length > 0"
-                        :heatmapData="$parent.filterHeatmapData()"
+                        :heatmapData="$parent.heatmapData"
                         :renderConfig="$parent.heatmapConfig"
                         :sectionId="`${$store.state.phenotype.name}_topPhewas`"
                         :utils="$parent.utilsBox">
