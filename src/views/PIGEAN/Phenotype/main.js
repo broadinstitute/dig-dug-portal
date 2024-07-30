@@ -1,9 +1,10 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
 Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
 import PageHeader from "@/components/PageHeader.vue";
@@ -25,10 +26,14 @@ import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import Heatmap from "@/components/Heatmap.vue";
+import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 new Vue({
     store,
@@ -47,6 +52,12 @@ new Vue({
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
+        BootstrapVue,
+        BootstrapVueIcons,
+        TooltipDocumentation,
+        Heatmap,
+        ResearchHeatmap,
+        FilterPValue
     },
     data() {
         return {
@@ -203,6 +214,48 @@ new Vue({
                     bottom: 300,
                 },
             },
+            mechanismTooltip: 
+                'Genes with genetic support for this trait ' +
+                'and gene sets with strong effects on genetic support ' +
+                'for the trait are compiled into a membership matrix. ' +
+                'Bayesian non-negative matrix factorization with ' +
+                'automatic relevance determination is then applied ' +
+                'to the membership matrix to determine latent factors, '+
+                'each of which is characterized by loadings of both ' +
+                'genes and gene sets within the factor. The relevance ' +
+                'of each factor to this trait is calculated as the sum ' +
+                'of gene set effects within the factor. The gene factors ' +
+                'are finally included in a joint regression model to ' +
+                'independently predict genetic support for each trait ' +
+                'in the portal, producing a PheWAS that independently ' +
+                'determines additional traits affected by the mechanism. ' +
+                'Associations with other traits are used only to ' +
+                'construct the PheWAS and not to determine the factor weights.',
+            heatmapConfig: {
+                "type": "heat map",
+                "label": "Mechanisms",
+                "main": {
+                    "field": "Z", 
+                    "label": "Z-score",
+                    "type": "scale",
+                    "direction": "positive",
+                    "low": -3.0, "middle": 0, "high": 5.0
+                },
+                "sub": {
+                    "field": "pValue",
+                    "label": "P-value",
+                    "type": "steps",
+                    "direction": "negative",
+                    "valueRange": [0.00001, 0.001],
+                    "value range": [0.00001, 0.001]
+                },
+                "column field": "otherPhenotypeShort",
+                "column label": "Other phenotype",
+                "row field": "factor",
+                "row label": "Mechanism",
+                "font size": 12
+            },
+            heatmapMaxP: 0.001,
         };
     },
 
@@ -225,7 +278,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        ///
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -244,6 +296,9 @@ new Vue({
                 this.$store.state.pigeanPhenotype.data.length > 0 &&
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
+        },
+        heatmapData(){
+            return this.filterHeatmapData(this.heatmapMaxP);
         },
         utilsBox() {
             let utils = {
@@ -290,6 +345,10 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
+        getToolTipPosition(ELEMENT) {
+            console.log(ELEMENT);
+            uiUtils.getToolTipPosition(ELEMENT);
+        },
         setSelectedPhenotype(PHENOTYPE) {
             this.newPhenotypeSearchKey = PHENOTYPE.description;
             this.phenotypeSearchKey = null;
@@ -316,6 +375,25 @@ new Vue({
                 DETAILS.gene_set_size},${
                 DETAILS.factor}`;
         },
+        filterHeatmapData(p){
+            let phewasData = structuredClone(this.$store.state.pigeanTopPhewas.data);
+            if (p === '' || Number.isNaN(p)){
+                return this.trimPhenotypeNames(phewasData);
+            }
+            let significantEntries = phewasData.filter(item => item.pValue <= p);
+            let significantPhenotypes = significantEntries.map(item => item.other_phenotype);
+            phewasData = phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
+            return this.trimPhenotypeNames(phewasData);
+        },
+        trimPhenotypeNames(originalData){
+            let data = structuredClone(originalData);
+            for (let i = 0; i < data.length; i++){
+                let longName = data[i].other_phenotype;
+                data[i].otherPhenotypeShort = 
+                    longName.length <= 25 ? longName : `${longName.slice(0,25)}...`;
+            }
+            return data;
+        }
     },
 
     render(createElement, context) {

@@ -92,6 +92,12 @@
                     <h4 class="card-title">
                         Genes with genetic support
                     </h4>
+                    <div style="margin-bottom: 1rem;">
+                        Combined genetic support is composed of direct support
+                        (from GWAS associations near the gene) and indirect support
+                        (membership in gene sets with genetic support). 
+                        Units are log-odds of probability.
+                    </div>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene"
@@ -140,6 +146,12 @@
                     <h4 class="card-title">
                         Gene sets that affect genetic support
                     </h4>
+                    <div style="margin-bottom: 1rem;">
+                        Gene sets affect the log-odds of the probability 
+                        that a gene is involved in a trait. Effect sizes are 
+                        calculated for the gene set in isolation (marginal) 
+                        and in a joint model with all gene sets together (joint).
+                    </div>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene_set"
@@ -186,16 +198,50 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4>PheWAS Heatmap</h4>
+                    <criterion-function-group>
+                        <div class="col filter-col-md">
+                            <div class="label">P-value (<=)</div>
+                            <input type="number" 
+                                class="form-control"
+                                v-model="$parent.heatmapMaxP"/>
+                        </div>
+                    </criterion-function-group>
+                    
+                        
+                    <research-heatmap
+                        v-if="$store.state.pigeanTopPhewas.data.length > 0"
+                        :heatmapData="$parent.heatmapData"
+                        :renderConfig="$parent.heatmapConfig"
+                        :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                        :utils="$parent.utilsBox">
+                    </research-heatmap>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <h4 class="card-title">
                         Biological mechanisms underlying the trait
+                        <tooltip-documentation
+                            name="gene.translator.tooltip.hover"
+                            :content-fill="$parent.documentationMap"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :supplyText="$parent.mechanismTooltip"
+                        >
+                        </tooltip-documentation>
                     </h4>
-                    <pigean-table
-                        v-if="$parent.plotReady"
-                        :pigeanData="$store.state.pigeanFactor.data"
-                        :config="$parent.factorTableConfig"
-                        :phewasRenderConfig="$parent.renderConfig"
-                    >
-                    </pigean-table>
+                    <div>
+                        Mechanisms are determined by latent factorization 
+                        of the membership matrix of significant genes and gene sets.
+                    </div>
+                        <pigean-table
+                            v-if="$parent.plotReady"
+                            :pigeanData="$store.state.pigeanFactor.data"
+                            :config="$parent.factorTableConfig"
+                            :phewasRenderConfig="$parent.renderConfig"
+                        >
+                        </pigean-table>
                 </div>
             </div>
         </div>
@@ -241,5 +287,13 @@
     background-color: #fff;
     padding: 3px 12px;
     border-bottom: solid 1px #eeeeee;
+}
+
+.mechanism-info {
+    font-size: 0.75em;
+    color: #007bff;
+}
+.b-tooltip {
+    color: green !important;
 }
 </style>

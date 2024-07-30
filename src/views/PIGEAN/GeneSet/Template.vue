@@ -71,6 +71,13 @@
                     <h4 class="card-title">
                         Traits in which gene set affects genetic support
                     </h4>
+                    <div>
+                        Gene sets affect the log-odds of the probability 
+                        that a gene is involved in a trait. Effect sizes
+                        are calculated for the gene set in isolation 
+                        (marginal) and in a joint model with all 
+                        gene sets together (joint).
+                    </div>
                 </div>
                 <div class="card-body">
                     <criterion-function-group>
