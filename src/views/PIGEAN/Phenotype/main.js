@@ -251,7 +251,7 @@ new Vue({
                 },
                 "column field": "otherPhenotypeShort",
                 "column label": "Other phenotype",
-                "row field": "factor",
+                "row field": "mechanism",
                 "row label": "Mechanism",
                 "font size": 12
             },
@@ -312,6 +312,19 @@ new Vue({
             };
             return utils;
         },
+        mechanismMap(){
+            let data = this.$store.state.pigeanFactor.data;
+            let mechanisms = {};
+            data.forEach(item => {
+                if (!mechanisms[item.factor]){
+                    mechanisms[item.factor] = item.label;
+                }
+            });
+            return mechanisms;
+        },
+        preparedPhewasData(){
+            return this.namesAndMechanisms(this.$store.state.pigeanTopPhewas.data);
+        }
     },
 
     watch: {
@@ -376,21 +389,22 @@ new Vue({
                 DETAILS.factor}`;
         },
         filterHeatmapData(p){
-            let phewasData = structuredClone(this.$store.state.pigeanTopPhewas.data);
+            let phewasData = structuredClone(this.preparedPhewasData);
             if (p === '' || Number.isNaN(p)){
-                return this.trimPhenotypeNames(phewasData);
+                return phewasData;
             }
             let significantEntries = phewasData.filter(item => item.pValue <= p);
             let significantPhenotypes = significantEntries.map(item => item.other_phenotype);
-            phewasData = phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
-            return this.trimPhenotypeNames(phewasData);
+            return phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
         },
-        trimPhenotypeNames(originalData){
+        namesAndMechanisms(originalData){
             let data = structuredClone(originalData);
+            let mechanisms = this.mechanismMap;
             for (let i = 0; i < data.length; i++){
                 let longName = data[i].other_phenotype;
                 data[i].otherPhenotypeShort = 
                     longName.length <= 25 ? longName : `${longName.slice(0,25)}...`;
+                data[i].mechanism = mechanisms[data[i].factor];
             }
             return data;
         }
