@@ -70,7 +70,7 @@
                 </div>
             </div>
             <!-- NDKP site only -->
-            <div v-if="$parent.diseaseGroup.name == 'ndkp'" class="gene-page-header card mdkp-card">
+            <div v-if="$parent.diseaseGroup.name == 'ndkp'" class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">Variants in NDKP database</h4>
                     <documentation
@@ -83,7 +83,7 @@
                 </div>
             </div>
             <!-- end of NDKP site only -->
-            
+
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
                     <documentation
