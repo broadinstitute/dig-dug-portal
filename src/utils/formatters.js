@@ -267,6 +267,33 @@ function maskFormatter(mask) {
     return { description: mask, sort: 7 };
 }
 
+function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
+
+    let content;
+
+    switch (FORMAT.type) {
+        case "link":
+            let href = FORMAT.link;
+            for (const [rKey, rValue] of Object.entries(ROW_DATA)) {
+
+                href = href.replace('$' + rKey, rValue);
+            }
+
+            content = "<a href='" + href + "'>" + VALUE + "</a>";
+
+            break;
+
+        case "scientific notation":
+            content = pValueFormatter(VALUE);
+
+            content = content == "-" ? 0 : content;
+            break;
+    }
+
+    return content;
+
+}
+
 function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES) {
 
     let cellValue = VALUE;
@@ -654,4 +681,5 @@ export default {
     BYORColumnFormatter,
     getHoverValue,
     getShortName,
+    ssColumnFormat,
 };

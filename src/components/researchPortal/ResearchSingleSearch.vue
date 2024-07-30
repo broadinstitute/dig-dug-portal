@@ -429,7 +429,12 @@ export default Vue.component("research-single-search", {
 				for(let i=0; i < CONFIG['summary rows']; i++) {
 					summaryData += "<div class='summary-row'>";
 						for (let j = 0; j < CONFIG['summary columns'].length; j++) {
-							summaryData += "<span class='summary-column'>"+summary.data[i][CONFIG['summary columns'][j].field] + "</span>"
+							
+							let columnContent = (!!CONFIG['summary columns'][j].format)? this.utils.Formatters.ssColumnFormat(summary.data[i], 
+								CONFIG['summary columns'][j].format, 
+								summary.data[i][CONFIG['summary columns'][j].field]) 
+								: summary.data[i][CONFIG['summary columns'][j].field];
+							summaryData += "<span class='summary-column'>"+ columnContent + "</span>"
 						}
 
 					summaryData += "</div>";
@@ -452,6 +457,7 @@ export default Vue.component("research-single-search", {
 				
 			}
 		},
+
 		resetSearch() {
 			this.singleSearchParam = null;
 
