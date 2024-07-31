@@ -137,7 +137,7 @@
                                         >
                                             <div class="single-search-wrapper">
                                                 <research-single-search
-                                                    :single-search-config="null"
+                                                    :singleSearchConfig="$parent.ssConfig"
                                                     :phenotypes="
                                                         $parent.phenotypesInSession
                                                     "
@@ -186,7 +186,7 @@
                                             phenotype or tissue
                                         </h4>
                                         <research-single-search
-                                            :single-search-config="null"
+                                            :singleSearchConfig="$parent.ssConfig"
                                             :phenotypes="
                                                 $parent.phenotypesInSession
                                             "

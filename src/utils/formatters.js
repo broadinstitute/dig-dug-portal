@@ -288,6 +288,11 @@ function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
 
             content = content == "-" ? 0 : content;
             break;
+
+        case "ancestry":
+            content = ancestryFormatter(VALUE)
+            break;
+
     }
 
     return content;

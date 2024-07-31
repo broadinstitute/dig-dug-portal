@@ -70,6 +70,328 @@ new Vue({
     },
 
     computed: {
+        ssConfig() {
+            let ssConfig = {
+                "search enabled": true,
+                "search instruction": "Search gene or disease",
+                "search examples": [
+                    {
+                        "parameter": "gene",
+                        "value": "PCSK9"
+                    },
+                    {
+                        "parameter": "gene",
+                        "value": "MLX"
+                    }
+                ],
+                "search parameters": [
+                    {
+                        "parameter": "gene",
+                        "values": "kp genes",
+                        "options": [
+                            {
+                                "type": "summary",
+                                "summary id": "variant_sifter",
+                                "summary label": "View most associated phenotypes & open Variant Sifter",
+                                "sections": [
+                                    {
+                                        "id": "most_asso_phenotypes",
+                                        "header": "Most associated phenotypes",
+                                        "data point": {
+                                            "type": "bioindex",
+                                            "url": "https://bioindex-dev.hugeamp.org/api/bio/query/gene-associations?q=$gene",
+                                            "continue url": "https://bioindex-dev.hugeamp.org/api/bio/cont?limit=20000&token=",
+                                            "parameters": [
+                                                "gene"
+                                            ],
+                                            "parameters type": "replace",
+                                            "data type": "bioindex"
+                                        },
+                                        "summary text": "Top 10 most associated phenotypes with $gene.(KP)",
+                                        "summary columns": [
+                                            {
+                                                "field": "phenotype",
+                                                "header": "Phenotype",
+                                                "format": {
+                                                    "type": "link",
+                                                    "link": "/research.html?pageid=kp_variant_sifter&phenotype=$phenotype&region=$chromosome:$start-$end"
+                                                }
+                                            },
+                                            {
+                                                "field": "ancestry",
+                                                "header": "Ancestry",
+                                                "format": {
+                                                    "type": "ancestry"
+                                                }
+                                            },
+                                            {
+                                                "field": "subjects",
+                                                "header": "Subjects"
+                                            },
+                                            {
+                                                "field": "pValue",
+                                                "header": "P-value",
+                                                "format": {
+                                                    "type": "scientific notation"
+                                                }
+                                            }
+                                        ],
+                                        "summary rows": 10
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "summary",
+                                "summary id": "gene_tissue_association",
+                                "url label": "Go to gene-tissue association viewer",
+                                "url": "/research.html?entity=gene&pageid=kc_entity_dev&gene=",
+                                "summary label": "View most associated tissues",
+                                "sections": [
+                                    {
+                                        "id": "gtex_tissue",
+                                        "header": "GTEx Tissue Specificity",
+                                        "data point": {
+                                            "type": "bioindex",
+                                            "url": "https://cfde.hugeampkpnbi.org/api/bio/query/gtex-tstat?q=$gene",
+                                            "continue url": "https://cfde.hugeampkpnbi.org/api/bio/cont?limit=20000&token=",
+                                            "parameters": [
+                                                "gene"
+                                            ],
+                                            "parameters type": "replace",
+                                            "data type": "bioindex"
+                                        },
+                                        "summary text": "Top 3 tissues (biosamples) $gene serves as a marker gene.(GTEx)",
+                                        "summary columns": [
+                                            {
+                                                "field": "tissue",
+                                                "header": "Tissue"
+                                            },
+                                            {
+                                                "field": "biosample",
+                                                "header": "Biosample"
+                                            },
+                                            {
+                                                "field": "tstat",
+                                                "header": "T-Stat"
+                                            }
+                                        ],
+                                        "summary rows": 3
+                                    },
+                                    {
+                                        "id": "gtex_tissue",
+                                        "header": "GTEx Tissue Specificity",
+                                        "data point": {
+                                            "type": "bioindex",
+                                            "url": "https://bioindex-dev.hugeamp.org/api/bio/query/gene-expression?q=$gene",
+                                            "parameters": [
+                                                "gene"
+                                            ],
+                                            "parameters type": "replace",
+                                            "data type": "bioindex"
+                                        },
+                                        "summary text": "Top 3 tissues $gene is most expressed.(CMDGA)",
+                                        "summary columns": [
+                                            {
+                                                "field": "tissue",
+                                                "header": "Tissue"
+                                            },
+                                            {
+                                                "field": "biosample",
+                                                "header": "Biosample"
+                                            },
+                                            {
+                                                "field": "meanTpm",
+                                                "header": "Mean TPM"
+                                            },
+                                            {
+                                                "field": "nSamples",
+                                                "header": "Samples"
+                                            }
+                                        ],
+                                        "summary rows": 3
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "summary",
+                                "summary id": "lincs_corr_summary",
+                                "url label": "Search gene on Entity page",
+                                "url": "/research.html?entity=gene&pageid=kc_entity_dev&gene=",
+                                "summary label": "View correlated genes",
+                                "sections": [
+                                    {
+                                        "id": "lincs_coor",
+                                        "header": "Gene correlation",
+                                        "data point": {
+                                            "type": "bioindex",
+                                            "url": "https://cfde.hugeampkpnbi.org/api/bio/query/lincs-corr?q=$gene",
+                                            "continue url": "https://cfde.hugeampkpnbi.org/api/bio/cont?limit=20000&token=",
+                                            "parameters": [
+                                                "gene"
+                                            ],
+                                            "parameters type": "replace",
+                                            "data type": "bioindex"
+                                        },
+                                        "summary text": "Top 10 most correlated items with $gene (LINCS)",
+                                        "summary columns": [
+                                            {
+                                                "field": "other_name",
+                                                "header": "Name"
+                                            },
+                                            {
+                                                "field": "other_source",
+                                                "header": "Source"
+                                            },
+                                            {
+                                                "field": "correlation",
+                                                "header": "Correlation"
+                                            }
+                                        ],
+                                        "summary rows": 10
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "target page",
+                                "url label": "Gene page",
+                                "url": "/research.html?pageid=kc_entity_dev&entity=gene&gene="
+                            }
+                        ]
+                    },
+                    {
+                        "parameter": "phenotype",
+                        "values": "kp phenotypes",
+                        "options": [
+                            {
+                                "type": "summary",
+                                "summary id": "variant_sifter",
+                                "summary label": "View most associated genes & open Variant Sifter",
+                                "sections": [
+                                    {
+                                        "id": "most_asso_genes",
+                                        "header": "Most associated genes",
+                                        "data point": {
+                                            "type": "bioindex",
+                                            "url": "https://bioindex-dev.hugeamp.org/api/bio/query/gene-finder?q=$phenotype",
+                                            "continue url": "https://bioindex-dev.hugeamp.org/api/bio/cont?limit=20000&token=",
+                                            "parameters": [
+                                                "phenotype"
+                                            ],
+                                            "parameters type": "replace",
+                                            "data type": "bioindex"
+                                        },
+                                        "summary text": "Top 10 most associated genes with $phenotype.(KP)",
+                                        "summary columns": [
+                                            {
+                                                "field": "gene",
+                                                "header": "Gene",
+                                                "format": {
+                                                    "type": "link",
+                                                    "link": "/research.html?pageid=kp_variant_sifter&phenotype=$phenotype&region=$chromosome:$start-$end"
+                                                }
+                                            },
+                                            {
+                                                "field": "ancestry",
+                                                "header": "Ancestry"
+                                            },
+                                            {
+                                                "field": "subjects",
+                                                "header": "Subjects"
+                                            },
+                                            {
+                                                "field": "pValue",
+                                                "header": "P-value"
+                                            },
+                                            {
+                                                "field": "type",
+                                                "header": "Type"
+                                            }
+                                        ],
+                                        "summary rows": 10
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "summary",
+                                "url label": "Go to phenotype page",
+                                "url": "/research.html?pageid=kc_entity_dev&entity=gene&gene="
+                            },
+                            {
+                                "type": "summary",
+                                "url label": "Open Signal Sifter",
+                                "url": "/research.html?pageid=kc_entity_dev&entity=gene&gene=",
+                                "summary id": "signal_sifter",
+                                "summary label": "View most associated variants & open Signal Sifter",
+                                "sections": [
+                                    {
+                                        "id": "most_asso_variants",
+                                        "header": "Most associated variants",
+                                        "data point": {
+                                            "type": "bioindex",
+                                            "url": "https://bioindex-dev.hugeamp.org/api/bio/query/global-associations?q=$phenotype",
+                                            "continue url": "https://bioindex-dev.hugeamp.org/api/bio/cont?limit=20000&token=",
+                                            "parameters": [
+                                                "phenotype"
+                                            ],
+                                            "parameters type": "replace",
+                                            "data type": "bioindex"
+                                        },
+                                        "summary text": "Top 10 most associated variants with $phenotype.(KP)",
+                                        "summary columns": [
+                                            {
+                                                "field": "varId",
+                                                "header": "Variant ID"
+                                            },
+                                            {
+                                                "field": "clump",
+                                                "header": "Clump",
+                                                "format": {
+                                                    "type": "link",
+                                                    "link": "/research.html?pageid=kp_signal_sifter&phenotype=$phenotype&region=$chromosome:$clumpStart-$clumpEnd"
+                                                }
+                                            },
+                                            {
+                                                "field": "n",
+                                                "header": "Samples"
+                                            },
+                                            {
+                                                "field": "pValue",
+                                                "header": "P-value"
+                                            },
+                                            {
+                                                "field": "posteriorProbability",
+                                                "header": "Posterior Probability"
+                                            }
+                                        ],
+                                        "summary rows": 10
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "parameter": "disease",
+                        "data point": {
+                            "type": "api",
+                            "url": "https://hugeampkpncms.org/rest/directcsv?id=mondo_disease_list",
+                            "data type": "json",
+                            "data wrapper": [
+                                0,
+                                "field_data_points"
+                            ]
+                        },
+                        "target page": {
+                            "label": "Search disease",
+                            "page id": "kc_entity",
+                            "entity parameter": "entity",
+                            "entity": "disease"
+                        }
+                    }
+                ]
+            }
+
+            return ssConfig;
+        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
