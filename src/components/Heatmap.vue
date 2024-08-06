@@ -387,7 +387,7 @@ export default Vue.component("heatmap", {
 
                     let colorString = !this.renderConfig.colorByPhenotype 
                         ? this.colorString(mainValue) 
-                        : this.groupColorString(this.renderData[r][c].group);
+                        : this.groupColorString(this.renderData[r][c].group, mainValue);
 
                     if (X == cIndex && Y == rIndex) {
                         ctx.beginPath();
@@ -546,22 +546,23 @@ export default Vue.component("heatmap", {
             let valHi = this.renderConfig.main.high;
             let valMid = this.renderConfig.main.middle;
             let valLo = this.renderConfig.main.low;
+            console.log(valHi, valMid, valLo);
 
             let alpha = mainValue >= valMid
                     ? 255 -
                         255 * ((mainValue - valMid) / (valHi - valMid))
                     : 255 -
                         255 * ((valMid - mainValue) / valMid - valLo);
-            console.log(alpha);
 
-            let outputString = `${this.colors[group]}`;
+            let outputString = `${this.colors[group]}${this.alphaToHex(alpha)}`;
             return outputString;
         },
         alphaToHex(decimal){
+            let alphaInt = Math.round(decimal);
             let hexDigits = '0123456789ABCDEF';
-            let lastPlace = decimal % 16;
+            let lastPlace = alphaInt % 16;
             let lastDigit = hexDigits[lastPlace];
-            let firstPlace = (decimal - lastPlace) / 16;
+            let firstPlace = (alphaInt - lastPlace) / 16;
             let firstDigit = hexDigits[firstPlace];
             return `${firstDigit}${lastDigit}`;
         }
