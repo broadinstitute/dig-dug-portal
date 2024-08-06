@@ -86,6 +86,8 @@ export default Vue.component("heatmap", {
         this.colors = this.groupColors();
         this.renderHeatmap();
         this.renderScaleLegend();
+        console.log(this.alphaToHex(0));
+        console.log(this.alphaToHex(255));
     },
     beforeDestroy() {},
     computed: {
@@ -537,11 +539,31 @@ export default Vue.component("heatmap", {
                 ",1)";
             return outputString;
         },
-        groupColorString(group){
+        groupColorString(group, mainValue){
             if(group === undefined){
-                return 'ffffff';
+                return undefined;
             }
-            return this.colors[group];
+            let valHi = this.renderConfig.main.high;
+            let valMid = this.renderConfig.main.middle;
+            let valLo = this.renderConfig.main.low;
+
+            let alpha = mainValue >= valMid
+                    ? 255 -
+                        255 * ((mainValue - valMid) / (valHi - valMid))
+                    : 255 -
+                        255 * ((valMid - mainValue) / valMid - valLo);
+            console.log(alpha);
+
+            let outputString = `${this.colors[group]}`;
+            return outputString;
+        },
+        alphaToHex(decimal){
+            let hexDigits = '0123456789ABCDEF';
+            let lastPlace = decimal % 16;
+            let lastDigit = hexDigits[lastPlace];
+            let firstPlace = (decimal - lastPlace) / 16;
+            let firstDigit = hexDigits[firstPlace];
+            return `${firstDigit}${lastDigit}`;
         }
     },
 });
