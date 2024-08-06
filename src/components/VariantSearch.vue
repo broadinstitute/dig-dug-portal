@@ -540,7 +540,7 @@ export default Vue.component("VariantSearch", {
         tableData() {
             if (this.sortByImpacts && this.variantData.length) {
                 let sortedVariants = structuredClone(this.variantData);
-                console.log("sortedVariants", sortedVariants);
+                //console.log("sortedVariants", sortedVariants);
                 return sortedVariants.sort((a, b) => {
                     return this.sortImpacts(a, b);
                 });
@@ -587,12 +587,12 @@ export default Vue.component("VariantSearch", {
             this.currentPage = 1; //reset on new search
             this.variants = await query("gene-variants", this.gene);
             if (this.variants && this.variants.length) {
-                this.variantData = structuredClone(this.variants); //copy data
+                //this.variantData = structuredClone(this.variants); //copy data
 
                 //add showButton property to each variant
-                this.variantData.map((variant) => {
+                /*this.variantData.map((variant) => {
                     variant.showButton = 0;
-                });
+                });*/
 
                 for (let i = 0; i < this.variants.length; i++) {
                     if (this.variants[i].gnomAD_info) {
@@ -641,13 +641,10 @@ export default Vue.component("VariantSearch", {
                         //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
                     }
                 }
-                console.log("here");
-                this.variantData = this.variants;
+                
+                this.variantData = structuredClone(this.variants);
                 //if default filters are set, filter the variants
-                if (
-                    this.filters.impacts.length > 0 ||
-                    this.filters.phenotypes.length > 0
-                ) {
+                if (this.filters.impacts.length > 0 || this.filters.phenotypes.length > 0) {
                     this.addfilter();
                 }
             }
@@ -710,6 +707,38 @@ export default Vue.component("VariantSearch", {
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
             if (item.pick === 1) return "row-pick";
+        },
+        sort(s) {
+            //if s == current sort, reverse
+            //console.log("sort", this.currentSort);
+            if (s === this.currentSort) {
+                this.currentSortDir =
+                    this.currentSortDir === "asc" ? "desc" : "asc";
+            }
+            this.currentSort = s;
+        },
+        //function to sort variants by impact severity
+        sortImpacts(a, b) {
+            let impactOrder = ["HIGH", "MODERATE", "LOW", "MODIFIER", "LOWEST"];
+            let aImpact = a.Max_Impact;
+            let bImpact = b.Max_Impact;
+            let aIndex = impactOrder.indexOf(aImpact);
+            let bIndex = impactOrder.indexOf(bImpact);
+            if (aIndex < bIndex) {
+                return -1;
+            } else if (aIndex > bIndex) {
+                return 1;
+            }
+            return 0;
+        },
+        format_hgvsc(hgvsc) {
+            return hgvsc?.split(":")[1] || "";
+        },
+        format_hgvsp(hgvsp) {
+            return hgvsp?.split(":")[1].replace("%3D", "=") || "";
+        },
+        format_freq(frequency) {
+            return frequency?.toFixed(5) || "";
         },
     },
 });
