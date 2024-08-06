@@ -83,12 +83,15 @@ export default Vue.component("heatmap", {
     mounted: function () {
         this.renderHeatmap();
         this.renderScaleLegend();
-        console.log(JSON.stringify(this.phenotypeMap));
     },
     beforeDestroy() {},
     computed: {
         renderData() {
             let massagedData = {};
+
+            let startingData = !this.renderConfig.sortPhenotypeGroups
+                ? this.heatmapData
+                : this.groupPhenotypes(this.heatmapData);
 
             let rowList = this.heatmapData
                 .map((v) => v[this.renderConfig.rowField])
@@ -493,6 +496,18 @@ export default Vue.component("heatmap", {
 
             //console.log(this.squareData);
         },
+        groupPhenotypes(data){
+            let outputData = structuredClone(data);
+            for (let i = 0; i < outputData.length; i++){
+                let phenotype = outputData[i].other_phenotype;
+                let group = !!this.phenotypeMap[phenotype]
+                    ? this.phenotypeMap[phenotype].group
+                    : "ZZZ_UNGROUPED";
+                outputData[i].groupPhenotype = `${group}___${phenotype}`;
+            }
+            console.log(JSON.stringify(outputData));
+            return outputData;
+        }
     },
 });
 

@@ -254,7 +254,8 @@ new Vue({
                 "rowField": "mechanism",
                 "rowLabel": "Mechanism",
                 "fontSize": 12,
-                "legend": true
+                "legend": true,
+                "sortPhenotypeGroups": true
             },
             heatmapMaxP: 0.001,
         };
