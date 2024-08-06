@@ -62,6 +62,7 @@ heatmap configuration
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
@@ -73,7 +74,8 @@ export default Vue.component("heatmap", {
         return {
             squareData: {},
             canvasHover: false,
-            phenotypeMap: this.$store.state.bioPortal.phenotypeMap
+            phenotypeMap: this.$store.state.bioPortal.phenotypeMap,
+            colors: {}
         };
     },
     modules: {
@@ -83,6 +85,8 @@ export default Vue.component("heatmap", {
     mounted: function () {
         this.renderHeatmap();
         this.renderScaleLegend();
+        this.colors = this.groupColors();
+        console.log(JSON.stringify(this.colors));
     },
     beforeDestroy() {},
     computed: {
@@ -511,7 +515,22 @@ export default Vue.component("heatmap", {
             }
             console.log(JSON.stringify(outputData));
             return outputData;
-        }
+        },
+        groupColors(){
+            let groups = Object.values(this.phenotypeMap).map(d => d.group);
+            let uniqueGroups = [];
+            groups.forEach(g => {
+                if (!uniqueGroups.includes(g)){
+                uniqueGroups.push(g);
+                }});
+            uniqueGroups.sort();
+            let colorMap = {};
+            let colors = plotUtils.plotColors();
+            for (let i = 0; i < uniqueGroups.length; i++){
+                colorMap[uniqueGroups[i]] = colors[i % colors.length];
+            }
+            return colorMap;
+        },
     },
 });
 

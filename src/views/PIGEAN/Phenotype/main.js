@@ -255,7 +255,8 @@ new Vue({
                 "rowLabel": "Mechanism",
                 "fontSize": 12,
                 "legend": true,
-                "sortPhenotypeColumns": true
+                "sortPhenotypeColumns": true,
+                "colorByPhenotype": true
             },
             heatmapMaxP: 0.001,
         };
