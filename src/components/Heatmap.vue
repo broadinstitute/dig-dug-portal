@@ -262,9 +262,11 @@ export default Vue.component("heatmap", {
                     this.renderData.rows[y] +
                     "</sub>";
                 clickedCellValue +=
-                    '<span class="field-on-clicked-cell">' +
-                    this.renderData.columns[x] +
-                    "</sub>";
+                    '<span class="field-on-clicked-cell">';
+                let columnLabel = !this.renderConfig.sortPhenotypeColumns
+                    ? this.renderData.columns[x]
+                    : this.getPhenotypeDescription(this.renderData.columns[x]);
+                clickedCellValue += columnLabel + "</sub>";
                 clickedCellValue +=
                     '<span class="content-on-clicked-cell"><b>' +
                     this.renderConfig.main.label +
@@ -587,13 +589,18 @@ export default Vue.component("heatmap", {
             this.lo = 0;
             this.hi = max;
             this.mid = (this.lo + this.hi) / 2;
-            console.log(this.lo, this.mid, this.hi);
         },
         truncateColumn(longString){
             if (!this.renderConfig.truncateColumns){
                 return longString;
             }
             return longString.length <= 25 ? longString : `${longString.slice(0,25)}...`;
+        },
+        getPhenotypeDescription(phenotypeName){
+            if (!!this.phenotypeMap[phenotypeName]){
+                return this.phenotypeMap[phenotypeName].description;
+            }
+            return phenotypeName;
         }
     },
 });
