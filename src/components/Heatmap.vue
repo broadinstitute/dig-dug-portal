@@ -73,6 +73,7 @@ export default Vue.component("heatmap", {
         return {
             squareData: {},
             canvasHover: false,
+            phenotypeMap: this.$store.state.bioPortal.phenotypeMap
         };
     },
     modules: {
@@ -82,6 +83,7 @@ export default Vue.component("heatmap", {
     mounted: function () {
         this.renderHeatmap();
         this.renderScaleLegend();
+        console.log(JSON.stringify(this.phenotypeMap));
     },
     beforeDestroy() {},
     computed: {
