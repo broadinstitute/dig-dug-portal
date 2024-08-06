@@ -115,36 +115,40 @@ export default Vue.component("heatmap", {
             massagedData["rows"] = rowList.sort((a, b) =>
                 a.localeCompare(b, undefined, { sensitivity: "base" })
             );
-            massagedData["columns"] = columnList.sort((a, b) => {
+            let processedColumns = columnList.sort((a, b) => {
                 let prefixA = this.applyPrefix(a);
                 let prefixB = this.applyPrefix(b)
                 return prefixA.localeCompare(prefixB, undefined, { sensitivity: "base" });
             });
+            processedColumns = processedColumns.map(c => this.truncateColumn(c));
+            massagedData["columns"] = processedColumns;
 
             rowList.map((r) => {
                 massagedData[r] = {};
                 columnList.map((c) => {
-                    massagedData[r][c] = {};
+                    let truncatedColumn = this.truncateColumn(c);
+                    massagedData[r][truncatedColumn] = {};
                 });
             });
 
             startingData.map((d) => {
                 let row = this.renderConfig.rowField;
                 let column = this.renderConfig.columnField;
+                let shortColumn = this.truncateColumn(d[column]);
 
-                massagedData[d[row]][d[column]]["main"] =
+                massagedData[d[row]][shortColumn]["main"] =
                     d[this.renderConfig.main.field];
 
                 if (!!this.renderConfig.sub) {
-                    massagedData[d[row]][d[column]]["sub"] =
+                    massagedData[d[row]][shortColumn]["sub"] =
                         d[this.renderConfig.sub.field];
                 }
                 if (!!this.renderConfig.colorByPhenotype){
-                    massagedData[d[row]][d[column]]["group"] =
+                    massagedData[d[row]][shortColumn]["group"] =
+                        // Use full column name to get the right group!
                         this.getGroup(d[column]);
                 }
             });
-
             return massagedData;
         },
         boxSize() {
@@ -573,6 +577,12 @@ export default Vue.component("heatmap", {
             this.hi = max;
             this.mid = (this.lo + this.hi) / 2;
             console.log(this.lo, this.mid, this.hi);
+        },
+        truncateColumn(longString){
+            if (!this.renderConfig.truncateColumns){
+                return longString;
+            }
+            return longString.length <= 25 ? longString : `${longString.slice(0,25)}...`;
         }
     },
 });
