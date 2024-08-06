@@ -209,13 +209,20 @@
                     </criterion-function-group>
                     
                         
-                    <research-heatmap
+                    <!-- <research-heatmap
                         v-if="$store.state.pigeanTopPhewas.data.length > 0"
                         :heatmapData="$parent.heatmapData"
                         :renderConfig="$parent.heatmapConfig"
                         :sectionId="`${$store.state.phenotype.name}_topPhewas`"
                         :utils="$parent.utilsBox">
-                    </research-heatmap>
+                    </research-heatmap> -->
+                    <heatmap
+                        v-if="$store.state.pigeanTopPhewas.data.length > 0"
+                        :heatmapData="$parent.heatmapData"
+                        :renderConfig="$parent.heatmapConfig"
+                        :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                        :utils="$parent.utilsBox">
+                    </heatmap>
                 </div>
             </div>
             <div class="card mdkp-card">

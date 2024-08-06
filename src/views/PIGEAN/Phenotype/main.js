@@ -249,11 +249,12 @@ new Vue({
                     "valueRange": [0.00001, 0.001],
                     "value range": [0.00001, 0.001]
                 },
-                "column field": "otherPhenotypeShort",
-                "column label": "Other phenotype",
-                "row field": "mechanism",
-                "row label": "Mechanism",
-                "font size": 12
+                "columnField": "otherPhenotypeShort",
+                "columnLabel": "Other phenotype",
+                "rowField": "mechanism",
+                "rowLabel": "Mechanism",
+                "fontSize": 12,
+                "legend": true
             },
             heatmapMaxP: 0.001,
         };
