@@ -86,7 +86,6 @@ export default Vue.component("heatmap", {
         this.renderHeatmap();
         this.renderScaleLegend();
         this.colors = this.groupColors();
-        console.log(JSON.stringify(this.colors));
     },
     beforeDestroy() {},
     computed: {
@@ -126,7 +125,6 @@ export default Vue.component("heatmap", {
             });
 
             startingData.map((d) => {
-                //console.log("d", d);
                 let row = this.renderConfig.rowField;
                 let column = colField;
 
@@ -188,7 +186,6 @@ export default Vue.component("heatmap", {
                     rAndG *= 255;
                     rAndG = rAndG == 0 ? 0 : Formatters.intFormatter(rAndG);
 
-                    //console.log("rAndG", rAndG);
                     scaleLegendContent +=
                         "<div class='scale-color' style='background-color: rgb(255," +
                         rAndG +
@@ -381,42 +378,8 @@ export default Vue.component("heatmap", {
                             value: this.renderData[r][c].sub,
                         };
                     }
-                    //mainValue *= -1;
-                    let rColor, gColor, bColor;
-                    let direction = this.renderConfig.main.direction;
-                    let valHi = this.renderConfig.main.high;
-                    let valMid = this.renderConfig.main.middle;
-                    let valLo = this.renderConfig.main.low;
 
-                    rColor =
-                        mainValue >= valMid
-                            ? 255
-                            : 255 -
-                              255 * ((valMid - mainValue) / valMid - valLo);
-                    gColor =
-                        mainValue >= this.renderConfig.main.middle
-                            ? 255 -
-                              255 * ((mainValue - valMid) / (valHi - valMid))
-                            : 255 -
-                              255 * ((valMid - mainValue) / valMid - valLo);
-                    bColor =
-                        mainValue < this.renderConfig.main.middle
-                            ? 255
-                            : 255 -
-                              255 * ((mainValue - valMid) / (valHi - valMid));
-
-                    rColor = rColor > 255 ? 255 : rColor < 0 ? 0 : rColor;
-                    gColor = gColor > 255 ? 255 : gColor < 0 ? 0 : gColor;
-                    bColor = bColor > 255 ? 255 : bColor < 0 ? 0 : bColor;
-
-                    let colorString =
-                        "rgba(" +
-                        Math.floor(rColor) +
-                        "," +
-                        Math.floor(gColor) +
-                        "," +
-                        Math.floor(bColor) +
-                        ",1)";
+                    let colorString = this.colorString(mainValue);
 
                     if (X == cIndex && Y == rIndex) {
                         ctx.beginPath();
@@ -501,8 +464,6 @@ export default Vue.component("heatmap", {
                 });
                 rIndex++;
             });
-
-            //console.log(this.squareData);
         },
         groupPhenotypes(data){
             let outputData = structuredClone(data);
@@ -511,9 +472,9 @@ export default Vue.component("heatmap", {
                 let group = !!this.phenotypeMap[phenotype]
                     ? this.phenotypeMap[phenotype].group
                     : "ZZZ_UNGROUPED";
+                outputData.group = group;
                 outputData[i].groupPhenotype = `${group}___${phenotype}`;
             }
-            console.log(JSON.stringify(outputData));
             return outputData;
         },
         groupColors(){
@@ -531,6 +492,44 @@ export default Vue.component("heatmap", {
             }
             return colorMap;
         },
+        colorString(mainValue){
+            let rColor, gColor, bColor;
+            let direction = this.renderConfig.main.direction;
+            let valHi = this.renderConfig.main.high;
+            let valMid = this.renderConfig.main.middle;
+            let valLo = this.renderConfig.main.low;
+
+            rColor =
+                mainValue >= valMid
+                    ? 255
+                    : 255 -
+                        255 * ((valMid - mainValue) / valMid - valLo);
+            gColor =
+                mainValue >= this.renderConfig.main.middle
+                    ? 255 -
+                        255 * ((mainValue - valMid) / (valHi - valMid))
+                    : 255 -
+                        255 * ((valMid - mainValue) / valMid - valLo);
+            bColor =
+                mainValue < this.renderConfig.main.middle
+                    ? 255
+                    : 255 -
+                        255 * ((mainValue - valMid) / (valHi - valMid));
+
+            rColor = rColor > 255 ? 255 : rColor < 0 ? 0 : rColor;
+            gColor = gColor > 255 ? 255 : gColor < 0 ? 0 : gColor;
+            bColor = bColor > 255 ? 255 : bColor < 0 ? 0 : bColor;
+
+            let outputString =
+                "rgba(" +
+                Math.floor(rColor) +
+                "," +
+                Math.floor(gColor) +
+                "," +
+                Math.floor(bColor) +
+                ",1)";
+            return outputString;
+        }
     },
 });
 
