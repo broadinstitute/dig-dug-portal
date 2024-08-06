@@ -144,9 +144,8 @@ export default Vue.component("heatmap", {
                         d[this.renderConfig.sub.field];
                 }
                 if (!!this.renderConfig.colorByPhenotype){
-                    massagedData[d[row]][shortColumn]["group"] =
-                        // Use full column name to get the right group!
-                        this.getGroup(d[column]);
+                    // Include full phenotype name to get hover details
+                    massagedData[d[row]][shortColumn]["originalPhenotype"] = d[column];
                 }
             });
             return massagedData;
@@ -398,18 +397,22 @@ export default Vue.component("heatmap", {
                             value: this.renderData[r][c].sub,
                         };
                     }
-                    if (!!this.renderConfig.sortPhenotypeColumns){
+                    if (!!this.renderConfig.sortPhenotypeColumns
+                        && !!this.renderData[r][c].originalPhenotype
+                    ){
+                        let group = this.getGroup(
+                            this.renderData[r][c].originalPhenotype);
                         this.squareData[rIndex][cIndex]["group"] = {
                             field: "Group",
-                            value: this.renderData[r][c].group === "ZZZ_UNGROUPED" 
+                            value: group === "ZZZ_UNGROUPED" 
                                 ? "UNGROUPED"
-                                : this.renderData[r][c].group,
+                                : group,
                         };
                     }
 
                     let colorString = !this.renderConfig.colorByPhenotype 
                         ? this.colorString(mainValue) 
-                        : this.groupColorString(this.renderData[r][c].group, mainValue);
+                        : this.groupColorString(this.renderData[r][c].originalPhenotype, mainValue);
 
                     if (X == cIndex && Y == rIndex) {
                         ctx.beginPath();
@@ -559,11 +562,12 @@ export default Vue.component("heatmap", {
                 ",1)";
             return outputString;
         },
-        groupColorString(group, mainValue){
-            if(group === undefined){
+        groupColorString(phenotype, mainValue){
+            if(phenotype === undefined){
                 return undefined;
             }
             let alpha = 255 * (mainValue - this.lo) / (this.hi - this.lo);
+            let group = this.getGroup(phenotype);
             let outputString = `${this.colors[group]}${this.alphaToHex(alpha)}`;
             return outputString;
         },
