@@ -120,33 +120,27 @@ export default Vue.component("heatmap", {
                 let prefixB = this.applyPrefix(b)
                 return prefixA.localeCompare(prefixB, undefined, { sensitivity: "base" });
             });
-            processedColumns = processedColumns.map(c => this.truncateColumn(c));
             massagedData["columns"] = processedColumns;
 
             rowList.map((r) => {
                 massagedData[r] = {};
                 columnList.map((c) => {
-                    let truncatedColumn = this.truncateColumn(c);
-                    massagedData[r][truncatedColumn] = {};
+                    massagedData[r][c] = {};
                 });
             });
 
             startingData.map((d) => {
                 let row = this.renderConfig.rowField;
                 let column = this.renderConfig.columnField;
-                let shortColumn = this.truncateColumn(d[column]);
 
-                massagedData[d[row]][shortColumn]["main"] =
+                massagedData[d[row]][d[column]]["main"] =
                     d[this.renderConfig.main.field];
 
                 if (!!this.renderConfig.sub) {
-                    massagedData[d[row]][shortColumn]["sub"] =
+                    massagedData[d[row]][d[column]]["sub"] =
                         d[this.renderConfig.sub.field];
                 }
-                if (!!this.renderConfig.colorByPhenotype){
-                    // Include full phenotype name to get hover details
-                    massagedData[d[row]][shortColumn]["originalPhenotype"] = d[column];
-                }
+                
             });
             return massagedData;
         },
@@ -338,7 +332,7 @@ export default Vue.component("heatmap", {
 
             this.renderData.columns.map((c) => {
                 var div = document.createElement("div");
-                var t = document.createTextNode(c);
+                var t = document.createTextNode(this.truncateColumn(c));
                 div.appendChild(t);
                 div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document
@@ -397,11 +391,8 @@ export default Vue.component("heatmap", {
                             value: this.renderData[r][c].sub,
                         };
                     }
-                    if (!!this.renderConfig.sortPhenotypeColumns
-                        && !!this.renderData[r][c].originalPhenotype
-                    ){
-                        let group = this.getGroup(
-                            this.renderData[r][c].originalPhenotype);
+                    if (!!this.renderConfig.sortPhenotypeColumns){
+                        let group = this.getGroup(c);
                         this.squareData[rIndex][cIndex]["group"] = {
                             field: "Group",
                             value: group === "ZZZ_UNGROUPED" 
@@ -412,7 +403,7 @@ export default Vue.component("heatmap", {
 
                     let colorString = !this.renderConfig.colorByPhenotype 
                         ? this.colorString(mainValue) 
-                        : this.groupColorString(this.renderData[r][c].originalPhenotype, mainValue);
+                        : this.groupColorString(c, mainValue);
 
                     if (X == cIndex && Y == rIndex) {
                         ctx.beginPath();
