@@ -548,12 +548,7 @@ export default Vue.component("heatmap", {
             if(group === undefined){
                 return undefined;
             }
-            let alpha = mainValue >= this.mid
-                    ? 255 -
-                        255 * ((mainValue - this.mid) / (this.hi - this.mid))
-                    : 255 -
-                        255 * ((this.mid - mainValue) / this.mid - this.lo);
-
+            let alpha = 255 * (mainValue - this.lo) / (this.hi - this.lo);
             let outputString = `${this.colors[group]}${this.alphaToHex(alpha)}`;
             return outputString;
         },
