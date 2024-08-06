@@ -89,17 +89,21 @@ export default Vue.component("heatmap", {
         renderData() {
             let massagedData = {};
 
-            let startingData = !this.renderConfig.sortPhenotypeGroups
+            let startingData = !this.renderConfig.sortPhenotypeColumns
                 ? this.heatmapData
                 : this.groupPhenotypes(this.heatmapData);
+            
+            let colField = !this.renderConfig.sortPhenotypeColumns
+                ? this.renderConfig.columnField
+                : "groupPhenotype";
 
-            let rowList = this.heatmapData
+            let rowList = startingData
                 .map((v) => v[this.renderConfig.rowField])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
 
-            let columnList = this.heatmapData
-                .map((v) => v[this.renderConfig.columnField])
+            let columnList = startingData
+                .map((v) => v[colField])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
 
@@ -117,10 +121,10 @@ export default Vue.component("heatmap", {
                 });
             });
 
-            this.heatmapData.map((d) => {
+            startingData.map((d) => {
                 //console.log("d", d);
                 let row = this.renderConfig.rowField;
-                let column = this.renderConfig.columnField;
+                let column = colField;
 
                 massagedData[d[row]][d[column]]["main"] =
                     d[this.renderConfig.main.field];
