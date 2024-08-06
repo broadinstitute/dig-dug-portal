@@ -326,6 +326,7 @@ new Vue({
             return mechanisms;
         },
         preparedPhewasData(){
+            //get rid of this
             return this.namesAndMechanisms(this.$store.state.pigeanTopPhewas.data);
         }
     },

@@ -75,7 +75,10 @@ export default Vue.component("heatmap", {
             squareData: {},
             canvasHover: false,
             phenotypeMap: this.$store.state.bioPortal.phenotypeMap,
-            colors: {}
+            colors: {},
+            lo: null,
+            mid: null,
+            hi: null
         };
     },
     modules: {
@@ -86,12 +89,14 @@ export default Vue.component("heatmap", {
         this.colors = this.groupColors();
         this.renderHeatmap();
         this.renderScaleLegend();
-        console.log(this.alphaToHex(0));
-        console.log(this.alphaToHex(255));
     },
     beforeDestroy() {},
     computed: {
         renderData() {
+            if (!!this.renderConfig.colorByPhenotype){
+                // Automatically rather than manually get the extremes.
+                this.getExtremes();
+            }
             let massagedData = {};
 
             let startingData = !this.renderConfig.sortPhenotypeColumns
@@ -543,16 +548,11 @@ export default Vue.component("heatmap", {
             if(group === undefined){
                 return undefined;
             }
-            let valHi = this.renderConfig.main.high;
-            let valMid = this.renderConfig.main.middle;
-            let valLo = this.renderConfig.main.low;
-            console.log(valHi, valMid, valLo);
-
-            let alpha = mainValue >= valMid
+            let alpha = mainValue >= this.mid
                     ? 255 -
-                        255 * ((mainValue - valMid) / (valHi - valMid))
+                        255 * ((mainValue - this.mid) / (this.hi - this.mid))
                     : 255 -
-                        255 * ((valMid - mainValue) / valMid - valLo);
+                        255 * ((this.mid - mainValue) / this.mid - this.lo);
 
             let outputString = `${this.colors[group]}${this.alphaToHex(alpha)}`;
             return outputString;
@@ -565,6 +565,24 @@ export default Vue.component("heatmap", {
             let firstPlace = (alphaInt - lastPlace) / 16;
             let firstDigit = hexDigits[firstPlace];
             return `${firstDigit}${lastDigit}`;
+        },
+        getExtremes(){
+            let mainField = this.renderConfig.main.field;
+            let max = this.heatmapData[0][mainField];
+            let min = this.heatmapData[0][mainField];
+            this.heatmapData.forEach(d => {
+                if (d[mainField] > max){
+                    max = d[mainField];
+                }
+                if (d[mainField] < min){
+                    min = d[mainField];
+                }
+            });
+            // Always start at 0 or not?
+            this.lo = 0;
+            this.hi = max;
+            this.mid = (this.lo + this.hi) / 2;
+            console.log(this.lo, this.mid, this.hi);
         }
     },
 });
