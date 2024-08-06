@@ -286,6 +286,14 @@ export default Vue.component("heatmap", {
                         this.squareData[y][x].sub.value +
                         "</span>";
                 }
+                if (!!this.squareData[y][x].group) {
+                    clickedCellValue +=
+                        '<span class="content-on-clicked-cell"><b>' +
+                        this.squareData[y][x].group.field +
+                        ": </b>" +
+                        this.squareData[y][x].group.value +
+                        "</span>";
+                }
             }
 
             let wrapper = document.getElementById("clicked_cell_value");
@@ -388,6 +396,14 @@ export default Vue.component("heatmap", {
                         this.squareData[rIndex][cIndex]["sub"] = {
                             field: this.renderConfig.sub.field,
                             value: this.renderData[r][c].sub,
+                        };
+                    }
+                    if (!!this.renderConfig.sortPhenotypeColumns){
+                        this.squareData[rIndex][cIndex]["group"] = {
+                            field: "Group",
+                            value: this.renderData[r][c].group === "ZZZ_UNGROUPED" 
+                                ? "UNGROUPED"
+                                : this.renderData[r][c].group,
                         };
                     }
 
