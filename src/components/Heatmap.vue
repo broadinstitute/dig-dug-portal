@@ -83,10 +83,9 @@ export default Vue.component("heatmap", {
         Formatters,
     },
     mounted: function () {
+        this.colors = this.groupColors();
         this.renderHeatmap();
         this.renderScaleLegend();
-        this.colors = this.groupColors();
-        console.log(JSON.stringify(this.colors));
     },
     beforeDestroy() {},
     computed: {
