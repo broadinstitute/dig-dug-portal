@@ -249,7 +249,7 @@ new Vue({
                     "valueRange": [0.00001, 0.001],
                     "value range": [0.00001, 0.001]
                 },
-                "columnField": "otherPhenotypeShort",
+                "columnField": "other_phenotype",
                 "columnLabel": "Other phenotype",
                 "rowField": "mechanism",
                 "rowLabel": "Mechanism",

@@ -76,6 +76,7 @@ export default Vue.component("heatmap", {
             canvasHover: false,
             phenotypeMap: this.$store.state.bioPortal.phenotypeMap,
             colors: {},
+            separator: "___",
             lo: null,
             mid: null,
             hi: null
@@ -99,13 +100,7 @@ export default Vue.component("heatmap", {
             }
             let massagedData = {};
 
-            let startingData = !this.renderConfig.sortPhenotypeColumns
-                ? this.heatmapData
-                : this.groupPhenotypes(this.heatmapData);
-            
-            let colField = !this.renderConfig.sortPhenotypeColumns
-                ? this.renderConfig.columnField
-                : "groupPhenotype";
+            let startingData = this.heatmapData;
 
             let rowList = startingData
                 .map((v) => v[this.renderConfig.rowField])
@@ -113,16 +108,18 @@ export default Vue.component("heatmap", {
                 .filter((v, i, arr) => v != ""); //remove blank
 
             let columnList = startingData
-                .map((v) => v[colField])
+                .map((v) => v[this.renderConfig.columnField])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
 
             massagedData["rows"] = rowList.sort((a, b) =>
                 a.localeCompare(b, undefined, { sensitivity: "base" })
             );
-            massagedData["columns"] = columnList.sort((a, b) =>
-                a.localeCompare(b, undefined, { sensitivity: "base" })
-            );
+            massagedData["columns"] = columnList.sort((a, b) => {
+                let prefixA = this.applyPrefix(a);
+                let prefixB = this.applyPrefix(b)
+                return prefixA.localeCompare(prefixB, undefined, { sensitivity: "base" });
+            });
 
             rowList.map((r) => {
                 massagedData[r] = {};
@@ -133,7 +130,7 @@ export default Vue.component("heatmap", {
 
             startingData.map((d) => {
                 let row = this.renderConfig.rowField;
-                let column = colField;
+                let column = this.renderConfig.columnField;
 
                 massagedData[d[row]][d[column]]["main"] =
                     d[this.renderConfig.main.field];
@@ -144,7 +141,7 @@ export default Vue.component("heatmap", {
                 }
                 if (!!this.renderConfig.colorByPhenotype){
                     massagedData[d[row]][d[column]]["group"] =
-                        d.group;
+                        this.getGroup(d[column]);
                 }
             });
 
@@ -478,17 +475,15 @@ export default Vue.component("heatmap", {
                 rIndex++;
             });
         },
-        groupPhenotypes(data){
-            let outputData = structuredClone(data);
-            for (let i = 0; i < outputData.length; i++){
-                let phenotype = outputData[i].other_phenotype;
-                let group = !!this.phenotypeMap[phenotype]
+        getGroup(phenotype){
+            return !!this.phenotypeMap[phenotype]
                     ? this.phenotypeMap[phenotype].group
                     : "ZZZ_UNGROUPED";
-                outputData[i].group = group;
-                outputData[i].groupPhenotype = `${group}___${phenotype}`;
-            }
-            return outputData;
+        },
+        applyPrefix(columnName){
+            return !this.renderConfig.sortPhenotypeColumns 
+                ? columnName
+                : `${this.getGroup(columnName)}${this.separator}${columnName}`;
         },
         groupColors(){
             let groups = Object.values(this.phenotypeMap).map(d => d.group);
