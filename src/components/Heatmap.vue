@@ -86,6 +86,7 @@ export default Vue.component("heatmap", {
         this.renderHeatmap();
         this.renderScaleLegend();
         this.colors = this.groupColors();
+        console.log(JSON.stringify(this.colors));
     },
     beforeDestroy() {},
     computed: {
@@ -134,6 +135,10 @@ export default Vue.component("heatmap", {
                 if (!!this.renderConfig.sub) {
                     massagedData[d[row]][d[column]]["sub"] =
                         d[this.renderConfig.sub.field];
+                }
+                if (!!this.renderConfig.colorByPhenotype){
+                    massagedData[d[row]][d[column]]["group"] =
+                        d.group;
                 }
             });
 
@@ -379,7 +384,9 @@ export default Vue.component("heatmap", {
                         };
                     }
 
-                    let colorString = this.colorString(mainValue);
+                    let colorString = !this.renderConfig.colorByPhenotype 
+                        ? this.colorString(mainValue) 
+                        : this.groupColorString(this.renderData[r][c].group);
 
                     if (X == cIndex && Y == rIndex) {
                         ctx.beginPath();
@@ -472,7 +479,7 @@ export default Vue.component("heatmap", {
                 let group = !!this.phenotypeMap[phenotype]
                     ? this.phenotypeMap[phenotype].group
                     : "ZZZ_UNGROUPED";
-                outputData.group = group;
+                outputData[i].group = group;
                 outputData[i].groupPhenotype = `${group}___${phenotype}`;
             }
             return outputData;
@@ -484,6 +491,7 @@ export default Vue.component("heatmap", {
                 if (!uniqueGroups.includes(g)){
                 uniqueGroups.push(g);
                 }});
+            uniqueGroups.push("ZZZ_UNGROUPED");
             uniqueGroups.sort();
             let colorMap = {};
             let colors = plotUtils.plotColors();
@@ -529,6 +537,12 @@ export default Vue.component("heatmap", {
                 Math.floor(bColor) +
                 ",1)";
             return outputString;
+        },
+        groupColorString(group){
+            if(group === undefined){
+                return 'ffffff';
+            }
+            return this.colors[group];
         }
     },
 });
