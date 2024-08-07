@@ -735,7 +735,7 @@ export default Vue.component("VariantSearch", {
             return hgvsc?.split(":")[1] || "";
         },
         format_hgvsp(hgvsp) {
-            return hgvsp?.split(":")[1].replace("%3D", "=") || "";
+            return hgvsp?.split(":")[1].replace("/%3D/g", "=") || "";
         },
         format_freq(frequency) {
             return frequency?.toFixed(5) || "";
