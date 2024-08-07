@@ -96,6 +96,7 @@ export default Vue.component("heatmap", {
                 .filter((v, i, arr) => v != ""); //remove blank
 
             massagedData["rows"] = rowList.sort((a, b) =>
+                !this.renderConfig.sortRowsDescending ? 1 : -1 *
                 a.localeCompare(b, undefined, { sensitivity: "base" })
             );
             let processedColumns = columnList.sort((a, b) => {
@@ -242,7 +243,7 @@ export default Vue.component("heatmap", {
             ) {
                 clickedCellValue +=
                     '<span class="field-on-clicked-cell">' +
-                    this.renderData.rows[y] +
+                    this.removeRowPrefix(this.renderData.rows[y]) +
                     "</sub>";
                 clickedCellValue +=
                     '<span class="field-on-clicked-cell">';
@@ -327,7 +328,7 @@ export default Vue.component("heatmap", {
 
             this.renderData.rows.map((r) => {
                 var div = document.createElement("div");
-                var t = document.createTextNode(r);
+                var t = document.createTextNode(this.removeRowPrefix(r));
                 div.appendChild(t);
                 div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document.getElementById("heatmapRowsWrapper").appendChild(div);
@@ -584,6 +585,16 @@ export default Vue.component("heatmap", {
                 return this.phenotypeMap[phenotypeName].description;
             }
             return phenotypeName;
+        },
+        removeRowPrefix(rowName){
+            if (!this.renderConfig.rowScorePrefixes){
+                return rowName;
+            }
+            let index = rowName.indexOf(this.separator);
+            if (index === -1){
+                return rowName;
+            }
+            return rowName.slice(index + this.separator.length);
         }
     },
 });
