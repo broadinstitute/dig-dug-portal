@@ -218,7 +218,7 @@
                             <div class="label">P-value (<=)</div>
                             <input type="number" 
                                 class="form-control"
-                                v-model="$parent.heatmapMaxP"/>
+                                v-model.lazy="$parent.heatmapMaxP"/>
                         </div>
                     </criterion-function-group>
                     <heatmap
