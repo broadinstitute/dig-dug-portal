@@ -3,7 +3,8 @@
         <div id="clicked_cell_value" class="clicked-cell-value hidden">
             <div id="clicked_cell_value_content"></div>
         </div>
-        <div class="heatmap-content" id="heatmapContent">
+        <div class="heatmap-content" id="heatmapContent"
+            v-if="heatmapData.length > 0">
             <div
                 v-if="!!renderConfig.label"
                 class="heatmap-label"
@@ -77,6 +78,12 @@ export default Vue.component("heatmap", {
     beforeDestroy() {},
     computed: {
         renderData() {
+            if (this.heatmapData.length === 0){
+                return {
+                    columns: [],
+                    rows: []
+                };
+            }
             if (!!this.renderConfig.colorByPhenotype){
                 // Automatically rather than manually get the extremes.
                 this.getExtremes();
