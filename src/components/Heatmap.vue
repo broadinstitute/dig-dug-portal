@@ -4,7 +4,7 @@
             <div id="clicked_cell_value_content"></div>
         </div>
         <div class="heatmap-content" id="heatmapContent"
-            v-if="heatmapData.length > 0">
+            :hidden="this.hideHeatmap">
             <div
                 v-if="!!renderConfig.label"
                 class="heatmap-label"
@@ -58,6 +58,7 @@ export default Vue.component("heatmap", {
         return {
             squareData: {},
             canvasHover: false,
+            hideHeatmap: false,
             phenotypeMap: this.$store.state.bioPortal.phenotypeMap,
             colors: {},
             separator: "___",
@@ -81,9 +82,11 @@ export default Vue.component("heatmap", {
             if (this.heatmapData.length === 0){
                 return {
                     columns: [],
-                    rows: []
-                };
+                    rows: [],
+                    empty: true
+                }
             }
+            this.hideHeatmap = false;
             if (!!this.renderConfig.colorByPhenotype){
                 // Automatically rather than manually get the extremes.
                 this.getExtremes();
@@ -140,8 +143,13 @@ export default Vue.component("heatmap", {
         },
     },
     watch: {
-        renderData() {
-            this.renderHeatmap();
+        renderData(newData) {
+            if (!newData.empty){
+                this.hideHeatmap = false;
+                this.renderHeatmap();
+            } else {
+                this.hideHeatmap = true;
+            }
         },
     },
     methods: {
