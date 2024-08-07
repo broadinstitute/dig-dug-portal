@@ -402,9 +402,6 @@ new Vue({
             let data = structuredClone(originalData);
             let mechanisms = this.mechanismMap;
             for (let i = 0; i < data.length; i++){
-                let longName = data[i].other_phenotype;
-                data[i].otherPhenotypeShort = 
-                    longName.length <= 25 ? longName : `${longName.slice(0,25)}...`;
                 data[i].mechanism = mechanisms[data[i].factor];
             }
             return data;

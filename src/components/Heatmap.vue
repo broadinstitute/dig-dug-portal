@@ -1,20 +1,3 @@
-<!--
-heatmap configuration
-        {
-            "label": "", // label that goes above the heatmap
-            "legend": "", // legend that goes above the heatmap.Also color scale legend will be added automatically
-            "renderBy": {"main":"obs_cppa","sub":"p"}, //main => box color, sub => circle size
-            "main":{"type":"scale","direction": "positive","low":0, "middle": 0,"high":0.30},
-            // type: scale or steps, direction: positive or negative,
-            "sub":{"type":"scale","direction": "negative","steps":[0,0.001,0.05],"low":0, "high":0.05},
-            "rowField": "full_annotation",
-            "rowLabel": "full_annotation",
-            "columnField": "cluster_name",
-            "columnLabel": "cluster_name",
-            "hoverContent": [],
-            "fontSize": 12
-        },
--->
 <template>
     <div class="heatmap-wrapper">
         <div id="clicked_cell_value" class="clicked-cell-value hidden">
@@ -334,7 +317,7 @@ export default Vue.component("heatmap", {
 
             this.renderData.columns.map((c) => {
                 var div = document.createElement("div");
-                var t = document.createTextNode(this.truncateColumn(c));
+                var t = document.createTextNode(this.getPhenotypeDescription(c));
                 div.appendChild(t);
                 div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document
