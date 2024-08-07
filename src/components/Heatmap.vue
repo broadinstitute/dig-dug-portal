@@ -1,26 +1,10 @@
-<!--
-heatmap configuration
-        {
-            "label": "", // label that goes above the heatmap
-            "legend": "", // legend that goes above the heatmap.Also color scale legend will be added automatically
-            "renderBy": {"main":"obs_cppa","sub":"p"}, //main => box color, sub => circle size
-            "main":{"type":"scale","direction": "positive","low":0, "middle": 0,"high":0.30},
-            // type: scale or steps, direction: positive or negative,
-            "sub":{"type":"scale","direction": "negative","steps":[0,0.001,0.05],"low":0, "high":0.05},
-            "rowField": "full_annotation",
-            "rowLabel": "full_annotation",
-            "columnField": "cluster_name",
-            "columnLabel": "cluster_name",
-            "hoverContent": [],
-            "fontSize": 12
-        },
--->
 <template>
     <div class="heatmap-wrapper">
         <div id="clicked_cell_value" class="clicked-cell-value hidden">
             <div id="clicked_cell_value_content"></div>
         </div>
-        <div class="heatmap-content" id="heatmapContent">
+        <div class="heatmap-content" id="heatmapContent"
+            :hidden="this.hideHeatmap">
             <div
                 v-if="!!renderConfig.label"
                 class="heatmap-label"
@@ -74,6 +58,7 @@ export default Vue.component("heatmap", {
         return {
             squareData: {},
             canvasHover: false,
+            hideHeatmap: false,
             phenotypeMap: this.$store.state.bioPortal.phenotypeMap,
             colors: {},
             separator: "___",
@@ -94,6 +79,14 @@ export default Vue.component("heatmap", {
     beforeDestroy() {},
     computed: {
         renderData() {
+            if (this.heatmapData.length === 0){
+                return {
+                    columns: [],
+                    rows: [],
+                    empty: true
+                }
+            }
+            this.hideHeatmap = false;
             if (!!this.renderConfig.colorByPhenotype){
                 // Automatically rather than manually get the extremes.
                 this.getExtremes();
@@ -113,6 +106,7 @@ export default Vue.component("heatmap", {
                 .filter((v, i, arr) => v != ""); //remove blank
 
             massagedData["rows"] = rowList.sort((a, b) =>
+                !this.renderConfig.sortRowsDescending ? 1 : -1 *
                 a.localeCompare(b, undefined, { sensitivity: "base" })
             );
             let processedColumns = columnList.sort((a, b) => {
@@ -149,8 +143,13 @@ export default Vue.component("heatmap", {
         },
     },
     watch: {
-        renderData() {
-            this.renderHeatmap();
+        renderData(newData) {
+            if (!newData.empty){
+                this.hideHeatmap = false;
+                this.renderHeatmap();
+            } else {
+                this.hideHeatmap = true;
+            }
         },
     },
     methods: {
@@ -259,7 +258,7 @@ export default Vue.component("heatmap", {
             ) {
                 clickedCellValue +=
                     '<span class="field-on-clicked-cell">' +
-                    this.renderData.rows[y] +
+                    this.removeRowPrefix(this.renderData.rows[y]) +
                     "</sub>";
                 clickedCellValue +=
                     '<span class="field-on-clicked-cell">';
@@ -334,7 +333,7 @@ export default Vue.component("heatmap", {
 
             this.renderData.columns.map((c) => {
                 var div = document.createElement("div");
-                var t = document.createTextNode(this.truncateColumn(c));
+                var t = document.createTextNode(this.getPhenotypeDescription(c));
                 div.appendChild(t);
                 div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document
@@ -344,7 +343,7 @@ export default Vue.component("heatmap", {
 
             this.renderData.rows.map((r) => {
                 var div = document.createElement("div");
-                var t = document.createTextNode(r);
+                var t = document.createTextNode(this.removeRowPrefix(r));
                 div.appendChild(t);
                 div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document.getElementById("heatmapRowsWrapper").appendChild(div);
@@ -601,6 +600,16 @@ export default Vue.component("heatmap", {
                 return this.phenotypeMap[phenotypeName].description;
             }
             return phenotypeName;
+        },
+        removeRowPrefix(rowName){
+            if (!this.renderConfig.rowScorePrefixes){
+                return rowName;
+            }
+            let index = rowName.indexOf(this.separator);
+            if (index === -1){
+                return rowName;
+            }
+            return rowName.slice(index + this.separator.length);
         }
     },
 });
