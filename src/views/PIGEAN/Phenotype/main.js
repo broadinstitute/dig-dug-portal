@@ -249,11 +249,15 @@ new Vue({
                     "valueRange": [0.00001, 0.001],
                     "value range": [0.00001, 0.001]
                 },
-                "column field": "otherPhenotypeShort",
-                "column label": "Other phenotype",
-                "row field": "mechanism",
-                "row label": "Mechanism",
-                "font size": 12
+                "columnField": "other_phenotype",
+                "columnLabel": "Other phenotype",
+                "rowField": "mechanism",
+                "rowLabel": "Mechanism",
+                "fontSize": 12,
+                "legend": "Legend",
+                "sortPhenotypeColumns": true,
+                "colorByPhenotype": true,
+                "truncateColumns": true
             },
             heatmapMaxP: 0.001,
         };
@@ -322,9 +326,6 @@ new Vue({
             });
             return mechanisms;
         },
-        preparedPhewasData(){
-            return this.namesAndMechanisms(this.$store.state.pigeanTopPhewas.data);
-        }
     },
 
     watch: {
@@ -389,7 +390,7 @@ new Vue({
                 DETAILS.factor}`;
         },
         filterHeatmapData(p){
-            let phewasData = structuredClone(this.preparedPhewasData);
+            let phewasData = this.namesAndMechanisms(this.$store.state.pigeanTopPhewas.data);
             if (p === '' || Number.isNaN(p)){
                 return phewasData;
             }

@@ -62,6 +62,7 @@ heatmap configuration
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
@@ -73,6 +74,12 @@ export default Vue.component("heatmap", {
         return {
             squareData: {},
             canvasHover: false,
+            phenotypeMap: this.$store.state.bioPortal.phenotypeMap,
+            colors: {},
+            separator: "___",
+            lo: null,
+            mid: null,
+            hi: null
         };
     },
     modules: {
@@ -80,20 +87,27 @@ export default Vue.component("heatmap", {
         Formatters,
     },
     mounted: function () {
+        this.colors = this.groupColors();
         this.renderHeatmap();
         this.renderScaleLegend();
     },
     beforeDestroy() {},
     computed: {
         renderData() {
+            if (!!this.renderConfig.colorByPhenotype){
+                // Automatically rather than manually get the extremes.
+                this.getExtremes();
+            }
             let massagedData = {};
 
-            let rowList = this.heatmapData
+            let startingData = this.heatmapData;
+
+            let rowList = startingData
                 .map((v) => v[this.renderConfig.rowField])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
 
-            let columnList = this.heatmapData
+            let columnList = startingData
                 .map((v) => v[this.renderConfig.columnField])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
@@ -101,9 +115,12 @@ export default Vue.component("heatmap", {
             massagedData["rows"] = rowList.sort((a, b) =>
                 a.localeCompare(b, undefined, { sensitivity: "base" })
             );
-            massagedData["columns"] = columnList.sort((a, b) =>
-                a.localeCompare(b, undefined, { sensitivity: "base" })
-            );
+            let processedColumns = columnList.sort((a, b) => {
+                let prefixA = this.applyPrefix(a);
+                let prefixB = this.applyPrefix(b)
+                return prefixA.localeCompare(prefixB, undefined, { sensitivity: "base" });
+            });
+            massagedData["columns"] = processedColumns;
 
             rowList.map((r) => {
                 massagedData[r] = {};
@@ -112,8 +129,7 @@ export default Vue.component("heatmap", {
                 });
             });
 
-            this.heatmapData.map((d) => {
-                //console.log("d", d);
+            startingData.map((d) => {
                 let row = this.renderConfig.rowField;
                 let column = this.renderConfig.columnField;
 
@@ -124,8 +140,8 @@ export default Vue.component("heatmap", {
                     massagedData[d[row]][d[column]]["sub"] =
                         d[this.renderConfig.sub.field];
                 }
+                
             });
-
             return massagedData;
         },
         boxSize() {
@@ -175,7 +191,6 @@ export default Vue.component("heatmap", {
                     rAndG *= 255;
                     rAndG = rAndG == 0 ? 0 : Formatters.intFormatter(rAndG);
 
-                    //console.log("rAndG", rAndG);
                     scaleLegendContent +=
                         "<div class='scale-color' style='background-color: rgb(255," +
                         rAndG +
@@ -247,9 +262,11 @@ export default Vue.component("heatmap", {
                     this.renderData.rows[y] +
                     "</sub>";
                 clickedCellValue +=
-                    '<span class="field-on-clicked-cell">' +
-                    this.renderData.columns[x] +
-                    "</sub>";
+                    '<span class="field-on-clicked-cell">';
+                let columnLabel = !this.renderConfig.sortPhenotypeColumns
+                    ? this.renderData.columns[x]
+                    : this.getPhenotypeDescription(this.renderData.columns[x]);
+                clickedCellValue += columnLabel + "</sub>";
                 clickedCellValue +=
                     '<span class="content-on-clicked-cell"><b>' +
                     this.renderConfig.main.label +
@@ -262,6 +279,14 @@ export default Vue.component("heatmap", {
                         this.renderConfig.sub.label +
                         ": </b>" +
                         this.squareData[y][x].sub.value +
+                        "</span>";
+                }
+                if (!!this.squareData[y][x].group) {
+                    clickedCellValue +=
+                        '<span class="content-on-clicked-cell"><b>' +
+                        this.squareData[y][x].group.field +
+                        ": </b>" +
+                        this.squareData[y][x].group.value +
                         "</span>";
                 }
             }
@@ -309,7 +334,7 @@ export default Vue.component("heatmap", {
 
             this.renderData.columns.map((c) => {
                 var div = document.createElement("div");
-                var t = document.createTextNode(c);
+                var t = document.createTextNode(this.truncateColumn(c));
                 div.appendChild(t);
                 div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document
@@ -368,42 +393,19 @@ export default Vue.component("heatmap", {
                             value: this.renderData[r][c].sub,
                         };
                     }
-                    //mainValue *= -1;
-                    let rColor, gColor, bColor;
-                    let direction = this.renderConfig.main.direction;
-                    let valHi = this.renderConfig.main.high;
-                    let valMid = this.renderConfig.main.middle;
-                    let valLo = this.renderConfig.main.low;
+                    if (!!this.renderConfig.sortPhenotypeColumns){
+                        let group = this.getGroup(c);
+                        this.squareData[rIndex][cIndex]["group"] = {
+                            field: "Group",
+                            value: group === "ZZZ_UNGROUPED" 
+                                ? "UNGROUPED"
+                                : group,
+                        };
+                    }
 
-                    rColor =
-                        mainValue >= valMid
-                            ? 255
-                            : 255 -
-                              255 * ((valMid - mainValue) / valMid - valLo);
-                    gColor =
-                        mainValue >= this.renderConfig.main.middle
-                            ? 255 -
-                              255 * ((mainValue - valMid) / (valHi - valMid))
-                            : 255 -
-                              255 * ((valMid - mainValue) / valMid - valLo);
-                    bColor =
-                        mainValue < this.renderConfig.main.middle
-                            ? 255
-                            : 255 -
-                              255 * ((mainValue - valMid) / (valHi - valMid));
-
-                    rColor = rColor > 255 ? 255 : rColor < 0 ? 0 : rColor;
-                    gColor = gColor > 255 ? 255 : gColor < 0 ? 0 : gColor;
-                    bColor = bColor > 255 ? 255 : bColor < 0 ? 0 : bColor;
-
-                    let colorString =
-                        "rgba(" +
-                        Math.floor(rColor) +
-                        "," +
-                        Math.floor(gColor) +
-                        "," +
-                        Math.floor(bColor) +
-                        ",1)";
+                    let colorString = !this.renderConfig.colorByPhenotype 
+                        ? this.colorString(mainValue) 
+                        : this.groupColorString(c, mainValue);
 
                     if (X == cIndex && Y == rIndex) {
                         ctx.beginPath();
@@ -488,9 +490,118 @@ export default Vue.component("heatmap", {
                 });
                 rIndex++;
             });
-
-            //console.log(this.squareData);
         },
+        getGroup(phenotype){
+            return !!this.phenotypeMap[phenotype]
+                    ? this.phenotypeMap[phenotype].group
+                    : "ZZZ_UNGROUPED";
+        },
+        applyPrefix(columnName){
+            return !this.renderConfig.sortPhenotypeColumns 
+                ? columnName
+                : `${this.getGroup(columnName)}${this.separator}${columnName}`;
+        },
+        groupColors(){
+            let groups = Object.values(this.phenotypeMap).map(d => d.group);
+            let uniqueGroups = [];
+            groups.forEach(g => {
+                if (!uniqueGroups.includes(g)){
+                uniqueGroups.push(g);
+                }});
+            uniqueGroups.push("ZZZ_UNGROUPED");
+            uniqueGroups.sort();
+            let colorMap = {};
+            let colors = plotUtils.plotColors();
+            for (let i = 0; i < uniqueGroups.length; i++){
+                colorMap[uniqueGroups[i]] = colors[i % colors.length];
+            }
+            return colorMap;
+        },
+        colorString(mainValue){
+            let rColor, gColor, bColor;
+            let direction = this.renderConfig.main.direction;
+            let valHi = this.renderConfig.main.high;
+            let valMid = this.renderConfig.main.middle;
+            let valLo = this.renderConfig.main.low;
+
+            rColor =
+                mainValue >= valMid
+                    ? 255
+                    : 255 -
+                        255 * ((valMid - mainValue) / valMid - valLo);
+            gColor =
+                mainValue >= this.renderConfig.main.middle
+                    ? 255 -
+                        255 * ((mainValue - valMid) / (valHi - valMid))
+                    : 255 -
+                        255 * ((valMid - mainValue) / valMid - valLo);
+            bColor =
+                mainValue < this.renderConfig.main.middle
+                    ? 255
+                    : 255 -
+                        255 * ((mainValue - valMid) / (valHi - valMid));
+
+            rColor = rColor > 255 ? 255 : rColor < 0 ? 0 : rColor;
+            gColor = gColor > 255 ? 255 : gColor < 0 ? 0 : gColor;
+            bColor = bColor > 255 ? 255 : bColor < 0 ? 0 : bColor;
+
+            let outputString =
+                "rgba(" +
+                Math.floor(rColor) +
+                "," +
+                Math.floor(gColor) +
+                "," +
+                Math.floor(bColor) +
+                ",1)";
+            return outputString;
+        },
+        groupColorString(phenotype, mainValue){
+            if(phenotype === undefined){
+                return undefined;
+            }
+            let alpha = 255 * (mainValue - this.lo) / (this.hi - this.lo);
+            let group = this.getGroup(phenotype);
+            let outputString = `${this.colors[group]}${this.alphaToHex(alpha)}`;
+            return outputString;
+        },
+        alphaToHex(decimal){
+            let alphaInt = Math.round(decimal);
+            let hexDigits = '0123456789ABCDEF';
+            let lastPlace = alphaInt % 16;
+            let lastDigit = hexDigits[lastPlace];
+            let firstPlace = (alphaInt - lastPlace) / 16;
+            let firstDigit = hexDigits[firstPlace];
+            return `${firstDigit}${lastDigit}`;
+        },
+        getExtremes(){
+            let mainField = this.renderConfig.main.field;
+            let max = this.heatmapData[0][mainField];
+            let min = this.heatmapData[0][mainField];
+            this.heatmapData.forEach(d => {
+                if (d[mainField] > max){
+                    max = d[mainField];
+                }
+                if (d[mainField] < min){
+                    min = d[mainField];
+                }
+            });
+            // Always start at 0 or not?
+            this.lo = 0;
+            this.hi = max;
+            this.mid = (this.lo + this.hi) / 2;
+        },
+        truncateColumn(longString){
+            if (!this.renderConfig.truncateColumns){
+                return longString;
+            }
+            return longString.length <= 25 ? longString : `${longString.slice(0,25)}...`;
+        },
+        getPhenotypeDescription(phenotypeName){
+            if (!!this.phenotypeMap[phenotypeName]){
+                return this.phenotypeMap[phenotypeName].description;
+            }
+            return phenotypeName;
+        }
     },
 });
 
