@@ -24,8 +24,7 @@
         </div>
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-
-             <search-header-wrapper>
+            <search-header-wrapper>
                 <div>
                     <div class="region-search col filter-col-md">
                         <div class="label">Begin new search</div>
@@ -34,7 +33,7 @@
                             :phenotypes="$parent.phenotypesInSession"
                             :utils="$parent.utilsBox"
                         ></research-single-search>
-                    </div>                        
+                    </div>
                 </div>
             </search-header-wrapper>
             <div class="gene-page-header card mdkp-card">
@@ -69,20 +68,6 @@
                     </div>
                 </div>
             </div>
-            <!-- NDKP site only -->
-            <div v-if="$parent.diseaseGroup.name == 'ndkp'" class="card mdkp-card">
-                <div class="card-body">
-                    <h4 class="card-title">Variants in NDKP database</h4>
-                    <documentation
-                        name="variantsearch.subheader"
-                        group="ndkp"
-                    ></documentation>
-                    <variant-search
-                        :gene="$store.state.geneName"
-                    ></variant-search>
-                </div>
-            </div>
-            <!-- end of NDKP site only -->
 
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
@@ -549,6 +534,25 @@
                     </criterion-function-group>
                 </div>
             </div>
+
+            <!-- NDKP only -->
+            <div
+                v-if="$parent.diseaseGroup.name == 'ndkp'"
+                class="card mdkp-card"
+            >
+                <div class="card-body">
+                    <h4 class="card-title">Variants in NDKP database</h4>
+                    <documentation
+                        name="variantsearch.subheader"
+                        group="ndkp"
+                    ></documentation>
+                    <variant-search
+                        :gene="$store.state.geneName"
+                    ></variant-search>
+                </div>
+            </div>
+            <!-- end of NDKP only -->
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
