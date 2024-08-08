@@ -249,11 +249,17 @@ new Vue({
                     "valueRange": [0.00001, 0.001],
                     "value range": [0.00001, 0.001]
                 },
-                "column field": "otherPhenotypeShort",
-                "column label": "Other phenotype",
-                "row field": "mechanism",
-                "row label": "Mechanism",
-                "font size": 12
+                "columnField": "other_phenotype",
+                "columnLabel": "Other phenotype",
+                "rowField": "mechanism",
+                "rowLabel": "Mechanism",
+                "fontSize": 12,
+                "legend": "Legend",
+                "sortPhenotypeColumns": true,
+                "colorByPhenotype": true,
+                "truncateColumns": true,
+                "sortRowsDescending": true,
+                "rowScorePrefixes": true
             },
             heatmapMaxP: 0.001,
         };
@@ -317,14 +323,14 @@ new Vue({
             let mechanisms = {};
             data.forEach(item => {
                 if (!mechanisms[item.factor]){
-                    mechanisms[item.factor] = item.label;
+                    mechanisms[item.factor] = {
+                        label: item.label,
+                        score: item.gene_set_score
+                    };
                 }
             });
             return mechanisms;
         },
-        preparedPhewasData(){
-            return this.namesAndMechanisms(this.$store.state.pigeanTopPhewas.data);
-        }
     },
 
     watch: {
@@ -389,7 +395,7 @@ new Vue({
                 DETAILS.factor}`;
         },
         filterHeatmapData(p){
-            let phewasData = structuredClone(this.preparedPhewasData);
+            let phewasData = this.namesAndMechanisms(this.$store.state.pigeanTopPhewas.data);
             if (p === '' || Number.isNaN(p)){
                 return phewasData;
             }
@@ -401,10 +407,9 @@ new Vue({
             let data = structuredClone(originalData);
             let mechanisms = this.mechanismMap;
             for (let i = 0; i < data.length; i++){
-                let longName = data[i].other_phenotype;
-                data[i].otherPhenotypeShort = 
-                    longName.length <= 25 ? longName : `${longName.slice(0,25)}...`;
-                data[i].mechanism = mechanisms[data[i].factor];
+                let label = mechanisms[data[i].factor].label;
+                let score = mechanisms[data[i].factor].score;
+                data[i].mechanism = `${score}___${label}`;
             }
             return data;
         }
