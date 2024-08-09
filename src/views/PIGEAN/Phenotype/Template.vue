@@ -213,13 +213,28 @@
                         Mechanisms are determined by latent factorization 
                         of the membership matrix of significant genes and gene sets.
                     </div>
-                    <pigean-table
-                        v-if="$parent.plotReady"
-                        :pigeanData="$store.state.pigeanFactor.data"
-                        :config="$parent.factorTableConfig"
-                        :phewasRenderConfig="$parent.renderConfig"
-                    >
-                    </pigean-table>
+                    <criterion-function-group>
+                        <div class="col filter-col-md">
+                            <div class="label">P-value (<=)</div>
+                            <input type="number" 
+                                class="form-control"
+                                v-model.lazy="$parent.heatmapMaxP"/>
+                        </div>
+                    </criterion-function-group>
+                    <heatmap
+                        v-if="$store.state.pigeanTopPhewas.data.length > 0"
+                        :heatmapData="$parent.heatmapData"
+                        :renderConfig="$parent.heatmapConfig"
+                        :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                        >
+                    </heatmap>
+                        <pigean-table
+                            v-if="$parent.plotReady"
+                            :pigeanData="$store.state.pigeanFactor.data"
+                            :config="$parent.factorTableConfig"
+                            :phewasRenderConfig="$parent.renderConfig"
+                        >
+                        </pigean-table>
                 </div>
             </div>
         </div>
