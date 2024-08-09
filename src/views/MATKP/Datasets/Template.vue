@@ -4,7 +4,7 @@
             <!-- NAV -->
             <matkp-nav></matkp-nav>
             <!-- BODY -->
-            <div class="mat-body">
+            <div class="mat-body" style="max-width: 1400px;margin: 0 auto;">
                 <template>
                     <!-- CONTENT -->
                     <div class="f-row" style="margin: 80px 20px 20px; justify-content: space-between;">

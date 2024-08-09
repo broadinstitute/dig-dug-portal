@@ -54,7 +54,7 @@
             const {points, colors, width} = this;
 
             //console.log('drawingUMAP');
-            console.log('drawUMAP', points, colors);
+            //console.log('drawUMAP', points, colors);
 
             if(!points) return;
 

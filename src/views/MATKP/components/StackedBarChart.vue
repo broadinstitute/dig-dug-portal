@@ -9,7 +9,7 @@
   export default Vue.component('stacked-bar-chart', {
     props: {
       data: {                           //table style data Table<Row>: Array<Object>
-        type: Array,
+        type: [Array, Object],
         required: true,
       },
       categoryKey: {                    //the column key/label for the main category
@@ -54,6 +54,10 @@
         type: Boolean,
         default: false,   
         required: false
+      },
+      showValues:{
+        type:Boolean,
+        default: false,
       },
       
       margins: {
@@ -112,10 +116,38 @@
       this.drawChart();
     },
     methods: {
-        drawChart() {
-            const { data, categoryKey, totalKey, subCategoryKeys, colors, normalize, barType, barWidth, orientation } = this;
-            
+        convertToTableArray(stats, keyName, valueName) {
+            return Object.entries(stats).map(([key, value]) => {
+                return { [keyName]: key, [valueName]: value };
+            });
+        },
+        convertToArrayFormat(stats, keyName, valueName, subKeys) {
+            return Object.entries(stats).map(([key, value]) => {
+                const total = Object.values(value).reduce((sum, count) => sum + count, 0);
+                
+                const result = {
+                    [keyName]: key,
+                    Total: total,
+                    ...value,
+                    normalizedValues: []
+                };
 
+                // Calculate normalized values
+                result.normalizedValues = Object.values(value).map(count => (count / total) * 100);
+
+                return result;
+            });
+        },
+        drawChart() {
+            const { categoryKey, totalKey, subCategoryKeys, colors, normalize, barType, barWidth, orientation } = this;
+
+            const isSingleCategory = !subCategoryKeys;
+            const isStacked = barType==='stacked';
+            const isHorizontal = this.orientation === 'horizontal';
+
+            const data = (!Array.isArray(this.data)) ? isSingleCategory ? this.convertToTableArray(this.data, categoryKey, totalKey) : this.convertToArrayFormat(this.data, categoryKey, totalKey, subCategoryKeys) : this.data;
+
+            const singleCategoryKeys = data.map(item => item[categoryKey]).sort((a, b) => a.localeCompare(b));
             //TODO
             /*
                 include logic for margins & labels on right and bottom
@@ -133,15 +165,21 @@
                 return;
             }
 
-            const isSingleCategory = !subCategoryKeys;
-            const isStacked = barType==='stacked';
-            const isHorizontal = this.orientation === 'horizontal';
-            const singleCategoryKeys = data.map(item => item[categoryKey]);
-
             let subCategoryMaxValue = 0;
+            if(subCategoryKeys){
+                data.map(d => {
+                    subCategoryKeys.forEach(key => {
+                        const val = d[key] | 0;
+                        if (val > subCategoryMaxValue) {
+                            subCategoryMaxValue = val;
+                        };
+                    });
+                });
+            }
 
             // Compute total counts if normalization true
-            const processedData = isSingleCategory
+            //TODO: remove this after updates
+            const processedData = (!Array.isArray(this.data)) || (Array.isArray(this.data) && isSingleCategory) 
                 ? data
                 : data.map(d => {
                     const total = subCategoryKeys.reduce((sum, key) => {
@@ -162,11 +200,9 @@
                     };
                 });
 
-
-            console.log('drawing BarChart')
-            //console.log('BarChart', data, colors);
-            //console.log(categoryKey, processedData);
-            console.log('   ', {orientation, barType, normalize, singleCategoryKeys, subCategoryKeys, isSingleCategory,});
+            //console.log('---BarChart');
+            //console.log('      ', {categoryKey, processedData});
+            //console.log('      ', {orientation, barType, normalize, singleCategoryKeys, subCategoryKeys, isSingleCategory,});
 
             //console.log('processed', processedData);
 
@@ -179,16 +215,16 @@
             const axisLabelWidth = 20;
 
             const marginsH = {
-                top: 10, 
+                top: this.showValues ? 20 : 10, 
                 right: 10, 
-                bottom: 10 + 60 + (hasBottomLabel ? axisLabelWidth : 0), 
+                bottom: 10 + (isSingleCategory && isStacked ? 0 : 60) + (hasBottomLabel ? axisLabelWidth : 0), 
                 left: 10 + axisTicksWidth + (hasLeftLabel ? axisLabelWidth : 0)
             }
             const marginsV = {
                 top: axisTicksWidth + (hasTopLabel ? axisLabelWidth : 0),
-                right: 10,
+                right: this.showValues ? 30 : 10,
                 bottom: 10,
-                left: 10 + 80 + (hasLeftLabel ? axisLabelWidth : 0)
+                left: 10 + (isSingleCategory && isStacked ? 0 : 80) + (hasLeftLabel ? axisLabelWidth : 0)
             }
             if(isSingleCategory && normalize) {
                 marginsV.left = 10 + (hasLeftLabel ? axisLabelWidth : 0);
@@ -217,7 +253,7 @@
             const graphHeight = height - marginTop - marginBottom;
 
             const sumTotal = d3.sum(data, d => d[totalKey]);
-            const maxTotal = normalize ? 100 : (!isSingleCategory && !isStacked) ? subCategoryMaxValue : d3.max(data, d => d[totalKey]);
+            const maxTotal = normalize ? 100 : (!isSingleCategory && !isStacked) ? subCategoryMaxValue : (isSingleCategory && isStacked) ? sumTotal : d3.max(data, d => d[totalKey]);
             //console.log('totals', {sumTotal, maxTotal, subCategoryMaxValue});
             //if(!isSingleCategory && !isStacked) return subCategoryMaxValue; // we want max of subCategoryKeys
 
@@ -269,8 +305,8 @@
             .append('svg')
             .attr('width', width)
             .attr('height', height)
-            .attr('viewBox', [0, 0, width, height])
-            .attr('style', 'max-width: 100%; height: auto;');
+            //.attr('viewBox', [0, 0, width, height])
+            //.attr('style', 'max-width: 100%; height: auto;');
 
             if(hasTopLabel){
                 svg.append('g')
@@ -320,13 +356,33 @@
                 }
             }else{
                 if(this.orientation==='vertical'){
-                    svg.append('g')
+                    const xScaleTicks = svg.append('g')
                     .attr('transform', `translate(0,${marginTop - 5})`)
-                    .call(d3.axisTop(xScale).ticks(5, 's'))
+
+                    if(isSingleCategory && isStacked){
+                        const xTicks = xScale.ticks(5);
+                        if (!xTicks.includes(maxTotal)) xTicks.push(maxTotal);
+                        xScaleTicks.call(d3.axisTop(xScale)
+                            .tickValues(xTicks)
+                            .tickFormat(d3.format('~s'))
+                        );
+                    }else{
+                        xScaleTicks.call(d3.axisTop(xScale).ticks(5, 's'))
+                    }
                 }else{
-                    svg.append('g')
+                    const yScaleTicks = svg.append('g')
                     .attr('transform', `translate(${marginLeft - 5},0)`)
-                    .call(d3.axisLeft(yScale).ticks(5, 's'))
+
+                    if(isSingleCategory && isStacked){
+                        const yTicks = yScale.ticks(5);
+                        if (!yTicks.includes(maxTotal)) yTicks.push(maxTotal);
+                        yScaleTicks.call(d3.axisLeft(yScale)
+                            .tickValues(yTicks)
+                            .tickFormat(d3.format('~s'))
+                        );
+                    }else{
+                        yScaleTicks.call(d3.axisLeft(yScale).ticks(5, 's'))
+                    }
                 }
             }
             
@@ -358,17 +414,17 @@
                     .append('g');
 
                 if(isStacked){
-                    console.log('   multi category, multiple stacked bars');
+                    //console.log('   multi category, multiple stacked bars');
                     if(this.orientation==="vertical"){
                         subCategoryKeys.forEach((key, i) => {
                             group.attr('transform', d => `translate(0,${yLabels(d[categoryKey])})`)
                                 .append('rect')
                                 .attr('x', d => {
-                                    const previousWidths = subCategoryKeys.slice(0, i).reduce((acc, subKey) => acc + x2(normalize ? d.normalizedValues[subCategoryKeys.indexOf(subKey)] : (d[subKey] | 0)), 0);
+                                    const previousWidths = subCategoryKeys.slice(0, i).reduce((acc, subKey) => acc + x2(normalize ? (d.normalizedValues[subCategoryKeys.indexOf(subKey)] | 0) : (d[subKey] | 0)), 0);
                                     return marginLeft + previousWidths;
                                 })
                                 .attr('y', 0)
-                                .attr('width', d => x2(normalize ? d.normalizedValues[i] : (d[key] | 0)))
+                                .attr('width', d => x2(normalize ? d.normalizedValues[i] | 0 : (d[key] | 0)))
                                 .attr('height', yLabels.bandwidth())
                                 .attr('fill', color(key));
                         });
@@ -378,18 +434,22 @@
                                 .append('rect')
                                 .attr('x', 0)
                                 .attr('y', d => {
-                                    //console.log(d);
-                                    const previousWidths = subCategoryKeys.slice(0, i).reduce((acc, subKey) => acc + y2(normalize ? d.normalizedValues[subCategoryKeys.indexOf(subKey)] : (d[subKey] | 0)), 0);
-                                    return height - marginBottom - y2(normalize ? d.normalizedValues[i] : (d[key] | 0)) - previousWidths;
+                                    const previousWidths = subCategoryKeys.slice(0, i).reduce((acc, subKey) => acc + y2(normalize ? (d.normalizedValues[subCategoryKeys.indexOf(subKey)] | 0 ) : (d[subKey] | 0)), 0);
+                                    //const test = [y2(31.799163179916317), y2(39.9581589958159), y2(28.24267782426778)];
+                                    //console.log('~~~~', key, d.normalizedValues[i], previousWidths, y2(d.normalizedValues[i] | 0), test, test.reduce((acc, i) => acc + i, 0));
+                                    //TODO: something off here for stacked bars when one of the keys is missing
+                                    return height - marginBottom - previousWidths - y2(normalize ? (d.normalizedValues[i] | 0) : (d[key] | 0));
                                 })
                                 .attr('width', xLabels.bandwidth())
-                                .attr('height', d => y2(normalize ? d.normalizedValues[i] : (d[key] | 0)))
+                                .attr('height', d => {
+                                    return y2(normalize ? (d.normalizedValues[i] | 0) : (d[key] | 0))
+                                })
                                 .attr('fill', color(key));
                     });
                     }
                 }else{
                     if(this.orientation==='vertical'){
-                        console.log('   multi category, multiple stacked bars');
+                        //console.log('   multi category, multiple stacked bars');
 
                         const ySubLabel = d3.scaleBand()
                             .domain(subCategoryKeys)
@@ -411,7 +471,7 @@
                         //})
                         
                     }else{
-                        console.log('   multi category, multiple stacked bars');
+                        //console.log('   multi category, multiple stacked bars');
 
                         const xSubLabel = d3.scaleBand()
                             .domain(subCategoryKeys)
@@ -422,27 +482,32 @@
                             group.attr('transform', d => `translate(${xLabels(d[categoryKey])}, 0)`)
                                 .append('rect')
                                 .attr('x', xSubLabel(key))
-                                .attr('y', d => height - marginBottom - y2(normalize ? d.normalizedValues[i] : (d[key] | 0)))
+                                .attr('y', d => {
+                                    //console.log(d[key]);
+                                    //console.log(graphHeight, maxTotal, d[key]/maxTotal);
+                                    return height - marginBottom - y2(normalize ? d.normalizedValues[i] : (d[key] | 0))
+                                })
                                 .attr('width', xSubLabel.bandwidth())
                                 .attr('height', d => y2(normalize ? d.normalizedValues[i] : (d[key] | 0)))
                                 .attr('fill', color(key));
-                            /*
-                            group.append('text')
-                                .attr('x', xSubLabel(key) + xSubLabel.bandwidth() / 2) // Center text horizontally in the rect
-                                .attr('y', d => height - marginBottom - y2(normalize ? d.normalizedValues[i] : (d[key] | 0)) + y2(normalize ? d.normalizedValues[i] : (d[key] | 0)) / 2) // Center text vertically in the rect
-                                .attr('dy', '.35em') // Adjust vertical alignment
-                                .attr('text-anchor', 'middle') // Center text
-                                //.attr("transform", "rotate(-90)")
-                                .attr("font-size", "10")
-                                .text(d => normalize ? d.normalizedValues[i].toFixed(2) : key + ' ' + d[key]); // Display value (formatted if necessary)
-                            */
+
+                            // append text
+                            if(this.showValues){
+                                group.append('text')
+                                    .attr('x', xSubLabel(key) + xSubLabel.bandwidth() / 2)
+                                    .attr('y', d => height - marginBottom - y2(normalize ? d.normalizedValues[i] : (d[key] | 0)) - 5)
+                                    .attr('text-anchor', 'middle')
+                                    .attr('fill', 'black')
+                                    .text(d => normalize ? d.normalizedValues[i].toFixed(2) : d[key])
+                                    .attr('font-size', '11px');
+                            }
                         });
                     }
                 }
             }else{
                 if(isStacked){
                     //stacked
-                    console.log('   single category, single stacked bar');
+                    //console.log('   single category, single stacked bar');
                     if(this.orientation==='vertical'){
                         //vertical
                         const group = svg.append('g')
@@ -483,318 +548,57 @@
                     }
                 }else{
                     //grouped
-                    console.log('   single category, multiple bars');
+                    //console.log('   single category, multiple bars');
                     const group = svg.append('g')
                     if(this.orientation==='vertical'){
                         //vertical
                         singleCategoryKeys.forEach((key, i) => {
+                            //draw bars
                             group.append('rect')
                                 .attr('x', marginLeft)
                                 .attr('y', yLabels(processedData[i][categoryKey]))
                                 .attr('width', x2(processedData[i][totalKey]))
                                 .attr('height', yLabels.bandwidth())
                                 .attr('fill', color(key))
+                            
+                            //append text
+                            if(this.showValues){
+                                group.append('text')
+                                .attr('x', marginLeft + x2(processedData[i][totalKey]) + 5) // Position slightly to the right of the bar
+                                .attr('y', yLabels(processedData[i][categoryKey]) + yLabels.bandwidth() / 2)
+                                .attr('dominant-baseline', 'middle')
+                                .attr('text-anchor', 'start')
+                                .text(processedData[i][totalKey])
+                                .attr('fill', 'black')
+                                .attr('font-size', '11px');
+                            }
                         });
+
+                        
                     }else{
                         //horizontal
                         singleCategoryKeys.forEach((key, i) => {
+                            //draw bars
                             group.append('rect')
                                 .attr('x', xLabels(processedData[i][categoryKey]))
                                 .attr('y', height - marginBottom - y2(processedData[i][totalKey]))
                                 .attr('width', xLabels.bandwidth()) 
                                 .attr('height', y2(processedData[i][totalKey]))
                                 .attr('fill', color(key))
+                            
+                            // append text
+                            if(this.showValues){
+                                group.append('text')
+                                    .attr('x', xLabels(processedData[i][categoryKey]) + xLabels.bandwidth() / 2)
+                                    .attr('y', height - marginBottom - y2(processedData[i][totalKey]) - 5) // Position slightly above the bar
+                                    .attr('text-anchor', 'middle')
+                                    .attr('dominant-baseline', 'bottom')
+                                    .text(processedData[i][totalKey])
+                                    .attr('fill', 'black')
+                                    .attr('font-size', '11px');
+                            }
                         });
                     }
-                }
-                
-            }
-
-            
-        },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        drawChartOld() {
-            const { data, categoryKey, totalKey, subCategoryKeys, colors, normalize, barType, barWidth, orientation } = this;
-            
-            
-            if(!data || data.length<1) {
-                console.warm('BarChart has no data');
-                return;
-            }
-
-            //bar table options
-            //single category, one stacked bar                      (singleCategory, normalized)    OK
-            //single category, multiple bars                        (singleCategory, !normalized)   OK
-            //double category, multiple stacked bars                (!singleCategory, !normalized)  OK  
-            //double category, multiple bars
-            //double category, multiple stacked bars, normalized    (!singleCategory, normalized)   OK
-
-            //horizontal bars                                                                       OK
-            //vertical bars
-
-            //axes: top, right, bottom, left
-            //axis ticks (by domain and range)
-            //axis labels
-
-            //TODO: clean up the logic here, v.sloppy
-
-            const isSingleCategory = !subCategoryKeys;
-            const isStacked = barType==='stacked';
-            const singleCategoryKeys = data.map(item => item[categoryKey]);
-
-            // Compute total counts if normalization true
-            const processedData = normalize && !isSingleCategory
-            ? data.map(d => {
-                const total = subCategoryKeys.reduce((sum, key) => {
-                    const val = d[key] | 0
-                    return sum + val
-                }, 0);
-                return {
-                    ...d,
-                    normalizedValues: subCategoryKeys.map(key => {
-                        const val = d[key] | 0;
-                        const normVal = (val / total) * 100;
-                        return normVal;
-                    }),
-                };
-              })
-            : data;
-
-
-            console.log('BarChart', categoryKey);
-            console.log({orientation, barType, normalize, singleCategoryKeys, subCategoryKeys, isSingleCategory,});
-
-            //console.log('processed', processedData);
-    
-            const sumTotal = d3.sum(data, d => d[totalKey]);
-            const maxTotal = normalize ? 100 : d3.max(data, d => d[totalKey]);
-            //console.log('totals', sumTotal, maxTotal);
-
-            const hasTopLabel = this.labelTop && this.labelTop.trim()!=='';
-            const hasBottomLabel = this.labelBottom && this.labelBottom.trim()!=='';
-            const hasLeftLabel = this.labelLeft && this.labelLeft.trim()!=='';
-    
-            const marginTop = this.margins.top + (hasTopLabel ? barWidth : 0);
-            const marginRight = this.margins.right;
-            const marginBottom = this.margins.bottom;
-            const marginLeft = !isSingleCategory ? (this.axisLeft ? this.margins.left : barWidth) + (hasLeftLabel ? barWidth: 0) : this.margins.left;
-           
-            //console.log('margins', marginTop, marginRight, marginBottom, marginLeft);
-    
-            const width = this.width;
-            const widthAllBars = isSingleCategory ? (isStacked ? (barWidth) : (barWidth * singleCategoryKeys.length)) : (isStacked ? (barWidth * singleCategoryKeys.length) : (barWidth * singleCategoryKeys.length * subCategoryKeys.length));
-            const height = widthAllBars + marginTop + marginBottom;
-    
-            const graphWidth = width - marginLeft - marginRight;
-            
-            // Prepare the scales for positional and color encodings.
-
-            //scale for measures on the x axis
-            const x = d3.scaleLinear()
-            .domain([0, maxTotal])
-            .range([marginLeft, width - marginRight])
-            .nice();
-
-
-            const xP = d3.scaleLinear()
-            .domain([0, sumTotal])
-            .range([0, 100])
-            .nice();
-
-            //scale for labels on the x axis
-            const xLabels = d3.scaleBand()
-            .domain(!(isSingleCategory && isStacked) ? singleCategoryKeys : ['all cells'])
-            .range([marginLeft, width - marginRight])
-            .padding(0.05);
-
-
-            const x2 = (val) => {
-                if(!isSingleCategory) return graphWidth * (val/maxTotal);
-                if(isSingleCategory && normalize) return graphWidth * (val/sumTotal);
-                if(isSingleCategory && !normalize) return graphWidth * (val/maxTotal)
-                //if(!isSingleCategory || (isSingleCategory && !normalize)) return graphWidth * (val/maxTotal);
-                //return graphWidth * (val/sumTotal);
-            }
-    
-            //scale bands for categories
-            const y = d3.scaleBand()
-            .domain(!(isSingleCategory && isStacked) ? singleCategoryKeys : ['all cells'])
-            .range([marginTop, height - marginBottom])
-            .padding(0.05);
-
-    
-            const color = d3.scaleOrdinal()
-            .domain(isSingleCategory ? singleCategoryKeys : subCategoryKeys)
-            .range(colors);
-    
-            // Clear any existing SVG elements
-            const svg = d3.select(this.$refs.chart).html('')
-            .append('svg')
-            .attr('width', width)
-            .attr('height', height)
-            .attr('viewBox', [0, 0, width, height])
-            .attr('style', 'max-width: 100%; height: auto;');
-
-            if(hasTopLabel){
-                svg.append('g')
-                .attr('transform', `translate(0,${15})`)
-                .append('text')
-                .attr('class', 'chart-label')
-                .text(this.labelTop)
-                .attr('x', marginLeft - 5)
-                .attr('y', 0)
-            }
-
-            if(hasBottomLabel){
-                svg.append('g')
-                .attr('transform', `translate(0,${height - 15})`)
-                .append('text')
-                .attr('class', 'chart-label')
-                .text(this.labelBottom)
-                .attr('x', marginLeft - 5)
-                .attr('y', 0)
-            }
-
-            if(hasLeftLabel){
-                const label = svg.append('g')
-                .append('text')
-                .attr('class', 'chart-label')
-                .text(this.labelLeft)
-                .attr('x', 0)
-                .attr('y', 15)
-                //get the actual size of the label with text
-                const bbox = label.node().getBBox();
-                //rotate and set y position to align the label to the top of its parent
-                label.attr('transform', `rotate(-90) translate( -${marginTop + bbox.width}, 0)`);
-            }
-    
-            if(!normalize){
-                // !single, !normalized (x)
-                // Append the top horizontal axis.
-                svg.append('g')
-                .attr('transform', `translate(0,${marginTop - 5})`)
-                .call(d3.axisTop(x).ticks(graphWidth / 50, 's'))
-                .call(g => g.selectAll('.domain').remove())
-
-                // Append the bottom horizontal axis.
-                svg.append('g')
-                .attr('transform', `translate(0,${height - marginBottom + 5})`)
-                .call(d3.axisBottom(x).ticks(graphWidth / 50).tickFormat(d => xP(d).toFixed(0) + '%'))
-                .call(g => g.selectAll('.domain').remove())
-            }else{
-                // !single, normalized (x)
-                // Append the top horizontal axis.
-                svg.append('g')
-                .attr('transform', `translate(0,${marginTop - 5})`)
-                .call(d3.axisTop(x).ticks(graphWidth / 50).tickFormat(d => d + '%'));
-            }
-            
-    
-            // Append the vertical axis, if true and not a single stacked bar
-            if(this.axisLeft){
-                svg.append('g')
-                .attr('transform', `translate(${marginLeft - 5},0)`)
-                .call(d3.axisLeft(y).tickSizeOuter(0))
-                .call(g => g.selectAll('.domain').remove());
-            }
-
-
-            if(!isSingleCategory){
-                const group = svg.append('g')
-                    .selectAll('g')
-                    .data(processedData)
-                    .enter()
-                    .append('g')
-                    .attr('transform', d => `translate(0,${y(d[categoryKey])})`);
-
-                if(isStacked){
-                    console.log('multi category, multiple stacked bars');
-
-                    subCategoryKeys.forEach((key, i) => {
-                        group.append('rect')
-                            .attr('x', d => {
-                                const previousWidths = subCategoryKeys.slice(0, i).reduce((acc, subKey) => acc + x2(normalize ? d.normalizedValues[subCategoryKeys.indexOf(subKey)] : (d[subKey] | 0)), 0);
-                                return marginLeft + previousWidths;
-                            })
-                            .attr('y', 0)
-                            .attr('width', d => x2(normalize ? d.normalizedValues[i] : (d[key] | 0)))
-                            .attr('height', y.bandwidth())
-                            .attr('fill', color(key));
-                    });
-                }else{
-                    const y2 = d3.scaleBand()
-                        .domain(subCategoryKeys)
-                        .range([0, y.bandwidth()])
-                        .padding(0);
-                        console.log('y', y.domain(), y.range(), y.bandwidth())
-                        console.log('y2', y2.domain(), y2.range(), y2.bandwidth())
-
-                    console.log('multi category, multiple stacked bars');
-
-                    subCategoryKeys.forEach((key, i) => {
-                        group.append('rect')
-                            .attr('x', marginLeft)
-                            .attr('y', y2(key))
-                            .attr('width', d => x2(normalize ? d.normalizedValues[i] : (d[key] | 0)))
-                            .attr('height', y2.bandwidth())
-                            .attr('fill', color(key));
-                    });
-                }
-            }else{
-                if(isStacked){
-                    console.log('single category, single stacked bar');
-                    const group = svg.append('g')
-                    .attr('transform', `translate(0,${marginTop})`)
-
-                    let previousWidths = 0;
-                    singleCategoryKeys.forEach((key, i) => {
-                        group.append('rect')
-                            .attr('x', () => {
-                                const x = marginLeft + previousWidths;
-                                previousWidths += x2(processedData[i][totalKey]);
-                                return x;
-                            })
-                            .attr('y', 0)
-                            .attr('width', x2(processedData[i][totalKey]))
-                            .attr('height', y.bandwidth())
-                            .attr('fill', color(key));
-                    });
-                }else{
-                    console.log('single category, multiple bars');
-                    const group = svg.append('g')
-
-                    singleCategoryKeys.forEach((key, i) => {
-                        group.append('rect')
-                            .attr('x', marginLeft)
-                            .attr('y', y(processedData[i][categoryKey]))
-                            .attr('width', x2(processedData[i][totalKey]))
-                            .attr('height', y.bandwidth())
-                            .attr('fill', color(key))
-                    });
                 }
                 
             }

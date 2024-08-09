@@ -44,6 +44,14 @@ export default Vue.component('heatmap-dot-plot', {
       type: Number,
       required: false
     },
+    marginBottom: {
+      type: Number,
+      required: false
+    },
+    marginRight:{
+      type: Number,
+      required: false,
+    }
   },
   watch: {
     data: {
@@ -58,19 +66,38 @@ export default Vue.component('heatmap-dot-plot', {
   },
   methods: {
     renderPlot() {
-      const { data } = this;
+      //console.log('   data', this.data);
+      //const { data } = this;
+      const sumstat = this.data;
+      //console.log('   sumstat', sumstat);
 
-      console.log('heatmapDotPlot', data);
+      //console.log('heatmapDotPlot', this.data);
       //console.log('heatmapDotPlot', data, typeof data);
 
       const isHorizontal = this.orientation === 'horizontal';
 
-      const keys = Object.keys(data);
-      const labels = Array.from(new Set(Object.values(data).flatMap(Object.keys)));
+      const keys = Object.keys(sumstat);
+      //console.log('   keys', keys);
       const gene = keys[0];
+      const labels = keys.length === 1 ? sumstat[gene].map(item => item.key) : getUniqueValuesByKey(sumstat, 'key');
 
-      console.log('   labels, keys', labels, keys);
+      function getUniqueValuesByKey(data, key) {
+          const uniqueValuesSet = new Set();
 
+          Object.values(data).forEach(array => {
+              array.forEach(item => {
+                  if (item.hasOwnProperty(key)) {
+                      uniqueValuesSet.add(item[key]);
+                  }
+              });
+          });
+
+          return Array.from(uniqueValuesSet);
+      }
+
+      //console.log('   labels', labels);
+
+      /*
       const densityData = {};
       keys.map(gene => {
           densityData[gene] = labels.map(label => {
@@ -80,25 +107,27 @@ export default Vue.component('heatmap-dot-plot', {
               };
           })
       });
+      */
 
       //console.log('   densityData', densityData)
 
       const marginH = {
         top: this.marginTop || 50, 
-        right: 15, 
-        bottom: 10, 
+        right: this.marginRight || 15, 
+        bottom: this.marginBottom || 10, 
         left: this.marginLeft || 80
       };
       const marginV = {
         top: this.marginTop || 50, 
-        right: 15, 
-        bottom: 10, 
+        right: this.marginRight || 15, 
+        bottom: this.marginBottom || 10, 
         left: this.marginLeft || 80
       };
       const margin = isHorizontal ? marginH : marginV;
       const width = isHorizontal && this.fitToSize ? this.width : ((isHorizontal ? labels.length : keys.length) * 25) + margin.left + margin.right;
       const height = !isHorizontal && this.fitToSize ? this.height : ((isHorizontal ? keys.length : labels.length) * 25) + margin.top + margin.bottom;
 
+      /*
       //console.log('   dimentions', {margin, width, height});
         const sumstat = {};
         keys.forEach(gene => {
@@ -118,10 +147,9 @@ export default Vue.component('heatmap-dot-plot', {
             sumstat[gene].push({ key, mean, q1, median, q3, interQuantileRange, min, max, pctExpr });
           })
         })
-        
 
         console.log('   sumstat', sumstat);
-
+        */
 
         const yLabel = d3.scaleBand()
           .range([margin.top, height - margin.bottom])
@@ -169,12 +197,14 @@ export default Vue.component('heatmap-dot-plot', {
 
         const yScale = d3.scaleLinear()
           .range([0, width])
-          .domain([0, d3.max(densityData, d=> d3.max(d.values))])
+          //.domain([0, d3.max(densityData, d=> d3.max(d.values))])
+          .domain([0, d3.max(sumstat, d=> d3.max(d.max))])
           .nice();
 
         const xScale = d3.scaleLinear()
           .range([height, 0])
-          .domain([d3.max(densityData, d=> d3.max(d.values)), 0])
+          //.domain([d3.max(densityData, d=> d3.max(d.values)), 0])
+          .domain([d3.max(sumstat, d=> d3.max(d.max)), 0])
           .nice();
           
         const svg = d3.select(this.$refs.plot).html('')
@@ -187,15 +217,18 @@ export default Vue.component('heatmap-dot-plot', {
 
         if(isHorizontal){
           //top axis
-          const topAxis = svg.append("g")
+          if(this.showTopLabels){
+            const topAxis = svg.append("g")
             .attr('transform', `translate(0, ${margin.top})`)
             .call(d3.axisTop(xLabel).tickSizeOuter(0))
             
-          topAxis.select(".domain").remove()
-            
-          topAxis.selectAll("text")
-            .style("text-anchor", "start")
-            .attr("transform", "rotate(-35)")
+            topAxis.select(".domain").remove()
+              
+            topAxis.selectAll("text")
+              .style("text-anchor", "start")
+              .attr("transform", "rotate(-35)")
+          }
+          
             
           //left axis
           svg.append("g")
@@ -273,7 +306,10 @@ export default Vue.component('heatmap-dot-plot', {
         }else{
           cells.append('circle')
               .attr('cx', d => xLabelGene(d.gene) + xLabelGene.bandwidth() / 2 )
-              .attr('cy', d => yLabel(d.key) + yLabel.bandwidth() / 2 )
+              .attr('cy', d => {
+                //console.log('     ????', d, d.key, yLabel(d.key), yLabel.bandwidth())
+                return yLabel(d.key) + yLabel.bandwidth() / 2
+              } )
               .attr('r', eScale2(100))
               .style('stroke', '#ccc')
               .attr('stroke-width', "0.5")
@@ -288,7 +324,6 @@ export default Vue.component('heatmap-dot-plot', {
 
         svg.selectAll('text')
           .style('font-size', '10px');
-        
 
         return;
 
