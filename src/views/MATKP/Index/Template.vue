@@ -1,6 +1,6 @@
 <template>
-    <matkp-wrapper>
-        <div class="mat-wrap f-col fill-height">
+    <div class="matkp">
+        <div class="f-col fill-height">
             <!-- NAV -->
             <matkp-nav glass></matkp-nav>
             <!-- BODY -->
@@ -41,7 +41,7 @@
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>
         </div>
-    </matkp-wrapper>
+    </div>
 </template>
 
 <style scoped>
@@ -54,7 +54,7 @@
     margin: 10px auto 40px;
 }
 .content-wrap{
-    padding: 20px;
+    padding: 20px 20px 100px 20px;
     line-height: normal;
     opacity: 0.4;
 }

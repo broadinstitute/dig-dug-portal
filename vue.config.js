@@ -278,6 +278,13 @@ let pages = {
         title: "MATKP | Cell Browser",
         chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser"],
     },
+    matkp_cellbrowser2: {
+        entry: "src/views/MATKP/CellBrowser2/main.js",
+        template: "public/index.html",
+        filename: "matkp/cellbrowser2.html",
+        title: "MATKP | Cell Browser",
+        chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser2"],
+    },
     matkp_datasets: {
         entry: "src/views/MATKP/Datasets/main.js",
         template: "public/index.html",
