@@ -4,12 +4,12 @@ import Template from "./Template.vue";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import "../assets/matkp-styles.css"
 
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
-import matkpWrapper from '../components/matkp-wrapper.vue';
 import matkpNav from "../components/matkp-nav.vue"
 import matkpFooter from "../components/matkp-footer.vue"
 import * as d3 from "d3";
@@ -17,12 +17,10 @@ import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"; 
-
 const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
 
 new Vue({
     components: {
-        matkpWrapper,
         matkpNav,
         matkpFooter
     },
@@ -45,9 +43,20 @@ new Vue({
             ],
             datasets: null,
             filter: null,
-            filteredCount: 0,
             selectedFilters: {},
+            searchedItems: [],
+            perPage: 5,
+            currentPage: 1,
+            pageOptions: [{ value: 5, text: "5" }, { value: 10, text: "10" }, { value: 15, text: "20" }, { value: 100, text: "All" }],
         }
+    },
+
+    mounted() {
+        document.querySelector('.input-overlay').addEventListener('click', this.handleClickOutside);
+    },
+
+    async created() {
+        this.getDatasets();
     },
 
     watch: {
@@ -101,34 +110,38 @@ new Vue({
                 });
             });
         },
+        rows() {
+            if(!this.datasets) return 0;
+            if(this.filter){
+                if(this.searchedItems.length > 0 || this.filteredItems.length < this.datasets.length){
+                    if(this.searchedItems.length > 0 && this.filteredItems.length < this.searchedItems.length) return this.filteredItems.length;
+                    return this.searchedItems.length;
+                }
+                return 0;
+            }
+            if(this.filteredItems.length < this.datasets.length) return this.filteredItems.length;
+            return this.datasets.length;
+        }
     },
 
-    mounted() {
-        document.querySelector('.input-overlay').addEventListener('click', this.handleClickOutside);
-    },
-
-    async created() {
-        this.getDatasets();
-    },
+    
 
     methods: {
         async getDatasets(){
             const fetchPath = '/api/raw/file/single_cell_metadata/dataset_metadata.json.gz';
             const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
             const dataText = await response.text();
+            console.log(dataText);
             const lines = dataText.split('\n').filter(line => line.trim() !== '');
             const jsonObjects = lines.map(line => JSON.parse(line));
             this.datasets = jsonObjects;
-            //this.filteredCount = this.datasets.length;
-            console.log(this.datasets);
-            //this.filterOptions(jsonObjects);
+           
         },
         onFiltered(filteredItems) {
-            this.filteredCount = filteredItems.length === 0 ? 0 : filteredItems.length;
-            console.log(this.filteredCount);
+            this.searchedItems = filteredItems;
+            this.filteredCount = filteredItems.length;
         },
         showInputOptions(e){
-            console.log(e.target);
             const key = e.target.dataset.inputKey;
             document.querySelector(`[data-input-options-key="${key}"`).classList.remove('hidden');
             document.querySelector('.input-overlay').classList.remove('hidden');
@@ -149,31 +162,35 @@ new Vue({
             const key = e.target.dataset.inputKey;
             const option = e.target.dataset.inputOption;
             const index = this.selectedFilters[key].indexOf(option);
-            if (index !== -1) this.selectedFilters[key].splice(index, 1);
+            if (index === -1) {
+                this.selectedFilters[key].push(option);
+                this.$nextTick(() => {
+                    e.target.dispatchEvent(new Event('mouseover'));
+                });
+            }else{
+                this.removeInputOption(e);
+            }
+        },
+        highlightTableItems(e){
+            const key = e.target.dataset.inputKey;
+            const option = e.target.dataset.inputOption;
+            const index = this.selectedFilters[key].indexOf(option);
+            if (index !== -1) {
+                document.querySelector(`.input-list > *[data-input-key="${key}"][data-input-option="${option}"]`).classList.add('highlight')
+            }else{
+                document.querySelector(`.filter .filter-count[data-input-key="${key}"]`).classList.add('highlight')
+            }
+        },
+        unHighlightTableItems(e){
+            const key = e.target.dataset.inputKey;
+            const option = e.target.dataset.inputOption;
+            const index = this.selectedFilters[key].indexOf(option);
+            if (index !== -1) {
+                document.querySelector(`.input-list > *[data-input-key="${key}"][data-input-option="${option}"]`).classList.remove('highlight')
+            }else{
+                document.querySelector(`.filter .filter-count[data-input-key="${key}"]`).classList.remove('highlight')
+            }
         }
-        /*filterOptions(items) {
-            const filterOptions = {};
-      
-            items.forEach(item => {
-              Object.keys(item).forEach(key => {
-                if (Array.isArray(item[key])) {
-                  if (!filterOptions[key]) {
-                    filterOptions[key] = new Set();
-                  }
-                  item[key].forEach(value => {
-                    filterOptions[key].add(value);
-                  });
-                }
-              });
-            });
-      
-            // Convert Sets to arrays and create options for b-form-select
-            Object.keys(filterOptions).forEach(key => {
-              filterOptions[key] = Array.from(filterOptions[key]).map(value => ({ value, text: value }));
-            });
-      
-            console.log(filterOptions);
-        },*/
     },
 
     render(createElement, context) {
