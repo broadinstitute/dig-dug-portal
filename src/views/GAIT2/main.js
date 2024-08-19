@@ -34,7 +34,6 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 new Vue({
-    el: "#app",
     store,
     components: {
         Documentation,
@@ -387,7 +386,7 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
-            }
+            };
             return utils;
         },
         associationsData() {
@@ -422,6 +421,9 @@ new Vue({
         },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
+        },
+        contentMap() {
+            return this.$store.state.bioPortal.documentations;
         },
         visibleFields() {
             return this.fields.filter((field) => !!field.visible);
@@ -778,14 +780,14 @@ new Vue({
             console.log("searching regions");
             let regions = this.$store.state.pkgData["overlappingRegions"]
                 ? this.$store.state.pkgData["overlappingRegions"][
-                    this.selectedRegionType
-                ].map((region) => {
-                    return {
-                        chrom: this.searchRegion.chrom,
-                        start: region.start,
-                        stop: region.end,
-                    };
-                })
+                      this.selectedRegionType
+                  ].map((region) => {
+                      return {
+                          chrom: this.searchRegion.chrom,
+                          start: region.start,
+                          stop: region.end,
+                      };
+                  })
                 : [];
 
             if (regions.length === 0) {
@@ -871,8 +873,8 @@ new Vue({
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
                     groups[
                         liftedRegions.regions[i].start +
-                        " - " +
-                        liftedRegions.regions[i].stop
+                            " - " +
+                            liftedRegions.regions[i].stop
                     ] = {
                         start: liftedRegions.regions[i].start,
                         stop: liftedRegions.regions[i].stop,
