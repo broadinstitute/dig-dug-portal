@@ -6,7 +6,7 @@
         </a>
         <div class="f-row menu">
             <a href="/matkp/datasets.html">Datasets</a>
-            <a href="/matkp/cellbrowser.html">Cell Browser</a>
+            <a href="/matkp/cellbrowser2.html">Cell Browser</a>
             <a href="/matkp/">Help</a>
             <a href="/matkp/">Collaborate</a>
         </div>

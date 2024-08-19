@@ -209,8 +209,9 @@ export default {
                 .finally(() => closeAlert(alertID));
 
             if (uniprotDoc) {
-                let results = uniprotDoc.results.filter(
-                    (d) => d.uniProtkbId === gene + "_HUMAN"
+                let regex = /_HUMAN$/;
+                let results = uniprotDoc.results.filter((d) =>
+                    regex.test(d.uniProtkbId)
                 );
                 //there should be only one result
                 context.commit("setUniprotDoc", results[0]);
