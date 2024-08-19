@@ -59,7 +59,7 @@ Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("tooltip-documentation", {
-    props: ["name", "group", "contentFill", "isHover", "noIcon", "supplyText"],
+    props: ["name", "group", "contentFill", "contentMap", "isHover", "noIcon", "supplyText"],
     components: {
         Documentation,
     },
