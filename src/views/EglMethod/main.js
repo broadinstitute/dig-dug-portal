@@ -22,7 +22,7 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
 new Vue({
@@ -39,7 +39,6 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDocumentations");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
         //this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait); //for now, data from kp4cd
     },
@@ -49,10 +48,10 @@ new Vue({
     },
 
     mounted() {
-        window.addEventListener("scroll", this.onScroll)
+        window.addEventListener("scroll", this.onScroll);
     },
     beforeDestroy() {
-        window.removeEventListener("scroll", this.onScroll)
+        window.removeEventListener("scroll", this.onScroll);
     },
 
     methods: {
@@ -70,29 +69,35 @@ new Vue({
         onScroll(e) {
             let windowTop = window.top.scrollY;
 
-
-            let element = document.getElementsByClassName("top-level-header")[0];
+            let element =
+                document.getElementsByClassName("top-level-header")[0];
             if (windowTop > this.tableTop()) {
-                if (!element.classList.contains('fixed-header')) {
-                    element.classList.add('fixed-header');
+                if (!element.classList.contains("fixed-header")) {
+                    element.classList.add("fixed-header");
                 }
             } else {
-                if (element.classList.contains('fixed-header')) {
-                    element.classList.remove('fixed-header');
+                if (element.classList.contains("fixed-header")) {
+                    element.classList.remove("fixed-header");
                 }
             }
         },
         appendCss(DATASET) {
-            let file = document.createElement('link');
-            file.rel = 'stylesheet';
-            file.href = 'https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/' + DATASET + '/' + DATASET + '.css'
-            document.head.appendChild(file)
+            let file = document.createElement("link");
+            file.rel = "stylesheet";
+            file.href =
+                "https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/" +
+                DATASET +
+                "/" +
+                DATASET +
+                ".css";
+            document.head.appendChild(file);
         },
         tableTop() {
             let eglTable = document.getElementsByClassName("EGLT-table")[0];
             let rect = eglTable.getBoundingClientRect();
-            let scrollTop = document.documentElement.scrollTop ?
-                document.documentElement.scrollTop : document.body.scrollTop;
+            let scrollTop = document.documentElement.scrollTop
+                ? document.documentElement.scrollTop
+                : document.body.scrollTop;
 
             let tableTop = rect.top + scrollTop;
 
@@ -106,22 +111,16 @@ new Vue({
             return keyParams.dataset;
         },
         trait() {
-
             let phenotypeName = null;
 
-            this.$store.state.bioPortal.phenotypes.map(
-                (x) => {
-
-                    if (
-                        x.name.toLowerCase() ==
-                        keyParams.trait.toLowerCase()
-                    ) {
-                        phenotypeName = x.description;
-                    }
+            this.$store.state.bioPortal.phenotypes.map((x) => {
+                if (x.name.toLowerCase() == keyParams.trait.toLowerCase()) {
+                    phenotypeName = x.description;
                 }
-            );
+            });
 
-            let prettyName = (phenotypeName != null) ? phenotypeName : keyParams.trait;
+            let prettyName =
+                phenotypeName != null ? phenotypeName : keyParams.trait;
 
             return prettyName;
         },
@@ -167,19 +166,19 @@ new Vue({
         },
         effectorGenesGraph() {
             let contents = {
-                line: EffectorGenesPlotsLine
+                line: EffectorGenesPlotsLine,
             };
 
             return contents[this.$store.state.plotsConfig["type"]];
         },
         pageTitle() {
             return this.$store.state.pageTitle;
-        }
+        },
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-    }
+    },
 }).$mount("#app");

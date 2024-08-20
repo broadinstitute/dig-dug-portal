@@ -245,7 +245,6 @@ new Vue({
             this.$store.dispatch("bioPortal/getDiseaseGroups");
             this.$store.dispatch("bioPortal/getPhenotypes");
             this.$store.dispatch("bioPortal/getDatasets");
-            this.$store.dispatch("bioPortal/getDocumentations");
             this.$store.dispatch("queryVariant", keyParams.variant);
         }
     },
@@ -265,9 +264,11 @@ new Vue({
             let pos = this.chromPos;
 
             if (pos) {
-                window.location.href = `./region.html?chr=${pos.chromosome
-                    }&start=${pos.position - expanded}&end=${pos.position + expanded
-                    }&variant=${this.$store.state.pageVariant.varId}`;
+                window.location.href = `./region.html?chr=${
+                    pos.chromosome
+                }&start=${pos.position - expanded}&end=${
+                    pos.position + expanded
+                }&variant=${this.$store.state.pageVariant.varId}`;
             }
         },
         clearBadSearch() {

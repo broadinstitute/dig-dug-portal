@@ -24,7 +24,7 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
 new Vue({
@@ -37,14 +37,13 @@ new Vue({
         PageFooter,
         PortalDatasetsListTable,
         Alert,
-        ResearchPageFilters
+        ResearchPageFilters,
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDocumentations");
     },
 
     render(createElement, context) {
@@ -56,7 +55,7 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
     },
 
     computed: {
@@ -69,7 +68,7 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
-            }
+            };
             return utils;
         },
         diseaseGroup() {
@@ -135,8 +134,11 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getPageInfo", { "page": "eglmethodscollection", "portal": group.name });
+            this.$store.dispatch("kp4cd/getPageInfo", {
+                page: "eglmethodscollection",
+                portal: group.name,
+            });
             this.$store.dispatch("kp4cd/getEglSummaries", group.name);
         },
-    }
+    },
 }).$mount("#app");

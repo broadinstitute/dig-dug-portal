@@ -108,7 +108,10 @@
                                                 "
                                                 :is-hover="true"
                                                 :no-icon="false"
-                                                :contentMap="$store.state.bioPortal.documentations"
+                                                :contentMap="
+                                                    $store.state.bioPortal
+                                                        .documentations
+                                                "
                                             >
                                             </tooltip-documentation>
                                         </h4>
@@ -275,6 +278,10 @@
                         >
                             <div class="label">Transcript</div>
                             <transcript-selectpicker
+                                v-if="
+                                    $store.state.geneToTranscript &&
+                                    $store.state.geneToTranscript.length
+                                "
                                 :transcripts="
                                     $store.state.geneToTranscript.data
                                 "
@@ -349,10 +356,11 @@
                                     <span>
                                         <documentation
                                             name="gene.hugecal.subheader"
-                                            :contentFill="
-                                                $parent.docDetails
+                                            :contentFill="$parent.docDetails"
+                                            :contentMap="
+                                                $store.state.bioPortal
+                                                    .documentations
                                             "
-                                            :contentMap="$store.state.bioPortal.documentations"
                                         >
                                         </documentation>
                                     </span>
@@ -421,12 +429,13 @@
                                         }})
                                         <tooltip-documentation
                                             name="gene.associations.tooltip.hover"
-                                            :contentFill="
-                                                $parent.docDetails
-                                            "
+                                            :contentFill="$parent.docDetails"
                                             :is-hover="true"
                                             :no-icon="false"
-                                            :contentMap="$store.state.bioPortal.documentations"
+                                            :contentMap="
+                                                $store.state.bioPortal
+                                                    .documentations
+                                            "
                                         >
                                         </tooltip-documentation>
                                     </h4>
@@ -491,12 +500,13 @@
                                         }}
                                         <tooltip-documentation
                                             name="gene.52k.tooltip.hover"
-                                            :contentFill="
-                                                $parent.docDetails
-                                            "
+                                            :contentFill="$parent.docDetails"
                                             :is-hover="true"
                                             :no-icon="false"
-                                            :contentMap="$store.state.bioPortal.documentations"
+                                            :contentMap="
+                                                $store.state.bioPortal
+                                                    .documentations
+                                            "
                                         ></tooltip-documentation>
                                     </h4>
                                     <research-phewas-plot
@@ -608,7 +618,9 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
-                                :contentMap="$store.state.bioPortal.documentations"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
                             >
                             </tooltip-documentation>
                         </h4>
@@ -628,7 +640,9 @@
                             <tooltip-documentation
                                 name="gene.xref.tooltip.hover"
                                 :contentFill="$parent.docDetails"
-                                :contentMap="$store.state.bioPortal.documentations"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
                                 :is-hover="true"
                                 :no-icon="false"
                             >

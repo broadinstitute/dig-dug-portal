@@ -23,10 +23,10 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
-import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
 new Vue({
     store,
@@ -44,14 +44,13 @@ new Vue({
         RawImage,
         UnauthorizeMessage,
 
-        SearchHeaderWrapper
+        SearchHeaderWrapper,
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("bioPortal/getDocumentations");
     },
 
     render(createElement, context) {
@@ -64,7 +63,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        intFormatter: Formatters.intFormatter
+        intFormatter: Formatters.intFormatter,
     },
 
     computed: {
@@ -93,7 +92,7 @@ new Vue({
 
             return {
                 dataset: dataset && dataset.description,
-                phenotype: phenotype && phenotype.description
+                phenotype: phenotype && phenotype.description,
             };
         },
         datasetPhenotypes() {
@@ -104,7 +103,7 @@ new Vue({
                 return [];
             }
 
-            return dataset.phenotypes.map(p => map[p]);
+            return dataset.phenotypes.map((p) => map[p]);
         },
         manhattanPlot() {
             let dataset = this.$store.state.selectedDataset;
@@ -126,9 +125,9 @@ new Vue({
             let phenotype = this.$store.state.selectedPhenotype;
 
             return {
-                [phenotype.name]: []
+                [phenotype.name]: [],
             };
-        }
+        },
     },
 
     watch: {
@@ -147,6 +146,6 @@ new Vue({
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        }
-    }
+        },
+    },
 }).$mount("#app");

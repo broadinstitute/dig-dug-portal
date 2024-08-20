@@ -101,7 +101,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("bioPortal/getDocumentations");
         this.$store.dispatch("queryRegion");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
     },
@@ -163,8 +162,9 @@ new Vue({
                 if (this.selectedPhenotypes.length > 0) {
                     this.$store.dispatch("credibleSets/clear");
                     this.selectedPhenotypes.forEach((p) => {
-                        const queryString = `${p.name},${this.$store.state.chr
-                            }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        const queryString = `${p.name},${
+                            this.$store.state.chr
+                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                         this.$store.dispatch("credibleSets/query", {
                             q: queryString,
                             append: true,
