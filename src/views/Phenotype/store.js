@@ -53,7 +53,7 @@ export default new Vuex.Store({
         },
     },
     getters: {
-        documentationMap(state) {
+        docDetails(state) {
             return {
                 phenotype: state.phenotype.description,
                 ancestry: state.ancestry,

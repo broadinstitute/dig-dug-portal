@@ -23,7 +23,7 @@
 				<div class="card-body temporary-card">
 					<documentation
 						name="datasets.titlecard.phenotypes"
-						:content-fill="$parent.documentationMap"
+						:contentMap="$store.state.bioPortal.documentations"
 					></documentation>
 				</div>
 			</div>

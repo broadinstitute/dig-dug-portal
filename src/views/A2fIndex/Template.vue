@@ -148,10 +148,7 @@
                                                 >
                                                     <documentation
                                                         name="home.example"
-                                                        :group="
-                                                            $parent.diseaseGroup
-                                                                .name
-                                                        "
+                                                        :contentMap="$store.state.bioPortal.documentations"
                                                     ></documentation>
                                                 </div>
                                             </div>
@@ -197,9 +194,7 @@
                                         >
                                             <documentation
                                                 name="home.example"
-                                                :group="
-                                                    $parent.diseaseGroup.name
-                                                "
+                                                :contentMap="$store.state.bioPortal.documentations"
                                             ></documentation>
                                         </div>
                                     </div>
