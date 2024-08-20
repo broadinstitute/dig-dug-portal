@@ -9,11 +9,8 @@ import documentationParser from "@/utils/documentationUtils";
 export default Vue.component("menu-item", {
     props: ["name", "contentFill", "contentMap"],
 
-    data: (context) => {
-        return {
-            content: null,
-            converter: null,
-        };
+    data: context => {
+        return {};
     },
 
     computed: {
@@ -39,30 +36,6 @@ export default Vue.component("menu-item", {
 });
 </script>
 <style scoped>
-.doc.link {
-}
-
-.doc.large-header {
-}
-.doc.medium-header {
-}
-.doc.small-header {
-}
-.doc.x-small-header {
-}
-
-.doc.content {
-}
-
-.doc.list {
-}
-.doc.item {
-}
-
-.doc.italic {
-}
-.doc.bold {
-}
 .tooltip {
     display: block !important;
     z-index: 10000;

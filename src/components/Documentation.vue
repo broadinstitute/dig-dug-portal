@@ -11,10 +11,7 @@ export default Vue.component("documentation", {
     props: ["name", "contentFill", "contentMap"],
 
     data: context => {
-        return {
-            content: null,
-            converter: null
-        };
+        return {};
     },
     computed: {
         documentationContent() {
