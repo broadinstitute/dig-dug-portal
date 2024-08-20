@@ -10,14 +10,12 @@
         <!-- body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-
                 <div>
                     <div class="region-search col filter-col-md">
                         <div class="label">Begin new search</div>
                         <research-single-search
                             :single-search-config="null"
-                            :phenotypes="$parent.phenotypesInSession
-                                "
+                            :phenotypes="$parent.phenotypesInSession"
                             :utils="$parent.utilsBox"
                         ></research-single-search>
                     </div>
@@ -53,7 +51,7 @@
                             <b-img
                                 src="/images/bioindex_logo.svg"
                                 alt="BioIndex logo"
-                                style="height: 34px"
+                                style="height: 24px"
                             ></b-img
                         ></b-link>
                     </div>
@@ -61,9 +59,10 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <documentation name="region.trait.info"
-                        :contentMap="$store.state.bioPortal.documentations">
-
+                    <documentation
+                        name="region.trait.info"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
                     </documentation>
                 </div>
             </div>
@@ -290,7 +289,10 @@
                                         name="region.add.phenotypes.tooltip"
                                         :is-hover="true"
                                         :no-icon="false"
-                                        :contentMap="$store.state.bioPortal.documentations"
+                                        :contentMap="
+                                            $store.state.bioPortal
+                                                .documentations
+                                        "
                                     ></tooltip-documentation>
                                 </div>
                                 <template
@@ -488,7 +490,9 @@
                                 name="region.topassoc.tooltip"
                                 :is-hover="true"
                                 :no-icon="false"
-                                :contentMap="$store.state.bioPortal.documentations"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
                         <documentation
