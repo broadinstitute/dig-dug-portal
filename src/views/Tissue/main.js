@@ -42,7 +42,7 @@ new Vue({
         SearchHeaderWrapper,
         TissueSelectPicker,
         ResearchSingleSearch,
-        Scatterplot
+        Scatterplot,
     },
     mixins: [pageMixin],
     data() {
@@ -58,43 +58,32 @@ new Vue({
                 dotKey: "gene",
                 hoverBoxPosition: "both",
                 hoverFields: [
-                    { 
+                    {
                         key: "gene",
                         label: "Gene",
                     },
                     {
                         key: "H",
                         label: "Genericity",
-                        formatter: Formatters.pValueFormatter
+                        formatter: Formatters.pValueFormatter,
                     },
                     {
                         key: "Q",
                         label: "Combined score",
-                        formatter: Formatters.tpmFormatter
+                        formatter: Formatters.tpmFormatter,
                     },
                     {
                         key: "meanTpm",
                         label: "TPM (mean)",
-                        formatter: Formatters.tpmFormatter
+                        formatter: Formatters.tpmFormatter,
                     },
-                    { 
+                    {
                         key: "nSamples",
-                        label: "Samples"
-                    }
-                ]
-            }
+                        label: "Samples",
+                    },
+                ],
+            },
         };
-    },
-    methods: {
-        tissueFormatter: Formatters.tissueFormatter,
-        newTissue(tissue) {
-            this.selectTissue = tissue;
-        },
-        updateTissueData() {
-            this.tissue = this.selectTissue;
-            this.$store.commit("setTissueName", this.tissue);
-            this.$store.dispatch("getTissue");
-        },
     },
     computed: {
         utilsBox() {
@@ -138,7 +127,7 @@ new Vue({
         tissueData() {
             return this.$store.getters["tissueData"];
         },
-        documentationMap() {
+        docDetails() {
             return {
                 tissue: this.tissue
                     ? this.tissue.toUpperCase().replaceAll("_", " ")
@@ -155,6 +144,17 @@ new Vue({
         if (this.tissue) {
             this.$store.dispatch("getTissue");
         }
+    },
+    methods: {
+        tissueFormatter: Formatters.tissueFormatter,
+        newTissue(tissue) {
+            this.selectTissue = tissue;
+        },
+        updateTissueData() {
+            this.tissue = this.selectTissue;
+            this.$store.commit("setTissueName", this.tissue);
+            this.$store.dispatch("getTissue");
+        },
     },
 
     render: (h) => h(Template),
