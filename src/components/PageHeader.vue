@@ -105,6 +105,7 @@
                         v-if="!!diseaseGroup.name"
                         :group="diseaseGroup.name"
                         name="header.menu"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></menu-item>
                     <div class="login-menu-wrapper">
                         <ul>
@@ -206,6 +207,8 @@ export default Vue.component("page-header", {
             );
         }
         if (BIO_INDEX_HOST.indexOf("dev") != -1) this.bioindex_dev = true;
+
+        this.$store.dispatch("bioPortal/getDocumentations");
     },
 });
 </script>

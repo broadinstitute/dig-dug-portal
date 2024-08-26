@@ -25,7 +25,8 @@
         </div>
         <documentation
             name="tissue.global-enrichment.subheader"
-            :content-fill="$parent.documentationMap"
+            :contentFill="$parent.docDetails"
+            :contentMap="$store.state.bioPortal.documentations"
         ></documentation>
         <b-table
             small

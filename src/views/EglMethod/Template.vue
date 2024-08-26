@@ -55,6 +55,7 @@
                 <div class="card-body temporary-card">
                     <documentation
                         :name="[$parent.dataset] + '.header.info'"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                 </div>
             </div>

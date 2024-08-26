@@ -27,10 +27,10 @@ import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 import { query } from "@/utils/bioIndexUtils";
-import { difference } from "lodash"
+import { difference } from "lodash";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -63,15 +63,15 @@ new Vue({
             phenotypelist: [],
             complicationsViewerSearchCriterion: keyParams.condition
                 ? [
-                    {
-                        field: "condition",
-                        threshold: keyParams.condition
-                    },
-                    {
-                        field: "secondaryPhenotype",
-                        threshold: keyParams.secondaryPhenotype
-                    }
-                ]
+                      {
+                          field: "condition",
+                          threshold: keyParams.condition,
+                      },
+                      {
+                          field: "secondaryPhenotype",
+                          threshold: keyParams.secondaryPhenotype,
+                      },
+                  ]
                 : [],
             geneFinderAssociationsMap: {},
         };
@@ -95,7 +95,6 @@ new Vue({
         postAlertError,
         closeAlert,
     },
-
 
     computed: {
         frontContents() {
@@ -126,10 +125,10 @@ new Vue({
             }
         },
 
-
         complicationPhenotypeOptions() {
-            let x = this.$store.state.bioPortal.complications
-                .filter(x => x.name == this.$store.state.phenotype);
+            let x = this.$store.state.bioPortal.complications.filter(
+                (x) => x.name == this.$store.state.phenotype
+            );
             return x;
         },
 
@@ -137,48 +136,69 @@ new Vue({
         //then get the phenotypes for the selected complication.
         //display all the keys
         complicationSecondaryPhenotypeOptions() {
-            let selectedComplication = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'condition').map(criterion => criterion.threshold)[0];
+            let selectedComplication = this.complicationsViewerSearchCriterion
+                .filter((criterion) => criterion.field === "condition")
+                .map((criterion) => criterion.threshold)[0];
             if (!!selectedComplication) {
-                let phenotypes = Object.keys(this.$store.state.bioPortal.complicationsMap[selectedComplication].phenotypes);
+                let phenotypes = Object.keys(
+                    this.$store.state.bioPortal.complicationsMap[
+                        selectedComplication
+                    ].phenotypes
+                );
                 return phenotypes;
             }
         },
         phenotypes() {
             return this.complicationsViewerSearchCriterion
-                .filter(criterion => criterion.field === 'condition')
-                .map(criterion => criterion.threshold);
+                .filter((criterion) => criterion.field === "condition")
+                .map((criterion) => criterion.threshold);
         },
 
         complicationViewerPhenotypes() {
-            let complicationPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'condition').map(criterion => criterion.threshold);
-            let secondaryPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
+            let complicationPhenotype = this.complicationsViewerSearchCriterion
+                .filter((criterion) => criterion.field === "condition")
+                .map((criterion) => criterion.threshold);
+            let secondaryPhenotype = this.complicationsViewerSearchCriterion
+                .filter((criterion) => criterion.field === "secondaryPhenotype")
+                .map((criterion) => criterion.threshold);
             if (secondaryPhenotype.length > 0) {
-                this.$store.commit("setSelectedSecondaryPhenotype", secondaryPhenotype);
-                let complication = [this.$store.state.bioPortal.complicationsMap[complicationPhenotype].phenotypes[secondaryPhenotype]]
-                let x = complication.concat(secondaryPhenotype)
+                this.$store.commit(
+                    "setSelectedSecondaryPhenotype",
+                    secondaryPhenotype
+                );
+                let complication = [
+                    this.$store.state.bioPortal.complicationsMap[
+                        complicationPhenotype
+                    ].phenotypes[secondaryPhenotype],
+                ];
+                let x = complication.concat(secondaryPhenotype);
                 return x;
             }
             if (secondaryPhenotype.length == 0) {
-                return []
+                return [];
             }
         },
 
         geneFinderPValue() {
             for (let i in this.complicationsViewerSearchCriterion) {
-                if (this.complicationsViewerSearchCriterion[i].field == 'pValue') {
-                    return Number(this.complicationsViewerSearchCriterion[i].threshold)
+                if (
+                    this.complicationsViewerSearchCriterion[i].field == "pValue"
+                ) {
+                    return Number(
+                        this.complicationsViewerSearchCriterion[i].threshold
+                    );
                 }
             }
 
             return 0.05;
         },
 
-        documentationMap() {
+        docDetails() {
             let phenotype = this.complicationViewerPhenotypes[0];
             let secondaryphenotype = this.complicationViewerPhenotypes[1];
             return {
                 phenotype: phenotype,
-                secondaryphenotype: secondaryphenotype
+                secondaryphenotype: secondaryphenotype,
             };
         },
     },
@@ -189,11 +209,11 @@ new Vue({
         },
 
         complicationViewerPhenotypes(phenotypes) {
-            this.$store.dispatch('findGenes', {
+            this.$store.dispatch("findGenes", {
                 primaryPhenotype: phenotypes[0],
                 secondaryPhenotype: phenotypes[1],
                 pValue: this.geneFinderPValue,
             });
         },
-    }
+    },
 }).$mount("#app");

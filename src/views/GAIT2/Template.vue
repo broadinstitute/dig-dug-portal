@@ -10,7 +10,11 @@
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <documentation name="ncgait.header.info"></documentation>
+                    <documentation
+                        name="ncgait.header.info"
+                        :contentMap="$parent.contentMap"
+                    >
+                    </documentation>
                 </div>
             </div>
             <div class="card mdkp-card dataset-page-header">
@@ -21,6 +25,7 @@
                         <documentation
                             style="margin-top: 20px"
                             name="tools.ncgait.subheader"
+                            :contentMap="$parent.contentMap"
                         ></documentation>
                     </div>
                 </div>
