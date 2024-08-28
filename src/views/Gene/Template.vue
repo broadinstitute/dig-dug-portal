@@ -609,12 +609,11 @@
                         Differential gene expression in mice for
                         {{ $store.state.geneName }}
                     </h4>
-                    <b-table 
+                    <mouse-summary-table 
                         v-if="$store.state.mouseSummary.data.length > 0"
                         :items="$store.state.mouseSummary.data"
-                        :fields="$parent.fieldMouse"
-                        small
-                    ></b-table>
+                        :isGenePage="true"
+                    ></mouse-summary-table>
                     <div v-else>
                         No mouse summary data available for this gene.
                     </div>
