@@ -5,7 +5,25 @@
       :items="items"
       :fields="fields"
       :sort-by="!isGenePage ? 'gene' : 'tissue'"
-      ></b-table>
+      :per-page="perPage"
+      :current-page="currentPage"
+    >
+      <template #cell(gene)="row">
+        <a :href="`/gene.html?gene=${row.item.gene}`">
+              {{ row.item.gene }}
+        </a>
+      </template>
+      <template #cell(gene_region)="row">
+        {{ `${row.item.chromosome}:${row.item.start}-${row.item.end}` }}
+      </template>
+    </b-table>
+    <b-pagination
+      v-model="currentPage"
+      class="pagination-sm justify-content-center"
+      :total-rows="items.length"
+      :per-page="perPage"
+    >
+    </b-pagination>
   </div>
 </template>
 <style scoped>
@@ -17,6 +35,8 @@
     props: ["items", "isGenePage"],
     data() {
       return {
+        perPage: 10,
+        currentPage: 1,
         commonFields: [
           {
             key: "P_adj_sex",
@@ -45,6 +65,11 @@
             label: "Gene ID",
             sortable: true
           },
+          {
+            key: "gene_region",
+            label: "Gene region",
+            sortable: true
+          }
         ],
         geneOnlyFields: [
           {
