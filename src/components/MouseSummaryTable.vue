@@ -2,19 +2,17 @@
   <div>
     <b-table
       small
-      :items="items"
+      :items="tableData"
       :fields="fields"
       :sort-by="!isGenePage ? 'gene' : 'tissue'"
       :per-page="perPage"
       :current-page="currentPage"
+      :sort-compare="sortRows"
     >
       <template #cell(gene)="row">
         <a :href="`/gene.html?gene=${row.item.gene}`">
               {{ row.item.gene }}
         </a>
-      </template>
-      <template #cell(gene_region)="row">
-        {{ `${row.item.chromosome}:${row.item.start}-${row.item.end}` }}
       </template>
     </b-table>
     <b-pagination
@@ -68,7 +66,7 @@
           {
             key: "gene_region",
             label: "Gene region",
-            sortable: false
+            sortable: true
           }
         ],
         geneOnlyFields: [
@@ -84,6 +82,48 @@
       fields(){
         let specificFields = !this.isGenePage ? this.tissueOnlyFields : this.geneOnlyFields;
         return specificFields.concat(this.commonFields);
+      },
+      tableData(){
+        let tableData = structuredClone(this.items);
+        if (this.isGenePage){
+          return tableData;
+        }
+        for (let i = 0; i < tableData.length; i++){
+          let chr = tableData[i].chromosome;
+          let start = tableData[i].start;
+          let end = tableData[i].end;
+          tableData[i].gene_region = `${chr}:${start}-${end}`;
+        }
+        return tableData;
+      }
+    },
+    methods: {
+      sortRows(aRow, bRow, key){
+        let a = aRow[key];
+        let b = bRow[key];
+
+        if (key === 'gene_region'){
+          return this.compareRegions(aRow, bRow); 
+        }
+
+        if (typeof a === 'number' && typeof b === 'number'){
+          return a < b ? -1 : a > b ? 1 : 0;
+        }
+
+        return String(a).localeCompare(String(b));
+
+      },
+      compareRegions(aRow, bRow){
+        let aChr = aRow.chromosome;
+        let bChr = bRow.chromosome;
+        let chrCompare = aChr.localeCompare(bChr, undefined, {numeric: true});
+        if (chrCompare !== 0){
+          return chrCompare;
+        } 
+        let aStart = aRow.start;
+        let bStart = bRow.start;
+        return aStart < bStart ? -1 : aStart > bStart ? 1 : 0;
+
       }
     }
   });
