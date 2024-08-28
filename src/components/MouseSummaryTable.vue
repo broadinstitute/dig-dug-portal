@@ -2,7 +2,7 @@
   <div>
     <b-table
       small
-      :items="tableData"
+      :items="items"
       :fields="fields"
       :sort-by="!isGenePage ? 'gene' : 'tissue'"
       :per-page="perPage"
@@ -13,6 +13,9 @@
         <a :href="`/gene.html?gene=${row.item.gene}`">
               {{ row.item.gene }}
         </a>
+      </template>
+      <template #cell(gene_region)="row">
+        {{ `${row.item.chromosome}:${row.item.start}-${row.item.end}` }}
       </template>
     </b-table>
     <b-pagination
@@ -83,19 +86,6 @@
         let specificFields = !this.isGenePage ? this.tissueOnlyFields : this.geneOnlyFields;
         return specificFields.concat(this.commonFields);
       },
-      tableData(){
-        let tableData = structuredClone(this.items);
-        if (this.isGenePage){
-          return tableData;
-        }
-        for (let i = 0; i < tableData.length; i++){
-          let chr = tableData[i].chromosome;
-          let start = tableData[i].start;
-          let end = tableData[i].end;
-          tableData[i].gene_region = `${chr}:${start}-${end}`;
-        }
-        return tableData;
-      }
     },
     methods: {
       sortRows(aRow, bRow, key){
