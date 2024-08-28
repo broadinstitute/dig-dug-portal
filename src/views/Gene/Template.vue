@@ -604,14 +604,20 @@
                 </div>
             </div>
             <div class="card mdkp-card">
-                <div class="card-bodt">
+                <div class="card-body">
                     <h4 class="card-title">
                         Differential gene expression in mice for
                         {{ $store.state.geneName }}
                     </h4>
                     <b-table 
+                        v-if="$store.state.mouseSummary.data.length > 0"
                         :items="$store.state.mouseSummary.data"
+                        :fields="$parent.fieldMouse"
+                        small
                     ></b-table>
+                    <div v-else>
+                        No mouse summary data available for this gene.
+                    </div>
                 </div>
             </div>
             <div class="card mdkp-card">

@@ -219,6 +219,29 @@ new Vue({
                     bottom: 300,
                 },
             },
+            fieldMouse: [
+                {
+                    key: "tissue",
+                    label: "Tissue",
+                    sortable: true
+                },
+                {
+                    key: "P_adj_sex",
+                    label: "Adjusted p-value: sex",
+                    sortable: true
+                },
+                {
+                    key: "P_adj_strain",
+                    label: "Adjusted p-value: strain",
+                    sortable: true
+                },
+                {
+                    key: "P_adj_strain_sex",
+                    label: "Adjusted p-value: strain + sex",
+                    sortable: true
+                }
+
+            ]
         };
     },
 
