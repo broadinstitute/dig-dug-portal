@@ -68,7 +68,7 @@
           {
             key: "gene_region",
             label: "Gene region",
-            sortable: true
+            sortable: false
           }
         ],
         geneOnlyFields: [
