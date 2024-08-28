@@ -612,6 +612,7 @@ new Vue({
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
+            this.$store.dispatch("getMouseData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
             let geneQuery = !newAncestry

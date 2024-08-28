@@ -604,6 +604,17 @@
                 </div>
             </div>
             <div class="card mdkp-card">
+                <div class="card-bodt">
+                    <h4 class="card-title">
+                        Differential gene expression in mice for
+                        {{ $store.state.geneName }}
+                    </h4>
+                    <b-table 
+                        :items="$store.state.mouseSummary.data"
+                    ></b-table>
+                </div>
+            </div>
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
