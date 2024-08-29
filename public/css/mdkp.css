@@ -78,6 +78,11 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+.front-top-banner-skinkp {
+    background-image: linear-gradient(#286FB7, #61C2EE);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner-cdkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/cdkp_front_bg.png),
         linear-gradient(#73d253, #38942d);
@@ -169,6 +174,10 @@ a:hover {
     width: 430px;
 }
 
+.front-top-banner-skinkp .front-logo-img {
+    width: 430px;
+}
+
 .front-top-banner-v2fkp .front-logo-img,
 .front-top-banner-a2fkp .front-logo-img {
     width: 430px;
@@ -239,6 +248,10 @@ a:hover {
 }
 
 .front-logo-tagline-t2dkp {
+    transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-skinkp {
     transform: translate(0%, 20%);
 }
 
@@ -369,6 +382,10 @@ a:hover {
     height: 50px;
 }
 
+.skinkp-logo {
+    height: 50px;
+}
+
 .cvdkp-logo {
     height: 50px;
 }
@@ -479,6 +496,12 @@ a:hover {
 .t2dkp-header,
 .t2dkp-footer {
     background-color: #55aaee;
+    height: 50px;
+}
+
+.skinkp-header,
+.skinkp-footer {
+    background-color: #286fb7;
     height: 50px;
 }
 
@@ -632,6 +655,7 @@ a:hover {
 .cvdkp-footer,
 .sleepkp-footer,
 .t2dkp-footer,
+.skinkp-footer,
 .cdkp-footer,
 .v2fkp-footer,
 .a2fkp-footer,
@@ -658,6 +682,7 @@ a:hover {
 .cvdkp-body,
 .sleekp-body,
 .t2dkp-body,
+.skinkp-body,
 .cdkp-body,
 .v2fkp-body,
 .a2fkp-body,
@@ -683,6 +708,7 @@ a:hover {
 .cvdkp-card,
 .sleepkp-card,
 .t2dkp-card,
+.skinkp-card,
 .cdkp-card,
 .v2fkp-card,
 .a2fkp-card,
