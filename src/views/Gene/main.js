@@ -25,6 +25,7 @@ import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -34,6 +35,7 @@ import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
+
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
@@ -98,6 +100,7 @@ new Vue({
         HugeScoresTable,
         EffectorGenesSectionOnGene,
         ResearchSingleSearch,
+        MouseSummaryTable,
     },
 
     data() {
@@ -612,6 +615,7 @@ new Vue({
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
+            this.$store.dispatch("getMouseData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
             let geneQuery = !newAncestry

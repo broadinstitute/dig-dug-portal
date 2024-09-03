@@ -108,6 +108,19 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <div class="card mdkp-card"
+                    v-if="$store.state.mouseSummary.data.length > 0">
+                    <div class="card-body">
+                        <h4 class=card-title>
+                            Differential mouse gene expression in
+                            {{ $parent.tissueFormatter($parent.tissue) }}
+                        </h4>
+                        <mouse-summary-table 
+                            :items="$store.state.mouseSummary.data"
+                        >
+                        </mouse-summary-table>
+                    </div>
+                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <tissue-heritability-table
