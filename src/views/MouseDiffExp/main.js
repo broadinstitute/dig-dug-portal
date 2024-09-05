@@ -46,7 +46,9 @@ new Vue({
     data() {
         return {
             diffExpTissue: keyParams.tissue || "",
-            diffExpGene: keyParams.gene || ""            
+            diffExpGene: keyParams.gene || "",
+            selectedTissue: "",
+            selectedGene: ""
         };
     },
     computed: {
