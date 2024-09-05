@@ -39,6 +39,7 @@ import ResearchSectionsSummary from "@/components/researchPortal/ResearchSection
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingSpinner.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import ResearchKnowledgeMap from "@/components/researchPortal/ResearchKnowledgeMap.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -87,6 +88,7 @@ new Vue({
         ResearchSectionsSummary,
         ResearchMultiSectionsSearch,
         ResearchSingleSearch,
+        ResearchKnowledgeMap,
         ResearchLoadingSpinner
     },
     data() {

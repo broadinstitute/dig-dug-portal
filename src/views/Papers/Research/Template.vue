@@ -246,6 +246,15 @@
 
 			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':''" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
+					<div class="research-knowledge-map-wrapper col-md-12" id="research_knowledge_map_wrapper"
+					v-if="!!$parent.sectionConfigs && $parent.sectionConfigs['knowledge map']">
+						<research-knowledge-map
+						:renderConfig = "$parent.sectionConfigs['knowledge map']"
+						:colors="$parent.colors"
+						:utils="$parent.utilsBox" >
+
+						</research-knowledge-map>
+					</div>
 					<div class="row">
 						<template
 							v-if="

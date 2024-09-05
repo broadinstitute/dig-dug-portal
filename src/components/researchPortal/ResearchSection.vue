@@ -982,8 +982,8 @@ export default Vue.component("research-section", {
 
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
-			console.log("PARAMS", PARAMS);
-			console.log("QUERY", QUERY);
+			//console.log("PARAMS", PARAMS);
+			//console.log("QUERY", QUERY);
 
 			this.searched.push(QUERY);
 
@@ -1004,7 +1004,7 @@ export default Vue.component("research-section", {
 				 dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
 			}
 
-			console.log("dataUrl replaced", dataUrl);
+			//console.log("dataUrl replaced", dataUrl);
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
