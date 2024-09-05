@@ -61,22 +61,21 @@ export default new Vuex.Store({
 				});
             context.state.tissueKeys = tissues;
 		},
+        async getGeneKeys(context){
+            let genes = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/diff-exp/2?columns=gene`)
+                .then(resp => resp.json())
+                .then(json => {
+                    if (json.count == 0) {
+                        return null;
+                    }
+                    return json.keys.map(key => key[0])
+                });
+            context.state.geneKeys = genes;
+        },
         onTissueChange(context, tissue){
             tissue = tissue.replaceAll(" ", "_");
             context.state.selectedTissue = tissue;
             keyParams.set({ tissue: tissue });
-        }
-    },
-    getters: {
-        tissueData(state) {
-            if (state.tissue.data) {
-                //return all data where meanTpm > 1
-                return state.tissue.data.filter((d) => d.meanTpm >= 1);
-            }
-            return [];
-        },
-        tissueKeys(state){
-            return state.tissueKeys;
         }
     },
 });

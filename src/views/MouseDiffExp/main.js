@@ -71,7 +71,10 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseSystem"];
         },
         tissueKeys(){
-            return this.$store.getters["tissueKeys"];
+            return this.$store.state.tissueKeys;
+        },
+        geneKeys(){
+            return this.$store.state.geneKeys;
         },
         docDetails() {
             return {
@@ -89,6 +92,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
 
         this.$store.dispatch("getTissueKeys");
+        this.$store.dispatch("getGeneKeys");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -104,6 +108,9 @@ new Vue({
     },
     watch: {
         tissueKeys(newKeys){
+            console.log(JSON.stringify(newKeys));
+        },
+        geneKeys(newKeys){
             console.log(JSON.stringify(newKeys));
         }
     },
