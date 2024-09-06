@@ -174,7 +174,7 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("stroke", "black")
                 .attr("width", 40);
           
-        let boxWidth = 50;
+        let boxWidth = 30;
         this.svg.selectAll("boxes")
               .data(sumstat)
               .enter()
