@@ -16,7 +16,7 @@ import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import DownloadChart from "@/components/DownloadChart.vue";
 export default Vue.component("mouse-whisker-plot", {
-  props: ["data", "highlightedDataset", "plotName"],
+  props: ["data", "plotName"],
   data() {
       return {
           chart: null,
@@ -74,11 +74,6 @@ export default Vue.component("mouse-whisker-plot", {
           this.showPlot = true;
           this.displayResults();
       },
-      highlightedDataset(details) {
-          this.hoverViolin(details.violin);
-          this.redrawNonHoverDots(details.violin, details.dataset);
-          this.redrawHoverDots(details.violin, details.dataset);
-      },
   },
   methods: {
       displayResults() {
@@ -121,7 +116,7 @@ export default Vue.component("mouse-whisker-plot", {
               .nest()
               .key((d) => d[this.keyField])
               .rollup(d => {
-                let sorted = d.map(g => g[this.keyField]).sort(d3.ascending);
+                let sorted = d.map(g => g[this.tpmField]).sort(d3.ascending);
                 let q1 = d3.quantile(sorted, .25);
                 let median = d3.quantile(sorted, .5);
                 let q3 = d3.quantile(sorted, .75);
@@ -129,12 +124,12 @@ export default Vue.component("mouse-whisker-plot", {
                 let min = sorted[0];
                 let max = sorted[sorted.length - 1];
                 return {
-                  q1: q1,
-                  median: median,
-                  q3: q3,
-                  interQuantileRange: iQr,
-                  min: min,
-                  max: max
+                  "q1": q1,
+                  "median": median,
+                  "q3": q3,
+                  "interQuantileRange": iQr,
+                  "min": min,
+                  "max": max
                 }
               })
               .entries(this.plotData);
@@ -143,14 +138,15 @@ export default Vue.component("mouse-whisker-plot", {
               .scaleBand()
               .range([0, width])
               .domain(this.plotData.map(g => g[this.keyField]).sort(d3.ascending))
-              .padding(0.05);
+              .paddingInner(1)
+              .paddingOuter(.5);
 
           this.svg
               .append("g")
               .attr("transform", `translate(0,${height})`)
               .call(d3.axisBottom(this.xScale))
               .selectAll("text")
-              .style("text-anchor", "start")
+              .style("text-anchor", "middle")
               .style("font-size", "13px");
           
           let initialVal = this.plotData[0][this.tpmField];
@@ -178,14 +174,14 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("stroke", "black")
                 .attr("width", 40);
           
-        let boxWidth = 100;
+        let boxWidth = 50;
         this.svg.selectAll("boxes")
               .data(sumstat)
               .enter()
               .append("rect")
                 .attr("x", d => this.xScale(d.key) - boxWidth/2 )
                 .attr("y", d => this.yScale(d.value.q3))
-                .attr("height", d => this.yScale(-d.value.interQuantileRange))
+                .attr("height", d => this.yScale(d.value.q1) - this.yScale(d.value.q3))
                 .attr("width", boxWidth)
                 .attr("stroke", "black")
                 .style("fill", "none");
@@ -199,7 +195,7 @@ export default Vue.component("mouse-whisker-plot", {
               .attr("y1", d => this.yScale(d.value.median))
               .attr("y2", d => this.yScale(d.value.median))
               .attr("stroke", "black")
-              .style("width", 80);
+              .style("width", 40);
         
         let jitterWidth = 0;
         this.svg.selectAll("indPoints")
@@ -215,20 +211,6 @@ export default Vue.component("mouse-whisker-plot", {
       },
       hideTooltip() {
           this.tooltip.style("opacity", 0);
-      },
-      hoverDot(hoverItem, hoverDataset, biosample) {
-          let xcoord = `${d3.event.layerX + 35}px`;
-          let ycoord = `${d3.event.layerY}px`;
-          // Tooltip content
-          let tooltipContent = `Biosample: ${biosample}`;
-          tooltipContent = tooltipContent.concat(
-              `<span>Dataset: ${hoverDataset}</span>`
-          );
-          this.tooltip
-              .style("opacity", 1)
-              .html(tooltipContent)
-              .style("left", xcoord)
-              .style("top", ycoord);
       },
   },
 });
