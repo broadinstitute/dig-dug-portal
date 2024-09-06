@@ -32,24 +32,29 @@
 
               <div class="card mdkp-card">
                   <div class="card-body">
-                      <h4>
-                          MOUSE BROWSER GOES HERE
-                      </h4>
-                      This is where the mouse browser will go
                       <criterion-function-group>
                         <mouse-tissue-select>
-
                         </mouse-tissue-select>
                         <mouse-gene-select>
-
                         </mouse-gene-select>
                         <button
-                            class="btn btn-primary"
+                            class="btn btn-primary btn-sm"
                             @click="$parent.searchDiffExp()"
                         >
                             Search
                         </button>
                       </criterion-function-group>
+                      <div>
+                        <h4 v-if="$parent.diffExpData.length > 0">
+                          Mouse Differential Expression for
+                          {{ $store.state.gene }} in
+                          {{ $parent.tissueFormatter($store.state.tissue) }}
+                        </h4>
+                        <mouse-diff-exp-table
+                          v-if="$parent.diffExpData.length > 0"
+                          :items="$parent.diffExpData">
+                        </mouse-diff-exp-table>
+                      </div>
                   </div>
               </div>
           </div>

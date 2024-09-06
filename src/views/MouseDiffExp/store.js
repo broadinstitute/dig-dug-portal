@@ -6,7 +6,6 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-import { query } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 

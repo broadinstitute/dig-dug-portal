@@ -15,6 +15,7 @@ import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import MouseTissueSelect from "@/components/MouseTissueSelect.vue";
 import MouseGeneSelect from "@/components/MouseGeneSelect.vue";
+import MouseDiffExpTable from "@/components/MouseDiffExpTable.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -44,13 +45,14 @@ new Vue({
         Scatterplot,
         MouseSummaryTable,
         MouseTissueSelect,
-        MouseGeneSelect
+        MouseGeneSelect,
+        MouseDiffExpTable
     },
     mixins: [pageMixin],
     data() {
         return {
-            diffExpTissue: keyParams.tissue || "",
-            diffExpGene: keyParams.gene || "",
+            currentPage: 1,
+            perPage: 10,
         };
     },
     computed: {
@@ -82,7 +84,11 @@ new Vue({
             };
         },
         diffExpData(){
-            return this.$store.state.diffExp.data;
+            let data = structuredClone(this.$store.state.diffExp.data); 
+            for (let i = 0; i < data.length; i++){
+                data[i].founder_sex = `${data[i].founder}_${data[i].sex}`;
+            }
+            return data;
         }
     },
     created() {
@@ -98,11 +104,6 @@ new Vue({
         tissueFormatter: Formatters.tissueFormatter,
         searchDiffExp(){
             this.$store.dispatch("queryDiffExp");
-        }
-    },
-    watch: {
-        diffExpData(newData){
-            console.log(JSON.stringify(newData));
         }
     },
     render: (h) => h(Template),
