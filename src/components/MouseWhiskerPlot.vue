@@ -106,7 +106,7 @@ export default Vue.component("mouse-whisker-plot", {
           this.xScale = d3
               .scaleBand()
               .range([0, width])
-              .domain(this.plotData.map(entry => entry[this.keyField]))
+              .domain(this.plotData.map(entry => entry[this.keyField]).sort())
               .padding(0.05);
 
           this.svg
@@ -118,12 +118,16 @@ export default Vue.component("mouse-whisker-plot", {
               .style("font-size", "13px")
               .attr("transform", "rotate(45)");
           
+          let initialVal = this.plotData[0][this.tpmField];
           let maxVal = this.plotData
               .map((g) => g[this.tpmField])
-              .reduce((prev, next) => (prev > next ? prev : next), 0);
+              .reduce((prev, next) => (prev > next ? prev : next), initialVal);
+          let minVal = this.plotData
+              .map((g) => g[this.tpmField])
+              .reduce((prev, next) => (prev < next ? prev : next), initialVal);
           this.yScale = d3
               .scaleLinear()
-              .domain([0, maxVal])
+              .domain([minVal, maxVal])
               .range([height, 0]);
 
           this.svg.append("g").call(d3.axisLeft(this.yScale));
@@ -329,6 +333,7 @@ export default Vue.component("mouse-whisker-plot", {
                   uniques.push(datum[this.keyField]);
               }
           });
+          uniques.sort();
           this.keyFieldList = uniques;
       },
       mapColors(uniqueItems) {
