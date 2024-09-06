@@ -1,5 +1,6 @@
 <template>
   <div class="col filter-col-md">
+    <div class="label">Tissue</div>
     <select v-model="tissue" class="form-control">
       <option value="">Select tissue</option>
       <option v-for="tissue in tissueKeys" 

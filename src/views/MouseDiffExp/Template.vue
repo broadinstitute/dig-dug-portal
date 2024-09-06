@@ -40,6 +40,9 @@
                         <mouse-tissue-select>
 
                         </mouse-tissue-select>
+                        <mouse-gene-select>
+                          
+                        </mouse-gene-select>
                       </criterion-function-group>
                   </div>
               </div>
