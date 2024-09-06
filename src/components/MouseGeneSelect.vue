@@ -1,31 +1,39 @@
 <template>
   <div class="col filter-col-md">
     <div class="label">Gene</div>
-    <select v-model="gene" class="form-control">
-      <option value="">Select gene</option>
-      <option v-for="gene in geneKeys" 
-        :value="gene">
-          {{ gene }}
-      </option>
-    </select>
+    <autocomplete
+      :placeholder="
+        !$store.state.geneToQuery ? 'Search gene' : $store.state.geneToQuery
+      "
+      :matches="matchingGenes"
+      ref="geneSelect"
+      @input-change="lookupGenes($event)"
+      @item-select="selectGene($event)"
+    >
+    </autocomplete>
   </div>
 </template>
 
 <script>
 import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
+import Autocomplete from "@/components/Autocomplete.vue";
 import keyParams from "@/utils/keyParams";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { match } from "@/utils/bioIndexUtils";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
+Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
+Vue.component("autocomplete", Autocomplete);
 
 export default Vue.component("mouse-gene-select", {
   props: [],
   data() {
       return {
           gene: keyParams.gene || "",
+          matchingGenes: []
       };
   },
   created(){
@@ -34,25 +42,30 @@ export default Vue.component("mouse-gene-select", {
     }
   },
   computed: {
-      keyParamsGene() {
-          return keyParams.gene;
-      },
       geneKeys(){
         return this.$store.state.geneKeys || [];
       }
   },
   methods: {
+    setFocus() {
+			this.$nextTick(() => {
+				this.$refs.geneSelect.$refs.input.focus();
+			});
+		},
+    async lookupGenes(input) {
+			if (!!input) {
+				let matches = await match("diff-exp-summary-gene", input, { limit: 10 });
+				this.matchingGenes = matches;
+			}
+		},
+    selectGene(geneSymbol) {
+			if (geneSymbol) {
+				this.$store.state.geneToQuery = geneSymbol;
+				this.$emit("onGeneChange", geneSymbol);
+			}
+		},
   },
   watch: {
-    gene(newGene) {
-        this.$store.state.geneToQuery = newGene;
-        this.$emit("onGeneChange", newGene);
-    },
-    keyParamsGene(newKey) {
-        if (this.gene === null) {
-            this.gene = newKey;
-        }
-    },
   },
 });
 </script>

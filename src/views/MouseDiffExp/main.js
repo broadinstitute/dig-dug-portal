@@ -109,13 +109,5 @@ new Vue({
             this.$store.dispatch("getMouseData");
         },
     },
-    watch: {
-        geneKeys(newKeys){
-            console.log(JSON.stringify(newKeys));
-        },
-        tissueKeys(newKeys){
-            console.log(JSON.stringify(newKeys));
-        }
-    },
     render: (h) => h(Template),
 }).$mount("#app");
