@@ -13,6 +13,7 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
+import MouseTissueSelect from "@/components/MouseTissueSelect.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -41,6 +42,7 @@ new Vue({
         ResearchSingleSearch,
         Scatterplot,
         MouseSummaryTable,
+        MouseTissueSelect
     },
     mixins: [pageMixin],
     data() {

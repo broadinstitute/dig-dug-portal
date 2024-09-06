@@ -37,13 +37,9 @@
                       </h4>
                       This is where the mouse browser will go
                       <criterion-function-group>
-                        <select v-model="$parent.selectedTissue">
-                          <option value="">Select tissue</option>
-                          <option v-for="tissue in $parent.tissueKeys" 
-                            :value="tissue">
-                              {{ tissue }}
-                          </option>
-                        </select>
+                        <mouse-tissue-select>
+
+                        </mouse-tissue-select>
                       </criterion-function-group>
                   </div>
               </div>

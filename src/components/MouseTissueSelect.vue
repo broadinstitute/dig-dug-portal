@@ -1,19 +1,26 @@
 <template>
-  <select v-model="tissue" class="form-control">
-      
-  </select>
+  <div class="col filter-col-md">
+    <select v-model="tissue" class="form-control">
+      <option value="">Select tissue</option>
+      <option v-for="tissue in tissueKeys" 
+        :value="tissue">
+          {{ tissue }}
+      </option>
+    </select>
+  </div>
 </template>
 
 <script>
 import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import keyParams from "@/utils/keyParams";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-export default Vue.component("geneset-size-selectpicker", {
+export default Vue.component("mouse-tissue-select", {
   props: [],
   data() {
       return {
@@ -21,13 +28,13 @@ export default Vue.component("geneset-size-selectpicker", {
           tissueKeys: [],
       };
   },
+  created(){
+    this.getTissueKeys();
+  },
   computed: {
       keyParamsTissue() {
           return keyParams.tissue;
       },
-      tissueKeys(){
-
-      }
   },
   methods: {
     async getTissueKeys() {
@@ -39,17 +46,17 @@ export default Vue.component("geneset-size-selectpicker", {
 					}
 					return json.keys.map(key => key[0])
 				});
-            context.state.tissueKeys = tissues;
+      this.tissueKeys = tissues;
 		},
   },
   watch: {
-      size(newSize) {
-          this.$store.state.genesetSizeToQuery = newSize;
-          this.$emit("onGenesetSizeChange", newSize);
+      tissue(newTissue) {
+          this.$store.state.tissueToQuery = newTissue;
+          this.$emit("onTissueChange", newTissue);
       },
-      keyParamsSize(newKey) {
-          if (this.size === null) {
-              this.size = newKey;
+      keyParamsTissue(newKey) {
+          if (this.tissue === null) {
+              this.tissue = newKey;
           }
       },
   },

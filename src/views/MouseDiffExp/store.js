@@ -22,7 +22,8 @@ export default new Vuex.Store({
         selectedTissue: "",
         selectedGene: "",
         tissueKeys: [],
-        geneKeys: []
+        geneKeys: [],
+        tissueToQuery: ""
     },
 
     mutations: {
