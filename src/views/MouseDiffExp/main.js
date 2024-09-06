@@ -51,8 +51,6 @@ new Vue({
         return {
             diffExpTissue: keyParams.tissue || "",
             diffExpGene: keyParams.gene || "",
-            selectedTissue: "",
-            selectedGene: ""
         };
     },
     computed: {
@@ -76,12 +74,6 @@ new Vue({
         diseaseSystem() {
             return this.$store.getters["bioPortal/diseaseSystem"];
         },
-        tissueKeys(){
-            return this.$store.state.tissueKeys;
-        },
-        geneKeys(){
-            return this.$store.state.geneKeys;
-        },
         docDetails() {
             return {
                 tissue: this.tissue
@@ -89,6 +81,9 @@ new Vue({
                     : "",
             };
         },
+        diffExpData(){
+            return this.$store.state.diffExp.data;
+        }
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -96,18 +91,19 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
+
+        this.$store.dispatch("queryDiffExp");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
-        newTissue(tissue) {
-            this.selectTissue = tissue;
-        },
-        updateTissueData() {
-            this.tissue = this.selectTissue;
-            this.$store.commit("setTissueName", this.tissue);
-            this.$store.dispatch("getTissue");
-            this.$store.dispatch("getMouseData");
-        },
+        searchDiffExp(){
+            this.$store.dispatch("queryDiffExp");
+        }
+    },
+    watch: {
+        diffExpData(newData){
+            console.log(JSON.stringify(newData));
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

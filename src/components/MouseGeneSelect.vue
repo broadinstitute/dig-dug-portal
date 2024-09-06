@@ -36,11 +36,6 @@ export default Vue.component("mouse-gene-select", {
           matchingGenes: []
       };
   },
-  created(){
-    if (this.$store.state.geneKeys.length === 0){
-      this.$store.dispatch("getGeneKeys");
-    }
-  },
   computed: {
       geneKeys(){
         return this.$store.state.geneKeys || [];
@@ -60,7 +55,7 @@ export default Vue.component("mouse-gene-select", {
 		},
     selectGene(geneSymbol) {
 			if (geneSymbol) {
-				this.$store.state.geneToQuery = geneSymbol;
+				this.$store.dispatch("selectGeneName", geneSymbol);
 				this.$emit("onGeneChange", geneSymbol);
 			}
 		},

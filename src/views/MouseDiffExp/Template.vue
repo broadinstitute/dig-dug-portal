@@ -41,8 +41,14 @@
 
                         </mouse-tissue-select>
                         <mouse-gene-select>
-                          
+
                         </mouse-gene-select>
+                        <button
+                            class="btn btn-primary"
+                            @click="$parent.searchDiffExp()"
+                        >
+                            Search
+                        </button>
                       </criterion-function-group>
                   </div>
               </div>

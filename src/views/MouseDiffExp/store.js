@@ -15,43 +15,28 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         diffExp: bioIndex("diff-exp"),
+        tissueSummary: bioIndex("diff-exp-summary-tissue"),
+        geneSummary: bioIndex("diff-exp-summary-gene")
     },
     state: {
-        diffExpTissue: keyParams.tissue || "",
-        diffExpGene: keyParams.gene || "",
-        selectedTissue: "",
-        selectedGene: "",
+        tissue: keyParams.tissue || "",
+        gene: keyParams.gene || "",
         tissueKeys: [],
-        geneKeys: [],
         tissueToQuery: "",
         geneToQuery: "",
     },
 
     mutations: {
         setTissueName(state, tissueName) {
-            state.diffExpTissue = tissueName || state.diffExpTissue;
-            keyParams.set({ tissue: state.diffExpTissue });
+            state.tissue = tissueName || state.tissue;
+            keyParams.set({ tissue: state.tissue });
         },
         setGeneName(state, geneName) {
-            state.diffExpGene = geneName || state.diffExpGene;
-            keyParams.set({ gene: state.diffExpGene });
+            state.gene = geneName || state.gene;
+            keyParams.set({ gene: state.gene });
         }
     },
     actions: {
-        async getEvidence(context, { q }) {
-            let evidence = await context.dispatch("geneExpression/query", {
-                q,
-            });
-            return evidence;
-        },
-        async getTissueSummary(context){
-            let name = context.state.diffExpTissue;
-            // TODO FIX BIOINDICES
-            if (name === 'adipose_tissue'){
-                name = 'adipose';
-            }
-            context.dispatch("mouseSummary/query", {q: name});
-        },
         async getTissueKeys(context) {
 			let tissues = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/diff-exp/2?columns=tissue`)
 				.then(resp => resp.json())
@@ -63,21 +48,28 @@ export default new Vuex.Store({
 				});
             context.state.tissueKeys = tissues;
 		},
-        async getGeneKeys(context){
-            let genes = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/diff-exp/2?columns=gene`)
-                .then(resp => resp.json())
-                .then(json => {
-                    if (json.count == 0) {
-                        return null;
-                    }
-                    return json.keys.map(key => key[0])
-                });
-            context.state.geneKeys = genes;
+        async selectGeneName(context, geneName){
+            console.log(geneName);
+            context.state.geneToQuery = geneName;
         },
-        onTissueChange(context, tissue){
-            tissue = tissue.replaceAll(" ", "_");
-            context.state.selectedTissue = tissue;
-            keyParams.set({ tissue: tissue });
-        }
+        async queryDiffExp(context) {
+            let gene = context.state.geneToQuery || context.state.gene;
+            context.commit("setGeneName", gene);
+
+            let tissue = context.state.tissueToQuery || context.state.tissue;
+            context.commit("setTissueName", tissue);
+
+            if (!!tissue){
+                context.dispatch("tissueSummary/query", {q: tissue});
+            }
+            if (!!gene){
+                console.log("we have gene");
+                context.dispatch("geneSummary/query", {q: gene});
+            }
+            if (!!gene && !!tissue) {
+                context.dispatch("diffExp/query", { q: 
+                    `${gene},${tissue}` });
+            }
+        },
     },
 });
