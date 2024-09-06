@@ -25,7 +25,24 @@ export default Vue.component("mouse-whisker-plot", {
           svg: null,
           keyField: "founder_sex",
           keyFieldList: [],
-          colorMap: {},
+          colorMap: {
+            "1291_female" : "#E69F00",
+            "1291_male" : "#E69F00",
+            "AJ_female" : "#F0E442",
+            "AJ_male" : "#F0E442",
+            "B6_female" : "#555555",
+            "B6_male" : "#555555",
+            "CAST_female" : "#009E73",
+            "CAST_male" : "#009E73",
+            "NOD_female" : "#0072B2",
+            "NOD_male" : "#0072B2",
+            "NZO_female" : "#56B4E9",
+            "NZO_male" : "#56B4E9",
+            "PWK_female" : "#D55E00",
+            "PWK_male" : "#D55E00",
+            "WSB_female" : "#CC79A7",
+            "WSB_male" : "#CC79A7"
+          },
           tpmField: "expression",
           offset: 0,
           dotBoxHalfWidth: 6,
@@ -69,12 +86,10 @@ export default Vue.component("mouse-whisker-plot", {
           this.showPlot = false;
           return;
         }
-          this.getKeyFieldList(this.plotData);
-          this.mapColors(this.keyFieldList);
           let margin = {
                   top: 10,
                   right: 30,
-                  bottom: this.getBottomMargin(this.plotData),
+                  bottom: 50,
                   left: 40,
             },
             width = this.chartWidth - margin.left - margin.right,
@@ -90,8 +105,7 @@ export default Vue.component("mouse-whisker-plot", {
               .attr(
                   "transform",
                   "translate(" + margin.left + "," + margin.top + ")"
-              )
-              .on("mouseleave", (d) => this.svg.selectAll("circle").remove());
+              );
           this.tooltip = d3
               .select("#multi-chart")
               .append("div")
@@ -103,10 +117,32 @@ export default Vue.component("mouse-whisker-plot", {
               .style("border-radius", "5px")
               .style("font-size", "smaller");
 
+          let sumstat = d3
+              .nest()
+              .key((d) => d[this.keyField])
+              .rollup(d => {
+                let sorted = d.map(g => g[this.keyField]).sort(d3.ascending);
+                let q1 = d3.quantile(sorted, .25);
+                let median = d3.quantile(sorted, .5);
+                let q3 = d3.quantile(sorted, .75);
+                let iQr = q3 - q1;
+                let min = sorted[0];
+                let max = sorted[sorted.length - 1];
+                return {
+                  q1: q1,
+                  median: median,
+                  q3: q3,
+                  interQuantileRange: iQr,
+                  min: min,
+                  max: max
+                }
+              })
+              .entries(this.plotData);
+
           this.xScale = d3
               .scaleBand()
               .range([0, width])
-              .domain(this.plotData.map(entry => entry[this.keyField]).sort())
+              .domain(this.plotData.map(g => g[this.keyField]).sort(d3.ascending))
               .padding(0.05);
 
           this.svg
@@ -115,8 +151,7 @@ export default Vue.component("mouse-whisker-plot", {
               .call(d3.axisBottom(this.xScale))
               .selectAll("text")
               .style("text-anchor", "start")
-              .style("font-size", "13px")
-              .attr("transform", "rotate(45)");
+              .style("font-size", "13px");
           
           let initialVal = this.plotData[0][this.tpmField];
           let maxVal = this.plotData
@@ -132,319 +167,58 @@ export default Vue.component("mouse-whisker-plot", {
 
           this.svg.append("g").call(d3.axisLeft(this.yScale));
 
-          let histogram = d3
-              .histogram()
-              .domain(this.yScale.domain())
-              .thresholds(this.yScale.ticks(100))
-              .value((d) => d);
-          let sumstat = d3
-              .nest()
-              .key((d) => d[this.keyField])
-              .rollup((d) => {
-                  let input = d.map((g) => g[this.tpmField]);
-                  let bins = histogram(input);
-                  return bins;
-              })
-              .entries(this.plotData);
-
-          //Maximum number of entries in a bin.
-          let maxNum = 0;
-          for (let i in sumstat) {
-              let allBins = sumstat[i].value;
-              let lengths = allBins.map((a) => a.length);
-              let longest = d3.max(lengths);
-              if (longest > maxNum) {
-                  maxNum = longest;
-              }
-          }
-          let xNum = d3
-              .scaleLinear()
-              .range([0, this.xScale.bandwidth()])
-              .domain([-maxNum, maxNum]);
-
-          let colorIndex = 0;
-          let violinIndex = 0;
-          this.svg
-              .selectAll("myViolin")
+          this.svg.selectAll("vertLines")
               .data(sumstat)
               .enter()
-              .append("g")
-              .attr("transform", (d) => `translate(${this.xScale(d.key)},0)`)
-              .append("path")
-              .datum((d) => d.value)
-              .attr("class", (d) => {
-                  let classString = `violin violin_${violinIndex}`;
-                  violinIndex++;
-                  return classString;
-              })
-              .style("stroke", "none")
-              .style("fill", (d) => {
-                  // I don't like reinventing the wheel, but I cannot
-                  // figure out how to access the key attribute as text
-                  let color = colors[colorIndex];
-                  colorIndex++;
-                  if (colorIndex >= colors.length) {
-                      colorIndex = 0;
-                  }
-                  return color;
-              })
-              .attr(
-                  "d",
-                  d3
-                      .area()
-                      .x0((d) => xNum(-d.length))
-                      .x1((d) => xNum(d.length))
-                      .y((d) => this.yScale(d.x0))
-                      .curve(d3.curveCatmullRom)
-              )
-              .on("mouseover", (d) => this.hoverViolin(d.key));
-          let numberViolins = 0;
-          let sumstatBox = d3
-              .nest()
-              .key(d => d[this.keyField])
-              .rollup((d) => {
-                  numberViolins++;
-                  let sortedData = d
-                      .map((g) => g[this.tpmField])
-                      .sort(d3.ascending);
-                  let q1 = d3.quantile(sortedData, 0.25);
-                  let median = d3.quantile(sortedData, 0.5);
-                  let q3 = d3.quantile(sortedData, 0.75);
-                  let interQuantileRange = q3 - q1;
-                  let min = sortedData[0];
-                  let max = sortedData[sortedData.length - 1];
-                  let boxplotEntry = {
-                      "Q1 TPM": q1,
-                      "Median TPM": median,
-                      "Q3 TPM": q3,
-                      interQuantileRange: interQuantileRange,
-                      "Min TPM": min,
-                      "Max TPM": max,
-                      "Total samples": sortedData.length,
-                  };
-                  return boxplotEntry;
-              })
-              .entries(this.plotData);
-          this.offset = width / (2 * numberViolins);
-          // Boxplots top quartile
-          this.svg
-              .selectAll("vertLines")
-              .data(sumstatBox)
-              .enter()
               .append("line")
-              .attr("x1", this.xScale(0))
-              .attr("x2", this.xScale(0))
-              .attr("y1", (d) => this.yScale(d.value["Q3 TPM"]))
-              .attr("y2", (d) => this.yScale(d.value["Max TPM"]))
-              .attr("stroke", "black")
-              .style("opacity", 0.5)
-              .style("width", 30)
-              .attr(
-                  "transform",
-                  (d) => `translate(${this.xScale(d.key) + this.offset},0)`
-              )
-              .on("mouseover", (d) => this.hoverViolin(d.key));
-          // Boxplots bottom quartile
-          this.svg
-              .selectAll("vertLines")
-              .data(sumstatBox)
-              .enter()
-              .append("line")
-              .attr("x1", this.xScale(0))
-              .attr("x2", this.xScale(0))
-              .attr("y1", (d) => this.yScale(d.value["Min TPM"]))
-              .attr("y2", (d) => this.yScale(d.value["Q1 TPM"]))
-              .attr("stroke", "black")
-              .style("opacity", 0.5)
-              .style("width", 30)
-              .attr(
-                  "transform",
-                  (d) => `translate(${this.xScale(d.key) + this.offset},0)`
-              )
-              .on("mouseover", (d) => this.hoverViolin(d.key));
-          let boxHalfWidth = 3;
-          this.svg
-              .selectAll("boxes")
-              .data(sumstatBox)
+                .attr("x1", d => this.xScale(d.key))
+                .attr("x2", d => this.xScale(d.key))
+                .attr("y1", d => this.yScale(d.value.min))
+                .attr("y2", d => this.yScale(d.value.max))
+                .attr("stroke", "black")
+                .attr("width", 40);
+          
+        let boxWidth = 100;
+        this.svg.selectAll("boxes")
+              .data(sumstat)
               .enter()
               .append("rect")
-              .attr(
-                  "x",
-                  (d) => this.xScale(d.key) + this.offset - boxHalfWidth
-              )
-              .attr("y", (d) => this.yScale(d.value["Q3 TPM"]))
-              .attr(
-                  "height",
-                  (d) =>
-                      this.yScale(d.value["Q1 TPM"]) -
-                      this.yScale(d.value["Q3 TPM"])
-              )
-              .attr("width", boxHalfWidth * 2)
-              .attr("stroke", "black")
-              .style("fill", "white")
-              .style("opacity", 0.5)
-              .on("mouseover", (d) => this.hoverViolin(d.key));
-
-          // Packaging data for export at the same time.
-          this.svg
-              .selectAll("zoneBoxes")
-              .data(sumstatBox)
-              .enter()
-              .append("rect")
-              .attr("x", (d) => this.xScale(d.key))
-              .attr("y", (d) => this.yScale(maxVal))
-              .attr("height", (d) => this.yScale(-maxVal) - this.yScale(0))
-              .attr("width", this.offset * 2)
-              .attr("stroke", "none")
-              .style("fill", "white")
-              .style("opacity", 0)
-              .on("mouseover", (d) => this.hoverViolin(d.key));
-          this.svg
-              .selectAll("medianLines")
-              .data(sumstatBox)
-              .enter()
-              .append("line")
-              .attr(
-                  "x1",
-                  (d) => this.xScale(d.key) + this.offset - boxHalfWidth
-              )
-              .attr(
-                  "x2",
-                  (d) => this.xScale(d.key) + this.offset + boxHalfWidth
-              )
-              .attr("y1", (d) => this.yScale(d.value["Median TPM"]))
-              .attr("y2", (d) => this.yScale(d.value["Median TPM"]))
-              .attr("stroke", "#99999999")
-              .style("width", 50)
-              .on("mouseover", (d) => this.hoverViolin(d.key));
+                .attr("x", d => this.xScale(d.key) - boxWidth/2 )
+                .attr("y", d => this.yScale(d.value.q3))
+                .attr("height", d => this.yScale(-d.value.interQuantileRange))
+                .attr("width", boxWidth)
+                .attr("stroke", "black")
+                .style("fill", "none");
         
-      },
-      getBottomMargin(data) {
-          let longestLabel = data
-              .map((item) => item[this.keyField].length)
-              .reduce((prev, next) => (prev > next ? prev : next), 0);
-          let margin = longestLabel < 10 ? 65 : (65 * longestLabel) / 10;
-          return margin;
-      },
-      getKeyFieldList(data) {
-          let uniques = [];
-          data.forEach((datum) => {
-              if (!uniques.includes(datum[this.keyField])) {
-                  uniques.push(datum[this.keyField]);
-              }
-          });
-          uniques.sort();
-          this.keyFieldList = uniques;
-      },
-      mapColors(uniqueItems) {
-          let colorMap = {};
-          let colorIndex = 0;
-          uniqueItems.forEach((entry) => {
-              colorMap[entry] = colors[colorIndex];
-              colorIndex =
-                  colorIndex >= colors.length - 1 ? 0 : colorIndex + 1;
-          });
-          this.colorMap = colorMap;
-      },
-      hoverViolin(violin) {
-          this.svg.selectAll(".violin").style("opacity", 1);
-          let violinNumber = this.keyFieldList.indexOf(violin);
-          this.svg
-              .selectAll(`.violin_${violinNumber}`)
-              .style("opacity", 0.25);
-          this.svg.selectAll("circle").remove();
-          this.svg
-              .selectAll("indPoints")
-              .data(
-                  this.plotData.filter(entry => entry[this.keyField] === violin)
-              )
+        this.svg.selectAll("medianLines")
+              .data(sumstat)
+              .enter()
+              .append("line")
+              .attr("x1", d => this.xScale(d.key) - boxWidth/2)
+              .attr("x2", d => this.xScale(d.key) + boxWidth/2)
+              .attr("y1", d => this.yScale(d.value.median))
+              .attr("y2", d => this.yScale(d.value.median))
+              .attr("stroke", "black")
+              .style("width", 80);
+        
+        let jitterWidth = 0;
+        this.svg.selectAll("indPoints")
+              .data(this.plotData)
               .enter()
               .append("circle")
-              .attr("class", (g) => g.dataset)
-              .attr("cx", (g) => {
-                  let dx =
-                      this.offset -
-                      2 * this.dotBoxHalfWidth +
-                      g.noise * this.dotBoxHalfWidth * 4;
-                  return this.xScale(violin) + dx;
-              })
-              .attr("cy", (g) => this.yScale(g[this.tpmField]))
-              .attr("r", 2)
-              .attr("fill", "none")
-              .attr("stroke", "lightgray")
-              .on("mouseover", (g) =>
-                  this.hoverDot(g[this.keyField], g.dataset, g.biosample)
-              )
-              .on("mouseleave", this.hideTooltip());
+                .attr("cx", d => this.xScale(d[this.keyField]) 
+                  - jitterWidth/2 + Math.random()*jitterWidth)
+                .attr("cy", d => this.yScale(d[this.tpmField]))
+                .attr("r", 4)
+                .style("fill", d => this.colorMap[d[this.keyField]])
+                .attr("stroke", "black");
       },
       hideTooltip() {
           this.tooltip.style("opacity", 0);
       },
-      redrawNonHoverDots(hoverItem, hoverDataset) {
-          this.svg
-              .selectAll("indPoints")
-              .data(
-                this.plotData.filter(
-                    (entry) =>
-                        entry[this.keyField] === hoverItem &&
-                        entry.dataset != hoverDataset
-                )
-              )
-              .enter()
-              .append("circle")
-              .attr("class", (j) => j.dataset)
-              .attr("cx", (j) => {
-                  let dx =
-                      this.offset -
-                      2 * this.dotBoxHalfWidth +
-                      j.noise * this.dotBoxHalfWidth * 4;
-                  return this.xScale(hoverItem) + dx;
-              })
-              .attr("cy", (j) => this.yScale(j[this.tpmField]))
-              .attr("r", 2)
-              .attr("fill", "none")
-              .attr("stroke", "lightgray")
-              .on("mouseover", (g) =>
-                  this.hoverDot(g[this.keyField], g.dataset, g.biosample)
-              )
-              .on("mouseleave", this.hideTooltip());
-      },
-      redrawHoverDots(hoverItem, hoverDataset) {
-          let hoverColor = `${this.colorMap[hoverItem]}`;
-          this.svg
-              .selectAll("indPoints")
-              .data(
-                this.plotData.filter(
-                  (entry) =>
-                      entry[this.keyField] == hoverItem &&
-                      entry.dataset == hoverDataset
-                )
-              )
-              .enter()
-              .append("circle")
-              .attr("class", (j) => j.dataset)
-              .attr("cx", (j) => {
-                  let dx =
-                      this.offset -
-                      2 * this.dotBoxHalfWidth +
-                      j.noise * this.dotBoxHalfWidth * 4;
-                  return this.xScale(hoverItem) + dx;
-              })
-              .attr("cy", (j) => this.yScale(j[this.tpmField]))
-              .attr("r", 2)
-              .attr("fill", "none")
-              .attr("stroke", hoverColor)
-              .on("mouseover", (g) =>
-                  this.hoverDot(g[this.keyField], g.dataset, g.biosample)
-              )
-              .on("mouseleave", this.hideTooltip());
-      },
       hoverDot(hoverItem, hoverDataset, biosample) {
           let xcoord = `${d3.event.layerX + 35}px`;
           let ycoord = `${d3.event.layerY}px`;
-          this.svg.selectAll("circle").remove();
-          this.redrawNonHoverDots(hoverItem, hoverDataset);
-          this.redrawHoverDots(hoverItem, hoverDataset);
           // Tooltip content
           let tooltipContent = `Biosample: ${biosample}`;
           tooltipContent = tooltipContent.concat(
