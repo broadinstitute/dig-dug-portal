@@ -1,8 +1,10 @@
 <template>
 	<div class="research-knowledge-map">
 		<div v-for="row in mapConfig['rows']" :key="row.row" class="k-map-row">
-			<div v-for="column in row.columns" :key="column.id" :id="'k_map_box_'+column.id" class="k-map-box" :style="getBoxStyles()">
-{{ column.id }}
+			<div v-for="column in row.columns" :key="column.id" :id="'k_map_box_'+column.id" class="k-map-box" :style="getBoxStyles()"
+			@mouseenter="highlightMap(column.highlight)" @mouseleave="cancelHighlights()">
+				<div v-if="column.label" class="k-map-box-label">{{ column.label }}</div>
+				<div v-if="column.image" class="k-map-box-img"><img :src="column.image.path" /></div>
 			</div>
 		</div>
 	</div>
@@ -47,7 +49,6 @@ export default Vue.component("research-knowledge-map", {
 					"highlight",
 					"line"
 				],
-				"label": true,
 				"detailed info": {
 					"data point": {
 						"type": "api",
@@ -61,15 +62,17 @@ export default Vue.component("research-knowledge-map", {
 				},
 				"rows": [
 					{
-						"row": 1,
 						"columns": [
 							{
 								"id": "a",
-								"label": "Item A",
+								"image":{
+									"path":"https://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
+								},
 								"highlight": [
-									"d",
-									"f",
-									"h"
+									{"direction":"to","id":"d"},
+									{
+										"direction": "from", "id": "f"},
+									{ "direction": "to", "id": "h"}
 								],
 								"tool tip": "This is item A tool tip"
 							},
@@ -77,9 +80,11 @@ export default Vue.component("research-knowledge-map", {
 								"id": "b",
 								"label": "Item B",
 								"highlight": [
-									"d",
-									"e",
-									"i"
+									{
+										"direction": "to", "id": "d"},
+									{
+										"direction": "to", "id": "e"},
+									{ "direction": "from", "id": "i"}
 								],
 								"tool tip": "This is item B tool tip"
 							},
@@ -87,24 +92,27 @@ export default Vue.component("research-knowledge-map", {
 								"id": "c",
 								"label": "Item C",
 								"highlight": [
-									"f",
-									"g",
-									"h"
+									{
+										"direction": "from", "id": "f"},
+									{
+										"direction": "to", "id": "g"},
+									{ "direction": "to", "id": "h"}
 								],
 								"tool tip": "This is item C tool tip"
 							}
 						]
 					},
 					{
-						"row": 2,
 						"columns": [
 							{
 								"id": "d",
 								"label": "Item D",
 								"highlight": [
-									"c",
-									"d",
-									"f"
+									{
+										"direction": "to", "id": "c"},
+									{
+										"direction": "to", "id": "d"},
+									{ "direction": "from", "id": "f"}
 								],
 								"tool tip": "This is item D tool tip"
 							},
@@ -112,9 +120,11 @@ export default Vue.component("research-knowledge-map", {
 								"id": "e",
 								"label": "Item E",
 								"highlight": [
-									"b",
-									"e",
-									"f"
+									{
+										"direction": "to", "id": "b"},
+									{
+										"direction": "from", "id": "e"},
+									{ "direction": "to", "id": "f"}
 								],
 								"tool tip": "This is item E tool tip"
 							},
@@ -122,24 +132,27 @@ export default Vue.component("research-knowledge-map", {
 								"id": "f",
 								"label": "Item F",
 								"highlight": [
-									"a",
-									"d",
-									"f"
+									{
+										"direction": "to", "id": "a"},
+									{
+										"direction": "to", "id": "d"},
+									{ "direction": "from", "id": "f"}
 								],
 								"tool tip": "This is item F tool tip"
 							}
 						]
 					},
 					{
-						"row": 3,
 						"columns": [
 							{
 								"id": "g",
 								"label": "Item G",
 								"highlight": [
-									"a",
-									"c",
-									"e"
+									{
+										"direction": "to", "id": "a"},
+									{
+										"direction": "from", "id": "c"},
+									{ "direction": "to", "id": "e"}
 								],
 								"tool tip": "This is item G tool tip"
 							},
@@ -147,9 +160,11 @@ export default Vue.component("research-knowledge-map", {
 								"id": "h",
 								"label": "Item H",
 								"highlight": [
-									"b",
-									"d",
-									"f"
+									{
+										"direction": "from", "id": "b"},
+									{
+										"direction": "to", "id": "d"},
+									{ "direction": "to", "id": "f"}
 								],
 								"tool tip": "This is item H tool tip"
 							},
@@ -157,9 +172,11 @@ export default Vue.component("research-knowledge-map", {
 								"id": "i",
 								"label": "Item I",
 								"highlight": [
-									"c",
-									"e",
-									"f"
+									{
+										"direction": "to", "id": "c"},
+									{
+										"direction": "from", "id": "e"},
+									{ "direction": "to", "id": "f"}
 								],
 								"tool tip": "This is item I tool tip"
 							}
@@ -173,9 +190,10 @@ export default Vue.component("research-knowledge-map", {
 						"corner": 5,
 						"h space": 15,
 						"v space": 5,
-						"color": "#ff0000",
-						"hover": "#00ff00",
-						"text color": "#ffffff"
+						"color": "#ff7700",
+						"hover": "#cccccc",
+						"text color": "#ffffff",
+						"text size":20
 					}
 				}
 			}
@@ -192,6 +210,26 @@ export default Vue.component("research-knowledge-map", {
 		}
 	},
 	methods: {
+		highlightMap(ITEMS) {
+			let boxes = document.querySelectorAll('.k-map-box');
+
+			[].forEach.call(boxes, function (box) {
+				box.classList.add("dimmed");
+			});
+
+			ITEMS.map(i =>{
+				document.querySelector('#k_map_box_'+i.id).classList.remove("dimmed");
+			})
+
+		},
+		cancelHighlights() {
+			let boxes = document.querySelectorAll('.k-map-box');
+
+			[].forEach.call(boxes, function (box) {
+				box.classList.remove("dimmed");
+			});
+		},
+
 		renderMap() {
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
@@ -412,8 +450,9 @@ export default Vue.component("research-knowledge-map", {
 				corner: 5,
 				hSpace: 15,
 				vSpace: 5,
-				bgColor: "#ffaa0",
-				textColor:"#ffffff"
+				bgColor: "#ffaa00",
+				textColor:"#ffffff",
+				textSize: 16
 			}
 			
 
@@ -429,9 +468,8 @@ export default Vue.component("research-knowledge-map", {
 				styles += "margin-bottom:" + ((!!boxStyles['v space']) ? boxStyles['v space'] : defaultStyle.vSpace) + "px;";
 				styles += "background-color:" + ((!!boxStyles['color']) ? boxStyles['color'] : defaultStyle.bgColor) + ";";
 				styles += "color:" + ((!!boxStyles['text color']) ? boxStyles['text color'] : defaultStyle.textColor) + ";";
+				styles += "font-size:" + ((!!boxStyles['text size']) ? boxStyles['text size'] : defaultStyle.textSize) + "px;";
 			}
-
-			console.log("styles", styles);
 
 			return styles;
 		},
@@ -511,6 +549,38 @@ $(function () {});
 
 .k-map-box {
 	display: inline-block;
+	position: relative;
+	opacity: 1;
+}
+
+.k-map-box.dimmed {
+	opacity: 0.5;
+	transition: opacity .15s ease-in-out;
+	-moz-transition: opacity .15s ease-in-out;
+	-webkit-transition: opacity .15s ease-in-out;
+}
+
+.k-map-box-label {
+	position:absolute;
+	height: auto;
+	width: 100%;
+	text-align: center;
+	white-space: nowrap;
+	top: 50%;
+	transform: translate(0, -50%)
+}
+
+.k-map-box-img {
+	position:absolute;
+	height: auto;
+	width: 100%;
+	text-align: center;
+	top: 50%;
+	transform: translate(0, -50%)
+}
+
+.k-map-box-img img {
+	width: 90%;
 }
 
 </style>
