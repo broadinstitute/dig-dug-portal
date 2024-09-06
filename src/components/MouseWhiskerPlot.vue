@@ -19,7 +19,7 @@ import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import DownloadChart from "@/components/DownloadChart.vue";
 export default Vue.component("mouse-whisker-plot", {
-  props: ["plotData", "highlightedDataset", "plotName"],
+  props: ["data", "highlightedDataset", "plotName"],
   data() {
       return {
           chart: null,
@@ -46,12 +46,19 @@ export default Vue.component("mouse-whisker-plot", {
       });
       this.displayResults();
   },
+  computed:{
+    plotData(){
+      return this.$props.data;
+    }
+  },
   watch: {
       plotData(data) {
           if (data.length === 0) {
+            console.log("nothing here");
               this.showPlot = false;
               return;
           }
+          console.log(data.length);
           this.showPlot = true;
           this.displayResults();
       },

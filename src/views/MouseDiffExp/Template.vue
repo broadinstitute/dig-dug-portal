@@ -51,7 +51,7 @@
                           {{ $parent.tissueFormatter($store.state.tissue) }}
                         </h4>
                         <mouse-whisker-plot
-                          :plotData="$parent.diffExpData">
+                          :data="$parent.diffExpData">
                         </mouse-whisker-plot>
                         <mouse-diff-exp-table
                           v-if="$parent.diffExpData.length > 0"
