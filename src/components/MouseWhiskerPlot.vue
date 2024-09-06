@@ -7,9 +7,6 @@
       <div id="multi-chart" :hidden="!showPlot">
           <p>Loading...</p>
       </div>
-      <div v-if="!showPlot">
-          <p>No datasets meet minimum sample count.</p>
-      </div>
   </div>
 </template>
 <script>
@@ -54,11 +51,9 @@ export default Vue.component("mouse-whisker-plot", {
   watch: {
       plotData(data) {
           if (data.length === 0) {
-            console.log("nothing here");
               this.showPlot = false;
               return;
           }
-          console.log(data.length);
           this.showPlot = true;
           this.displayResults();
       },
@@ -70,6 +65,10 @@ export default Vue.component("mouse-whisker-plot", {
   },
   methods: {
       displayResults() {
+        if (this.plotData.length === 0){
+          this.showPlot = false;
+          return;
+        }
           this.getKeyFieldList(this.plotData);
           this.mapColors(this.keyFieldList);
           let margin = {
