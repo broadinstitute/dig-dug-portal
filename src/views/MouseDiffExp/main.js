@@ -16,6 +16,7 @@ import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import MouseTissueSelect from "@/components/MouseTissueSelect.vue";
 import MouseGeneSelect from "@/components/MouseGeneSelect.vue";
 import MouseDiffExpTable from "@/components/MouseDiffExpTable.vue";
+import MouseWhiskerPlot from "@/components/MouseWhiskerPlot.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -46,7 +47,8 @@ new Vue({
         MouseSummaryTable,
         MouseTissueSelect,
         MouseGeneSelect,
-        MouseDiffExpTable
+        MouseDiffExpTable,
+        MouseWhiskerPlot,
     },
     mixins: [pageMixin],
     data() {

@@ -20,7 +20,7 @@
                       ></research-single-search>
                   </div>
               </search-header-wrapper>
-              <div class="card mdkp-card">
+              <!-- <div class="card mdkp-card">
                   <div class="card-body temporary-card">
                       <documentation
                           name="tissue.explore.subheader"
@@ -28,7 +28,7 @@
                           :contentMap="$store.state.bioPortal.documentations"
                       ></documentation>
                   </div>
-              </div>
+              </div> -->
 
               <div class="card mdkp-card">
                   <div class="card-body">
@@ -50,6 +50,9 @@
                           {{ $store.state.gene }} in
                           {{ $parent.tissueFormatter($store.state.tissue) }}
                         </h4>
+                        <mouse-whisker-plot
+                          :plotData="$parent.diffExpData">
+                        </mouse-whisker-plot>
                         <mouse-diff-exp-table
                           v-if="$parent.diffExpData.length > 0"
                           :items="$parent.diffExpData">
