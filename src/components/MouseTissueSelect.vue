@@ -26,29 +26,22 @@ export default Vue.component("mouse-tissue-select", {
   data() {
       return {
           tissue: keyParams.tissue || "",
-          tissueKeys: [],
       };
   },
   created(){
-    this.getTissueKeys();
+    if (this.$store.state.tissueKeys.length === 0){
+      this.$store.dispatch("getTissueKeys");
+    }
   },
   computed: {
       keyParamsTissue() {
           return keyParams.tissue;
       },
+      tissueKeys(){
+        return this.$store.state.tissueKeys || [];
+      }
   },
   methods: {
-    async getTissueKeys() {
-			let tissues = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/diff-exp/2?columns=tissue`)
-				.then(resp => resp.json())
-				.then(json => {
-					if (json.count == 0) {
-						return null;
-					}
-					return json.keys.map(key => key[0])
-				});
-      this.tissueKeys = tissues;
-		},
   },
   watch: {
       tissue(newTissue) {
