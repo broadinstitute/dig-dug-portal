@@ -208,10 +208,29 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("r", 4)
                 .style("fill", d => this.colorMap[d[this.keyField]])
                 .attr("stroke", "black");
+        
+        let spacing = this.xScale("WSB_male") - this.xScale("WSB_female");
+        this.svg.selectAll("separatorLines")
+              .data(sumstat)
+              .enter()
+              .append("line")
+                .attr("x1", d => this.xScale(d.key) + spacing/2)
+                .attr("x2", d => this.xScale(d.key) + spacing/2)
+                .attr("y1", 0)
+                .attr("y2", height)
+                .attr("stroke", d => this.getSeparatorStroke(d.key))
+                .attr("width", 30);
       },
       hideTooltip() {
           this.tooltip.style("opacity", 0);
       },
+      getSeparatorStroke(founder_sex){
+        let sex = founder_sex.split("_")[1];
+        if (sex === "female"){
+          return "none";
+        }
+        return "gray";
+      }
   },
 });
 </script>
