@@ -15,7 +15,6 @@
 import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import keyParams from "@/utils/keyParams";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
@@ -40,8 +39,6 @@ export default Vue.component("mouse-tissue-select", {
       tissueKeys(){
         return this.$store.state.tissueKeys || [];
       }
-  },
-  methods: {
   },
   watch: {
       tissue(newTissue) {

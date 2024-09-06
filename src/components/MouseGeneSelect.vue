@@ -26,29 +26,22 @@ export default Vue.component("mouse-gene-select", {
   data() {
       return {
           gene: keyParams.gene || "",
-          geneKeys: [],
       };
   },
   created(){
-    this.getGeneKeys();
+    if (this.$store.state.geneKeys.length === 0){
+      this.$store.dispatch("getGeneKeys");
+    }
   },
   computed: {
       keyParamsGene() {
-          return keyParams.tissue;
+          return keyParams.gene;
       },
+      geneKeys(){
+        return this.$store.state.geneKeys || [];
+      }
   },
   methods: {
-    async getGeneKeys() {
-			let genes = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/diff-exp/2?columns=gene`)
-				.then(resp => resp.json())
-				.then(json => {
-					if (json.count == 0) {
-						return null;
-					}
-					return json.keys.map(key => key[0])
-				});
-      this.geneKeys = genes;
-		},
   },
   watch: {
     gene(newGene) {

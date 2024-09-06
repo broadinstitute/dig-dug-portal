@@ -96,9 +96,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
-
-        this.$store.dispatch("getTissueKeys");
-        this.$store.dispatch("getGeneKeys");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -113,10 +110,10 @@ new Vue({
         },
     },
     watch: {
-        tissueKeys(newKeys){
+        geneKeys(newKeys){
             console.log(JSON.stringify(newKeys));
         },
-        geneKeys(newKeys){
+        tissueKeys(newKeys){
             console.log(JSON.stringify(newKeys));
         }
     },
