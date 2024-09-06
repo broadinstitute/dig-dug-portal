@@ -2,11 +2,18 @@
 	<div class="research-knowledge-map">
 		<div v-for="row in mapConfig['rows']" :key="row.row" class="k-map-row">
 			<div v-for="column in row.columns" :key="column.id" :id="'k_map_box_'+column.id" class="k-map-box" :style="getBoxStyles()"
-			@mouseenter="highlightMap(column.highlight)" @mouseleave="cancelHighlights()">
+			@mouseenter="highlightMap(column.id,column.highlight)" @mouseleave="cancelHighlights()">
 				<div v-if="column.label" class="k-map-box-label">{{ column.label }}</div>
 				<div v-if="column.image" class="k-map-box-img"><img :src="column.image.path" /></div>
 			</div>
 		</div>
+		<div id="k_map_box_detail">
+			<research-page-description
+				:utils="utils"
+				:content="boxDetail"
+			></research-page-description>
+		</div>
+		{{ detailedInfo }}
 	</div>
 </template>
 
@@ -14,7 +21,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
-import { cloneDeep } from "lodash";
+import PageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
@@ -28,11 +35,14 @@ export default Vue.component("research-knowledge-map", {
 	data() {
 		return {
 			detailedInfo: null,
+			boxDetail: "",
 		};
 	},
 	modules: {
 	},
-	components: {},
+	components: {
+		PageDescription,
+	},
 	created: function () {
 		if(!!this.mapConfig['detailed info']) {
 			this.getDetails(this.mapConfig['detailed info']);
@@ -210,7 +220,7 @@ export default Vue.component("research-knowledge-map", {
 		}
 	},
 	methods: {
-		highlightMap(ITEMS) {
+		highlightMap(FOCUS,ITEMS) {
 			let boxes = document.querySelectorAll('.k-map-box');
 
 			[].forEach.call(boxes, function (box) {
@@ -221,6 +231,8 @@ export default Vue.component("research-knowledge-map", {
 				document.querySelector('#k_map_box_'+i.id).classList.remove("dimmed");
 			})
 
+			this.boxDetail = "<div>"+this.detailedInfo[0][FOCUS]+"</div>";
+
 		},
 		cancelHighlights() {
 			let boxes = document.querySelectorAll('.k-map-box');
@@ -228,6 +240,8 @@ export default Vue.component("research-knowledge-map", {
 			[].forEach.call(boxes, function (box) {
 				box.classList.remove("dimmed");
 			});
+
+			this.boxDetail = "";
 		},
 
 		renderMap() {
@@ -476,7 +490,6 @@ export default Vue.component("research-knowledge-map", {
 		async getDetails(CONFIG) {
 			
 			let detailsUrl = CONFIG['data point']['url'];
-			console.log('detailsUrl', detailsUrl);
 
 			let detailsContent = await fetch(detailsUrl).then((resp) => resp.json());
 
