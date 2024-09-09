@@ -603,6 +603,19 @@
                     </research-expression-display>
                 </div>
             </div>
+            <div class="card mdkp-card"
+                v-if="$store.state.mouseSummary.data.length > 0">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Differential gene expression in mice for
+                        {{ $store.state.geneName }}
+                    </h4>
+                    <mouse-summary-table 
+                        :items="$store.state.mouseSummary.data"
+                        :isGenePage="true"
+                    ></mouse-summary-table>
+                </div>
+            </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
