@@ -55,7 +55,7 @@ body.kp-default{
         /*background: #fff7d0;*/
     }
     .table-wrap {
-        width: -webkit-fill-available;
+        width: stretch;
         overflow-x: auto;
     }
     .label {
@@ -200,15 +200,15 @@ body.kp-default{
         justify-content: space-between;
     }
     .fill-height{
-        height: -moz-available;
-        height: -webkit-fill-avaiilable;
-        height: fill-available;
+        /*height: -moz-available;
+        height: -webkit-fill-avaiilable;*/
+        height: stretch;
         height: 100%;
     }
     .fill-width{
-        width: -moz-available;
-        width: -webkit-fill-avaiilable;
-        width: fill-available;
+        /*width: -moz-available;
+        width: -webkit-fill-avaiilable;*/
+        width: stretch;
         width: 100%;
     }
     .hug-height{
