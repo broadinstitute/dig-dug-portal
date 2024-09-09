@@ -48,6 +48,7 @@ export default Vue.component("mouse-whisker-plot", {
           dotBoxHalfWidth: 6,
           xScale: null,
           yScale: null,
+          founderScale: null,
           tooltip: null,
       };
   },
@@ -141,6 +142,12 @@ export default Vue.component("mouse-whisker-plot", {
               .paddingInner(1)
               .paddingOuter(.5);
 
+          this.founderScale = d3.scaleBand()
+              .range([0, width])
+              .domain(this.plotData.map(g => g.founder).sort(d3.ascending))
+              .paddingInner(1)
+              .paddingOuter(.5);
+
           this.svg
               .append("g")
               .attr("transform", `translate(0,${2 * margin.top})`)
@@ -153,7 +160,7 @@ export default Vue.component("mouse-whisker-plot", {
           this.svg
               .append("g")
               .attr("transform", `translate(0,${margin.top})`)
-              .call(d3.axisTop(this.xScale)
+              .call(d3.axisTop(this.founderScale)
                 .tickFormat(t => this.axisLabel(t, false)))
               .selectAll("text")
               .style("text-anchor", "middle")
