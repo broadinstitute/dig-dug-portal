@@ -228,12 +228,26 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("stroke", "black");
         
         let spacing = this.xScale("WSB_male") - this.xScale("WSB_female");
+
         this.svg.append("line")
               .attr("x1", 0)
               .attr("x2", 0)
               .attr("y1", 0)
               .attr("y2", height)
               .attr("stroke", "black");
+        this.svg.append("line")
+              .attr("x1", 0)
+              .attr("x2", width)
+              .attr("y1", 0)
+              .attr("y2", 0)
+              .attr("stroke", "black");
+        this.svg.append("line")
+              .attr("x1", 0)
+              .attr("x2", width)
+              .attr("y1", height)
+              .attr("y2", height)
+              .attr("stroke", "black");
+
         this.svg.selectAll("separatorLines")
               .data(sumstat)
               .enter()
