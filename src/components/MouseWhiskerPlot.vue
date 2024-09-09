@@ -108,6 +108,7 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("id", "svg-chart")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
+                .style("font-size", "16px")
               .append("g")
               .attr(
                   "transform",
@@ -162,11 +163,15 @@ export default Vue.component("mouse-whisker-plot", {
           this.svg
               .append("g")
               .attr("transform", `translate(0,${margin.top})`)
+              .attr("id", "founders")
               .call(d3.axisTop(this.founderScale)
                 .tickSize(0))
               .selectAll("text")
                 .style("text-anchor", "middle")
                 .style("font-size", "16px");
+          
+          this.svg.selectAll("#founders path")
+                .style("stroke", this.dividerGray)
           
           let initialVal = this.plotData[0][this.tpmField];
           let maxVal = this.plotData
