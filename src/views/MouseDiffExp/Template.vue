@@ -50,9 +50,15 @@
                           {{ $store.state.gene }} in
                           {{ $parent.tissueFormatter($store.state.tissue) }}
                         </h4>
-                        <mouse-whisker-plot
-                          :data="$parent.diffExpData">
-                        </mouse-whisker-plot>
+                        <div class="row">
+                          <div class="col-md-2"></div>
+                          <div class="col-md-8">
+                            <mouse-whisker-plot
+                              :data="$parent.diffExpData">
+                            </mouse-whisker-plot>
+                          </div>
+                          <div class="col-md-2"></div>
+                        </div>
                         <mouse-diff-exp-table
                           v-if="$parent.diffExpData.length > 0"
                           :items="$parent.diffExpData">

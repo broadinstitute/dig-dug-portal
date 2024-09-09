@@ -1,9 +1,9 @@
 <template>
   <div>
-      <!-- <download-chart 
+      <download-chart :hidden="!showPlot"
         chartId="svg-chart"
-        :filename="plotName">
-      </download-chart> -->
+        filename="plotName">
+      </download-chart>
       <div id="multi-chart" :hidden="!showPlot">
           <p>Loading...</p>
       </div>
