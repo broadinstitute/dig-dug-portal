@@ -94,9 +94,9 @@ export default Vue.component("mouse-whisker-plot", {
           this.svg = d3
               .select("#multi-chart")
               .append("svg")
-              .attr("id", "svg-chart")
-              .attr("width", width + margin.left + margin.right)
-              .attr("height", height + margin.top + margin.bottom)
+                .attr("id", "svg-chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
               .append("g")
               .attr(
                   "transform",
@@ -152,7 +152,8 @@ export default Vue.component("mouse-whisker-plot", {
               .append("g")
               .attr("transform", `translate(0,${2 * margin.top})`)
               .call(d3.axisTop(this.xScale)
-                .tickFormat(t => this.axisLabel(t, true)))
+                .tickFormat(t => this.axisLabel(t, true))
+                .tickSize(0))
               .selectAll("text")
               .style("text-anchor", "middle")
               .style("font-size", "13px");
@@ -161,7 +162,7 @@ export default Vue.component("mouse-whisker-plot", {
               .append("g")
               .attr("transform", `translate(0,${margin.top})`)
               .call(d3.axisTop(this.founderScale)
-                .tickFormat(t => this.axisLabel(t, false)))
+                .tickSize(0))
               .selectAll("text")
               .style("text-anchor", "middle")
               .style("font-size", "16px");
@@ -176,7 +177,7 @@ export default Vue.component("mouse-whisker-plot", {
           this.yScale = d3
               .scaleLinear()
               .domain([minVal, maxVal])
-              .range([height, 0 + 2 * margin.top]); // Axes along top
+              .range([height, 0 + 2.5 * margin.top]); // Axes along top
 
           this.svg.append("g").call(d3.axisLeft(this.yScale));
 
