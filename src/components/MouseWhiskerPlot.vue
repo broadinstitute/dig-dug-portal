@@ -143,11 +143,21 @@ export default Vue.component("mouse-whisker-plot", {
 
           this.svg
               .append("g")
-              .attr("transform", `translate(0,${margin.top})`)
-              .call(d3.axisTop(this.xScale))
+              .attr("transform", `translate(0,${2 * margin.top})`)
+              .call(d3.axisTop(this.xScale)
+                .tickFormat(t => this.axisLabel(t, true)))
               .selectAll("text")
               .style("text-anchor", "middle")
               .style("font-size", "13px");
+
+          this.svg
+              .append("g")
+              .attr("transform", `translate(0,${margin.top})`)
+              .call(d3.axisTop(this.xScale)
+                .tickFormat(t => this.axisLabel(t, false)))
+              .selectAll("text")
+              .style("text-anchor", "middle")
+              .style("font-size", "16px");
           
           let initialVal = this.plotData[0][this.tpmField];
           let maxVal = this.plotData
@@ -235,6 +245,10 @@ export default Vue.component("mouse-whisker-plot", {
           return "none";
         }
         return "black";
+      },
+      axisLabel(founder_sex, isSexLabel){
+        let halves = founder_sex.split("_");
+        return !isSexLabel ? halves[0] : halves[1];
       }
   },
 });
