@@ -12,6 +12,7 @@ Vue.config.productionTip = false;
 
 import matkpNav from "../components/matkp-nav.vue"
 import matkpFooter from "../components/matkp-footer.vue"
+import keyParams from "@/utils/keyParams";
 import * as d3 from "d3";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
@@ -48,6 +49,7 @@ new Vue({
             perPage: 5,
             currentPage: 1,
             pageOptions: [{ value: 5, text: "5" }, { value: 10, text: "10" }, { value: 15, text: "20" }, { value: 100, text: "All" }],
+            first: 2,
         }
     },
 
@@ -67,8 +69,14 @@ new Vue({
                   this.$set(this.selectedFilters, key, []);
                 }
               });
+              this.updatePageFromQueryString();
             },
-            immediate: true
+        },
+        selectedFilters: {
+            handler(newVal) {
+                this.updateQueryStringFromPage(this.selectedFilters);
+            },
+            deep: true,
         }
     },
 
@@ -135,9 +143,38 @@ new Vue({
             const lines = dataText.split('\n').filter(line => line.trim() !== '');
             const jsonObjects = lines.map(line => JSON.parse(line));
             this.datasets = jsonObjects;
-           
+        },
+        updateQueryStringFromPage(selectedFilters){
+            const queryParams = [];
+            for(const [key, value] of Object.entries(selectedFilters)){
+                if(value.length>0) {
+                    const encodedValues = value.map(v => encodeURIComponent(v.toLowerCase())).join(',');
+                    queryParams.push(`${encodeURIComponent(key)}=${encodedValues}`);
+                }
+            }
+            const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
+            const newUrl = `${window.location.origin}${window.location.pathname}${queryString}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        },
+        updatePageFromQueryString(){
+            const urlSearchParams = new URLSearchParams(window.location.search);
+            const params = Object.fromEntries(urlSearchParams.entries());
+            for(const [key, value] of Object.entries(params)){
+                const values = value.split(",");
+                for(const v of values){
+                    const options = this.filterOptions[key]
+                        .map(option => option.value.toLowerCase());
+                    const indices = options
+                        .map((str, index) => (str.includes(v) ? index : -1))
+                        .filter(index => index !== -1);
+                    for(const i of indices){
+                        this.selectedFilters[key].push(this.filterOptions[key][i].value);
+                    }
+                }
+            }
         },
         onFiltered(filteredItems) {
+            //unused
             this.searchedItems = filteredItems;
             this.filteredCount = filteredItems.length;
         },
