@@ -179,7 +179,10 @@ export default Vue.component("mouse-whisker-plot", {
               .domain([minVal, maxVal])
               .range([height - 0.5 * margin.top, 0 + 2.5 * margin.top]); // Axes along top
 
-          this.svg.append("g").call(d3.axisLeft(this.yScale));
+          this.svg.append("g").call(d3.axisLeft(this.yScale)
+            .tickSizeOuter(0))
+            .selectAll("text")
+                .style("font-size", "13px");
 
           this.svg.selectAll("vertLines")
               .data(sumstat)
