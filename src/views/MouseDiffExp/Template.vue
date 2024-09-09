@@ -20,16 +20,6 @@
                       ></research-single-search>
                   </div>
               </search-header-wrapper>
-              <!-- <div class="card mdkp-card">
-                  <div class="card-body temporary-card">
-                      <documentation
-                          name="tissue.explore.subheader"
-                          :contentFill="$parent.docDetails"
-                          :contentMap="$store.state.bioPortal.documentations"
-                      ></documentation>
-                  </div>
-              </div> -->
-
               <div class="card mdkp-card">
                   <div class="card-body">
                       <criterion-function-group>
@@ -54,6 +44,8 @@
                           <div class="col-md-2"></div>
                           <div class="col-md-8">
                             <mouse-whisker-plot
+                              :plotName="`mouse_diff_exp_${$store.state.gene}_${
+                                $parent.tissueFormatter($store.state.tissue) }`"
                               :data="$parent.diffExpData">
                             </mouse-whisker-plot>
                           </div>

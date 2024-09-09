@@ -2,7 +2,7 @@
   <div>
       <download-chart :hidden="!showPlot"
         chartId="svg-chart"
-        filename="plotName">
+        :filename="plotName">
       </download-chart>
       <div id="multi-chart" :hidden="!showPlot">
           <p>Loading...</p>
@@ -91,17 +91,6 @@ export default Vue.component("mouse-whisker-plot", {
             width = this.chartWidth - margin.left - margin.right,
             height = 450 - margin.top - margin.bottom;
           this.chart.innerHTML = "";
-          this.svg = d3
-              .select("#multi-chart")
-              .append("svg")
-                .attr("id", "svg-chart")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-              .append("g")
-              .attr(
-                  "transform",
-                  "translate(" + margin.left + "," + margin.top + ")"
-              );
           this.tooltip = d3
               .select("#multi-chart")
               .append("div")
@@ -112,6 +101,18 @@ export default Vue.component("mouse-whisker-plot", {
               .style("padding", "5px")
               .style("border-radius", "5px")
               .style("font-size", "smaller");
+          this.svg = d3
+              .select("#multi-chart")
+              .append("svg")
+                .attr("id", "svg-chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+              .attr(
+                  "transform",
+                  "translate(" + margin.left + "," + margin.top + ")"
+              )
+              .on("mouseleave", this.hideTooltip());
 
           let sumstat = d3
               .nest()
@@ -225,7 +226,9 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("cy", d => this.yScale(d[this.tpmField]))
                 .attr("r", 4)
                 .style("fill", d => this.colorMap[d[this.keyField]])
-                .attr("stroke", "black");
+                .attr("stroke", "black")
+                .on("mouseover", g => this.showTooltip(g))
+                .on("mouseleave", this.hideTooltip());
         
         let spacing = this.xScale("WSB_male") - this.xScale("WSB_female");
 
@@ -259,6 +262,7 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("stroke", d => this.getSeparatorStroke(d.key));
       },
       hideTooltip() {
+          console.log("hiding tooltip");
           this.tooltip.style("opacity", 0);
       },
       getSeparatorStroke(founder_sex){
@@ -271,7 +275,18 @@ export default Vue.component("mouse-whisker-plot", {
       axisLabel(founder_sex, isSexLabel){
         let halves = founder_sex.split("_");
         return !isSexLabel ? halves[0] : halves[1];
-      }
+      },
+      showTooltip(dot) {
+        let xcoord = `${d3.event.layerX + 35}px`;
+        let ycoord = `${d3.event.layerY}px`;
+        let tooltipContent = `<div>${dot.founder} ${dot.sex}</div>`;
+        tooltipContent = tooltipContent.concat(`<div>${dot.expression}</div>`)
+        this.tooltip
+            .style("opacity", 1)
+            .html(tooltipContent)
+            .style("left", xcoord)
+            .style("top", ycoord);
+      },
   },
 });
 </script>
