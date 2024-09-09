@@ -177,7 +177,7 @@ export default Vue.component("mouse-whisker-plot", {
           this.yScale = d3
               .scaleLinear()
               .domain([minVal, maxVal])
-              .range([height, 0 + 2.5 * margin.top]); // Axes along top
+              .range([height - 0.5 * margin.top, 0 + 2.5 * margin.top]); // Axes along top
 
           this.svg.append("g").call(d3.axisLeft(this.yScale));
 
@@ -275,7 +275,7 @@ export default Vue.component("mouse-whisker-plot", {
   },
 });
 </script>
-<style>
+<style scoped>
 div {
   display: block;
 }
