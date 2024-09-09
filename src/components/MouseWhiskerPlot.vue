@@ -82,13 +82,13 @@ export default Vue.component("mouse-whisker-plot", {
           return;
         }
           let margin = {
-                  top: 10,
+                  top: 20,
                   right: 30,
                   bottom: 50,
                   left: 40,
             },
             width = this.chartWidth - margin.left - margin.right,
-            height = 400 - margin.top - margin.bottom;
+            height = 450 - margin.top - margin.bottom;
           this.chart.innerHTML = "";
           this.svg = d3
               .select("#multi-chart")
@@ -143,8 +143,8 @@ export default Vue.component("mouse-whisker-plot", {
 
           this.svg
               .append("g")
-              .attr("transform", `translate(0,${height})`)
-              .call(d3.axisBottom(this.xScale))
+              .attr("transform", `translate(0,${margin.top})`)
+              .call(d3.axisTop(this.xScale))
               .selectAll("text")
               .style("text-anchor", "middle")
               .style("font-size", "13px");
@@ -159,7 +159,7 @@ export default Vue.component("mouse-whisker-plot", {
           this.yScale = d3
               .scaleLinear()
               .domain([minVal, maxVal])
-              .range([height, 0]);
+              .range([height, 0 + 2 * margin.top]); // Axes along top
 
           this.svg.append("g").call(d3.axisLeft(this.yScale));
 
@@ -210,6 +210,12 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("stroke", "black");
         
         let spacing = this.xScale("WSB_male") - this.xScale("WSB_female");
+        this.svg.append("line")
+              .attr("x1", 0)
+              .attr("x2", 0)
+              .attr("y1", 0)
+              .attr("y2", height)
+              .attr("stroke", "black");
         this.svg.selectAll("separatorLines")
               .data(sumstat)
               .enter()
@@ -218,8 +224,7 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("x2", d => this.xScale(d.key) + spacing/2)
                 .attr("y1", 0)
                 .attr("y2", height)
-                .attr("stroke", d => this.getSeparatorStroke(d.key))
-                .attr("width", 30);
+                .attr("stroke", d => this.getSeparatorStroke(d.key));
       },
       hideTooltip() {
           this.tooltip.style("opacity", 0);
@@ -229,7 +234,7 @@ export default Vue.component("mouse-whisker-plot", {
         if (sex === "female"){
           return "none";
         }
-        return "gray";
+        return "black";
       }
   },
 });
