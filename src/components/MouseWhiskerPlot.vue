@@ -50,6 +50,7 @@ export default Vue.component("mouse-whisker-plot", {
           yScale: null,
           founderScale: null,
           tooltip: null,
+          dividerGray: "#CCCCCC"
       };
   },
   mounted() {
@@ -164,8 +165,8 @@ export default Vue.component("mouse-whisker-plot", {
               .call(d3.axisTop(this.founderScale)
                 .tickSize(0))
               .selectAll("text")
-              .style("text-anchor", "middle")
-              .style("font-size", "16px");
+                .style("text-anchor", "middle")
+                .style("font-size", "16px");
           
           let initialVal = this.plotData[0][this.tpmField];
           let maxVal = this.plotData
@@ -239,19 +240,19 @@ export default Vue.component("mouse-whisker-plot", {
               .attr("x2", 0)
               .attr("y1", 0)
               .attr("y2", height)
-              .attr("stroke", "black");
+              .attr("stroke", this.dividerGray);
         this.svg.append("line")
               .attr("x1", 0)
               .attr("x2", width)
               .attr("y1", 0)
               .attr("y2", 0)
-              .attr("stroke", "black");
+              .attr("stroke", this.dividerGray);
         this.svg.append("line")
               .attr("x1", 0)
               .attr("x2", width)
               .attr("y1", height)
               .attr("y2", height)
-              .attr("stroke", "black");
+              .attr("stroke", this.dividerGray);
 
         this.svg.selectAll("separatorLines")
               .data(sumstat)
@@ -271,7 +272,7 @@ export default Vue.component("mouse-whisker-plot", {
         if (sex === "female"){
           return "none";
         }
-        return "black";
+        return this.dividerGray;
       },
       axisLabel(founder_sex, isSexLabel){
         let halves = founder_sex.split("_");
