@@ -111,8 +111,7 @@ export default Vue.component("mouse-whisker-plot", {
               .attr(
                   "transform",
                   "translate(" + margin.left + "," + margin.top + ")"
-              )
-              .on("mouseleave", this.hideTooltip());
+              );
 
           let sumstat = d3
               .nest()
@@ -228,7 +227,7 @@ export default Vue.component("mouse-whisker-plot", {
                 .style("fill", d => this.colorMap[d[this.keyField]])
                 .attr("stroke", "black")
                 .on("mouseover", g => this.showTooltip(g))
-                .on("mouseleave", this.hideTooltip());
+                .on("mouseleave", g => this.hideTooltip());
         
         let spacing = this.xScale("WSB_male") - this.xScale("WSB_female");
 
@@ -262,7 +261,6 @@ export default Vue.component("mouse-whisker-plot", {
                 .attr("stroke", d => this.getSeparatorStroke(d.key));
       },
       hideTooltip() {
-          console.log("hiding tooltip");
           this.tooltip.style("opacity", 0);
       },
       getSeparatorStroke(founder_sex){
