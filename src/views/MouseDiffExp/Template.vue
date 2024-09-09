@@ -21,22 +21,27 @@
                   </div>
               </search-header-wrapper>
               <div class="card mdkp-card">
+                <div class=card-body>
+                  <h4>Mouse Differential Expression Browser</h4>
+                  <criterion-function-group>
+                      <mouse-tissue-select>
+                      </mouse-tissue-select>
+                      <mouse-gene-select>
+                      </mouse-gene-select>
+                      <button
+                          class="btn btn-primary btn-sm"
+                          @click="$parent.searchDiffExp()"
+                      >
+                          Search
+                      </button>
+                    </criterion-function-group>
+                </div>
+              </div>
+              <div class="card mdkp-card">
                   <div class="card-body">
-                      <criterion-function-group>
-                        <mouse-tissue-select>
-                        </mouse-tissue-select>
-                        <mouse-gene-select>
-                        </mouse-gene-select>
-                        <button
-                            class="btn btn-primary btn-sm"
-                            @click="$parent.searchDiffExp()"
-                        >
-                            Search
-                        </button>
-                      </criterion-function-group>
                       <div>
                         <h4 v-if="$parent.diffExpData.length > 0">
-                          Mouse Differential Expression for
+                          Differential Expression for
                           {{ $store.state.gene }} in
                           {{ $parent.tissueFormatter($store.state.tissue) }}
                         </h4>

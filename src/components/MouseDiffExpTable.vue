@@ -1,5 +1,9 @@
 <template>
   <div>
+    <div
+			v-html="'Total rows: ' + items.length"
+			class="table-total-rows"
+		></div>
     <b-table
       small
       :items="items"
@@ -56,3 +60,10 @@
     }
   });
 </script>
+<style scoped>
+  .table-total-rows {
+    float: left;
+    font-size: 12px;
+    padding-top: 10px;
+  }
+</style>
