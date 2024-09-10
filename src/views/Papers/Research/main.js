@@ -283,6 +283,39 @@ new Vue({
                 }
             }
         },
+        kMapDetails() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["body"] == false) {
+                return {};
+            } else {
+
+                if (!!this.sectionConfigs && !!this.sectionConfigs["knowledge map"]) {
+
+                    let detailDescriptions = document.createElement('div');
+                    detailDescriptions.setAttribute("style", "visibility: hidden;height: 1px")
+                    detailDescriptions.innerHTML = contents[0]["body"];
+                    document.body.appendChild(detailDescriptions);
+
+                    let kMapDetails = {};
+
+                    let rows = this.sectionConfigs["knowledge map"]["rows"];
+
+                    rows.map(row => {
+
+                        row["columns"].map(column => {
+                            let boxDetail = document.getElementById('k_map_detail_' + column.id);
+                            kMapDetails[column.id] = boxDetail.innerHTML;
+                        })
+                    })
+                    detailDescriptions.parentNode.removeChild(detailDescriptions);
+
+                    return kMapDetails;
+                } else {
+                    return {}
+                }
+            }
+        },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },

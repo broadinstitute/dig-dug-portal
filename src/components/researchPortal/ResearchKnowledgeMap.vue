@@ -29,6 +29,7 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("research-knowledge-map", {
 	props: [
 		"renderConfig",
+		'mapDetails',
 		"colors",
 		"utils"
 	],
@@ -44,9 +45,9 @@ export default Vue.component("research-knowledge-map", {
 		PageDescription,
 	},
 	created: function () {
-		if(!!this.mapConfig['detailed info']) {
-			this.getDetails(this.mapConfig['detailed info']);
-		}
+		//if(!!this.renderConfig['detailed info']) {
+			//this.getDetails(this.mapConfig['detailed info']);
+		//}
 	},
 	mounted: function () {
 	},
@@ -231,7 +232,8 @@ export default Vue.component("research-knowledge-map", {
 				document.querySelector('#k_map_box_'+i.id).classList.remove("dimmed");
 			})
 
-			this.boxDetail = "<div>"+this.detailedInfo[0][FOCUS]+"</div>";
+			//this.boxDetail = "<div>"+this.detailedInfo[0][FOCUS]+"</div>";
+			this.boxDetail = "<div>" + this.mapDetails[FOCUS] + "</div>";
 
 		},
 		cancelHighlights() {
@@ -470,8 +472,8 @@ export default Vue.component("research-knowledge-map", {
 			}
 			
 
-			if(!!this.mapConfig['styles']) {
-				let boxStyles = this.mapConfig['styles']['box'];
+			if(!!this.renderConfig['styles']) {
+				let boxStyles = this.renderConfig['styles']['box'];
 
 				styles += "width:"+((!!boxStyles['width'])? boxStyles['width'] : defaultStyle.width) +"px;";
 				styles += "height:" + ((!!boxStyles['height']) ? boxStyles['height'] : defaultStyle.height) + "px;";
