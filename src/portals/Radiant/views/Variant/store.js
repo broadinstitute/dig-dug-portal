@@ -14,7 +14,7 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        variantData: bioIndex("variant"),
+        variantData: bioIndex("variants",{query_private:true}),
         transcriptConsequences: bioIndex("transcript-consequences"),
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
