@@ -98,7 +98,7 @@
                                             </b-form-checkbox>
                                         </template>
                                     </div>
-                                    <!-- <div>
+                                    <div>
                                         <h6>Select phenotypes</h6>
                                         <b-btn
                                             class="btn btn-secondary btn-sm"
@@ -113,7 +113,7 @@
                                             @click="filters['phenotypes'] = []"
                                             >Unselect All</b-btn
                                         >
-                                    </div> 
+                                    </div>
 
                                     <div style="padding-left: 15px">
                                         <template
@@ -127,7 +127,7 @@
                                                 >{{ key }}</b-form-checkbox
                                             >
                                         </template>
-                                    </div>-->
+                                    </div>
                                 </fieldset>
                             </form>
                         </div>
@@ -155,11 +155,11 @@
                 </div>
             </b-col>
         </b-row>
+
         <div v-show="tableData.length">
             <b-table
                 hover
                 small
-                sort-icon-left
                 responsive="sm"
                 :fields="fields"
                 :items="tableData"
@@ -167,42 +167,67 @@
                 :current-page="currentPage"
                 ><template #thead-top="data">
                     <b-tr>
-                        <b-th colspan="3"
+                        <b-th colspan="4"
                             ><span class="sr-only"
-                                >Variant, dbSNP, Consequence</span
+                                >Variant, Consequence, Protein Position, Amino
+                                Acids</span
                             ></b-th
                         >
+                        <b-th colspan="4" class="text-center" variant="primary"
+                            >NephKP Allele</b-th
+                        >
+
                         <b-th
+                            v-b-tooltip.hover
                             colspan="3"
                             class="text-center"
                             variant="secondary"
-                            >Allele</b-th
-                        >
-                        <b-th><span class="sr-only">Max AF</span></b-th>
-                        <b-th
-                            colspan="2"
-                            class="text-center"
-                            variant="secondary"
-                            >Heterozygous</b-th
-                        >
-                        <b-th
-                            colspan="2"
-                            class="text-center"
-                            variant="secondary"
                             style="border-left: 1px solid #dee2e6"
-                            >Homozygous</b-th
+                            title="gnomAD exomes r2.0.1"
+                            >gnomAD Allele</b-th
                         >
-                        <b-th><span class="sr-only">View VEP Data</span></b-th>
+                        <b-th colspan="1"
+                            ><span class="sr-only">View VEP Data</span></b-th
+                        >
                     </b-tr>
                 </template>
-                <template #cell(varId)="data">
-                    <a :href="`/variant.html?variant=${data.item.varId}`">{{
-                        data.item.varId
+                <template #cell(varid)="data">
+                    <a :href="`/variant.html?variant=${data.item.varid}`">{{
+                        data.item.varid
                     }}</a> </template
                 ><template #cell(dbSNP)="data">
                     <a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
                         data.item.dbSNP
                     }}</a>
+                </template>
+                <template #cell(allelecount)="data">
+                    <div align="right">{{ data.item.allelecount }}</div>
+                </template>
+                <template #cell(allelnumber)="data">
+                    <div align="right">{{ data.item.allelnumber }}</div>
+                </template>
+                <template #cell(allelefrequency)="data">
+                    <div align="right">
+                        {{ formatAlleleFrequency(data.item.allelefrequency) }}
+                    </div>
+                </template>
+                <template #cell(homozygouscount)="data">
+                    <div align="right">{{ data.item.homozygouscount }}</div>
+                </template>
+                <template #cell(gnomAD_exomes_AC)="row">
+                    <div align="right">
+                        {{ row.item.gnomAD_exomes_AC }}
+                    </div>
+                </template>
+                <template #cell(gnomAD_exomes_AN)="row">
+                    <div align="right">
+                        {{ row.item.gnomAD_exomes_AN }}
+                    </div>
+                </template>
+                <template #cell(gnomAD_exomes_AF)="row">
+                    <div align="right">
+                        {{ format_freq(row.item.gnomAD_exomes_AF) }}
+                    </div>
                 </template>
                 <template #cell(max_consequence)="data">
                     <div
@@ -210,85 +235,126 @@
                         class="border-color"
                         :class="data.item.Max_Impact"
                     >
-                    {{data.item.max_consequence.substring(1, data.item.max_consequence.length-1)}}
-                    <!--    <span v-for="(c, i) in data.item.max_consequence"
-                            :key="c">
-                            {{ consequenceFormatter(c)}}{{i < data.item.max_consequence.length - 1 ? ", " : "" }}
-                        </span> -->
+                        {{ consequenceFormatter(data.item.max_consequence) }}
                     </div>
                     <div v-else class="border-color NONE"></div>
                 </template>
-                
-                
-                <!-- <template #cell(consequence)="data">
-                    <div class="border-color" :class="data.item.impact">
-                        {{ consequenceFormatter(data.item.consequence) }}
-                    </div></template
-                > -->
+                <template #cell(HGVSc)="data">
+                    {{ format_hgvsc(data.item.HGVSc) }}</template
+                >
+                <template #cell(HGVSp)="data">
+                    {{ format_hgvsp(data.item.HGVSp) }}
+                </template>
+
                 <template #cell(view)="data">
                     <b-btn
-                        v-if="!data.item.consequence"
+                        size="sm"
+                        class="btn-mini mr-2"
+                        variant="outline-primary"
+                        @click="toToggle(data, 1)"
+                    >
+                        {{
+                            data.detailsShowing && data.item.showButton === 1
+                                ? "Hide"
+                                : "Show"
+                        }}
+                        Phenotypes</b-btn
+                    >
+                    <b-btn
+                        v-if="data.item.veprecords.length === 0"
                         disabled
                         size="sm"
                         class="btn-mini"
                         variant="outline-secondary"
                         >No Annotation</b-btn
                     >
-                    <b-button
+                    <b-btn
                         v-else
                         size="sm"
                         variant="outline-primary"
                         class="btn-mini showData"
                         @click="
-                            showVariantData(data.item.varId);
-                            data.toggleDetails();
+                            //showVariantData(data.item.varid);
+                            toToggle(data, 2)
                         "
-                        ><span v-if="!!loadingData[data.item.varId]"
+                        ><span v-if="!!loadingData[data.item.varid]"
                             ><b-spinner small></b-spinner>
                             <span class="sr-only">Loading...</span></span
                         ><span v-else>
-                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                            {{
+                                data.detailsShowing &&
+                                data.item.showButton === 2
+                                    ? "Hide"
+                                    : "Show"
+                            }}
                             Annotations</span
                         >
-                    </b-button>
+                    </b-btn>
                 </template>
 
                 <template #row-details="row">
                     <div class="details">
-                        <div
-                            v-if="
-                                variantData[escapedVarID(row.item.varId)] &&
-                                variantData[escapedVarID(row.item.varId)].length
-                            "
-                        >
+                        <div v-if="row.item.showButton === 1" class="row">
                             <b-table
-                                :items="
-                                    variantData[escapedVarID(row.item.varId)]
-                                "
+                                :items="row.item.hpdisplay"
+                                :fields="hprecordFields"
+                                :per-page="perPagephenotype"
+                                :tbody-tr-class="rowPickClass"
+                            >
+                                <template #cell(allelecount)="row">
+                                    <div align="right">
+                                        {{ row.item.allelecount }}
+                                    </div>
+                                </template>
+                                <template #cell(allelnumber)="row">
+                                    <div align="right">
+                                        {{ row.item.allelnumber }}
+                                    </div>
+                                </template>
+                                <template #cell(allelefrequency)="row">
+                                    <div align="right">
+                                        {{
+                                            formatAlleleFrequency(
+                                                row.item.allelefrequency
+                                            )
+                                        }}
+                                    </div>
+                                </template>
+                                <template #cell(n_hom_var_case)="row">
+                                    <div align="right">
+                                        {{ row.item.n_hom_var_case }}
+                                    </div>
+                                </template>
+                            </b-table>
+                        </div>
+
+                        <div v-if="row.item.showButton === 2" class="row">
+                            <b-table
+                                v-if="row.item.veprecords.length > 0"
+                                :items="row.item.veprecords"
                                 :fields="subFields"
                                 :per-page="perPage"
                                 :tbody-tr-class="rowPickClass"
-                                ><template #cell(varId)="data">
+                                ><template #cell(varID)="data">
                                     <a
-                                        :href="`/variant.html?variant=${data.item.varId}`"
-                                        >{{ data.item.varId }}</a
+                                        :href="`/variant.html?variant=${data.item.varID}`"
+                                        >{{ data.item.varID }}</a
                                     >
                                 </template>
-                                <template #head(transcriptId)="data">
+                                <template #head(Feature)="data">
                                     <span class="external_source"
                                         >Feature
                                     </span>
                                 </template>
-                                <template #cell(transcriptId)="data">
+                                <template #cell(Feature)="data">
                                     <a
-                                        v-if="data.item.transcriptId"
-                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
+                                        v-if="data.item.Feature"
+                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.Feature}`"
                                         target="_blank"
                                         rel="noopener noreferrer nofollow"
-                                        >{{ data.item.transcriptId }}</a
+                                        >{{ data.item.Feature }}</a
                                     >
                                 </template>
-
                                 <template #cell(position)="data">
                                     {{
                                         data.item.proteinStart !==
@@ -297,45 +363,32 @@
                                             : data.item.proteinStart
                                     }}
                                 </template>
-                                <template #cell(consequenceTerms)="data">
+                                <template #cell(max_consequence)="data">
                                     <div
                                         class="border-color"
-                                        :class="data.item.impact"
+                                        :class="data.item.IMPACT"
                                     >
-                                        <span
-                                            v-for="(c, i) in data.item
-                                                .consequenceTerms"
-                                            :key="c"
-                                            >{{ consequenceFormatter(c)
-                                            }}{{
-                                                i <
-                                                data.item.consequenceTerms
-                                                    .length -
-                                                    1
-                                                    ? ", "
-                                                    : ""
-                                            }}</span
-                                        >
+                                        <span>{{
+                                            consequenceFormatter(
+                                                data.item.Consequence
+                                            )
+                                        }}</span>
                                     </div></template
                                 >
+                                <template #cell(HGVSc)="data">
+                                    {{
+                                        format_hgvsc(data.item.HGVSc)
+                                    }}</template
+                                >
+                                <template #cell(HGVSp)="data">
+                                    {{ format_hgvsp(data.item.HGVSp) }}
+                                </template>
                                 <template #cell(siftPrediction)="data">
                                     {{
                                         siftFormatter(data.item.siftPrediction)
                                     }}
                                 </template>
                             </b-table>
-                        </div>
-                        <div
-                            v-else-if="
-                                variantData[escapedVarID(row.item.varId)] &&
-                                variantData[escapedVarID(row.item.varId)]
-                                    .length === 0
-                            "
-                        >
-                            <b-alert show variant="warning">
-                                No predicted transcript consequences found for
-                                this variant.</b-alert
-                            >
                         </div>
                     </div>
                 </template>
@@ -353,12 +406,21 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import Formatters from "@/utils/formatters";
+import Documentation from "@/components/Documentation";
+import TooltipDocumentation from "@/components/TooltipDocumentation";
 import DataDownload from "@/components/DataDownload";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("VariantSearch", {
     components: {
+        CriterionListGroup,
+        FilterEnumeration,
+        Documentation,
+        TooltipDocumentation,
+        Formatters,
         DataDownload,
     },
     props: {
@@ -379,6 +441,21 @@ export default Vue.component("VariantSearch", {
                 LOW: "outline-success",
                 MODIFIER: "outline-secondary",
             },
+            HPOTerms: {
+                Sensitive: "Steroid Sensitive Nephrotic Syndrome",
+                AdultSensitive: "Steroid Sensitive Nephrotic Syndrome (Adult)",
+                PediatricSensitive:
+                    "Steroid Sensitive Nephrotic Syndrome (Pediatric)",
+                Uncategorized: "Uncategorized Nephrotic Syndrome",
+                AdultUncategorized: "Uncategorized Nephrotic Syndrome (Adult)",
+                PediatricUncategorized:
+                    "Uncategorized Nephrotic Syndrome (Pediatric)",
+                Resistant: "Steroid Resistant Nephrotic Syndrome",
+                AdultResistant: "Steroid Resistant Nephrotic Syndrome (Adult)",
+                PediatricResistant:
+                    "Steroid Resistant Nephrotic Syndrome (Pediatric)",
+                AllSamples: "All Samples",
+            },
             filters: {
                 impacts: ["HIGH", "MODERATE", "LOW"],
                 phenotypes: [
@@ -394,166 +471,167 @@ export default Vue.component("VariantSearch", {
                     "PediatricUncategorized",
                 ],
             },
-            perPage: 10,
-            currentPage: 1,
 
+            perPage: 10,
+            perPagephenotype: 23,
+            currentPage: 1,
             variants: [],
             consequences: {},
+            // currentSort: "allelecount",
+            // currentSortDir: "desc",
             fields: [
                 {
-                    key: "varId",
+                    key: "varid",
                     label: "Variant",
-                },
-                {
-                    key: "dbSNP",
-                    label: "dbSNP",
                 },
                 {
                     key: "max_consequence",
                     label: "Consequence",
                     tdClass: "border-color",
                 },
-                /*{
-                    key: "consequence",
-                    label: "Consequence",
-                },*/
-
                 {
-                    key: "alleleCountCases",
-                    label: "Cases",
-                    sortable: true,
+                    key: "HGVSc",
+                    label: "HGVSc",
                 },
                 {
-                    key: "alleleCountControls",
-                    label: "Controls",
-                    sortable: true,
+                    key: "HGVSp",
+                    label: "HGVSp",
                 },
                 {
-                    key: "alleleCount",
+                    key: "c_allelecount",
                     label: "Count",
                     sortable: true,
+                    tdClass: "text-right pr-3",
+                    thClass: "text-right",
                 },
                 {
-                    key: "maf",
-                    label: "Max AF",
+                    key: "c_allelnumber",
+                    label: "Number",
                     sortable: true,
-                    thStyle: "min-width: 120px;",
-                },
-                {
-                    key: "heterozygousCases",
-                    label: "Cases",
-                    sortable: true,
-                },
-                {
-                    key: "heterozygousControls",
-                    label: "Controls",
-                    sortable: true,
-                },
-                {
-                    key: "homozygousCases",
-                    label: "Cases",
-                    sortable: true,
-                },
-                {
-                    key: "homozygousControls",
-                    label: "Controls",
-                    sortable: true,
+                    tdClass: "text-right pr-3",
+                    thClass: "text-right",
                 },
 
                 {
+                    key: "allelefrequency",
+                    label: "Frequency",
+                    sortable: true,
+                    tdClass: "text-right pr-3",
+                    thClass: "text-right",
+                    formatter: "formatAlleleFrequency",
+                },
+                {
+                    key: "homozygouscount",
+                    label: " Homozygotes",
+                    sortable: true,
+                    tdClass: "text-right pr-3",
+                    thClass: "text-right",
+                },
+                {
+                    key: "gnomAD_exomes_AC",
+                    label: "Count",
+                    sortable: true,
+                    tdClass: "text-right pr-3",
+                    thClass: "text-right",
+                },
+                {
+                    key: "gnomAD_exomes_AN",
+                    label: "Number",
+                    sortable: true,
+                    tdClass: "text-right pr-3",
+                    thClass: "text-right",
+                },
+                {
+                    key: "gnomAD_exomes_AF",
+                    label: "Frequency",
+                    sortable: true,
+                    tdClass: "text-right pr-3",
+                    thClass: "text-right",
+                },
+                {
                     key: "view",
-                    label: "View VEP Data",
+                    label: "View Additional Data",
                     class: "nowrap",
+                    tdClass: "text-center",
+                    thClass: "text-center",
                 },
             ],
             subFields: [
                 {
-                    key: "transcriptId",
+                    key: "Feature",
                     label: "Feature",
                 },
                 {
-                    key: "position",
-                    label: "Position",
-                },
-                {
-                    key: "aminoAcids",
-                    label: "Amino Acids",
-                },
-                {
-                    key: "consequenceTerms",
+                    key: "max_consequence",
                     label: "Consequence",
                     tdClass: "border-color",
                 },
                 {
-                    key: "hgncId",
-                    label: "HGNC",
-                },
-                {
-                    key: "hgvsc",
+                    key: "HGVSc",
                     label: "HGVSc",
                 },
                 {
-                    key: "hgvsp",
+                    key: "HGVSp",
                     label: "HGVSp",
                 },
+            ],
+            hprecordFields: [
                 {
-                    key: "polyphen2HdivPred",
-                    label: "PolyPhen (HDIV)",
+                    key: "HP",
+                    label: "Phenotype",
                 },
                 {
-                    key: "polyphen2HvarPred",
-                    label: "PolyPhen (HVAR)",
+                    key: "allelecount",
+                    label: "Allele Count",
+                    sortable: true,
+                    tdClass: "text-right pr-4",
+                    thClass: "text-right",
                 },
                 {
-                    key: "siftPrediction",
-                    label: "SIFT Prediction",
+                    key: "allelnumber",
+                    label: "Allele Number",
+                    sortable: true,
+                    tdClass: "text-right pr-4",
+                    thClass: "text-right",
                 },
                 {
-                    key: "lrtPred",
-                    label: "LRT",
+                    key: "n_hom_var_case",
+                    label: "Homozygotes",
+                    sortable: true,
+                    tdClass: "text-right pr-4",
+                    thClass: "text-right",
                 },
                 {
-                    key: "mutationTaster",
-                    label: "Mutation Taster",
-                },
-                {
-                    key: "caddRawRankscore",
-                    label: "CADD-Phred Score",
-                },
-                {
-                    key: "gnomadGenomesPopmaxAf",
-                    label: "gnomAD AF",
+                    key: "allelefrequency",
+                    label: "Allele Frequency",
+                    sortable: true,
+                    tdClass: "text-right pr-4",
+                    thClass: "text-right",
+                    formatter: "formatAlleleFrequency",
                 },
             ],
-            variantData: {},
+            variantData: null,
             loadingData: {},
             sortByImpacts: false,
         };
     },
-    // created() {
-    //     if (this.gene) {
-    //         this.searchVariants();
-    //     }
-    // },
     computed: {
-        //This works to display all data fro BI
         tableData() {
             if (this.sortByImpacts && this.variantData.length) {
                 let sortedVariants = structuredClone(this.variantData);
-                //console.log("sortedVariants", sortedVariants);
+                console.log("sortedVariants", sortedVariants);
                 return sortedVariants.sort((a, b) => {
                     return this.sortImpacts(a, b);
                 });
             } else return this.variantData || [];
-
-            /*if (this.variants && this.variants.length) {
-                return this.variants;
-            } else {
-                return [];
-            }*/
+            // return this.variants || [];
         },
         rows() {
             if (this.tableData) return this.tableData.length;
+            else return [];
+        },
+        phenotypes() {
+            return Object.keys(this.HPOTerms) || [];
         },
     },
     watch: {
@@ -561,8 +639,13 @@ export default Vue.component("VariantSearch", {
             handler(val) {
                 if (val) this.searchVariants();
             },
-            immediate: true,
+            //immediate: true,
         },
+    },
+    created() {
+        if (this.gene) {
+            this.searchVariants();
+        }
     },
     methods: {
         ...uiUtils,
@@ -585,16 +668,37 @@ export default Vue.component("VariantSearch", {
         },
         async searchVariants() {
             this.currentPage = 1; //reset on new search
-            this.variants = await query("gene-variants", this.gene);
+
+            this.variants = await query("variants", this.gene, {query_private:true}, true);
+
             if (this.variants && this.variants.length) {
-                //this.variantData = structuredClone(this.variants); //copy data
+                this.variantData = structuredClone(this.variants); //copy data
 
                 //add showButton property to each variant
-                /*this.variantData.map((variant) => {
+                this.variantData.map((variant) => {
                     variant.showButton = 0;
-                });*/
+                });
 
                 for (let i = 0; i < this.variants.length; i++) {
+                    //get data from HP record AllSamples
+                    let AllSamples = this.variants[i].hprecords.find(
+                        (x) => x.HP === "AllSamples"
+                    );
+                    //copy all properties from AllSamples to variants[i]
+                    for (let prop in AllSamples) {
+                        this.variants[i][prop] = AllSamples[prop];
+                    }
+
+                    this.variants[i].allelecount =
+                        2 * parseInt(AllSamples.n_hom_var_case) +
+                        parseInt(AllSamples.n_het_case);
+                    this.variants[i].allelnumber =
+                        2 *
+                        (parseInt(AllSamples.n_hom_ref_case) +
+                            parseInt(AllSamples.n_het_case) +
+                            parseInt(AllSamples.n_hom_var_case));
+                    //this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
+                    //this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
                     if (this.variants[i].gnomAD_info) {
                         this.variants[i].gnomAD_exomes_AC =
                             this.variants[i].gnomAD_info.gnomADg_AC;
@@ -605,26 +709,58 @@ export default Vue.component("VariantSearch", {
                         //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
                     }
 
+                    for (
+                        let m = 0;
+                        m < this.variants[i].hprecords.length;
+                        m++
+                    ) {
+                        let hp = this.variants[i].hprecords[m];
+                        if (hp.HP == "AllSamples") {
+                            this.variants[i].c_allelecount =
+                                2 * parseInt(hp.n_hom_var_case) +
+                                parseInt(hp.n_het_case);
+                            this.variants[i].allelecount +=
+                                this.variants[i].c_allelecount;
+                            this.variants[i].c_allelnumber =
+                                2 *
+                                (parseInt(hp.n_hom_ref_case) +
+                                    parseInt(hp.n_het_case) +
+                                    parseInt(hp.n_hom_var_case));
+                            this.variants[i].allelnumber +=
+                                this.variants[i].c_allelnumber;
+                            this.variants[i].allelefrequency =
+                                this.variants[i].c_allelecount /
+                                this.variants[i].c_allelnumber;
+                            // this.variants[i].allelefrequency =
+                            //     this.variants[i].allelefrequency.toExponential(
+                            //         2
+                            //     );
+                            //this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
+                            //this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
+                            //this.variants[i].c_TWO_ALT_GENO_CTS =hp.n_hom_var_case;
+                            this.variants[i].homozygouscount = parseInt(
+                                hp.n_hom_var_case
+                                //this.variants[i].n_hom_var_case
+                            );
+                        }
+                    }
                     //do we need vep count?
                     //this.variants[i].vep = this.variants[i].veprecords.length;
-                    if (this.variants[i].vepRecords.length > 0) {
-                        let varrecords = this.variants[i].vepRecords;
+                    if (this.variants[i].veprecords.length > 0) {
+                        let varrecords = this.variants[i].veprecords;
 
                         for (let j = 0; j < varrecords.length; j++) {
-                            //console.log("pick:"+varrecords[j].pick);
-                            if (varrecords[j].pick == "1") {
-                                //console.log("var:"+varrecords[j].consequenceTerms);
+                            if (varrecords[j].PICK === true) {
                                 this.variants[i].Gene_Symbol =
                                     varrecords[j].Gene_Symbol;
                                 this.variants[i].Max_Impact =
-                                    varrecords[j].impact;
+                                    varrecords[j].IMPACT;
                                 if (this.variants[i].Max_Impact == "LOWEST") {
                                     this.variants[i].Max_Impact = "MODIFIER";
                                 }
 
                                 this.variants[i].max_consequence =
-                                    varrecords[j].consequenceTerms;
-
+                                    varrecords[j].Consequence;
                                 this.variants[i].Protein_Position =
                                     varrecords[j].Protein_position;
                                 this.variants[i].Amino_Acids =
@@ -640,15 +776,145 @@ export default Vue.component("VariantSearch", {
                         }
                         //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
                     }
+
+                    if (this.variants[i].hprecords.length > 0) {
+                        let hpdisplay = [];
+                        let j = 0;
+
+                        for (
+                            let k = 0;
+                            k < this.variants[i].hprecords.length;
+                            k++
+                        ) {
+                            let hp = this.variants[i].hprecords[k];
+                            //if (hp.HP != "AllControl") {
+                            hpdisplay[j] = {};
+                            //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
+                            hpdisplay[j].hp = hp.HP;
+                            hpdisplay[j].HP = Formatters.snakeFormatter(
+                                this.HPOTerms[hp.HP]
+                            );
+                            hpdisplay[j].allelecount =
+                                2 * hp.n_hom_var_case + hp.n_het_case;
+                            hpdisplay[j].allelnumber =
+                                2 *
+                                (hp.n_hom_ref_case +
+                                    hp.n_het_case +
+                                    hp.n_hom_var_case);
+                            hpdisplay[j].allelefrequency =
+                                this.calculateAlleleFrequency(
+                                    hpdisplay[j].allelecount,
+                                    hpdisplay[j].allelnumber
+                                );
+
+                            hpdisplay[j].n_hom_var_case = hp.n_hom_var_case;
+                            j++;
+                            //}
+                        }
+                        //no longer sort by allelecount
+                        // hpdisplay = hpdisplay.sort(function (a, b) {
+                        //     //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
+                        //     if (a.allelecount > b.allelecount) {
+                        //         return -1;
+                        //     } else if (a.allelecount < b.allelecount) {
+                        //         return 1;
+                        //     }
+                        //     return 0;
+                        // });
+                        let sortOrder = [
+                            "AllSamples",
+                            "Resistant",
+                            "PediatricResistant",
+                            "AdultResistant",
+                            "Sensitive",
+                            "PediatricSensitive",
+                            "AdultSensitive",
+                            "Uncategorized",
+                            "PediatricUncategorized",
+                            "AdultUncategorized",
+                            "Healthy",
+                            "AllNephroticSyndCases",
+                        ];
+                        hpdisplay = hpdisplay.sort(function (a, b) {
+                            return (
+                                sortOrder.indexOf(a.hp) -
+                                sortOrder.indexOf(b.hp)
+                            );
+                        });
+                        this.variants[i].hpdisplay2 = hpdisplay;
+                        this.variants[i].hpdisplay = hpdisplay;
+                    }
                 }
-                
-                this.variantData = structuredClone(this.variants);
+
                 //if default filters are set, filter the variants
-                if (this.filters.impacts.length > 0 || this.filters.phenotypes.length > 0) {
+                if (
+                    this.filters.impacts.length > 0 ||
+                    this.filters.phenotypes.length > 0
+                ) {
                     this.addfilter();
                 }
             }
         },
+        async getTranscriptConsequences(varid) {
+            if (varid) {
+                let data = await query("transcript-consequences", varid);
+                return data;
+            }
+        },
+        consequenceFormatter(consequence) {
+            if (consequence) {
+                let trim = consequence
+                    .replaceAll(",", ", ")
+                    .replace("_prime_", "' ")
+                    .replace("_variant", "");
+                return Formatters.snakeFormatter(trim);
+            }
+            return;
+        },
+        siftFormatter(name) {
+            return Formatters.snakeFormatter(name);
+        },
+        /*async showVariantData(varid) {
+            let escapedVarID = this.escapedVarID(varid);
+
+            if (this.variantData[escapedVarID] === undefined) {
+                this.loadingData[escapedVarID] = true;
+                let tcQuery = await this.getTranscriptConsequences(varid);
+                Vue.set(this.variantData, escapedVarID, tcQuery);
+                this.loadingData[escapedVarID] = false;
+            }
+        },*/
+        escapedVarID(varid) {
+            if (varid) return varid.replace(/:\s*/g, "_");
+            else {
+                return "";
+            }
+        },
+        rowPickClass(item, type) {
+            if (!item || type !== "row") return;
+            if (item.PICK === true) return "row-pick";
+        },
+        calculateAlleleFrequency(count, number) {
+            if (count === 0 || number === 0) return "";
+            else return count / number;
+        },
+        formatAlleleFrequency(frequency) {
+            if (!frequency) return "";
+            if (frequency < 0.0001) {
+                return parseFloat(frequency).toExponential(5);
+            } else {
+                return parseFloat(frequency).toFixed(5);
+            }
+        },
+
+        toToggle(row, buttonClicked) {
+            if (!row.detailsShowing || buttonClicked === row.item.showButton) {
+                row.toggleDetails();
+            }
+
+            Vue.set(row.item, "showButton", buttonClicked);
+        },
+
         addfilter() {
             let dataRows = this.variants;
             if (this.filters["impacts"].length > 0) {
@@ -656,7 +922,7 @@ export default Vue.component("VariantSearch", {
                     this.filters["impacts"].includes(item.Max_Impact)
                 );
             }
-            /*if (this.filters["phenotypes"].length > 0) {
+            if (this.filters["phenotypes"].length > 0) {
                 for (let i = 0; i < dataRows.length; i++) {
                     dataRows[i].hpdisplay = dataRows[i].hpdisplay2;
                     dataRows[i].hpdisplay = dataRows[i].hpdisplay.filter((v) =>
@@ -667,56 +933,28 @@ export default Vue.component("VariantSearch", {
                 for (let i = 0; i < dataRows.length; i++) {
                     dataRows[i].hpdisplay = dataRows[i].hpdisplay2;
                 }
-            } */
+            }
             this.variantData = dataRows;
-        },
-        async getTranscriptConsequences(varID) {
-            if (varID) {
-                let data = await query("transcript-consequences", varID);
-                return data;
-            }
-        },
-        consequenceFormatter(consequence) {
-            if (consequence) {
-                let trim = consequence
-                    .replace("_prime_", "' ")
-                    .replace("_variant", "");
-                return Formatters.snakeFormatter(trim);
-            }
-            return;
-        },
-        siftFormatter(name) {
-            return Formatters.snakeFormatter(name);
-        },
-        async showVariantData(varID) {
-            let escapedVarID = this.escapedVarID(varID);
-
-            if (this.variantData[escapedVarID] === undefined) {
-                this.loadingData[escapedVarID] = true;
-                let tcQuery = await this.getTranscriptConsequences(varID);
-                Vue.set(this.variantData, escapedVarID, tcQuery);
-                this.loadingData[escapedVarID] = false;
-            }
-        },
-        escapedVarID(varID) {
-            if (varID) return varID.replace(/:\s*/g, "_");
-            else {
-                return "";
-            }
-        },
-        rowPickClass(item, type) {
-            if (!item || type !== "row") return;
-            if (item.pick === 1) return "row-pick";
         },
         sort(s) {
             //if s == current sort, reverse
-            //console.log("sort", this.currentSort);
+            console.log("sort", this.currentSort);
             if (s === this.currentSort) {
                 this.currentSortDir =
                     this.currentSortDir === "asc" ? "desc" : "asc";
             }
             this.currentSort = s;
         },
+        format_hgvsc(hgvsc) {
+            return hgvsc?.split(":")[1] || "";
+        },
+        format_hgvsp(hgvsp) {
+            return hgvsp?.split(":")[1].replace("%3D", "=") || "";
+        },
+        format_freq(frequency) {
+            return frequency?.toFixed(5) || "";
+        },
+
         //function to sort variants by impact severity
         sortImpacts(a, b) {
             let impactOrder = ["HIGH", "MODERATE", "LOW", "MODIFIER", "LOWEST"];
@@ -730,15 +968,6 @@ export default Vue.component("VariantSearch", {
                 return 1;
             }
             return 0;
-        },
-        format_hgvsc(hgvsc) {
-            return hgvsc?.split(":")[1] || "";
-        },
-        format_hgvsp(hgvsp) {
-            return hgvsp?.split(":")[1].replace("/%3D/g", "=") || "";
-        },
-        format_freq(frequency) {
-            return frequency?.toFixed(5) || "";
         },
     },
 });
