@@ -1,6 +1,6 @@
 <template>
 	<div class="research-knowledge-map">
-		<div v-for="row in mapConfig['rows']" :key="row.row" class="k-map-row">
+		<div v-for="row in renderConfig['rows']" :key="row.row" class="k-map-row">
 			<div v-for="column in row.columns" :key="column.id" :id="'k_map_box_'+column.id" class="k-map-box" :style="getBoxStyles()"
 			@mouseenter="highlightMap(column.id,column.highlight)" @mouseleave="cancelHighlights()">
 				<div v-if="column.label" class="k-map-box-label">{{ column.label }}</div>
@@ -54,171 +54,8 @@ export default Vue.component("research-knowledge-map", {
 	beforeDestroy() {
 	},
 	computed: {
-		mapConfig() {
-			let config = {
-				"connector": [
-					"highlight",
-					"line"
-				],
-				"detailed info": {
-					"data point": {
-						"type": "api",
-						"url": "https://hugeampkpncms.org/rest/directcsv?id=dk_k_map_details",
-						"data type": "csv",
-						"data wrapper": [
-							0,
-							"field_data_points"
-						]
-					}
-				},
-				"rows": [
-					{
-						"columns": [
-							{
-								"id": "a",
-								"image":{
-									"path":"https://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
-								},
-								"highlight": [
-									{"direction":"to","id":"d"},
-									{
-										"direction": "from", "id": "f"},
-									{ "direction": "to", "id": "h"}
-								],
-								"tool tip": "This is item A tool tip"
-							},
-							{
-								"id": "b",
-								"label": "Item B",
-								"highlight": [
-									{
-										"direction": "to", "id": "d"},
-									{
-										"direction": "to", "id": "e"},
-									{ "direction": "from", "id": "i"}
-								],
-								"tool tip": "This is item B tool tip"
-							},
-							{
-								"id": "c",
-								"label": "Item C",
-								"highlight": [
-									{
-										"direction": "from", "id": "f"},
-									{
-										"direction": "to", "id": "g"},
-									{ "direction": "to", "id": "h"}
-								],
-								"tool tip": "This is item C tool tip"
-							}
-						]
-					},
-					{
-						"columns": [
-							{
-								"id": "d",
-								"label": "Item D",
-								"highlight": [
-									{
-										"direction": "to", "id": "c"},
-									{
-										"direction": "to", "id": "d"},
-									{ "direction": "from", "id": "f"}
-								],
-								"tool tip": "This is item D tool tip"
-							},
-							{
-								"id": "e",
-								"label": "Item E",
-								"highlight": [
-									{
-										"direction": "to", "id": "b"},
-									{
-										"direction": "from", "id": "e"},
-									{ "direction": "to", "id": "f"}
-								],
-								"tool tip": "This is item E tool tip"
-							},
-							{
-								"id": "f",
-								"label": "Item F",
-								"highlight": [
-									{
-										"direction": "to", "id": "a"},
-									{
-										"direction": "to", "id": "d"},
-									{ "direction": "from", "id": "f"}
-								],
-								"tool tip": "This is item F tool tip"
-							}
-						]
-					},
-					{
-						"columns": [
-							{
-								"id": "g",
-								"label": "Item G",
-								"highlight": [
-									{
-										"direction": "to", "id": "a"},
-									{
-										"direction": "from", "id": "c"},
-									{ "direction": "to", "id": "e"}
-								],
-								"tool tip": "This is item G tool tip"
-							},
-							{
-								"id": "h",
-								"label": "Item H",
-								"highlight": [
-									{
-										"direction": "from", "id": "b"},
-									{
-										"direction": "to", "id": "d"},
-									{ "direction": "to", "id": "f"}
-								],
-								"tool tip": "This is item H tool tip"
-							},
-							{
-								"id": "i",
-								"label": "Item I",
-								"highlight": [
-									{
-										"direction": "to", "id": "c"},
-									{
-										"direction": "from", "id": "e"},
-									{ "direction": "to", "id": "f"}
-								],
-								"tool tip": "This is item I tool tip"
-							}
-						]
-					}
-				],
-				"styles": {
-					"box":{
-						"width": 100,
-						"height": 50,
-						"corner": 5,
-						"h space": 15,
-						"v space": 5,
-						"color": "#ff7700",
-						"hover": "#cccccc",
-						"text color": "#ffffff",
-						"text size":20
-					}
-				}
-			}
-
-			return config;
-		},
-		canvasId() {
-			return null;
-		}
 	},
 	watch: {
-		canvasId(ID) {
-			
-		}
 	},
 	methods: {
 		highlightMap(FOCUS,ITEMS) {
@@ -229,8 +66,11 @@ export default Vue.component("research-knowledge-map", {
 			});
 
 			ITEMS.map(i =>{
-				document.querySelector('#k_map_box_'+i.id).classList.remove("dimmed");
+				document.querySelector('#k_map_box_'+i.from).classList.remove("dimmed");
+				document.querySelector('#k_map_box_' + i.to).classList.remove("dimmed");
 			})
+
+			//document.querySelector('#k_map_box_' + FOCUS).classList.remove("dimmed");
 
 			//this.boxDetail = "<div>"+this.detailedInfo[0][FOCUS]+"</div>";
 			this.boxDetail = "<div>" + this.mapDetails[FOCUS] + "</div>";
@@ -569,7 +409,7 @@ $(function () {});
 }
 
 .k-map-box.dimmed {
-	opacity: 0.5;
+	opacity: 0.35;
 	transition: opacity .15s ease-in-out;
 	-moz-transition: opacity .15s ease-in-out;
 	-webkit-transition: opacity .15s ease-in-out;
