@@ -12,6 +12,11 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/portals/Radiant/components/TranscriptConsequenceTable.vue";
 import VariantPhenotypeTable from "@/portals/Radiant/components/VariantPhenotypeTable.vue";
 import GnomInfoCard from "@/portals/Radiant/components/GnomInfoCard.vue";
+
+import GenotypeQualityMetricsTabs from "@/portals/Radiant/components/GenotypeQualityMetricsTabs.vue";
+import AllGenoQualityMetricsTabs from "@/portals/Radiant/components/AllGenoQualityMetricsTabs.vue";
+import SiteQualityMetricsTabs from "@/portals/Radiant/components/SiteQualityMetricsTabs.vue";
+
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
 import RegionsTable from "@/components/RegionsTable.vue";
@@ -68,6 +73,10 @@ new Vue({
         FilterGreaterThan,
 
         SearchHeaderWrapper,
+        GenotypeQualityMetricsTabs,
+        AllGenoQualityMetricsTabs,
+        SiteQualityMetricsTabs,
+
     },
 
     computed: {
