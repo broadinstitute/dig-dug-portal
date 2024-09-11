@@ -4,6 +4,7 @@ import store from "./store.js";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -33,6 +34,7 @@ new Vue({
         PageHeader,
         PageFooter,
         Documentation,
+        TooltipDocumentation,
         TissueHeritabilityTable,
         TissueExpressionTable,
         CriterionFunctionGroup,
