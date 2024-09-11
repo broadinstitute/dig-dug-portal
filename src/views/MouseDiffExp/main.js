@@ -59,6 +59,7 @@ new Vue({
         return {
             currentPage: 1,
             perPage: 10,
+            phenotypeFilterList: [],
             plotColors: [
                 "#007bff",
                 "#048845",
@@ -198,7 +199,10 @@ new Vue({
         tissueFormatter: Formatters.tissueFormatter,
         searchDiffExp(){
             this.$store.dispatch("queryDiffExp");
-        }
+        },
+        filterPhenotype(newFilters) {
+            this.phenotypeFilterList = newFilters;
+        },
     },
     render: (h) => h(Template),
 }).$mount("#app");

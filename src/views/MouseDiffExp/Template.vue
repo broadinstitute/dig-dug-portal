@@ -70,34 +70,65 @@
                 <div class="card-body">
                   <h4>HuGE Scores for Human Homolog {{ $store.state.gene }}</h4>
                   <div v-if="$parent.hugeScores.length > 0">
-                    <research-phewas-plot  
-                      ref="hugeScorePheWASPlot"
-                      :canvas-id="`huge_scores_${$store.state.gene}`"
-                      :plotName="`huge_scores_${$store.state.gene}`"
-                      :phenotypes-data="$parent.hugeScores"
-                      :phenotype-map="
-                          $store.state.bioPortal.phenotypeMap
-                      "
-                      :colors="$parent.plotColors"
-                      :plot-margin="$parent.phewasPlotMargin"
-                      :render-config="
-                          $parent.hugeScoreRenderConfig
-                      "
-                      :pkg-data="null"
-                      :pkg-data-selected="null"
-                      :utils="$parent.utilsBox"
-                      :options="['open phenotype page']"
-                    >
-                    </research-phewas-plot>
-                    <huge-scores-table
-                        :pageKey="$store.state.gene"
-                        leadTableField="phenotype"
-                        :hugeScores="$parent.hugeScores"
-                        :phenotypeMap="
-                            $store.state.bioPortal.phenotypeMap
+                    <criterion-function-group
+                        @update:filter-list="
+                            (newFilters) => $parent.filterPhenotype(newFilters)
                         "
                     >
-                    </huge-scores-table>
+                      <filter-enumeration-control
+                          :field="'phenotype'"
+                          placeholder="Select a phenotype ..."
+                          :options="
+                              $parent.hugeScores.map(a => a.phenotype)"
+                          :label-formatter="(phenotype) =>
+                            !!$store.state.bioPortal.phenotypeMap[phenotype]
+                              ? $store.state.bioPortal.phenotypeMap[phenotype].description
+                                : phenotype"
+                          :multiple="true"
+                      >
+                          <div class="label">Phenotypes</div>
+                      </filter-enumeration-control>
+                      <filter-greater-control
+                          :field="'huge'"
+                          placeholder="Set HuGE..."
+                      >
+                          <div>
+                              <strong>HuGE Score (&ge;)</strong>
+                          </div>
+                      </filter-greater-control>
+                      <template slot="filtered" slot-scope="{ filter }">
+                        <research-phewas-plot  
+                          ref="hugeScorePheWASPlot"
+                          :canvas-id="`huge_scores_${$store.state.gene}`"
+                          :plotName="`huge_scores_${$store.state.gene}`"
+                          :phenotypes-data="$parent.hugeScores"
+                          :phenotype-map="
+                              $store.state.bioPortal.phenotypeMap
+                          "
+                          :colors="$parent.plotColors"
+                          :plot-margin="$parent.phewasPlotMargin"
+                          :render-config="
+                              $parent.hugeScoreRenderConfig
+                          "
+                          :pkg-data="null"
+                          :pkg-data-selected="null"
+                          :utils="$parent.utilsBox"
+                          :options="['open phenotype page']"
+                          :filter="filter"
+                        >
+                        </research-phewas-plot>
+                        <huge-scores-table
+                            :pageKey="$store.state.gene"
+                            leadTableField="phenotype"
+                            :hugeScores="$parent.hugeScores"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            :filter="filter"
+                        >
+                        </huge-scores-table>
+                      </template>
+                      
+                    </criterion-function-group>
+                    
                   </div>
                   
                   <div v-else>
