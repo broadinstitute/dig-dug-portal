@@ -63,6 +63,35 @@
                       </div>
                   </div>
               </div>
+              <div class="card mdkp-card">
+                <div class="card-body">
+                  <h4>HuGE Scores for Human Homolog</h4>
+                  <research-phewas-plot
+                      v-if="$parent.hugeScores.length > 0"
+                      ref="hugeScorePheWASPlot"
+                      canvas-id="hugeScorePlot"
+                      :plotName="`huge_scores_${$store.state.gene}`"
+                      :phenotypes-data="$parent.hugeScores"
+                      :phenotype-map="
+                          $store.state.bioPortal.phenotypeMap
+                      "
+                      :colors="$parent.plotColors"
+                      :plot-margin="$parent.phewasPlotMargin"
+                      :render-config="
+                          $parent.hugeScoreRenderConfig
+                      "
+                      :pkg-data="null"
+                      :pkg-data-selected="null"
+                      :filter="filter"
+                      :utils="$parent.utilsBox"
+                      :options="['open phenotype page']"
+                  >
+                  </research-phewas-plot>
+                  <div v-else>
+                    No human homolog found.
+                  </div>
+                </div>
+              </div>
           </div>
       </template>
 
