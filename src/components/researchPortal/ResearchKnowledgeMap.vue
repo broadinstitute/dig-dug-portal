@@ -1,12 +1,18 @@
 <template>
-	<div class="research-knowledge-map">
-		<div v-for="row in renderConfig['rows']" :key="row.row" class="k-map-row">
-			<div v-for="column in row.columns" :key="column.id" :id="'k_map_box_'+column.id" class="k-map-box" :style="getBoxStyles()"
-			@mouseenter="highlightMap(column.id,column.highlight)" @mouseleave="cancelHighlights()">
-				<div v-if="column.label" class="k-map-box-label">{{ column.label }}</div>
-				<div v-if="column.image" class="k-map-box-img"><img :src="column.image.path" /></div>
+	<div class="research-knowledge-map" id="research_knowledge_map">
+		<div id="k_map_lines_wrapper">
+			<svg id="k_map_lines_svg" style="border: solid 1px #000000"></svg>
+		</div>
+		<div class="k-map-rows-wrapper">
+			<div v-for="row in renderConfig['rows']" :key="row.row" class="k-map-row">
+				<div v-for="column in row.columns" :key="column.id" :id="'k_map_box_' + column.id" class="k-map-box" :style="getBoxStyles()"
+				@mouseenter="highlightMap(column.id, column.highlight)" @mouseleave="cancelHighlights()">
+					<div v-if="column.label" class="k-map-box-label">{{ column.label }}</div>
+					<div v-if="column.image" class="k-map-box-img"><img :src="column.image.path" /></div>
+				</div>
 			</div>
 		</div>
+		
 		<div id="k_map_box_detail">
 			<research-page-description
 				:utils="utils"
@@ -37,6 +43,17 @@ export default Vue.component("research-knowledge-map", {
 		return {
 			detailedInfo: null,
 			boxDetail: "",
+			defaultStyle: {
+				width: 100,
+				height: 75,
+				corner: 5,
+				hSpace: 15,
+				vSpace: 5,
+				bgColor: "#ffaa00",
+				textColor: "#ffffff",
+				textSize: 16
+			},
+			mapElements: {},
 		};
 	},
 	modules: {
@@ -45,11 +62,10 @@ export default Vue.component("research-knowledge-map", {
 		PageDescription,
 	},
 	created: function () {
-		//if(!!this.renderConfig['detailed info']) {
-			//this.getDetails(this.mapConfig['detailed info']);
-		//}
+		
 	},
 	mounted: function () {
+		this.setMapElements();
 	},
 	beforeDestroy() {
 	},
@@ -70,9 +86,8 @@ export default Vue.component("research-knowledge-map", {
 				document.querySelector('#k_map_box_' + i.to).classList.remove("dimmed");
 			})
 
-			//document.querySelector('#k_map_box_' + FOCUS).classList.remove("dimmed");
+			this.renderLines(FOCUS, ITEMS);
 
-			//this.boxDetail = "<div>"+this.detailedInfo[0][FOCUS]+"</div>";
 			this.boxDetail = "<div>" + this.mapDetails[FOCUS] + "</div>";
 
 		},
@@ -84,36 +99,49 @@ export default Vue.component("research-knowledge-map", {
 			});
 
 			this.boxDetail = "";
+
+			d3.selectAll("svg > *").remove();
 		},
 
-		renderMap() {
-			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
-			let wrapperId = `vector_wrapper_${this.sectionId}`;
+		setMapElements() {
 
-			let bitmapWrapper = document.querySelector(
-				"#" + this.sectionId + "boxPlotWrapper"
-			);
+			this.mapElements["rowsLength"] = this.renderConfig.rows.length;
+			this.mapElements["columnsLength"] = 0;
+			this.mapElements["boxWidth"] = (!!this.renderConfig.styles && this.renderConfig.styles.box) ? this.renderConfig.styles.box.width : this.defaultStyle.width;
+			this.mapElements["boxHeight"] = (!!this.renderConfig.styles && this.renderConfig.styles.box) ? this.renderConfig.styles.box.height : this.defaultStyle.height;
+			this.mapElements["hSpace"] = (!!this.renderConfig.styles && this.renderConfig.styles.box) ? this.renderConfig.styles.box['h space'] : this.defaultStyle.hSpace;
+			this.mapElements["vSpace"] = (!!this.renderConfig.styles && this.renderConfig.styles.box) ? this.renderConfig.styles.box['v space'] : this.defaultStyle.vSpace;
 
-			let margin = {
-				left: this.margin.left/2,
-				right: this.margin.right / 2,
-				top: this.margin.top / 2,
-				bottom: this.margin.bottom / 2,
-				bump: this.margin.bump / 2,
-			}
-			
-			let width = !!this.renderConfig['width']? this.renderConfig['width']: 
-				bitmapWrapper.clientWidth - (margin.left + margin.right);
-			let height = !!this.renderConfig['height'] ? this.renderConfig['height']-(margin.top+margin.bottom) : 150;
+			this.renderConfig.rows.map(row => {
+				this.mapElements["columnsLength"] = (this.mapElements["columnsLength"] >= row.columns.length) ? this.mapElements["columnsLength"] : row.columns.length;
+			})
 
-			let svg = d3.select(wrapperClass)
-				.append("svg")
-				.attr("id", "vector_box_plot_"+this.sectionId )
-				.attr("width", width + margin.left + margin.right)
-				.attr("height", height + margin.top + margin.bottom)
+			let width = this.mapElements["columnsLength"] * (this.mapElements["boxWidth"] + (this.mapElements["hSpace"] * 2)),
+				height = this.mapElements["rowsLength"] * (this.mapElements["boxHeight"] + (this.mapElements["vSpace"] * 2));
+
+				this.mapElements["width"] = width;
+				this.mapElements["height"] = height;
+
+				document.querySelector("#research_knowledge_map").setAttribute("style", "height: "+height+"px;")
+				document.querySelector("#k_map_lines_svg").setAttribute("style", "width:" + width + "px; height: " + height + "px; border: solid 1px #000000;")
+
+		},
+
+		renderLines(FOCUS, ITEMS) {
+			let dimension = this.mapElements;
+
+			let svg = d3.select("#k_map_lines_svg" )
 				.append("g")
-				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+				.attr("transform", "translate(0,0)");
 
+				svg.append("text")
+				.attr("x", (dimension.width / 2))
+				.attr("y", (dimension.height /2))
+				.style("font-family", "Arial").style("font-size", 12)
+				.style("text-anchor", "middle")
+				.text('test');
+
+				/*
 				
 			let localData = [];
 			for (const [key, value] of Object.entries(this.renderData)) {
@@ -296,20 +324,12 @@ export default Vue.component("research-knowledge-map", {
 					return fillColor
 				})
 				.style("stroke-width", 2)
+				*/
 			
 		},
 		getBoxStyles() {
 			let styles = "";
-			let defaultStyle = {
-				width: 100,
-				height: 75,
-				corner: 5,
-				hSpace: 15,
-				vSpace: 5,
-				bgColor: "#ffaa00",
-				textColor:"#ffffff",
-				textSize: 16
-			}
+			let defaultStyle = this.defaultStyle;
 			
 
 			if(!!this.renderConfig['styles']) {
@@ -397,9 +417,19 @@ $(function () {});
 </script>
 
 <style scoped>
+.research-knowledge-map {
+
+}
 .k-map-row {
 	width: 100%;
 	text-align: center;
+}
+
+#k_map_lines_wrapper, .k-map-rows-wrapper {
+	position:absolute;
+	left: 50%;
+	transform: translate(-50%, 0);
+	white-space: nowrap;
 }
 
 .k-map-box {
