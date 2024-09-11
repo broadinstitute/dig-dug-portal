@@ -51,6 +51,8 @@ new Vue({
         MouseGeneSelect,
         MouseDiffExpTable,
         MouseWhiskerPlot,
+        ResearchPheWAS,
+        HugeScoresTable
     },
     mixins: [pageMixin],
     data() {

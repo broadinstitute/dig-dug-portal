@@ -45,6 +45,9 @@
                           {{ $store.state.gene }} in
                           {{ $parent.tissueFormatter($store.state.tissue) }}
                         </h4>
+                        <div v-else>
+                          No differential expression data found for this query.
+                        </div>
                         <div class="row">
                           <div class="col-md-2"></div>
                           <div class="col-md-8">
@@ -65,11 +68,11 @@
               </div>
               <div class="card mdkp-card">
                 <div class="card-body">
-                  <h4>HuGE Scores for Human Homolog</h4>
-                  <research-phewas-plot
-                      v-if="$parent.hugeScores.length > 0"
+                  <h4>HuGE Scores for Human Homolog {{ $store.state.gene }}</h4>
+                  <div v-if="$parent.hugeScores.length > 0">
+                    <research-phewas-plot  
                       ref="hugeScorePheWASPlot"
-                      canvas-id="hugeScorePlot"
+                      :canvas-id="`huge_scores_${$store.state.gene}`"
                       :plotName="`huge_scores_${$store.state.gene}`"
                       :phenotypes-data="$parent.hugeScores"
                       :phenotype-map="
@@ -82,11 +85,21 @@
                       "
                       :pkg-data="null"
                       :pkg-data-selected="null"
-                      :filter="filter"
                       :utils="$parent.utilsBox"
                       :options="['open phenotype page']"
-                  >
-                  </research-phewas-plot>
+                    >
+                    </research-phewas-plot>
+                    <huge-scores-table
+                        :pageKey="$store.state.gene"
+                        leadTableField="phenotype"
+                        :hugeScores="$parent.hugeScores"
+                        :phenotypeMap="
+                            $store.state.bioPortal.phenotypeMap
+                        "
+                    >
+                    </huge-scores-table>
+                  </div>
+                  
                   <div v-else>
                     No human homolog found.
                   </div>
