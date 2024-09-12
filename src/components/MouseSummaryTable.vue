@@ -10,7 +10,7 @@
       :sort-compare="sortRows"
     >
       <template #cell(gene)="row">
-        <a :href="`/gene.html?gene=${row.item.gene}`">
+        <a :href="`/mouse_diff_exp.html?gene=${row.item.gene}&tissue=${row.item.tissue}`">
               {{ row.item.gene }}
         </a>
       </template>

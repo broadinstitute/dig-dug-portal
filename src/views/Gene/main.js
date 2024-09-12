@@ -5,6 +5,7 @@ import store from "./store.js";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import _ from "lodash";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -13,6 +14,7 @@ import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
@@ -35,7 +37,6 @@ import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
-
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
@@ -76,6 +77,7 @@ new Vue({
         GeneAssociationsTable,
         GeneAssociationsMasks,
         Documentation,
+        TooltipDocumentation,
         Autocomplete,
         GeneSelectPicker,
         AncestrySelectPicker,
@@ -461,7 +463,7 @@ new Vue({
         },
 
         diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
+            return this.$store.getters["bioPortal/diseaseGroup"] || {};
         },
 
         region() {
