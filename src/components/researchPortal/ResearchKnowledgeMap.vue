@@ -1,25 +1,27 @@
 <template>
-	<div class="research-knowledge-map" id="research_knowledge_map">
-		<div id="k_map_lines_wrapper">
-			<svg id="k_map_lines_svg" style="border: solid 1px #000000"></svg>
-		</div>
-		<div class="k-map-rows-wrapper">
-			<div v-for="row in renderConfig['rows']" :key="row.row" class="k-map-row">
-				<div v-for="column in row.columns" :key="column.id" :id="'k_map_box_' + column.id" class="k-map-box" :style="getBoxStyles()"
-				@mouseenter="highlightMap(column.id, column.highlight)" @mouseleave="cancelHighlights()">
-					<div v-if="column.label" class="k-map-box-label">{{ column.label }}</div>
-					<div v-if="column.image" class="k-map-box-img"><img :src="column.image.path" /></div>
+	<div>
+		<div class="research-knowledge-map-header" v-text="renderConfig.header"></div>
+		<div class="research-knowledge-map" id="research_knowledge_map">
+			<div id="k_map_lines_wrapper">
+				<svg id="k_map_lines_svg"></svg>
+			</div>
+			<div class="k-map-rows-wrapper">
+				<div v-for="(row) in renderConfig['rows']" :key="row.row" class="k-map-row">
+					<div v-for="(column) in row.columns" :key="column.id" :id="'k_map_box_' + column.id" class="k-map-box" :style="getBoxStyles()"
+					@mouseenter="highlightMap(column.id, column.highlight)" @mouseleave="cancelHighlights()">
+						<div v-if="column.label" class="k-map-box-label">{{ column.label }}</div>
+						<div v-if="column.image" class="k-map-box-img"><img :src="column.image.path" /></div>
+					</div>
 				</div>
 			</div>
+			
+			<div id="k_map_box_detail" class="k-map-box-detail" :style="'margin-left: '+ (mapElements.width + 20)+'px;'">
+				<research-page-description
+					:utils="utils"
+					:content="boxDetail"
+				></research-page-description>
+			</div>
 		</div>
-		
-		<div id="k_map_box_detail">
-			<research-page-description
-				:utils="utils"
-				:content="boxDetail"
-			></research-page-description>
-		</div>
-		{{ detailedInfo }}
 	</div>
 </template>
 
@@ -66,6 +68,7 @@ export default Vue.component("research-knowledge-map", {
 	},
 	mounted: function () {
 		this.setMapElements();
+		this.boxDetail = "<div>" + this.mapDetails['initial'] + "</div>";
 	},
 	beforeDestroy() {
 	},
@@ -77,16 +80,20 @@ export default Vue.component("research-knowledge-map", {
 		highlightMap(FOCUS,ITEMS) {
 			let boxes = document.querySelectorAll('.k-map-box');
 
-			[].forEach.call(boxes, function (box) {
-				box.classList.add("dimmed");
-			});
+			if(!!this.renderConfig.connector && this.renderConfig.connector.includes("highlight")) {
+				[].forEach.call(boxes, function (box) {
+					box.classList.add("dimmed");
+				});
 
-			ITEMS.map(i =>{
-				document.querySelector('#k_map_box_'+i.from).classList.remove("dimmed");
-				document.querySelector('#k_map_box_' + i.to).classList.remove("dimmed");
-			})
+				ITEMS.map(i => {
+					document.querySelector('#k_map_box_' + i.from).classList.remove("dimmed");
+					document.querySelector('#k_map_box_' + i.to).classList.remove("dimmed");
+				})
+			}
 
-			this.renderLines(FOCUS, ITEMS);
+			if (!!this.renderConfig.connector && this.renderConfig.connector.includes("line")) {
+				this.renderLines(ITEMS);
+			}
 
 			this.boxDetail = "<div>" + this.mapDetails[FOCUS] + "</div>";
 
@@ -98,9 +105,9 @@ export default Vue.component("research-knowledge-map", {
 				box.classList.remove("dimmed");
 			});
 
-			this.boxDetail = "";
-
 			d3.selectAll("svg > *").remove();
+
+			this.boxDetail = "<div>" + this.mapDetails['initial'] + "</div>";
 		},
 
 		setMapElements() {
@@ -123,208 +130,84 @@ export default Vue.component("research-knowledge-map", {
 				this.mapElements["height"] = height;
 
 				document.querySelector("#research_knowledge_map").setAttribute("style", "height: "+height+"px;")
-				document.querySelector("#k_map_lines_svg").setAttribute("style", "width:" + width + "px; height: " + height + "px; border: solid 1px #000000;")
+				document.querySelector("#k_map_lines_svg").setAttribute("style", "width:" + width + "px; height: " + height + "px; border-bottom: solid 1px #ff0000")
 
 		},
 
-		renderLines(FOCUS, ITEMS) {
-			let dimension = this.mapElements;
+		renderLines(ITEMS) {
 
-			let svg = d3.select("#k_map_lines_svg" )
-				.append("g")
-				.attr("transform", "translate(0,0)");
+			let getRowColumn = function(ID, renderConfig) {
 
-				svg.append("text")
-				.attr("x", (dimension.width / 2))
-				.attr("y", (dimension.height /2))
-				.style("font-family", "Arial").style("font-size", 12)
-				.style("text-anchor", "middle")
-				.text('test');
+				let temObj = { row: null, column: null, cLength: null }
 
-				/*
-				
-			let localData = [];
-			for (const [key, value] of Object.entries(this.renderData)) {
-				localData = localData.concat(value);
+				renderConfig.rows.map((row, rIndex) => {
+					let cLength = row.columns.length;
+					row.columns.map((column, cIndex) => {
+						if(column.id == ID) {
+							temObj.row = rIndex + 1;
+							temObj.column = cIndex + 1;
+							temObj.cLength = cLength;
+						}
+					})
+				})
+
+				return temObj
 			}
 
-			let maxField = this.renderConfig['y axis field'].max, 
-				minField = this.renderConfig['y axis field'].min,
-				medianField = this.renderConfig['y axis field'].median,
-				q1Field = this.renderConfig['y axis field'].q1,
-				q3Field = this.renderConfig['y axis field'].q3,
-				groupField = this.renderConfig['group by'],
-				renderField = this.renderConfig['render by'];
+			let linesArr = []
 
-			let maxVals = [...new Set(localData.map(d => d[maxField]))],
-				minVals = [...new Set(localData.map(d => d[minField]))],
-				groupVals = [...new Set(localData.map(d => d[groupField]))],
-				colors = this.colors;
+			ITEMS.map(item => {
+				let tempObj = {from: null, to: null};
 
-			let maxVal = Math.ceil(maxVals.reduce((prev, next) => prev > next ? prev : next)),
-				minVal = Math.floor(minVals.reduce((prev, next) => prev < next ? prev : next));
+				tempObj.from = getRowColumn(item.from, this.renderConfig);
+				tempObj.to = getRowColumn(item.to, this.renderConfig)
 
-			let sumstat = d3.nest()
-				.key(function (d) { return d[renderField] })
-				.rollup(function (d) {
-					let D= d[0];
-					let interQuantileRange = D[q3Field] - D[q1Field];
-					return ({ q1: D[q1Field], median: D[medianField], q3: D[q3Field], 
-						interQuantileRange: interQuantileRange, min: D[minField], max: D[maxField], name: D[renderField], group: D[groupField] })
-				})
-				.entries(localData);
+				linesArr.push(tempObj);
 
-			//render axis labels
+			})
 
-			svg.append("text")
-				.attr("x", (width / 2))
-				.attr("y", (height + margin.top - 12))
-				.style("font-family", "Arial").style("font-size", 12)
-				.style("text-anchor", "middle")
-				.text(this.renderConfig['x axis label']);
+			let svg = d3.select("#k_map_lines_svg" );
 
-			svg.append("text")
-				.attr("transform", function (d) {
-					return "translate("+(-margin.left + 20)+"," + (height/2) + ")rotate(-90)";
-				})
-				.attr("x", 0)
-				.attr("y", 0)
-				.style("font-family", "Arial").style("font-size", 12)
-				.style("text-anchor", "middle")
-				.text(this.renderConfig['y axis label']);
+			linesArr.map(line => {
 
+				let x1, y1, x2, y2;
+				let boxColumnDistance = this.mapElements["boxWidth"] + (this.mapElements["hSpace"] * 2),
+					boxRowDistance = this.mapElements["boxHeight"] + (this.mapElements["vSpace"] * 2);
+
+					console.log(boxColumnDistance, boxRowDistance);
+				
+				// First get 'from' position
+
+				let fromColumnWidth = line.from.cLength * boxColumnDistance,
+					maxWidth = this.mapElements.width,
+					fromWidthDiff = maxWidth - fromColumnWidth;
+
+				x1 = (fromWidthDiff / 2) + (line.from.column * boxColumnDistance) - (boxColumnDistance / 2);
+				y1 = (line.from.row * boxRowDistance) - (boxRowDistance / 2);
+
+				// Then get 'to' position
+				let toColumnWidth = line.to.cLength * boxColumnDistance,
+					toWidthDiff = maxWidth - toColumnWidth;
+
+				x2 = (toWidthDiff / 2) + (line.to.column * boxColumnDistance) - (boxColumnDistance / 2);
+				y2 = (line.to.row * boxRowDistance) - (boxRowDistance / 2);
+
+				y1 = (y1 < y2) ? y1 + (this.mapElements["boxHeight"]/2) :
+					(y1 > y2) ? y1 - (this.mapElements["boxHeight"] / 2) : y1;
+
+				y2 = (y2 < y1) ? y2 + (this.mapElements["boxHeight"] / 2) :
+					(y2 > y1) ? y2 - (this.mapElements["boxHeight"] / 2) : y2;	
 
 
-			let x = d3.scaleBand()
-				.range([0, width])
-				.domain(sumstat.map(s=>s.key))
-				.paddingInner(1)
-				.paddingOuter(.5);
-
-			let y = d3.scaleLinear().domain([minVal, maxVal]).range([height, 0]);
-				svg.append("g").call(d3.axisLeft(y));
-
-			svg.append("g")
-				.attr("transform", "translate(0," + height + ")")
-				.call(d3.axisBottom(x).tickFormat(() => ""))
-
-			///render group Label
-			let groupName = "";
-			svg
-				.selectAll("groupText")
-				.data(sumstat)
-				.enter()
-				.append("text")
-				.attr("transform", function (d) {
-					return "translate(" + (x(d.key)-6) + "," + (y(0) + 12) + ")rotate(45)";
-				})
-				.attr("x", 0)
-				.attr("y", 0)
-				.style("font-family", "Arial").style("font-size", 11)
-				.style("fill", function (d) {
-					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
-					let fillColor = colors[keyIndex];
-					return fillColor
-				})
-				.text(function (d) { 
-						if(groupName == "") {
-							groupName = d.value.group
-							return d.value.group
-						} else if(d.value.group == groupName) {
-							groupName = d.value.group
-							return "";
-						} else if(d.value.group != groupName) {
-							groupName = d.value.group
-							return d.value.group;
-						}
-					}
-				);
-
-				// render the main vertical line
-			svg
-				.selectAll("vertLines")
-				.data(sumstat)
-				.enter()
-				.append("line")
-				.attr("x1", function (d) { return (x(d.key)) })
-				.attr("x2", function (d) { return (x(d.key)) })
-				.attr("y1", function (d) { return (y(d.value.min)) })
-				.attr("y2", function (d) { return (y(d.value.max)) })
-				.attr("stroke", function (d) {
-					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
-					let fillColor = colors[keyIndex];
-					return fillColor
-				})
-				.style("stroke-width", 1)
-
-				//render label lines
-
-			svg
-				.selectAll("labelLines")
-				.data(sumstat)
-				.enter()
-				.append("line")
-				.attr("x1", function (d) { return (x(d.key)) })
-				.attr("x2", function (d) { return (x(d.key)) })
-				.attr("y1", function (d) { return (y(d.value.max)) - 3 })
-				.attr("y2", function (d) { return (y(d.value.max) - 8 ) })
-				.attr("stroke", function (d) {
-					let fillColor = "#999999";
-					return fillColor
-				})
-				.style("stroke-width", 1)
-
-				//render labels
-
-			svg
-				.selectAll("labelText")
-				.data(sumstat)
-				.enter()
-				.append("text")
-				.attr("transform", function (d) {
-					return "translate(" + (x(d.key)+3) + "," + (y(d.value.max) - 11) + ")rotate(-90)";
-				})
-				.attr("x", 0)
-				.attr("y", 0)
-				.style("font-family", "Arial").style("font-size", 11)
-				.text( function(d) { return d.key});
-
-
-			let boxWidth = ((width - (margin.left + margin.right)) / sumstat.length) - 20;
-			boxWidth = boxWidth <= 10 ? 10 : boxWidth >= 40 ? 40 : boxWidth;
-
-			svg
-				.selectAll("boxes")
-				.data(sumstat)
-				.enter()
-				.append("rect")
-				.attr("x", function (d) { return (x(d.key) - boxWidth / 2) })
-				.attr("y", function (d) { return (y(d.value.q3)) })
-				.attr("height", function (d) { return (y(d.value.q1) - y(d.value.q3)) })
-				.attr("width", boxWidth)
-				.attr("stroke", function(d) {
-					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
-					let fillColor = colors[keyIndex];
-					return fillColor
-				})
-				.style("fill", "#ffffff")
-
-			svg
-				.selectAll("medianLines")
-				.data(sumstat)
-				.enter()
-				.append("line")
-				.attr("x1", function (d) { return (x(d.key) - boxWidth / 2) })
-				.attr("x2", function (d) { return (x(d.key) + boxWidth / 2) })
-				.attr("y1", function (d) { return (y(d.value.median)) })
-				.attr("y2", function (d) { return (y(d.value.median)) })
-				.attr("stroke", function (d) {
-					let keyIndex = groupVals.indexOf(d.value.group) % colors.length;
-					let fillColor = colors[keyIndex];
-					return fillColor
-				})
-				.style("stroke-width", 2)
-				*/
+				svg.append("line")
+					.attr("x1", x1)
+					.attr("x2", x2)
+					.attr("y1", y1)
+					.attr("y2", y2)
+					.attr("stroke", "#000000")
+					.style("stroke-width", 1)
+			})
+			
 			
 		},
 		getBoxStyles() {
@@ -349,6 +232,7 @@ export default Vue.component("research-knowledge-map", {
 
 			return styles;
 		},
+		/*
 		async getDetails(CONFIG) {
 			
 			let detailsUrl = CONFIG['data point']['url'];
@@ -410,6 +294,7 @@ export default Vue.component("research-knowledge-map", {
 				
 			}
 		}
+			*/
 	},
 });
 
@@ -420,6 +305,10 @@ $(function () {});
 .research-knowledge-map {
 
 }
+
+.research-knowledge-map-header {
+	font-size: 26px;
+}
 .k-map-row {
 	width: 100%;
 	text-align: center;
@@ -427,8 +316,9 @@ $(function () {});
 
 #k_map_lines_wrapper, .k-map-rows-wrapper {
 	position:absolute;
-	left: 50%;
-	transform: translate(-50%, 0);
+	/*left: 50%;
+	transform: translate(-50%, 0);*/
+
 	white-space: nowrap;
 }
 
@@ -466,6 +356,10 @@ $(function () {});
 
 .k-map-box-img img {
 	width: 90%;
+}
+
+.k-map-box-detail {
+	position: relative;
 }
 
 </style>

@@ -299,10 +299,15 @@ new Vue({
 
                     let kMapDetails = {};
 
+                    //First add initial information which may include instructions to use the map
+                    let initialDetail = document.getElementById('k_map_detail_initial');
+                    kMapDetails['initial'] = initialDetail.innerHTML;
+
+                    // Then add detailed information for each boxes
+
                     let rows = this.sectionConfigs["knowledge map"]["rows"];
 
                     rows.map(row => {
-
                         row["columns"].map(column => {
                             let boxDetail = document.getElementById('k_map_detail_' + column.id);
                             kMapDetails[column.id] = boxDetail.innerHTML;
