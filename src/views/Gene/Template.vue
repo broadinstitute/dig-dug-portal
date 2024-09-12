@@ -511,7 +511,9 @@
                                     </h4>
                                     <research-phewas-plot
                                         v-if="
-                                            $parent.transcriptOr52k.length > 0
+                                            $parent.transcriptOr52k.length >
+                                                0 &&
+                                            !$store.state.selectedTranscript
                                         "
                                         ref="rareVariantPheWASPlot"
                                         canvas-id="rareVariantPlot"
@@ -559,11 +561,26 @@
                 class="card mdkp-card"
             >
                 <div class="card-body">
-                    <h4 class="card-title">Variants in NDKP database</h4>
+                    <h4 class="card-title">
+                        ALS variant counts in
+                        {{ $parent.gene.name.toUpperCase() }}
+                        <tooltip-documentation
+                            name="gene.als.variant.tooltip.hover"
+                            :contentFill="$parent.docDetails"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
+                    </h4>
+
                     <documentation
-                        name="variantsearch.subheader"
-                        group="ndkp"
-                    ></documentation>
+                        name="gene.als.variant.subheader"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
+
                     <variant-search
                         :gene="$store.state.geneName"
                     ></variant-search>
@@ -603,14 +620,31 @@
                     </research-expression-display>
                 </div>
             </div>
-            <div class="card mdkp-card"
-                v-if="$store.state.mouseSummary.data.length > 0">
+            <div
+                class="card mdkp-card"
+                v-if="$store.state.mouseSummary.data.length > 0"
+            >
                 <div class="card-body">
                     <h4 class="card-title">
-                        Differential gene expression in mice for
-                        {{ $store.state.geneName }}
+                        Differential
+                        {{ $store.state.geneName }} ortholog expression in mouse
+                        founder strains
+                        <tooltip-documentation
+                            name="gene.mice-diff-exp.tooltip"
+                            :contentFill="$parent.docDetails"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
                     </h4>
-                    <mouse-summary-table 
+                    <documentation
+                        name="gene.mice-diff-exp.subheader"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
+                    <mouse-summary-table
                         :items="$store.state.mouseSummary.data"
                         :isGenePage="true"
                     ></mouse-summary-table>

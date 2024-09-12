@@ -4,9 +4,6 @@ import store from "./store.js";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
-import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
-import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
-import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -16,6 +13,10 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
+import MouseTissueSelect from "@/components/MouseTissueSelect.vue";
+import MouseGeneSelect from "@/components/MouseGeneSelect.vue";
+import MouseDiffExpTable from "@/components/MouseDiffExpTable.vue";
+import MouseWhiskerPlot from "@/components/MouseWhiskerPlot.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -34,9 +35,6 @@ new Vue({
         PageHeader,
         PageFooter,
         Documentation,
-        TooltipDocumentation,
-        TissueHeritabilityTable,
-        TissueExpressionTable,
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
@@ -47,46 +45,16 @@ new Vue({
         ResearchSingleSearch,
         Scatterplot,
         MouseSummaryTable,
+        MouseTissueSelect,
+        MouseGeneSelect,
+        MouseDiffExpTable,
+        MouseWhiskerPlot,
     },
     mixins: [pageMixin],
     data() {
         return {
-            tissue: keyParams.tissue || "",
-            selectTissue: "",
-            logScale: false,
-            plotConfig: {
-                xField: "H",
-                xAxisLabel: "Entropy (genericity)",
-                yField: "meanTpm",
-                yAxisLabel: "TPM (mean)",
-                dotKey: "gene",
-                hoverBoxPosition: "both",
-                hoverFields: [
-                    {
-                        key: "gene",
-                        label: "Gene",
-                    },
-                    {
-                        key: "H",
-                        label: "Genericity",
-                        formatter: Formatters.pValueFormatter,
-                    },
-                    {
-                        key: "Q",
-                        label: "Combined score",
-                        formatter: Formatters.tpmFormatter,
-                    },
-                    {
-                        key: "meanTpm",
-                        label: "TPM (mean)",
-                        formatter: Formatters.tpmFormatter,
-                    },
-                    {
-                        key: "nSamples",
-                        label: "Samples",
-                    },
-                ],
-            },
+            currentPage: 1,
+            perPage: 10,
         };
     },
     computed: {
@@ -103,33 +71,12 @@ new Vue({
             };
             return utils;
         },
-        rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
-        },
-        phenotypesInSession() {
-            if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
-            } else {
-                return this.$store.state.phenotypesInSession;
-            }
-        },
-
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
 
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
         diseaseSystem() {
             return this.$store.getters["bioPortal/diseaseSystem"];
-        },
-        tissueData() {
-            return this.$store.getters["tissueData"];
         },
         docDetails() {
             return {
@@ -138,6 +85,13 @@ new Vue({
                     : "",
             };
         },
+        diffExpData(){
+            let data = structuredClone(this.$store.state.diffExp.data); 
+            for (let i = 0; i < data.length; i++){
+                data[i].founder_sex = `${data[i].founder}_${data[i].sex}`;
+            }
+            return data;
+        }
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -145,23 +99,14 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
-        if (this.tissue) {
-            this.$store.dispatch("getTissue");
-            this.$store.dispatch("getMouseData");
-        }
+
+        this.$store.dispatch("queryDiffExp");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
-        newTissue(tissue) {
-            this.selectTissue = tissue;
-        },
-        updateTissueData() {
-            this.tissue = this.selectTissue;
-            this.$store.commit("setTissueName", this.tissue);
-            this.$store.dispatch("getTissue");
-            this.$store.dispatch("getMouseData");
-        },
+        searchDiffExp(){
+            this.$store.dispatch("queryDiffExp");
+        }
     },
-
     render: (h) => h(Template),
 }).$mount("#app");

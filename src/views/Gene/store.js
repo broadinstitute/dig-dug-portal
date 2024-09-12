@@ -186,9 +186,9 @@ export default new Vuex.Store({
             let name = context.state.geneName;
             context.dispatch("hugeScores/query", { q: name });
         },
-        async getMouseData(context){
+        async getMouseData(context) {
             let name = context.state.geneName;
-            context.dispatch("mouseSummary/query", {q: name});
+            context.dispatch("mouseSummary/query", { q: name });
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);

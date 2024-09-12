@@ -53,17 +53,20 @@
                         <criterion-function-group>
                             <div class="col filter-col-md">
                                 <div class="label">Plot Scale</div>
-                                <select v-model="$parent.logScale" class="form-control">
+                                <select
+                                    v-model="$parent.logScale"
+                                    class="form-control"
+                                >
                                     <option :value="false">Linear</option>
-                                    <option :value="true">Logarithmic: log10(TPM+1)</option>
+                                    <option :value="true">
+                                        Logarithmic: log10(TPM+1)
+                                    </option>
                                 </select>
                             </div>
                             <filter-enumeration-control
                                 field="gene"
                                 placeholder="Select a gene ..."
-                                :options="
-                                    $parent.tissueData.map(d => d.gene)
-                                "
+                                :options="$parent.tissueData.map((d) => d.gene)"
                                 :multiple="true"
                             >
                                 <div class="label">Filter by Genes</div>
@@ -108,14 +111,33 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <div class="card mdkp-card"
-                    v-if="$store.state.mouseSummary.data.length > 0">
+                <div
+                    class="card mdkp-card"
+                    v-if="$store.state.mouseSummary.data.length > 0"
+                >
                     <div class="card-body">
-                        <h4 class=card-title>
-                            Differential mouse gene expression in
-                            {{ $parent.tissueFormatter($parent.tissue) }}
+                        <h4 class="card-title">
+                            Differential gene expression in
+                            {{ $parent.tissueFormatter($parent.tissue) }}, in
+                            mouse founder strains
+                            <tooltip-documentation
+                                name="tissue.mice-diff-exp.tooltip"
+                                :contentFill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
+                            >
+                            </tooltip-documentation>
                         </h4>
-                        <mouse-summary-table 
+                        <documentation
+                            name="tissue.mice-diff-exp.subheader"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        >
+                        </documentation>
+                        <mouse-summary-table
                             :items="$store.state.mouseSummary.data"
                         >
                         </mouse-summary-table>
