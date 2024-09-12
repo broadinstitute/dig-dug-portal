@@ -90,7 +90,7 @@ export default Vue.component("research-knowledge-map", {
 					document.querySelector('#k_map_box_' + i.to).classList.remove("dimmed");
 				})
 			}
-
+			console.log('ITEMS', ITEMS)
 			if (!!this.renderConfig.connector && this.renderConfig.connector.includes("line")) {
 				this.renderLines(ITEMS);
 			}
@@ -135,7 +135,60 @@ export default Vue.component("research-knowledge-map", {
 		},
 
 		renderLines(ITEMS) {
+			//map containers
+			const svg = document.querySelector("#k_map_lines_svg" );
+			const boxesContainer = document.querySelector('.k-map-rows-wrapper');
+			const parentRect = boxesContainer.getBoundingClientRect();
 
+			//get elements to connect
+			const elements = [];
+			ITEMS.map(i => {
+				elements.push({
+					from: document.querySelector('#k_map_box_' + i.from),
+					to: document.querySelector('#k_map_box_' + i.to)
+				})
+			})
+
+			//creates line svg element
+			const drawLine = (x1, y1, x2, y2) => {
+				const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+				line.setAttribute('x1', x1);
+				line.setAttribute('y1', y1);
+				line.setAttribute('x2', x2);
+				line.setAttribute('y2', y2);
+				line.setAttribute('stroke', 'black');
+				line.setAttribute('stroke-width', '2');
+				svg.appendChild(line);
+			}
+
+			//loop through elements and connect by positions
+			elements.forEach(box => {
+				const fromRect = box.from.getBoundingClientRect();
+				const toRect = box.to.getBoundingClientRect();
+
+				let fromAnchor = 0;
+				let toAnchor = 0;
+				if(fromRect.top === toRect.top){
+					//boxes are at same height, line from center to center
+					fromAnchor = fromRect.height/2;
+					toAnchor = toRect.height/2;
+				}else if(fromRect.top < toRect.top){
+					//from box is higher up than to box, anchor should be at bottom of from box
+					fromAnchor = fromRect.height; 
+				}else{
+					//from box is lower down than to box, anchor should be at bottom of to box
+					toAnchor = toRect.height; 
+				}
+
+				const x1 = (fromRect.left - parentRect.left) + fromRect.width/2;
+				const y1 = (fromRect.top - parentRect.top) + fromAnchor;
+				const x2 = (toRect.left - parentRect.left) + toRect.width/2;
+				const y2 = (toRect.top - parentRect.top) + toAnchor;
+
+				drawLine(x1, y1, x2, y2);
+			});
+
+			/*
 			let getRowColumn = function(ID, renderConfig) {
 
 				let temObj = { row: null, column: null, cLength: null }
@@ -165,6 +218,10 @@ export default Vue.component("research-knowledge-map", {
 				linesArr.push(tempObj);
 
 			})
+
+			console.log('linesArr', linesArr);
+
+			console.log('mapElements', this.mapElements);
 
 			let svg = d3.select("#k_map_lines_svg" );
 
@@ -207,7 +264,7 @@ export default Vue.component("research-knowledge-map", {
 					.attr("stroke", "#000000")
 					.style("stroke-width", 1)
 			})
-			
+			*/
 			
 		},
 		getBoxStyles() {
