@@ -15,7 +15,8 @@ export default new Vuex.Store({
         kp4cd,
         diffExp: bioIndex("diff-exp"),
         tissueSummary: bioIndex("diff-exp-summary-tissue"),
-        geneSummary: bioIndex("diff-exp-summary-gene")
+        geneSummary: bioIndex("diff-exp-summary-gene"),
+        hugeScores: bioIndex("huge"),
     },
     state: {
         tissue: keyParams.tissue || "",
@@ -64,6 +65,7 @@ export default new Vuex.Store({
             if (!!gene){
                 console.log("we have gene");
                 context.dispatch("geneSummary/query", {q: gene});
+                context.dispatch("hugeScores/query", { q: gene });
             }
             if (!!gene && !!tissue) {
                 context.dispatch("diffExp/query", { q: 
