@@ -17,6 +17,11 @@ export default new Vuex.Store({
         tissueSummary: bioIndex("diff-exp-summary-tissue"),
         geneSummary: bioIndex("diff-exp-summary-gene"),
         hugeScores: bioIndex("huge"),
+        geneassociations: bioIndex("gene-associations"),
+        varassociations: bioIndex("associations"),
+        associations52k: bioIndex("gene-associations-52k"),
+        geneToTranscript: bioIndex("gene-to-transcript"),
+        transcriptAssoc: bioIndex("transcript-associations"),
     },
     state: {
         tissue: keyParams.tissue || "",
@@ -34,9 +39,15 @@ export default new Vuex.Store({
         setGeneName(state, geneName) {
             state.gene = geneName || state.gene;
             keyParams.set({ gene: state.gene });
-        }
+        },
+        setCommonVariantsLength(state, NUM) {
+            state.commonVariantsLength = NUM;
+        },
     },
     actions: {
+        commonVariantsLength(context, NUM) {
+            context.commit("setCommonVariantsLength", NUM);
+        },
         async getTissueKeys(context) {
 			let tissues = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/diff-exp/2?columns=tissue`)
 				.then(resp => resp.json())
@@ -63,9 +74,11 @@ export default new Vuex.Store({
                 context.dispatch("tissueSummary/query", {q: tissue});
             }
             if (!!gene){
-                console.log("we have gene");
-                context.dispatch("geneSummary/query", {q: gene});
-                context.dispatch("hugeScores/query", { q: gene });
+                let query = { q: gene};
+                context.dispatch("geneSummary/query", query);
+                context.dispatch("hugeScores/query", query);
+                context.dispatch("associations52k/query", query);
+                context.dispatch("geneassociations/query", query);
             }
             if (!!gene && !!tissue) {
                 context.dispatch("diffExp/query", { q: 

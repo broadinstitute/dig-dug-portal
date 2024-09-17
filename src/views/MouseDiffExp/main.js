@@ -4,6 +4,7 @@ import store from "./store.js";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -19,6 +20,10 @@ import MouseDiffExpTable from "@/components/MouseDiffExpTable.vue";
 import MouseWhiskerPlot from "@/components/MouseWhiskerPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable";
+import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
+
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -37,6 +42,7 @@ new Vue({
         PageHeader,
         PageFooter,
         Documentation,
+        TooltipDocumentation,
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
@@ -52,7 +58,10 @@ new Vue({
         MouseDiffExpTable,
         MouseWhiskerPlot,
         ResearchPheWAS,
-        HugeScoresTable
+        HugeScoresTable,
+        UnauthorizedMessage,
+        GeneAssociationsMasks,
+        GeneAssociationsTable,
     },
     mixins: [pageMixin],
     data() {
@@ -106,6 +115,26 @@ new Vue({
                     bottom: 300,
                 },
             },
+            commonVariantRenderConfig: {
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "phenotype group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "beta",
+                "beta field": "null",
+                "hover content": ["pValue"],
+                thresholds: ["2.5e-6"],
+                height: "600",
+                "plot margin": {
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
+            },
         };
     },
     computed: {
@@ -121,6 +150,13 @@ new Vue({
                 regionUtils: regionUtils,
             };
             return utils;
+        },
+        rareVariantRenderConfig(){
+            let config = structuredClone(this.commonVariantRenderConfig);
+            config["beta field"] = "beta";
+            config["hover content"].push("beta");
+            config["thresholds"].push(0.05);
+            return config;
         },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
@@ -145,6 +181,82 @@ new Vue({
                 data[i].founder_sex = `${data[i].founder}_${data[i].sex}`;
             }
             return data;
+        },
+        geneassociations() {
+            let data = this.$store.state.geneassociations.data;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
+            }
+
+            let assocMap = {};
+
+            for (let i in data) {
+                const assoc = data[i];
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+            // convert to an array, sorted by p-value
+            let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            return x;
+        },
+        transcriptOr52k() {
+            let endpoint = !this.$store.state.selectedTranscript
+                ? this.$store.state.associations52k
+                : this.$store.state.transcriptAssoc;
+            this.$store.state.restricted = endpoint.restricted;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                endpoint.data = sessionUtils.getInSession(
+                    endpoint.data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
+            }
+
+            let assocMap = {};
+
+            for (let i in endpoint.data) {
+                const assoc = endpoint.data[i];
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+            endpoint.data.sort(
+                (a, b) =>
+                    this.pValueFormatter(a.pValue) -
+                    this.pValueFormatter(b.pValue)
+            );
+
+            return endpoint.data;
+        },
+        filteredAssociations() {
+            return (
+                this.geneassociations.filter((row) => {
+                    return this.phenotypeMap[row.phenotype];
+                }) || []
+            );
         },
         hugeScores() {
             let data = sortUtils.sortArrOfObjects(
@@ -197,11 +309,20 @@ new Vue({
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
         searchDiffExp(){
             this.$store.dispatch("queryDiffExp");
         },
         filterPhenotype(newFilters) {
             this.phenotypeFilterList = newFilters;
+        },
+        renderPhewas(REF) {
+            this.activeTab = REF;
+            let refComponent = this.$children[0].$refs[REF];
+            setTimeout(function () {
+                refComponent.renderPheWas();
+            }, 500);
         },
     },
     render: (h) => h(Template),
