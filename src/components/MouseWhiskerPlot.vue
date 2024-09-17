@@ -228,7 +228,7 @@ export default Vue.component("mouse-whisker-plot", {
                   - jitterWidth/2 + Math.random()*jitterWidth)
                 .attr("cy", d => this.yScale(d[this.tpmField]))
                 .attr("r", 4)
-                .style("fill", d => this.colorMap[d[this.keyField]])
+                .style("fill", d => this.colorMap[d.founder])
                 .attr("stroke", "black")
                 .on("mouseover", g => this.showTooltip(g))
                 .on("mouseleave", g => this.hideTooltip());
