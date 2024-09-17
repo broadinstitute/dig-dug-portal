@@ -69,6 +69,7 @@ new Vue({
             currentPage: 1,
             perPage: 10,
             phenotypeFilterList: [],
+            activeTab: "hugeScorePheWASPlot",
             plotColors: [
                 "#007bff",
                 "#048845",

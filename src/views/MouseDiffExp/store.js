@@ -48,7 +48,6 @@ export default new Vuex.Store({
     },
     getters: {
         region(state) {
-            console.log("getting region");
             let data = state.homologGene.data;
 
             if (data.length > 0) {
@@ -78,7 +77,6 @@ export default new Vuex.Store({
             context.state.tissueKeys = tissues;
 		},
         async selectGeneName(context, geneName){
-            console.log(geneName);
             context.state.geneToQuery = geneName;
         },
         async queryDiffExp(context) {

@@ -89,6 +89,7 @@
                           <div class="label">Phenotypes</div>
                       </filter-enumeration-control>
                       <filter-greater-control
+                          v-if="$parent.activeTab === 'hugeScorePheWASPlot'"
                           :field="'huge'"
                           placeholder="Set HuGE..."
                       >
@@ -96,6 +97,13 @@
                               <strong>HuGE Score (&ge;)</strong>
                           </div>
                       </filter-greater-control>
+                      <filter-pvalue-control
+                            v-if="$parent.activeTab !== 'hugeScorePheWASPlot'"
+                            :field="'pValue'"
+                            placeholder="Set P-Value ..."
+                        >
+                            <div class="label">P-Value (&le;)</div>
+                        </filter-pvalue-control>
                       <template slot="filtered" slot-scope="{ filter }">
                             <span class="filter-pill-collection center">
                                 <b-badge
