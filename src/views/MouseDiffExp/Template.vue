@@ -68,7 +68,7 @@
               </div>
               <div class="card mdkp-card">
                 <div class="card-body">
-                  <h4>HuGE Scores for Human Homolog {{ $store.state.gene }}</h4>
+                  <h4>Human Homolog {{ $store.state.gene }}</h4>
                   <div v-if="$parent.hugeScores.length > 0">
                     <criterion-function-group
                         @update:filter-list="

@@ -22,6 +22,7 @@ export default new Vuex.Store({
         associations52k: bioIndex("gene-associations-52k"),
         geneToTranscript: bioIndex("gene-to-transcript"),
         transcriptAssoc: bioIndex("transcript-associations"),
+        homologGene: bioIndex("gene"),
     },
     state: {
         tissue: keyParams.tissue || "",
@@ -43,6 +44,22 @@ export default new Vuex.Store({
         },
         setCommonVariantsLength(state, NUM) {
             state.commonVariantsLength = NUM;
+        },
+    },
+    getters: {
+        region(state) {
+            console.log("getting region");
+            let data = state.homologGene.data;
+
+            if (data.length > 0) {
+                let gene = data[0];
+
+                return {
+                    chromosome: gene.chromosome,
+                    start: gene.start,
+                    end: gene.end,
+                };
+            }
         },
     },
     actions: {
@@ -80,6 +97,8 @@ export default new Vuex.Store({
                 context.dispatch("hugeScores/query", query);
                 context.dispatch("associations52k/query", query);
                 context.dispatch("geneassociations/query", query);
+                context.dispatch("homologGene/query", query);
+                context.dispatch("geneToTranscript/query", query);
             }
             if (!!gene && !!tissue) {
                 context.dispatch("diffExp/query", { q: 

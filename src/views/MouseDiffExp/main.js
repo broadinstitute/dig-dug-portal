@@ -168,11 +168,19 @@ new Vue({
         diseaseSystem() {
             return this.$store.getters["bioPortal/diseaseSystem"];
         },
+        homologRegion() {
+            return this.$store.getters.region;
+        },
         docDetails() {
+            let r = this.homologRegion;
             return {
                 tissue: this.tissue
                     ? this.tissue.toUpperCase().replaceAll("_", " ")
                     : "",
+                gene: this.$store.state.gene,
+                region: !!r ? `${r.chromosome}:${Formatters.intFormatter(
+                    r.start
+                )}-${Formatters.intFormatter(r.end)}` : null,
             };
         },
         diffExpData(){
