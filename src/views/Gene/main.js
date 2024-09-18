@@ -5,6 +5,7 @@ import store from "./store.js";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import _ from "lodash";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -13,6 +14,7 @@ import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
@@ -25,6 +27,7 @@ import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -74,6 +77,7 @@ new Vue({
         GeneAssociationsTable,
         GeneAssociationsMasks,
         Documentation,
+        TooltipDocumentation,
         Autocomplete,
         GeneSelectPicker,
         AncestrySelectPicker,
@@ -98,6 +102,7 @@ new Vue({
         HugeScoresTable,
         EffectorGenesSectionOnGene,
         ResearchSingleSearch,
+        MouseSummaryTable,
     },
 
     data() {
@@ -458,7 +463,7 @@ new Vue({
         },
 
         diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
+            return this.$store.getters["bioPortal/diseaseGroup"] || {};
         },
 
         region() {
@@ -612,6 +617,7 @@ new Vue({
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
+            this.$store.dispatch("getMouseData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
             let geneQuery = !newAncestry

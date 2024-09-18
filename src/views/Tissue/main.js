@@ -4,6 +4,7 @@ import store from "./store.js";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -14,6 +15,7 @@ import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -32,6 +34,7 @@ new Vue({
         PageHeader,
         PageFooter,
         Documentation,
+        TooltipDocumentation,
         TissueHeritabilityTable,
         TissueExpressionTable,
         CriterionFunctionGroup,
@@ -43,6 +46,7 @@ new Vue({
         TissueSelectPicker,
         ResearchSingleSearch,
         Scatterplot,
+        MouseSummaryTable,
     },
     mixins: [pageMixin],
     data() {
@@ -143,6 +147,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         if (this.tissue) {
             this.$store.dispatch("getTissue");
+            this.$store.dispatch("getMouseData");
         }
     },
     methods: {
@@ -154,6 +159,7 @@ new Vue({
             this.tissue = this.selectTissue;
             this.$store.commit("setTissueName", this.tissue);
             this.$store.dispatch("getTissue");
+            this.$store.dispatch("getMouseData");
         },
     },
 
