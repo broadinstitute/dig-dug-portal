@@ -4,6 +4,7 @@ import store from "./store.js";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -14,6 +15,7 @@ import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -32,6 +34,7 @@ new Vue({
         PageHeader,
         PageFooter,
         Documentation,
+        TooltipDocumentation,
         TissueHeritabilityTable,
         TissueExpressionTable,
         CriterionFunctionGroup,
@@ -42,7 +45,8 @@ new Vue({
         SearchHeaderWrapper,
         TissueSelectPicker,
         ResearchSingleSearch,
-        Scatterplot
+        Scatterplot,
+        MouseSummaryTable,
     },
     mixins: [pageMixin],
     data() {
@@ -58,43 +62,32 @@ new Vue({
                 dotKey: "gene",
                 hoverBoxPosition: "both",
                 hoverFields: [
-                    { 
+                    {
                         key: "gene",
                         label: "Gene",
                     },
                     {
                         key: "H",
                         label: "Genericity",
-                        formatter: Formatters.pValueFormatter
+                        formatter: Formatters.pValueFormatter,
                     },
                     {
                         key: "Q",
                         label: "Combined score",
-                        formatter: Formatters.tpmFormatter
+                        formatter: Formatters.tpmFormatter,
                     },
                     {
                         key: "meanTpm",
                         label: "TPM (mean)",
-                        formatter: Formatters.tpmFormatter
+                        formatter: Formatters.tpmFormatter,
                     },
-                    { 
+                    {
                         key: "nSamples",
-                        label: "Samples"
-                    }
-                ]
-            }
+                        label: "Samples",
+                    },
+                ],
+            },
         };
-    },
-    methods: {
-        tissueFormatter: Formatters.tissueFormatter,
-        newTissue(tissue) {
-            this.selectTissue = tissue;
-        },
-        updateTissueData() {
-            this.tissue = this.selectTissue;
-            this.$store.commit("setTissueName", this.tissue);
-            this.$store.dispatch("getTissue");
-        },
     },
     computed: {
         utilsBox() {
@@ -138,7 +131,7 @@ new Vue({
         tissueData() {
             return this.$store.getters["tissueData"];
         },
-        documentationMap() {
+        docDetails() {
             return {
                 tissue: this.tissue
                     ? this.tissue.toUpperCase().replaceAll("_", " ")
@@ -154,7 +147,20 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         if (this.tissue) {
             this.$store.dispatch("getTissue");
+            this.$store.dispatch("getMouseData");
         }
+    },
+    methods: {
+        tissueFormatter: Formatters.tissueFormatter,
+        newTissue(tissue) {
+            this.selectTissue = tissue;
+        },
+        updateTissueData() {
+            this.tissue = this.selectTissue;
+            this.$store.commit("setTissueName", this.tissue);
+            this.$store.dispatch("getTissue");
+            this.$store.dispatch("getMouseData");
+        },
     },
 
     render: (h) => h(Template),

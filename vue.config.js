@@ -278,6 +278,13 @@ let pages = {
         title: "MATKP | Cell Browser",
         chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser"],
     },
+    matkp_cellbrowser2: {
+        entry: "src/views/MATKP/CellBrowser2/main.js",
+        template: "public/index.html",
+        filename: "matkp/cellbrowser2.html",
+        title: "MATKP | Cell Browser",
+        chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser2"],
+    },
     matkp_datasets: {
         entry: "src/views/MATKP/Datasets/main.js",
         template: "public/index.html",
@@ -313,6 +320,13 @@ let pages = {
         title: "PIGEAN Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "pigean_phenotype"],
     },
+    mouse_diff_exp: {
+        entry: "src/views/MouseDiffExp/main.js",
+        template: "public/index.html",
+        filename: "mouse_diff_exp.html",
+        title: "Mouse Differential Expression",
+        chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
+    }
 };
 
 // remove the debug page in production

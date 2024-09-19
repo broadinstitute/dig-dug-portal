@@ -5,12 +5,12 @@ import store from "./store.js";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import "../assets/matkp-styles.css"
 
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
-import matkpWrapper from '../components/matkp-wrapper.vue';
 import matkpNav from "../components/matkp-nav.vue"
 import matkpHero from "../components/matkp-hero.vue"
 import matkpFooter from "../components/matkp-footer.vue"
@@ -19,14 +19,12 @@ import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"; 
-
 const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
 
 new Vue({
     store,
 
     components: {
-        matkpWrapper,
         matkpHero,
         matkpNav,
         matkpFooter

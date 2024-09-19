@@ -16,6 +16,7 @@ export default new Vuex.Store({
         tissue: bioIndex("gene-expression-tissue"),
         geneExpression: bioIndex("gene-expression"),
         geneLinks: bioIndex("gene-links"),
+        mouseSummary: bioIndex("diff-exp-summary-tissue"),
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -42,6 +43,14 @@ export default new Vuex.Store({
                 q,
             });
             return evidence;
+        },
+        async getMouseData(context){
+            let name = context.state.tissueName;
+            // TODO FIX BIOINDICES
+            if (name === 'adipose_tissue'){
+                name = 'adipose';
+            }
+            context.dispatch("mouseSummary/query", {q: name});
         },
         onTissueChange(context, tissue){
             tissue = tissue.replaceAll(" ", "_");

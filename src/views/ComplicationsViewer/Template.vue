@@ -4,7 +4,9 @@
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <documentation name="complicationsviewer.header.info"></documentation>
+                    <documentation name="complicationsviewer.header.info"
+                        :contentMap="$store.state.bioPortal.documentations">
+                    </documentation>
                 </div>
             </div>
             <div class="card mdkp-card">
@@ -14,6 +16,7 @@
                     <documentation
                         style="margin-bottom: 30px"
                         name="tools.complicationsviewer.subheader"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
@@ -104,7 +107,7 @@
                                         :src="`/api/raw/plot/phenotype/${pheno}/manhattan.png`"
                                         alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
-                                        :content-fill="{
+                                        :contentFill="{
                                             phenotype:
                                                 $store.state.bioPortal
                                                     .phenotypeMap[pheno]
@@ -120,7 +123,7 @@
                                         :src="`/api/raw/plot/phenotype/${pheno}/qq.png`"
                                         alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
-                                        :content-fill="{
+                                        :contentFill="{
                                             phenotype:
                                                 $store.state.bioPortal
                                                     .phenotypeMap[pheno]

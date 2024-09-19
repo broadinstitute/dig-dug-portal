@@ -90,9 +90,14 @@
             <div class="card mdkp-card">
                 <div class="card-body pigean-title">
                     <h4 class="card-title">
-                        Gene
-                        {{ $store.state.geneName }}
+                        Traits with genetic support
                     </h4>
+                    <div>
+                        Combined genetic support is composed of direct support 
+                        (from GWAS associations near the gene) and indirect support 
+                        (membership in gene sets with genetic support). 
+                        Units are log-odds of probability.
+                    </div>
                 </div>
                 <div class="card-body">
                     <criterion-function-group>
@@ -120,6 +125,7 @@
                         </filter-enumeration-control>
                         <filter-greater-less
                             v-for="filterField in $parent.filterFields"
+                            :key="filterField.key"
                             :field="filterField.key"
                             :label="filterField.label"
                         >

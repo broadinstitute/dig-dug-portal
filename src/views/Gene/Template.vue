@@ -24,18 +24,16 @@
         </div>
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-
-             <search-header-wrapper>
+            <search-header-wrapper>
                 <div>
                     <div class="region-search col filter-col-md">
                         <div class="label">Begin new search</div>
                         <research-single-search
                             :single-search-config="null"
-                            :phenotypes="$parent.phenotypesInSession
-                                "
+                            :phenotypes="$parent.phenotypesInSession"
                             :utils="$parent.utilsBox"
                         ></research-single-search>
-                    </div>                        
+                    </div>
                 </div>
             </search-header-wrapper>
             <div class="gene-page-header card mdkp-card">
@@ -70,11 +68,13 @@
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
                     <documentation
                         name="gene.explore.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     >
                     </documentation>
                 </div>
@@ -87,9 +87,10 @@
                         }}
                         <tooltip-documentation
                             name="gene.translator.tooltip.hover"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         >
                         </tooltip-documentation>
                     </h4>
@@ -102,11 +103,15 @@
                                             Function
                                             <tooltip-documentation
                                                 name="gene.function.tooltip.hover"
-                                                :content-fill="
-                                                    $parent.documentationMap
+                                                :contentFill="
+                                                    $parent.docDetails
                                                 "
                                                 :is-hover="true"
                                                 :no-icon="false"
+                                                :contentMap="
+                                                    $store.state.bioPortal
+                                                        .documentations
+                                                "
                                             >
                                             </tooltip-documentation>
                                         </h4>
@@ -187,16 +192,18 @@
                         }}
                         <tooltip-documentation
                             name="gene.level.association.tooltip.hover"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         >
                         </tooltip-documentation>
                     </h4>
                     <span>
                         <documentation
                             name="gene.level.association.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
                         >
                         </documentation>
                     </span>
@@ -271,6 +278,10 @@
                         >
                             <div class="label">Transcript</div>
                             <transcript-selectpicker
+                                v-if="
+                                    $store.state.geneToTranscript &&
+                                    $store.state.geneToTranscript.length
+                                "
                                 :transcripts="
                                     $store.state.geneToTranscript.data
                                 "
@@ -345,8 +356,10 @@
                                     <span>
                                         <documentation
                                             name="gene.hugecal.subheader"
-                                            :content-fill="
-                                                $parent.documentationMap
+                                            :contentFill="$parent.docDetails"
+                                            :contentMap="
+                                                $store.state.bioPortal
+                                                    .documentations
                                             "
                                         >
                                         </documentation>
@@ -416,11 +429,13 @@
                                         }})
                                         <tooltip-documentation
                                             name="gene.associations.tooltip.hover"
-                                            :content-fill="
-                                                $parent.documentationMap
-                                            "
+                                            :contentFill="$parent.docDetails"
                                             :is-hover="true"
                                             :no-icon="false"
+                                            :contentMap="
+                                                $store.state.bioPortal
+                                                    .documentations
+                                            "
                                         >
                                         </tooltip-documentation>
                                     </h4>
@@ -485,16 +500,20 @@
                                         }}
                                         <tooltip-documentation
                                             name="gene.52k.tooltip.hover"
-                                            :content-fill="
-                                                $parent.documentationMap
-                                            "
+                                            :contentFill="$parent.docDetails"
                                             :is-hover="true"
                                             :no-icon="false"
+                                            :contentMap="
+                                                $store.state.bioPortal
+                                                    .documentations
+                                            "
                                         ></tooltip-documentation>
                                     </h4>
                                     <research-phewas-plot
                                         v-if="
-                                            $parent.transcriptOr52k.length > 0
+                                            $parent.transcriptOr52k.length >
+                                                0 &&
+                                            !$store.state.selectedTranscript
                                         "
                                         ref="rareVariantPheWASPlot"
                                         canvas-id="rareVariantPlot"
@@ -535,6 +554,40 @@
                     </criterion-function-group>
                 </div>
             </div>
+
+            <!-- NDKP only -->
+            <div
+                v-if="$parent.diseaseGroup.name == 'ndkp'"
+                class="card mdkp-card"
+            >
+                <div class="card-body">
+                    <h4 class="card-title">
+                        ALS variant counts in
+                        {{ $parent.gene.name.toUpperCase() }}
+                        <tooltip-documentation
+                            name="gene.als.variant.tooltip.hover"
+                            :contentFill="$parent.docDetails"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
+                    </h4>
+
+                    <documentation
+                        name="gene.als.variant.subheader"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
+
+                    <variant-search
+                        :gene="$store.state.geneName"
+                    ></variant-search>
+                </div>
+            </div>
+            <!-- end of NDKP only -->
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
@@ -542,15 +595,17 @@
                         {{ $store.state.geneName }}
                         <tooltip-documentation
                             name="gene.gene-expression.tooltip"
-                            :content-fill="$parent.documentationMap"
+                            :contentFill="$parent.docDetails"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         >
                         </tooltip-documentation>
                     </h4>
                     <documentation
                         name="gene.gene-expression.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     >
                     </documentation>
                     <research-expression-display
@@ -565,6 +620,36 @@
                     </research-expression-display>
                 </div>
             </div>
+            <div
+                class="card mdkp-card"
+                v-if="$store.state.mouseSummary.data.length > 0"
+            >
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Differential
+                        {{ $store.state.geneName }} ortholog expression in mouse
+                        founder strains
+                        <tooltip-documentation
+                            name="gene.mice-diff-exp.tooltip"
+                            :contentFill="$parent.docDetails"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
+                    </h4>
+                    <documentation
+                        name="gene.mice-diff-exp.subheader"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
+                    <mouse-summary-table
+                        :items="$store.state.mouseSummary.data"
+                        :isGenePage="true"
+                    ></mouse-summary-table>
+                </div>
+            </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
@@ -577,9 +662,12 @@
                             }}
                             <tooltip-documentation
                                 name="gene.effector-gene.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
                             >
                             </tooltip-documentation>
                         </h4>
@@ -598,7 +686,10 @@
                             UniProt cross-references
                             <tooltip-documentation
                                 name="gene.xref.tooltip.hover"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
                                 :is-hover="true"
                                 :no-icon="false"
                             >

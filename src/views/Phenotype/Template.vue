@@ -50,7 +50,7 @@
                 <div class="card-body temporary-card">
                     <documentation
                         name="phenotype.page.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                 </div>
             </div>
@@ -83,8 +83,8 @@
                                         :src="$parent.manhattanPlot"
                                         alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
-                                        :content-fill="
-                                            $store.getters['documentationMap']
+                                        :contentFill="
+                                            $store.getters['docDetails']
                                         "
                                         :custom-failure-msg="'No Manhattan plot available for this query.'"
                                     />
@@ -97,8 +97,8 @@
                                         :src="$parent.qqPlot"
                                         alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
-                                        :content-fill="
-                                            $store.getters['documentationMap']
+                                        :contentFill="
+                                            $store.getters['docDetails']
                                         "
                                         :custom-failure-msg="'No Q-Q plot available for this query.'"
                                     />
@@ -123,9 +123,10 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.topvariants.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
 
@@ -167,7 +168,7 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <documentation
                                     name="pheno.top_assoc.subheader"
-                                    :content-fill="$parent.documentationMap"
+                                    :contentMap="$store.state.bioPortal.documentations"
                                 ></documentation>
                                 <meta-analysis-bar-graph
                                     :graph-data="
@@ -211,9 +212,10 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.cs2ct.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <criterion-function-group>
@@ -280,7 +282,7 @@
                         </h4>
                         <documentation
                             name="pheno.assocdatasets.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
 
                         <criterion-function-group>
@@ -316,9 +318,10 @@
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
 
@@ -429,9 +432,10 @@
                                       )
                             }})&nbsp;<tooltip-documentation
                                 name="phenotype.pathway.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <pathway-table
@@ -455,14 +459,15 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.correlation.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="phenotype.correlation.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
                         <criterion-function-group>
                             <filter-enumeration-control
@@ -527,14 +532,15 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.annot.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="pheno.globalenrich.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
 
                         <criterion-function-group>
@@ -585,9 +591,10 @@
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="phenotype.effector-gene.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
 

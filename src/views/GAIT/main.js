@@ -21,7 +21,6 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 new Vue({
-    el: "#app",
     store,
     components: {
         Documentation,
@@ -237,6 +236,9 @@ new Vue({
         },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
+        },
+        contentMap() {
+            return this.$store.state.bioPortal.documentations;
         },
         visibleFields() {
             return this.fields.filter((field) => !!field.visible);

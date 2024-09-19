@@ -172,7 +172,7 @@ new Vue({
             }
         },
 
-        documentationMap() {
+        docDetails() {
             let varId = this.varId;
             let dbSNP = this.dbSNP;
 
@@ -264,9 +264,11 @@ new Vue({
             let pos = this.chromPos;
 
             if (pos) {
-                window.location.href = `./region.html?chr=${pos.chromosome
-                    }&start=${pos.position - expanded}&end=${pos.position + expanded
-                    }&variant=${this.$store.state.pageVariant.varId}`;
+                window.location.href = `./region.html?chr=${
+                    pos.chromosome
+                }&start=${pos.position - expanded}&end=${
+                    pos.position + expanded
+                }&variant=${this.$store.state.pageVariant.varId}`;
             }
         },
         clearBadSearch() {

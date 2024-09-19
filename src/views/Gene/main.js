@@ -5,6 +5,7 @@ import store from "./store.js";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import _ from "lodash";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -13,11 +14,12 @@ import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
-import VariantSearch from "@/components/VariantSearch";
+import VariantSearch from "@/components/VariantSearch.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -25,6 +27,7 @@ import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -74,6 +77,7 @@ new Vue({
         GeneAssociationsTable,
         GeneAssociationsMasks,
         Documentation,
+        TooltipDocumentation,
         Autocomplete,
         GeneSelectPicker,
         AncestrySelectPicker,
@@ -98,6 +102,7 @@ new Vue({
         HugeScoresTable,
         EffectorGenesSectionOnGene,
         ResearchSingleSearch,
+        MouseSummaryTable,
     },
 
     data() {
@@ -134,94 +139,90 @@ new Vue({
             },
             noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"],
             plotColors: [
-                '#007bff',
-                '#048845',
-                '#8490C8',
-                '#BF61A5',
-                '#EE3124',
-                '#FCD700',
-                '#5555FF',
-                '#7aaa1c',
-                '#9F78AC',
-                '#F88084',
-                '#F5A4C7',
-                '#CEE6C1',
-                '#cccc00',
-                '#6FC7B6',
-                '#D5A768',
-                '#d4d4d4'
+                "#007bff",
+                "#048845",
+                "#8490C8",
+                "#BF61A5",
+                "#EE3124",
+                "#FCD700",
+                "#5555FF",
+                "#7aaa1c",
+                "#9F78AC",
+                "#F88084",
+                "#F5A4C7",
+                "#CEE6C1",
+                "#cccc00",
+                "#6FC7B6",
+                "#D5A768",
+                "#d4d4d4",
             ],
             phewasPlotMargin: {
                 leftMargin: 150,
                 rightMargin: 40,
                 topMargin: 20,
                 bottomMargin: 100,
-                bump: 11
+                bump: 11,
             },
             hugeScoreRenderConfig: {
-                type: 'phewas plot',
-                'render by': 'phenotype',
-                'group by': 'group',
-                'phenotype map': 'kp phenotype map',
-                'y axis field': 'renderScore',
-                'convert y -log10': 'false',
-                'y axis label': 'Log(HuGE score)',
-                'x axis label': '',
-                'beta field': 'null',
-                'hover content': [
-                    'bf_common',
-                    'bf_rare',
-                    'huge',
-                ],
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "renderScore",
+                "convert y -log10": "false",
+                "y axis label": "Log(HuGE score)",
+                "x axis label": "",
+                "beta field": "null",
+                "hover content": ["bf_common", "bf_rare", "huge"],
                 thresholds: [Math.log(3), Math.log(30)],
-                'label in black': 'greater than',
-                height: '600',
+                "label in black": "greater than",
+                height: "600",
                 "plot margin": {
-                    "left": 150,
-                    "right": 150,
-                    "top": 250,
-                    "bottom": 300
-                }
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
             },
             commonVariantRenderConfig: {
-                type: 'phewas plot',
-                'render by': 'phenotype',
-                'group by': 'phenotype group',
-                'phenotype map': 'kp phenotype map',
-                'y axis field': 'pValue',
-                'convert y -log10': 'true',
-                'y axis label': '-Log10(p-value)',
-                'x axis label': 'beta',
-                'beta field': 'null',
-                'hover content': ['pValue'],
-                thresholds: ['2.5e-6'],
-                height: '600',
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "phenotype group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "beta",
+                "beta field": "null",
+                "hover content": ["pValue"],
+                thresholds: ["2.5e-6"],
+                height: "600",
                 "plot margin": {
-                    "left": 150,
-                    "right": 150,
-                    "top": 250,
-                    "bottom": 300
-                }
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
             },
             rareVariantRenderConfig: {
-                type: 'phewas plot',
-                'group by': 'phenotype group',
-                'render by': 'phenotype',
-                'phenotype map': 'kp phenotype map',
-                'y axis field': 'pValue',
-                'convert y -log10': 'true',
-                'y axis label': '-Log10(p-value)',
-                'x axis label': 'beta',
-                'beta field': 'beta',
-                'hover content': ['pValue', 'beta'],
-                thresholds: ['2.5e-6', '0.05'],
-                height: '600',
+                type: "phewas plot",
+                "group by": "phenotype group",
+                "render by": "phenotype",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "beta",
+                "beta field": "beta",
+                "hover content": ["pValue", "beta"],
+                thresholds: ["2.5e-6", "0.05"],
+                height: "600",
                 "plot margin": {
-                    "left": 150,
-                    "right": 150,
-                    "top": 250,
-                    "bottom": 300
-                }
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
             },
         };
     },
@@ -237,7 +238,7 @@ new Vue({
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
                 regionUtils: regionUtils,
-            }
+            };
             return utils;
         },
         /// for disease systems
@@ -351,8 +352,6 @@ new Vue({
                 "desc"
             );
 
-            //console.log(data);
-
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
                 data = sessionUtils.getInSession(
                     data,
@@ -362,9 +361,6 @@ new Vue({
             }
 
             let hugeMap = {};
-
-            //console.log('3', Math.log(3))
-            //console.log('30', Math.log(30))
 
             for (let i in data) {
                 const score = data[i];
@@ -467,7 +463,7 @@ new Vue({
         },
 
         diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
+            return this.$store.getters["bioPortal/diseaseGroup"] || {};
         },
 
         region() {
@@ -554,7 +550,7 @@ new Vue({
             );
         },
 
-        documentationMap() {
+        docDetails() {
             let symbol = this.geneSymbol;
             let r = this.region;
 
@@ -621,6 +617,7 @@ new Vue({
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
+            this.$store.dispatch("getMouseData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
             let geneQuery = !newAncestry
@@ -651,10 +648,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-
         this.pushCriterionPhenotype("T2D");
-
-        console.log("gene name", this.$store.state.geneName);
         this.checkGeneName(this.$store.state.geneName);
     },
 
@@ -672,8 +666,6 @@ new Vue({
             let gene = await regionUtils.geneSymbol(KEY);
 
             if (!!gene && gene != KEY) {
-                console.log("gene", gene);
-                console.log("not a gene symbol!!");
                 document.getElementById("invalidGeneMessage").innerHTML =
                     "Your search term is an alias name for gene symbol " +
                     gene +
@@ -731,8 +723,9 @@ new Vue({
             let r = this.region;
 
             if (r) {
-                window.location.href = `./region.html?chr=${r.chromosome
-                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${
+                    r.chromosome
+                }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
 
@@ -748,7 +741,6 @@ new Vue({
         },
         filterPhenotype(newFilters) {
             this.phenotypeFilterList = newFilters;
-            console.log(JSON.stringify(this.phenotypeFilterList));
         },
         clearCriterion(criterion) {
             if (criterion === "transcript") {
@@ -759,7 +751,7 @@ new Vue({
                 this.$store.state.selectedAncestry = "";
                 return;
             }
-        }
+        },
     },
 
     render(createElement, context) {
