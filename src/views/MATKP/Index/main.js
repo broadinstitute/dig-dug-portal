@@ -495,6 +495,19 @@ new Vue({
         parseDatasetsBySpeciesAndDepot(){
             const speciesDepotsMap = {};
             this.datasets.forEach(dataset => {
+                const species = dataset.species;
+                const depots = dataset.depot__ontology_label;
+                if (!speciesDepotsMap[species]) {
+                    speciesDepotsMap[species] = {};
+                }
+                depots.forEach(depot => {
+                    if(depot==='') return;
+                    if (!speciesDepotsMap[species][depot]) {
+                        speciesDepotsMap[species][depot] = 0;
+                    }
+                    speciesDepotsMap[species][depot] += 1;
+                });
+                /*
                 dataset.species.forEach(species => {
                     if (!speciesDepotsMap[species]) {
                         speciesDepotsMap[species] = {};
@@ -506,6 +519,7 @@ new Vue({
                         speciesDepotsMap[species][depot] += 1;
                     });
                 });
+                */
             });
             const result = {};
             for (const [species, depotsObj] of Object.entries(speciesDepotsMap)) {
@@ -546,7 +560,7 @@ new Vue({
         },
 
         goToDatasets(e, depot){
-            if(depot.count>0) window.location.href = `/matkp/datasets.html?species=${this.selectedSpecies}&depot=${depot.name}`;
+            if(depot.count>0) window.location.href = `/matkp/datasets.html?species=${this.selectedSpecies}&depot__ontology_label=${depot.name}`;
         },
         highlightDepot(e, depot){
             const btns = document.querySelectorAll('.depot-item');

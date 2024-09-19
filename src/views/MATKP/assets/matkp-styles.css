@@ -2,7 +2,7 @@ body,
 body.kp-default{
     margin: 0;
     padding: 0;
-    height: 100vh;
+    min-height: 100vh;
 }
 .matkp{
     width:100vw;
@@ -75,7 +75,7 @@ body.kp-default{
         height: 40px;
         border: 0;
         border-bottom: 1px solid dimgray;
-        background: #eee;
+        background: #ddd;
         padding: 10px;
         font-size: 14px;
     }
