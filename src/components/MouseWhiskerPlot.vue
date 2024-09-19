@@ -26,23 +26,18 @@ export default Vue.component("mouse-whisker-plot", {
           keyField: "founder_sex",
           keyFieldList: [],
           colorMap: {
-            "1291_female" : "#E69F00",
-            "1291_male" : "#E69F00",
-            "AJ_female" : "#F0E442",
-            "AJ_male" : "#F0E442",
-            "B6_female" : "#555555",
-            "B6_male" : "#555555",
-            "CAST_female" : "#009E73",
-            "CAST_male" : "#009E73",
-            "NOD_female" : "#0072B2",
-            "NOD_male" : "#0072B2",
-            "NZO_female" : "#56B4E9",
-            "NZO_male" : "#56B4E9",
-            "PWK_female" : "#D55E00",
-            "PWK_male" : "#D55E00",
-            "WSB_female" : "#CC79A7",
-            "WSB_male" : "#CC79A7"
+            "1291" : "#E69F00",
+            "129" : "#E69F00",
+            "AJ" : "#F0E442",
+            "A/J" : "#F0E442",
+            "B6" : "#555555",
+            "CAST" : "#009E73",
+            "NOD" : "#0072B2",
+            "NZO" : "#56B4E9",
+            "PWK" : "#D55E00",
+            "WSB" : "#CC79A7",
           },
+          strainOrder: ["A/J", "AJ", "B6", "129", "1291", "NOD", "NZO", "CAST", "PWK", "WSB"],
           tpmField: "expression",
           offset: 0,
           dotBoxHalfWidth: 6,
@@ -119,13 +114,13 @@ export default Vue.component("mouse-whisker-plot", {
               .nest()
               .key((d) => d[this.keyField])
               .rollup(d => {
-                let sorted = d.map(g => g[this.tpmField]).sort(d3.ascending);
-                let q1 = d3.quantile(sorted, .25);
-                let median = d3.quantile(sorted, .5);
-                let q3 = d3.quantile(sorted, .75);
+                let orderedStats = d.map(g => g[this.tpmField]).sort(d3.ascending);
+                let q1 = d3.quantile(orderedStats, .25);
+                let median = d3.quantile(orderedStats, .5);
+                let q3 = d3.quantile(orderedStats, .75);
                 let iQr = q3 - q1;
-                let min = sorted[0];
-                let max = sorted[sorted.length - 1];
+                let min = orderedStats[0];
+                let max = orderedStats[orderedStats.length - 1];
                 return {
                   "q1": q1,
                   "median": median,
@@ -136,17 +131,17 @@ export default Vue.component("mouse-whisker-plot", {
                 }
               })
               .entries(this.plotData);
-
+          
           this.xScale = d3
               .scaleBand()
               .range([0, width])
-              .domain(this.plotData.map(g => g[this.keyField]).sort(d3.ascending))
+              .domain(this.plotData.map(d => d[this.keyField]).sort((a, b) => this.founderSort(a,b, true)))
               .paddingInner(1)
               .paddingOuter(.5);
 
           this.founderScale = d3.scaleBand()
               .range([0, width])
-              .domain(this.plotData.map(g => g.founder).sort(d3.ascending))
+              .domain(this.plotData.map(d => d.founder).sort((a, b) => this.founderSort(a,b)))
               .paddingInner(1)
               .paddingOuter(.5);
 
@@ -233,12 +228,12 @@ export default Vue.component("mouse-whisker-plot", {
                   - jitterWidth/2 + Math.random()*jitterWidth)
                 .attr("cy", d => this.yScale(d[this.tpmField]))
                 .attr("r", 4)
-                .style("fill", d => this.colorMap[d[this.keyField]])
+                .style("fill", d => this.colorMap[d.founder])
                 .attr("stroke", "black")
                 .on("mouseover", g => this.showTooltip(g))
                 .on("mouseleave", g => this.hideTooltip());
-        
-        let spacing = this.xScale("WSB_male") - this.xScale("WSB_female");
+        let lastItem = this.strainOrder[this.strainOrder.length - 1];
+        let spacing = this.xScale(`${lastItem}_male`) - this.xScale(`${lastItem}_female`);
 
         this.svg.append("line")
               .attr("x1", 0)
@@ -294,6 +289,28 @@ export default Vue.component("mouse-whisker-plot", {
             .style("left", xcoord)
             .style("top", ycoord);
       },
+      founderSort(a,b, includeSex=false){
+        let splitA = a.split("_");
+        let splitB = b.split("_");
+        let founderA = !includeSex ? a : splitA[0];
+        let founderB = !includeSex ? b : splitB[0];
+        let indexA = this.strainOrder.indexOf(founderA);
+        let indexB = this.strainOrder.indexOf(founderB); 
+        if (indexA === -1 || indexA > indexB){
+          return 1;
+        }
+        if (indexA < indexB){
+          return -1;
+        }
+        // If same founder, sort female vs male
+        if (splitA[1] === "female" && splitB[1] === "male"){
+          return -1;
+        }
+        if (splitA[1] === "male" && splitB[1] === "female"){
+          return 1;
+        }
+        return 0;
+      }
   },
 });
 </script>
