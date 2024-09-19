@@ -16,6 +16,7 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -47,6 +48,7 @@ new Vue({
         ResearchSingleSearch,
         Scatterplot,
         MouseSummaryTable,
+        C2ctTable,
     },
     mixins: [pageMixin],
     data() {
@@ -54,6 +56,7 @@ new Vue({
             tissue: keyParams.tissue || "",
             selectTissue: "",
             logScale: false,
+            topPhenotype: "",
             plotConfig: {
                 xField: "H",
                 xAxisLabel: "Entropy (genericity)",
@@ -138,6 +141,15 @@ new Vue({
                     : "",
             };
         },
+        c2ctData() {
+            let data = this.$store.state.c2ct.data;
+            data.forEach((d) => {
+                // Makes biosamples show up alphabetically in the dropdown menu.
+                d.originalBiosample = d.biosample;
+                d.biosample = Formatters.tissueFormatter(d.biosample);
+            });
+            return data;
+        },
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -151,6 +163,7 @@ new Vue({
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
+        ancestryFormatter: Formatters.ancestryFormatter,
         newTissue(tissue) {
             this.selectTissue = tissue;
         },
@@ -159,6 +172,13 @@ new Vue({
             this.$store.commit("setTissueName", this.tissue);
             this.$store.dispatch("getTissue");
         },
+        getTopPhenotype(details){
+            this.topPhenotype = details.phenotype;
+            let query = {
+                q: `${details.phenotype},${details.ancestry}`,
+            };
+            this.$store.dispatch("c2ct", query);
+        }
     },
 
     render: (h) => h(Template),
