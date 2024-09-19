@@ -17,6 +17,7 @@ export default new Vuex.Store({
         geneExpression: bioIndex("gene-expression"),
         geneLinks: bioIndex("gene-links"),
         mouseSummary: bioIndex("diff-exp-summary-tissue"),
+        c2ct: bioIndex("c2ct"),
     },
     state: {
         tissueName: keyParams.tissue || "",
