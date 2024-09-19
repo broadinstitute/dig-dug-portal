@@ -17,7 +17,7 @@ export default new Vuex.Store({
         geneExpression: bioIndex("gene-expression"),
         geneLinks: bioIndex("gene-links"),
         mouseSummary: bioIndex("diff-exp-summary-tissue"),
-        c2ct: bioIndex("c2ct"),
+        cs2ct: bioIndex("c2ct"),
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -56,6 +56,13 @@ export default new Vuex.Store({
             tissue = tissue.replaceAll(" ", "_");
             context.state.selectedTissue = tissue;
             keyParams.set({ tissue: tissue });
+        },
+        getCs2ct(context, phenotype, ancestry){
+            let query = { q: `${phenotype},${ancestry}`,};
+            if (!ancestry){
+                query.q = phenotype;
+            }
+            context.dispatch("cs2ct/query", query);
         }
     },
     getters: {

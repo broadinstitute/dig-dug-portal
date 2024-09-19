@@ -57,6 +57,7 @@ new Vue({
             selectTissue: "",
             logScale: false,
             topPhenotype: "",
+            cs2ctAncestry: "",
             plotConfig: {
                 xField: "H",
                 xAxisLabel: "Entropy (genericity)",
@@ -141,8 +142,8 @@ new Vue({
                     : "",
             };
         },
-        c2ctData() {
-            let data = this.$store.state.c2ct.data;
+        cs2ctData() {
+            let data = this.$store.state.cs2ct.data;
             data.forEach((d) => {
                 // Makes biosamples show up alphabetically in the dropdown menu.
                 d.originalBiosample = d.biosample;
@@ -174,10 +175,7 @@ new Vue({
         },
         getTopPhenotype(details){
             this.topPhenotype = details.phenotype;
-            let query = {
-                q: `${details.phenotype},${details.ancestry}`,
-            };
-            this.$store.dispatch("c2ct", query);
+            this.$store.dispatch("getCs2ct", details.phenotype, details.ancestry);
         }
     },
 

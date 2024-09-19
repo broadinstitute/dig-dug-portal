@@ -160,10 +160,10 @@
                             {{ $parent.topPhenotype }}
                             (Ancestry:
                             {{
-                                $store.state.ancestry == ""
+                                $parent.cs2ctAncestry == ""
                                     ? "All"
                                     : $parent.ancestryFormatter(
-                                          $store.state.ancestry
+                                          $parent.cs2ctAncestry
                                       )
                             }})
                             <tooltip-documentation
@@ -178,7 +178,7 @@
                             <filter-enumeration-control
                                 :field="'annotation'"
                                 :options="
-                                    $store.state.c2ct.data.map(
+                                    $store.state.cs2ct.data.map(
                                         (d) => d.annotation
                                     )
                                 "
@@ -188,7 +188,7 @@
                             <filter-enumeration-control
                                 :field="'tissue'"
                                 :options="
-                                    $store.state.c2ct.data.map((d) => d.tissue)
+                                    $store.state.cs2ct.data.map((d) => d.tissue)
                                 "
                             >
                                 <div class="label">Tissue</div>
@@ -196,7 +196,7 @@
                             <filter-enumeration-control
                                 :field="'biosample'"
                                 :options="
-                                    $parent.c2ctData.map((d) => d.biosample)
+                                    $parent.cs2ctData.map((d) => d.biosample)
                                 "
                             >
                                 <div class="label">Biosample</div>
@@ -213,9 +213,9 @@
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <c2ct-table
-                                    :c2ctData="$parent.c2ctData"
+                                    :c2ctData="$parent.cs2ctData"
                                     :filter="filter"
-                                    :phenotype="$store.state.phenotype"
+                                    :phenotype="$parent.topPhenotype"
                                 >
                                 </c2ct-table>
                             </template>
