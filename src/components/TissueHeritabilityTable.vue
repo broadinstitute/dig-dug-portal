@@ -31,7 +31,7 @@
         <b-table
             small
             responsive="sm"
-            :items="tableData[`${toSpace(tissue)},${ancestry}`]"
+            :items="tableData[tableKey]"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -159,10 +159,12 @@ export default Vue.component("TissueHeritabilityTable", {
     computed: {
         totalRows() {
             return (
-                this.tableData[`${this.toSpace(this.tissue)},${this.ancestry}`]
-                    ?.length || 0
+                this.tableData[this.tableKey]?.length || 0
             );
         },
+        tableKey(){
+            return `${this.toSpace(this.tissue)},${this.ancestry}`;
+        }
     },
     watch: {
         "$store.state.selectedAncestry"(ancestry) {
@@ -181,7 +183,7 @@ export default Vue.component("TissueHeritabilityTable", {
         phenotypeFormatter: Formatters.phenotypeFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         queryHeritability() {
-            let queryString = `${this.toSpace(this.tissue)},${this.ancestry}`;
+            let queryString = this.tableKey;
             if (this.tissue && !this.tableData[queryString]) {
                 query("partitioned-heritability-top-tissue", queryString, {
                     limit: 1000,
