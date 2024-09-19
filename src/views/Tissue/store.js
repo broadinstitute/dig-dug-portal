@@ -38,20 +38,19 @@ export default new Vuex.Store({
             context.dispatch("tissue/query", {
                 q: context.state.tissueName.replaceAll(" ", "_"), limit: 1000
             });
-        },
-        async getEvidence(context, { q }) {
-            let evidence = await context.dispatch("geneExpression/query", {
-                q,
-            });
-            return evidence;
-        },
-        async getMouseData(context){
             let name = context.state.tissueName;
             // TODO FIX BIOINDICES
             if (name === 'adipose_tissue'){
                 name = 'adipose';
             }
             context.dispatch("mouseSummary/query", {q: name});
+        },
+        async getEvidence(context, { q }) {
+            //Do we neeed this?
+            let evidence = await context.dispatch("geneExpression/query", {
+                q,
+            });
+            return evidence;
         },
         onTissueChange(context, tissue){
             tissue = tissue.replaceAll(" ", "_");

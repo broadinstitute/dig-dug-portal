@@ -147,7 +147,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         if (this.tissue) {
             this.$store.dispatch("getTissue");
-            this.$store.dispatch("getMouseData");
         }
     },
     methods: {
@@ -159,7 +158,6 @@ new Vue({
             this.tissue = this.selectTissue;
             this.$store.commit("setTissueName", this.tissue);
             this.$store.dispatch("getTissue");
-            this.$store.dispatch("getMouseData");
         },
     },
 
