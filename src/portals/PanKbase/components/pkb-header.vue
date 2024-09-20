@@ -75,6 +75,10 @@ export default Vue.component("pkb-header", {
     z-index: 10;
     font-family: 'Open Sans', sans-serif;
 
+    a,
+    a:visited{
+        color:black !important;
+    }
     .logo {
         display: flex;
         align-items: baseline;
@@ -116,10 +120,10 @@ export default Vue.component("pkb-header", {
         font-size: 12px;
     }
     .topmenu-item:hover {
-        color: var(--pkb-secondary-green);
+        color: var(--pkb-secondary-green) !important;
     }
     .topmenu-item:hover svg *{
-        stroke:var(--pkb-secondary-green)
+        stroke:var(--pkb-secondary-green) !important;
     }
     .menu {
         display: flex;
@@ -142,7 +146,7 @@ export default Vue.component("pkb-header", {
         border-bottom: 5px solid var(--pkb-primary-green);
     }
     .menu-item-wrapper:hover .menu-item {
-        color: var(--pkb-secondary-green);
+        color: var(--pkb-secondary-green) !important;
         border-bottom: 5px solid var(--pkb-secondary-green);
     }
     .menu-item-wrapper:hover > .submenu{
@@ -169,7 +173,7 @@ export default Vue.component("pkb-header", {
         text-align: right;
     }
     .submenu-item:hover{
-        color:white;
+        color:white !important;
         cursor: pointer;
     }
 }

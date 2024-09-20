@@ -19,7 +19,7 @@ new Vue({
     },
 
     created() {
-        this.injectFavicon('https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/favicon.ico');
+        this.injectFavicon('https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/favicon-32x32.png');
         this.injectFont('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
     },
 
@@ -29,7 +29,7 @@ new Vue({
 
     methods: {
         injectFavicon(faviconUrl) { //todo: make util
-            let favicon = document.querySelector('link[rel="shortcut icon"]');
+            let favicon = document.querySelector('link[rel="icon"]');
             if (!favicon) {
                 favicon = document.createElement('link')
                 favicon.setAttribute('rel', 'icon')
