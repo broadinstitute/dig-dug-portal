@@ -25,7 +25,7 @@
                     </div>
                     <div class="f-row content-wrap">
                         <div class="input-overlay hidden"></div>
-                        <div class="f-col" style="min-width:250px; width:250px; gap:15px; font-size:14px">
+                        <div class="f-col" style="min-width:250px; width:250px; gap:10px; font-size:14px">
                             <!--{{ $parent.selectedFilters }}-->
                             <div class="f-row align-v-center bold border-bottom" style="height:32px">
                                 Filters 
@@ -103,24 +103,41 @@
                                         </button>
                                     </template>
                                     <template #row-details="row">
-                                        <div class="f-col" style="gap:5px; margin:0 0 20px 0">
+                                        <div class="f-col" style="gap:5px; margin:0 0 50px 0">
                                             <div class="f-row subtable" v-for="field in $parent.subFields">
                                                 <div style="min-width:200px; font-weight: bold;">{{field.label}}</div>
                                                 <div class="f-row" style="flex-wrap: wrap; gap:5px;">
-                                                    <template v-if="Array.isArray(row.item[field.key])">
-                                                        <template v-for="item in row.item[field.key]">
+                                                    <template v-if="$parent.isFilter(field.key)">
+                                                        <template v-if="Array.isArray(row.item[field.key])">
+                                                            <template v-for="item in row.item[field.key]">
+                                                                <div 
+                                                                :class="`dataset-table-item`" 
+                                                                style="white-space:nowrap"
+                                                                :data-tooltip="item" 
+                                                                :data-input-key="field.key" 
+                                                                :data-input-option="item" 
+                                                                @click="$parent.addInputOption($event)"
+                                                                @mouseover="$parent.highlightTableItems($event)"
+                                                                @mouseout="$parent.unHighlightTableItems($event)"
+                                                                >
+                                                                {{ item }}
+                                                                </div>
+                                                            </template>
+                                                        </template>
+                                                        <template v-else>
                                                             <div 
-                                                            :class="`dataset-table-item`" 
-                                                            style="white-space:nowrap"
-                                                            :data-tooltip="item" 
-                                                            :data-input-key="field.key" 
-                                                            :data-input-option="item" 
-                                                            @click="$parent.addInputOption($event)"
-                                                            @mouseover="$parent.highlightTableItems($event)"
-                                                            @mouseout="$parent.unHighlightTableItems($event)"
-                                                            >
-                                                            {{ item }}
-                                                            </div>
+                                                                :class="`dataset-table-item`" 
+                                                                style="white-space:nowrap"
+                                                                :data-tooltip="row.item[field.key]" 
+                                                                :data-input-key="field.key" 
+                                                                :data-input-option="row.item[field.key]" 
+                                                                @click="$parent.addInputOption($event)"
+                                                                @mouseover="$parent.highlightTableItems($event)"
+                                                                @mouseout="$parent.unHighlightTableItems($event)"
+                                                                >
+                                                                {{ row.item[field.key] }}
+                                                                </div>
+                                                            
                                                         </template>
                                                     </template>
                                                     <template v-else>
@@ -186,24 +203,39 @@
                                         {{data.value.toLocaleString()}}
                                     </template>
                                     <template #cell()="data">
-                                        <template v-if="Array.isArray(data.value)">
-                                            <template v-for="item in data.value">
+                                        <template v-if="$parent.isFilter(data.field.key)">
+                                            <template v-if="Array.isArray(data.value)">
+                                                <template v-for="item in data.value">
+                                                    <div 
+                                                        :class="`dataset-table-item`" 
+                                                        :data-tooltip="item" 
+                                                        :data-input-key="data.field.key" 
+                                                        :data-input-option="item" 
+                                                        @click="$parent.addInputOption($event)"
+                                                        @mouseover="$parent.highlightTableItems($event)"
+                                                        @mouseout="$parent.unHighlightTableItems($event)"
+                                                        >
+                                                        {{ item }}
+                                                    </div>
+                                                </template>
+                                            </template>
+                                            <template v-else>
                                                 <div 
-                                                :class="`dataset-table-item`" 
-                                                :data-tooltip="item" 
-                                                :data-input-key="data.field.key" 
-                                                :data-input-option="item" 
-                                                @click="$parent.addInputOption($event)"
-                                                @mouseover="$parent.highlightTableItems($event)"
-                                                @mouseout="$parent.unHighlightTableItems($event)"
-                                                >
-                                                {{ item }}
+                                                    :class="`dataset-table-item`" 
+                                                    :data-tooltip="data.value" 
+                                                    :data-input-key="data.field.key" 
+                                                    :data-input-option="data.value" 
+                                                    @click="$parent.addInputOption($event)"
+                                                    @mouseover="$parent.highlightTableItems($event)"
+                                                    @mouseout="$parent.unHighlightTableItems($event)"
+                                                    >
+                                                    {{ data.value }}
                                                 </div>
                                             </template>
                                         </template>
                                         <template v-else>
-                                            {{ data.value }}
-                                        </template>
+                                                {{ data.value }}
+                                            </template>
                                     </template>
                                 </b-table>
                             </div>
@@ -324,6 +356,9 @@
 }
 .filter:hover .input-options {
     display: flex !important;
+}
+.filter .matkp-input{
+    padding: 5px 10px;
 }
 .input-options {
     padding: 10px 0;

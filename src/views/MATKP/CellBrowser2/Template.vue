@@ -45,7 +45,8 @@
                                 <div class="f-col" >
                                     <div class="f-row" style="gap:5px;"><div class="bold">Species:</div> <div>{{$parent.currentDataset['species']}}</div></div>
                                     <div class="f-row" style="gap:5px;"><div class="bold">Tissue:</div> <div>{{$parent.currentDataset['tissue']}}</div></div>
-                                    <div class="f-row" style="gap:5px;"><div class="bold">Depot:</div> <div>{{$parent.currentDataset['depot']}} {{$parent.currentDataset['depot2'] !== '' ? (', ' + $parent.currentDataset['depot2']) : '' }}</div></div>
+                                    <div class="f-row" style="gap:5px;"><div class="bold">Depot:</div> <div>{{$parent.currentDataset['depot']}}</div></div>
+                                    <div class="f-row" style="gap:5px;"><div class="bold">Sub Depot:</div> <div>{{$parent.currentDataset['depot2']}}</div></div>
                                     <div class="f-row" style="gap:5px;"><div class="bold">Donors:</div> <div>{{$parent.totalDonors}}</div></div>
                                     <div class="f-row" style="gap:5px;"><div class="bold">Biosamples:</div> <div>{{$parent.totalSamples}}</div></div>
                                     <div class="f-row" style="gap:5px;"><div class="bold">Cells:</div> <div>{{$parent.currentDataset['totalCells'].toLocaleString()}}</div></div>
@@ -78,13 +79,14 @@
                     <div class="f-row" style="gap:20px">
                         <!--sidebar-->
                         <div class="f-col" style="min-width:250px; width:250px; margin: 50px 0 0; gap:20px; background:#e4e4e4; padding:10px">
-                            <div class="f-col" style="font-size:14px;">
-                                <div class="f-row" style="gap:50px;"><div class="bold">Species:</div> <div>{{$parent.currentDataset['species']}}</div></div>
-                                <div class="f-row" style="gap:55px;"><div class="bold">Tissue:</div> <div>{{$parent.currentDataset['tissue']}}</div></div>
-                                <div class="f-row" style="gap:55px;"><div class="bold">Depot:</div> <div>{{$parent.currentDataset['depot']}} {{$parent.currentDataset['depot2'] !== '' ? (', ' + $parent.currentDataset['depot2']) : '' }}</div></div>
-                                <div class="f-row spread-out" style="gap:5px;"><div class="bold">Donors:</div> <div>{{$parent.totalDonors}}</div></div>
-                                <div class="f-row spread-out" style="gap:5px;"><div class="bold">Biosamples:</div> <div>{{$parent.totalSamples}}</div></div>
-                                <div class="f-row spread-out" style="gap:5px;"><div class="bold">Cells:</div> <div>{{$parent.currentDataset['totalCells'].toLocaleString()}}</div></div>
+                            <div class="f-col sidebar-stats" style="font-size:14px;">
+                                <div class="f-row"><div class="bold">Species:</div> <div>{{$parent.currentDataset['species'] || '--'}}</div></div>
+                                <div class="f-row"><div class="bold">Tissue:</div> <div>{{$parent.currentDataset['tissue'] || '--'}}</div></div>
+                                <div class="f-row"><div class="bold">Depot:</div> <div>{{$parent.currentDataset['depot'] || '--'}}</div></div>
+                                <div class="f-row"><div class="bold">Sub Depot:</div> <div>{{$parent.currentDataset['depot2'] || '--'}}</div></div>
+                                <div class="f-row spread-out"><div class="bold">Donors:</div> <div>{{$parent.totalDonors || '--'}}</div></div>
+                                <div class="f-row spread-out"><div class="bold">Biosamples:</div> <div>{{$parent.totalSamples || '--'}}</div></div>
+                                <div class="f-row spread-out"><div class="bold">Cells:</div> <div>{{$parent.currentDataset['totalCells'].toLocaleString() || '--'}}</div></div>
                                 <div class="f-row align-v-center" :style="`display: ${$parent.preload ? 'block' : 'none'}; gap:10px; position:relative; font-size:12px; height:30px; padding-top:10px; margin-left:30px`">
                                     <div class="data-load-spinner" ></div>
                                     <div>loading {{ $parent.preloadItem }}</div>
@@ -979,6 +981,9 @@ body.cursor-grabbing .category-label-select{
     margin: 0 0 10px;
     padding: 10px;
     background: white;
+}
+.sidebar-stats div div:nth-child(1) {
+    width: 100px;
 }
 
 .more-less{
