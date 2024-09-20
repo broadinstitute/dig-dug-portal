@@ -7,7 +7,7 @@ let pages = {
         entry: "src/portals/PanKbase/views/Index/main.js",
         template: "public/index.html",
         filename: "index.html",
-        title: "Home",
+        title: "PanKbase",
         chunks: ["chunk-vendors", "chunk-common", "index"],
     },
     page404: {
