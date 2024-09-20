@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 
+import "../../assets/layout.css"
 import "../../assets/pkb-styles.css"
 
 Vue.config.productionTip = false;
@@ -28,11 +29,12 @@ new Vue({
 
     methods: {
         injectFavicon(faviconUrl) { //todo: make util
-            let favicon = document.querySelector('link[rel="icon"]');
+            let favicon = document.querySelector('link[rel="shortcut icon"]');
             if (!favicon) {
                 favicon = document.createElement('link')
                 favicon.setAttribute('rel', 'icon')
                 favicon.setAttribute('type', 'image/png')
+                favicon.setAttribute('id', 'alex')
                 document.head.appendChild(favicon)
             }
             favicon.setAttribute('href', faviconUrl);

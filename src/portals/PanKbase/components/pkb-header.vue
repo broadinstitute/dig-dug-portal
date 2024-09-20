@@ -48,7 +48,7 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("pkb-nav", {
+export default Vue.component("pkb-header", {
     components: {},
     props: {
     },
