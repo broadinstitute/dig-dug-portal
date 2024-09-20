@@ -83,7 +83,7 @@ new Vue({
                     }
                     const itemKeyArr = typeof item[key] === 'string' ? [item[key]] : [...item[key]];
                     itemKeyArr.forEach(value => {
-                        filterOptions[key].add(value);
+                        if(value.trim()!=='') filterOptions[key].add(value);
                         //console.log('      ',value);
                     });
                 });
@@ -126,7 +126,7 @@ new Vue({
                     sortable: true
                 })
             });
-            console.log('subFields', fields);
+            //console.log('subFields', fields);
             return fields;
         },
         filteredItems() {
@@ -206,6 +206,9 @@ new Vue({
                     }
                 }
             }
+        },
+        isFilter(key){
+            return this.config.datasetsFilters.indexOf(key) > -1;
         },
         onFiltered(filteredItems) {
             //unused

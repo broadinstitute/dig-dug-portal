@@ -32,6 +32,7 @@ new Vue({
 
     data() {
         return{
+            config: null,
             datasets: null,
             fields: [
                 {key:"datasetName", label:"Name", tdClass: 'italic', sortable: true}, 
@@ -447,20 +448,28 @@ new Vue({
                 filterOptions[key] = Array.from(filterOptions[key]).map(value => ({ value, text: value }));
             });
         
-            return filterOptions;
+            return filterOptions; 
         },
     },
 
     mounted() {
-        this.getDatasets();
-        this.getAdiposeInfo();
+        //this.getAdiposeInfo();
     },
 
     async created() {
-        
+        await this.getConfig();
+        this.getDatasets();
     },
 
     methods: {
+        async getConfig(){
+            const dataPoint = "https://hugeampkpncms.org/rest/data?pageid=matkp_config";
+            const result = await fetch(dataPoint).then((resp) => resp.json());
+            const json = JSON.parse(result[0]['field_data_points']);
+            this.config = json;
+            console.log('config', json);
+        },
+
         async getDatasets(){
             const fetchPath = '/api/raw/file/single_cell_metadata/dataset_metadata.json.gz';
             const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
@@ -496,7 +505,9 @@ new Vue({
             const speciesDepotsMap = {};
             this.datasets.forEach(dataset => {
                 const species = dataset.species;
-                const depots = dataset.depot__ontology_label;
+                const depot1 = dataset.depot.includes('subcutaneous') ? 'subq' : dataset.depot;
+                const depot2 = dataset.depot2.includes('subcutaneous') ? 'subq' : dataset.depot2;
+                const depots = [depot1, depot2];
                 if (!speciesDepotsMap[species]) {
                     speciesDepotsMap[species] = {};
                 }
