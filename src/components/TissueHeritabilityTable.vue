@@ -31,7 +31,7 @@
         <b-table
             small
             responsive="sm"
-            :items="tableData[`${toSpace(tissue)},${ancestry}`]"
+            :items="itemData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -158,11 +158,31 @@ export default Vue.component("TissueHeritabilityTable", {
     },
     computed: {
         totalRows() {
-            return (
-                this.tableData[`${this.toSpace(this.tissue)},${this.ancestry}`]
-                    ?.length || 0
-            );
+            return this.itemData?.length || 0;
         },
+        tableKey(){
+            return `${this.toSpace(this.tissue)},${this.ancestry}`;
+        },
+        itemData(){
+            if (!this.tableData[this.tableKey]){
+                return [];
+            }
+            return this.tableData[this.tableKey];
+        },
+        topPhenotype(){
+            if (!this.itemData || this.itemData.length === 0){
+                return "";
+            }
+            let item = this.itemData[0];
+            for (let i = 0; i < this.itemData.length; i++){
+                let nextItem = this.itemData[i];
+                if (nextItem.pValue < item.pValue){
+                    item = nextItem;
+                }
+            }
+            return item.phenotype;
+        }
+        
     },
     watch: {
         "$store.state.selectedAncestry"(ancestry) {
@@ -175,21 +195,27 @@ export default Vue.component("TissueHeritabilityTable", {
                 this.queryHeritability();
             },
         },
+        topPhenotype(newPhenotype){
+            let details = {
+                phenotype: newPhenotype,
+                ancestry: this.ancestry
+            };
+            this.$emit("topPhenotypeFound", details);
+        }
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         queryHeritability() {
-            let queryString = `${this.toSpace(this.tissue)},${this.ancestry}`;
-            if (this.tissue && !this.tableData[queryString]) {
-                query("partitioned-heritability-top-tissue", queryString, {
+            if (this.tissue && !this.tableData[this.tableKey]) {
+                query("partitioned-heritability-top-tissue", this.tableKey, {
                     limit: 1000,
                     limitWhile: (r) => r.pValue <= 1e-5,
                 }).then((data) => {
                     Vue.set(
                         this.tableData,
-                        queryString,
+                        this.tableKey,
                         data.filter((d) => !!this.phenotypeMap[d.phenotype])
                     );
                 });
