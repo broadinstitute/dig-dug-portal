@@ -17,6 +17,7 @@ export default new Vuex.Store({
         geneExpression: bioIndex("gene-expression"),
         geneLinks: bioIndex("gene-links"),
         mouseSummary: bioIndex("diff-exp-summary-tissue"),
+        cs2ct: bioIndex("c2ct"),
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -37,14 +38,6 @@ export default new Vuex.Store({
             context.dispatch("tissue/query", {
                 q: context.state.tissueName.replaceAll(" ", "_"), limit: 1000
             });
-        },
-        async getEvidence(context, { q }) {
-            let evidence = await context.dispatch("geneExpression/query", {
-                q,
-            });
-            return evidence;
-        },
-        async getMouseData(context){
             let name = context.state.tissueName;
             // TODO FIX BIOINDICES
             if (name === 'adipose_tissue'){
@@ -52,10 +45,24 @@ export default new Vuex.Store({
             }
             context.dispatch("mouseSummary/query", {q: name});
         },
+        async getEvidence(context, { q }) {
+            //Do we neeed this?
+            let evidence = await context.dispatch("geneExpression/query", {
+                q,
+            });
+            return evidence;
+        },
         onTissueChange(context, tissue){
             tissue = tissue.replaceAll(" ", "_");
             context.state.selectedTissue = tissue;
             keyParams.set({ tissue: tissue });
+        },
+        getCs2ct(context, phenotype, ancestry){
+            let query = { q: `${phenotype},${ancestry}`,};
+            if (!ancestry){
+                query.q = phenotype;
+            }
+            context.dispatch("cs2ct/query", query);
         }
     },
     getters: {
