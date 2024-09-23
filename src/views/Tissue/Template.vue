@@ -111,40 +111,7 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <div
-                    class="card mdkp-card"
-                    v-if="$store.state.mouseSummary.data.length > 0"
-                >
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Differential gene expression in
-                            {{ $parent.tissueFormatter($parent.tissue) }}, in
-                            mouse founder strains
-                            <tooltip-documentation
-                                name="tissue.mice-diff-exp.tooltip"
-                                :contentFill="$parent.docDetails"
-                                :is-hover="true"
-                                :no-icon="false"
-                                :contentMap="
-                                    $store.state.bioPortal.documentations
-                                "
-                            >
-                            </tooltip-documentation>
-                        </h4>
-                        <documentation
-                            name="tissue.mice-diff-exp.subheader"
-                            :contentFill="$parent.docDetails"
-                            :contentMap="$store.state.bioPortal.documentations"
-                        >
-                        </documentation>
-                        <mouse-summary-table
-                            :items="$store.state.mouseSummary.data"
-                        >
-                        </mouse-summary-table>
-                    </div>
-                </div>
-
-            <div class="card mdkp-card">
+                <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
                             Credible Sets to Cell Type (CS2CT) results for
@@ -206,6 +173,38 @@
                                 </c2ct-table>
                             </template>
                         </criterion-function-group>
+                    </div>
+                </div>
+                <div
+                    class="card mdkp-card"
+                    v-if="$store.state.mouseSummary.data.length > 0"
+                >
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Differential gene expression in
+                            {{ $parent.tissueFormatter($parent.tissue) }}, in
+                            mouse founder strains
+                            <tooltip-documentation
+                                name="tissue.mice-diff-exp.tooltip"
+                                :contentFill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
+                            >
+                            </tooltip-documentation>
+                        </h4>
+                        <documentation
+                            name="tissue.mice-diff-exp.subheader"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        >
+                        </documentation>
+                        <mouse-summary-table
+                            :items="$store.state.mouseSummary.data"
+                        >
+                        </mouse-summary-table>
                     </div>
                 </div>
                 <div class="card mdkp-card">
