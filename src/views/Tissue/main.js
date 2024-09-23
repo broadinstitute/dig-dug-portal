@@ -152,6 +152,11 @@ new Vue({
             });
             return data;
         },
+        phenotypeDisplayName(){
+            let phenotype = this.$store.state.credibleSetPhenotype;
+            let map = this.$store.state.bioPortal.phenotypeMap;
+            return map[phenotype]?.description || "";
+        },
     },
     created() {
         // get the disease group and set of phenotypes available
