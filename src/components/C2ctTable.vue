@@ -32,21 +32,10 @@
                     </a>
                 </template>
                 <template #cell(chromosome)="r">
-                    <a
-                        :href="`research.html?pageid=kp_variant_sifter&phenotype=${
-                            phenotype.name
-                        }&region=${r.item.chromosome}:${
-                            r.item.clumpStart >= 250000
-                                ? r.item.clumpStart - 250000
-                                : 0
-                        }-${r.item.clumpEnd + 250000}&annotation=${
-                            r.item.annotation
-                        }`"
-                    >
                         {{
                             `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
                         }}
-                    </a>
+                    
                 </template>
                 <template #cell(overlapLeadSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.overlapLeadSNP}`">
