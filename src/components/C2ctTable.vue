@@ -4,6 +4,10 @@
             <div class="text-right mb-2">
                 <data-download :data="c2ctData" filename="c2ct"></data-download>
             </div>
+            <div
+                v-html="'Total rows: ' + rows"
+                class="table-total-rows"
+            ></div>
             <b-table
                 hover
                 small
@@ -178,4 +182,9 @@ export default Vue.component("c2ct-table", {
 label {
     margin: 10px;
 }
+.table-total-rows {
+    float: left;
+    font-size: 12px;
+    padding-top: 10px;
+  }
 </style>
