@@ -165,13 +165,17 @@
                                 :contentMap="$store.state.bioPortal.documentations"
                             ></tooltip-documentation>
                         </h4>
-                        <criterion-function-group>
-                            <div class="label">Search by phenotype</div>
-                            <phenotype-selectpicker
-                                :phenotypes="$store.state.bioPortal.phenotypes"
-                                class="col filter-col-md">
-                            </phenotype-selectpicker>
-                        </criterion-function-group>
+                        <div class="filtering-ui-wrapper container-fluid temporary-card">
+                            <div class="row filtering-ui-content">
+                                <span>
+                                    <div class="label">Search by phenotype</div>
+                                </span>
+                                <phenotype-selectpicker
+                                    :phenotypes="$store.state.bioPortal.phenotypes"
+                                    class="col filter-col-md">
+                                </phenotype-selectpicker>
+                            </div>
+                        </div>
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'annotation'"
@@ -241,5 +245,9 @@ tr.b-table-details > td {
 
 div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
     background-color: #14a433;
+}
+.blue-search {
+    background-color: #66bbff30 !important;
+    border: solid 1px #3399ff30 !important;
 }
 </style>
