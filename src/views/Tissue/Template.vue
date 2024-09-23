@@ -143,16 +143,7 @@
                         </mouse-summary-table>
                     </div>
                 </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <tissue-heritability-table
-                            :tissue="$parent.tissue"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            @topPhenotypeFound="(d) => $parent.getTopPhenotype(d)"
-                        ></tissue-heritability-table>
-                    </div>
-                </div>
-            </div>
+
             <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
@@ -222,6 +213,16 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <tissue-heritability-table
+                            :tissue="$parent.tissue"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            @topPhenotypeFound="(d) => $parent.getTopPhenotype(d)"
+                        ></tissue-heritability-table>
+                    </div>
+                </div>
+            </div>
         </template>
 
         <!-- Footer-->
