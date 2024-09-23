@@ -176,22 +176,6 @@
                             >
                                 <div class="label">Annotation</div>
                             </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'tissue'"
-                                :options="
-                                    $store.state.cs2ct.data.map((d) => d.tissue)
-                                "
-                            >
-                                <div class="label">Tissue</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'biosample'"
-                                :options="
-                                    $parent.cs2ctData.map((d) => d.biosample)
-                                "
-                            >
-                                <div class="label">Biosample</div>
-                            </filter-enumeration-control>
                             <filter-less-control
                                 :field="'totalEntropy'"
                                 :pill-formatter="
