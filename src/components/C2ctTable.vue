@@ -45,8 +45,10 @@
                         {{ r.item.overlapLeadSNP }}
                     </a>
                 </template>
-                <template #cell(variantSifter)>
-                    Coming soon!
+                <template #cell(variantSifter)="r">
+                    <a :href="exploreVariantSifter(r.item)">
+                        Open
+                    </a>
                 </template>
             </b-table>
             <b-pagination
@@ -156,6 +158,18 @@ export default Vue.component("c2ct-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
+        exploreVariantSifter(item, expanded = 200000) {
+            let location = item.overlapLeadSNP.split(":");
+            let chr = location[0];
+            let center = parseInt(location[1]);
+            let start = center - expanded;
+            let end  = center + expanded;
+            return '/research.html?pageid=kp_variant_sifter&phenotype=' +
+				item.phenotype + '&region=' +
+                chr + ':' +
+                start + '-' +
+                end;
+        },
     },
 });
 </script>
