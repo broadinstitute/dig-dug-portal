@@ -148,7 +148,7 @@
                     <div class="card-body">
                         <h4 class="card-title">
                             Credible Sets to Cell Type (CS2CT) results for
-                            {{ $parent.topPhenotype }}
+                            {{ $store.state.credibleSetPhenotype }}
                             (Ancestry:
                             {{
                                 $parent.cs2ctAncestry == ""
@@ -197,7 +197,7 @@
                                 <c2ct-table
                                     :c2ctData="$parent.cs2ctData"
                                     :filter="filter"
-                                    :phenotype="$parent.topPhenotype"
+                                    :phenotype="$store.state.credibleSetPhenotype"
                                 >
                                 </c2ct-table>
                             </template>

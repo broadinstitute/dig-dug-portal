@@ -58,7 +58,6 @@ new Vue({
             tissue: keyParams.tissue || "",
             selectTissue: "",
             logScale: false,
-            topPhenotype: "",
             cs2ctAncestry: "",
             plotConfig: {
                 xField: "H",
@@ -176,7 +175,9 @@ new Vue({
             this.$store.dispatch("getTissue");
         },
         getTopPhenotype(details){
-            this.topPhenotype = details.phenotype;
+            // Credible set is based on top phenotype or user selected phenotype,
+            // whichever is changed most recently.
+            this.$store.commit("setTopPhenotype", details.phenotype);
             this.$store.dispatch("getCs2ct", details.phenotype, details.ancestry);
         }
     },
