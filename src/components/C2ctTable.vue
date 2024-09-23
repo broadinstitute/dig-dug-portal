@@ -26,6 +26,9 @@
                         >{{ data.label }}
                     </span>
                 </template>
+                <template #head(variantSifter)>
+                    Open Variant Sifter (region: lead SNP &plusmn; 200kb)
+                </template>
                 <template #cell(tissue)="r">
                     <a :href="`/tissue.html?tissue=${r.item.tissue}`">
                         {{ tissueFormatter(r.item.tissue) }}
@@ -41,6 +44,9 @@
                     <a :href="`/variant.html?variant=${r.item.overlapLeadSNP}`">
                         {{ r.item.overlapLeadSNP }}
                     </a>
+                </template>
+                <template #cell(variantSifter)>
+                    Coming soon!
                 </template>
             </b-table>
             <b-pagination
@@ -122,6 +128,11 @@ export default Vue.component("c2ct-table", {
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
+                {
+                    key: "variantSifter",
+                    label: "variantSifter",
+                    sortable: false,
+                }
             ],
         };
     },
