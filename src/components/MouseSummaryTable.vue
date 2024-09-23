@@ -1,5 +1,10 @@
 <template>
   <div>
+    <div
+      v-if="items.length > 0"
+      v-html="'Total rows: ' + items.length"
+      class="table-total-rows"
+    ></div>
     <b-table
       small
       :items="items"

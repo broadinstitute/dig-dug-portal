@@ -1,5 +1,9 @@
 <template>
   <div>
+    <div v-if="tableData.length > 0"
+        v-html="'Total rows: ' + tableData.length"
+        class="table-total-rows"
+    ></div>
     <b-table
       v-if="tableData.length > 0"
       v-model="currentTable"
@@ -45,7 +49,7 @@
     </b-pagination>
   </div>
 </template>
-<style>
+<style scoped>
 @import url("/css/table.css");
 </style>
 <script>

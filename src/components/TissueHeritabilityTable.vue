@@ -28,6 +28,10 @@
             :contentFill="$parent.docDetails"
             :contentMap="$store.state.bioPortal.documentations"
         ></documentation>
+        <div v-if="itemData.length > 0"
+            v-html="'Total rows: ' + itemData.length"
+            class="table-total-rows"
+        ></div>
         <b-table
             small
             responsive="sm"
@@ -252,6 +256,7 @@ export default Vue.component("TissueHeritabilityTable", {
 </script>
 
 <style scoped>
+@import url("/css/table.css");
 tr.b-table-details > td {
     padding: 0 !important;
 }
