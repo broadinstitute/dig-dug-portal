@@ -166,6 +166,13 @@
                             ></tooltip-documentation>
                         </h4>
                         <criterion-function-group>
+                            <div class="label">Search by phenotype</div>
+                            <phenotype-selectpicker
+                                :phenotypes="$store.state.bioPortal.phenotypes"
+                                class="col filter-col-md">
+                            </phenotype-selectpicker>
+                        </criterion-function-group>
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'annotation'"
                                 :options="

@@ -17,6 +17,7 @@ import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -49,6 +50,7 @@ new Vue({
         Scatterplot,
         MouseSummaryTable,
         C2ctTable,
+        PhenotypeSelectPicker,
     },
     mixins: [pageMixin],
     data() {
