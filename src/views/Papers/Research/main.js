@@ -1511,7 +1511,13 @@ new Vue({
                     uiUtils.saveJson(data[0].data, TITLE)
                     break;
                 case 'csv':
-                    uiUtils.saveByorCsv(data[0].data, TITLE)
+                    // First wrap strings with comma or typeof object, and flatten the data
+                    let jsonData = dataConvert.flatJson(data[0].data);
+
+                    //next convert json to csv
+                    uiUtils.saveByorCsv(jsonData, TITLE);
+
+                    //uiUtils.saveByorCsv(data[0].data, TITLE)
                     break;
             }
         },
