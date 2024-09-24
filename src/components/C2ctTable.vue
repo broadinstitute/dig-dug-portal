@@ -182,9 +182,4 @@ export default Vue.component("c2ct-table", {
 label {
     margin: 10px;
 }
-.table-total-rows {
-    float: left;
-    font-size: 12px;
-    padding-top: 10px;
-  }
 </style>
