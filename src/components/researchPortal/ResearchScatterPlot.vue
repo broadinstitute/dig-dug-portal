@@ -567,7 +567,7 @@ export default Vue.component("research-scatter-plot", {
 	},
 	watch: {
 		renderData(DATA){
-			console.log(DATA);
+			//console.log(DATA);
 			this.renderPlot()
 		},
 		groupsList(LIST){
