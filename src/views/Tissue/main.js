@@ -16,6 +16,7 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -47,6 +48,7 @@ new Vue({
         ResearchSingleSearch,
         Scatterplot,
         MouseSummaryTable,
+        C2ctTable,
     },
     mixins: [pageMixin],
     data() {
@@ -54,6 +56,8 @@ new Vue({
             tissue: keyParams.tissue || "",
             selectTissue: "",
             logScale: false,
+            topPhenotype: "",
+            cs2ctAncestry: "",
             plotConfig: {
                 xField: "H",
                 xAxisLabel: "Entropy (genericity)",
@@ -138,6 +142,15 @@ new Vue({
                     : "",
             };
         },
+        cs2ctData() {
+            let data = this.$store.state.cs2ct.data;
+            data.forEach((d) => {
+                // Makes biosamples show up alphabetically in the dropdown menu.
+                d.originalBiosample = d.biosample;
+                d.biosample = Formatters.tissueFormatter(d.biosample);
+            });
+            return data;
+        },
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -147,11 +160,11 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         if (this.tissue) {
             this.$store.dispatch("getTissue");
-            this.$store.dispatch("getMouseData");
         }
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
+        ancestryFormatter: Formatters.ancestryFormatter,
         newTissue(tissue) {
             this.selectTissue = tissue;
         },
@@ -159,8 +172,11 @@ new Vue({
             this.tissue = this.selectTissue;
             this.$store.commit("setTissueName", this.tissue);
             this.$store.dispatch("getTissue");
-            this.$store.dispatch("getMouseData");
         },
+        getTopPhenotype(details){
+            this.topPhenotype = details.phenotype;
+            this.$store.dispatch("getCs2ct", details.phenotype, details.ancestry);
+        }
     },
 
     render: (h) => h(Template),

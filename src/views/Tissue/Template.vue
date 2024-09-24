@@ -148,10 +148,80 @@
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            @topPhenotypeFound="(d) => $parent.getTopPhenotype(d)"
                         ></tissue-heritability-table>
                     </div>
                 </div>
             </div>
+            <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Credible Sets to Cell Type (CS2CT) results for
+                            {{ $parent.topPhenotype }}
+                            (Ancestry:
+                            {{
+                                $parent.cs2ctAncestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $parent.cs2ctAncestry
+                                      )
+                            }})
+                            <tooltip-documentation
+                                name="phenotype.cs2ct.tooltip"
+                                :contentFill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
+                            ></tooltip-documentation>
+                        </h4>
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'annotation'"
+                                :options="
+                                    $store.state.cs2ct.data.map(
+                                        (d) => d.annotation
+                                    )
+                                "
+                            >
+                                <div class="label">Annotation</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'tissue'"
+                                :options="
+                                    $store.state.cs2ct.data.map((d) => d.tissue)
+                                "
+                            >
+                                <div class="label">Tissue</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'biosample'"
+                                :options="
+                                    $parent.cs2ctData.map((d) => d.biosample)
+                                "
+                            >
+                                <div class="label">Biosample</div>
+                            </filter-enumeration-control>
+                            <filter-less-control
+                                :field="'totalEntropy'"
+                                :pill-formatter="
+                                    (filterDefinition) =>
+                                        `genericity ≤ ${filterDefinition.threshold}`
+                                "
+                            >
+                                <div class="label">Genericity (&le;)</div>
+                            </filter-less-control>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <c2ct-table
+                                    :c2ctData="$parent.cs2ctData"
+                                    :filter="filter"
+                                    :phenotype="$parent.topPhenotype"
+                                >
+                                </c2ct-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
         </template>
 
         <!-- Footer-->

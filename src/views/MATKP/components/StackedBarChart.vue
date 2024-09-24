@@ -201,7 +201,7 @@
                 });
 
             //console.log('---BarChart');
-            //console.log('      ', {categoryKey, processedData});
+            //console.log('      ', {categoryKey, data:this.data, processedData});
             //console.log('      ', {orientation, barType, normalize, singleCategoryKeys, subCategoryKeys, isSingleCategory,});
 
             //console.log('processed', processedData);
