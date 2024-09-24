@@ -897,7 +897,12 @@ export default Vue.component("research-data-table", {
 			this.utils.uiUtils.showHideElement(ELEMENT);
 		},
 		convertJson2Csv(DATA, FILENAME) {
-			this.utils.uiUtils.saveByorCsv(DATA, FILENAME);
+
+			// First wrap strings with comma or typeof object, and flatten the data
+			let jsonData = this.utils.dataConvert.flatJson(DATA);
+
+			//next convert json to csv
+			this.utils.uiUtils.saveByorCsv(jsonData, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
 			this.utils.uiUtils.saveJson(DATA, FILENAME);
