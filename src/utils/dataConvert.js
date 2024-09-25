@@ -374,6 +374,62 @@ let csv2Json = function (DATA) {
     return jsonData;
 };
 
+let flatJson = function (DATA) {
+
+    /// first wrap values with comma
+
+    let wrappedData = []
+
+    DATA.map(row => {
+
+        let wrappedObj = {}
+
+        for (const [dKey, dValue] of Object.entries(row)) {
+
+            if (typeof dValue == 'string' && dValue.includes(',')) {
+                wrappedObj[dKey] = '"' + dValue + '"';
+            } else if (typeof dValue == 'object') {
+
+                let obj2Sting = JSON.stringify(dValue)
+
+                obj2Sting = obj2Sting.replaceAll('"', '');
+
+                if (obj2Sting.includes(',')) {
+
+                    obj2Sting = '"' + obj2Sting + '"';
+                }
+
+                wrappedObj[dKey] = obj2Sting;
+            }
+            else {
+                wrappedObj[dKey] = dValue;
+            }
+
+        }
+        wrappedData.push(wrappedObj);
+    })
+
+    let flatJson = [];
+
+    wrappedData.map(row => {
+        let flatObj = flatten(row);
+        flatJson.push(flatObj);
+    })
+
+    return flatJson;
+
+}
+
+let flatten = function (obj, path = '') {
+    if (!(obj instanceof Object)) return { [path.replace(/\.$/g, '')]: obj };
+
+    return Object.keys(obj).reduce((output, key) => {
+        return obj instanceof Array ?
+            { ...output, ...flatten(obj[key], path + '[' + key + '].') } :
+            { ...output, ...flatten(obj[key], path + key + '.') };
+    }, {});
+}
+
 let testNumber = function (STR) {
     let reg = /^-?[\d.]+(?:e-?\d+)?$/;
     return reg.test(STR);
@@ -494,5 +550,6 @@ const object2Array = function (DATASET, COMPARECONFIG, KEY) {
 export default {
     convertData,
     csv2Json,
-    object2Array
+    object2Array,
+    flatJson
 };

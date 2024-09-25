@@ -1,10 +1,10 @@
-<template>
+<template> 
     <div class="matkp">
         <div class="f-col fill-height">
             <!-- NAV -->
             <matkp-nav></matkp-nav>
             <!-- BODY -->
-            <div class="mat-body" style="max-width: 1400px;margin: 0 auto;">
+            <div class="mat-body f-col" style="max-width: 1400px;margin: 0 auto;width:-webkit-fill-available">
                 <template>
                     <!-- CONTENT -->
                     <div class="f-row" style="margin: 80px 20px 20px; justify-content: space-between;">
@@ -25,7 +25,7 @@
                     </div>
                     <div class="f-row content-wrap">
                         <div class="input-overlay hidden"></div>
-                        <div class="f-col" style="min-width:250px; width:250px; gap:15px; font-size:14px">
+                        <div class="f-col" style="min-width:250px; width:250px; gap:10px; font-size:14px">
                             <!--{{ $parent.selectedFilters }}-->
                             <div class="f-row align-v-center bold border-bottom" style="height:32px">
                                 Filters 
@@ -34,7 +34,7 @@
                                 <div class="f-col filter">
                                     <div class="f-row matkp-input" style="height:auto;" :data-input-key="key" @click="$parent.showInputOptions($event)">
                                         <div class="f-row fill-width spread-out no-events">
-                                            <div class="bold" style="text-transform:capitalize">{{$parent.fields.find(x => x.key === key)["label"]}}</div>
+                                            <div class="bold" style="text-transform:capitalize">{{$parent.allFields[key]}}</div>
                                             <div class="f-row align-v-center" >
                                                 <span class="filter-count" :data-input-key="key" :class="$parent.selectedFilters[key].length > 0 ? 'active' : ''">{{ $parent.selectedFilters[key].length > 0 ? $parent.selectedFilters[key].length + ' of ' : '' }}{{ $parent.filterOptions[key].length }}</span>
                                             </div>
@@ -44,11 +44,11 @@
                                         <div class="f-row align-v-center input-option" style="gap:5px" v-for="option in options">
                                             <input
                                             type="checkbox"
-                                            :id="`filter-${key}-${option.value}`"
-                                            :value="option.value"
+                                            :id="`filter-${key}-${option}`"
+                                            :value="option"
                                             v-model="$parent.selectedFilters[key]"
                                             />
-                                            <label :for="`filter-${key}-${option.value}`">{{ option.text }}</label>
+                                            <label :for="`filter-${key}-${option}`">{{ option }}</label>
                                         </div>
                                     </div>
                                 </div>
@@ -65,7 +65,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="f-col" style="width: 100%;">
+                        <div class="f-col" style="width: 100%;overflow-x: auto;">
                             <div class="f-row spread-out align-v-center border-bottom" style="height:32px;font-size: 14px;">
                                 <div style="font-style: italic;" v-if="$parent.datasets">
                                     showing <span class="bold"><span :class="`${$parent.rows < $parent.datasets.length ? 'highlight-dataset-count' : ''}`">{{ $parent.rows }}</span> of {{ $parent.datasets.length }}</span> datasets
@@ -91,12 +91,96 @@
                                     small
                                     sort-icon-left
                                     :items="$parent.filteredItems" 
-                                    :fields="$parent.fields"
+                                    :fields="$parent.mainFields"
                                     :filter="$parent.filter"
                                     @filtered="$parent.onFiltered"
                                     :per-page="$parent.perPage"
                                     :current-page="$parent.currentPage"
                                 >
+                                    <template #cell(show_details)="row">
+                                        <button class="more-btn" @click="row.toggleDetails">
+                                            {{ row.detailsShowing ? 'less' : 'more'}}
+                                        </button>
+                                    </template>
+                                    <template #row-details="row">
+                                        <div class="f-col" style="gap:5px; margin:0 0 50px 0">
+                                            <div class="f-row subtable" v-for="field in $parent.subFields">
+                                                <div style="min-width:200px; font-weight: bold;">{{field.label}}</div>
+                                                <div class="f-row" style="flex-wrap: wrap; gap:5px;">
+                                                    <template v-if="$parent.isFilter(field.key)">
+                                                        <template v-if="Array.isArray(row.item[field.key])">
+                                                            <template v-for="item in row.item[field.key]">
+                                                                <div 
+                                                                :class="`dataset-table-item`" 
+                                                                style="white-space:nowrap"
+                                                                :data-tooltip="item" 
+                                                                :data-input-key="field.key" 
+                                                                :data-input-option="item" 
+                                                                @click="$parent.addInputOption($event)"
+                                                                @mouseover="$parent.highlightTableItems($event)"
+                                                                @mouseout="$parent.unHighlightTableItems($event)"
+                                                                >
+                                                                {{ item }}
+                                                                </div>
+                                                            </template>
+                                                        </template>
+                                                        <template v-else>
+                                                            <div 
+                                                                :class="`dataset-table-item`" 
+                                                                style="white-space:nowrap"
+                                                                :data-tooltip="row.item[field.key]" 
+                                                                :data-input-key="field.key" 
+                                                                :data-input-option="row.item[field.key]" 
+                                                                @click="$parent.addInputOption($event)"
+                                                                @mouseover="$parent.highlightTableItems($event)"
+                                                                @mouseout="$parent.unHighlightTableItems($event)"
+                                                                >
+                                                                {{ row.item[field.key] }}
+                                                                </div>
+                                                            
+                                                        </template>
+                                                    </template>
+                                                    <template v-else>
+                                                        {{ row.item[field.key] }}
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--<button @click="row.toggleDetails">Hide</button>-->
+                                        <!--
+                                        <b-table style="font-size:14px;margin-top:14px;"
+                                            id="matkp-datasets-table"
+                                            striped
+                                            small
+                                            sort-icon-left
+                                            :items="[row.item]" 
+                                            :fields="$parent.subFields"
+                                        >
+                                        <template #cell()="data">
+                                            <template v-if="Array.isArray(data.value)">
+                                                <template v-for="item in data.value">
+                                                    <div 
+                                                    :class="`dataset-table-item`" 
+                                                    :data-tooltip="item" 
+                                                    :data-input-key="data.field.key" 
+                                                    :data-input-option="item" 
+                                                    @click="$parent.addInputOption($event)"
+                                                    @mouseover="$parent.highlightTableItems($event)"
+                                                    @mouseout="$parent.unHighlightTableItems($event)"
+                                                    >
+                                                    {{ item }}
+                                                    </div>
+                                                </template>
+                                            </template>
+                                            <template v-else>
+                                                {{ data.value }}
+                                            </template>
+                                        </template>
+                                        </b-table>
+                                        -->
+                                    </template>
+
+                                    <!--
                                     <template #table-colgroup="scope">
                                         <col
                                             v-for="field in scope.fields"
@@ -104,8 +188,13 @@
                                             :style="{ width: field.key === 'Name' ? '400px' : field.key === 'Depot' ? '250px' : 'auto' }"
                                         >
                                     </template>
-                                    <template #cell(Download)="data">
-                                        <a :href="data.value" target="_blank">download</a>
+                                    -->
+                                    <template #cell(download)="data">
+                                        <a :href="data.value" target="_blank" :src="data.value">
+                                            <svg style="height:20px; width:20px" width="800" height="800" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="m397.653 208.427-27.306-32.854-93.014 77.654V42.667h-42.666v210.56l-93.014-77.654-27.306 32.854L256 326.4l141.653-117.973ZM85.333 384h341.334v42.667H85.333V384Z" fill="#000" fill-rule="evenodd"/>
+                                            </svg>
+                                        </a> 
                                     </template>
                                     <template #cell(datasetId)="data">
                                         <a class="dataset-explore-link" :href="`/matkp/cellbrowser2.html?dataset=${data.value}`" style="font-weight:bold">explore ❯</a>
@@ -114,24 +203,39 @@
                                         {{data.value.toLocaleString()}}
                                     </template>
                                     <template #cell()="data">
-                                        <template v-if="Array.isArray(data.value)">
-                                            <template v-for="item in data.value">
+                                        <template v-if="$parent.isFilter(data.field.key)">
+                                            <template v-if="Array.isArray(data.value)">
+                                                <template v-for="item in data.value">
+                                                    <div 
+                                                        :class="`dataset-table-item`" 
+                                                        :data-tooltip="item" 
+                                                        :data-input-key="data.field.key" 
+                                                        :data-input-option="item" 
+                                                        @click="$parent.addInputOption($event)"
+                                                        @mouseover="$parent.highlightTableItems($event)"
+                                                        @mouseout="$parent.unHighlightTableItems($event)"
+                                                        >
+                                                        {{ item }}
+                                                    </div>
+                                                </template>
+                                            </template>
+                                            <template v-else>
                                                 <div 
-                                                :class="`dataset-table-item`" 
-                                                :data-tooltip="item" 
-                                                :data-input-key="data.field.key" 
-                                                :data-input-option="item" 
-                                                @click="$parent.addInputOption($event)"
-                                                @mouseover="$parent.highlightTableItems($event)"
-                                                @mouseout="$parent.unHighlightTableItems($event)"
-                                                >
-                                                {{ item }}
+                                                    :class="`dataset-table-item`" 
+                                                    :data-tooltip="data.value" 
+                                                    :data-input-key="data.field.key" 
+                                                    :data-input-option="data.value" 
+                                                    @click="$parent.addInputOption($event)"
+                                                    @mouseover="$parent.highlightTableItems($event)"
+                                                    @mouseout="$parent.unHighlightTableItems($event)"
+                                                    >
+                                                    {{ data.value }}
                                                 </div>
                                             </template>
                                         </template>
                                         <template v-else>
-                                            {{ data.value }}
-                                        </template>
+                                                {{ data.value }}
+                                            </template>
                                     </template>
                                 </b-table>
                             </div>
@@ -172,10 +276,17 @@
 .b-table th {
     white-space: nowrap;
 }
+::v-deep .table-sm td{
+    padding: 0.5rem;
+}
 ::v-deep .b-table thead th {
     padding: 10px 0.3rem;
     background: #dddddd;
     border-bottom: 1px solid black;
+    white-space: nowrap;
+}
+::v-deep .b-table-details>td {
+    padding: 0 50px !important;
 }
 ::v-deep .pagination.b-pagination{
     border: 0;
@@ -217,6 +328,7 @@
     overflow: hidden;*/
     text-overflow: ellipsis;
     cursor: pointer;
+    width: fit-content;
 }
 .dataset-table-item:hover{
     outline: 2px solid #ffd10c;
@@ -229,6 +341,7 @@
     padding: 0 5px;
     content : attr(data-tooltip);
     opacity : 0;
+    width: min-content;
 }
 [data-tooltip]:hover::before {
     /*opacity : 1;*/
@@ -243,6 +356,9 @@
 }
 .filter:hover .input-options {
     display: flex !important;
+}
+.filter .matkp-input{
+    padding: 5px 10px;
 }
 .input-options {
     padding: 10px 0;
@@ -287,5 +403,15 @@
     background: #ffd10c;
     padding: 0 5px;
     border-radius: 5px;
+}
+.more-btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 2px 10px;
+    font-weight: bold;
+    background-color: #ddd;
+}
+.more-btn:hover{
+    background-color: #b1b1b1;
 }
 </style>
