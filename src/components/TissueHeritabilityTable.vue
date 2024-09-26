@@ -28,10 +28,15 @@
             :contentFill="$parent.docDetails"
             :contentMap="$store.state.bioPortal.documentations"
         ></documentation>
-        <div v-if="itemData.length > 0"
-            v-html="'Total rows: ' + itemData.length"
-            class="table-total-rows"
-        ></div>
+        <div v-if="itemData.length > 0">
+            <div v-html="'Total rows: ' + itemData.length"
+                class="table-total-rows"
+            ></div>
+            <div class="text-right mb-2">
+                <data-download :data="itemData" :filename="`tissue_enrichment_${tissue}_${this.ancestry}`">
+                </data-download>
+            </div>
+        </div>
         <b-table
             small
             responsive="sm"
@@ -89,7 +94,11 @@ import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import DataDownload from "@/components/DataDownload.vue";
 export default Vue.component("TissueHeritabilityTable", {
+    components: {
+        DataDownload,
+    },
     props: {
         tissue: {
             type: String,
