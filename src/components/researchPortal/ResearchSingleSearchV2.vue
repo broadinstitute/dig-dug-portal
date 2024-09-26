@@ -49,7 +49,7 @@
 						<span class="more-options">
 							<div class="ss-options-wrapper">
 								<div v-for="option in isParameterActive('kp genes').options">
-									<span v-if="option.type == 'summary'">
+									<span>
 										<a :href="(option.url)? option.url+gene:'javascript:;'">{{ option['url label'] }}</a>
 										<span v-if="!!option.url && !!option.sections"> | </span>
 										<a href="javascript:;" 
