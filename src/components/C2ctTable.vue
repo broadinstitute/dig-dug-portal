@@ -1,13 +1,15 @@
 <template>
     <div id="c2ct">
         <div v-if="rows > 0">
-            <div class="text-right mb-2">
-                <data-download :data="c2ctData" filename="c2ct"></data-download>
+            <div>
+                <div
+                    v-html="'Total rows: ' + rows"
+                    class="table-total-rows"
+                ></div>
+                <div class="text-right mb-2">
+                    <data-download :data="c2ctData" filename="c2ct"></data-download>
+                </div>
             </div>
-            <div
-                v-html="'Total rows: ' + rows"
-                class="table-total-rows"
-            ></div>
             <b-table
                 hover
                 small
