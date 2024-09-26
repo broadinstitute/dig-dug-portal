@@ -221,6 +221,10 @@ export default Vue.component("pigean-table", {
                     filename="pigean_gene"
                 ></data-download>
             </div>
+            <div
+                v-html="'Total rows: ' + rows"
+                class="table-total-rows"
+            ></div>
             <b-table
                 :hover="isSubtable"
                 small

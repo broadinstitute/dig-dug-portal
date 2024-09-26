@@ -90,16 +90,22 @@
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <scatterplot
-                                    v-if="$parent.tissueData.length > 0"
-                                    :logScale="$parent.logScale"
-                                    :plotData="$parent.tissueData"
-                                    :config="$parent.plotConfig"
-                                    :plotName="`${$parent.tissue}_gene_expression`"
-                                    :filter="filter"
-                                    :translucentDots="true"
-                                >
-                                </scatterplot>
+                                <div class="row">
+                                    <div class="col-md-2"></div>
+                                    <div class="col-md-8">
+                                        <scatterplot
+                                            v-if="$parent.tissueData.length > 0"
+                                            :logScale="$parent.logScale"
+                                            :plotData="$parent.tissueData"
+                                            :config="$parent.plotConfig"
+                                            :plotName="`${$parent.tissue}_gene_expression`"
+                                            :filter="filter"
+                                            :translucentDots="true"
+                                        >
+                                        </scatterplot>
+                                    </div>
+                                    <div class="col-md-2"></div>
+                                </div>
                                 <div class="mt-4"></div>
                                 <tissue-expression-table
                                     :tissueData="$parent.tissueData"
@@ -107,6 +113,70 @@
                                     :filter="filter"
                                 >
                                 </tissue-expression-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Credible Sets to Cell Type (CS2CT) results for
+                            {{ $parent.phenotypeDisplayName }}
+                            (Ancestry:
+                            {{
+                                $parent.cs2ctAncestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $parent.cs2ctAncestry
+                                      )
+                            }})
+                            <tooltip-documentation
+                                name="phenotype.cs2ct.tooltip"
+                                :contentFill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :contentMap="$store.state.bioPortal.documentations"
+                            ></tooltip-documentation>
+                        </h4>
+                        <div class="filtering-ui-wrapper container-fluid temporary-card">
+                            <div class="row filtering-ui-content">
+                                <span>
+                                    <div class="label">Search by phenotype</div>
+                                </span>
+                                <phenotype-selectpicker
+                                    :phenotypes="$store.state.bioPortal.phenotypes"
+                                    class="col filter-col-md">
+                                </phenotype-selectpicker>
+                            </div>
+                        </div>
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'annotation'"
+                                :options="
+                                    $store.state.cs2ct.data.map(
+                                        (d) => d.annotation
+                                    )
+                                "
+                            >
+                                <div class="label">Annotation</div>
+                            </filter-enumeration-control>
+                            <filter-less-control
+                                :field="'totalEntropy'"
+                                :pill-formatter="
+                                    (filterDefinition) =>
+                                        `genericity ≤ ${filterDefinition.threshold}`
+                                "
+                            >
+                                <div class="label">Genericity (&le;)</div>
+                            </filter-less-control>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <c2ct-table
+                                    :c2ctData="$parent.cs2ctData"
+                                    :filter="filter"
+                                    :phenotype="$store.state.credibleSetPhenotype"
+                                >
+                                </c2ct-table>
                             </template>
                         </criterion-function-group>
                     </div>
@@ -153,75 +223,6 @@
                     </div>
                 </div>
             </div>
-            <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Credible Sets to Cell Type (CS2CT) results for
-                            {{ $parent.topPhenotype }}
-                            (Ancestry:
-                            {{
-                                $parent.cs2ctAncestry == ""
-                                    ? "All"
-                                    : $parent.ancestryFormatter(
-                                          $parent.cs2ctAncestry
-                                      )
-                            }})
-                            <tooltip-documentation
-                                name="phenotype.cs2ct.tooltip"
-                                :contentFill="$parent.docDetails"
-                                :is-hover="true"
-                                :no-icon="false"
-                                :contentMap="$store.state.bioPortal.documentations"
-                            ></tooltip-documentation>
-                        </h4>
-                        <criterion-function-group>
-                            <filter-enumeration-control
-                                :field="'annotation'"
-                                :options="
-                                    $store.state.cs2ct.data.map(
-                                        (d) => d.annotation
-                                    )
-                                "
-                            >
-                                <div class="label">Annotation</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'tissue'"
-                                :options="
-                                    $store.state.cs2ct.data.map((d) => d.tissue)
-                                "
-                            >
-                                <div class="label">Tissue</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'biosample'"
-                                :options="
-                                    $parent.cs2ctData.map((d) => d.biosample)
-                                "
-                            >
-                                <div class="label">Biosample</div>
-                            </filter-enumeration-control>
-                            <filter-less-control
-                                :field="'totalEntropy'"
-                                :pill-formatter="
-                                    (filterDefinition) =>
-                                        `genericity ≤ ${filterDefinition.threshold}`
-                                "
-                            >
-                                <div class="label">Genericity (&le;)</div>
-                            </filter-less-control>
-
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <c2ct-table
-                                    :c2ctData="$parent.cs2ctData"
-                                    :filter="filter"
-                                    :phenotype="$parent.topPhenotype"
-                                >
-                                </c2ct-table>
-                            </template>
-                        </criterion-function-group>
-                    </div>
-                </div>
         </template>
 
         <!-- Footer-->
@@ -249,5 +250,9 @@ tr.b-table-details > td {
 
 div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
     background-color: #14a433;
+}
+.blue-search {
+    background-color: #66bbff30 !important;
+    border: solid 1px #3399ff30 !important;
 }
 </style>

@@ -1,8 +1,14 @@
 <template>
     <div id="c2ct">
         <div v-if="rows > 0">
-            <div class="text-right mb-2">
-                <data-download :data="c2ctData" filename="c2ct"></data-download>
+            <div>
+                <div
+                    v-html="'Total rows: ' + rows"
+                    class="table-total-rows"
+                ></div>
+                <div class="text-right mb-2">
+                    <data-download :data="c2ctData" :filename="`c2ct_${phenotype}`"></data-download>
+                </div>
             </div>
             <b-table
                 hover
@@ -26,31 +32,28 @@
                         >{{ data.label }}
                     </span>
                 </template>
+                <template #head(variantSifter)>
+                    Open Variant Sifter (region: lead SNP &plusmn; 200kb)
+                </template>
                 <template #cell(tissue)="r">
                     <a :href="`/tissue.html?tissue=${r.item.tissue}`">
                         {{ tissueFormatter(r.item.tissue) }}
                     </a>
                 </template>
                 <template #cell(chromosome)="r">
-                    <a
-                        :href="`research.html?pageid=kp_variant_sifter&phenotype=${
-                            phenotype.name
-                        }&region=${r.item.chromosome}:${
-                            r.item.clumpStart >= 250000
-                                ? r.item.clumpStart - 250000
-                                : 0
-                        }-${r.item.clumpEnd + 250000}&annotation=${
-                            r.item.annotation
-                        }`"
-                    >
                         {{
                             `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
                         }}
-                    </a>
+                    
                 </template>
                 <template #cell(overlapLeadSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.overlapLeadSNP}`">
                         {{ r.item.overlapLeadSNP }}
+                    </a>
+                </template>
+                <template #cell(variantSifter)="r">
+                    <a :href="exploreVariantSifter(r.item)">
+                        Open
                     </a>
                 </template>
             </b-table>
@@ -133,6 +136,11 @@ export default Vue.component("c2ct-table", {
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
                 },
+                {
+                    key: "variantSifter",
+                    label: "variantSifter",
+                    sortable: false,
+                }
             ],
         };
     },
@@ -156,11 +164,23 @@ export default Vue.component("c2ct-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
+        exploreVariantSifter(item, expanded = 200000) {
+            let location = item.overlapLeadSNP.split(":");
+            let chr = location[0];
+            let center = parseInt(location[1]);
+            let start = center - expanded;
+            let end  = center + expanded;
+            return '/research.html?pageid=kp_variant_sifter&phenotype=' +
+				item.phenotype + '&region=' +
+                chr + ':' +
+                start + '-' +
+                end;
+        },
     },
 });
 </script>
 <style scoped>
-@import url("/css/effectorGenes.css");
+@import url("/css/table.css");
 label {
     margin: 10px;
 }

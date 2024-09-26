@@ -17,6 +17,7 @@ import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -49,6 +50,7 @@ new Vue({
         Scatterplot,
         MouseSummaryTable,
         C2ctTable,
+        PhenotypeSelectPicker,
     },
     mixins: [pageMixin],
     data() {
@@ -56,7 +58,6 @@ new Vue({
             tissue: keyParams.tissue || "",
             selectTissue: "",
             logScale: false,
-            topPhenotype: "",
             cs2ctAncestry: "",
             plotConfig: {
                 xField: "H",
@@ -65,6 +66,7 @@ new Vue({
                 yAxisLabel: "TPM (mean)",
                 dotKey: "gene",
                 hoverBoxPosition: "both",
+                plotHeight: 300,
                 hoverFields: [
                     {
                         key: "gene",
@@ -151,6 +153,11 @@ new Vue({
             });
             return data;
         },
+        phenotypeDisplayName(){
+            let phenotype = this.$store.state.credibleSetPhenotype;
+            let map = this.$store.state.bioPortal.phenotypeMap;
+            return map[phenotype]?.description || "";
+        },
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -174,7 +181,9 @@ new Vue({
             this.$store.dispatch("getTissue");
         },
         getTopPhenotype(details){
-            this.topPhenotype = details.phenotype;
+            // Credible set is based on top phenotype or user selected phenotype,
+            // whichever is changed most recently.
+            this.$store.commit("setTopPhenotype", details.phenotype);
             this.$store.dispatch("getCs2ct", details.phenotype, details.ancestry);
         }
     },
