@@ -120,10 +120,11 @@ export default Vue.component("scatterplot", {
         .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(this.xScale));
+        .call(d3.axisBottom(this.xScale))
+          .selectAll("text")
+            .style("font-size", "13px");
       this.svg.append("text")
         .attr("text-anchor", "middle")
-        .attr("font-size", "smaller")
         .attr("y", height + margin.top + 22)
         .attr("x", width/2)
         .text(this.config.xAxisLabel || this.config.xField);
@@ -133,11 +134,12 @@ export default Vue.component("scatterplot", {
         .domain([yMin - (0.035 * yRange), yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
-        .call(d3.axisLeft(this.yScale));
+        .call(d3.axisLeft(this.yScale))
+          .selectAll("text")
+            .style("font-size", "13px");;
       this.svg.append("text")
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
-        .attr("font-size", "smaller")
         .attr("y", -margin.left + 20)
         .attr("x", - height / 2 - margin.top)
         .text(this.config.yAxisLabel || this.config.yField);

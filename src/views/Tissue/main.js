@@ -66,6 +66,7 @@ new Vue({
                 yAxisLabel: "TPM (mean)",
                 dotKey: "gene",
                 hoverBoxPosition: "both",
+                plotHeight: 300,
                 hoverFields: [
                     {
                         key: "gene",
