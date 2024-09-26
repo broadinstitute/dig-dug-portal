@@ -90,16 +90,22 @@
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <scatterplot
-                                    v-if="$parent.tissueData.length > 0"
-                                    :logScale="$parent.logScale"
-                                    :plotData="$parent.tissueData"
-                                    :config="$parent.plotConfig"
-                                    :plotName="`${$parent.tissue}_gene_expression`"
-                                    :filter="filter"
-                                    :translucentDots="true"
-                                >
-                                </scatterplot>
+                                <div class="row">
+                                    <div class="col-md-2"></div>
+                                    <div class="col-md-8">
+                                        <scatterplot
+                                            v-if="$parent.tissueData.length > 0"
+                                            :logScale="$parent.logScale"
+                                            :plotData="$parent.tissueData"
+                                            :config="$parent.plotConfig"
+                                            :plotName="`${$parent.tissue}_gene_expression`"
+                                            :filter="filter"
+                                            :translucentDots="true"
+                                        >
+                                        </scatterplot>
+                                    </div>
+                                    <div class="col-md-2"></div>
+                                </div>
                                 <div class="mt-4"></div>
                                 <tissue-expression-table
                                     :tissueData="$parent.tissueData"

@@ -7,7 +7,7 @@
                     class="table-total-rows"
                 ></div>
                 <div class="text-right mb-2">
-                    <data-download :data="c2ctData" filename="c2ct"></data-download>
+                    <data-download :data="c2ctData" :filename="`c2ct_${phenotype}`"></data-download>
                 </div>
             </div>
             <b-table
