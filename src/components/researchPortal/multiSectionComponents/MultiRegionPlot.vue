@@ -1352,9 +1352,11 @@ export default Vue.component("multi-region-plot", {
 									);
 
 									let dotColor = this.compareGroupColors[pIndex];
+									//let ldKey = value[variantField];
+									//let starKey = value[starField];
 
 									if (key == this.ldData[pGroup].refVariant) {
-										if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
+										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 											this.utils.plotUtils.renderStar(
 												CTX,
 												xPos,
@@ -1374,7 +1376,7 @@ export default Vue.component("multi-region-plot", {
 											);
 										}
 									} else {
-										if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
+										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 											this.utils.plotUtils.renderStar(
 												CTX,
 												xPos,
