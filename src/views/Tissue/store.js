@@ -23,7 +23,10 @@ export default new Vuex.Store({
         tissueName: keyParams.tissue || "",
         selectedTissue: "",
         geneExpressionTissue: [],
-        selectedAncestry: ""
+        selectedAncestry: "",
+        selectedPhenotype: null,
+        topPhenotype: null,
+        credibleSetPhenotype: null
     },
 
     mutations: {
@@ -31,6 +34,10 @@ export default new Vuex.Store({
             state.tissueName = tissueName || state.tissueName;
             keyParams.set({ tissue: state.tissueName });
         },
+        setTopPhenotype(state, phenotype) {
+            state.topPhenotype = phenotype || state.topPhenotype;
+            state.credibleSetPhenotype = phenotype;
+        }
     },
     actions: {
         getTissue(context) {
@@ -63,6 +70,14 @@ export default new Vuex.Store({
                 query.q = phenotype;
             }
             context.dispatch("cs2ct/query", query);
+        },
+        onPhenotypeChange(context, phenotype){
+            context.state.selectedPhenotype = phenotype;
+            context.state.credibleSetPhenotype = phenotype.name;
+
+            // Credible set is based on top phenotype or user selected phenotype,
+            // whichever is changed most recently.
+            context.dispatch("getCs2ct", phenotype.name);
         }
     },
     getters: {

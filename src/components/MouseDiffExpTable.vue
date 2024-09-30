@@ -61,9 +61,5 @@
   });
 </script>
 <style scoped>
-  .table-total-rows {
-    float: left;
-    font-size: 12px;
-    padding-top: 10px;
-  }
+@import url("/css/table.css");
 </style>

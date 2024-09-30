@@ -9,12 +9,12 @@
 						';'
 						" @click="
 						utils.uiUtils.showHideElement(
-							'plotsWrapper' + item.replaceAll(' ', '_')
+							'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId
 						)
 						"></span>
 					<span type="button" v-if="item == 'Combined'" class="group-bubble reference"
 						style="background-color: #ffffff; border: solid 1px #666666"
-						@click="utils.uiUtils.showHideElement('plotsWrapperCombined')">
+						@click="utils.uiUtils.showHideElement('assoPlotsWrapperCombined' + sectionId)">
 						Combined
 					</span>
 				</template>
@@ -1352,9 +1352,11 @@ export default Vue.component("multi-region-plot", {
 									);
 
 									let dotColor = this.compareGroupColors[pIndex];
+									//let ldKey = value[variantField];
+									//let starKey = value[starField];
 
 									if (key == this.ldData[pGroup].refVariant) {
-										if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
+										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 											this.utils.plotUtils.renderStar(
 												CTX,
 												xPos,
@@ -1374,7 +1376,7 @@ export default Vue.component("multi-region-plot", {
 											);
 										}
 									} else {
-										if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
+										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 											this.utils.plotUtils.renderStar(
 												CTX,
 												xPos,
@@ -1939,7 +1941,7 @@ export default Vue.component("multi-region-plot", {
 $(function () { });
 </script>
 
-<style>
+<style scoped>
 .show-hide-plots {
 	text-align: left;
 	padding-bottom: 25px;
@@ -1974,6 +1976,11 @@ $(function () { });
 	height: auto !important;
 	padding-bottom: 0 !important;
 	width: 100%;
+}
+
+.asso-plots-wrapper.hidden,
+.ld-plots-wrapper.hidden {
+	display: none !important;
 }
 
 .ld-plots-wrapper {

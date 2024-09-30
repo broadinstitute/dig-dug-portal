@@ -1,5 +1,14 @@
 <template>
   <div>
+    <div v-if="items.length > 0">
+      <div v-html="'Total rows: ' + items.length"
+        class="table-total-rows"
+      ></div>
+      <div class="text-right mb-2">
+          <data-download :data="items" :filename="`mouse_summary_${pageParam}`">
+          </data-download>
+      </div>
+    </div>
     <b-table
       small
       :items="items"
@@ -32,7 +41,11 @@
 </style>
 <script>
   import Vue from "vue";
+  import DataDownload from "@/components/DataDownload.vue";
   export default Vue.component("MouseSummaryTable", {
+    components: {
+        DataDownload,
+    },
     props: ["items", "isGenePage"],
     data() {
       return {
@@ -86,6 +99,10 @@
         let specificFields = !this.isGenePage ? this.tissueOnlyFields : this.geneOnlyFields;
         return specificFields.concat(this.commonFields);
       },
+      pageParam(){
+        let field = !this.isGenePage ? "tissue" : "gene";
+        return this.items[0]?.[field] || '';
+      }
     },
     methods: {
       sortRows(aRow, bRow, key){
