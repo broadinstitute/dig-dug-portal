@@ -28,15 +28,22 @@
 		></research-page-header>
 	<div class="single-search-wrapper" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['single search']">
 		<research-single-search
+			v-if="!$parent.sectionConfigs['single search']['version']"
 			:single-search-config="$parent.sectionConfigs['single search']"
 			:phenotypes="$parent.phenotypesInSession"
 			:utils="$parent.utilsBox"
-		></research-single-search>   
+		></research-single-search>
+		<research-single-search-v2
+				v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == '2.0'"
+				:single-search-config="$parent.sectionConfigs['single search']"
+				:phenotypes="$parent.phenotypesInSession"
+				:utils="$parent.utilsBox"
+			></research-single-search-v2>     
 		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
 			<span v-html="'examples: '"></span>
-			<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
+			<!--<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
 			v-html="$parent.getExampleLink(example)">
-			</span>
+			</span>-->
 		</div> 
 		<!-- KC Set context -->
 		<div v-if="!!$parent.sectionConfigs['context']" class="context-btns-wrapper">
