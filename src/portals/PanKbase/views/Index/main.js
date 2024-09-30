@@ -6,7 +6,8 @@ import "../../assets/pkb-styles.css"
 
 Vue.config.productionTip = false;
 
-import pbkHeader from "../../components/pkb-header.vue"
+import pkbHeader from "../../components/pkb-header.vue"
+import pkbHero from "../../components/pkb-hero.vue"
 import pkbFooter from "../../components/pkb-footer.vue"
 
 new Vue({
@@ -14,7 +15,8 @@ new Vue({
     },
 
     components: {
-        pbkHeader,
+        pkbHeader,
+        pkbHero,
         pkbFooter
     },
 

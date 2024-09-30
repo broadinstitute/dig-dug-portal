@@ -1,12 +1,11 @@
 <template>
-    <div class="pkb-wrapper f-col fill-height">
+    <div class="pkb-wrapper f-col fill-height align-h-center">
         <!-- NAV -->
         <pkb-header></pkb-header>
         <!-- BODY -->
+        <pkb-hero></pkb-hero>
         <div class="pkb-body">
-            <template>
-                <div></div>
-            </template>
+            
         </div>
         <!-- FOOTER -->
         <pkb-footer></pkb-footer> 
@@ -14,5 +13,7 @@
 </template>
 
 <style scoped>
-
+.pkb-nav{
+    background: #fafafa99 !important;
+}
 </style>

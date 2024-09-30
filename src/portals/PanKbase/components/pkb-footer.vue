@@ -9,22 +9,16 @@ import Vue from "vue";
 
 export default Vue.component("pkb-footer", {
     components: {},
-    props: {
-    },
+    props: {},
     data() {
-        return {
-            
-        };
+        return {};
     },
-    computed: {
-    },
-    created() {
-    },
-    methods: {
-        
-    },
+    created() {},
+    computed: {},
+    methods: {},
 });
 </script>
+
 <style scoped>
 .pkb-footer{
     width: 100%;

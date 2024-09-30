@@ -11,33 +11,40 @@
             </div>
             <div class="menu">
                 <div class="menu-item-wrapper">
-                    <a class="menu-item">Item</a>
+                    <a class="menu-item">Catalog</a>
                     <div class="submenu">
-                        <a class="submenu-item">Item</a>
-                        <a class="submenu-item">Long Item</a>
-                        <a class="submenu-item">Item</a>
+                        <a class="submenu-item">Raw Data Sets</a>
+                        <a class="submenu-item">Processed Data Sets</a>
+                        <a class="submenu-item">Files</a>
                     </div>
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item menu-item-selected">Active Item</a>
+                    <a class="menu-item">Pankgraph</a>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item">Compute</a>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item">Methodology</a>
                     <div class="submenu">
-                        <a class="submenu-item">Item</a>
-                        <a class="submenu-item">Long Item</a>
-                        <a class="submenu-item">Another Long Item</a>
+                        <a class="submenu-item">Schemas</a>
+                        <a class="submenu-item">Expreimental Standards</a>
+                        <a class="submenu-item">Computational Standards</a>
+                        <a class="submenu-item">Genome References</a>
+                        <a class="submenu-item">Audit Documentation</a>
                     </div>
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item">Long Item</a>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item">Item</a>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item">Another Item</a>
+                    <a class="menu-item">About</a>
                     <div class="submenu">
-                        <a class="submenu-item">Item</a>
-                        <a class="submenu-item">Long Item</a>
-                        <a class="submenu-item">Another Long Item</a>
+                        <a class="submenu-item">PanKbase</a>
+                        <a class="submenu-item">Policies</a>
+                    </div>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item">Help</a>
+                    <div class="submenu">
+                        <a class="submenu-item">Data Submission</a>
                     </div>
                 </div>
             </div>
@@ -139,15 +146,16 @@ export default Vue.component("pkb-header", {
         cursor: pointer;
         border-radius: 10px 10px 0 0;
         font-weight: 600;
-        color: var(--pkb-black)
+        color: var(--pkb-black);
+        border-bottom: 5px solid transparent;
     }
     .menu-item.menu-item-selected {
         color: var(--pkb-primary-green);
         border-bottom: 5px solid var(--pkb-primary-green);
     }
     .menu-item-wrapper:hover .menu-item {
-        color: var(--pkb-secondary-green) !important;
-        border-bottom: 5px solid var(--pkb-secondary-green);
+        color: var(--pkb-primary-green) !important;
+        border-bottom: 5px solid var(--pkb-primary-green);
     }
     .menu-item-wrapper:hover > .submenu{
         display:flex;
