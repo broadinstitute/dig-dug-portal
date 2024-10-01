@@ -3,15 +3,14 @@
 		<div id="summary_popup" :class="(!!summaryPopup)?'ss-summary-popup': 'ss-summary-popup hidden'">
 			<span class="btn btn-default reset-search" @click="summaryPopup = !summaryPopup ? true : null;"><b-icon icon="arrow-down-left-square"></b-icon></span>
 			<h4>Search quick view</h4>
-			<div>
-				<div class="summary-content">
-					<div v-for="item in summaryAll" v-html="item.data">
-					</div>
+			
+			<div class="summary-content">
+				<div v-for="item in summaryAll" v-html="item.data">
 				</div>
 			</div>
 		</div>
 
-		<span v-if="summaryAll.length > 0" class="btn btn-default ss-summary-popup-btn" @click="summaryPopup = !summaryPopup ? true : null;"> Search quick view <b-icon icon="arrow-up-right-square"></b-icon></span>
+		<!--<span v-if="summaryAll.length > 0" class="btn btn-default ss-summary-popup-btn" @click="summaryPopup = !summaryPopup ? true : null;"> Search quick view <b-icon icon="arrow-up-right-square"></b-icon></span>-->
 
 		<input
 			class="form-control byor-single-search"
@@ -33,7 +32,7 @@
 				class="byor-single-search-results"
 				v-if="anyResults() > 0"
 			>
-				<div v-for="gene in singleSearchResult.genes" :key="gene" class="single-search-option">
+				<div v-for="gene in singleSearchResult.genes" :key="gene" class="">
 					<!--
 					<a v-if="!!isParameterActive('kp genes').active && !isParameterActive('kp genes').options"
 						class="search-gene-link"
@@ -43,7 +42,7 @@
 						-->
 
 					<a v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options"
-						class="search-gene-link"
+						class="single-search-option search-gene-link"
 						href="javascript:;"
 						>{{ gene }}
 						<span class="more-options">
@@ -55,50 +54,27 @@
 										<a href="javascript:;" 
 										class="ss-generate-summary"
 										@click="generateSummary(gene, option['summary id'],option['summary label'], option.sections)">{{ option['summary label'] }}</a></span>
-									<!--
-										<span v-if="option.type == 'target page'"><a :href="option.url + gene">{{ option['url label'] }}</a></span>
-									-->
 								</div>
 							</div>
 						</span>
 					</a>
-					<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary': 'in-search-summary hidden'">
+					<!--<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary': 'in-search-summary hidden'">
 						<div :id="'summary_content' + gene" class="summary-content">
 							<div v-for="item in summaryByKey" v-if="item.key == gene" v-html="item.data">
 							</div>
 						</div>
-					</div>
+					</div>-->
 					
 				</div>
-				<!--
-
-				<template v-if="!!isParameterActive('kp phenotypes').active && !isParameterActive('kp phenotypes').options">
-					<div
-						v-for="phenotype in singleSearchResult.phenotypes"
-						:value="phenotype.name"
-						:key="phenotype.name"
-						 class="single-search-option"
-					>
-						<a :href="isParameterActive('kp phenotypes').url + phenotype.name">{{
-							phenotype.description
-						}}
-						</a
-						><span class="search-word-group">{{
-							phenotype.group
-						}}</span>
-					</div>
-				</template>
-				
-				-->
 
 				<template v-if="!!isParameterActive('kp phenotypes').active && !!isParameterActive('kp phenotypes').options">
 					<div
 						v-for="phenotype in singleSearchResult.phenotypes"
 						:value="phenotype.name"
 						:key="phenotype.name"
-							class="single-search-option"
+							
 					>
-						<a href="javascript:;">{{
+						<a href="javascript:;" class="single-search-option">{{
 							phenotype.description
 						}}
 							<span class="more-options">
@@ -111,10 +87,6 @@
 											<a href="javascript:;" 
 											class="ss-generate-summary"
 											@click="generateSummary(phenotype.name, option['summary id'], option['summary label'], option.sections)">{{ option['summary label'] }}</a></span>
-										
-										<!--
-											<span v-if="option.type == 'target page'"><a :href="option.url + phenotype.name">{{ option['url label'] }}</a></span>
-										-->
 											
 									</div>
 								</div>
@@ -123,12 +95,12 @@
 						><span class="search-word-group">{{
 							phenotype.group
 						}}</span>
-						<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary' : 'in-search-summary hidden'">
+						<!--<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary' : 'in-search-summary hidden'">
 							<div :id="'summary_content' + phenotype.name" class="summary-content">
 								<div v-for="item in summaryByKey" v-if="item.key == phenotype.name" v-html="item.data">
 								</div>
 							</div>
-						</div>
+						</div>-->
 					</div>
 				</template>
 
@@ -138,17 +110,31 @@
 						<template v-if="!!isParameterActive(param['parameter']).active">
 							<div
 								v-for="item in singleSearchResult[param['parameter']]"
-								:value="item.value"
-								:key="item.value"
-								 class="single-search-option"
-							>{{ item.label }}
-								<a :href="isParameterActive(param['parameter']).url + item.value" class="search-word-group">{{
-									'Search '+param['parameter']
-								}}</a
+							>
+								<a href="javascript:;" class="single-search-option">{{
+									item.label
+								}}
+								<span class="more-options">
+									<div class="ss-options-wrapper">
+										<div v-for="option in isParameterActive(param['parameter']).options">
+											<span>
+												<a :href="(option.url) ? option.url + item.value : 'javascript:;'">{{ option['url label'] }}</a>
+												<span v-if="!!option.url && !!option.sections"> | </span>
+												<a href="javascript:;" 
+												class="ss-generate-summary"
+												
+												@click="generateSummary(item.value, option['summary id'], option['summary label'], option.sections)">{{ option['summary label'] }}</a></span>
+											
+										</div>
+									</div>
+								</span></a
 								>
-								<div>
-							Options
-						</div>
+								<!--<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary' : 'in-search-summary hidden'">
+							<div :id="'summary_content' + item.value" class="summary-content">
+								<div v-for="sItem in summaryByKey" v-if="sItem.key == item.value" v-html="sItem.data">
+								</div>
+							</div>
+						</div>-->
 							</div>
 							
 						</template>
@@ -242,14 +228,13 @@ export default Vue.component("research-single-search-v2", {
 			summarySearch:[],
 			summaryByKey:[],
 			summaryAll:[],
-			summaryPopup: null,
+			summaryPopup: true,
 			summaryPopupContent:""
 		};
 	},
 	created() {
 		if(!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
 
-			console.log("singleSearchConfig", this.singleSearchConfig);
 
 			this.singleSearchConfig["search parameters"].map(S => {
 				if (!!S["data point"]) {
@@ -278,6 +263,7 @@ export default Vue.component("research-single-search-v2", {
 		singleSearchParam(PARAM) {
 			if (!!PARAM && PARAM.length >= 2) {
 
+				let paramWords = PARAM.split(" ");
 				// in case there is custom searchConfig, make sure kp gene search is there. Otherwise, gene search is active in default.
 				if(!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
 
@@ -291,42 +277,57 @@ export default Vue.component("research-single-search-v2", {
 
 					if (!!isKpGenes) { this.lookupGenes(PARAM); }
 
+					let isKpPhenotypes = null;
+
+					this.singleSearchConfig["search parameters"].map(S => {
+						if (!!S["values"] && S["values"] == "kp phenotypes") {
+							isKpPhenotypes = true
+						}
+					})
+
+					if (!!isKpPhenotypes) { 
+						
+						let searchPhenotypes = [];
+
+						this.phenotypes.map((p) => {
+							let isInPhenotype = 0;
+							paramWords.map((w) => {
+								if (
+									!!p.description
+										.toLowerCase()
+										.includes(w.toLowerCase())
+								) {
+									isInPhenotype++;
+								}
+							});
+
+							if (isInPhenotype == paramWords.length) {
+								searchPhenotypes.push(p);
+							}
+						});
+
+						let shorterFirst = searchPhenotypes.sort((a, b) => a.name.length - b.name.length);
+
+						this.singleSearchResult.phenotypes = shorterFirst;
+					 }
+
 				} else {
 					
 					this.lookupGenes(PARAM);
 				}
 
-				let paramWords = PARAM.split(" ");
-				let searchPhenotypes = [];
-
-				this.phenotypes.map((p) => {
-					let isInPhenotype = 0;
-					paramWords.map((w) => {
-						if (
-							!!p.description
-								.toLowerCase()
-								.includes(w.toLowerCase())
-						) {
-							isInPhenotype++;
-						}
-					});
-
-					if (isInPhenotype == paramWords.length) {
-						searchPhenotypes.push(p);
-					}
-				});
-
-				let shorterFirst = searchPhenotypes.sort((a, b) => a.name.length - b.name.length);
-
-				this.singleSearchResult.phenotypes = shorterFirst;
 
 				/// for custom parameters
 				let searchFields = Object.keys(this.customList);
 
+				
+
 				searchFields.map(P => {
+					
 					let searchItems = [];
 					this.customList[P].map(item=>{
 						let isInList = 0;
+						
 						paramWords.map((w) => {
 							if (
 								!!item.label
@@ -823,6 +824,7 @@ export default Vue.component("research-single-search-v2", {
 .single-search-option:hover {
 	border-bottom: solid 2px #dddddd;
 	margin-bottom: -2px;
+	padding-right: 50px;
 }
 
 .single-search-option .ss-options-wrapper {
@@ -880,10 +882,6 @@ export default Vue.component("research-single-search-v2", {
 	padding: 5px 0 5px 15px;*/
 }
 
-.ss-summary-popup {
-	text-align: left !important;
-}
-
 .in-search-summary .summary-data-header, .ss-summary-popup .summary-data-header {
 	padding: 5px 0;
     display: inline-block;
@@ -917,16 +915,23 @@ a.ss-generate-summary {
 }
 
 .ss-summary-popup {
+	text-align: left !important;
 	position: fixed;
-	top: 60px;
+	bottom: 15px;
 	right: 0px;
-	width: 500px;
-	height: calc(100% - 60px);
+	width: auto;
+	height: auto;
+	max-height: 50%;
 	padding: 15px;
 	border: solid 1px #ddd;
 	background-color: #fff;
 	box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.2);
 	z-index: 1000;
+	overflow: auto;
+}
+
+.ss-summary-popup .summary-content {
+	
 }
 
 .ss-summary-popup.hidden {
