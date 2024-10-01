@@ -2,13 +2,44 @@
     <div>
         <p>Loading: {{ loading }}</p>
         <p>Error: {{ error }}</p>
-        <p>Data: {{ data }}</p>
         <b-table
             striped
             hover
             :items="data.results"
             :loading="loading"
-        ></b-table>
+            :fields="fields"
+        >
+            <template #cell(study1)="data">
+                <span>{{ data.item.signal1.analysis.study.uuid }}</span>
+            </template>
+            <template #cell(trait1)="data">
+                <span>{{ data.item.signal1.analysis.trait.uuid }}</span>
+            </template>
+            <template #cell(study2)="data">
+                <span>{{ data.item.signal2.analysis.study.uuid }}</span>
+            </template>
+            <template #cell(trait2)="data">
+                <span>{{ data.item.signal2.analysis.trait.uuid }}</span>
+            </template>
+            <template #cell(trait2type)="data">
+                <span>{{ data.item.signal2.analysis.trait.type }}</span>
+            </template>
+            <template #cell(trait2tissue)="data">
+                <span>{{ data.item.signal2.analysis.tissue }}</span>
+            </template>
+            <template #cell(trait1variant)="data">
+                <span>{{ data.item.signal1.lead_variant.vid }}</span>
+            </template>
+            <template #cell(trait2variant)="data">
+                <span>{{ data.item.signal2.lead_variant.vid }}</span>
+            </template>
+            <template #cell(trait1log)="data">
+                <span>{{ data.item.signal1.neg_log_p }}</span>
+            </template>
+            <template #cell(trait2log)="data">
+                <span>{{ data.item.signal2.neg_log_p }}</span>
+            </template>
+        </b-table>
     </div>
 </template>
 
@@ -27,10 +58,18 @@ export default Vue.component("ColocusTable", {
             error: null,
             data: null,
             fields: [
-                { key: "gene", label: "Gene" },
-                { key: "coloc", label: "Coloc" },
-                { key: "pval", label: "P-Value" },
-                { key: "uuid", label: "ID" },
+                { key: "study1", label: "Study 1" },
+                { key: "trait1", label: "Trait 1" },
+                { key: "study2", label: "Study 2" },
+                { key: "trait2", label: "Trait 2" },
+                { key: "trait2type", label: "Trait 2 Type" },
+                { key: "trait2tissue", label: "Trait 2 Tissue" },
+                { key: "trait1variant", label: "Trait 1 Variant" },
+                { key: "trait2variant", label: "Trait 2 Variant" },
+                { key: "trait1log", label: "Trait 1 -log10p" },
+                { key: "trait2log", label: "Trait 2 -log10p" },
+                { key: "coloc_h4", label: "H4" },
+                { key: "r2", label: "R2" },
             ],
         };
     },
