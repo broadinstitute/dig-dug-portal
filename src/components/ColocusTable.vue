@@ -1,7 +1,5 @@
 <template>
     <div>
-        <h1>Colocus Component</h1>
-        <p>Gene Name: {{ geneName }}</p>
         <p>Loading: {{ loading }}</p>
         <p>Error: {{ error }}</p>
         <p>Data: {{ data }}</p>
