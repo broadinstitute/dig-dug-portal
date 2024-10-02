@@ -10,7 +10,7 @@
 			</div>
 		</div>
 
-		<!--<span v-if="summaryAll.length > 0" class="btn btn-default ss-summary-popup-btn" @click="summaryPopup = !summaryPopup ? true : null;"> Search quick view <b-icon icon="arrow-up-right-square"></b-icon></span>-->
+		<span v-if="summaryAll.length > 0" class="btn btn-default ss-summary-popup-btn" @click="summaryPopup = !summaryPopup ? true : null;"> Search quick view <b-icon icon="arrow-up-right-square"></b-icon></span>
 
 		<input
 			class="form-control byor-single-search"
@@ -228,7 +228,7 @@ export default Vue.component("research-single-search-v2", {
 			summarySearch:[],
 			summaryByKey:[],
 			summaryAll:[],
-			summaryPopup: true,
+			summaryPopup: null,
 			summaryPopupContent:""
 		};
 	},
@@ -382,7 +382,10 @@ export default Vue.component("research-single-search-v2", {
 			})
 		},
 		generateSummary(KEY,ID,HEADER,sections){
-			console.log(KEY, ID,HEADER, sections);
+
+			//Set summaryPopup true
+
+			this.summaryPopup = true;
 
 			let ifSearched = this.summarySearch.filter(search => search.key == KEY && search.id == ID);
 
@@ -403,6 +406,8 @@ export default Vue.component("research-single-search-v2", {
 				this.summarySearch = notSearched;
 				console.log("item already searched")
 			}
+
+
 
 			/*if(!!summaryConfig.url){
 				let nextHtml = "<a class='summary-next-action' href='"+ summaryConfig.url + KEY +"'>"+ summaryConfig["url label"] +"</a>";
@@ -444,10 +449,14 @@ export default Vue.component("research-single-search-v2", {
 
 				summaryData += "</div>";
 
-				for(let i=0; i < CONFIG['summary rows']; i++) {
+				let rowsLimit = (!!CONFIG['summary rows'] && CONFIG['summary rows'] <= summary.data.length )? CONFIG['summary rows']: summary.data.length;
+
+				for(let i=0; i < rowsLimit; i++) {
 					summaryData += "<div class='summary-row'>";
 						for (let j = 0; j < CONFIG['summary columns'].length; j++) {
 							
+							console.log("CONFIG['summary columns'][j]", CONFIG['summary columns'][j]);
+
 							let columnContent = (!!CONFIG['summary columns'][j].format)? this.utils.Formatters.ssColumnFormat(summary.data[i], 
 								CONFIG['summary columns'][j].format, 
 								summary.data[i][CONFIG['summary columns'][j].field]) 
