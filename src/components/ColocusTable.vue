@@ -1,128 +1,138 @@
 <template>
     <div>
-        <b-table
-            v-if="data && data.results.length > 0 && !loading"
-            striped
-            hover
-            :items="data ? data.results : []"
-            :loading="loading"
-            :fields="fields"
-            ><template #head(study1)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(study1)="r">
-                <span>{{ r.item.signal1.analysis.study.uuid }}</span>
-            </template>
+        <template v-if="data && data.count > 0 && !loading">
+            <div>
+                <div class="table-total-rows">Total rows: {{ data.count }}</div>
+                <div class="text-right mb-2">
+                    <data-download
+                        :data="data.results"
+                        :filename="`colocus_${geneName}`"
+                    ></data-download>
+                </div>
+            </div>
+            <b-table
+                striped
+                hover
+                :items="data ? data.results : []"
+                :loading="loading"
+                :fields="fields"
+                ><template #head(study1)="r">
+                    <span v-b-tooltip.hover :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(study1)="r">
+                    <span>{{ r.item.signal1.analysis.study.uuid }}</span>
+                </template>
 
-            <template #head(trait1)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(trait1)="r">
-                <a
-                    :href="`/phenotype.html?phenotype=${r.item.signal1.analysis.trait.phenotype.kp_id}`"
-                >
-                    {{ r.item.signal1.analysis.trait.phenotype.kp_id }}
-                </a>
-            </template>
+                <template #head(trait1)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(trait1)="r">
+                    <a
+                        :href="`/phenotype.html?phenotype=${r.item.signal1.analysis.trait.phenotype.kp_id}`"
+                    >
+                        {{ r.item.signal1.analysis.trait.phenotype.kp_id }}
+                    </a>
+                </template>
 
-            <template #head(study2)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(study2)="r">
-                <span>{{ r.item.signal2.analysis.study.uuid }}</span>
-            </template>
+                <template #head(study2)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(study2)="r">
+                    <span>{{ r.item.signal2.analysis.study.uuid }}</span>
+                </template>
 
-            <template #head(trait2)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(trait2)="r">
-                <span v-html="trait2Link(r.item.signal2)"></span>
-            </template>
+                <template #head(trait2)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(trait2)="r">
+                    <span v-html="trait2Link(r.item.signal2)"></span>
+                </template>
 
-            <template #head(trait2type)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(trait2type)="r">
-                <span>{{
-                    formatType(r.item.signal2.analysis.trait.biomarker_type)
-                }}</span>
-            </template>
+                <template #head(trait2type)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(trait2type)="r">
+                    <span>{{
+                        formatType(r.item.signal2.analysis.trait.biomarker_type)
+                    }}</span>
+                </template>
 
-            <template #head(trait2tissue)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(trait2tissue)="r">
-                <span>{{ r.item.signal2.analysis.tissue }}</span>
-            </template>
+                <template #head(trait2tissue)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(trait2tissue)="r">
+                    <span>{{ r.item.signal2.analysis.tissue }}</span>
+                </template>
 
-            <template #head(trait1variant)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(trait1variant)="r">
-                <a
-                    :href="`/variant.html?variant=${r.item.signal1.lead_variant.vid}`"
-                >
-                    {{ r.item.signal1.lead_variant.vid }}
-                </a>
-            </template>
+                <template #head(trait1variant)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(trait1variant)="r">
+                    <a
+                        :href="`/variant.html?variant=${r.item.signal1.lead_variant.vid}`"
+                    >
+                        {{ r.item.signal1.lead_variant.vid }}
+                    </a>
+                </template>
 
-            <template #head(trait2variant)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(trait2variant)="r">
-                <a
-                    :href="`/variant.html?variant=${r.item.signal2.lead_variant.vid}`"
-                >
-                    {{ r.item.signal2.lead_variant.vid }}
-                </a>
-            </template>
+                <template #head(trait2variant)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(trait2variant)="r">
+                    <a
+                        :href="`/variant.html?variant=${r.item.signal2.lead_variant.vid}`"
+                    >
+                        {{ r.item.signal2.lead_variant.vid }}
+                    </a>
+                </template>
 
-            <template #head(trait1log)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(trait1log)="r">
-                <span>{{ r.item.signal1.neg_log_p }}</span>
-            </template>
+                <template #head(trait1log)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(trait1log)="r">
+                    <span>{{ r.item.signal1.neg_log_p }}</span>
+                </template>
 
-            <template #head(trait2log)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-            <template #cell(trait2log)="r">
-                <span>{{ r.item.signal2.neg_log_p }}</span>
-            </template>
+                <template #head(trait2log)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+                <template #cell(trait2log)="r">
+                    <span>{{ r.item.signal2.neg_log_p }}</span>
+                </template>
 
-            <template #head(coloc_h4)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
+                <template #head(coloc_h4)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
 
-            <template #head(r2)="r">
-                <span v-b-tooltip :title="r.field.desc">{{
-                    r.field.label
-                }}</span>
-            </template>
-        </b-table>
+                <template #head(r2)="r">
+                    <span v-b-tooltip :title="r.field.desc">{{
+                        r.field.label
+                    }}</span>
+                </template>
+            </b-table>
+        </template>
         <div v-else-if="loading">
             <b-spinner label="Loading..."></b-spinner>
         </div>
@@ -136,8 +146,14 @@
 </template>
 
 <script>
+//TODO: When more data is available, add pagination.
+//Make sure it support dynamic loading so we don't have to pull all data at once.
 import Vue from "vue";
+import DataDownload from "@/components/DataDownload.vue";
 export default Vue.component("ColocusTable", {
+    components: {
+        DataDownload,
+    },
     props: {
         geneName: {
             type: String,
