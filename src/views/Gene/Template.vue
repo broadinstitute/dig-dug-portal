@@ -644,10 +644,34 @@
                         :contentMap="$store.state.bioPortal.documentations"
                     >
                     </documentation>
-                    <mouse-summary-table
-                        :items="$store.state.mouseSummary.data"
-                        :isGenePage="true"
-                    ></mouse-summary-table>
+                    <criterion-function-group>
+                            <filter-pvalue-control
+                                field="P_adj_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">Adjusted p-value: sex (&le;)</div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">Adjusted p-value: strain (&le;)</div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">Adjusted p-value: strain and sex (&le;)</div>
+                            </filter-pvalue-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <mouse-summary-table
+                                :items="$store.state.mouseSummary.data"
+                                :isGenePage="true"
+                                :filter="filter">
+                                </mouse-summary-table>
+                                
+                            </template>
+                        </criterion-function-group>
                 </div>
             </div>
             <div class="card mdkp-card">
