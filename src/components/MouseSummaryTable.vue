@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div v-if="items.length > 0">
-      <div v-html="'Total rows: ' + items.length"
+    <div v-if="rows > 0">
+      <div v-html="'Total rows: ' + rows"
         class="table-total-rows"
       ></div>
       <div class="text-right mb-2">
@@ -11,7 +11,7 @@
     </div>
     <b-table
       small
-      :items="items"
+      :items="filteredData"
       :fields="fields"
       :sort-by="!isGenePage ? 'gene' : 'tissue'"
       :per-page="perPage"
@@ -30,7 +30,7 @@
     <b-pagination
       v-model="currentPage"
       class="pagination-sm justify-content-center"
-      :total-rows="items.length"
+      :total-rows="rows"
       :per-page="perPage"
     >
     </b-pagination>
@@ -46,7 +46,7 @@
     components: {
         DataDownload,
     },
-    props: ["items", "isGenePage"],
+    props: ["items", "isGenePage", "filter"],
     data() {
       return {
         perPage: 10,
@@ -64,7 +64,7 @@
           },
           {
             key: "P_adj_strain_sex",
-            label: "Adjusted p-value: strain + sex",
+            label: "Adjusted p-value: strain and sex",
             sortable: true
           }
         ],
@@ -102,6 +102,16 @@
       pageParam(){
         let field = !this.isGenePage ? "tissue" : "gene";
         return this.items[0]?.[field] || '';
+      },
+      filteredData(){
+        let data = structuredClone(this.items);
+        if (!!this.filter){
+          data = data.filter(this.filter);
+        }
+        return data;
+      },
+      rows(){
+        return this.filteredData.length;
       }
     },
     methods: {
