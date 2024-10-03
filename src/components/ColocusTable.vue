@@ -17,7 +17,7 @@
                 :loading="loading"
                 :fields="fields"
                 ><template #head(study1)="r">
-                    <span v-b-tooltip.hover :title="r.field.desc">{{
+                    <span v-b-tooltip :title="r.field.desc">{{
                         r.field.label
                     }}</span>
                 </template>
@@ -219,7 +219,7 @@ export default Vue.component("ColocusTable", {
                 {
                     key: "coloc_h4",
                     label: "H4",
-                    desc: "Posterior probability of H4 from coloc",
+                    desc: "Posterior probability of H4 from colocalization",
                 },
                 {
                     key: "r2",
