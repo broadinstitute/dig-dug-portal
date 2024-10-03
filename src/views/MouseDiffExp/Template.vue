@@ -451,8 +451,7 @@
                                 </template>
                             </criterion-function-group>
                         </div>
-
-                        <div v-else>No human homolog found.</div>
+                        <div v-else>Loading...</div>
                     </div>
                 </div>
             </div>
