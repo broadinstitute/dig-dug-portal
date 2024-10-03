@@ -18,6 +18,11 @@
       :current-page="currentPage"
       :sort-compare="sortRows"
     >
+      <template #cell(tissue)="row">
+        <a :href="`/mouse_diff_exp.html?gene=${row.item.gene}&tissue=${row.item.tissue}`">
+              {{ row.item.tissue }}
+        </a>
+      </template>
       <template #cell(gene)="row">
         <a :href="`/mouse_diff_exp.html?gene=${row.item.gene}&tissue=${row.item.tissue}`">
               {{ row.item.gene }}
