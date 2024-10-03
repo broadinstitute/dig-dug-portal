@@ -78,6 +78,7 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <div v-if="$store.state.homologGene.data.length !== 0">
                         <h4>
                             Human Homolog {{ $store.state.gene }}
                             <tooltip-documentation
@@ -452,6 +453,8 @@
                             </criterion-function-group>
                         </div>
                         <div v-else>Loading...</div>
+                        </div>
+                        <div v-else>No human homolog found.</div>
                     </div>
                 </div>
             </div>

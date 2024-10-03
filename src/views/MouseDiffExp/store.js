@@ -82,6 +82,7 @@ export default new Vuex.Store({
         async queryDiffExp(context) {
             let gene = context.state.geneToQuery || context.state.gene;
             context.commit("setGeneName", gene);
+            context.dispatch("homologGene/query", {q: gene});
 
             let tissue = context.state.tissueToQuery || context.state.tissue;
             context.commit("setTissueName", tissue);
@@ -95,7 +96,6 @@ export default new Vuex.Store({
                 context.dispatch("hugeScores/query", query);
                 context.dispatch("associations52k/query", query);
                 context.dispatch("geneassociations/query", query);
-                context.dispatch("homologGene/query", query);
                 context.dispatch("geneToTranscript/query", query);
             }
             if (!!gene && !!tissue) {
