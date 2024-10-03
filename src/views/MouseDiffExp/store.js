@@ -31,6 +31,7 @@ export default new Vuex.Store({
         tissueToQuery: "",
         geneToQuery: "",
         selectedAncestry: "",
+        loadingGene: true,
     },
 
     mutations: {
@@ -45,6 +46,9 @@ export default new Vuex.Store({
         setCommonVariantsLength(state, NUM) {
             state.commonVariantsLength = NUM;
         },
+        setLoadingGene(state, loading=true){
+            state.loadingGene = loading;
+        }
     },
     getters: {
         region(state) {
@@ -81,8 +85,10 @@ export default new Vuex.Store({
         },
         async queryDiffExp(context) {
             let gene = context.state.geneToQuery || context.state.gene;
+            context.commit("setLoadingGene");
             context.commit("setGeneName", gene);
-            context.dispatch("homologGene/query", {q: gene});
+            await context.dispatch("homologGene/query", {q: gene});
+            context.commit("setLoadingGene", false);
 
             let tissue = context.state.tissueToQuery || context.state.tissue;
             context.commit("setTissueName", tissue);

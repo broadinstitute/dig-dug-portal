@@ -454,7 +454,7 @@
                         </div>
                         <div v-else>Loading...</div>
                         </div>
-                        <div v-else>No human homolog found.</div>
+                        <div v-else-if="!$store.state.loadingGene">No human homolog found for {{ $store.state.gene }}.</div>
                     </div>
                 </div>
             </div>
