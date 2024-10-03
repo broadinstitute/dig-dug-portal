@@ -28,6 +28,11 @@
               {{ row.item.gene }}
         </a>
       </template>
+      <template #cell(gene_id)="row">
+        <a :href="`https://useast.ensembl.org/Mus_musculus/Gene/Summary?db=core;g=${row.item.gene_id}`">
+          {{ row.item.gene_id }}
+        </a>
+      </template>
       <template #cell(gene_region)="row">
         {{ `${row.item.chromosome}:${row.item.start}-${row.item.end}` }}
       </template>
