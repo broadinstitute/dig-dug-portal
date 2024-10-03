@@ -32,6 +32,7 @@ export default new Vuex.Store({
         geneToQuery: "",
         selectedAncestry: "",
         loadingGene: true,
+        loadingExpression: true,
     },
 
     mutations: {
@@ -48,6 +49,9 @@ export default new Vuex.Store({
         },
         setLoadingGene(state, loading=true){
             state.loadingGene = loading;
+        },
+        setLoadingExpression(state, loading=true){
+            state.loadingExpression = loading;
         }
     },
     getters: {
@@ -84,6 +88,8 @@ export default new Vuex.Store({
             context.state.geneToQuery = geneName;
         },
         async queryDiffExp(context) {
+            context.commit("setLoadingExpression");
+
             let gene = context.state.geneToQuery || context.state.gene;
             context.commit("setLoadingGene");
             context.commit("setGeneName", gene);
@@ -105,8 +111,9 @@ export default new Vuex.Store({
                 context.dispatch("geneToTranscript/query", query);
             }
             if (!!gene && !!tissue) {
-                context.dispatch("diffExp/query", { q: 
+                await context.dispatch("diffExp/query", { q: 
                     `${gene},${tissue}` });
+                context.commit("setLoadingExpression", false);
             }
         },
     },
