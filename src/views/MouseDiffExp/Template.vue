@@ -84,7 +84,10 @@
                     <div class="card-body">
                         <div v-if="$store.state.homologGene.data.length !== 0">
                         <h4>
-                            Human Homolog {{ $store.state.gene }}
+                            Human Homolog 
+                            <a :href="`/gene.html?gene=${$store.state.gene}`">
+                                {{ $store.state.gene }}
+                            </a>
                             <tooltip-documentation
                                 name="mouse.diff-exp.homolog.tooltip"
                                 :is-hover="true"
