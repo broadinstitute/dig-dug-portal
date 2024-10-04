@@ -135,17 +135,29 @@
                                 :contentFill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
-                                :contentMap="$store.state.bioPortal.documentations"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
-                        <div class="filtering-ui-wrapper container-fluid temporary-card">
+                        <documentation
+                            name="tissue.cs2ct.subheader"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        ></documentation>
+                        <div
+                            class="filtering-ui-wrapper container-fluid temporary-card"
+                        >
                             <div class="row filtering-ui-content">
                                 <span>
                                     <div class="label">Search by phenotype</div>
                                 </span>
                                 <phenotype-selectpicker
-                                    :phenotypes="$store.state.bioPortal.phenotypes"
-                                    class="col filter-col-md">
+                                    :phenotypes="
+                                        $store.state.bioPortal.phenotypes
+                                    "
+                                    class="col filter-col-md"
+                                >
                                 </phenotype-selectpicker>
                             </div>
                         </div>
@@ -174,7 +186,9 @@
                                 <c2ct-table
                                     :c2ctData="$parent.cs2ctData"
                                     :filter="filter"
-                                    :phenotype="$store.state.credibleSetPhenotype"
+                                    :phenotype="
+                                        $store.state.credibleSetPhenotype
+                                    "
                                 >
                                 </c2ct-table>
                             </template>
@@ -218,7 +232,9 @@
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            @topPhenotypeFound="(d) => $parent.getTopPhenotype(d)"
+                            @topPhenotypeFound="
+                                (d) => $parent.getTopPhenotype(d)
+                            "
                         ></tissue-heritability-table>
                     </div>
                 </div>
