@@ -244,7 +244,7 @@ export default Vue.component("cfde-eco-system", {
 		};
 	},
 	mounted() {
-		
+		//console.log('this.sectionConfigs', this.sectionConfigs);
 		this.loadScript('https://cdn.jsdelivr.net/npm/leader-line@1.0.7/leader-line.min.js', async () => {
 			const data = await this.loadFile(this.sectionConfigs["content"]["custom"]["viz data"])
 			this.parsedData = await this.parseEntities(data);

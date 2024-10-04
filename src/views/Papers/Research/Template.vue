@@ -638,7 +638,7 @@
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
 									style="position:relative"
 								>
-									
+									<h4 v-if="!!group.label">{{ group.label }}</h4>
 									<button v-if="!group.type"
 										class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
