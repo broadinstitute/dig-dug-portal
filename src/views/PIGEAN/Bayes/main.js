@@ -50,7 +50,22 @@ new Vue({
     },
 
     data() {
-        return {};
+        return {
+            testGenes : [
+                "INS", "IGF1", "IRS1", "PIK3CA", "AKT1", "GSK3B", "FOXO1",
+                "GLP1R", "GIP", "GCG",
+                "PPARG", "SREBF1", "FASN", "ACACA",
+                "TNF", "IL6", "CRP", "NFKB1",
+                "LEP", "NPY", "MC4R", "POMC",
+                "ADIPOQ", "FABP4", "C/EBPα",
+                "UCP1", "SOD2", "NRF1",
+                "TP53", "BAX", "BCL2", "CASP3",
+                "PRKAA1", "TSC2", "MTOR",
+                "SLC2A4", "HNF1A", "PDX1", "GCK", "MMP9", "APOA1", "CPT1A",
+                "SIRT1", "FOXA2", "HNF4A",
+                "NOS3", "APOE", "VEGFA"
+            ]
+        };
     },
     computed: {
         diseaseGroup() {
@@ -90,6 +105,7 @@ new Vue({
     methods: {
         search(){
             console.log("search coming soon");
+            this.$store.dispatch("queryBayesGenes", this.testGenes);
         }
     },
 
