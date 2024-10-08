@@ -66,7 +66,9 @@ new Vue({
                 "SLC2A4", "HNF1A", "PDX1", "GCK", "MMP9", "APOA1", "CPT1A",
                 "SIRT1", "FOXA2", "HNF4A",
                 "NOS3", "APOE", "VEGFA"
-            ]
+            ],
+            geneInput: "",
+            placeholder: "Enter a set of genes, one per line of text."
         };
     },
     computed: {
@@ -115,8 +117,9 @@ new Vue({
 
     methods: {
         search(){
-            console.log("search coming soon");
-            this.$store.dispatch("queryBayesGenes", this.testGenes);
+            let genes = this.geneInput.trim().split("\n");
+            console.log(genes);
+            this.$store.dispatch("queryBayesGenes", genes);
         }
     },
 

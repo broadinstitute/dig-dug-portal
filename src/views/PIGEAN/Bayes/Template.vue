@@ -11,7 +11,13 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                SEARCH COMING SOON
+                <div class="col filter-col-md">
+                    <b-form-textarea
+                        v-model="$parent.geneInput"
+                        :placeholder="$parent.placeholder"
+                        rows="10">
+                    </b-form-textarea>
+                </div>
                 <div class="col filter-col-md">
                     <div class="label">Search</div>
                     <button
@@ -75,5 +81,8 @@
 }
 .card-body.pigean-table {
     padding-top: 0;
+}
+#pageSearchHeaderContent{
+    min-height: 200px !important;
 }
 </style>
