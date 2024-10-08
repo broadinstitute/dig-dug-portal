@@ -50,16 +50,10 @@
                 </template>
                 <template #cell(top_genes)="row">
                     <b-dropdown
-                        split
                         right
-                        :text="
-                            row.detailsShowing
-                                ? 'Hide'
-                                : 'Show'
-                        "
+                        text="Show"
                         variant="outline-primary"
                         size="sm"
-                        @click="showDetails()"
                     >
                         <b-dropdown-header id="dropdown-header-label">
                             Top 5 Genes
@@ -75,13 +69,8 @@
                 </template>
                 <template #cell(top_gene_sets)="row">
                     <b-dropdown
-                        split
                         right
-                        :text="
-                            row.detailsShowing
-                                ? 'Hide'
-                                : 'Show'
-                        "
+                        text="Show"
                         variant="outline-primary"
                         size="sm"
                         @click="showDetails()"
