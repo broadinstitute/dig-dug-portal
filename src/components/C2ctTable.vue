@@ -53,7 +53,9 @@
                 </template>
                 <template #cell(variantSifter)="r">
                     <a :href="exploreVariantSifter(r.item)">
-                        Open
+                        <button type="button" class="btn btn-primary btn-sm">
+                            Open
+                        </button>
                     </a>
                 </template>
             </b-table>
@@ -169,6 +171,7 @@ export default Vue.component("c2ct-table", {
             let chr = location[0];
             let center = parseInt(location[1]);
             let start = center - expanded;
+            start = start < 1 ? 1 : start;
             let end  = center + expanded;
             return '/research.html?pageid=kp_variant_sifter&phenotype=' +
 				item.phenotype + '&region=' +
