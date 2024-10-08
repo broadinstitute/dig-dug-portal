@@ -30,6 +30,11 @@ export default new Vuex.Store({
         },
         setGenesetFactor(state, data){
             state.genesetFactor = data || state.genesetFactor;
+        },
+        clearAllData(state){
+            state.pigeanFactor = [];
+            state.geneFactor = [];
+            state.genesetFactor = [];
         }
     },
 
@@ -38,6 +43,7 @@ export default new Vuex.Store({
 
     actions: {
         async queryBayesGenes(context, genesList){
+            context.commit("clearAllData");
             let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/pigean";
             let genesQuery = JSON.stringify({ "genes": genesList });
             let json = await fetch(address, {
