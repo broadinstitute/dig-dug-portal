@@ -16,9 +16,21 @@ export default new Vuex.Store({
         pigeanGeneset: bioIndex("pigean-gene-set"),
     },
     state: {
+        pigeanFactor: [],
+        geneFactor: [],
+        genesetFactor: []
     },
 
     mutations: {
+        setPigeanFactor(state, data){
+            state.pigeanFactor = data || state.pigeanFactor;
+        },
+        setGeneFactor(state, data){
+            state.geneFactor = data || state.geneFactor;
+        },
+        setGenesetFactor(state, data){
+            state.genesetFactor = data || state.genesetFactor;
+        }
     },
 
     getters: {
@@ -36,6 +48,9 @@ export default new Vuex.Store({
                 body: genesQuery
             }).then(resp => resp.json());
             console.log(JSON.stringify(json));
+            context.commit("setPigeanFactor", json["pigean-factor"].data);
+            context.commit("setGeneFactor", json["gene-factor"]);
+            context.commit("setGenesetFactor", json["gene-set-factor"]);
         },
     },
 });

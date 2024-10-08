@@ -35,6 +35,34 @@
                     </div>
                 </div>
             </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>Pigean Factor</h4>
+                    <b-table
+                        hover
+                        small
+                        responsive="sm"
+                        :items="$parent.pigeanFactor"
+                    >
+                    </b-table>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>Gene Factor</h4>
+                    <div>
+                        {{ JSON.stringify($parent.geneFactor) }}
+                    </div>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>Gene Set Factor</h4>
+                    <div>
+                        {{ JSON.stringify($parent.genesetFactor) }}
+                    </div>
+                </div>
+            </div>
         </div>
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>

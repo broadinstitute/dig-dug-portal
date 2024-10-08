@@ -90,6 +90,15 @@ new Vue({
             };
             return utils;
         },
+        pigeanFactor(){
+            return this.$store.state.pigeanFactor;
+        },
+        geneFactor(){
+            return this.$store.state.geneFactor;
+        },
+        genesetFactor(){
+            return this.$store.state.genesetFactor;
+        }
     },
     watch: {
         diseaseGroup(group) {
