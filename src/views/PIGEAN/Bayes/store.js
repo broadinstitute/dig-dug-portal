@@ -16,13 +16,6 @@ export default new Vuex.Store({
         pigeanGeneset: bioIndex("pigean-gene-set"),
     },
     state: {
-        geneset: keyParams.geneset,
-        sigma: keyParams.sigma || bioIndexUtils.DEFAULT_SIGMA,
-        genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
-        genesetToQuery: "",
-        sigmaToQuery: null,
-        genesetSizeToQuery: null,
-        aliasName: null,
     },
 
     mutations: {
