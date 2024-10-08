@@ -48,12 +48,55 @@
                         {{ shorten(r.item.gene_set) }}
                     </a>
                 </template>
-                <template #cell(top_gene_sets)="r">
-                    <ul>
-                        <li v-for="item in formatList(r.item.top_gene_sets)">
-                            {{ item }}
-                        </li>
-                    </ul>
+                <template #cell(top_genes)="row">
+                    <b-dropdown
+                        split
+                        right
+                        :text="
+                            row.detailsShowing
+                                ? 'Hide'
+                                : 'Show'
+                        "
+                        variant="outline-primary"
+                        size="sm"
+                        @click="showDetails()"
+                    >
+                        <b-dropdown-header id="dropdown-header-label">
+                            Top 5 Genes
+                        </b-dropdown-header>
+                        <b-dropdown-item
+                            v-for="gene in row.item.top_genes.split(';')"
+                            :key="gene"
+                            :href="`/pigean/gene.html?gene=${gene}`"
+                        >
+                            {{ gene }}
+                        </b-dropdown-item>
+                    </b-dropdown>
+                </template>
+                <template #cell(top_gene_sets)="row">
+                    <b-dropdown
+                        split
+                        right
+                        :text="
+                            row.detailsShowing
+                                ? 'Hide'
+                                : 'Show'
+                        "
+                        variant="outline-primary"
+                        size="sm"
+                        @click="showDetails()"
+                    >
+                        <b-dropdown-header id="dropdown-header-label">
+                            Top 5 Gene Sets
+                        </b-dropdown-header>
+                        <b-dropdown-item
+                            v-for="geneSet in row.item.top_gene_sets.split(';')"
+                            :key="geneSet"
+                            :href="`/pigean/geneset.html?geneset=${geneSet}$`"
+                        >
+                            {{ shorten(geneSet) }}
+                        </b-dropdown-item>
+                    </b-dropdown>
                 </template>
             </b-table>
             <b-pagination
@@ -117,13 +160,16 @@ export default Vue.component("pigean-bayes-table", {
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
         shorten(longString){
-            return longString.length > 50
-                ? `${longString.slice(0, 50)}...`
+            return longString.length > 40
+                ? `${longString.slice(0, 40)}...`
                 : longString
         },
         formatList(textList){
             return textList.split(";")
                 .map(item => this.shorten(item));
+        },
+        showDetails(){
+            console.log("Details coming soon");
         }
     },
 });
