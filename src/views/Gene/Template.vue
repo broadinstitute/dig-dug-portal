@@ -587,6 +587,31 @@
                 </div>
             </div>
             <!-- end of NDKP only -->
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Colocalization for
+                        {{ $store.state.geneName }}
+                        <tooltip-documentation
+                            name="gene.colocus.tooltip"
+                            :contentFill="$parent.docDetails"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
+                    </h4>
+                    <documentation
+                        name="gene.colocus.subheader"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
+                    <colocus-table
+                        :gene-name="$store.state.geneName"
+                    ></colocus-table>
+                </div>
+            </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
@@ -620,6 +645,7 @@
                     </research-expression-display>
                 </div>
             </div>
+
             <div
                 class="card mdkp-card"
                 v-if="$store.state.mouseSummary.data.length > 0"
