@@ -23,9 +23,7 @@
                 <template #cell(label)="r">
                     <span v-if="!!r.item.label">
                         {{
-                            r.item.label.length > 50
-                                ? `${r.item.label.slice(0, 50)}...`
-                                : r.item.label
+                            shorten(r.item.label)
                         }}    
                     </span>
                 </template>
@@ -47,7 +45,7 @@
                     <a
                         :href="`/pigean/geneset.html?geneset=${r.item.gene_set}`"
                     >
-                        {{ r.item.gene_set }}
+                        {{ shorten(r.item.gene_set) }}
                     </a>
                 </template>
             </b-table>
@@ -116,6 +114,11 @@ export default Vue.component("pigean-bayes-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
+        shorten(longString){
+            return longString.length > 50
+                ? `${longString.slice(0, 50)}...`
+                : longString
+        }
     },
 });
 </script>
