@@ -38,13 +38,10 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Pigean Factor</h4>
-                    <b-table
-                        hover
-                        small
-                        responsive="sm"
-                        :items="$parent.pigeanFactor"
-                    >
-                    </b-table>
+                    <pigean-bayes-table
+                        :pigeanData="$parent.pigeanFactor"
+                        :isPigeanFactor="true">
+                    </pigean-bayes-table>
                 </div>
             </div>
             <div class="card mdkp-card">

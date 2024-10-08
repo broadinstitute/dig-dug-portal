@@ -48,6 +48,13 @@
                         {{ shorten(r.item.gene_set) }}
                     </a>
                 </template>
+                <template #cell(top_gene_sets)="r">
+                    <ul>
+                        <li v-for="item in formatList(r.item.top_gene_sets)">
+                            {{ item }}
+                        </li>
+                    </ul>
+                </template>
             </b-table>
             <b-pagination
                 v-model="currentPage"
@@ -66,21 +73,13 @@
 </template>
 <script>
 import Vue from "vue";
-import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-import keyParams from "@/utils/keyParams";
-import PigeanTable from "./PigeanTable.vue";
-import uiUtils from "@/utils/uiUtils";
-import alertUtils from "@/utils/alertUtils";
-import plotUtils from "@/utils/plotUtils";
-import sortUtils from "@/utils/sortUtils";
-import dataConvert from "@/utils/dataConvert";
 export default Vue.component("pigean-bayes-table", {
     components: {
         DataDownload,
     },
-    props: ["pigeanData", "filter"],
+    props: ["pigeanData", "filter", "isPigeanFactor"],
     data() {
         return {
             perPage: 10,
@@ -89,6 +88,9 @@ export default Vue.component("pigean-bayes-table", {
     },
     computed: {
         flatData(){
+            if (this.isPigeanFactor){
+                return this.pigeanData;
+            }
             let output = [];
             let factors = Object.keys(this.pigeanData);
             factors.forEach(factor => {
@@ -118,6 +120,10 @@ export default Vue.component("pigean-bayes-table", {
             return longString.length > 50
                 ? `${longString.slice(0, 50)}...`
                 : longString
+        },
+        formatList(textList){
+            return textList.split(";")
+                .map(item => this.shorten(item));
         }
     },
 });
