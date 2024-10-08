@@ -320,6 +320,13 @@ let pages = {
         title: "PIGEAN Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "pigean_phenotype"],
     },
+    pigean_bayes: {
+        entry: "src/views/PIGEAN/Bayes/main.js",
+        template: "public/index.html",
+        filename: "pigean/bayes.html",
+        title: "PIGEAN Bayes Gene Sets",
+        chunks: ["chunk-vendors", "chunk-common", "pigean_bayes"],
+    },
     mouse_diff_exp: {
         entry: "src/views/MouseDiffExp/main.js",
         template: "public/index.html",
