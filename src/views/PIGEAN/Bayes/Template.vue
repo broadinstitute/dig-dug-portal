@@ -50,8 +50,15 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Gene Factor</h4>
-                    <div>
-                        {{ JSON.stringify($parent.geneFactor) }}
+                    <div v-for="factor in Object.keys($parent.geneFactor)">
+                        <h5>{{ factor }}</h5>
+                        <b-table
+                            hover
+                            small
+                            responsive="sm"
+                            :items="$parent.geneFactor[factor]"
+                        >
+                        </b-table>
                     </div>
                 </div>
             </div>
