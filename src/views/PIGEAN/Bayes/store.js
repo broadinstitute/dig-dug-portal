@@ -47,7 +47,6 @@ export default new Vuex.Store({
                 },
                 body: genesQuery
             }).then(resp => resp.json());
-            console.log(JSON.stringify(json));
             context.commit("setPigeanFactor", json["pigean-factor"].data);
             context.commit("setGeneFactor", json["gene-factor"]);
             context.commit("setGenesetFactor", json["gene-set-factor"]);
