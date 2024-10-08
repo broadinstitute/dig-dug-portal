@@ -68,7 +68,7 @@ new Vue({
                 "NOS3", "APOE", "VEGFA"
             ],
             geneInput: "",
-            placeholder: "Enter a set of genes, one per line of text."
+            placeholder: "Enter a list of genes, one per line of text."
         };
     },
     computed: {

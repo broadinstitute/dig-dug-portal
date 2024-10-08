@@ -10,15 +10,18 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper>
+            <search-header-wrapper
+                id="bayesSearch">
                 <div class="col filter-col-md">
                     <b-form-textarea
+                        id="bayesSearchField"
                         v-model="$parent.geneInput"
                         :placeholder="$parent.placeholder"
                         rows="10">
                     </b-form-textarea>
                 </div>
-                <div class="col filter-col-md">
+                <div class="col filter-col-md"
+                    id="searchButtonDiv">
                     <div class="label">Search</div>
                     <button
                         id="regionSearchGo"
@@ -82,7 +85,13 @@
 .card-body.pigean-table {
     padding-top: 0;
 }
-#pageSearchHeaderContent{
-    min-height: 200px !important;
+#bayesSearch {
+    min-height: 150px !important;
+}
+#bayesSearchField {
+    min-height: 125px !important;
+}
+#searchButtonDiv {
+    vertical-align: top !important;
 }
 </style>
