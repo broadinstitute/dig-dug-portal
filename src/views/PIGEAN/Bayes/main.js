@@ -52,15 +52,46 @@ new Vue({
     data() {
         return {};
     },
-    computed: {},
-    watch: {},
+    computed: {
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+            };
+            return utils;
+        },
+    },
+    watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+    },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
-    methods: {},
+    methods: {
+        search(){
+            console.log("search coming soon");
+        }
+    },
 
     render(createElement, context) {
         return createElement(Template);
