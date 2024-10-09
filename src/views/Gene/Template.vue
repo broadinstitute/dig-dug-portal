@@ -587,20 +587,37 @@
                 </div>
             </div>
             <!-- end of NDKP only -->
-            <div class="card mdkp-card">
+            <div
+                v-if="
+                    ['a2f', 'md', 't1d', 't2d', 'cd', 'cvd', 'sleep'].includes(
+                        $parent.diseaseGroup.name
+                    )
+                "
+                class="card mdkp-card"
+            >
                 <div class="card-body">
                     <h4 class="card-title">
                         Colocalization for
                         {{ $store.state.geneName }}
                         <tooltip-documentation
                             name="gene.colocus.tooltip"
-                            :contentFill="$parent.docDetails"
+                            :content-fill="$parent.docDetails"
                             :is-hover="true"
                             :no-icon="false"
-                            :contentMap="$store.state.bioPortal.documentations"
+                            :content-map="$store.state.bioPortal.documentations"
                         >
                         </tooltip-documentation>
+                        <a href="https://amp.colocus.app" target="_blank">
+                            <b-img
+                                src="https://amp.colocus.app/img/logo.b68fc6f0.png"
+                                alt="colocus logo"
+                                height="20"
+                                right
+                                title="CoLocus Browser"
+                            ></b-img>
+                        </a>
                     </h4>
+
                     <documentation
                         name="gene.colocus.subheader"
                         :contentFill="$parent.docDetails"
