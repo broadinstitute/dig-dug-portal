@@ -23,8 +23,7 @@
 			autocomplete="off"
 		/>
 		<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()"><b-icon icon="x-circle-fill"></b-icon></span>
-		
-		<!-- BYOR front page templates -->
+
 		<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
 
 			<div
@@ -33,14 +32,6 @@
 				v-if="anyResults() > 0"
 			>
 				<div v-for="gene in singleSearchResult.genes" :key="gene" class="">
-					<!--
-					<a v-if="!!isParameterActive('kp genes').active && !isParameterActive('kp genes').options"
-						class="search-gene-link"
-						@click="searchGene(gene)"
-						href="javascript:;"
-						>{{ gene }}</a>
-						-->
-
 					<a v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options"
 						class="single-search-option search-gene-link"
 						href="javascript:;"
@@ -58,13 +49,6 @@
 							</div>
 						</span>
 					</a>
-					<!--<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary': 'in-search-summary hidden'">
-						<div :id="'summary_content' + gene" class="summary-content">
-							<div v-for="item in summaryByKey" v-if="item.key == gene" v-html="item.data">
-							</div>
-						</div>
-					</div>-->
-					
 				</div>
 
 				<template v-if="!!isParameterActive('kp phenotypes').active && !!isParameterActive('kp phenotypes').options">
@@ -81,7 +65,7 @@
 								
 								<div class="ss-options-wrapper">
 									<div v-for="option in isParameterActive('kp phenotypes').options">
-										<span v-if="option.type == 'summary'">
+										<span>
 											<a :href="(option.url) ? option.url + phenotype.name : 'javascript:;'">{{ option['url label'] }}</a>
 											<span v-if="!!option.url && !!option.sections"> | </span>
 											<a href="javascript:;" 
@@ -95,12 +79,6 @@
 						><span class="search-word-group">{{
 							phenotype.group
 						}}</span>
-						<!--<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary' : 'in-search-summary hidden'">
-							<div :id="'summary_content' + phenotype.name" class="summary-content">
-								<div v-for="item in summaryByKey" v-if="item.key == phenotype.name" v-html="item.data">
-								</div>
-							</div>
-						</div>-->
 					</div>
 				</template>
 
@@ -127,80 +105,13 @@
 											
 										</div>
 									</div>
-								</span></a
-								>
-								<!--<div id="summary_panel" :class="(!summaryPopup) ? 'in-search-summary' : 'in-search-summary hidden'">
-							<div :id="'summary_content' + item.value" class="summary-content">
-								<div v-for="sItem in summaryByKey" v-if="sItem.key == item.value" v-html="sItem.data">
-								</div>
+								</span></a>
 							</div>
-						</div>-->
-							</div>
-							
 						</template>
 					</template>
 				</template>
 			</div>
 		</div>
-		<!-- For KP front pages -->
-		<div class="byor-single-search-results-wrapper" v-if="!singleSearchConfig">
-			<div
-				id="byor_single_search_results"
-				class="byor-single-search-results"
-				v-if="
-					singleSearchResult.genes.length > 0 ||
-					singleSearchResult.phenotypes.length > 0 || 
-					singleSearchResult.tissues.length > 0
-				"
-			>
-				<div v-for="gene in singleSearchResult.genes" :key="gene" class="single-search-option">
-					{{ gene
-					}}<span class="search-word-group"
-						><a
-							class="search-gene-link"
-							@click="searchGene(gene)"
-							href="javascript:;"
-							>{{ "Search gene"
-							}}<span class="gene-link-tip"
-								>Alias names are converted to gene symbols</span
-							></a
-						>
-						|
-						<a @click="searchRegion(gene)" href="javascript:;">{{
-							"Search region"
-						}}</a></span
-					>
-				</div>
-
-				<div
-						v-for="tissue in singleSearchResult.tissues"
-						:value="tissue.value"
-						:key="tissue.value"
-						 class="single-search-option"
-					>
-					<a :href="'/tissue.html?tissue=' + tissue.value">{{
-						tissue.label
-					}}</a><span class="search-word-group">{{
-						'Tissue'
-					}}</span>
-				</div>
-
-				<div
-					v-for="phenotype in singleSearchResult.phenotypes"
-					:value="phenotype.name"
-					:key="phenotype.name"
-					 class="single-search-option"
-				>
-					<a :href="'/phenotype.html?phenotype=' + phenotype.name">{{
-						phenotype.description
-					}}</a
-					><span class="search-word-group">{{
-						phenotype.group
-					}}</span>
-				</div>
-			</div>
-		</div>
-		<!--  -->
 	</div>
 </template>
 
@@ -235,7 +146,6 @@ export default Vue.component("research-single-search-v2", {
 	created() {
 		if(!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
 
-
 			this.singleSearchConfig["search parameters"].map(S => {
 				if (!!S["data point"]) {
 					let listPoint = S["data point"];
@@ -245,6 +155,8 @@ export default Vue.component("research-single-search-v2", {
 						listPoint["data type"],
 						listPoint["data wrapper"]
 					)
+				} else if (!!S["values"] && (S["values"] != "kp genes" && S["values"] != "kp phenotypes")) {
+					this.customList[S["parameter"]] = S["values"];
 				}
 			})
 		} else {
@@ -882,42 +794,34 @@ export default Vue.component("research-single-search-v2", {
 	display: block;
 }
 
-.in-search-summary.hidden {
-	display: none;
-}
-
-.in-search-summary {
-	/*border-left: solid 3px #dfdfdf;
-	padding: 5px 0 5px 15px;*/
-}
-
-.in-search-summary .summary-data-header, .ss-summary-popup .summary-data-header {
+.ss-summary-popup .summary-data-header {
 	padding: 5px 0;
     display: inline-block;
 }
-.in-search-summary .summary-row, .ss-summary-popup .summary-row {
+.ss-summary-popup .summary-row {
 	display:table-row;
 	font-size: 13px;
 	width: 100%;
 }
-.in-search-summary .summary-column, .ss-summary-popup .summary-column {
+.ss-summary-popup .summary-column {
 	padding: 0 10px;
 	border-right: solid 1px #dddddd;
 	display: table-cell
 }
 
-.in-search-summary .summary-column-header, .ss-summary-popup .summary-column-header {
+.ss-summary-popup .summary-column-header {
 	padding: 0 10px;
 	border-right: solid 1px #dddddd;
 	display: table-cell;
 	font-weight: bold;
 }
 
-.in-search-summary .summary-next-action, .ss-summary-popup .summary-next-action {
+.ss-summary-popup .summary-next-action {
 	display: inline-block;
     padding: 3px 0px 0px 10px;
     font-weight: bold;
 }
+
 
 a.ss-generate-summary {
 	color: #ff6600 !important;
