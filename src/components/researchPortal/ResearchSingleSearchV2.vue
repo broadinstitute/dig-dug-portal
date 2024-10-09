@@ -48,7 +48,9 @@
 								</div>
 							</div>
 						</span>
-					</a>
+					</a><span class="search-word-group">{{
+						'Gene'
+					}}</span>
 				</div>
 
 				<template v-if="!!isParameterActive('kp phenotypes').active && !!isParameterActive('kp phenotypes').options">
@@ -106,6 +108,9 @@
 										</div>
 									</div>
 								</span></a>
+								<span class="search-word-group">{{
+							param['parameter']
+						}}</span>
 							</div>
 						</template>
 					</template>
@@ -310,27 +315,15 @@ export default Vue.component("research-single-search-v2", {
 					}
 				})
 
-				this.summarySearch.push({key:KEY, id:ID});
+				this.summarySearch = [];
 
+				this.summarySearch.push({key:KEY, id:ID});
 			} else {
 				let notSearched = this.summarySearch.filter(search => search.key != KEY || search.id != ID);
 				notSearched.push(ifSearched[0]);
 				this.summarySearch = notSearched;
 				console.log("item already searched")
 			}
-
-
-
-			/*if(!!summaryConfig.url){
-				let nextHtml = "<a class='summary-next-action' href='"+ summaryConfig.url + KEY +"'>"+ summaryConfig["url label"] +"</a>";
-
-				console.log(KEY, nextHtml);
-
-				console.log(KEY, document.getElementById("summary_next_action" + KEY));
-
-				document.getElementById("summary_next_action" + KEY).innerHTML = nextHtml;
-			}*/
-
 			
 		},
 		async getBiSummary(CONFIG,ID,KEY){
@@ -770,6 +763,7 @@ export default Vue.component("research-single-search-v2", {
 	font-size: 12px;
 	display: block;
 	float: right;
+	text-transform: capitalize;
 }
 
 .search-gene-link {
