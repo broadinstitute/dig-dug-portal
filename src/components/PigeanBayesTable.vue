@@ -19,6 +19,7 @@
                 :per-page="perPage"
                 :current-page="currentPage"
                 :sort-desc="true"
+                :sort-by="'factor_value'"
             >
                 <template #cell(label)="r">
                     <span v-if="!!r.item.label">
