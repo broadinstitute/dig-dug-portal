@@ -84,10 +84,10 @@ new Vue({
             return this.$store.state.pigeanFactor;
         },
         geneFactor() {
-            return this.$store.state.geneFactor;
+            return this.flatData(this.$store.state.geneFactor);
         },
         genesetFactor() {
-            return this.$store.state.genesetFactor;
+            return this.flatData(this.$store.state.genesetFactor);
         },
     },
     watch: {
@@ -108,6 +108,14 @@ new Vue({
                 console.log(genes);
                 this.$store.dispatch("queryBayesGenes", genes);
             }
+        },
+        flatData(data){
+            let output = [];
+            let factors = Object.keys(data);
+            factors.forEach(factor => {
+                output = output.concat(data[factor]);
+            });
+            return output;
         },
     },
 
