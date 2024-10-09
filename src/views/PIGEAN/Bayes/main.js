@@ -54,7 +54,7 @@ new Vue({
     data() {
         return {
             geneInput: "",
-            placeholder: "Enter a list of genes, one per line of text."
+            placeholder: "Enter a list of genes, one per line of text.",
         };
     },
     computed: {
@@ -80,15 +80,15 @@ new Vue({
             };
             return utils;
         },
-        pigeanFactor(){
+        pigeanFactor() {
             return this.$store.state.pigeanFactor;
         },
-        geneFactor(){
+        geneFactor() {
             return this.$store.state.geneFactor;
         },
-        genesetFactor(){
+        genesetFactor() {
             return this.$store.state.genesetFactor;
-        }
+        },
     },
     watch: {
         diseaseGroup(group) {
@@ -102,11 +102,13 @@ new Vue({
     },
 
     methods: {
-        search(){
-            let genes = this.geneInput.trim().split("\n");
-            console.log(genes);
-            this.$store.dispatch("queryBayesGenes", genes);
-        }
+        search() {
+            if (this.geneInput) {
+                let genes = this.geneInput.trim().split(/[\n, ]+/);
+                console.log(genes);
+                this.$store.dispatch("queryBayesGenes", genes);
+            }
+        },
     },
 
     render(createElement, context) {
