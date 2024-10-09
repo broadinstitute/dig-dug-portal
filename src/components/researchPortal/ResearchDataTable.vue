@@ -193,99 +193,109 @@
 				</tr>
 			</thead>
 
-			<tbody v-for="(value, index) in pagedData" :key="index" class="">
-				<tr>
-					<td v-if="!!tableFormat['star column']">
-						<span v-if="checkStared('1', value) == false"
-							><b-icon
-								icon="star"
-								style="color: #aaaaaa; cursor: pointer"
-								@click="addStar(value)"
-							></b-icon
-						></span>
-						<span v-if="checkStared('2', value) == true"
-							><b-icon
-								icon="star-fill"
-								style="color: #ffcc00; cursor: pointer"
-								@click="removeStar(value)"
-							></b-icon
-						></span>
-					</td>
-					<template
-						v-for="(tdValue, tdKey) in value"
-						v-if="
-							topRows.includes(tdKey) &&
-							getIfChecked(tdKey) == true
-						"
-					>
-						<td
-								v-if="ifDataObject(tdValue) == false"
-								:key="tdKey"
-								:class="getColumnId(tdKey)"
-							>
-							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
-								{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
-								<span class="btns-wrapper">
-									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
-								</span>
-								
-							</span>
-							
-							<span v-else v-html="formatValue(tdValue, tdKey)"></span>
+			<tbody class="">
+				<template v-for="(value, index) in pagedData" >
+					<tr>
+						<td v-if="!!tableFormat['star column']">
+							<span v-if="checkStared('1', value) == false"
+								><b-icon
+									icon="star"
+									style="color: #aaaaaa; cursor: pointer"
+									@click="addStar(value)"
+								></b-icon
+							></span>
+							<span v-if="checkStared('2', value) == true"
+								><b-icon
+									icon="star-fill"
+									style="color: #ffcc00; cursor: pointer"
+									@click="removeStar(value)"
+								></b-icon
+							></span>
 						</td>
-						<td
+						<template
+							v-for="(tdValue, tdKey) in value"
 							v-if="
-								ifDataObject(tdValue) == true
+								topRows.includes(tdKey) &&
+								getIfChecked(tdKey) == true
 							"
-							:key="tdKey"
-							class="multi-value-td"
-							:class="getColumnId(tdKey)"
 						>
-							<span
-								v-for="(sValue, sKey, sIndex) in tdValue"
-								:class="
-									sKey +
-									' reference bg-color-' +
-									getColorIndex(sKey)
-								"
-								:key="sKey"
-							>
-
+							<td
+									v-if="ifDataObject(tdValue) == false"
+									:key="tdKey"
+									:class="getColumnId(tdKey)"
+								>
 								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
-									{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
+									{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
 									<span class="btns-wrapper">
 										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-											v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
+											v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
 									</span>
+									
 								</span>
-								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
+								
+								<span v-else v-html="formatValue(tdValue, tdKey)"></span>
+							</td>
+							<td
+								v-if="
+									ifDataObject(tdValue) == true
+								"
+								:key="tdKey"
+								class="multi-value-td"
+								:class="getColumnId(tdKey)"
+							>
+								<span
+									v-for="(sValue, sKey, sIndex) in tdValue"
+									:class="
+										sKey +
+										' reference bg-color-' +
+										getColorIndex(sKey)
+									"
+									:key="sKey"
+								>
+
+									<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
+										{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
+										<span class="btns-wrapper">
+											<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
+												v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
+										</span>
+									</span>
+									<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
+							</td>
+						</template>
+						<td v-if="tableFormat['features'] != undefined">
+							<span
+								href="javascript:;"
+								@click="showHideFeature('feature_' + sectionId + index)"
+								class="show-evidence-btn btn"
+								>View</span
+							>
 						</td>
+					</tr>
+					<tr
+						v-if="!!tableFormat['features']"
+						:id="'feature_' + sectionId + index"
+						:class="'hidden'"
+					>
+						<td :colspan="topRowNumber" class="features-td">
+							<research-data-table-features
+								:featureRowsNumber="featureRowsNumber"
+								:featuresData="value.features"
+								:featuresFormat="tableFormat"
+								:utils="utils"
+								:summarySection="summarySection"
+							></research-data-table-features>
+						</td>
+					</tr>
+					<!-- testing dynamic sub table-->
+					<template v-if="!!tableFormat['column formatting']"
+					v-for="(itemValue, itemKey) in tableFormat['column formatting']">
+					<tr v-if="itemValue.type.includes('dynamic subsection')">
+						{{ value[itemKey] }}
+					</tr>
+
 					</template>
-					<td v-if="tableFormat['features'] != undefined">
-						<span
-							href="javascript:;"
-							@click="showHideFeature('feature_' + sectionId + index)"
-							class="show-evidence-btn btn"
-							>View</span
-						>
-					</td>
-				</tr>
-				<tr
-					v-if="!!tableFormat['features']"
-					:id="'feature_' + sectionId + index"
-					:class="'hidden'"
-				>
-					<td :colspan="topRowNumber" class="features-td">
-						<research-data-table-features
-							:featureRowsNumber="featureRowsNumber"
-							:featuresData="value.features"
-							:featuresFormat="tableFormat"
-							:utils="utils"
-							:summarySection="summarySection"
-						></research-data-table-features>
-					</td>
-				</tr>
+				</template>
 			</tbody>
 		</table>
 		</div>
@@ -311,6 +321,7 @@
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
+import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
 
 export default Vue.component("research-data-table", {
 	props: [
@@ -341,10 +352,11 @@ export default Vue.component("research-data-table", {
 			compareGroups: [],
 			stared: false,
 			staredAll: false,
+			subSectionData:{}
 		};
 	},
 	modules: {},
-	components: { ResearchDataTableFeatures, ResearchSummaryPlot },
+	components: { ResearchDataTableFeatures, ResearchSummaryPlot, ResearchSubSection },
 	created() {},
 	beforeMount() {},
 
