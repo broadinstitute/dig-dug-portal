@@ -164,6 +164,7 @@
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'annotation'"
+                                :multiple="true"
                                 :options="
                                     $store.state.cs2ct.data.map(
                                         (d) => d.annotation
