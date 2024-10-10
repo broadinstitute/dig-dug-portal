@@ -143,7 +143,7 @@ export default Vue.component("research-multi-sections-search", {
 	},
 	created() {
 		this.$root.$refs.multiSectionSearch = this;
-		console.log("searchParameters", this.searchParameters);
+		
 		this.searchParameters.map((param, pIndex) =>{
 			if(param.type == 'api list') {
 				this.getList(param["data point"], pIndex);
@@ -188,7 +188,7 @@ export default Vue.component("research-multi-sections-search", {
 			let totalSearchNum = this.searchParameters.length;
 
 			this.searchParameters.map(s=>{
-				//console.log("s",s)
+				
 				if(s.display && s.display == "false") {
 					totalSearchNum --;
 				}
@@ -218,7 +218,6 @@ export default Vue.component("research-multi-sections-search", {
 			let valuesJson = await fetch(searchPoint).then((resp) => resp.json());
 
 			if (valuesJson.error == null) {
-				console.log("valuesJson", valuesJson)
 
 				let data = valuesJson;
 
@@ -321,8 +320,6 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		updateSearch(KEY,TARGET_SECTIONS) {
 
-
-			//console.log("updateSearch called", KEY, TARGET_SECTIONS);
 			let paramsObj = {}
 
 			if(!KEY) {
@@ -353,7 +350,7 @@ export default Vue.component("research-multi-sections-search", {
 				} else {
 					this.sections.map(s => {
 						if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
-							console.log("s['section id']",s['section id'])
+							
 							if (!!document.getElementById("section_" + s['section id'])) {
 							this.$root.$refs[s['section id']].getData();
 							}
@@ -373,8 +370,6 @@ export default Vue.component("research-multi-sections-search", {
 				document.getElementById("search_param_" + s.parameter).value = "";
 			})
 			this.utils.keyParams.set(paramsObj);
-
-			console.log("paramsObj", paramsObj);
 
 			this.sections.map(s => {
 				if (!!s["data point"] && !!s["data point"]["parameters"]) {
