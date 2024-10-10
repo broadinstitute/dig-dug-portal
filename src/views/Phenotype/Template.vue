@@ -231,6 +231,7 @@
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'annotation'"
+                                :multiple="true"
                                 :options="
                                     $store.state.c2ct.data.map(
                                         (d) => d.annotation
@@ -241,6 +242,7 @@
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'tissue'"
+                                :multiple="true"
                                 :options="
                                     $store.state.c2ct.data.map((d) => d.tissue)
                                 "
