@@ -136,6 +136,7 @@ new Vue({
                     bottom: 300,
                 },
             },
+            mouseGeneOnly: false,
         };
     },
     computed: {
@@ -306,6 +307,10 @@ new Vue({
             let x = Object.values(hugeMap);
             return x;
         },
+        mouseOnly(){
+            return this.mouseGeneOnly;
+        }
+        
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -333,6 +338,16 @@ new Vue({
                 refComponent.renderPheWas();
             }, 500);
         },
+    },
+    watch: {
+        "$store.state.homologGene"(newGene){
+            console.log(JSON.stringify(newGene));
+            this.mouseGeneOnly = false;
+            if (newGene.data.length === 0){
+                console.log("data missing");
+                this.mouseGeneOnly = true;
+            }
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

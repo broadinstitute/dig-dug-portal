@@ -45,7 +45,8 @@ export default Vue.component("mouse-whisker-plot", {
           yScale: null,
           founderScale: null,
           tooltip: null,
-          dividerGray: "#CCCCCC"
+          dividerGray: "#CCCCCC",
+          yAxisLabel: "log2( normalized gene expression )"
       };
   },
   mounted() {
@@ -82,7 +83,7 @@ export default Vue.component("mouse-whisker-plot", {
                   top: 20,
                   right: 30,
                   bottom: 50,
-                  left: 40,
+                  left: 60,
             },
             width = this.chartWidth - margin.left - margin.right,
             height = 450 - margin.top - margin.bottom;
@@ -184,6 +185,14 @@ export default Vue.component("mouse-whisker-plot", {
             .tickSizeOuter(0))
             .selectAll("text")
                 .style("font-size", "13px");
+          
+          this.svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -margin.left + 20)
+            .attr("x", - height / 2 - margin.top)
+            .text(this.yAxisLabel)
+              .style("font-size", "13px");
 
           this.svg.selectAll("vertLines")
               .data(sumstat)
