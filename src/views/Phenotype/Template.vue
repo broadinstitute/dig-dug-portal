@@ -247,14 +247,6 @@
                             >
                                 <div class="label">Tissue</div>
                             </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'biosample'"
-                                :options="
-                                    $parent.c2ctData.map((d) => d.biosample)
-                                "
-                            >
-                                <div class="label">Biosample</div>
-                            </filter-enumeration-control>
                             <filter-less-control
                                 :field="'totalEntropy'"
                                 :pill-formatter="
