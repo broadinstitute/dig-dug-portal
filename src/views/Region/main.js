@@ -103,6 +103,10 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("queryRegion");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
+
+        if (keyParams.gene) {
+            this.redirectWithRegion(keyParams.gene);
+        }
     },
 
     render(createElement) {
@@ -156,15 +160,32 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        async redirectWithRegion(GENE) {
+            let region = await this.utilsBox.regionUtils.parseRegion(GENE, true, 50000);
+
+            if (region) {
+                let regionPageUrl;
+                console.log("region", region);
+                regionPageUrl =
+                    "/region.html?chr=" +
+                    region.chr +
+                    "&end=" +
+                    region.end +
+                    "&start=" +
+                    region.start;
+
+                location.href = regionPageUrl;
+            }
+
+        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
                 if (this.selectedPhenotypes.length > 0) {
                     this.$store.dispatch("credibleSets/clear");
                     this.selectedPhenotypes.forEach((p) => {
-                        const queryString = `${p.name},${
-                            this.$store.state.chr
-                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        const queryString = `${p.name},${this.$store.state.chr
+                            }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                         this.$store.dispatch("credibleSets/query", {
                             q: queryString,
                             append: true,
