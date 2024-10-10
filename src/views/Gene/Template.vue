@@ -587,6 +587,48 @@
                 </div>
             </div>
             <!-- end of NDKP only -->
+            <div
+                v-if="
+                    ['a2f', 'md', 't1d', 't2d', 'cd', 'cvd', 'sleep'].includes(
+                        $parent.diseaseGroup.name
+                    )
+                "
+                class="card mdkp-card"
+            >
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Colocalization for
+                        {{ $store.state.geneName }}
+                        <tooltip-documentation
+                            name="gene.colocus.tooltip"
+                            :content-fill="$parent.docDetails"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
+                        <a href="https://amp.colocus.app" target="_blank">
+                            <b-img
+                                src="https://amp.colocus.app/img/logo.b68fc6f0.png"
+                                alt="colocus logo"
+                                height="20"
+                                right
+                                title="CoLocus Browser"
+                            ></b-img>
+                        </a>
+                    </h4>
+
+                    <documentation
+                        name="gene.colocus.subheader"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
+                    <colocus-table
+                        :gene-name="$store.state.geneName"
+                    ></colocus-table>
+                </div>
+            </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
@@ -620,6 +662,7 @@
                     </research-expression-display>
                 </div>
             </div>
+
             <div
                 class="card mdkp-card"
                 v-if="$store.state.mouseSummary.data.length > 0"
@@ -781,26 +824,7 @@
     </div>
 </template>
 
-<style>
-.color-bar-plot-wrapper {
-    width: calc(100% - 32px);
-    margin-left: 16px;
-}
-
-.color-bars-wrapper {
-    background-color: #eee;
-    font-weight: 500;
-    font-size: 13px;
-}
-
-.color-bar-plot-wrapper .each-bar-section {
-    width: calc(100% / 7);
-    text-align: center;
-}
-
-* {
-    box-sizing: border-box;
-}
+<style scoped>
 .container {
     display: flex;
     justify-content: center;
@@ -808,73 +832,7 @@
 .center {
     padding: 10px;
 }
-/* color bar plot */
-.arrow-up {
-    width: 0;
-    /*height: 40px;*/
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #de202c;
-    animation: moveright 1s alternate 1s;
-    margin-left: auto;
-    margin-right: auto;
-}
-.arrow-side {
-    width: 0;
-    /*height: 40px;*/
-    border-left: 10px solid transparent;
-    border-bottom: 0px solid transparent;
-    border-top: 10px solid black;
-    animation: moveright 1s alternate 1s;
-    margin-left: auto;
-    margin-right: auto;
-}
 
-.arrow {
-    border: solid black;
-    border-width: 0 3px 3px 0;
-    display: inline-block;
-    padding: 3px;
-}
-
-.right {
-    transform: rotate(-45deg);
-    -webkit-transform: rotate(-45deg);
-}
-
-#combinedVariation .variationCausal {
-    background-color: #3fb54a;
-    font-weight: bold;
-}
-#combinedVariation .variationStrong {
-    background-color: #4ebf59;
-    font-weight: bold;
-}
-#combinedVariation .variationModerate {
-    background-color: #5ecc69;
-    font-weight: bold;
-}
-#combinedVariation .variationPossible {
-    background-color: #71d97b;
-    font-weight: bold;
-}
-#combinedVariation .variationPotential {
-    background-color: #7ee087;
-    font-weight: bold;
-}
-#combinedVariation .variationWeak {
-    background-color: #91eb9a;
-    font-weight: bold;
-}
-#combinedVariation .variationEquivocal {
-    background-color: #a1f0a9;
-    font-weight: bold;
-}
-
-#combinedVariation .variationNoEvidence {
-    background-color: #c4edc8;
-    font-weight: bold;
-}
 /* basic positioning */
 .legend {
     list-style: none;
