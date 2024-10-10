@@ -230,7 +230,16 @@
 										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
 											v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
 									</span>
-									
+								</span>
+								<!-- working part-->
+								<span v-else-if="!!ifSubsectionColumn(tdKey)"
+										class="dynamic-subsection-options">
+										<span class="btns-wrapper">
+											<button class="btn btn-sm show-evidence-btn set-search-btn" 
+												:class="!!ifSubsectionData(tdValue) ? 'loaded-subsection' : ''"
+												@click="getSubsectionData(tdValue, tdKey)" >
+											{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+										</span>
 								</span>
 								
 								<span v-else v-html="formatValue(tdValue, tdKey)"></span>
@@ -253,12 +262,21 @@
 									:key="sKey"
 								>
 
-									<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
+									<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options">
 										{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
 										<span class="btns-wrapper">
 											<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
 												v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
 										</span>
+									</span>
+									<span v-else-if="!!ifSubsectionColumn(tdKey)"
+											class="dynamic-subsection-options">
+											<span class="btns-wrapper">
+												<button class="btn btn-sm show-evidence-btn set-search-btn"
+													:class="!!ifSubsectionData(tdValue)?'loaded-subsection':''"
+													@click="getSubsectionData(tdValue, tdKey)" >
+												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+											</span>
 									</span>
 									<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
 							</td>
@@ -290,8 +308,20 @@
 					<!-- testing dynamic sub table-->
 					<template v-if="!!tableFormat['column formatting']"
 					v-for="(itemValue, itemKey) in tableFormat['column formatting']">
-					<tr v-if="itemValue.type.includes('dynamic subsection')">
-						{{ value[itemKey] }}
+					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(value[itemKey])" class="dynamic-sub-section" :class="value[itemKey].replaceAll(',','_')" :key="value[itemKey]"
+					>
+					<td :colspan="topRowNumber">
+						<research-sub-section
+						:rowId="value[itemKey]"
+						:colors="colors"
+						:plotMargin="plotMargin"
+						:subectionConfig="itemValue['subsection']"
+						:subsectionData="collectSubsectionData(value[itemKey])"
+						:phenotypeMap="phenotypeMap"
+						:utils="utils"
+						>
+						</research-sub-section>
+					</td>
 					</tr>
 
 					</template>
@@ -342,7 +372,9 @@ export default Vue.component("research-data-table", {
 		"utils",
 		"region",
 		"regionZoom",
-		"regionViewArea"
+		"regionViewArea",
+		"colors",
+		"plotMargin"
 	],
 	data() {
 		return {
@@ -352,7 +384,7 @@ export default Vue.component("research-data-table", {
 			compareGroups: [],
 			stared: false,
 			staredAll: false,
-			subSectionData:{}
+			subSectionData:[]
 		};
 	},
 	modules: {},
@@ -648,6 +680,9 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	watch: {
+		subSectionData(DATA){
+			console.log(DATA);
+		},
 		featureRowsNumber(NUMBER) {
 			this.$emit('on-feature-rows-change', NUMBER);
 		},
@@ -692,6 +727,133 @@ export default Vue.component("research-data-table", {
 			}
 			
 		},
+		ifSubsectionData(KEY){
+			let ifExist = this.subSectionData.filter(subsection => subsection.key == KEY);
+
+			if (ifExist.length > 0) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		collectSubsectionData(KEY) {
+			let ifExist = this.subSectionData.filter(subsection => subsection.key == KEY);
+			let data = [];
+			if (ifExist.length > 0) {
+				ifExist.map(section =>{
+					data = data.concat(section.data);
+				})
+			}
+			return data;
+		},
+		getSubsectionData(VALUE,KEY){
+			
+			let dataPoint = this.tableFormat['column formatting'][KEY]['subsection']['data point'];
+			let tableFormat = this.tableFormat['column formatting'][KEY]['subsection']['table format']
+			let queryType = dataPoint["type"];
+			let paramsType = dataPoint["parameters type"]
+			let params = dataPoint["parameters"]
+
+			///check if this subsection is already loaded
+			let ifLoadedBefore = this.ifSubsectionData(VALUE);
+
+			if(ifLoadedBefore != true) {
+				let paramsString = VALUE;
+
+				//console.log("paramsString", paramsString)
+				switch (queryType) {
+					case "bioindex":
+						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
+						this.queryBioindex(paramsString, paramsType, params, dataPoint, tableFormat);
+						break;
+					/*case "api":
+						this.queryApi(paramsString, paramsType, params);
+						break;
+					case "file":
+						let parameter = this.dataPoint["parameter"]
+						this.queryFile(parameter);
+						break;*/
+				}
+			} else {
+				this.utils.uiUtils.showHideElement(VALUE.replaceAll(",","_"));
+			}
+		},
+		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT) {
+
+			let dataUrl = DATA_POINT.url;
+
+			if (TYPE == "replace") {
+				PARAMS.map((param, pIndex) => {
+					if (!!QUERY.split(",")[pIndex]) {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					} else {
+						dataUrl = dataUrl.replace("$" + param + ",", '');
+						dataUrl = dataUrl.replace(",$" + param, '');
+						dataUrl = dataUrl.replace("$" + param, '');
+					}
+				})
+
+			} else {
+				dataUrl = dataUrl + "query/" + DATA_POINT.index + "?q=" + QUERY;
+			}
+
+			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT);
+			} else {
+				console.log("No data is returned. Please check query parameters.");
+			}
+		},
+
+		async queryBiContinue(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT) {
+
+			let dataUrl;
+			let PARAMS = DATA_POINT["parameters"];
+
+			if (this.dataPoint["parameters type"] == "replace") {
+				dataUrl = DATA_POINT["continue url"];
+				dataUrl += TOKEN;
+			} else {
+				dataUrl = DATA_POINT.url + "cont?token=" + TOKEN;
+			}
+
+			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT);
+			} else {
+				// fetch failed
+				console.log("fetch failed");
+			}
+		},
+		processLoadedBI(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT) {
+
+			let data = CONTENT.data;
+
+
+			// if loaded data is processed
+			let tableFormat = TABLE_FORMAT;
+
+			if (!!tableFormat && !!tableFormat["data convert"]) {
+				let convertConfig = tableFormat["data convert"];
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+			}
+
+			let tempObj = {
+				key: QUERY,
+				data: data
+			}
+
+			this.subSectionData.push(tempObj);
+
+			if (!!CONTENT.continuation) {
+				this.queryBiContinue(CONTENT.continuation, QUERY, DATA_POINT, TABLE_FORMAT);
+			}
+			/* implement pre filters later */
+				//data = this.checkPreFilters(data)			
+		},
+
 		ifSetParameterColumn(KEY){
 			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
 			 && !!this.tableFormat['column formatting'][KEY]['type'].includes('set parameter')) {
@@ -700,8 +862,16 @@ export default Vue.component("research-data-table", {
 				return null;
 			 }
 		},
+		ifSubsectionColumn(KEY) {
+			if (!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+				&& !!this.tableFormat['column formatting'][KEY]['type'].includes('dynamic subsection')) {
+				return true;
+			} else {
+				return null;
+			}
+		},
 		getParameterColumnLabel(KEY){
-			if (!!this.ifSetParameterColumn(KEY)) {
+			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY)) {
 				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
 				return label;
 			} else {
@@ -1430,6 +1600,20 @@ table.research-data-table {
     margin-bottom: 3px;
 	text-align: left;
 	white-space: nowrap;
+}
+
+/* dynamic-sub-section */
+.dynamic-sub-section {
+	background-color: #aaaaaa;
+	font-size: 14px;
+}
+
+.dynamic-sub-section td {
+	padding: 1px !important;
+}
+
+.loaded-subsection {
+	background-color: green !important;
 }
 
 </style>
