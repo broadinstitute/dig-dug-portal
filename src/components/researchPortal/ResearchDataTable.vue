@@ -1600,6 +1600,12 @@ table.research-data-table {
     margin-bottom: 3px;
 	text-align: left;
 	white-space: nowrap;
+	
+}
+
+.set-search-btn {
+	margin-left: auto;
+	margin-right: auto;
 }
 
 /* dynamic-sub-section */
