@@ -18,7 +18,7 @@
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
 
 				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="anyResults() > 0">
-					<div class="byor-ss-results-section">
+					<div class="byor-ss-results-section" v-if="singleSearchResult.genes.length > 0">
 						<div class="byor-ss-results-section-title">GENES</div>
 						<div v-for="gene in singleSearchResult.genes" :key="gene" class="">
 							<a v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options"
@@ -839,17 +839,17 @@ export default Vue.component("research-single-search-cfde", {
 .byor-single-search-results-groups {
 	display:none;
 	justify-content: flex-start;
-	gap:20px;
+	gap:10px;
 	position: absolute;
 	min-width: 100%;
     width: auto;
     max-width: 90vw;
     transform: translateX(-50%);
     left: 50%;
-	background-color: #fff;
+	background-color: #f7f6f6;
 	font-size: 14px;
 	z-index: 100;
-	padding: 30px;
+	padding: 10px;
 	height: auto;
 	border-radius: 10px;
 }
@@ -860,8 +860,15 @@ export default Vue.component("research-single-search-cfde", {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    max-height: 300px;
+    height: 300px;
     overflow-y: auto;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+}
+.byor-ss-results-section:only-child{
+	width: -webkit-fill-available;
+	max-width: unset;
 }
 .byor-ss-results-section-title{
 	font-weight: bold;
@@ -985,7 +992,7 @@ a.ss-generate-summary {
 .ss-summary-popup {
     text-align: left !important;
     position: absolute;
-    top: 430px;
+    top: 380px;
     bottom: unset;
     left: 50%;
     transform: translateX(-50%);

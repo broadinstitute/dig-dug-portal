@@ -845,6 +845,7 @@ export default Vue.component("cfde-landing", {
 });
 </script>
 <style scoped>
+
 .line-svg {
     pointer-events: none;
 }
@@ -995,6 +996,7 @@ export default Vue.component("cfde-landing", {
     margin: -30px;
     padding: 15px;
     color: #7c7c7c;
+    font-size:16px !important;
 
     .map-info {
         opacity:0;
@@ -1047,15 +1049,15 @@ export default Vue.component("cfde-landing", {
     }
 
     h1.kc {
-        font-size: 20px;
+        font-size: 22px;
     }
 
     h2.kc {
-        font-size: 18px;
+        font-size: 20px;
     }
 
     h3.kc {
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .logo img {
@@ -1081,6 +1083,7 @@ export default Vue.component("cfde-landing", {
         padding: 5px 25px;
         margin: 0 25px;
         border-radius: 0 0 10px 10px;
+        font-size:14px;
     }
 
     .search-extras a,
@@ -1136,7 +1139,7 @@ export default Vue.component("cfde-landing", {
     }
 
     .dcc-icon {
-        width: 75px;
+        width: 85px;
         aspect-ratio: 1;
         background: #ebebeb;
         display: flex;
@@ -1168,7 +1171,7 @@ export default Vue.component("cfde-landing", {
         font-size: 12px;
         font-weight: bold;
         position: absolute;
-        left: calc(100% + 50px);
+        left: calc(100% + 25px);
         top: 50%;
         transform: translateY(-50%);
     }
