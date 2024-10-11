@@ -183,7 +183,7 @@ export default Vue.component("research-volcano-plot", {
 							this.posData[x + h][y + v].map((g, i) => {
 								clickedDotValue +=
 									`<span class="gene-on-clicked-dot-volcano">
-									${(this.renderConfig["on hover"] ? this.renderConfig["on hover"][i]+': ' : '')}
+									${(this.renderConfig["on hover"] ? '<b>'+this.renderConfig["on hover"][i]+':</b> ' : '')}
 									${g}
 									</span><br>`;
 							});
@@ -405,7 +405,7 @@ export default Vue.component("research-volcano-plot", {
 
 			let xCondition = this.renderConfig["x condition"];
 
-			this.renderData.map((d) => {
+			this.renderData.map((d, dIndex) => {
 				//rendering position
 				let xPos =
 					leftMargin +
@@ -558,8 +558,9 @@ export default Vue.component("research-volcano-plot", {
 				//but sometimes this is still too many labels to show at once
 				//need a better method to labels only most extreme outliers
 				if (
-					!!this.renderConfig["dot label score"] &&
-					fillScore >= this.renderConfig["dot label score"]
+					(!!this.renderConfig["dot label score"] &&
+					fillScore >= this.renderConfig["dot label score"]) 
+					//&& dIndex < 10
 				) {
 					ctx.font = "24px Arial";
 					ctx.textAlign = "center";
@@ -788,6 +789,7 @@ $(function () {});
 	display: block;
 	float: left;
 	padding: 0 5px;
+	text-align: left;
 }
 </style>
 
