@@ -6,8 +6,8 @@
         <div class="search-wrapper f-col align-h-center">
             <h1 class="kc">Explore Common Fund Knowledge</h1>
             <div class="f-col fill-width">
-                <research-single-search :single-search-config="sectionConfigs['content']" :phenotypes="phenotypesInUse"
-                    :utils="utilsBox"></research-single-search>
+                <research-single-search-cfde :single-search-config="sectionConfigs['content']" :phenotypes="phenotypesInUse"
+                    :utils="utilsBox"></research-single-search-cfde>
                 <div class="search-extras f-row">
                     <div class="f-row" style="gap:5px">
                         Try <a href="/research.html?entity=gene&gene=BDH2&pageid=kc_entity&tissue=blood">BDH2</a>
@@ -844,7 +844,7 @@ export default Vue.component("cfde-landing", {
     }
 });
 </script>
-<style>
+<style scoped>
 .line-svg {
     pointer-events: none;
 }
@@ -908,83 +908,83 @@ export default Vue.component("cfde-landing", {
 
 .flex-layout-styles {
 
-/* LAYOUT STYLES */
-.no-events {
-    pointer-events: none;
-}
+    /* LAYOUT STYLES */
+    .no-events {
+        pointer-events: none;
+    }
 
-.f-col {
-    display: flex;
-    flex-direction: column;
-}
+    .f-col {
+        display: flex;
+        flex-direction: column;
+    }
 
-.f-row {
-    display: flex;
-    flex-direction: row;
-}
+    .f-row {
+        display: flex;
+        flex-direction: row;
+    }
 
-.f-col.align-v-center {
-    justify-content: center;
-}
+    .f-col.align-v-center {
+        justify-content: center;
+    }
 
-.f-row.align-v-center {
-    align-items: center;
-}
+    .f-row.align-v-center {
+        align-items: center;
+    }
 
-.f-col.align-h-center {
-    align-items: center;
-}
+    .f-col.align-h-center {
+        align-items: center;
+    }
 
-.f-row.align-h-center {
-    justify-content: center;
-}
+    .f-row.align-h-center {
+        justify-content: center;
+    }
 
-.f-col.align-v-bottom {
-    justify-content: flex-end;
-}
+    .f-col.align-v-bottom {
+        justify-content: flex-end;
+    }
 
-.f-row.align-v-bottom {
-    align-items: flex-end;
-}
+    .f-row.align-v-bottom {
+        align-items: flex-end;
+    }
 
-.f-col.align-h-bottom {
-    align-items: flex-end;
-}
+    .f-col.align-h-bottom {
+        align-items: flex-end;
+    }
 
-.f-row.align-h-bottom {
-    justify-content: flex-end;
-}
+    .f-row.align-h-bottom {
+        justify-content: flex-end;
+    }
 
-.f-col.spread-out,
-.f-row.spread-out {
-    justify-content: space-between;
-}
+    .f-col.spread-out,
+    .f-row.spread-out {
+        justify-content: space-between;
+    }
 
-.fill-height {
-    /*height: -moz-available;
-    height: -webkit-fill-avaiilable;*/
-    height: stretch;
-    height: 100%;
-}
+    .fill-height {
+        /*height: -moz-available;
+        height: -webkit-fill-avaiilable;*/
+        height: stretch;
+        height: 100%;
+    }
 
-.fill-width {
-    /*width: -moz-available;
-    width: -webkit-fill-avaiilable;*/
-    width: stretch;
-    width: 100%;
-}
+    .fill-width {
+        /*width: -moz-available;
+        width: -webkit-fill-avaiilable;*/
+        width: stretch;
+        width: 100%;
+    }
 
-.hug-height {
-    height: fit-content;
-}
+    .hug-height {
+        height: fit-content;
+    }
 
-.hug-width {
-    width: fit-content
-}
+    .hug-width {
+        width: fit-content
+    }
 
-.grow-children>* {
-    flex-grow: 1;
-}
+    .grow-children>* {
+        flex-grow: 1;
+    }
 }
 
 .kc-home {
@@ -992,7 +992,7 @@ export default Vue.component("cfde-landing", {
     flex-direction: column;
     align-items: center;
     background: #f7f6f6;
-    margin: -15px;
+    margin: -30px;
     padding: 15px;
     color: #7c7c7c;
 
