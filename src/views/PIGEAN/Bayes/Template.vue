@@ -56,9 +56,23 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Gene Factor</h4>
-                    <pigean-bayes-table
-                        :pigeanData="$parent.geneFactor">
-                    </pigean-bayes-table>
+                    <criterion-function-group>
+                        <filter-enumeration-control
+                            field="label"
+                            placeholder="Select a label ..."
+                            :options="
+                                $parent.geneFactor.map(d => d.label)
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Filter by Genes</div>
+                        </filter-enumeration-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-bayes-table
+                                :pigeanData="$parent.geneFactor">
+                            </pigean-bayes-table>
+                        </template>
+                    </criterion-function-group>
                 </div>
             </div>
             <div class="card mdkp-card">
