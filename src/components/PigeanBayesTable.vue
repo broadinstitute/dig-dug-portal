@@ -3,7 +3,7 @@
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
                 <data-download
-                    :data="flatData"
+                    :data="pigeanData"
                     filename="pigean_bayes"
                 ></data-download>
             </div>
@@ -19,6 +19,7 @@
                 :per-page="perPage"
                 :current-page="currentPage"
                 :sort-desc="true"
+                :sort-by="'factor_value'"
             >
                 <template #cell(label)="r">
                     <span v-if="!!r.item.label">
@@ -111,7 +112,7 @@ export default Vue.component("pigean-bayes-table", {
     components: {
         DataDownload,
     },
-    props: ["pigeanData", "filter", "isPigeanFactor"],
+    props: ["pigeanData", "filter"],
     data() {
         return {
             perPage: 10,
@@ -119,21 +120,8 @@ export default Vue.component("pigean-bayes-table", {
         };
     },
     computed: {
-        flatData(){
-            if (this.isPigeanFactor){
-                return this.pigeanData;
-            }
-            let output = [];
-            let factors = Object.keys(this.pigeanData);
-            factors.forEach(factor => {
-                //console.log(factor);
-                //console.log(JSON.stringify(this.pigeanData[factor]));
-                output = output.concat(this.pigeanData[factor]);
-            });
-            return output;
-        },
         tableData() {
-            let data = structuredClone(this.flatData);
+            let data = structuredClone(this.pigeanData);
             if (this.filter) {
                 data = data.filter(this.filter);
             }

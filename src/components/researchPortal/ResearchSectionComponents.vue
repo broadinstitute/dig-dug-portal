@@ -19,7 +19,8 @@ import cfdeLanding from "@/components/researchPortal/customComponents/cfdeLandin
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
 	components: {
-		cfdeEcoSystem
+		cfdeEcoSystem,
+		cfdeLanding
 	},
 	data() {
 		return {
