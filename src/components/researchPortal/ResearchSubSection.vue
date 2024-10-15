@@ -7,7 +7,7 @@
 				:phenotypeMap="phenotypeMap" 
 				:colors="colors" 
 				:plotMargin="plotMargin"
-				:sectionId="rowId"
+				:sectionId="rowId.replaceAll(',','')"
 				:utils="utils" 
 				:searchParameters="rowId">
 			</research-section-visualizers>
