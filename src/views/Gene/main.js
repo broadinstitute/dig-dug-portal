@@ -1,14 +1,8 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import _ from "lodash";
 
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
@@ -54,25 +48,14 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert,
-} from "@/components/Alert";
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
     modules: {},
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         UniprotReferencesTable,
         GeneAssociationsTable,
         GeneAssociationsMasks,
@@ -105,6 +88,7 @@ new Vue({
         MouseSummaryTable,
         ColocusTable,
     },
+    mixins: [pageMixin],
 
     data() {
         return {
@@ -455,17 +439,6 @@ new Vue({
                 }),
             ];
         },
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"] || {};
-        },
 
         region() {
             return this.$store.getters.region;
@@ -563,6 +536,7 @@ new Vue({
                     )}-${Formatters.intFormatter(r.end)}`,
                 };
             }
+            return {};
         },
 
         phenotypeMap() {
@@ -656,10 +630,6 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
 

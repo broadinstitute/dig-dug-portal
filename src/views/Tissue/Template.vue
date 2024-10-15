@@ -30,8 +30,8 @@
                     <div class="card-body temporary-card">
                         <documentation
                             name="tissue.explore.subheader"
-                            :contentFill="$parent.docDetails"
-                            :contentMap="$store.state.bioPortal.documentations"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
                     </div>
                 </div>
@@ -47,8 +47,8 @@
                         </h4>
                         <documentation
                             name="tissue.gene-expression.subheader"
-                            :contentFill="$parent.docDetails"
-                            :contentMap="$store.state.bioPortal.documentations"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
                         <criterion-function-group>
                             <div class="col filter-col-md">
@@ -95,12 +95,12 @@
                                     <div class="col-md-8">
                                         <scatterplot
                                             v-if="$parent.tissueData.length > 0"
-                                            :logScale="$parent.logScale"
-                                            :plotData="$parent.tissueData"
+                                            :log-scale="$parent.logScale"
+                                            :plot-data="$parent.tissueData"
                                             :config="$parent.plotConfig"
-                                            :plotName="`${$parent.tissue}_gene_expression`"
+                                            :plot-name="`${$parent.tissue}_gene_expression`"
                                             :filter="filter"
-                                            :translucentDots="true"
+                                            :translucent-dots="true"
                                         >
                                         </scatterplot>
                                     </div>
@@ -108,7 +108,7 @@
                                 </div>
                                 <div class="mt-4"></div>
                                 <tissue-expression-table
-                                    :tissueData="$parent.tissueData"
+                                    :tissue-data="$parent.tissueData"
                                     :tissue="$parent.tissue"
                                     :filter="filter"
                                 >
@@ -132,18 +132,18 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.cs2ct.tooltip"
-                                :contentFill="$parent.docDetails"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
-                                :contentMap="
+                                :content-map="
                                     $store.state.bioPortal.documentations
                                 "
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="tissue.cs2ct.subheader"
-                            :contentFill="$parent.docDetails"
-                            :contentMap="$store.state.bioPortal.documentations"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
                         <div
                             class="filtering-ui-wrapper container-fluid temporary-card"
@@ -185,7 +185,7 @@
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <c2ct-table
-                                    :c2ctData="$parent.cs2ctData"
+                                    :c2ct-data="$parent.cs2ctData"
                                     :filter="filter"
                                     :phenotype="
                                         $store.state.credibleSetPhenotype
@@ -197,8 +197,11 @@
                     </div>
                 </div>
                 <div
+                    v-if="
+                        $parent.deployment !== 'production' &&
+                        $store.state.mouseSummary.data.length > 0
+                    "
                     class="card mdkp-card"
-                    v-if="$store.state.mouseSummary.data.length > 0"
                 >
                     <div class="card-body">
                         <h4 class="card-title">
@@ -207,10 +210,10 @@
                             mouse founder strains
                             <tooltip-documentation
                                 name="tissue.mice-diff-exp.tooltip"
-                                :contentFill="$parent.docDetails"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
-                                :contentMap="
+                                :content-map="
                                     $store.state.bioPortal.documentations
                                 "
                             >
@@ -218,8 +221,8 @@
                         </h4>
                         <documentation
                             name="tissue.mice-diff-exp.subheader"
-                            :contentFill="$parent.docDetails"
-                            :contentMap="$store.state.bioPortal.documentations"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
                         >
                         </documentation>
                         <mouse-summary-table
@@ -232,7 +235,7 @@
                     <div class="card-body">
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
                             @topPhenotypeFound="
                                 (d) => $parent.getTopPhenotype(d)
                             "
