@@ -685,7 +685,7 @@ export default Vue.component("research-scatter-plot", {
 						this.colorByList[ colorField ].map(color => {
 							let coloredData = DATA.filter(d => d.color[ colorField ] === color);
 							let dotColor = this.compareGroupColors[cIndex % 16];
-							console.log("dot 2", dotColor)
+							//console.log("dot 2", dotColor)
 							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
@@ -994,7 +994,7 @@ export default Vue.component("research-scatter-plot", {
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
 			let wrapperContent = document.querySelector('#scatter_dot_value_content' + this.sectionId);
 
-			console.log("sectionId",this.sectionId)
+			//console.log("sectionId",this.sectionId)
 			//let canvas = document.querySelector('#scatterPlot' + this.sectionId + GROUP);
 			let canvas = e.target;
 
