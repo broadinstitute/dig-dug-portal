@@ -2,12 +2,6 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
@@ -26,17 +20,12 @@ import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
-
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
     modules: {},
     components: {
-        PageHeader,
-        PageFooter,
         SearchHeaderWrapper,
         GeneSelectPicker,
         SigmaSelectPicker,
@@ -48,6 +37,7 @@ new Vue({
         FilterEnumeration,
         FilterGreaterLess,
     },
+    mixins: [pageMixin],
 
     data() {
         return {
@@ -60,10 +50,12 @@ new Vue({
             tableConfig: {
                 fields: [
                     { key: "phenotype", label: "Phenotype", sortable: true },
-                    { key: "combined", 
-                        label: "Combined genetic support", 
+                    {
+                        key: "combined",
+                        label: "Combined genetic support",
                         showProbability: true,
-                        sortable: true },
+                        sortable: true,
+                    },
                     {
                         key: "huge_score",
                         label: "Direct support (w/o gene sets)",

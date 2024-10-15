@@ -1,10 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
-import Documentation from "@/components/Documentation.vue";
-import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -33,10 +29,6 @@ import { pageMixin } from "@/mixins/pageMixin";
 new Vue({
     store,
     components: {
-        PageHeader,
-        PageFooter,
-        Documentation,
-        TooltipDocumentation,
         TissueHeritabilityTable,
         TissueExpressionTable,
         CriterionFunctionGroup,
@@ -119,18 +111,6 @@ new Vue({
                 return this.$store.state.phenotypesInSession;
             }
         },
-
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
         diseaseSystem() {
             return this.$store.getters["bioPortal/diseaseSystem"];
         },
@@ -153,7 +133,7 @@ new Vue({
             });
             return data;
         },
-        phenotypeDisplayName(){
+        phenotypeDisplayName() {
             let phenotype = this.$store.state.credibleSetPhenotype;
             let map = this.$store.state.bioPortal.phenotypeMap;
             return map[phenotype]?.description || "";
@@ -180,12 +160,16 @@ new Vue({
             this.$store.commit("setTissueName", this.tissue);
             this.$store.dispatch("getTissue");
         },
-        getTopPhenotype(details){
+        getTopPhenotype(details) {
             // Credible set is based on top phenotype or user selected phenotype,
             // whichever is changed most recently.
             this.$store.commit("setTopPhenotype", details.phenotype);
-            this.$store.dispatch("getCs2ct", details.phenotype, details.ancestry);
-        }
+            this.$store.dispatch(
+                "getCs2ct",
+                details.phenotype,
+                details.ancestry
+            );
+        },
     },
 
     render: (h) => h(Template),
