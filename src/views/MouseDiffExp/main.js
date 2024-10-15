@@ -1,10 +1,7 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
-import Documentation from "@/components/Documentation.vue";
-import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -24,7 +21,6 @@ import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 
-
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -39,10 +35,6 @@ import { pageMixin } from "@/mixins/pageMixin";
 new Vue({
     store,
     components: {
-        PageHeader,
-        PageFooter,
-        Documentation,
-        TooltipDocumentation,
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
@@ -96,7 +88,7 @@ new Vue({
                 bump: 11,
             },
             hugeScoreRenderConfig: {
-                "type": "phewas plot",
+                type: "phewas plot",
                 "render by": "phenotype",
                 "group by": "group",
                 "phenotype map": "kp phenotype map",
@@ -106,9 +98,9 @@ new Vue({
                 "x axis label": "",
                 "beta field": "null",
                 "hover content": ["bf_common", "bf_rare", "huge"],
-                "thresholds": [Math.log(3), Math.log(30)],
+                thresholds: [Math.log(3), Math.log(30)],
                 "label in black": "greater than",
-                "height": "600",
+                height: "600",
                 "plot margin": {
                     left: 150,
                     right: 150,
@@ -153,7 +145,7 @@ new Vue({
             };
             return utils;
         },
-        rareVariantRenderConfig(){
+        rareVariantRenderConfig() {
             let config = structuredClone(this.commonVariantRenderConfig);
             config["beta field"] = "beta";
             config["hover content"].push("beta");
@@ -162,10 +154,6 @@ new Vue({
         },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
-        },
-
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
         },
         diseaseSystem() {
             return this.$store.getters["bioPortal/diseaseSystem"];
@@ -180,14 +168,16 @@ new Vue({
                     ? this.tissue.toUpperCase().replaceAll("_", " ")
                     : "",
                 gene: this.$store.state.gene,
-                region: !!r ? `${r.chromosome}:${Formatters.intFormatter(
-                    r.start
-                )}-${Formatters.intFormatter(r.end)}` : null,
+                region: !!r
+                    ? `${r.chromosome}:${Formatters.intFormatter(
+                          r.start
+                      )}-${Formatters.intFormatter(r.end)}`
+                    : null,
             };
         },
-        diffExpData(){
-            let data = structuredClone(this.$store.state.diffExp.data); 
-            for (let i = 0; i < data.length; i++){
+        diffExpData() {
+            let data = structuredClone(this.$store.state.diffExp.data);
+            for (let i = 0; i < data.length; i++) {
                 data[i].founder_sex = `${data[i].founder}_${data[i].sex}`;
             }
             return data;
@@ -325,7 +315,7 @@ new Vue({
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
-        searchDiffExp(){
+        searchDiffExp() {
             this.$store.dispatch("queryDiffExp");
         },
         filterPhenotype(newFilters) {

@@ -1,15 +1,11 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
@@ -31,15 +27,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
-
 import sessionUtils from "@/utils/sessionUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert,
-} from "@/components/Alert";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -49,14 +37,11 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
-
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
         TranscriptConsequenceTable,
@@ -80,6 +65,7 @@ new Vue({
         SearchHeaderWrapper,
         ResearchSingleSearch,
     },
+    mixins: [pageMixin],
 
     computed: {
         utilsBox() {
@@ -183,19 +169,6 @@ new Vue({
             return { variant: varId || "" };
         },
 
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-
         lzAssociations() {
             let phenotypes = this.$store.state.bioPortal.phenotypeMap;
             let associations = this.$store.state.phewas.data;
@@ -252,10 +225,6 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,

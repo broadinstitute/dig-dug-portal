@@ -333,12 +333,13 @@ let pages = {
         filename: "mouse_diff_exp.html",
         title: "Mouse Differential Expression",
         chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
-    }
+    },
 };
 
 // remove the debug page in production
 if (process.env.NODE_ENV === "production") {
     delete pages.debug;
+    delete pages.mouse_diff_exp;
 }
 
 module.exports = {

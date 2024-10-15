@@ -1,5 +1,4 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -16,8 +15,7 @@ import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.v
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual, sumBy, cloneDeep } from "lodash";
-import { postAlertError } from "@/components/Alert.vue";
+import { isEqual, sumBy } from "lodash";
 import regionUtils from "@/utils/regionUtils";
 import * as raremetal from "raremetal.js";
 import EventBus from "@/utils/eventBus";
@@ -29,9 +27,6 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
 
 new Vue({
     store,
