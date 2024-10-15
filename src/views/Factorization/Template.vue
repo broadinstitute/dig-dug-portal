@@ -65,7 +65,7 @@
                             "
                             :multiple="true"
                         >
-                            <div class="label">Filter by Genes</div>
+                            <div class="label">Filter by Factor Label</div>
                         </filter-enumeration-control>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-bayes-table
@@ -79,10 +79,25 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Gene Set Factor</h4>
-                    <pigean-bayes-table
-                        :pigeanData="$parent.genesetFactor"
-                        :fields="$parent.genesetFields">
-                    </pigean-bayes-table>
+                    <criterion-function-group>
+                        <filter-enumeration-control
+                            field="label"
+                            placeholder="Select a label ..."
+                            :options="
+                                $parent.genesetFactor.map(d => d.label)
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Filter by Factor Label</div>
+                        </filter-enumeration-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-bayes-table
+                                :pigeanData="$parent.genesetFactor"
+                                :fields="$parent.genesetFields">
+                            </pigean-bayes-table>
+                        </template>
+                    </criterion-function-group>
+                    
                 </div>
             </div>
         </div>
