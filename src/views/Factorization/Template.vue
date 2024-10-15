@@ -69,7 +69,8 @@
                         </filter-enumeration-control>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-bayes-table
-                                :pigeanData="$parent.geneFactor">
+                                :pigeanData="$parent.geneFactor"
+                                :fields="$parent.geneFields">
                             </pigean-bayes-table>
                         </template>
                     </criterion-function-group>
@@ -79,7 +80,8 @@
                 <div class="card-body">
                     <h4>Gene Set Factor</h4>
                     <pigean-bayes-table
-                        :pigeanData="$parent.genesetFactor">
+                        :pigeanData="$parent.genesetFactor"
+                        :fields="$parent.genesetFields">
                     </pigean-bayes-table>
                 </div>
             </div>

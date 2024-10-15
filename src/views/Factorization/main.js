@@ -55,6 +55,38 @@ new Vue({
         return {
             geneInput: "",
             placeholder: "Enter a list of genes, one per line of text.",
+            baseFields: [
+                {
+                    key: "label_factor",
+                    label: "Label factor",
+                    sortable: true
+                },
+                { 
+                    key: "factor_value",
+                    label: "Overall factor value",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true
+                },
+                {
+                    key: "label",
+                    label: "Label",
+                    sortable: true
+                },
+            ],
+            extraGenesetFields: [
+                {
+                    key: "gene_Set",
+                    label: "Gene set",
+                    sortable: true
+                }
+            ],
+            extraGeneFields: [
+                {
+                    key: "gene",
+                    label: "Gene",
+                    sortable: true
+                }
+            ],
         };
     },
     computed: {
@@ -84,11 +116,21 @@ new Vue({
             return this.$store.state.pigeanFactor;
         },
         geneFactor() {
-            return this.flatData(this.$store.state.geneFactor);
+            let data = this.flatData(this.$store.state.geneFactor);
+            //console.log(JSON.stringify(data));
+            return data;
         },
         genesetFactor() {
-            return this.flatData(this.$store.state.genesetFactor);
+            let data = this.flatData(this.$store.state.genesetFactor);
+            console.log(JSON.stringify(data));
+            return data;
         },
+        genesetFields(){
+            return this.baseFields.concat(this.extraGenesetFields);
+        },
+        geneFields(){
+            return this.baseFields.concat(this.extraGeneFields);
+        }
     },
     watch: {
         diseaseGroup(group) {
