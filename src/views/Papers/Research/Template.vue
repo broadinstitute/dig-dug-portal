@@ -28,15 +28,22 @@
 		></research-page-header>
 	<div class="single-search-wrapper" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['single search']">
 		<research-single-search
+			v-if="!$parent.sectionConfigs['single search']['version']"
 			:single-search-config="$parent.sectionConfigs['single search']"
 			:phenotypes="$parent.phenotypesInSession"
 			:utils="$parent.utilsBox"
-		></research-single-search>   
+		></research-single-search>
+		<research-single-search-v2
+				v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == '2.0'"
+				:single-search-config="$parent.sectionConfigs['single search']"
+				:phenotypes="$parent.phenotypesInSession"
+				:utils="$parent.utilsBox"
+			></research-single-search-v2>     
 		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
 			<span v-html="'examples: '"></span>
-			<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
+			<!--<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
 			v-html="$parent.getExampleLink(example)">
-			</span>
+			</span>-->
 		</div> 
 		<!-- KC Set context -->
 		<div v-if="!!$parent.sectionConfigs['context']" class="context-btns-wrapper">
@@ -244,7 +251,7 @@
 			</div>
 			<!-- tabs content -->
 
-			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':''" id="rp_tabs_contents">
+			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':'kp-tabs-contents not-active'" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
 						<template
@@ -631,7 +638,7 @@
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
 									style="position:relative"
 								>
-									
+									<h4 v-if="!!group.label">{{ group.label }}</h4>
 									<button v-if="!group.type"
 										class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 

@@ -39,6 +39,8 @@ import ResearchSectionsSummary from "@/components/researchPortal/ResearchSection
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
 import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingSpinner.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
+import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -87,6 +89,8 @@ new Vue({
         ResearchSectionsSummary,
         ResearchMultiSectionsSearch,
         ResearchSingleSearch,
+        ResearchSingleSearchV2,
+        ResearchSingleSearchCFDE,
         ResearchLoadingSpinner
     },
     data() {
@@ -950,6 +954,9 @@ new Vue({
     },
 
     watch: {
+        sectionsData(DATA) {
+            console.log("sectionsData", DATA)
+        },
         sectionConfigs(CONFIGS) {
             let context;
 
