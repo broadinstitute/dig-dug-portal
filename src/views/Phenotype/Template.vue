@@ -231,6 +231,7 @@
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'annotation'"
+                                :multiple="true"
                                 :options="
                                     $store.state.c2ct.data.map(
                                         (d) => d.annotation
@@ -241,19 +242,12 @@
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'tissue'"
+                                :multiple="true"
                                 :options="
                                     $store.state.c2ct.data.map((d) => d.tissue)
                                 "
                             >
                                 <div class="label">Tissue</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'biosample'"
-                                :options="
-                                    $parent.c2ctData.map((d) => d.biosample)
-                                "
-                            >
-                                <div class="label">Biosample</div>
                             </filter-enumeration-control>
                             <filter-less-control
                                 :field="'totalEntropy'"
