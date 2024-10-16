@@ -85,6 +85,11 @@ new Vue({
                     key: "gene",
                     label: "Gene",
                     sortable: true
+                },
+                {
+                    key: "inQuery",
+                    label: "In original query?",
+                    sortable: true
                 }
             ],
         };
@@ -116,13 +121,11 @@ new Vue({
             return this.$store.state.pigeanFactor;
         },
         geneFactor() {
-            let data = this.flatData(this.$store.state.geneFactor);
-            //console.log(JSON.stringify(data));
-            return data;
+            let data = this.flatData(this.$store.state.geneFactor, true);
+            return this.inputQueryMembership(data);
         },
         genesetFactor() {
             let data = this.flatData(this.$store.state.genesetFactor);
-            console.log(JSON.stringify(data));
             return data;
         },
         genesetFields(){
@@ -147,7 +150,6 @@ new Vue({
         search() {
             if (this.geneInput) {
                 let genes = this.geneInput.trim().split(/[\n, ]+/);
-                console.log(genes);
                 this.$store.dispatch("queryBayesGenes", genes);
             }
         },
@@ -159,6 +161,14 @@ new Vue({
             });
             return output;
         },
+        inputQueryMembership(data){
+            let copy = structuredClone(data);
+            let inputGenes = this.$store.state.roundTripInputGenes;
+            copy.forEach(d => {
+                d["inQuery"] = inputGenes.includes(d.gene);
+            });
+            return copy;
+        }
     },
 
     render(createElement, context) {
