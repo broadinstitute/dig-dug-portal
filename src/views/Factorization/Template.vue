@@ -46,7 +46,7 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4>Pigean Factor</h4>
+                    <h4>Factors</h4>
                     <pigean-bayes-table
                         :pigeanData="$parent.pigeanFactor"
                         :isPigeanFactor="true">
@@ -65,11 +65,20 @@
                             "
                             :multiple="true"
                         >
-                            <div class="label">Filter by Genes</div>
+                            <div class="label">Filter by Factor Label</div>
+                        </filter-enumeration-control>
+                        <filter-enumeration-control
+                            field="inQuery"
+                            placeholder="Is gene in original query?"
+                            :options="$parent.geneFactor.map(d => d.inQuery)"
+                        >
+                            <div class="label">Filter by Genes in Query</div>
                         </filter-enumeration-control>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-bayes-table
-                                :pigeanData="$parent.geneFactor">
+                                :pigeanData="$parent.geneFactor"
+                                :fields="$parent.geneFields"
+                                :filter="filter">
                             </pigean-bayes-table>
                         </template>
                     </criterion-function-group>
@@ -78,9 +87,26 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Gene Set Factor</h4>
-                    <pigean-bayes-table
-                        :pigeanData="$parent.genesetFactor">
-                    </pigean-bayes-table>
+                    <criterion-function-group>
+                        <filter-enumeration-control
+                            field="label"
+                            placeholder="Select a label ..."
+                            :options="
+                                $parent.genesetFactor.map(d => d.label)
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Filter by Factor Label</div>
+                        </filter-enumeration-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-bayes-table
+                                :pigeanData="$parent.genesetFactor"
+                                :fields="$parent.genesetFields"
+                                :filter="filter">
+                            </pigean-bayes-table>
+                        </template>
+                    </criterion-function-group>
+                    
                 </div>
             </div>
         </div>

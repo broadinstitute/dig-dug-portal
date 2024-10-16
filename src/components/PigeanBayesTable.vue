@@ -16,6 +16,7 @@
                 small
                 responsive="sm"
                 :items="tableData"
+                :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
                 :sort-desc="true"
@@ -112,7 +113,7 @@ export default Vue.component("pigean-bayes-table", {
     components: {
         DataDownload,
     },
-    props: ["pigeanData", "filter"],
+    props: ["pigeanData", "filter", "fields"],
     data() {
         return {
             perPage: 10,
