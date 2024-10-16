@@ -103,6 +103,38 @@ new Vue({
                 "mouse",
                 "network",
                 "knockdown"
+            ],
+            topFields: [
+                {
+                    key: "factor",
+                    label: "Factor",
+                    sortable: true
+                },
+                {
+                    key: "gene_score",
+                    label: "Gene score",
+                    sortable: true
+                },
+                {
+                    key: "gene_set_score",
+                    label: "Gene set score",
+                    sortable: true,
+                },
+                {
+                    key: "label",
+                    label: "Label",
+                    sortable: true,
+                },
+                {
+                    key: "top_genes",
+                    label: "Top genes",
+                    sortable: false,
+                },
+                {
+                    key: "top_gene_sets",
+                    label: "Top gene sets",
+                    sortable: false
+                }
             ]
         };
     },

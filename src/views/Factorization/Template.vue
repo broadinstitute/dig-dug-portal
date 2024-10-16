@@ -71,7 +71,8 @@
                     <h4>Factors</h4>
                     <pigean-bayes-table
                         :pigeanData="$parent.pigeanFactor"
-                        :isPigeanFactor="true">
+                        :isPigeanFactor="true"
+                        :fields="$parent.topFields">
                     </pigean-bayes-table>
                 </div>
             </div>
