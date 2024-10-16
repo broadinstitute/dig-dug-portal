@@ -36,7 +36,7 @@
                                         rows="10">
                                     </b-form-textarea>
                                 </div>
-                                <div class="col filter-col-md">
+                                <div class="col filter-col-md" id="dropdownDiv">
                                     <div class="label">
                                         Gene Sets
                                     </div>
@@ -149,11 +149,12 @@
 }
 #bayesSearch {
     min-height: 150px !important;
+    vertical-align: top !important;
 }
 #bayesSearchField {
     min-height: 125px !important;
 }
-#searchButtonDiv {
+#searchButtonDiv, #dropdownDiv {
     vertical-align: top !important;
 }
 #searchButtonDiv button {
