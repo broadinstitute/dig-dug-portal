@@ -47,10 +47,15 @@ export default new Vuex.Store({
     },
 
     actions: {
-        async queryBayesGenes(context, genesList){
+        async queryBayesGenes(context, genesList, geneSets){
             context.commit("clearAllData");
             let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/pigean";
-            let genesQuery = JSON.stringify({ "genes": genesList });
+            let genesQuery = JSON.stringify(
+                { 
+                    "genes": genesList,
+                    "gene_sets": geneSets,
+                }
+            );
             let json = await fetch(address, {
                 method: "POST",
                 headers: {

@@ -56,6 +56,7 @@ new Vue({
     data() {
         return {
             geneInput: "",
+            genesetParam: "default",
             placeholder: "Enter a list of genes, one per line of text.",
             baseFields: [
                 {
@@ -94,6 +95,15 @@ new Vue({
                     sortable: true
                 }
             ],
+            genesetOptions: [
+                "default",
+                "text_mining",
+                "text_mining_rumma",
+                "expression",
+                "mouse",
+                "network",
+                "knockdown"
+            ]
         };
     },
     computed: {
@@ -152,7 +162,8 @@ new Vue({
         search() {
             if (this.geneInput) {
                 let genes = this.geneInput.trim().split(/[\n, ]+/);
-                this.$store.dispatch("queryBayesGenes", genes);
+                let geneSets = this.genesetParam;
+                this.$store.dispatch("queryBayesGenes", genes, geneSets);
             }
         },
         flatData(data){
@@ -179,9 +190,9 @@ new Vue({
         },
         formatGroupName(name){
             const prefix = new RegExp(/Group \d*: /);
-            let output = name.split(prefix);
+            let output = name.trim().replace(prefix, "");
             console.log(output);
-            return output.length > 0 ? output[1] : name;
+            return output;
         }
     },
 

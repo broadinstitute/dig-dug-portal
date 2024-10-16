@@ -10,15 +10,40 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper
-                id="bayesSearch">
-                <div class="col filter-col-md">
+            <search-header-wrapper>
+                
+            </search-header-wrapper>
+            <div class="gene-page-header card mdkp-card">
+                <div class="row card-body">
+                    <div class="col-md-8 gene-page-header-body">
+                        <div>
+                            <span>
+                                Interactive Gene Set Explorer
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row card-body" id="bayesSearch">
+                    <div class="col filter-col-md">
                     <b-form-textarea
                         id="bayesSearchField"
                         v-model="$parent.geneInput"
                         :placeholder="$parent.placeholder"
                         rows="10">
                     </b-form-textarea>
+                </div>
+                <div class="col filter-col-md">
+                    <div class="label">
+                        Gene Sets
+                    </div>
+                    <select class="form-control"
+                        :v-model="$parent.genesetParam"
+                    >
+                        <option v-for=" o in $parent.genesetOptions"
+                            :value="o">
+                                {{ o }}
+                        </option>
+                    </select>
                 </div>
                 <div class="col filter-col-md"
                     id="searchButtonDiv">
@@ -32,16 +57,6 @@
                         GO
                     </button>
                 </div>
-            </search-header-wrapper>
-            <div class="gene-page-header card mdkp-card">
-                <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-body">
-                        <div>
-                            <span>
-                                PIGEAN Interactive Gene Set Explorer
-                            </span>
-                        </div>
-                    </div>
                 </div>
             </div>
             <div class="card mdkp-card">
