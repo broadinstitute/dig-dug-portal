@@ -39,6 +39,7 @@ export default new Vuex.Store({
             state.pigeanFactor = [];
             state.geneFactor = [];
             state.genesetFactor = [];
+            state.roundTripInputGenes = [];
         }
     },
 
