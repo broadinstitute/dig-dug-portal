@@ -236,8 +236,8 @@
 										class="dynamic-subsection-options">
 										<span class="btns-wrapper">
 											<button class="btn btn-sm show-evidence-btn set-search-btn" 
-												:class="!!ifSubsectionData(tdValue) ? 'loaded-subsection' : ''"
-												@click="getSubsectionData(tdValue, tdKey)" >
+												:class="!!ifSubsectionData(tdValue+index) ? 'loaded-subsection' : ''"
+												@click="getSubsectionData(tdValue, tdKey, index)" >
 											{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
 										</span>
 								</span>
@@ -273,8 +273,8 @@
 											class="dynamic-subsection-options">
 											<span class="btns-wrapper">
 												<button class="btn btn-sm show-evidence-btn set-search-btn"
-													:class="!!ifSubsectionData(tdValue)?'loaded-subsection':''"
-													@click="getSubsectionData(tdValue, tdKey)" >
+													:class="!!ifSubsectionData(tdValue + index)?'loaded-subsection':''"
+													@click="getSubsectionData(tdValue, tdKey, index)" >
 												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
 											</span>
 									</span>
@@ -308,15 +308,15 @@
 					<!-- testing dynamic sub table-->
 					<template v-if="!!tableFormat['column formatting']"
 					v-for="(itemValue, itemKey) in tableFormat['column formatting']">
-					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(value[itemKey])" class="dynamic-sub-section" :class="value[itemKey].replaceAll(',','_')" :key="value[itemKey]"
+					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(value[itemKey]+index)" class="dynamic-sub-section" :class="(value[itemKey]+index).replaceAll(',','_')" :key="value[itemKey]"
 					>
 					<td :colspan="topRowNumber">
 						<research-sub-section
-						:rowId="value[itemKey]"
+						:rowId="value[itemKey]+ index"
 						:colors="colors"
 						:plotMargin="plotMargin"
 						:subectionConfig="itemValue['subsection']"
-						:subsectionData="collectSubsectionData(value[itemKey])"
+						:subsectionData="collectSubsectionData(value[itemKey]+index)"
 						:phenotypeMap="phenotypeMap"
 						:utils="utils"
 						>
@@ -746,7 +746,7 @@ export default Vue.component("research-data-table", {
 			}
 			return data;
 		},
-		getSubsectionData(VALUE,KEY){
+		getSubsectionData(VALUE,KEY,INDEX){
 			
 			let dataPoint = this.tableFormat['column formatting'][KEY]['subsection']['data point'];
 			let tableFormat = this.tableFormat['column formatting'][KEY]['subsection']['table format']
@@ -755,7 +755,7 @@ export default Vue.component("research-data-table", {
 			let params = dataPoint["parameters"]
 
 			///check if this subsection is already loaded
-			let ifLoadedBefore = this.ifSubsectionData(VALUE);
+			let ifLoadedBefore = this.ifSubsectionData(VALUE+ INDEX);
 
 			if(ifLoadedBefore != true) {
 				let paramsString = VALUE;
@@ -764,7 +764,7 @@ export default Vue.component("research-data-table", {
 				switch (queryType) {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
-						this.queryBioindex(paramsString, paramsType, params, dataPoint, tableFormat);
+						this.queryBioindex(paramsString, paramsType, params, dataPoint, tableFormat,INDEX);
 						break;
 					/*case "api":
 						this.queryApi(paramsString, paramsType, params);
@@ -775,10 +775,10 @@ export default Vue.component("research-data-table", {
 						break;*/
 				}
 			} else {
-				this.utils.uiUtils.showHideElement(VALUE.replaceAll(",","_"));
+				this.utils.uiUtils.showHideElement((VALUE+INDEX).replaceAll(",","_"));
 			}
 		},
-		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT) {
+		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX) {
 
 			let dataUrl = DATA_POINT.url;
 
@@ -800,13 +800,13 @@ export default Vue.component("research-data-table", {
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
-				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT);
+				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX);
 			} else {
 				console.log("No data is returned. Please check query parameters.");
 			}
 		},
 
-		async queryBiContinue(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT) {
+		async queryBiContinue(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX) {
 
 			let dataUrl;
 			let PARAMS = DATA_POINT["parameters"];
@@ -821,13 +821,13 @@ export default Vue.component("research-data-table", {
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
-				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT);
+				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX);
 			} else {
 				// fetch failed
 				console.log("fetch failed");
 			}
 		},
-		processLoadedBI(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT) {
+		processLoadedBI(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT, INDEX) {
 
 			let data = CONTENT.data;
 
@@ -841,14 +841,14 @@ export default Vue.component("research-data-table", {
 			}
 
 			let tempObj = {
-				key: QUERY,
+				key: QUERY+INDEX,
 				data: data
 			}
 
 			this.subSectionData.push(tempObj);
 
 			if (!!CONTENT.continuation) {
-				this.queryBiContinue(CONTENT.continuation, QUERY, DATA_POINT, TABLE_FORMAT);
+				this.queryBiContinue(CONTENT.continuation, QUERY, DATA_POINT, TABLE_FORMAT, INDEX);
 			}
 			/* implement pre filters later */
 				//data = this.checkPreFilters(data)			
