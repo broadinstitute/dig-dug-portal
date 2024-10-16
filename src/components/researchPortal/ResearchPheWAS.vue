@@ -505,7 +505,7 @@ export default Vue.component("ResearchPhewasPlot", {
             );
 
             if (!!canvas && !!wrapper) {
-                let canvasWidth = wrapper.clientWidth * 2;
+                let canvasWidth = (!!this.renderConfig.width)? this.renderConfig.width * 2: wrapper.clientWidth * 2;
                 let canvasHeight = Number(this.renderConfig["height"]) * 2;
 
                 let c, ctx;

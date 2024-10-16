@@ -668,11 +668,11 @@ new Vue({
 
                         let processedData =
                             this.dataTableFormat != null &&
-                            !!this.dataTableFormat["data convert"]
+                                !!this.dataTableFormat["data convert"]
                                 ? this.convertData(
-                                      this.dataTableFormat["data convert"],
-                                      mergedData
-                                  )
+                                    this.dataTableFormat["data convert"],
+                                    mergedData
+                                )
                                 : this.convertData("no convert", mergedData);
 
                         if (
@@ -696,11 +696,11 @@ new Vue({
 
                         let processedData =
                             this.dataTableFormat != null &&
-                            !!this.dataTableFormat["data convert"]
+                                !!this.dataTableFormat["data convert"]
                                 ? this.convertData(
-                                      this.dataTableFormat["data convert"],
-                                      returnData
-                                  )
+                                    this.dataTableFormat["data convert"],
+                                    returnData
+                                )
                                 : this.convertData("no convert", returnData);
 
                         if (
@@ -735,11 +735,11 @@ new Vue({
 
                     let processedData =
                         this.dataTableFormat != null &&
-                        !!this.dataTableFormat["data convert"]
+                            !!this.dataTableFormat["data convert"]
                             ? this.convertData(
-                                  this.dataTableFormat["data convert"],
-                                  returnData
-                              )
+                                this.dataTableFormat["data convert"],
+                                returnData
+                            )
                             : this.convertData("no convert", returnData);
 
                     if (
@@ -834,8 +834,8 @@ new Vue({
                             section["section id"] + "_tableLegend"
                         )
                             ? document.getElementById(
-                                  section["section id"] + "_tableLegend"
-                              ).innerHTML
+                                section["section id"] + "_tableLegend"
+                            ).innerHTML
                             : "";
                         if (!!sTableLegend) {
                             //sTableLegends[section["section id"]] = sTableLegend;
@@ -883,8 +883,8 @@ new Vue({
                             section["section id"] + "_plotLegend"
                         )
                             ? document.getElementById(
-                                  section["section id"] + "_plotLegend"
-                              ).innerHTML
+                                section["section id"] + "_plotLegend"
+                            ).innerHTML
                             : "";
                         if (!!sPlotLegend) {
                             //sPlotLegends[section["section id"]] = sPlotLegend;
@@ -958,7 +958,7 @@ new Vue({
 
     watch: {
         sectionsData(DATA) {
-            console.log("sectionsData", DATA);
+            //console.log("sectionsData", DATA);
         },
         sectionConfigs(CONFIGS) {
             let context;
@@ -1094,16 +1094,16 @@ new Vue({
 
                         let dataPoint =
                             initialData.includes("http://") ||
-                            initialData.includes("https://")
+                                initialData.includes("https://")
                                 ? initialData
                                 : "https://hugeampkpncms.org/sites/default/files/users/user" +
-                                  this.uid +
-                                  "/" +
-                                  initialData;
+                                this.uid +
+                                "/" +
+                                initialData;
 
                         let domain =
                             initialData.includes("http://") ||
-                            initialData.includes("https://")
+                                initialData.includes("https://")
                                 ? "external"
                                 : "hugeampkpn";
 
@@ -1192,14 +1192,14 @@ new Vue({
                                         posStart == null
                                             ? c[posField]
                                             : c[posField] < posStart
-                                            ? c[posField]
-                                            : posStart;
+                                                ? c[posField]
+                                                : posStart;
                                     posEnd =
                                         posEnd == null
                                             ? c[posField]
                                             : c[posField] > posEnd
-                                            ? c[posField]
-                                            : posEnd;
+                                                ? c[posField]
+                                                : posEnd;
                                 });
 
                                 region = chr + ":" + posStart + "-" + posEnd;
@@ -1264,9 +1264,9 @@ new Vue({
                             param["target page"]["page id"];
                         exampleLink += !!param["target page"]["entity"]
                             ? "&" +
-                              param["target page"]["entity parameter"] +
-                              "=" +
-                              param["target page"]["entity"]
+                            param["target page"]["entity parameter"] +
+                            "=" +
+                            param["target page"]["entity"]
                             : "";
                         exampleLink +=
                             "&" +
@@ -1372,9 +1372,9 @@ new Vue({
             let pageEntities = this.sectionConfigs["entity"];
             let sectionInEntity =
                 !pageEntities ||
-                (!!pageEntities &&
-                    !!entity &&
-                    !!pageEntities[entity].includes(SECTION))
+                    (!!pageEntities &&
+                        !!entity &&
+                        !!pageEntities[entity].includes(SECTION))
                     ? true
                     : null;
 
@@ -1642,14 +1642,14 @@ new Vue({
             var objPattern = new RegExp(
                 // Delimiters.
                 "(\\" +
-                    strDelimiter +
-                    "|\\r?\\n|\\r|^)" +
-                    // Quoted fields.
-                    '(?:"([^"]*(?:""[^"]*)*)"|' +
-                    // Standard fields.
-                    '([^"\\' +
-                    strDelimiter +
-                    "\\r\\n]*))",
+                strDelimiter +
+                "|\\r?\\n|\\r|^)" +
+                // Quoted fields.
+                '(?:"([^"]*(?:""[^"]*)*)"|' +
+                // Standard fields.
+                '([^"\\' +
+                strDelimiter +
+                "\\r\\n]*))",
                 "gi"
             );
 
