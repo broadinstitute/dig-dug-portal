@@ -19,6 +19,7 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterBasic from "@/components/criterion/FilterBasic.vue";
 
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -49,6 +50,7 @@ new Vue({
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
+        FilterBasic
     },
 
     data() {
@@ -164,8 +166,9 @@ new Vue({
         inputQueryMembership(data){
             let copy = structuredClone(data);
             let inputGenes = this.$store.state.roundTripInputGenes;
+            // enum filters don't work with raw booleans
             copy.forEach(d => {
-                d["inQuery"] = inputGenes.includes(d.gene);
+                d["inQuery"] = inputGenes.includes(d.gene) ? "Yes" : "No";
             });
             return copy;
         }
