@@ -18,7 +18,8 @@ export default new Vuex.Store({
     state: {
         pigeanFactor: [],
         geneFactor: [],
-        genesetFactor: []
+        genesetFactor: [],
+        roundTripInputGenes: []
     },
 
     mutations: {
@@ -30,6 +31,9 @@ export default new Vuex.Store({
         },
         setGenesetFactor(state, data){
             state.genesetFactor = data || state.genesetFactor;
+        },
+        setRoundTripInputGenes(state, data){
+            state.roundTripInputGenes = data || state.roundTripInputGenes;
         },
         clearAllData(state){
             state.pigeanFactor = [];
@@ -53,6 +57,7 @@ export default new Vuex.Store({
                 },
                 body: genesQuery
             }).then(resp => resp.json());
+            context.commit("setRoundTripInputGenes", json.input_genes);
             context.commit("setPigeanFactor", json["pigean-factor"].data);
             context.commit("setGeneFactor", json["gene-factor"]);
             context.commit("setGenesetFactor", json["gene-set-factor"]);
