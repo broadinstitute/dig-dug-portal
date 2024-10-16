@@ -19,7 +19,8 @@ export default new Vuex.Store({
         pigeanFactor: [],
         geneFactor: [],
         genesetFactor: [],
-        roundTripInputGenes: []
+        roundTripInputGenes: [],
+        genesetOptions: [],
     },
 
     mutations: {
@@ -35,10 +36,14 @@ export default new Vuex.Store({
         setRoundTripInputGenes(state, data){
             state.roundTripInputGenes = data || state.roundTripInputGenes;
         },
+        setGenesetOptions(state, data){
+            state.genesetOptions = data || state.genesetOptions
+        },
         clearAllData(state){
             state.pigeanFactor = [];
             state.geneFactor = [];
             state.genesetFactor = [];
+            state.roundTripInputGenes = [];
         }
     },
 
@@ -46,10 +51,15 @@ export default new Vuex.Store({
     },
 
     actions: {
-        async queryBayesGenes(context, genesList){
+        async queryBayesGenes(context, genesList, geneSets){
             context.commit("clearAllData");
             let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/pigean";
-            let genesQuery = JSON.stringify({ "genes": genesList });
+            let genesQuery = JSON.stringify(
+                { 
+                    "genes": genesList,
+                    "gene_sets": geneSets,
+                }
+            );
             let json = await fetch(address, {
                 method: "POST",
                 headers: {
@@ -62,5 +72,15 @@ export default new Vuex.Store({
             context.commit("setGeneFactor", json["gene-factor"]);
             context.commit("setGenesetFactor", json["gene-set-factor"]);
         },
+        async queryGenesetOptions(context){
+            let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/heartbeat";
+            let json = await fetch(address, {
+                method: "GET",
+                headers: {
+                    'Content-Type': "application/json"
+                }
+            }).then(resp => resp.json());
+            context.commit("setGenesetOptions", json.gene_sets);
+        }
     },
 });
