@@ -56,7 +56,8 @@ new Vue({
     data() {
         return {
             geneInput: "",
-            placeholder: "Enter a list of genes, one per line of text.",
+            genesetParam: "default",
+            placeholder: "Enter a list of genes.",
             baseFields: [
                 {
                     key: "label_factor",
@@ -94,6 +95,38 @@ new Vue({
                     sortable: true
                 }
             ],
+            topFields: [
+                {
+                    key: "factor",
+                    label: "Factor",
+                    sortable: true
+                },
+                {
+                    key: "gene_score",
+                    label: "Gene score",
+                    sortable: true
+                },
+                {
+                    key: "gene_set_score",
+                    label: "Gene set score",
+                    sortable: true,
+                },
+                {
+                    key: "label",
+                    label: "Label",
+                    sortable: true,
+                },
+                {
+                    key: "top_genes",
+                    label: "Top genes",
+                    sortable: false,
+                },
+                {
+                    key: "top_gene_sets",
+                    label: "Top gene sets",
+                    sortable: false
+                }
+            ]
         };
     },
     computed: {
@@ -120,15 +153,15 @@ new Vue({
             return utils;
         },
         pigeanFactor() {
-            return this.$store.state.pigeanFactor;
+            return this.formatLabels(this.$store.state.pigeanFactor);
         },
         geneFactor() {
-            let data = this.flatData(this.$store.state.geneFactor, true);
-            return this.inputQueryMembership(data);
+            let data = this.flatData(this.$store.state.geneFactor);
+            return this.formatLabels(this.inputQueryMembership(data));
         },
         genesetFactor() {
             let data = this.flatData(this.$store.state.genesetFactor);
-            return data;
+            return this.formatLabels(data);
         },
         genesetFields(){
             return this.baseFields.concat(this.extraGenesetFields);
@@ -146,13 +179,15 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("queryGenesetOptions");
     },
 
     methods: {
         search() {
             if (this.geneInput) {
                 let genes = this.geneInput.trim().split(/[\n, ]+/);
-                this.$store.dispatch("queryBayesGenes", genes);
+                let geneSets = this.genesetParam;
+                this.$store.dispatch("queryBayesGenes", genes, geneSets);
             }
         },
         flatData(data){
@@ -171,6 +206,17 @@ new Vue({
                 d["inQuery"] = inputGenes.includes(d.gene) ? "Yes" : "No";
             });
             return copy;
+        },
+        formatLabels(data){
+            let copy = structuredClone(data);
+            copy.forEach(d => d.label = this.formatGroupName(d.label));
+            return copy;
+        },
+        formatGroupName(name){
+            const prefix = new RegExp(/Group \d*: /);
+            let output = name.trim().replace(prefix, "");
+            console.log(output);
+            return output;
         }
     },
 

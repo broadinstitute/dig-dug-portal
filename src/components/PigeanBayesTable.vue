@@ -148,7 +148,7 @@ export default Vue.component("pigean-bayes-table", {
         },
         showDetails(){
             console.log("Details coming soon");
-        }
+        },
     },
 });
 </script>
