@@ -95,15 +95,6 @@ new Vue({
                     sortable: true
                 }
             ],
-            genesetOptions: [
-                "default",
-                "text_mining",
-                "text_mining_rumma",
-                "expression",
-                "mouse",
-                "network",
-                "knockdown"
-            ],
             topFields: [
                 {
                     key: "factor",
@@ -188,6 +179,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("queryGenesetOptions");
     },
 
     methods: {

@@ -43,7 +43,7 @@
                                     <select class="form-control"
                                         :v-model="$parent.genesetParam"
                                     >
-                                        <option v-for=" o in $parent.genesetOptions"
+                                        <option v-for=" o in $store.state.genesetOptions"
                                             :value="o">
                                                 {{ o }}
                                         </option>
