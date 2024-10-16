@@ -24,39 +24,46 @@
                     </div>
                 </div>
                 <div class="row card-body" id="bayesSearch">
-                    <div class="col filter-col-md">
-                    <b-form-textarea
-                        id="bayesSearchField"
-                        v-model="$parent.geneInput"
-                        :placeholder="$parent.placeholder"
-                        rows="10">
-                    </b-form-textarea>
-                </div>
-                <div class="col filter-col-md">
-                    <div class="label">
-                        Gene Sets
+                    <div class="col-md-12">
+                        <div class="filtering-ui-wrapper">
+                            <div class="filtering-ui-content row">
+                                <div class="col filter-col-md">
+                                    <div class="label">Genes</div>
+                                    <b-form-textarea
+                                        id="bayesSearchField"
+                                        v-model="$parent.geneInput"
+                                        :placeholder="$parent.placeholder"
+                                        rows="10">
+                                    </b-form-textarea>
+                                </div>
+                                <div class="col filter-col-md">
+                                    <div class="label">
+                                        Gene Sets
+                                    </div>
+                                    <select class="form-control"
+                                        :v-model="$parent.genesetParam"
+                                    >
+                                        <option v-for=" o in $parent.genesetOptions"
+                                            :value="o">
+                                                {{ o }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col filter-col-md"
+                                    id="searchButtonDiv">
+                                    <div class="label">Search</div>
+                                    <button
+                                        id="regionSearchGo"
+                                        class="btn btn-light btn-sm go"
+                                        type="button"
+                                        @click="$parent.search()"
+                                    >
+                                        GO
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <select class="form-control"
-                        :v-model="$parent.genesetParam"
-                    >
-                        <option v-for=" o in $parent.genesetOptions"
-                            :value="o">
-                                {{ o }}
-                        </option>
-                    </select>
-                </div>
-                <div class="col filter-col-md"
-                    id="searchButtonDiv">
-                    <div class="label">Search</div>
-                    <button
-                        id="regionSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="$parent.search()"
-                    >
-                        GO
-                    </button>
-                </div>
                 </div>
             </div>
             <div class="card mdkp-card">
@@ -148,5 +155,8 @@
 }
 #searchButtonDiv {
     vertical-align: top !important;
+}
+#searchButtonDiv button {
+    border: solid 1px #ddd;
 }
 </style>

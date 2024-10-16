@@ -57,7 +57,7 @@ new Vue({
         return {
             geneInput: "",
             genesetParam: "default",
-            placeholder: "Enter a list of genes, one per line of text.",
+            placeholder: "Enter a list of genes.",
             baseFields: [
                 {
                     key: "label_factor",
