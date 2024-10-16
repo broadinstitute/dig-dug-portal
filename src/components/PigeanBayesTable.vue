@@ -25,7 +25,7 @@
                 <template #cell(label)="r">
                     <span v-if="!!r.item.label">
                         {{
-                            formatGroupNames(r.item.label)
+                            shorten(r.item.label)
                         }}    
                     </span>
                 </template>
@@ -149,12 +149,6 @@ export default Vue.component("pigean-bayes-table", {
         showDetails(){
             console.log("Details coming soon");
         },
-        formatGroupNames(name){
-            const prefix = new RegExp(/Group \d*: /);
-            let output = name.split(prefix);
-            console.log(output);
-            return output.length > 0 ? output[1] : shorten(name);
-        }
     },
 });
 </script>

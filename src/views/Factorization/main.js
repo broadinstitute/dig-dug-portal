@@ -120,15 +120,15 @@ new Vue({
             return utils;
         },
         pigeanFactor() {
-            return this.$store.state.pigeanFactor;
+            return this.formatLabels(this.$store.state.pigeanFactor);
         },
         geneFactor() {
-            let data = this.flatData(this.$store.state.geneFactor, true);
-            return this.inputQueryMembership(data);
+            let data = this.flatData(this.$store.state.geneFactor);
+            return this.formatLabels(this.inputQueryMembership(data));
         },
         genesetFactor() {
             let data = this.flatData(this.$store.state.genesetFactor);
-            return data;
+            return this.formatLabels(data);
         },
         genesetFields(){
             return this.baseFields.concat(this.extraGenesetFields);
@@ -171,6 +171,17 @@ new Vue({
                 d["inQuery"] = inputGenes.includes(d.gene) ? "Yes" : "No";
             });
             return copy;
+        },
+        formatLabels(data){
+            let copy = structuredClone(data);
+            copy.forEach(d => d.label = this.formatGroupName(d.label));
+            return copy;
+        },
+        formatGroupName(name){
+            const prefix = new RegExp(/Group \d*: /);
+            let output = name.split(prefix);
+            console.log(output);
+            return output.length > 0 ? output[1] : name;
         }
     },
 
