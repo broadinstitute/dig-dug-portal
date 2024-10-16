@@ -19,6 +19,7 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterBasic from "@/components/criterion/FilterBasic.vue";
 
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -49,12 +50,50 @@ new Vue({
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
+        FilterBasic
     },
 
     data() {
         return {
             geneInput: "",
             placeholder: "Enter a list of genes, one per line of text.",
+            baseFields: [
+                {
+                    key: "label_factor",
+                    label: "Label factor",
+                    sortable: true
+                },
+                { 
+                    key: "factor_value",
+                    label: "Overall factor value",
+                    formatter: Formatters.tpmFormatter,
+                    sortable: true
+                },
+                {
+                    key: "label",
+                    label: "Label",
+                    sortable: true
+                },
+            ],
+            extraGenesetFields: [
+                {
+                    key: "gene_Set",
+                    label: "Gene set",
+                    sortable: true
+                }
+            ],
+            extraGeneFields: [
+                {
+                    key: "gene",
+                    label: "Gene",
+                    sortable: true
+                },
+                {
+                    key: "inQuery",
+                    label: "In original query?",
+                    sortable: true
+                }
+            ],
         };
     },
     computed: {
@@ -84,11 +123,19 @@ new Vue({
             return this.$store.state.pigeanFactor;
         },
         geneFactor() {
-            return this.flatData(this.$store.state.geneFactor);
+            let data = this.flatData(this.$store.state.geneFactor, true);
+            return this.inputQueryMembership(data);
         },
         genesetFactor() {
-            return this.flatData(this.$store.state.genesetFactor);
+            let data = this.flatData(this.$store.state.genesetFactor);
+            return data;
         },
+        genesetFields(){
+            return this.baseFields.concat(this.extraGenesetFields);
+        },
+        geneFields(){
+            return this.baseFields.concat(this.extraGeneFields);
+        }
     },
     watch: {
         diseaseGroup(group) {
@@ -105,7 +152,6 @@ new Vue({
         search() {
             if (this.geneInput) {
                 let genes = this.geneInput.trim().split(/[\n, ]+/);
-                console.log(genes);
                 this.$store.dispatch("queryBayesGenes", genes);
             }
         },
@@ -117,6 +163,15 @@ new Vue({
             });
             return output;
         },
+        inputQueryMembership(data){
+            let copy = structuredClone(data);
+            let inputGenes = this.$store.state.roundTripInputGenes;
+            // enum filters don't work with raw booleans
+            copy.forEach(d => {
+                d["inQuery"] = inputGenes.includes(d.gene) ? "Yes" : "No";
+            });
+            return copy;
+        }
     },
 
     render(createElement, context) {
