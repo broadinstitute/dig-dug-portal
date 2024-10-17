@@ -6,10 +6,11 @@
         <div class="search-wrapper f-col align-h-center">
             <h1 class="kc">Search Common Fund Knowledge</h1>
             <div class="f-col fill-width">
-                <research-single-search-cfde :single-search-config="sectionConfigs['content']" :phenotypes="phenotypesInUse"
-                    :utils="utilsBox"></research-single-search-cfde>
-                <research-single-search-cfde :single-search-config="sectionConfigs['content']" :phenotypes="phenotypesInUse"
-                    :utils="utilsBox"></research-single-search-cfde>
+                <research-single-search-cfde 
+                    :single-search-config="sectionConfigs['content']" 
+                    :phenotypes="phenotypesInUse"
+                    :utils="utilsBox">
+                </research-single-search-cfde>
                 <div class="search-extras f-row">
                     <div class="f-row" style="gap:5px">
                         Try <a href="/research.html?entity=gene&gene=BDH2&pageid=kc_entity&tissue=blood">BDH2</a>
