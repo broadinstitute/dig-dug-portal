@@ -200,7 +200,9 @@
 						:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
 						:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
 						:utils="utils" @clicked-sort="sortData" :region="regionParam" :regionZoom="regionZoom"
-						:regionViewArea="regionViewArea" @on-star="starColumn" @on-filtering="updateData">
+						:regionViewArea="regionViewArea" 
+						:colors="colors" :plotMargin="plotMargin"
+						@on-star="starColumn" @on-filtering="updateData">
 					</research-data-table>
 					<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
 						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"

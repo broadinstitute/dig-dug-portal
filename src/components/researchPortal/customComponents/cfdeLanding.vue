@@ -8,6 +8,8 @@
             <div class="f-col fill-width">
                 <research-single-search-cfde :single-search-config="sectionConfigs['content']" :phenotypes="phenotypesInUse"
                     :utils="utilsBox"></research-single-search-cfde>
+                <research-single-search-cfde :single-search-config="sectionConfigs['content']" :phenotypes="phenotypesInUse"
+                    :utils="utilsBox"></research-single-search-cfde>
                 <div class="search-extras f-row">
                     <div class="f-row" style="gap:5px">
                         Try <a href="/research.html?entity=gene&gene=BDH2&pageid=kc_entity&tissue=blood">BDH2</a>
@@ -844,6 +846,8 @@ export default Vue.component("cfde-landing", {
 </script>
 <style scoped>
 
+<style scoped>
+
 .line-svg {
     pointer-events: none;
 }
@@ -986,14 +990,97 @@ export default Vue.component("cfde-landing", {
     }
 }
 
+.flex-layout-styles {
+
+    /* LAYOUT STYLES */
+    .no-events {
+        pointer-events: none;
+    }
+
+    .f-col {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .f-row {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .f-col.align-v-center {
+        justify-content: center;
+    }
+
+    .f-row.align-v-center {
+        align-items: center;
+    }
+
+    .f-col.align-h-center {
+        align-items: center;
+    }
+
+    .f-row.align-h-center {
+        justify-content: center;
+    }
+
+    .f-col.align-v-bottom {
+        justify-content: flex-end;
+    }
+
+    .f-row.align-v-bottom {
+        align-items: flex-end;
+    }
+
+    .f-col.align-h-bottom {
+        align-items: flex-end;
+    }
+
+    .f-row.align-h-bottom {
+        justify-content: flex-end;
+    }
+
+    .f-col.spread-out,
+    .f-row.spread-out {
+        justify-content: space-between;
+    }
+
+    .fill-height {
+        /*height: -moz-available;
+        height: -webkit-fill-avaiilable;*/
+        height: stretch;
+        height: 100%;
+    }
+
+    .fill-width {
+        /*width: -moz-available;
+        width: -webkit-fill-avaiilable;*/
+        width: stretch;
+        width: 100%;
+    }
+
+    .hug-height {
+        height: fit-content;
+    }
+
+    .hug-width {
+        width: fit-content
+    }
+
+    .grow-children>* {
+        flex-grow: 1;
+    }
+}
+
 .kc-home {
     display: flex;
     flex-direction: column;
     align-items: center;
     background: #f7f6f6;
     margin: -30px;
+    margin: -30px;
     padding: 15px;
     color: #7c7c7c;
+    font-size:16px !important;
     font-size:16px !important;
 
     .map-info {
@@ -1051,13 +1138,16 @@ export default Vue.component("cfde-landing", {
 
     h1.kc {
         font-size: 22px;
+        font-size: 22px;
     }
 
     h2.kc {
         font-size: 20px;
+        font-size: 20px;
     }
 
     h3.kc {
+        font-size: 18px;
         font-size: 18px;
     }
 
@@ -1114,6 +1204,7 @@ export default Vue.component("cfde-landing", {
         margin: 0 25px;
         border-radius: 0 0 10px 10px;
         font-size:14px;
+        font-size:14px;
     }
 
     .search-extras a,
@@ -1128,6 +1219,7 @@ export default Vue.component("cfde-landing", {
         gap: 20px;
         position: relative;
         border-radius: 10px;
+        align-items: center;
         align-items: center;
     }
 
@@ -1170,6 +1262,7 @@ export default Vue.component("cfde-landing", {
 
     .dcc-icon {
         width: 85px;
+        width: 85px;
         aspect-ratio: 1;
         background: #ebebeb;
         display: flex;
@@ -1202,6 +1295,7 @@ export default Vue.component("cfde-landing", {
         font-size: 12px;
         font-weight: bold;
         position: absolute;
+        left: calc(100% + 25px);
         left: calc(100% + 25px);
         top: 50%;
         transform: translateY(-50%);
@@ -1351,6 +1445,10 @@ export default Vue.component("cfde-landing", {
     }
     .spotlight-item.active{
         display:flex;
+    }
+    .spotlight-item a,
+    .spotlight-item a:visited{
+        color:#f26822 !important;
     }
     .spotlight-item a,
     .spotlight-item a:visited{

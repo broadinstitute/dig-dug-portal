@@ -505,7 +505,7 @@ export default Vue.component("ResearchPhewasPlot", {
             );
 
             if (!!canvas && !!wrapper) {
-                let canvasWidth = wrapper.clientWidth * 2;
+                let canvasWidth = (!!this.renderConfig.width)? this.renderConfig.width * 2: wrapper.clientWidth * 2;
                 let canvasHeight = Number(this.renderConfig["height"]) * 2;
 
                 let c, ctx;
@@ -705,7 +705,7 @@ export default Vue.component("ResearchPhewasPlot", {
                                                   "y axis field"
                                               ] + "-log10"
                                           ]
-                                        : p[this.renderConfig["y axis field"]];
+                                        : (!!p[this.renderConfig["y axis field"]] && p[this.renderConfig["y axis field"]] != 0)? p[this.renderConfig["y axis field"]] : 0;
 
                                 let yFromMinY = -minY + yValue;
 
@@ -725,16 +725,28 @@ export default Vue.component("ResearchPhewasPlot", {
                                     this.renderConfig["beta field"] != "null" &&
                                     !!this.renderConfig["beta field"]
                                 ) {
-                                    this.renderTriangle(
-                                        ctx,
-                                        xPos,
-                                        yPos,
-                                        fillColor,
-                                        strokeColor,
-                                        Math.sign(
-                                            p[this.renderConfig["beta field"]]
-                                        )
-                                    );
+                                    if(!!p[this.renderConfig["beta field"]] && p[this.renderConfig["beta field"]] != 0 ) {
+                                        this.renderTriangle(
+                                            ctx,
+                                            xPos,
+                                            yPos,
+                                            fillColor,
+                                            strokeColor,
+                                            Math.sign(
+                                                p[this.renderConfig["beta field"]]
+                                            )
+                                        );
+                                    } else {
+                                        console.log("beta2", p[this.renderConfig["beta field"]])
+                                        this.renderDot(
+                                            ctx,
+                                            xPos,
+                                            yPos,
+                                            fillColor,
+                                            strokeColor
+                                        );
+                                    }
+                                    
                                 } else {
                                     this.renderDot(
                                         ctx,
@@ -846,7 +858,8 @@ export default Vue.component("ResearchPhewasPlot", {
                                         p[this.renderConfig["render by"]]
                                     ])
                             ) {
-                                if (this.renderConfig["beta field"] != "null") {
+                                
+                                if (!!p[this.renderConfig["beta field"]] && p[this.renderConfig["beta field"]] != 0) {
                                     this.renderTriangle(
                                         ctx,
                                         xPos,

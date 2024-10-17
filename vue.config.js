@@ -320,12 +320,12 @@ let pages = {
         title: "PIGEAN Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "pigean_phenotype"],
     },
-    pigean_bayes: {
-        entry: "src/views/PIGEAN/Bayes/main.js",
+    factorization: {
+        entry: "src/views/Factorization/main.js",
         template: "public/index.html",
-        filename: "pigean/bayes.html",
-        title: "PIGEAN Bayes Gene Sets",
-        chunks: ["chunk-vendors", "chunk-common", "pigean_bayes"],
+        filename: "factorization.html",
+        title: "Gene Set Factorization Server",
+        chunks: ["chunk-vendors", "chunk-common", "factorization"],
     },
     mouse_diff_exp: {
         entry: "src/views/MouseDiffExp/main.js",
@@ -333,12 +333,13 @@ let pages = {
         filename: "mouse_diff_exp.html",
         title: "Mouse Differential Expression",
         chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
-    }
+    },
 };
 
 // remove the debug page in production
 if (process.env.NODE_ENV === "production") {
     delete pages.debug;
+    delete pages.mouse_diff_exp;
 }
 
 module.exports = {

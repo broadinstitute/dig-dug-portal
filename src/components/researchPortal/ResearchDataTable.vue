@@ -193,99 +193,139 @@
 				</tr>
 			</thead>
 
-			<tbody v-for="(value, index) in pagedData" :key="index" class="">
-				<tr>
-					<td v-if="!!tableFormat['star column']">
-						<span v-if="checkStared('1', value) == false"
-							><b-icon
-								icon="star"
-								style="color: #aaaaaa; cursor: pointer"
-								@click="addStar(value)"
-							></b-icon
-						></span>
-						<span v-if="checkStared('2', value) == true"
-							><b-icon
-								icon="star-fill"
-								style="color: #ffcc00; cursor: pointer"
-								@click="removeStar(value)"
-							></b-icon
-						></span>
-					</td>
-					<template
-						v-for="(tdValue, tdKey) in value"
-						v-if="
-							topRows.includes(tdKey) &&
-							getIfChecked(tdKey) == true
-						"
-					>
-						<td
-								v-if="ifDataObject(tdValue) == false"
-								:key="tdKey"
-								:class="getColumnId(tdKey)"
-							>
-							<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
-								{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
-								<span class="btns-wrapper">
-									<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-										v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
-								</span>
-								
-							</span>
-							
-							<span v-else v-html="formatValue(tdValue, tdKey)"></span>
+			<tbody class="">
+				<template v-for="(value, index) in pagedData" >
+					<tr>
+						<td v-if="!!tableFormat['star column']">
+							<span v-if="checkStared('1', value) == false"
+								><b-icon
+									icon="star"
+									style="color: #aaaaaa; cursor: pointer"
+									@click="addStar(value)"
+								></b-icon
+							></span>
+							<span v-if="checkStared('2', value) == true"
+								><b-icon
+									icon="star-fill"
+									style="color: #ffcc00; cursor: pointer"
+									@click="removeStar(value)"
+								></b-icon
+							></span>
 						</td>
-						<td
+						<template
+							v-for="(tdValue, tdKey) in value"
 							v-if="
-								ifDataObject(tdValue) == true
+								topRows.includes(tdKey) &&
+								getIfChecked(tdKey) == true
 							"
-							:key="tdKey"
-							class="multi-value-td"
-							:class="getColumnId(tdKey)"
 						>
-							<span
-								v-for="(sValue, sKey, sIndex) in tdValue"
-								:class="
-									sKey +
-									' reference bg-color-' +
-									getColorIndex(sKey)
-								"
-								:key="sKey"
-							>
-
+							<td
+									v-if="ifDataObject(tdValue) == false"
+									:key="tdKey"
+									:class="getColumnId(tdKey)"
+								>
 								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
-									{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
+									{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
 									<span class="btns-wrapper">
 										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-											v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
+											v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
 									</span>
 								</span>
-								<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
+								<!-- working part-->
+								<span v-else-if="!!ifSubsectionColumn(tdKey)"
+										class="dynamic-subsection-options">
+										<span class="btns-wrapper">
+											<button class="btn btn-sm show-evidence-btn set-search-btn" 
+												:class="!!ifSubsectionData(tdKey+tdValue+index) ? 'loaded-subsection' : ''"
+												@click="getSubsectionData(tdValue, tdKey, index)" >
+											{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+										</span>
+								</span>
+								
+								<span v-else v-html="formatValue(tdValue, tdKey)"></span>
+							</td>
+							<td
+								v-if="
+									ifDataObject(tdValue) == true
+								"
+								:key="tdKey"
+								class="multi-value-td"
+								:class="getColumnId(tdKey)"
+							>
+								<span
+									v-for="(sValue, sKey, sIndex) in tdValue"
+									:class="
+										sKey +
+										' reference bg-color-' +
+										getColorIndex(sKey)
+									"
+									:key="sKey"
+								>
+
+									<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options">
+										{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
+										<span class="btns-wrapper">
+											<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
+												v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
+										</span>
+									</span>
+									<span v-else-if="!!ifSubsectionColumn(tdKey)"
+											class="dynamic-subsection-options">
+											<span class="btns-wrapper">
+												<button class="btn btn-sm show-evidence-btn set-search-btn"
+													:class="!!ifSubsectionData(tdKey + tdValue + index)?'loaded-subsection':''"
+													@click="getSubsectionData(tdValue, tdKey, index)" >
+												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+											</span>
+									</span>
+									<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
+							</td>
+						</template>
+						<td v-if="tableFormat['features'] != undefined">
+							<span
+								href="javascript:;"
+								@click="showHideFeature('feature_' + sectionId + index)"
+								class="show-evidence-btn btn"
+								>View</span
+							>
 						</td>
-					</template>
-					<td v-if="tableFormat['features'] != undefined">
-						<span
-							href="javascript:;"
-							@click="showHideFeature('feature_' + sectionId + index)"
-							class="show-evidence-btn btn"
-							>View</span
+					</tr>
+					<tr
+						v-if="!!tableFormat['features']"
+						:id="'feature_' + sectionId + index"
+						:class="'hidden'"
+					>
+						<td :colspan="topRowNumber" class="features-td">
+							<research-data-table-features
+								:featureRowsNumber="featureRowsNumber"
+								:featuresData="value.features"
+								:featuresFormat="tableFormat"
+								:utils="utils"
+								:summarySection="summarySection"
+							></research-data-table-features>
+						</td>
+					</tr>
+					<!-- testing dynamic sub table-->
+					<template v-if="!!tableFormat['column formatting']"
+					v-for="(itemValue, itemKey) in tableFormat['column formatting']">
+					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(itemKey+value[itemKey]+index)" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index)" :key="value[itemKey]"
+					>
+					<td :colspan="topRowNumber">
+						<research-sub-section
+						:rowId="getRowID(itemKey + value[itemKey] + index)"
+						:colors="colors"
+						:plotMargin="plotMargin"
+						:subectionConfig="itemValue['subsection']"
+						:subsectionData="collectSubsectionData(itemKey+value[itemKey]+index)"
+						:phenotypeMap="phenotypeMap"
+						:utils="utils"
 						>
+						</research-sub-section>
 					</td>
-				</tr>
-				<tr
-					v-if="!!tableFormat['features']"
-					:id="'feature_' + sectionId + index"
-					:class="'hidden'"
-				>
-					<td :colspan="topRowNumber" class="features-td">
-						<research-data-table-features
-							:featureRowsNumber="featureRowsNumber"
-							:featuresData="value.features"
-							:featuresFormat="tableFormat"
-							:utils="utils"
-							:summarySection="summarySection"
-						></research-data-table-features>
-					</td>
-				</tr>
+					</tr>
+
+					</template>
+				</template>
 			</tbody>
 		</table>
 		</div>
@@ -311,6 +351,7 @@
 import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
+import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
 
 export default Vue.component("research-data-table", {
 	props: [
@@ -331,7 +372,9 @@ export default Vue.component("research-data-table", {
 		"utils",
 		"region",
 		"regionZoom",
-		"regionViewArea"
+		"regionViewArea",
+		"colors",
+		"plotMargin"
 	],
 	data() {
 		return {
@@ -341,10 +384,11 @@ export default Vue.component("research-data-table", {
 			compareGroups: [],
 			stared: false,
 			staredAll: false,
+			subSectionData:[]
 		};
 	},
 	modules: {},
-	components: { ResearchDataTableFeatures, ResearchSummaryPlot },
+	components: { ResearchDataTableFeatures, ResearchSummaryPlot, ResearchSubSection },
 	created() {},
 	beforeMount() {},
 
@@ -636,6 +680,9 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	watch: {
+		subSectionData(DATA){
+			console.log(DATA);
+		},
 		featureRowsNumber(NUMBER) {
 			this.$emit('on-feature-rows-change', NUMBER);
 		},
@@ -662,6 +709,9 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
+		getRowID(TEXT) {
+			return TEXT.replace(/[^a-zA-Z0-9]/g, '_');
+		},
 		setParameter(VALUE,KEY,SECTION,PARAMETERS){
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
@@ -680,6 +730,136 @@ export default Vue.component("research-data-table", {
 			}
 			
 		},
+		ifSubsectionData(KEY){
+			let fKEY = this.getRowID(KEY)
+			let ifExist = this.subSectionData.filter(subsection => subsection.key == fKEY);
+
+			if (ifExist.length > 0) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		collectSubsectionData(KEY) {
+			let fKEY = this.getRowID(KEY)
+			let ifExist = this.subSectionData.filter(subsection => subsection.key == fKEY);
+			let data = [];
+			if (ifExist.length > 0) {
+				ifExist.map(section =>{
+					data = data.concat(section.data);
+				})
+			}
+			return data;
+		},
+		getSubsectionData(VALUE,KEY,INDEX){
+			
+			let dataPoint = this.tableFormat['column formatting'][KEY]['subsection']['data point'];
+			let tableFormat = this.tableFormat['column formatting'][KEY]['subsection']['table format']
+			let queryType = dataPoint["type"];
+			let paramsType = dataPoint["parameters type"]
+			let params = dataPoint["parameters"]
+
+			///check if this subsection is already loaded
+			let ifLoadedBefore = this.ifSubsectionData(KEY + VALUE+ INDEX);
+
+			if(ifLoadedBefore != true) {
+				let paramsString = VALUE;
+
+				//console.log("paramsString", paramsString)
+				switch (queryType) {
+					case "bioindex":
+						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
+						this.queryBioindex(paramsString, paramsType, params, dataPoint, tableFormat,INDEX, KEY);
+						break;
+					/*case "api":
+						this.queryApi(paramsString, paramsType, params);
+						break;
+					case "file":
+						let parameter = this.dataPoint["parameter"]
+						this.queryFile(parameter);
+						break;*/
+				}
+			} else {
+				let fKEY = this.getRowID(KEY + VALUE + INDEX)
+				this.utils.uiUtils.showHideElement(fKEY);
+			}
+		},
+		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
+
+			let dataUrl = DATA_POINT.url;
+
+			if (TYPE == "replace") {
+				PARAMS.map((param, pIndex) => {
+					if (!!QUERY.split(",")[pIndex]) {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					} else {
+						dataUrl = dataUrl.replace("$" + param + ",", '');
+						dataUrl = dataUrl.replace(",$" + param, '');
+						dataUrl = dataUrl.replace("$" + param, '');
+					}
+				})
+
+			} else {
+				dataUrl = dataUrl + "query/" + DATA_POINT.index + "?q=" + QUERY;
+			}
+
+			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+			} else {
+				console.log("No data is returned. Please check query parameters.");
+			}
+		},
+
+		async queryBiContinue(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
+
+			let dataUrl;
+			let PARAMS = DATA_POINT["parameters"];
+
+			if (this.dataPoint["parameters type"] == "replace") {
+				dataUrl = DATA_POINT["continue url"];
+				dataUrl += TOKEN;
+			} else {
+				dataUrl = DATA_POINT.url + "cont?token=" + TOKEN;
+			}
+
+			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+			} else {
+				// fetch failed
+				console.log("fetch failed");
+			}
+		},
+		processLoadedBI(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
+
+			let data = CONTENT.data;
+
+
+			// if loaded data is processed
+			let tableFormat = TABLE_FORMAT;
+
+			if (!!tableFormat && !!tableFormat["data convert"]) {
+				let convertConfig = tableFormat["data convert"];
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+			}
+
+			let tempObj = {
+				key: this.getRowID(KEY+QUERY+INDEX),
+				data: data
+			}
+
+			this.subSectionData.push(tempObj);
+
+			if (!!CONTENT.continuation) {
+				this.queryBiContinue(CONTENT.continuation, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+			}
+			/* implement pre filters later */
+				//data = this.checkPreFilters(data)			
+		},
+
 		ifSetParameterColumn(KEY){
 			if(!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
 			 && !!this.tableFormat['column formatting'][KEY]['type'].includes('set parameter')) {
@@ -688,8 +868,16 @@ export default Vue.component("research-data-table", {
 				return null;
 			 }
 		},
+		ifSubsectionColumn(KEY) {
+			if (!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+				&& !!this.tableFormat['column formatting'][KEY]['type'].includes('dynamic subsection')) {
+				return true;
+			} else {
+				return null;
+			}
+		},
 		getParameterColumnLabel(KEY){
-			if (!!this.ifSetParameterColumn(KEY)) {
+			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY)) {
 				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
 				return label;
 			} else {
@@ -1418,6 +1606,26 @@ table.research-data-table {
     margin-bottom: 3px;
 	text-align: left;
 	white-space: nowrap;
+	
+}
+
+.set-search-btn {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* dynamic-sub-section */
+.dynamic-sub-section {
+	background-color: #aaaaaa;
+	font-size: 14px;
+}
+
+.dynamic-sub-section td {
+	padding: 1px !important;
+}
+
+.loaded-subsection {
+	background-color: green !important;
 }
 
 </style>

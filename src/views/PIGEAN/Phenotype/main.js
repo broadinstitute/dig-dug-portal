@@ -1,26 +1,17 @@
 import Vue from "vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-Vue.config.productionTip = false;
-
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
-import { query } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sessionUtils from "@/utils/sessionUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-import Alert from "@/components/Alert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
@@ -28,20 +19,15 @@ import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import Heatmap from "@/components/Heatmap.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap.vue";
-import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
-
+import { pageMixin } from "@/mixins/pageMixin.js";
 new Vue({
     store,
-
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         SearchHeaderWrapper,
         SigmaSelectPicker,
         GenesetSizeSelectPicker,
@@ -52,13 +38,12 @@ new Vue({
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
-        BootstrapVue,
-        BootstrapVueIcons,
         TooltipDocumentation,
         Heatmap,
         ResearchHeatmap,
-        FilterPValue
+        FilterPValue,
     },
+    mixins: [pageMixin],
     data() {
         return {
             plotColors: plotUtils.plotColors(),
@@ -168,9 +153,11 @@ new Vue({
             factorTableConfig: {
                 fields: [
                     { key: "label", label: "Mechanism", sortable: true },
-                    { key: "gene_set_score",
+                    {
+                        key: "gene_set_score",
                         label: "Relevance to trait",
-                        sortable: true },
+                        sortable: true,
+                    },
                     { key: "phewasPlot", label: "PheWAS" },
                     { key: "expand1", label: "Top gene loadings" },
                     { key: "expand2", label: "Top gene set loadings" },
@@ -180,17 +167,37 @@ new Vue({
                 subtableEndpoint: "pigean-gene-factor",
                 subtable2Endpoint: "pigean-gene-set-factor",
                 subtableFields: [
-                    { key: "gene", label: "Gene", sortable: true},
-                    { key: "combined", label: "Combined genetic support", sortable: true},
-                    { key: "factor_value", label: "Mechanism value", sortable: true},
-                    { key: "log_bf", label: "Direct support (w/ gene sets)", sortable: true},
-                    { key: "prior", label: "Prior", sortable: true}
+                    { key: "gene", label: "Gene", sortable: true },
+                    {
+                        key: "combined",
+                        label: "Combined genetic support",
+                        sortable: true,
+                    },
+                    {
+                        key: "factor_value",
+                        label: "Mechanism value",
+                        sortable: true,
+                    },
+                    {
+                        key: "log_bf",
+                        label: "Direct support (w/ gene sets)",
+                        sortable: true,
+                    },
+                    { key: "prior", label: "Prior", sortable: true },
                 ],
                 subtable2Fields: [
-                    { key: "gene_set", label: "Gene set", sortable: true},
-                    { key: "factor_value", label: "Mechanism value", sortable: true},
+                    { key: "gene_set", label: "Gene set", sortable: true },
+                    {
+                        key: "factor_value",
+                        label: "Mechanism value",
+                        sortable: true,
+                    },
                     { key: "beta", label: "Effect (joint)", sortable: true },
-                    { key: "beta_uncorrected", label: "Effect (marginal)", sortable: true },
+                    {
+                        key: "beta_uncorrected",
+                        label: "Effect (marginal)",
+                        sortable: true,
+                    },
                 ],
             },
             renderConfig: {
@@ -203,7 +210,13 @@ new Vue({
                 "y axis label": "-Log10(p-value)",
                 "x axis label": "",
                 "beta field": "null",
-                "hover content": ["Z", "pValue", "pValue_marginal", "pValue_orig", "pValue_robust"],
+                "hover content": [
+                    "Z",
+                    "pValue",
+                    "pValue_marginal",
+                    "pValue_orig",
+                    "pValue_robust",
+                ],
                 thresholds: [0.05, 0.00005],
                 "label in black": "lower than",
                 height: "475",
@@ -214,52 +227,54 @@ new Vue({
                     bottom: 300,
                 },
             },
-            mechanismTooltip: 
-                'Genes with genetic support for this trait ' +
-                'and gene sets with strong effects on genetic support ' +
-                'for the trait are compiled into a membership matrix. ' +
-                'Bayesian non-negative matrix factorization with ' +
-                'automatic relevance determination is then applied ' +
-                'to the membership matrix to determine latent factors, '+
-                'each of which is characterized by loadings of both ' +
-                'genes and gene sets within the factor. The relevance ' +
-                'of each factor to this trait is calculated as the sum ' +
-                'of gene set effects within the factor. The gene factors ' +
-                'are finally included in a joint regression model to ' +
-                'independently predict genetic support for each trait ' +
-                'in the portal, producing a PheWAS that independently ' +
-                'determines additional traits affected by the mechanism. ' +
-                'Associations with other traits are used only to ' +
-                'construct the PheWAS and not to determine the factor weights.',
+            mechanismTooltip:
+                "Genes with genetic support for this trait " +
+                "and gene sets with strong effects on genetic support " +
+                "for the trait are compiled into a membership matrix. " +
+                "Bayesian non-negative matrix factorization with " +
+                "automatic relevance determination is then applied " +
+                "to the membership matrix to determine latent factors, " +
+                "each of which is characterized by loadings of both " +
+                "genes and gene sets within the factor. The relevance " +
+                "of each factor to this trait is calculated as the sum " +
+                "of gene set effects within the factor. The gene factors " +
+                "are finally included in a joint regression model to " +
+                "independently predict genetic support for each trait " +
+                "in the portal, producing a PheWAS that independently " +
+                "determines additional traits affected by the mechanism. " +
+                "Associations with other traits are used only to " +
+                "construct the PheWAS and not to determine the factor weights.",
             heatmapConfig: {
-                "type": "heat map",
-                "label": "Mechanisms",
-                "main": {
-                    "field": "Z", 
-                    "label": "Z-score",
-                    "type": "scale",
-                    "direction": "positive",
-                    "low": -3.0, "middle": 0, "high": 5.0
+                type: "heat map",
+                label: "Mechanisms",
+                main: {
+                    field: "Z",
+                    label: "Z-score",
+                    type: "scale",
+                    direction: "positive",
+                    low: -3.0,
+                    middle: 0,
+                    high: 5.0,
                 },
-                "sub": {
-                    "field": "pValue",
-                    "label": "P-value",
-                    "type": "steps",
-                    "direction": "negative",
-                    "valueRange": [0.00001, 0.001],
-                    "value range": [0.00001, 0.001]
+                sub: {
+                    field: "pValue",
+                    label: "P-value",
+                    type: "steps",
+                    direction: "negative",
+                    valueRange: [0.00001, 0.001],
+                    "value range": [0.00001, 0.001],
                 },
-                "columnField": "other_phenotype",
-                "columnLabel": "Other phenotype",
-                "rowField": "mechanism",
-                "rowLabel": "Mechanism",
-                "fontSize": 12,
-                "legend": "Legend",
-                "sortPhenotypeColumns": true,
-                "colorByPhenotype": true,
-                "truncateColumns": true,
-                "sortRowsDescending": true,
-                "rowScorePrefixes": true
+                columnField: "other_phenotype",
+                columnLabel: "Other phenotype",
+                rowField: "mechanism",
+                rowLabel: "Mechanism",
+                fontSize: 12,
+                legend: "Legend",
+                sortPhenotypeColumns: true,
+                colorByPhenotype: true,
+                truncateColumns: true,
+                sortRowsDescending: true,
+                rowScorePrefixes: true,
             },
             heatmapMaxP: 0.001,
         };
@@ -284,18 +299,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-
-            if (contents.length === 0) {
-                return {};
-            }
-
-            return contents[0];
-        },
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
         plotReady() {
             return (
                 this.$store.state.genesetPhenotype.data.length > 0 &&
@@ -303,7 +306,7 @@ new Vue({
                 Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
             );
         },
-        heatmapData(){
+        heatmapData() {
             return this.filterHeatmapData(this.heatmapMaxP);
         },
         utilsBox() {
@@ -318,14 +321,14 @@ new Vue({
             };
             return utils;
         },
-        mechanismMap(){
+        mechanismMap() {
             let data = this.$store.state.pigeanFactor.data;
             let mechanisms = {};
-            data.forEach(item => {
-                if (!mechanisms[item.factor]){
+            data.forEach((item) => {
+                if (!mechanisms[item.factor]) {
                     mechanisms[item.factor] = {
                         label: item.label,
-                        score: item.gene_set_score
+                        score: item.gene_set_score,
                     };
                 }
             });
@@ -388,31 +391,36 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
-        queryString(DETAILS){
-            return `${DETAILS.phenotype},${
-                DETAILS.sigma},${
-                DETAILS.gene_set_size},${
-                DETAILS.factor}`;
+        queryString(DETAILS) {
+            return `${DETAILS.phenotype},${DETAILS.sigma},${DETAILS.gene_set_size},${DETAILS.factor}`;
         },
-        filterHeatmapData(p){
-            let phewasData = this.namesAndMechanisms(this.$store.state.pigeanTopPhewas.data);
-            if (p === '' || Number.isNaN(p)){
+        filterHeatmapData(p) {
+            let phewasData = this.namesAndMechanisms(
+                this.$store.state.pigeanTopPhewas.data
+            );
+            if (p === "" || Number.isNaN(p)) {
                 return phewasData;
             }
-            let significantEntries = phewasData.filter(item => item.pValue <= p);
-            let significantPhenotypes = significantEntries.map(item => item.other_phenotype);
-            return phewasData.filter(item => significantPhenotypes.includes(item.other_phenotype));
+            let significantEntries = phewasData.filter(
+                (item) => item.pValue <= p
+            );
+            let significantPhenotypes = significantEntries.map(
+                (item) => item.other_phenotype
+            );
+            return phewasData.filter((item) =>
+                significantPhenotypes.includes(item.other_phenotype)
+            );
         },
-        namesAndMechanisms(originalData){
+        namesAndMechanisms(originalData) {
             let data = structuredClone(originalData);
             let mechanisms = this.mechanismMap;
-            for (let i = 0; i < data.length; i++){
+            for (let i = 0; i < data.length; i++) {
                 let label = mechanisms[data[i].factor].label;
                 let score = mechanisms[data[i].factor].score;
                 data[i].mechanism = `${score}___${label}`;
             }
             return data;
-        }
+        },
     },
 
     render(createElement, context) {
