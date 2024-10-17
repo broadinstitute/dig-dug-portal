@@ -236,9 +236,15 @@
 										class="dynamic-subsection-options">
 										<span class="btns-wrapper">
 											<button class="btn btn-sm show-evidence-btn set-search-btn" 
-												:class="!!ifSubsectionData(tdKey+tdValue+index) ? 'loaded-subsection' : ''"
-												@click="getSubsectionData(tdValue, tdKey, index)" >
-											{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+												:data-id="getRowID(tdKey+tdValue+index)"
+												:class="{
+													'loaded-subsection' : !!ifSubsectionData(tdKey+tdValue+index),
+													'loading-subsection' : !!ifSubsectionLoading(tdKey+tdValue+index)
+												}"
+												@click="getSubsectionData(tdValue, tdKey, index)" 
+											>
+												<span>{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</span>
+											</button>
 										</span>
 								</span>
 								
@@ -384,7 +390,8 @@ export default Vue.component("research-data-table", {
 			compareGroups: [],
 			stared: false,
 			staredAll: false,
-			subSectionData:[]
+			subSectionData:[],
+			subSectionLoading:[]
 		};
 	},
 	modules: {},
@@ -740,6 +747,16 @@ export default Vue.component("research-data-table", {
 				return false;
 			}
 		},
+		ifSubsectionLoading(KEY){
+			let fKEY = this.getRowID(KEY)
+			let ifLoading = this.subSectionLoading.indexOf(fKEY);
+
+			if (ifLoading > -1) {
+				return true;
+			} else {
+				return false;
+			}
+		},
 		collectSubsectionData(KEY) {
 			let fKEY = this.getRowID(KEY)
 			let ifExist = this.subSectionData.filter(subsection => subsection.key == fKEY);
@@ -758,6 +775,7 @@ export default Vue.component("research-data-table", {
 			let queryType = dataPoint["type"];
 			let paramsType = dataPoint["parameters type"]
 			let params = dataPoint["parameters"]
+			
 
 			///check if this subsection is already loaded
 			let ifLoadedBefore = this.ifSubsectionData(KEY + VALUE+ INDEX);
@@ -787,6 +805,7 @@ export default Vue.component("research-data-table", {
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
 			let dataUrl = DATA_POINT.url;
+			let fKEY = this.getRowID(KEY + QUERY + INDEX);
 
 			if (TYPE == "replace") {
 				PARAMS.map((param, pIndex) => {
@@ -803,7 +822,11 @@ export default Vue.component("research-data-table", {
 				dataUrl = dataUrl + "query/" + DATA_POINT.index + "?q=" + QUERY;
 			}
 
+			this.subSectionLoading.push(fKEY); //start loading
+
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+			this.subSectionLoading.splice(this.subSectionLoading.indexOf(fKEY), 1); //finish loading
 
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
 				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
@@ -1519,6 +1542,31 @@ table.research-data-table {
 	background-color: #55aaee50 !important;
 	color: #3388cc;
 	cursor: pointer;
+}
+.loading-subsection{
+	position:relative;
+}
+.loading-subsection span{
+	visibility: hidden;
+}
+.loading-subsection:after{
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 16px;
+	height: 16px;
+	margin-top: -8px;
+	margin-left: -8px;
+	border: 2px solid rgba(255, 255, 255, 0.5);
+	border-top-color: #fff;
+	border-radius: 50%;
+	animation: subsection-spin 0.8s linear infinite;
+}
+@keyframes subsection-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .table-ui-wrapper {
