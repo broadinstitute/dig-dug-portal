@@ -363,6 +363,26 @@ export default Vue.component("research-single-search-cfde", {
 
 			if (summary.error == null && !!Array.isArray(summary.data) && summary.data.length > 0) {
 
+				let filteredData = [...new Set(summary.data)]
+
+				/// adding filtering option
+				if(CONFIG['pre filters']) {
+
+					CONFIG['pre filters'].map(filter =>{
+						switch (filter['type']) {
+							case 'filter out':
+								filter['values'].map(value =>{
+									filteredData = filteredData.filter(i => i[filter['field']] != value);
+								})
+								break;
+						}
+					})
+				}
+				
+				///
+
+				summary.data = filteredData;
+
 				let summaryHeader = "<b class='summary-data-header'>" + CONFIG["summary text"] + "</b><br />";
 
 				CONFIG['data point'].parameters.map(parameter => {
