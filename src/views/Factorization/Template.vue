@@ -10,36 +10,58 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper
-                id="bayesSearch">
-                <div class="col filter-col-md">
-                    <b-form-textarea
-                        id="bayesSearchField"
-                        v-model="$parent.geneInput"
-                        :placeholder="$parent.placeholder"
-                        rows="10">
-                    </b-form-textarea>
-                </div>
-                <div class="col filter-col-md"
-                    id="searchButtonDiv">
-                    <div class="label">Search</div>
-                    <button
-                        id="regionSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="$parent.search()"
-                    >
-                        GO
-                    </button>
-                </div>
+            <search-header-wrapper>
+                
             </search-header-wrapper>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-body">
                         <div>
                             <span>
-                                PIGEAN Interactive Gene Set Explorer
+                                Interactive Gene Set Explorer
                             </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row card-body" id="bayesSearch">
+                    <div class="col-md-12">
+                        <div class="filtering-ui-wrapper">
+                            <div class="filtering-ui-content row">
+                                <div class="col filter-col-md">
+                                    <div class="label">Genes</div>
+                                    <b-form-textarea
+                                        id="bayesSearchField"
+                                        v-model="$parent.geneInput"
+                                        :placeholder="$parent.placeholder"
+                                        rows="10">
+                                    </b-form-textarea>
+                                </div>
+                                <div class="col filter-col-md" id="dropdownDiv">
+                                    <div class="label">
+                                        Gene Sets
+                                    </div>
+                                    <select class="form-control"
+                                        :v-model="$parent.genesetParam"
+                                    >
+                                        <option v-for=" o in $store.state.genesetOptions"
+                                            :value="o">
+                                                {{ o }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col filter-col-md"
+                                    id="searchButtonDiv">
+                                    <div class="label">Search</div>
+                                    <button
+                                        id="regionSearchGo"
+                                        class="btn btn-light btn-sm go"
+                                        type="button"
+                                        @click="$parent.search()"
+                                    >
+                                        GO
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -49,7 +71,8 @@
                     <h4>Factors</h4>
                     <pigean-bayes-table
                         :pigeanData="$parent.pigeanFactor"
-                        :isPigeanFactor="true">
+                        :isPigeanFactor="true"
+                        :fields="$parent.topFields">
                     </pigean-bayes-table>
                 </div>
             </div>
@@ -127,11 +150,15 @@
 }
 #bayesSearch {
     min-height: 150px !important;
+    vertical-align: top !important;
 }
 #bayesSearchField {
     min-height: 125px !important;
 }
-#searchButtonDiv {
+#searchButtonDiv, #dropdownDiv {
     vertical-align: top !important;
+}
+#searchButtonDiv button {
+    border: solid 1px #ddd;
 }
 </style>

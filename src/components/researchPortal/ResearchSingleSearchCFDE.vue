@@ -18,12 +18,12 @@
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
 
 				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="anyResults() > 0">
+					
 					<div class="byor-ss-results-section" v-if="singleSearchResult.genes.length > 0">
 						<div class="byor-ss-results-section-title">GENES</div>
 						<div v-for="gene in singleSearchResult.genes" :key="gene" class="">
-							<a v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options"
-								class="single-search-option search-gene-link" 
-								href="javascript:;"
+							<div v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options"
+								class="single-search-option search-gene-link"
 							>
 								{{ gene }}
 								<span class="more-options">
@@ -45,8 +45,8 @@
 										</div>
 									</div>
 								</span>
-							</a>
-							<!--<span class="search-word-group">{{'Gene'}}</span>-->
+							</div>
+							<span class="search-word-group" style="display:none">{{'Gene'}}</span>
 						</div>
 					</div>
 
@@ -54,14 +54,12 @@
 						v-if="!!isParameterActive('kp phenotypes').active && !!isParameterActive('kp phenotypes').options && singleSearchResult.phenotypes.length>0"
 						>
 						<div class="byor-ss-results-section">
-							<div class="byor-ss-results-section-title">PHENOTYPES BY GROUP</div>
+							<div class="byor-ss-results-section-title">GENE SET PHENOTYPES</div>
 							<div v-for="phenotype in singleSearchResult.phenotypes" 
 								:value="phenotype.name"
 								:key="phenotype.name"
 							>
-								<a href="javascript:;" 
-									class="single-search-option"
-								>
+								<div class="single-search-option">
 									{{phenotype.description}}
 									<span class="more-options">
 										<div class="ss-options-wrapper">
@@ -83,21 +81,20 @@
 											</div>
 										</div>
 									</span>
-								</a>
-								<span class="search-word-group">{{phenotype.group}}</span>
+								</div>
+								<span class="search-word-group" style="display:none">{{phenotype.group}}</span>
 							</div>
 						</div>
 					</template>
 
 					<template v-for="param in singleSearchConfig['search parameters']">
-						<template
-							v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes')"
-						>
+						<template v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes')">
 							<template v-if="!!isParameterActive(param['parameter']).active && singleSearchResult[param['parameter']].length>0">
 								<div class="byor-ss-results-section">
-									<div class="byor-ss-results-section-title">{{ param['parameter'] }}</div>
+									<div class="byor-ss-results-section-title">{{ param['label'] }}</div>
 									<div v-for="item in singleSearchResult[param['parameter']]">
-										<a href="javascript:;" class="single-search-option">
+
+										<div class="single-search-option">
 											{{item.label}}
 											<span class="more-options">
 												<div class="ss-options-wrapper">
@@ -118,7 +115,9 @@
 														</span>
 													</div>
 												</div>
-											</span></a>
+											</span>
+										</div>
+
 										<!--<span class="search-word-group">{{param['parameter']}}</span>-->
 									</div>
 								</div>
@@ -863,7 +862,7 @@ export default Vue.component("research-single-search-cfde", {
     height: 300px;
     overflow-y: auto;
 	background-color: white;
-	padding: 20px;
+	padding: 10px;
 	border-radius: 10px;
 }
 .byor-ss-results-section:only-child{
@@ -873,11 +872,22 @@ export default Vue.component("research-single-search-cfde", {
 .byor-ss-results-section-title{
 	font-weight: bold;
 	text-transform: uppercase;
+	font-size: 14px;
 }
 .more-options {
     position: fixed;
     z-index: 1;
     margin: -5px 0 0;
+}
+div.single-search-option{
+	color:#ff6600;
+	cursor: default;
+	padding: 0 2px;
+}
+div.single-search-option:hover{
+	background:#ff6600;
+	color: white;
+	border-radius: 5px;
 }
 .single-search-option{
 	padding-right:10px;
@@ -944,14 +954,14 @@ export default Vue.component("research-single-search-cfde", {
 
 .ss-summary-popup .summary-row {
 	display: table-row;
-	font-size: 13px;
 	width: 100%;
+	font-size: 14px !important;
 }
 
 .ss-summary-popup .summary-column {
 	padding: 0 10px;
 	border-right: solid 1px #dddddd;
-	display: table-cell
+	display: table-cell;
 }
 
 .ss-summary-popup .summary-column-header {
@@ -1011,7 +1021,9 @@ a.ss-generate-summary {
     display: none;
 }
 
-.ss-summary-popup .summary-content {}
+.ss-summary-popup .summary-content {
+
+}
 
 .ss-summary-popup.hidden {
 	display: none;

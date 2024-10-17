@@ -68,7 +68,7 @@ new Vue({
         ResearchSingleSearch,
         ResearchSingleSearchV2,
         ResearchSingleSearchCFDE,
-        ResearchLoadingSpinner,
+        ResearchLoadingSpinner
     },
     mixins: [pageMixin],
     data() {
