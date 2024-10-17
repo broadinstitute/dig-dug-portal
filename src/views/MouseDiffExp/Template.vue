@@ -41,18 +41,14 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <div>
-                            <h4 v-if="$parent.diffExpData.length > 0">
+                        <div v-if="$parent.diffExpData.length > 0">
+                            <h4>
                                 Differential Expression for
                                 {{ $store.state.gene }} in
                                 {{
                                     $parent.tissueFormatter($store.state.tissue)
                                 }}
                             </h4>
-                            <div v-else>
-                                No differential expression data found for this
-                                query.
-                            </div>
                             <div class="row">
                                 <div class="col-md-2"></div>
                                 <div class="col-md-8">
@@ -74,12 +70,24 @@
                             >
                             </mouse-diff-exp-table>
                         </div>
+                        <div v-else-if="!$store.state.gene || !$store.state.tissue">
+                            Select a tissue and a gene to view differential expression data.
+                        </div>
+                        <div v-else-if="!$store.state.loadingExpression">
+                            No differential expression data found for this
+                            query.
+                        </div>
+                        <div v-else>Loading...</div>
                     </div>
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <div v-if="$store.state.homologGene.data.length !== 0">
                         <h4>
-                            Human Homolog {{ $store.state.gene }}
+                            Human Homolog 
+                            <a :href="`/gene.html?gene=${$store.state.gene}`">
+                                {{ $store.state.gene }}
+                            </a>
                             <tooltip-documentation
                                 name="mouse.diff-exp.homolog.tooltip"
                                 :is-hover="true"
@@ -451,8 +459,14 @@
                                 </template>
                             </criterion-function-group>
                         </div>
-
-                        <div v-else>No human homolog found.</div>
+                        <div v-else>Loading...</div>
+                        </div>
+                        <div v-else-if="!$store.state.gene">
+                            Select a gene to view human homolog data.
+                        </div>
+                        <div v-else-if="!$store.state.loadingGene">
+                            No human homolog found for {{ $store.state.gene }}.
+                        </div>
                     </div>
                 </div>
             </div>
