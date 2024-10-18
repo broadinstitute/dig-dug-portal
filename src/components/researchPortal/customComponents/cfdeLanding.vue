@@ -13,9 +13,9 @@
                 </research-single-search-cfde>
                 <div class="search-extras f-row">
                     <div class="f-row" style="gap:5px">
-                        Try <a href="/research.html?entity=gene&gene=BDH2&pageid=kc_entity&tissue=blood">BDH2</a>
+                        Try <a href="/research.html?entity=gene&gene=BDH2&pageid=kc_entity_gene&tissue=blood">BDH2</a>
                         <a
-                            href="/research.html?disease=MONDO%3A0004985&entity=disease&pageid=kc_entity&tissue=blood">Bipolar
+                            href="/research.html?disease=MONDO%3A0004985&entity=disease&pageid=kc_entity_disease&tissue=blood">Bipolar
                             disorder</a>
                     </div>
                 </div>
@@ -1407,7 +1407,8 @@ export default Vue.component("cfde-landing", {
         width: 100px;
     }
     .example-item-logo img{
-        width:-webkit-fill-available;
+        width: 100%;
+        width: -webkit-fill-available;
     }
     .example-item-analysis {
         font-size: 16px;
@@ -1419,7 +1420,7 @@ export default Vue.component("cfde-landing", {
         background: white;
     }
     .example-item-image img {
-        width: -webkit-fill-available;
+        /*width: 100%;*/
     }
 
     .spotlight-item {
@@ -1445,6 +1446,7 @@ export default Vue.component("cfde-landing", {
         margin-top:10px;
     }
     .spotlight-logo img {
+        width:100%;
         width: -webkit-fill-available;
         mix-blend-mode: darken;
     }
@@ -1489,6 +1491,7 @@ export default Vue.component("cfde-landing", {
         align-self: center;
     }
     .drc-logo img {
+        width:100%;
         width: -webkit-fill-available;
     }
     .drc-link{
