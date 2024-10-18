@@ -134,7 +134,7 @@
                                     </div>
                                 </div>
                                 <div class="f-col" style="width:calc(60% - 20px)">
-                                    <div class="example-item-image"><img :src="example.example"></div>
+                                    <div class="example-item-image f-col align-v-center"><img :src="example.example"></div>
                                 </div>
                             </div>
                             <div class="f-row" style="align-self:flex-end">
@@ -181,7 +181,7 @@
                         <div>Compare differentially expressed genes across tissues and diseases, driving insights into
                             gene regulation and disease mechanisms.
                         </div>
-                        <a href="/research.html?pageid=kc_dge_top_20&q=1" style="align-self: flex-end;">Start here</a>
+                        <a href="/research.html?pageid=kc_dge_top_20&q=1&source=kc_diffexp" style="align-self: flex-end;">Start here</a>
                     </div>
                 </div>
             </div>
@@ -198,7 +198,7 @@
                                 <img :src="value.logo">
                             </div>
                             <div class="f-col fill-width">
-                                <div class="f-col fill-height">
+                                <div class="spotlight-text f-col fill-height">
                                     <h3>{{ value.name }}</h3>
                                     <div v-html="value.spotlight"></div>
                                 </div>
@@ -1370,6 +1370,7 @@ export default Vue.component("cfde-landing", {
         margin: 10px 0 0;
         gap: 10px;
         position:relative;
+        border-radius: 10px;
     }
 
     .arrw {
@@ -1384,6 +1385,7 @@ export default Vue.component("cfde-landing", {
 
     .example-item{
         display:none;
+        margin: 10px 0 0;
     }
     .example-item.active{
         display:flex;
@@ -1402,17 +1404,19 @@ export default Vue.component("cfde-landing", {
         font-size: 14px;
     }
     .example-item-logo {
-        width: 50px;
+        width: 100px;
     }
     .example-item-logo img{
         width:-webkit-fill-available;
     }
     .example-item-analysis {
         font-size: 16px;
+        min-height: 50px;
     }
     .example-item-image {
         border-radius: 10px;
-        overflow: hidden;
+        height: 250px;
+        background: white;
     }
     .example-item-image img {
         width: -webkit-fill-available;
@@ -1421,6 +1425,7 @@ export default Vue.component("cfde-landing", {
     .spotlight-item {
         display: none;
         gap:20px;
+        margin-top:10px;
     }
     .spotlight-item.active{
         display:flex;
@@ -1437,16 +1442,25 @@ export default Vue.component("cfde-landing", {
         min-width: 150px;
         width: 150px;
         align-self: flex-start;
+        margin-top:10px;
     }
     .spotlight-logo img {
         width: -webkit-fill-available;
         mix-blend-mode: darken;
     }
+    .spotlight-text{
+        height: 300px;
+        overflow-y: auto;
+        margin: 0 0 20px;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: inset 0 -40px 20px -20px #ddd;
+    }
 
     .spotlight-prev,
     .spotlight-next {
         position: absolute;
-        top: 100px;
+        top: 50%;
         width: 30px;
         height: 30px;
         cursor:pointer;
