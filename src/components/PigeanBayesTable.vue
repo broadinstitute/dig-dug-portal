@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :class="isSubtable ? 'pigean-subtable' : ''">
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
                 <data-download
@@ -108,11 +108,13 @@
                     <pigean-bayes-table
                         v-if="row.item.subtableActive === 1"
                         :pigeanData="geneData.filter(g => g.label_factor === row.item.factor)"
+                        :is-subtable="true"
                     >
                     </pigean-bayes-table>
                     <pigean-bayes-table
                         v-if="row.item.subtableActive === 2"
                         :pigeanData="genesetData.filter(g => g.label_factor === row.item.factor)"
+                        :is-subtable="true"
                     >
                     </pigean-bayes-table>
                 </template>
@@ -154,6 +156,9 @@ export default Vue.component("pigean-bayes-table", {
             if (this.filter) {
                 data = data.filter(this.filter);
             }
+            data.forEach((row) => {
+                row.subtableActive = 0;
+            });
             return data;
         },
     },
