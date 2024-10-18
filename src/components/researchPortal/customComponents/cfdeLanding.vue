@@ -34,7 +34,7 @@
                 <div class="hero-q" style="top:0px" @click="this.toggleCFinfo">What is the Common Fund?</div>
                 <div class="cf-intro f-col align-h-center">
                     <h2 class="kc">{{ Object.keys(this.parsedData.map).length }} Common Fund Programs</h2>
-                    <div>Conducting groundbreaking research across diverse fields.</div>
+                    <div>Conducting groundbreaking research across diverse fields</div>
                 </div>
                 <div class="cf-info" style="display:none">
                     <h2 class="kc">The Common Fund</h2>
@@ -71,7 +71,7 @@
                     <div class="hero-q" @click="this.toggleCFDEinfo">What is the CDFE?</div>
                     <div class="cfde-title f-col align-h-center">
                         <h2 class="kc">1 Data Ecosystem</h2>
-                        <div>Allowing researchers to easily find, access, and integrate Common Fund datasets.</div>
+                        <div>Allowing researchers to easily find, access, and integrate Common Fund datasets</div>
                     </div>
                     <div class="what-cfde-info" style="display:none">
                         <h3 class="kc">Common Fund Data Ecosystem</h3>
@@ -111,24 +111,11 @@
                 </div>
             </div>
         </div>
-        <!--
-        <div class="fold f-col align-h-center">
-            <h1>What you can do with the CFDE</h1>
-            <div class="fold-arrow">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#7c7c7c"
-                    stroke-width="1.2">
-                    <path
-                        d="M5.707 9.71a1 1 0 0 0 0 1.415l4.892 4.887a2 2 0 0 0 2.828 0l4.89-4.89a1 1 0 1 0-1.414-1.415l-4.185 4.186a1 1 0 0 1-1.415 0L7.121 9.71a1 1 0 0 0-1.414 0Z"
-                        fill="#7c7c7c" />
-                </svg>
-            </div>
-        </div>
-        -->
         <div class="home-section-container">
             <h3 class="section-title">Browse</h3>
             <div class="home-section-wrap">
                 <h3 class="kc">Examples of CFDE Knowledge</h3>
-                <div>Secondary analyses created by The Knowledge Center using Common Fund data.</div>
+                <div>Secondary analyses created by The Knowledge Center using Common Fund data</div>
                 <div class="home-section">
                     <template v-for="example in this.examplesData">
                         <div class="example-item f-col" style="gap:20px">
@@ -147,11 +134,11 @@
                                     </div>
                                 </div>
                                 <div class="f-col" style="width:calc(60% - 20px)">
-                                    <div class="example-item-image"><img :src="example.example"></div>
+                                    <div class="example-item-image f-col align-v-center"><img :src="example.example"></div>
                                 </div>
                             </div>
                             <div class="f-row" style="align-self:flex-end">
-                                <div class="example-item-analysis">See on <a :href="`/research.html?pageid=kc_entity&entity=${example.type.toLowerCase()}`">{{ example.type }}</a> page</div>
+                                <div class="example-item-analysis">See on <a :href="`/research.html?pageid=kc_entity_${example.type.toLowerCase()}&entity=${example.type.toLowerCase()}&${example.type.toLowerCase()}=${example.entity}`">{{ example.type }}</a> page</div>
                             </div>
                         </div>
                     </template>
@@ -180,35 +167,21 @@
             <div class="home-section-wrap">
                 <h3 class="kc">Knowledge Center Workflows</h3>
                 <div class="home-section f-row">
-                    <div>
-                        <div>
-                            <h2>Gene Set Analysis</h2>
-                            <div>Uncover gene set patterns across integrated Common Fund programs—designed for advanced
-                                cross-dataset exploration.
-                            </div>
-                            <a href="/research.html?pageid=kc_gene_set_browser">Start here</a>
+                    <div class="f-col">
+                        <div class="analysis-figure"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/gene_set.png"></div>
+                        <h2>Gene Set Analysis</h2>
+                        <div>Uncover gene set patterns across integrated Common Fund programs—designed for advanced
+                            cross-dataset exploration.
                         </div>
-                        <div>
-                            <div></div>
-                            <div></div>
-                            <div></div>
-                            <div></div>
-                        </div>
+                        <a href="/research.html?pageid=kc_gene_set_browser_source" style="align-self: flex-end;">Start here</a>
                     </div>
-                    <div>
-                        <div>
-                            <h2>Differential Expression Analysis</h2>
-                            <div>Compare differentially expressed genes across tissues and diseases, driving insights into
-                                gene regulation and disease mechanisms.
-                            </div>
-                            <a href="/research.html?pageid=kc_dge_top_20">Start here</a>
+                    <div class="f-col">
+                        <div class="analysis-figure"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/dge.png"></div>
+                        <h2>Differential Expression Analysis</h2>
+                        <div>Compare differentially expressed genes across tissues and diseases, driving insights into
+                            gene regulation and disease mechanisms.
                         </div>
-                        <div>
-                            <div></div>
-                            <div></div>
-                            <div></div>
-                            <div></div>
-                        </div>
+                        <a href="/research.html?pageid=kc_dge_top_20&q=1&source=kc_diffexp" style="align-self: flex-end;">Start here</a>
                     </div>
                 </div>
             </div>
@@ -225,7 +198,7 @@
                                 <img :src="value.logo">
                             </div>
                             <div class="f-col fill-width">
-                                <div class="f-col fill-height">
+                                <div class="spotlight-text f-col fill-height">
                                     <h3>{{ value.name }}</h3>
                                     <div v-html="value.spotlight"></div>
                                 </div>
@@ -423,7 +396,8 @@ export default Vue.component("cfde-landing", {
                         logo: dccItem[1]["basic"]["logo"] || "",
                         name: dccItem[1]["basic"]["name"] || "",
                         analysis: dccItem[1]["examples"]["gene_analysis"],
-                        example: dccItem[1]["examples"]["gene_example"]
+                        example: dccItem[1]["examples"]["gene_example"],
+                        entity: dccItem[1]["examples"]["example_gene"]
                     });
                 }
                 if(dccItem[1]["examples"]["disease_analysis"]!="" &&
@@ -434,7 +408,8 @@ export default Vue.component("cfde-landing", {
                         logo: dccItem[1]["basic"]["logo"] || "",
                         name: dccItem[1]["basic"]["name"] || "",
                         analysis: dccItem[1]["examples"]["disease_analysis"],
-                        example: dccItem[1]["examples"]["disease_example"]
+                        example: dccItem[1]["examples"]["disease_example"],
+                        entity: dccItem[1]["examples"]["example_disease"]
                     });
                 }
             });
@@ -1361,7 +1336,9 @@ export default Vue.component("cfde-landing", {
         font-weight: bold;
         position: absolute;
         top: 20px;
-        right: 20px;
+        left: 100%;
+        margin: 0 -5px 0;
+        white-space: nowrap;
         cursor: pointer;
         user-select: none;
         background: white;
@@ -1393,6 +1370,7 @@ export default Vue.component("cfde-landing", {
         margin: 10px 0 0;
         gap: 10px;
         position:relative;
+        border-radius: 10px;
     }
 
     .arrw {
@@ -1407,6 +1385,7 @@ export default Vue.component("cfde-landing", {
 
     .example-item{
         display:none;
+        margin: 10px 0 0;
     }
     .example-item.active{
         display:flex;
@@ -1419,22 +1398,25 @@ export default Vue.component("cfde-landing", {
         text-transform: capitalize;
         line-height: 10px;
         margin: 0 0 5px;
+        font-weight: bold;
     }
     .example-item-name {
         font-size: 14px;
     }
     .example-item-logo {
-        width: 50px;
+        width: 100px;
     }
     .example-item-logo img{
         width:-webkit-fill-available;
     }
     .example-item-analysis {
         font-size: 16px;
+        min-height: 50px;
     }
     .example-item-image {
         border-radius: 10px;
-        overflow: hidden;
+        height: 250px;
+        background: white;
     }
     .example-item-image img {
         width: -webkit-fill-available;
@@ -1443,6 +1425,7 @@ export default Vue.component("cfde-landing", {
     .spotlight-item {
         display: none;
         gap:20px;
+        margin-top:10px;
     }
     .spotlight-item.active{
         display:flex;
@@ -1459,16 +1442,25 @@ export default Vue.component("cfde-landing", {
         min-width: 150px;
         width: 150px;
         align-self: flex-start;
+        margin-top:10px;
     }
     .spotlight-logo img {
         width: -webkit-fill-available;
         mix-blend-mode: darken;
     }
+    .spotlight-text{
+        height: 300px;
+        overflow-y: auto;
+        margin: 0 0 20px;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: inset 0 -40px 20px -20px #ddd;
+    }
 
     .spotlight-prev,
     .spotlight-next {
         position: absolute;
-        top: 100px;
+        top: 50%;
         width: 30px;
         height: 30px;
         cursor:pointer;
@@ -1504,6 +1496,14 @@ export default Vue.component("cfde-landing", {
     }
     .drc-link a, .drc-link a:visited{
         color:#f26822 !important;
+    }
+
+    .analysis-figure {
+        height: 150px;
+        margin: 0 auto 20px auto;
+    }
+    .analysis-figure img {
+        height: inherit;
     }
 }
 </style>
