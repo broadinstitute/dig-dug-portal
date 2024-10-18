@@ -1,7 +1,7 @@
 <template>
-    <div>
+    <div :class="isSubtable ? 'pigean-subtable' : ''">
         <div v-if="tableData.length > 0">
-            <div class="text-right mb-2">
+            <div class="text-right mb-2" v-if="!isSubtable">
                 <data-download
                     :data="pigeanData"
                     filename="pigean_bayes"
@@ -52,10 +52,16 @@
                 </template>
                 <template #cell(top_genes)="row">
                     <b-dropdown
+                        split
                         right
-                        text="Show"
+                        :text="
+                            row.detailsShowing && row.item.subtableActive === 1
+                                ? 'Hide'
+                                : 'Show'
+                        "
                         variant="outline-primary"
                         size="sm"
+                        @click="showDetails(row, 1)"
                     >
                         <b-dropdown-header id="dropdown-header-label">
                             Top 5 Genes
@@ -71,11 +77,16 @@
                 </template>
                 <template #cell(top_gene_sets)="row">
                     <b-dropdown
+                        split
                         right
-                        text="Show"
+                        :text="
+                            row.detailsShowing && row.item.subtableActive === 2
+                                ? 'Hide'
+                                : 'Show'
+                        "
                         variant="outline-primary"
                         size="sm"
-                        @click="showDetails()"
+                        @click="showDetails(row, 2)"
                     >
                         <b-dropdown-header id="dropdown-header-label">
                             Top 5 Gene Sets
@@ -83,11 +94,31 @@
                         <b-dropdown-item
                             v-for="geneSet in row.item.top_gene_sets.split(';')"
                             :key="geneSet"
-                            :href="`/pigean/geneset.html?geneset=${geneSet}$`"
+                            :href="`/pigean/geneset.html?geneset=${geneSet}`"
                         >
-                            {{ shorten(geneSet) }}
+                            {{
+                                geneSet.length > 40
+                                    ? `${geneSet.slice(0, 40)}...`
+                                    : geneSet
+                            }}
                         </b-dropdown-item>
                     </b-dropdown>
+                </template>
+                <template #row-details="row">
+                    <pigean-bayes-table
+                        v-if="row.item.subtableActive === 1"
+                        :pigeanData="geneData.filter(g => g.label_factor === row.item.factor)"
+                        :fields="geneFields"
+                        :is-subtable="true"
+                    >
+                    </pigean-bayes-table>
+                    <pigean-bayes-table
+                        v-if="row.item.subtableActive === 2"
+                        :pigeanData="genesetData.filter(g => g.label_factor === row.item.factor)"
+                        :fields="genesetFields"
+                        :is-subtable="true"
+                    >
+                    </pigean-bayes-table>
                 </template>
             </b-table>
             <b-pagination
@@ -108,12 +139,15 @@
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
+import PigeanBayesTable from "./PigeanBayesTable.vue";
 import DataDownload from "@/components/DataDownload.vue";
 export default Vue.component("pigean-bayes-table", {
     components: {
         DataDownload,
     },
-    props: ["pigeanData", "filter", "fields"],
+    props: ["pigeanData", "filter", "fields", "geneData", "genesetData", "isSubtable",
+        "geneFields", "genesetFields"
+    ],
     data() {
         return {
             perPage: 10,
@@ -126,6 +160,9 @@ export default Vue.component("pigean-bayes-table", {
             if (this.filter) {
                 data = data.filter(this.filter);
             }
+            data.forEach((row) => {
+                row.subtableActive = 0;
+            });
             return data;
         },
     },
@@ -146,8 +183,38 @@ export default Vue.component("pigean-bayes-table", {
             return textList.split(";")
                 .map(item => this.shorten(item));
         },
-        showDetails(){
-            console.log("Details coming soon");
+        showDetails(row, tableNum) {
+            this.toggleTable(row, tableNum);            
+        },
+        toggleTable(row, subtable){
+            let show = false;
+            if (subtable === 'phewas'){
+                show = !row.item.phewasActive;
+            } else if (subtable === row.item.subtableActive) {
+                show = false;
+            } else {
+                show = true;
+            }
+            // Toggle active table
+            if (subtable === 'phewas'){
+                row.item.phewasActive = !row.item.phewasActive;
+            } else {
+                row.item.subtableActive = !show ? 0 : subtable;
+            }
+            // Hide details if it's currently showing and no tables should be active
+            if (!show 
+                && row.detailsShowing 
+                && !row.item.phewasActive 
+                && row.item.subtableActive === 0){
+                row.toggleDetails();
+            }
+            // Show details if it's currently not showing but it should be
+            if (show 
+                && !row.detailsShowing 
+                && (row.item.phewasActive || row.item.subtableActive !== 0)){
+                    row.toggleDetails();
+                }
+            
         },
     },
 });
