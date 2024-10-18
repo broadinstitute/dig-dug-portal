@@ -71,6 +71,8 @@
                     <h4>Factors</h4>
                     <factor-table
                         :pigeanData="$parent.pigeanFactor"
+                        :geneData="$parent.geneFactor"
+                        :genesetData="$parent.genesetFactor"
                         :fields="$parent.topFields">
                     </factor-table>
                 </div>

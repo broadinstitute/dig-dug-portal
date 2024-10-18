@@ -18,7 +18,7 @@
                 :fields="topFields"
                 :per-page="perPage"
                 :current-page="currentPage"
-                :sort-by="sortBy"
+                :sort-by="'factor'"
                 :sort-desc="true"
             >
                 <template #cell(label)="r">
@@ -30,20 +30,7 @@
                         }}    
                     </span>
                 </template>
-                <template #cell(expand)="row">
-                    <b-button
-                        variant="outline-primary"
-                        size="sm"
-                        @click="showDetails(row, 1)"
-                    >
-                        {{
-                            row.detailsShowing
-                                ? "Hide"
-                                : "Show"
-                        }}
-                    </b-button>
-                </template>
-                <template #cell(expand1)="row">
+                <template #cell(top_genes)="row">
                     <b-dropdown
                         split
                         right
@@ -62,13 +49,13 @@
                         <b-dropdown-item
                             v-for="gene in row.item.top_genes.split(';')"
                             :key="gene"
-                            :href="`/pigean/gene.html?gene=${gene}${suffix}`"
+                            :href="`/pigean/gene.html?gene=${gene}`"
                         >
                             {{ gene }}
                         </b-dropdown-item>
                     </b-dropdown>
                 </template>
-                <template #cell(expand2)="row">
+                <template #cell(top_gene_sets)="row">
                     <b-dropdown
                         split
                         right
@@ -87,7 +74,7 @@
                         <b-dropdown-item
                             v-for="geneSet in row.item.top_gene_sets.split(';')"
                             :key="geneSet"
-                            :href="`/pigean/geneset.html?geneset=${geneSet}${suffix}`"
+                            :href="`/pigean/geneset.html?geneset=${geneSet}`"
                         >
                             {{
                                 geneSet.length > 40
@@ -99,12 +86,12 @@
                 </template>
                 <template #row-details="row">
                     <pigean-bayes-table
-                        v-if="row.item.subtableActive === 2"
-                        :pigeanData="geneData.filter(g => g.factor === row.item.factor)"
+                        v-if="row.item.subtableActive === 1"
+                        :pigeanData="getGeneData(row.item.factor)"
                     >
                     </pigean-bayes-table>
                     <pigean-bayes-table
-                        v-if="row.item.subtableActive === 1"
+                        v-if="row.item.subtableActive === 2"
                         :pigeanData="genesetData.filter(g => g.factor === row.item.factor)"
                     >
                     </pigean-bayes-table>
@@ -151,9 +138,6 @@ export default Vue.component("factor-table", {
         return {
             perPage: 10,
             currentPage: 1,
-            subtableData: {},
-            subtable2Data: {},
-            phewasData: {},
             plotColors: plotUtils.plotColors(),
             topFields: [
                 {
@@ -220,14 +204,8 @@ export default Vue.component("factor-table", {
             }
             return data;
         },
-        sigma() {
-            return parseInt(keyParams.sigma.slice(-1));
-        },
         genesetSize() {
             return keyParams.genesetSize;
-        },
-        suffix() {
-            return `&sigma=sigma${this.sigma}&genesetSize=${this.genesetSize}`;
         },
     },
     methods: {
@@ -271,12 +249,6 @@ export default Vue.component("factor-table", {
                 }
             
         },
-        phewasKey(item){
-            return `${item.phenotype},${
-                this.sigma},${
-                this.genesetSize},${
-                item.cluster}`;
-        },
         generateId(label){
             return label.replaceAll(",","")
                 .replaceAll(" ", "_");
@@ -298,6 +270,10 @@ export default Vue.component("factor-table", {
             });
             return allFields;
         },
+        getGeneData(factor){
+            let data = this.geneData.filter(g => g.label_factor === factor);
+            return data;
+        }
     },
 });
 </script>
