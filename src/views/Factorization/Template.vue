@@ -73,7 +73,9 @@
                         :pigeanData="$parent.pigeanFactor"
                         :geneData="$parent.geneFactor"
                         :genesetData="$parent.genesetFactor"
-                        :fields="$parent.topFields">
+                        :fields="$parent.topFields"
+                        :geneFields="$parent.geneFields"
+                        :genesetFields="$parent.genesetFields">
                     </pigean-bayes-table>
                 </div>
             </div>

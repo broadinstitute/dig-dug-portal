@@ -108,12 +108,14 @@
                     <pigean-bayes-table
                         v-if="row.item.subtableActive === 1"
                         :pigeanData="geneData.filter(g => g.label_factor === row.item.factor)"
+                        :fields="geneFields"
                         :is-subtable="true"
                     >
                     </pigean-bayes-table>
                     <pigean-bayes-table
                         v-if="row.item.subtableActive === 2"
                         :pigeanData="genesetData.filter(g => g.label_factor === row.item.factor)"
+                        :fields="genesetFields"
                         :is-subtable="true"
                     >
                     </pigean-bayes-table>
@@ -143,7 +145,9 @@ export default Vue.component("pigean-bayes-table", {
     components: {
         DataDownload,
     },
-    props: ["pigeanData", "filter", "fields", "geneData", "genesetData", "isSubtable"],
+    props: ["pigeanData", "filter", "fields", "geneData", "genesetData", "isSubtable",
+        "geneFields", "genesetFields"
+    ],
     data() {
         return {
             perPage: 10,
