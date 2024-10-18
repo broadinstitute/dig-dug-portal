@@ -776,7 +776,7 @@ $(function () {});
     background-color: #fff;
     border: solid 1px #aaa;
     box-shadow: 0 0 5px #00000075;
-    font-size: 12px;
+    font-size: 14px;
     padding: 0px 10px 5px 10px;
     max-width: 300px;
     border-radius: 5px;

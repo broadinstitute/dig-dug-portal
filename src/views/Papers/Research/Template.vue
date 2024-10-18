@@ -39,6 +39,12 @@
 				:phenotypes="$parent.phenotypesInSession"
 				:utils="$parent.utilsBox"
 			></research-single-search-v2>     
+			<research-single-search-cfde
+					v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == 'cfde'"
+					:single-search-config="$parent.sectionConfigs['single search']"
+					:phenotypes="$parent.phenotypesInSession"
+					:utils="$parent.utilsBox"
+				></research-single-search-cfde>    
 		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
 			<span v-html="'examples: '"></span>
 			<!--<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"

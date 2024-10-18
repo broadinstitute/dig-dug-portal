@@ -869,6 +869,29 @@ export default Vue.component("research-data-table", {
 				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
 			}
 
+			// Apply pre-filters
+
+			if(!!tableFormat["pre filters"]) {
+
+				let tempArr = [...new Set(data)];
+
+				tableFormat["pre filters"].map(filter =>{
+
+					switch (filter.type) {
+						case 'filter out':
+							filter.values.map(v => {
+								tempArr = tempArr.filter(f => f[filter.field] != v);
+							})
+							
+							break;
+					}
+				})
+
+				data = tempArr;
+			}
+
+			//
+
 			let tempObj = {
 				key: this.getRowID(KEY+QUERY+INDEX),
 				data: data
