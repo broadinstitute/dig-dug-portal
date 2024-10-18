@@ -14,6 +14,7 @@ import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanBayesTable from "@/components/PigeanBayesTable.vue";
+import FactorTable from "../../components/FactorTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -42,6 +43,7 @@ new Vue({
         SearchHeaderWrapper,
         PigeanTable,
         PigeanBayesTable,
+        FactorTable,
         PigeanPlot,
         ResearchPheWAS,
         GenesetSelectPicker,
@@ -95,38 +97,7 @@ new Vue({
                     sortable: true
                 }
             ],
-            topFields: [
-                {
-                    key: "factor",
-                    label: "Factor",
-                    sortable: true
-                },
-                {
-                    key: "gene_score",
-                    label: "Gene score",
-                    sortable: true
-                },
-                {
-                    key: "gene_set_score",
-                    label: "Gene set score",
-                    sortable: true,
-                },
-                {
-                    key: "label",
-                    label: "Label",
-                    sortable: true,
-                },
-                {
-                    key: "top_genes",
-                    label: "Top genes",
-                    sortable: false,
-                },
-                {
-                    key: "top_gene_sets",
-                    label: "Top gene sets",
-                    sortable: false
-                }
-            ]
+            
         };
     },
     computed: {

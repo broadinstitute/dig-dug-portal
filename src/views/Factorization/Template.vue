@@ -69,11 +69,10 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Factors</h4>
-                    <pigean-bayes-table
+                    <factor-table
                         :pigeanData="$parent.pigeanFactor"
-                        :isPigeanFactor="true"
                         :fields="$parent.topFields">
-                    </pigean-bayes-table>
+                    </factor-table>
                 </div>
             </div>
             <div class="card mdkp-card">
