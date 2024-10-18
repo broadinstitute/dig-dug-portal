@@ -1,7 +1,7 @@
 <template>
     <div :class="isSubtable ? 'pigean-subtable' : ''">
         <div v-if="tableData.length > 0">
-            <div class="text-right mb-2">
+            <div class="text-right mb-2" v-if="!isSubtable">
                 <data-download
                     :data="pigeanData"
                     filename="pigean_bayes"
