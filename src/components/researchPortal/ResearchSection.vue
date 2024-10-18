@@ -930,8 +930,8 @@ export default Vue.component("research-section", {
 
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
-			console.log("PARAMS", PARAMS);
-			console.log("QUERY", QUERY);
+			//console.log("PARAMS", PARAMS);
+			//console.log("QUERY", QUERY);
 
 			this.searched.push(QUERY);
 
@@ -952,7 +952,7 @@ export default Vue.component("research-section", {
 				dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
 			}
 
-			console.log("dataUrl replaced", dataUrl);
+			//console.log("dataUrl replaced", dataUrl);
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -1426,6 +1426,25 @@ export default Vue.component("research-section", {
 
 			this.originalData = this.sectionData;
 
+			/// 'checkbox' filter 'uncheck' filter gets applied here
+			if(!!this.sectionConfig && !!this.sectionConfig.filters) {
+				let chkboxFilters = this.sectionConfig.filters.filter( f => f.type == 'checkbox');
+				console.log('chkboxFilters', chkboxFilters);
+
+				let tempArr = [...new Set(this.sectionData)];
+				chkboxFilters.map( f =>{
+					if(!!f.uncheck) {
+						f.uncheck.map(u => {
+							tempArr = tempArr.filter( t => t[f.field] != u);
+						})
+					}
+				})
+
+				this.sectionData = tempArr;
+			}
+
+			///
+
 			if (!this.originalData || (!!this.originalData && this.originalData.length == 0)) {
 
 				this.utils.alertUtils.popSectionAlert(
@@ -1438,7 +1457,7 @@ export default Vue.component("research-section", {
 			}
 
 			if (!!this.sectionConfig["after data load"]) {
-				console.log('this.sectionConfig["after data load"]', this.sectionConfig["after data load"])
+				//console.log('this.sectionConfig["after data load"]', this.sectionConfig["after data load"])
 
 				this.sectionConfig["after data load"].map(act => {
 					switch (act.type) {

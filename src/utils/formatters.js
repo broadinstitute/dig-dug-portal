@@ -274,10 +274,14 @@ function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
     switch (FORMAT.type) {
         case "link":
             let href = FORMAT.link;
-            for (const [rKey, rValue] of Object.entries(ROW_DATA)) {
+
+            FORMAT.parameters.map(p => {
+                href = href.replace('$' + p, ROW_DATA[p]);
+            })
+            /*for (const [rKey, rValue] of Object.entries(ROW_DATA)) {
 
                 href = href.replace('$' + rKey, rValue);
-            }
+            }*/
 
             content = "<a href='" + href + "'>" + VALUE + "</a>";
 
