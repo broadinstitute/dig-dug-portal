@@ -173,7 +173,7 @@
                         <div>Uncover gene set patterns across integrated Common Fund programs—designed for advanced
                             cross-dataset exploration.
                         </div>
-                        <a href="/research.html?pageid=kc_gene_set_browser_source_all&source=all" style="align-self: flex-end;">Start here</a>
+                        <a href="/research.html?pageid=kc_gene_set_browser_source&source=all" style="align-self: flex-end;">Start here</a>
                     </div>
                     <div class="f-col">
                         <div class="analysis-figure"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/dge.png"></div>
@@ -609,7 +609,7 @@ export default Vue.component("cfde-landing", {
         },
         clickDcc(e){
             const val = e.target.dataset.value;
-            window.location.href = `/research.html?pageid=kc_dccs&DCC=${val}`;
+            window.location.href = `/research.html?pageid=kc_programs&DCC=${val}`;
         },
         outHandler(e) {
             if (this.freezeSelection) {
