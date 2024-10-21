@@ -24,6 +24,7 @@
 					: $parent.headerLogo
 			"
 			:sectionConfig="$parent.sectionConfigs['header menu']"
+			:phenotypes="$parent.phenotypesInSession"
 			:utils="$parent.utilsBox"
 		></research-page-header>
 	<div class="single-search-wrapper" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['single search']">
@@ -42,7 +43,7 @@
 			<research-single-search-cfde
 					v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == 'cfde'"
 					:single-search-config="$parent.sectionConfigs['single search']"
-					:phenotypes="$parent.phenotypesInSession"
+					:phenotypes="$parent.phenotypesInSession" 
 					:utils="$parent.utilsBox"
 				></research-single-search-cfde>    
 		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
