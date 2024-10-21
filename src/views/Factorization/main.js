@@ -127,6 +127,7 @@ new Vue({
                     sortable: false
                 }
             ]
+            
         };
     },
     computed: {
@@ -215,7 +216,6 @@ new Vue({
         formatGroupName(name){
             const prefix = new RegExp(/Group \d*: /);
             let output = name.trim().replace(prefix, "");
-            console.log(output);
             return output;
         }
     },
