@@ -31,8 +31,8 @@ export default new Vuex.Store({
         tissueToQuery: "",
         geneToQuery: "",
         selectedAncestry: "",
-        loadingGene: true,
-        loadingExpression: true,
+        loadingGene: false,
+        loadingExpression: false,
     },
 
     mutations: {
