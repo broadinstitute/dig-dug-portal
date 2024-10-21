@@ -148,9 +148,10 @@ import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
+import EventBus from "@/utils/eventBus";
 
 export default Vue.component("research-single-search-cfde", {
-	props: ["singleSearchConfig", "phenotypes", "utils"],
+	props: ["singleSearchConfig", "phenotypes", "utils", "fromNav"],
 	modules: {},
 
 	data() {
@@ -192,7 +193,13 @@ export default Vue.component("research-single-search-cfde", {
 			this.getTissues();
 		}
 	},
-	mounted() { },
+	mounted() { 
+		//listens for search event from nav component
+		EventBus.$on('activate-search', this.onFocus);
+	},
+	beforeDestroy() {
+		EventBus.$off('activate-search');
+	},
 	computed: {},
 	watch: {
 		summary(summaryArr) {
@@ -573,15 +580,17 @@ export default Vue.component("research-single-search-cfde", {
 			}
 		},
 		onFocus() {
-			console.log('seach focus');
+			console.log('search focus');
 			document.querySelector('.search-underlay').classList.add('focus');
 			document.querySelector('.byor-single-search-wrapper').classList.add('focus');
+			if(this.fromNav) document.querySelector('.byor-single-search-wrapper').classList.remove('hidden');
 			this.hasFocus = true;
 			//if(this.summaryAll.length>0) this.summaryPopup = true;
 		},
 		unFocus(){
 			document.querySelector('.search-underlay').classList.remove('focus');
 			document.querySelector('.byor-single-search-wrapper').classList.remove('focus');
+			if(this.fromNav) document.querySelector('.byor-single-search-wrapper').classList.add('hidden');
 			this.hasFocus = false;
 			//this.summaryPopup = false;
 		},

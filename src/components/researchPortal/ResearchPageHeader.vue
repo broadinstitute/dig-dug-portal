@@ -15,6 +15,16 @@
 			</p>
 		</div>
 		<ul v-if="!!researchMenu">
+			<template v-if="addSearch">
+				<li class="menu menu-search">
+					<a @click="activateSearch">
+						<svg viewBox="0 0 24 24" fill="none" stroke="#1c5084" stroke-width=".5" xmlns="http://www.w3.org/2000/svg">
+							<path fill="#1c5084" fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z"/>
+						</svg>
+						Search
+					</a>
+				</li>
+			</template>
 			<li
 				v-for="menu in (researchMenu.length ? researchMenu : researchMenu.menu)"
 				:key="menu.label"
@@ -51,17 +61,22 @@
 				</ul>
 			</li>
 		</ul>
+		<div class="menu-search-container" ref="searchContainer"></div>
 	</div>
 </template>
 
 <script>
 import Vue from "vue";
+import EventBus from "@/utils/eventBus";
+import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 
 export default Vue.component("research-page-header", {
-	props: ["researchMenu", "headerLogo","sectionConfig","utils"],
+	props: ["researchMenu","phenotypes", "utils", "headerLogo","sectionConfig","utils"],
 	components: {},
 	data() {
-		return {};
+		return {
+			addSearch: false
+		};
 	},
 	created() {},
 	mounted() {
@@ -82,6 +97,7 @@ export default Vue.component("research-page-header", {
 					});
 				}
 				this.tryInjectActions();
+				this.tryAddSearch();
 			}	
 		}
 	},
@@ -146,9 +162,52 @@ export default Vue.component("research-page-header", {
 				})
 			});
 		},
-		tryInjectActions(){
+		tryAddSearch(){
 			if(this.researchMenu && !this.researchMenu.length){
 				console.log(this.researchMenu);
+				if(this.researchMenu["search"]){
+					console.log('adding search');
+					this.addSearch = true;
+				};
+			}
+		},
+		activateSearch(){
+			//check for search element on page
+			//NOTE, this is specific to CFDE compnent only right now.
+			const searchComponent = document.querySelector('.search-underlay');
+			if (!searchComponent) {
+				this.addSearchComponent();
+			}
+			//start focused
+			EventBus.$emit('activate-search');
+		},	
+		addSearchComponent() {
+			// Access the necessary configs from $parent or wherever they are
+			const searchConfig = this.researchMenu["search"];
+			const phenotypes = this.phenotypes;
+			const utilsBox = this.utils;
+
+			// dynamically create and mount the search component with its props
+			const SearchComponentClass = Vue.extend({
+				render(h) {
+				return h(ResearchSingleSearchCFDE, {
+					props: {
+					singleSearchConfig: searchConfig,
+					phenotypes: phenotypes,
+					utils: utilsBox,
+					fromNav: true
+					},
+				});
+				},
+			});
+			const searchInstance = new SearchComponentClass();
+
+			// mount search component and append it to the navigation's search container
+			searchInstance.$mount();
+			this.$refs.searchContainer.appendChild(searchInstance.$el);
+		},
+		tryInjectActions(){
+			if(this.researchMenu && !this.researchMenu.length){
 				if(this.researchMenu["favicon"]) this.injectFavicon(this.researchMenu["favicon"]);
 				if(this.researchMenu["google font"]) this.injectFont(this.researchMenu["google font"]);
 			}
@@ -270,5 +329,22 @@ export default Vue.component("research-page-header", {
 
 .research-portal-header-compact ul li.menu a:hover {
 	color: #004bcf !important;
+}
+
+.menu-search{
+	cursor:pointer;
+}
+.menu-search svg {
+    width: 25px;
+    margin: -5px -5px 0;
+    transform: scaleX(-1);
+}
+
+.menu-search-container{
+	position: fixed;
+    top: 100px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
 }
 </style>
