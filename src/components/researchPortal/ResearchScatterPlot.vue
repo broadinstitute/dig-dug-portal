@@ -1009,7 +1009,7 @@ export default Vue.component("research-scatter-plot", {
 			if (posData.length > 0) {
 				//console.log("dot", posData.length);
 				let posContent = posData.length > 5 && EVENT_TYPE == 'move' && !this.isDotPanelClick ? 
-					'<strong>There are more items to disply. <br />Click to view the full list.</strong><br /><br />' : "";
+					'<strong>There are more items to display. <br />Click to view the full list.</strong><br /><br />' : "";
 
 				let cIndex = 0;
 				posData.map(d => {
