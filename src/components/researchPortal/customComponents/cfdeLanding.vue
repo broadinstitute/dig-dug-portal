@@ -202,7 +202,7 @@
                                     <h3>{{ value.name }}</h3>
                                     <div v-html="value.spotlight"></div>
                                 </div>
-                                <a style="align-self: flex-end;" :href="`/research.html?DCC=${key}&pageid=kc_dccs`">Learn More</a>
+                                <a style="align-self: flex-end;" :href="`/research.html?DCC=${key}&pageid=kc_programs`">Learn More</a>
                             </div>
                         </div>
                     </template>
