@@ -608,9 +608,19 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             : null;
         let cellValue;
 
+        if(formatTypes.includes("cfde-datatypes"))
+            console.log(typeof VALUE, Array.isArray(VALUE));
+
         if (typeof VALUE != "object") {
             //console.log('...not object')
-            cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+            if(formatTypes.includes("youtube")){
+                let cellValueString = `
+                    <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${VALUE}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                `;
+                cellValue = cellValueString;
+            }else{
+                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+            }
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
             //console.log('...is array')
             if (formatTypes.includes("object to mini-card")) {
@@ -632,6 +642,31 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     cellValueString += "</div>";
                 })
                 cellValue = cellValueString;
+
+            } else if(formatTypes.includes("custom-citation")){
+                
+                let cellValueString = '';
+                
+                VALUE.forEach(item => {
+                    if(!item.title || item.title === "") return;
+                    const citation = `
+                    <div class="citation">
+                        <div><strong>${item.title}</strong></div>
+                        <div>${item.authors} <i>${item.publication}</i></div>
+                        <div class="citation-links">
+                            <div>DOI: <a href="https://doi.org/${item.doi}" target="_blank">${item.doi}</a></div>
+                            <div>PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}" target="_blank">${item.pmid}</a></div>
+                            <div>PMCID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmcid}" target="_blank">${item.pmcid}</a></div>
+                        </div>
+                        <div class="citation-notes">${item.description}</div>
+                    </div>
+                    `;
+                    cellValueString += citation;
+                })
+                
+                cellValue = cellValueString;
+                //console.log('make citation', VALUE);
+
             } else {
                 //console.log('...something else')
                 let cellValueString = (!!formatTypes.includes("image") && VALUE != "") ? "<div class='imgs_wrapper'>" : "";
@@ -646,6 +681,22 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
         } else {
             if (formatTypes.includes("custom-extra")) {
                 cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
+            }
+            if(formatTypes.includes("cfde-datatypes")) {
+                console.log("data type!");
+                let cellValueString = '<div style="display:flex;flex-direction:column; gap:10px;">';
+                for(const [key, value] of Object.entries(VALUE)){
+                    if(value.trim() != ''){
+                        const k = key.replaceAll('_', ' ');
+                        cellValueString += `<div style="${k==='note'?'display:flex;gap:5px;font-style:italic;':''}">
+                        <div style="font-weight:bold;text-transform:capitalize">${k}</div>
+                        <div>${value}</div>
+                        </div>
+                        `
+                    }
+                }
+                cellValueString != '</div>';
+                cellValue = cellValueString;
             }
         }
 
