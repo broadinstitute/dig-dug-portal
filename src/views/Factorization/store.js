@@ -21,6 +21,7 @@ export default new Vuex.Store({
         genesetFactor: [],
         roundTripInputGenes: [],
         genesetOptions: [],
+        genesetPValues: [],
     },
 
     mutations: {
@@ -37,7 +38,10 @@ export default new Vuex.Store({
             state.roundTripInputGenes = data || state.roundTripInputGenes;
         },
         setGenesetOptions(state, data){
-            state.genesetOptions = data || state.genesetOptions
+            state.genesetOptions = data || state.genesetOptions;
+        },
+        setGenesetPValues(state, data){
+            state.genesetPValues = data || state.genesetPValues;
         },
         clearAllData(state){
             state.pigeanFactor = [];
@@ -71,6 +75,7 @@ export default new Vuex.Store({
             context.commit("setPigeanFactor", json["pigean-factor"].data);
             context.commit("setGeneFactor", json["gene-factor"]);
             context.commit("setGenesetFactor", json["gene-set-factor"]);
+            context.commit("setGenesetPValues", json["gene_sets"]);
         },
         async queryGenesetOptions(context){
             let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/heartbeat";

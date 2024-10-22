@@ -78,8 +78,14 @@ new Vue({
             ],
             extraGenesetFields: [
                 {
-                    key: "gene_Set",
+                    key: "gene_set",
                     label: "Gene set",
+                    sortable: true
+                },
+                {
+                    key: "p_value",
+                    label: "P-value",
+                    formatter: Formatters.pValueFormatter,
                     sortable: true
                 }
             ],
@@ -162,6 +168,7 @@ new Vue({
         },
         genesetFactor() {
             let data = this.flatData(this.$store.state.genesetFactor);
+            data.forEach(item => item["p_value"] = this.pValueLookup[item.gene_set]);
             return this.formatLabels(data);
         },
         genesetFields(){
@@ -169,6 +176,14 @@ new Vue({
         },
         geneFields(){
             return this.baseFields.concat(this.extraGeneFields);
+        },
+        pValueLookup(){
+            let pValueList = this.$store.state.genesetPValues;
+            let lookup = {};
+            pValueList.forEach(item =>
+                lookup[item.gene_set] = item.p_value
+            );
+            return lookup;
         }
     },
     watch: {
