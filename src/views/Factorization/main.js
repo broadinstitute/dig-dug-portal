@@ -203,7 +203,11 @@ new Vue({
             if (this.geneInput) {
                 let genes = this.geneInput.trim().split(/[\n, ]+/);
                 let geneSets = this.genesetParam;
-                this.$store.dispatch("queryBayesGenes", genes, geneSets);
+                let queryString = JSON.stringify({
+                    "genes": genes,
+                    "gene_sets": geneSets
+                });
+                this.$store.dispatch("queryBayesGenes", queryString);
             }
         },
         flatData(data){
