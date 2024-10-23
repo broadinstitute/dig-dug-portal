@@ -138,7 +138,7 @@
 		<research-front-page 
 			v-if="$parent.researchPage !== null && $parent.sectionConfigs['is front page']"
 			:sectionConfigs="$parent.sectionConfigs"
-			:pageDescription="$parent.pageDescription"
+			:pageDescription="$parent.utilsBox.Formatters.replaceWithParams($parent.pageDescription, $parent.pageParams)"
 			:utilsBox="$parent.utilsBox"
 			:phenotypeMap="$parent.phenotypeMap"
 			:phenotypesInUse="$parent.phenotypesInSession"
@@ -153,7 +153,7 @@
 			<div class="card mdkp-card dataset-page-header" v-if="!$parent.sectionConfigs['is front page']">
 				<div class="row card-body">
 					<div class="col-md-8">
-						<h3 v-html="$parent.pageTitle"></h3>
+						<h3 v-html="$parent.utilsBox.Formatters.replaceWithParams($parent.pageTitle, $parent.pageParams)"></h3>
 						<div
 							v-if="
 								!!$parent.apiParameters &&
@@ -213,7 +213,7 @@
 				<div class="row card-body">
 					<div class="col-md-12">
 						<research-page-description
-							:content="$parent.pageDescription"
+							:content="$parent.utilsBox.Formatters.replaceWithParams($parent.pageDescription, $parent.pageParams)"
 							:utils="$parent.utilsBox"
 						></research-page-description>
 					</div>
@@ -398,7 +398,7 @@
 						>
 							<div
 								class="plot-legend"
-								v-html="$parent.plotLegend"
+								v-html="$parent.utilsBox.Formatters.replaceWithParams($parent.plotLegend, $parent.pageParams)"
 							></div>
 							<!--v-if="$parent.plotType == 'm_plot'"-->
 							<research-m-plot
@@ -645,7 +645,7 @@
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
 									style="position:relative"
 								>
-									<h4 v-if="!!group.label">{{ group.label }}</h4>
+									<h4 v-if="!!group.label">{{ $parent.utilsBox.Formatters.replaceWithParams(group.label, $parent.pageParams) }}</h4>
 									<button v-if="!group.type"
 										class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
@@ -660,7 +660,7 @@
 										id="fixed_group_toggle"
 										@click="$parent.utilsBox.uiUtils.toggleFixedSummarySection('tabUiGroup' + groupIndex)">
 											<div class="gg-chevron-double-up"></div>
-											<span class="fixed-group-toggle-label">Open {{ group.label }} Section</span>
+											<span class="fixed-group-toggle-label">Open {{ $parent.utilsBox.Formatters.replaceWithParams(group.label, $parent.pageParams) }} Section</span>
 										</button>
 									</div>
 
@@ -671,7 +671,7 @@
 											:class="tabIndex == 0?'active':''"
 											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
 												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
-											{{ tab.label }} <span class="flag"><b-icon
+											{{ $parent.utilsBox.Formatters.replaceWithParams(tab.label, $parent.pageParams) }} <span class="flag"><b-icon
 												icon="circle-fill"></b-icon></span>
 										</div>
 									</div>
@@ -704,6 +704,7 @@
 													:regionZoom="$parent.regionZoom"
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
+													:pageParams="$parent.pageParams"
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
 													@on-zoom="$parent.setZoom">
@@ -751,6 +752,7 @@
 									:starItems="$parent.starItems"
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
+									:pageParams="$parent.pageParams"
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
 									@on-zoom="$parent.setZoom">
@@ -790,7 +792,7 @@
 					<div class="row">
 						<div
 							class="col-md-12"
-							v-html="$parent.researchMethod"
+							v-html="$parent.utilsBox.Formatters.replaceWithParams($parent.researchMethod, $parent.pageParams)"
 						></div>
 					</div>
 				</div>

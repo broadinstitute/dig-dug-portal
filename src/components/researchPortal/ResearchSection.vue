@@ -20,7 +20,7 @@
 						:class="(sectionHidden != true) ? '' : 'red-background'"
 						@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden = (sectionHidden == true) ? false : true"
 						title="Show / hide section"><b-icon icon="eye"></b-icon></button>
-					<h4>{{ sectionConfig.header }}
+					<h4>{{ utils.Formatters.replaceWithParams(sectionConfig.header, pageParams) }}
 
 						<!--
 						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
@@ -28,14 +28,14 @@
 							style="font-size:0.7em"
 							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
 
-						-->
+						
 						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
 						<span class="required-parameters-wrapper">
 							<small
 								:class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
 								v-for="parameter in dataPoint['parameters']" :key="parameter"
 								v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
-						</span>
+						</span>-->
 						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
 							:id="'flag_' + sectionID">Loading data...</small>-->
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
@@ -49,15 +49,15 @@
 				<div class="col-md-12">
 					<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
 						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-					<h4>
-						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
+					<h4>{{ utils.Formatters.replaceWithParams(sectionConfig.header, pageParams) }}
+						<!--<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
 						<span class="required-parameters-wrapper">
 							<small
 								:class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
 								v-for="parameter in dataPoint['parameters']" :key="parameter"
 								v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
 
-						</span>
+						</span>-->
 
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
 							colorStyle="color"></research-loading-spinner>
@@ -91,7 +91,7 @@
 						:section="sectionConfig" :utils="utils">
 					</research-in-section-search>
 
-					<research-page-description v-if="!!sectionDescription" :content="sectionDescription"
+					<research-page-description v-if="!!sectionDescription" :content="utils.Formatters.replaceWithParams(sectionDescription, pageParams)"
 						:utils="utils"></research-page-description>
 
 					<research-section-filters v-if="!!filters && !sectionConfig['filters vertical']" :filters="filters"
@@ -160,7 +160,7 @@
 								class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
 									'tabUiGroup' + sectionID,
 									'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
-								{{ tab.label }}
+								{{ utils.Formatters.replaceWithParams(tab.label, pageParams) }}
 							</div>
 						</div>
 					</template>
@@ -196,7 +196,7 @@
 						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 						:tableFormat="tableFormat"
 						:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
-						:tableLegend="sectionTableLegend" :dataComparisonConfig="dataComparisonConfig"
+						:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
 						:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
 						:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
 						:utils="utils" @clicked-sort="sortData" :region="regionParam" :regionZoom="regionZoom"
@@ -208,7 +208,7 @@
 						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 						:tableFormat="tableFormat"
 						:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
-						:tableLegend="sectionTableLegend" :dataComparisonConfig="dataComparisonConfig"
+						:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
 						:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
 						:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
 						:utils="utils" :thumbnailWidth="!!sectionConfig['filters vertical'] && !!sectionConfig['filters vertical']['width'] ?
@@ -244,7 +244,7 @@ import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
 		"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils", "starItems", "regionZoom",
-		"regionViewArea", "isInTab"],
+		"regionViewArea", "isInTab", "pageParams"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionFiltersVertical,
@@ -407,12 +407,12 @@ export default Vue.component("research-section", {
 				return null
 			}
 		},
-		sectionTableLegend() {
+		/*sectionTableLegend() {
 			let legend = (!!document.getElementById(this.sectionID + "_tableLegend")) ?
 				document.getElementById(this.sectionID + "_tableLegend").innerHTML : null;
 
-			return legend;
-		},
+			return this.utils.Formatters.replaceWithParams(legend);
+		},*/
 		viewingRegion() {
 			if (this.regionParam == null) {
 				return null;
@@ -636,7 +636,14 @@ export default Vue.component("research-section", {
 			let legend = (!!document.getElementById(ID + "_plotLegend")) ?
 				document.getElementById(ID + "_plotLegend").innerHTML : null;
 
-			return legend;
+			return this.utils.Formatters.replaceWithParams(legend, this.pageParams);
+		},
+		getSectionTableLegend(ID) {
+
+			let legend = (!!document.getElementById(ID + "_tableLegend")) ?
+				document.getElementById(ID + "_tableLegend").innerHTML : null;
+
+			return this.utils.Formatters.replaceWithParams(legend, this.pageParams);
 		},
 		updateData(data) {
 			this.sectionData = data;

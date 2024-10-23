@@ -85,6 +85,7 @@ new Vue({
             dataFiles: [],
             dataTableFormat: null,
             context: null,
+            allSearchKeys: null,
             colors: {
                 mild: [
                     "#007bff25",
@@ -186,6 +187,28 @@ new Vue({
             } else {
                 return JSON.parse(contents[0]["field_data_table_format"]);
             }
+        },
+        pageParams() {
+            let params = {};
+            if (!!this.multiSectionsSearchParameters) {
+
+                this.multiSectionsSearchParameters.map(mp => {
+                    let values = (!!mp.values && !!Array.isArray(mp.values)) ? {} : null;
+                    if (values != null) {
+                        mp.values.map(v => {
+                            values[v.value] = v.label
+                        })
+                    }
+
+                    params[mp.parameter] = {
+                        label: mp.label,
+                        values: values
+                    }
+                })
+            }
+
+            return params;
+
         },
         initialDescriptions() {
             let contents = this.researchPage;
@@ -481,9 +504,6 @@ new Vue({
                 }
             }
         },
-        // pageID() {
-        //     return keyParams.pageid.trim();
-        // },
         pageTitle() {
             let contents = this.researchPage;
 
@@ -957,6 +977,9 @@ new Vue({
     },
 
     watch: {
+        allSearchKeys(KEYS) {
+            console.log(KEYS)
+        },
         sectionsData(DATA) {
             //console.log("sectionsData", DATA);
         },
