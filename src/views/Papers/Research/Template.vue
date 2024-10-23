@@ -545,15 +545,6 @@
 								:utils="$parent.utilsBox"
 								canvasId=""
 							></research-phewas-plot>
-							<research-umap
-								v-if="
-									$parent.plotConfig != null &&
-									$parent.plotConfig['type'] == 'umap plot'
-								"
-								:renderConfig="$parent.plotConfig"
-								:utils="$parent.utilsBox"
-							>
-							</research-umap>
 							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
 									$parent.customPlotType == 'gem package'
