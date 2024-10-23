@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div v-if="items.length > 0">
-      <div v-html="'Total rows: ' + items.length"
+    <div v-if="rows > 0">
+      <div v-html="'Total rows: ' + rows"
         class="table-total-rows"
       ></div>
       <div class="text-right mb-2">
@@ -11,16 +11,26 @@
     </div>
     <b-table
       small
-      :items="items"
+      :items="filteredData"
       :fields="fields"
       :sort-by="!isGenePage ? 'gene' : 'tissue'"
       :per-page="perPage"
       :current-page="currentPage"
       :sort-compare="sortRows"
     >
+      <template #cell(tissue)="row">
+        <a :href="`/mouse_diff_exp.html?gene=${row.item.gene}&tissue=${row.item.tissue}`">
+              {{ row.item.tissue }}
+        </a>
+      </template>
       <template #cell(gene)="row">
         <a :href="`/mouse_diff_exp.html?gene=${row.item.gene}&tissue=${row.item.tissue}`">
               {{ row.item.gene }}
+        </a>
+      </template>
+      <template #cell(gene_id)="row">
+        <a :href="`https://useast.ensembl.org/Mus_musculus/Gene/Summary?db=core;g=${row.item.gene_id}`">
+          {{ row.item.gene_id }}
         </a>
       </template>
       <template #cell(gene_region)="row">
@@ -30,7 +40,7 @@
     <b-pagination
       v-model="currentPage"
       class="pagination-sm justify-content-center"
-      :total-rows="items.length"
+      :total-rows="rows"
       :per-page="perPage"
     >
     </b-pagination>
@@ -46,7 +56,7 @@
     components: {
         DataDownload,
     },
-    props: ["items", "isGenePage"],
+    props: ["items", "isGenePage", "filter"],
     data() {
       return {
         perPage: 10,
@@ -64,7 +74,7 @@
           },
           {
             key: "P_adj_strain_sex",
-            label: "Adjusted p-value: strain + sex",
+            label: "Adjusted p-value: strain and sex",
             sortable: true
           }
         ],
@@ -102,6 +112,16 @@
       pageParam(){
         let field = !this.isGenePage ? "tissue" : "gene";
         return this.items[0]?.[field] || '';
+      },
+      filteredData(){
+        let data = structuredClone(this.items);
+        if (!!this.filter){
+          data = data.filter(this.filter);
+        }
+        return data;
+      },
+      rows(){
+        return this.filteredData.length;
       }
     },
     methods: {
