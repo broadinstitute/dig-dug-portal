@@ -14,9 +14,9 @@
                 <div v-if="sectionConfigs['content']['search examples']" class="search-extras f-row">
                     <div class="f-row" style="gap:5px">
                         Try 
-                        <templte v-for="example in sectionConfigs['content']['search examples']">
+                        <template v-for="example in sectionConfigs['content']['search examples']">
                             <a :href="example.url">{{example.value}}</a>
-                        </templte>
+                        </template>
                     </div>
                 </div>
             </div>
