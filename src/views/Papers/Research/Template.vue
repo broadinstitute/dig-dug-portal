@@ -41,11 +41,11 @@
 				:utils="$parent.utilsBox"
 			></research-single-search-v2>     
 			<research-single-search-cfde
-					v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == 'cfde'"
-					:single-search-config="$parent.sectionConfigs['single search']"
-					:phenotypes="$parent.phenotypesInSession" 
-					:utils="$parent.utilsBox"
-				></research-single-search-cfde>    
+				v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == 'cfde'"
+				:single-search-config="$parent.sectionConfigs['single search']"
+				:phenotypes="$parent.phenotypesInSession" 
+				:utils="$parent.utilsBox"
+			></research-single-search-cfde>    
 		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
 			<span v-html="'examples: '"></span>
 			<!--<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
@@ -545,6 +545,15 @@
 								:utils="$parent.utilsBox"
 								canvasId=""
 							></research-phewas-plot>
+							<research-umap
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'umap plot'
+								"
+								:renderConfig="$parent.plotConfig"
+								:utils="$parent.utilsBox"
+							>
+							</research-umap>
 							<!--v-if="
 									$parent.plotType == 'custom_pkg' &&
 									$parent.customPlotType == 'gem package'
@@ -645,7 +654,7 @@
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
 									style="position:relative"
 								>
-									<h4 v-if="!!group.label">{{ group.label }}</h4>
+									<h4 v-if="!!group.label && (group.type && group.type !== 'fixed bottom')">{{ group.label }}</h4>
 									<button v-if="!group.type"
 										class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
