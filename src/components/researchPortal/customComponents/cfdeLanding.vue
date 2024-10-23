@@ -11,12 +11,12 @@
                     :phenotypes="phenotypesInUse"
                     :utils="utilsBox">
                 </research-single-search-cfde>
-                <div class="search-extras f-row">
+                <div v-if="sectionConfigs['content']['search examples']" class="search-extras f-row">
                     <div class="f-row" style="gap:5px">
-                        Try <a href="/research.html?entity=gene&gene=BDH2&pageid=kc_entity_gene&tissue=blood">BDH2</a>
-                        <a
-                            href="/research.html?disease=MONDO%3A0004985&entity=disease&pageid=kc_entity_disease&tissue=blood">Bipolar
-                            disorder</a>
+                        Try 
+                        <templte v-for="example in sectionConfigs['content']['search examples']">
+                            <a :href="example.url">{{example.value}}</a>
+                        </templte>
                     </div>
                 </div>
             </div>
