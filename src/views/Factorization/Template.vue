@@ -41,7 +41,7 @@
                                         Gene Sets
                                     </div>
                                     <select class="form-control"
-                                        :v-model="$parent.genesetParam"
+                                        v-model="$parent.genesetParam"
                                     >
                                         <option v-for=" o in $store.state.genesetOptions"
                                             :value="o">

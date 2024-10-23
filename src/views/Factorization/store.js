@@ -21,6 +21,7 @@ export default new Vuex.Store({
         genesetFactor: [],
         roundTripInputGenes: [],
         genesetOptions: [],
+        genesetPValues: [],
     },
 
     mutations: {
@@ -37,13 +38,17 @@ export default new Vuex.Store({
             state.roundTripInputGenes = data || state.roundTripInputGenes;
         },
         setGenesetOptions(state, data){
-            state.genesetOptions = data || state.genesetOptions
+            state.genesetOptions = data || state.genesetOptions;
+        },
+        setGenesetPValues(state, data){
+            state.genesetPValues = data || state.genesetPValues;
         },
         clearAllData(state){
             state.pigeanFactor = [];
             state.geneFactor = [];
             state.genesetFactor = [];
             state.roundTripInputGenes = [];
+            state.genesetPValues = [];
         }
     },
 
@@ -51,26 +56,21 @@ export default new Vuex.Store({
     },
 
     actions: {
-        async queryBayesGenes(context, genesList, geneSets){
+        async queryBayesGenes(context, queryString){
             context.commit("clearAllData");
             let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/pigean";
-            let genesQuery = JSON.stringify(
-                { 
-                    "genes": genesList,
-                    "gene_sets": geneSets,
-                }
-            );
             let json = await fetch(address, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: genesQuery
+                body: queryString
             }).then(resp => resp.json());
             context.commit("setRoundTripInputGenes", json.input_genes);
             context.commit("setPigeanFactor", json["pigean-factor"].data);
             context.commit("setGeneFactor", json["gene-factor"]);
             context.commit("setGenesetFactor", json["gene-set-factor"]);
+            context.commit("setGenesetPValues", json["gene_sets"]);
         },
         async queryGenesetOptions(context){
             let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/heartbeat";
@@ -81,6 +81,6 @@ export default new Vuex.Store({
                 }
             }).then(resp => resp.json());
             context.commit("setGenesetOptions", json.gene_sets);
-        }
+        },
     },
 });
