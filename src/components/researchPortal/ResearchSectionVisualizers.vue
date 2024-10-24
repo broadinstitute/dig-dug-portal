@@ -88,6 +88,20 @@
 			:sectionId="sectionId"
 		></research-m-qq-plot>
 		<!-- region_plot -->
+		 <research-region-region-plot
+		 	v-if="plotConfig != null && plotConfig['type'] == 'region in region plot'"
+			:plotData="plotData"
+			:renderConfig="plotConfig"
+			:plotMargin="plotMargin"
+			:isSectionPage="true"
+			:sectionId="sectionId"
+			:utils="utils"
+			:starItems="starItems"
+			:colors="colors"
+			:region="region"
+		 	>
+
+		 </research-region-region-plot>
 		<multi-region-plot
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!region"
 			:plotData="plotData"
@@ -190,6 +204,7 @@ import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
 import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
+import ResearchRegionRegionPlot from "@/components/researchPortal/ResearchRegionRegionPlot.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
@@ -209,7 +224,8 @@ export default Vue.component("research-section-visualizers", {
 		ResearchBarPlot,
 		ResearchBoxPlot,
 		ResearchRegionTrack,
-		ResearchRegionDotsTrack
+		ResearchRegionDotsTrack,
+		ResearchRegionRegionPlot
     },
 	data() {
 		return {

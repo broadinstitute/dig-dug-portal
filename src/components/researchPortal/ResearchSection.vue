@@ -1429,7 +1429,7 @@ export default Vue.component("research-section", {
 			/// 'checkbox' filter 'uncheck' filter gets applied here
 			if(!!this.sectionConfig && !!this.sectionConfig.filters) {
 				let chkboxFilters = this.sectionConfig.filters.filter( f => f.type == 'checkbox');
-				console.log('chkboxFilters', chkboxFilters);
+				//console.log('chkboxFilters', chkboxFilters);
 
 				let tempArr = [...new Set(this.sectionData)];
 				chkboxFilters.map( f =>{
