@@ -388,6 +388,8 @@ export default Vue.component("region-region-plot", {
 		},
 
 		onResize(e) {
+			this.setViewingRegion();
+			this.setWideRegion();
 			this.renderPlot();
 		},
 	},
