@@ -664,6 +664,18 @@
 										</button>
 									</div>
 
+									<div class="tab-ui-wrapper" :id="'tabUiGroup' + groupIndex">
+											<div v-for="tab, tabIndex in group.sections" 
+												:id="'tabUi' + tab.section" 
+												class="tab-ui-tab" 
+												:class="tabIndex == 0 ? 'active' : ''"
+												@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
+													'tabContent' + tab.section, 'tabContentGroup' + groupIndex);">
+												{{ tab.label }} <span class="flag"><b-icon
+													icon="circle-fill"></b-icon></span>
+											</div>
+										</div>
+									<!--
 									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
 										<div v-for="tab, tabIndex in group.sections" 
 											:id="'tabUi'+tab.section" 
@@ -671,10 +683,11 @@
 											:class="tabIndex == 0?'active':''"
 											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
 												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
-											{{ tab.label }} <span class="flag"><b-icon
+											{{ $parent.utilsBox.Formatters.replaceWithParams(tab.label, $parent.pageParams) }} <span class="flag"><b-icon
 												icon="circle-fill"></b-icon></span>
 										</div>
 									</div>
+									-->
 									
 									<div :id="'tabContentGroup'+groupIndex" class="tab-content-group">
 										<template v-for="tab, tabIndex in group.sections">
@@ -704,6 +717,7 @@
 													:regionZoom="$parent.regionZoom"
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
+													:pageParams="$parent.pageParams"
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
 													@on-zoom="$parent.setZoom">
@@ -751,6 +765,7 @@
 									:starItems="$parent.starItems"
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
+									:pageParams="$parent.pageParams"
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
 									@on-zoom="$parent.setZoom">

@@ -608,17 +608,17 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             : null;
         let cellValue;
 
-        if(formatTypes.includes("cfde-datatypes"))
+        if (formatTypes.includes("cfde-datatypes"))
             console.log(typeof VALUE, Array.isArray(VALUE));
 
         if (typeof VALUE != "object") {
             //console.log('...not object')
-            if(formatTypes.includes("youtube")){
+            if (formatTypes.includes("youtube")) {
                 let cellValueString = `
                     <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${VALUE}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 `;
                 cellValue = cellValueString;
-            }else{
+            } else {
                 cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
             }
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
@@ -643,12 +643,12 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 })
                 cellValue = cellValueString;
 
-            } else if(formatTypes.includes("custom-citation")){
-                
+            } else if (formatTypes.includes("custom-citation")) {
+
                 let cellValueString = '';
-                
+
                 VALUE.forEach(item => {
-                    if(!item.title || item.title === "") return;
+                    if (!item.title || item.title === "") return;
                     const citation = `
                     <div class="citation">
                         <div><strong>${item.title}</strong></div>
@@ -663,7 +663,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     `;
                     cellValueString += citation;
                 })
-                
+
                 cellValue = cellValueString;
                 //console.log('make citation', VALUE);
 
@@ -682,13 +682,13 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             if (formatTypes.includes("custom-extra")) {
                 cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
             }
-            if(formatTypes.includes("cfde-datatypes")) {
+            if (formatTypes.includes("cfde-datatypes")) {
                 console.log("data type!");
                 let cellValueString = '<div style="display:flex;flex-direction:column; gap:10px;">';
-                for(const [key, value] of Object.entries(VALUE)){
-                    if(value.trim() != ''){
+                for (const [key, value] of Object.entries(VALUE)) {
+                    if (value.trim() != '') {
                         const k = key.replaceAll('_', ' ');
-                        cellValueString += `<div style="${k==='note'?'display:flex;gap:5px;font-style:italic;':''}">
+                        cellValueString += `<div style="${k === 'note' ? 'display:flex;gap:5px;font-style:italic;' : ''}">
                         <div style="font-weight:bold;text-transform:capitalize">${k}</div>
                         <div>${value}</div>
                         </div>
@@ -712,6 +712,33 @@ function getShortName(STR) {
         STR;
     return formatted;
 }
+
+function replaceWithParams(STR, PARAMS) {
+    let paramKeys = (!!PARAMS) ? Object.keys(PARAMS) : [];
+    let replacedSTR = STR;
+    if (!!replacedSTR) {
+        let url = window.location.href;
+        const queryParams = {};
+        const urlObj = new URL(url);
+        const searchParams = urlObj.searchParams;
+
+        for (const [key, value] of searchParams.entries()) {
+            queryParams[key] = value;
+        }
+
+        Object.keys(queryParams).map(key => {
+            if (paramKeys.includes(key)) {
+                let replaceTo = (!!PARAMS[key].values) ? PARAMS[key].values[queryParams[key]] : queryParams[key];
+                replacedSTR = replacedSTR.replaceAll('$' + key, replaceTo);
+            }
+        })
+
+        replacedSTR = replacedSTR.replaceAll('$', '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
+    }
+
+    return replacedSTR
+}
+
 
 export default {
     alleleFormatter,
@@ -742,4 +769,5 @@ export default {
     getHoverValue,
     getShortName,
     ssColumnFormat,
+    replaceWithParams
 };

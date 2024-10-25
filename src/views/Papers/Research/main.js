@@ -187,6 +187,28 @@ new Vue({
                 return JSON.parse(contents[0]["field_data_table_format"]);
             }
         },
+        pageParams() {
+            let params = {};
+            if (!!this.multiSectionsSearchParameters) {
+
+                this.multiSectionsSearchParameters.map(mp => {
+                    let values = (!!mp.values && !!Array.isArray(mp.values)) ? {} : null;
+                    if (values != null) {
+                        mp.values.map(v => {
+                            values[v.value] = v.label
+                        })
+                    }
+
+                    params[mp.parameter] = {
+                        label: mp.label,
+                        values: values
+                    }
+                })
+            }
+
+            return params;
+
+        },
         initialDescriptions() {
             let contents = this.researchPage;
 
@@ -481,9 +503,6 @@ new Vue({
                 }
             }
         },
-        // pageID() {
-        //     return keyParams.pageid.trim();
-        // },
         pageTitle() {
             let contents = this.researchPage;
 
@@ -1254,6 +1273,12 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
+        updateParams() {
+            console.log("updateParams() called")
+        },
+        getReplaced(CONTENT) {
+            return this.utilsBox.Formatters.replaceWithParams(CONTENT, this.pageParams);
+        },
         getExampleLink(EXAMPLE) {
             let exampleLink;
             this.sectionConfigs["single search"]["search parameters"].map(

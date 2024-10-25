@@ -360,6 +360,8 @@ export default Vue.component("research-multi-sections-search", {
 					})
 				}
 			}
+
+			this.$root.updateParams();
 		},
 		resetSearch() {
 			let paramsObj = {}
