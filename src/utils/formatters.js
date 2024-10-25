@@ -732,6 +732,8 @@ function replaceWithParams(STR, PARAMS) {
                 replacedSTR = replacedSTR.replaceAll('$' + key, replaceTo);
             }
         })
+
+        replacedSTR = replacedSTR.replaceAll('$', '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
     }
 
     return replacedSTR

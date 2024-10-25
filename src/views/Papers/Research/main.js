@@ -85,7 +85,6 @@ new Vue({
             dataFiles: [],
             dataTableFormat: null,
             context: null,
-            allSearchKeys: null,
             colors: {
                 mild: [
                     "#007bff25",
@@ -977,9 +976,6 @@ new Vue({
     },
 
     watch: {
-        allSearchKeys(KEYS) {
-            console.log(KEYS)
-        },
         sectionsData(DATA) {
             //console.log("sectionsData", DATA);
         },
@@ -1277,6 +1273,12 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
+        updateParams() {
+            console.log("updateParams() called")
+        },
+        getReplaced(CONTENT) {
+            return this.utilsBox.Formatters.replaceWithParams(CONTENT, this.pageParams);
+        },
         getExampleLink(EXAMPLE) {
             let exampleLink;
             this.sectionConfigs["single search"]["search parameters"].map(

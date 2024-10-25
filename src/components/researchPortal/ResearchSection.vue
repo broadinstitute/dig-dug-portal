@@ -20,7 +20,8 @@
 						:class="(sectionHidden != true) ? '' : 'red-background'"
 						@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden = (sectionHidden == true) ? false : true"
 						title="Show / hide section"><b-icon icon="eye"></b-icon></button>
-					<h4>{{ utils.Formatters.replaceWithParams(sectionConfig.header, pageParams) }}
+					<h4>
+						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
 
 						<!--
 						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
@@ -49,7 +50,9 @@
 				<div class="col-md-12">
 					<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
 						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-					<h4>{{ utils.Formatters.replaceWithParams(sectionConfig.header, pageParams) }}
+					<h4>
+						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
+						
 						<!--<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
 						<span class="required-parameters-wrapper">
 							<small
