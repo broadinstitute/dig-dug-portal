@@ -13,10 +13,23 @@
                     <div class="container" style="display: block !important">
                         <div class="row">
                             <div class="col-md-12">
-                                <div class="front-logo-wrapper">
+                                <div class="front-logo-wrapper" v-if="$parent.diseaseGroup.name == 'md'">
+                                        <img v-if="$parent.frontContents
+                                            .field_front_logo
+                                            " 
+                                            class="front-logo-img"
+                                            src='https://kp4cd.org/sites/default/files/vueportal/cmdkp_front_logo_2024.svg' />
+                                        <span :class="'front-logo-tagline front-logo-tagline-' +
+                                            $parent.diseaseGroup.name +
+                                            'kp'
+                                            " v-html="$parent.frontContents.field_tagline
+        "></span>
+                                    </div>
+                                <div class="front-logo-wrapper" v-else>
                                     <img v-if="$parent.frontContents
                                             .field_front_logo
-                                        " class="front-logo-img" :src="'https://kp4cd.org/sites/default/files/vueportal/' +
+                                        " class="front-logo-img"
+                                        :src="'https://kp4cd.org/sites/default/files/vueportal/' +
         $parent.frontContents
             .field_front_logo
         " />
