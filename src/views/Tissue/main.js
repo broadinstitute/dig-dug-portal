@@ -85,6 +85,7 @@ new Vue({
                     },
                 ],
             },
+            annotation: "",
         };
     },
     computed: {
@@ -148,6 +149,7 @@ new Vue({
         if (this.tissue) {
             this.$store.dispatch("getTissue");
         }
+        this.$store.dispatch("getAnnotations");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -171,6 +173,10 @@ new Vue({
             );
         },
     },
-
+    watch: {
+        "$store.state.annotationOptions"(data) {
+            this.annotation = data[0];
+        },
+    },
     render: (h) => h(Template),
 }).$mount("#app");

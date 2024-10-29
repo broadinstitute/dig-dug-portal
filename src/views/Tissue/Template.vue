@@ -149,16 +149,28 @@
                             class="filtering-ui-wrapper container-fluid temporary-card"
                         >
                             <div class="row filtering-ui-content">
-                                <span>
-                                    <div class="label">Search by phenotype</div>
-                                </span>
-                                <phenotype-selectpicker
-                                    :phenotypes="
-                                        $store.state.bioPortal.phenotypes
-                                    "
-                                    class="col filter-col-md"
-                                >
-                                </phenotype-selectpicker>
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">Search by phenotype</div>
+                                    </span>
+                                    <phenotype-selectpicker
+                                        :phenotypes="
+                                            $store.state.bioPortal.phenotypes
+                                        "
+                                    >
+                                    </phenotype-selectpicker>
+                                </div>
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">Search by annotation</div>
+                                    </span>
+                                    <select v-model="$parent.annotation">
+                                        <option v-for="anno in $store.state.annotationOptions"
+                                            :value="anno">
+                                            {{ anno }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <criterion-function-group>

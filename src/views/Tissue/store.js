@@ -5,6 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { query } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
@@ -17,7 +18,7 @@ export default new Vuex.Store({
         geneExpression: bioIndex("gene-expression"),
         geneLinks: bioIndex("gene-links"),
         mouseSummary: bioIndex("diff-exp-summary-tissue"),
-        cs2ct: bioIndex("c2ct"),
+        cs2ct: bioIndex("c2ct-tissue"),
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -26,7 +27,9 @@ export default new Vuex.Store({
         selectedAncestry: "",
         selectedPhenotype: null,
         topPhenotype: null,
-        credibleSetPhenotype: null
+        credibleSetPhenotype: null,
+        annotationOptions: [],
+        selectedAnnotation: "",
     },
 
     mutations: {
@@ -37,7 +40,7 @@ export default new Vuex.Store({
         setTopPhenotype(state, phenotype) {
             state.topPhenotype = phenotype || state.topPhenotype;
             state.credibleSetPhenotype = phenotype;
-        }
+        },
     },
     actions: {
         getTissue(context) {
@@ -65,11 +68,13 @@ export default new Vuex.Store({
             keyParams.set({ tissue: tissue });
         },
         getCs2ct(context, phenotype, ancestry){
-            let query = { q: `${phenotype},${ancestry}`,};
-            if (!ancestry){
-                query.q = phenotype;
+            let queryString = `${context.state.selectedAnnotation},${context.state.tissueName}`;
+            if (!!ancestry){
+                queryString = `${ancestry},${queryString}`;
             }
-            context.dispatch("cs2ct/query", query);
+            queryString = `${phenotype},${queryString}`;
+            console.log(queryString);
+            context.dispatch("cs2ct/query", { q : queryString });
         },
         onPhenotypeChange(context, phenotype){
             context.state.selectedPhenotype = phenotype;
@@ -78,7 +83,20 @@ export default new Vuex.Store({
             // Credible set is based on top phenotype or user selected phenotype,
             // whichever is changed most recently.
             context.dispatch("getCs2ct", phenotype.name);
-        }
+        },
+        async getAnnotations(context) {
+			let annotations = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/c2ct-tissue/3?columns=annotation`)
+				.then(resp => resp.json())
+				.then(json => {
+					if (json.count == 0) {
+						return null;
+					}
+					return json.keys.map(key => key[0])
+				});
+            console.log(annotations);
+            context.state.annotationOptions = annotations;
+            context.state.selectedAnnotation = annotations[0];
+		},
     },
     getters: {
         tissueData(state) {
