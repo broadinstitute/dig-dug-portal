@@ -622,6 +622,11 @@ let downloadChart = function (URL, FILENAME) {
     link.click();
     document.body.removeChild(link);
 };
+
+let copy2Clipboard = function (CONTENT) {
+    window.navigator.clipboard.writeText(CONTENT);
+}
+
 export default {
     addRemoveClass,
     popOutElement,
@@ -651,5 +656,6 @@ export default {
     toggleFixedSummarySection,
     showHidePanel,
     downloadImg,
-    downloadChart
+    downloadChart,
+    copy2Clipboard
 };

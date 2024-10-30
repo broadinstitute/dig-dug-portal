@@ -25,6 +25,11 @@
 				<tr v-for="row in subPageData">
 					<td  v-for="head in getTopRows()">
 						<span v-html="formatValue(row[head],head)"></span>
+						<!-- column formatting contains copy to clipboard -->
+
+						<b-btn class="copy-to-clipboard" v-if="tableFormat['column formatting'] && tableFormat['column formatting'][head] &&
+							tableFormat['column formatting'][head].type.includes('copy to clipboard')"
+							@click="utils.uiUtils.copy2Clipboard(row[head])">Copy</b-btn>
 					</td>
 				</tr>
 				<tr>
@@ -115,11 +120,19 @@ export default Vue.component("research-sub-section", {
 			}
 
 			return pageData;
-		}
+		},
+		tableFormat() {
+			if (!!this.subectionConfig['table format']) {
+				return this.subectionConfig['table format'];
+			} else {
+				return null;
+			}
+		},
 	},
 	watch: {
 	},
 	methods: {
+		
 		convertJson2Csv(DATA, FILENAME) {
 
 			// First wrap strings with comma or typeof object, and flatten the data
@@ -196,6 +209,24 @@ $(function () { });
 
 .subsection-table tr{
 	border-bottom: solid 1px 
+}
+
+.subsection-table td {
+	position: relative;
+}
+
+.subsection-table td .copy-to-clipboard {
+	font-size: 10px;
+    padding: 0 2px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+	opacity: 0.3;
+	border-radius: 0;
+}
+
+.subsection-table td:hover .copy-to-clipboard {
+	opacity: 1;
 }
 
 .egl-table-page-ui-wrapper {

@@ -1,6 +1,6 @@
 <template>
 	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
-		<div v-html="tableLegend" class="data-table-legend"></div>
+		<div v-if="!!dataset" v-html="tableLegend" class="data-table-legend"></div>
 		<div
 			v-if="
 				!!searchParameters &&
@@ -231,7 +231,7 @@
 											v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
 									</span>
 								</span>
-								<!-- working part-->
+								
 								<span v-else-if="!!ifSubsectionColumn(tdKey)"
 										class="dynamic-subsection-options">
 										<span class="btns-wrapper">
@@ -249,6 +249,12 @@
 								</span>
 								
 								<span v-else v-html="formatValue(tdValue, tdKey)"></span>
+
+								<!-- column formatting contains copy to clipboard -->
+								<b-btn  class="copy-to-clipboard"
+								 v-if="!!tableFormat['column formatting'] && tableFormat['column formatting'][tdKey] && 
+									tableFormat['column formatting'][tdKey].type.includes('copy to clipboard')"
+									@click="utils.uiUtils.copy2Clipboard(tdValue)">Copy</b-btn>
 							</td>
 							<td
 								v-if="
@@ -1542,16 +1548,32 @@ table.research-data-table {
 	cursor: pointer;
 }
 
+
 .research-data-table td {
 	border: none !important;
 	border-left: solid 1px #eee !important;
 	border-bottom: solid 1px #ddd !important;
 	height: 27px;
 	vertical-align: middle;
+	position: relative;
 }
 
 .research-data-table td.multi-value-td {
 	padding: 0 !important;
+}
+
+.research-data-table td .copy-to-clipboard {
+	font-size: 10px;
+    padding: 0 2px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+	opacity: 0.3;
+	border-radius: 0;
+}
+
+.research-data-table td:hover .copy-to-clipboard {
+	opacity: 1;
 }
 
 .research-data-table td.multi-value-td > span {
