@@ -334,7 +334,6 @@ export default Vue.component("research-section", {
 				this.openInfoCard = this.utils.keyParams[infoCardConfig['key']];
 			}
 		}
-
 		if (!!this.sectionConfig["data point"] && !!this.sectionConfig["data point"]["parameters point"]) {
 			let listPoint = this.sectionConfig["data point"]["parameters point"];
 			this.getList(
@@ -899,8 +898,9 @@ export default Vue.component("research-section", {
 
 		queryData(FROM) {
 			let queryType = this.dataPoint["type"];
-			let paramsType = this.dataPoint["parameters type"]
-			let params = this.dataPoint["parameters"]
+			let paramsType = this.dataPoint["parameters type"];
+			let params = this.dataPoint["parameters"];
+			let dataType = this.dataPoint["data type"]
 			// if data isn't getting cumulated, remove older search params other than the last one
 			if (!this.dataPoint["cumulate data"] && this.searched.length > 1) {
 				let lastSearched = this.searched[this.searched.length - 1]
@@ -920,7 +920,7 @@ export default Vue.component("research-section", {
 						this.queryBioindex(paramsString, paramsType, params);
 						break;
 					case "api":
-						this.queryApi(paramsString, paramsType, params);
+						this.queryApi(paramsString, paramsType, params, dataType);
 						break;
 					case "file":
 						let parameter = this.dataPoint["parameter"]
@@ -1065,7 +1065,7 @@ export default Vue.component("research-section", {
 			}
 		},
 
-		async queryApi(QUERY, TYPE, PARAMS) {
+		async queryApi(QUERY, TYPE, PARAMS, DATATYPE) {
 
 			if (QUERY != "") {
 				this.searched.push(QUERY);
@@ -1103,7 +1103,14 @@ export default Vue.component("research-section", {
 				})
 			}
 
-			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+			let contentJson;
+			if(DATATYPE && DATATYPE === "line json"){
+				const response = await fetch(dataUrl).then(resp => resp.text());
+				const lines = response.split('\n').filter(line => line.trim() !== '');
+				contentJson = lines.map(line => JSON.parse(line));
+			}else{
+				contentJson = await fetch(dataUrl).then((resp) => resp.json());
+			}
 
 			if (contentJson.error == null) {
 
@@ -1342,6 +1349,11 @@ export default Vue.component("research-section", {
 					} else {
 						data = CONTENT
 					}
+
+					break;
+
+				case "line json":
+					data = CONTENT;
 
 					break;
 
