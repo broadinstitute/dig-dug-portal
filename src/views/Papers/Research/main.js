@@ -276,6 +276,7 @@ new Vue({
                 this.sectionConfigs.sections.map((section) => {
                     if (!!section["search parameters"]) {
                         section["search parameters"].map((s) => {
+                            s["in-section search"] = true;
                             parameters.push(s);
                         });
                     }

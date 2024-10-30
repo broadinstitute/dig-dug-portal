@@ -5,6 +5,7 @@
 			<h4 class="card-title">Build search criteria</h4>
 			<div class="filtering-ui-content row">
 				<div class="col" :class="!!parameter.display && parameter.display == 'false' ? 'hidden-search' : ''"
+					:type="!!parameter['in-section search']? 'in-section search':''"
 					v-for="parameter, paramIndex in searchParameters" :key="parameter.parameter">
 					<div class="label">
 						<span v-html="parameter.label"></span>

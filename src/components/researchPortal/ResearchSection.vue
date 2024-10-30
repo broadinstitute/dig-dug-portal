@@ -156,7 +156,7 @@
 								"><b-icon icon="arrow-right-circle"></b-icon></span>
 						</form>
 					</div>
-
+					<!-- viz tabs-->
 					<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
 						<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
 							<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
@@ -167,14 +167,56 @@
 							</div>
 						</div>
 					</template>
-					<div v-if="!!multiVisualizers && !!sectionData"
+
+					<!-- viz tab groups -->
+					<template v-if="!!vizGroups && !!sectionData && multiVisualizersType == 'grouped tabs'">
+						<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
+							<div v-for="tab, tabIndex in vizGroups" :id="'tabUi' + sectionID + tabIndex"
+								class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
+									'tabUiGroup' + sectionID,
+									'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
+								{{ utils.Formatters.replaceWithParams(tab.label, pageParams) }}
+							</div>
+						</div>
+					</template>
+
+					<!-- viz in grouped tabs -->
+					<div v-if="!!vizGroups && !!sectionData && multiVisualizersType == 'grouped tabs'"
+						:id="multiVisualizersType == 'grouped tabs' ? 'tabContentGroup' + sectionID : ''">
+
+						<div v-for="group, groupIndex in vizGroups"
+								:id="'tabContent' + sectionID + groupIndex"
+								class="plot-tab-content-wrapper"
+								:class="(groupIndex == 0) ? '' : 'hidden-content'">
+							<!-- visualizers in group -->
+
+							<div v-for="plotConfig, plotIndex in group.visualizers"
+								class="plot-content-wrapper">
+								<h6 v-html="utils.Formatters.replaceWithParams(plotConfig.label, pageParams)"></h6>
+								<research-section-visualizers 
+									:plotConfig="plotConfig"
+									:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+									:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
+									:plotLegend="getSectionPlotLegend(sectionID + groupIndex + '_' + plotIndex)" :sectionId="sectionID + groupIndex  + '_' + plotIndex"
+									:utils="utils" :dataComparisonConfig="dataComparisonConfig"
+									:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
+									:regionViewArea="regionViewArea" :region="regionParam" :starItems="starItems"
+									@on-star="starColumn">
+								</research-section-visualizers>
+							</div>
+						</div>
+					</div>
+
+
+					<!-- viz as individual tabs-->
+					<div v-if="!!multiVisualizers && !!sectionData && (multiVisualizersType == 'tabs' || multiVisualizersType == 'divs')"
 						:id="multiVisualizersType == 'tabs' ? 'tabContentGroup' + sectionID : ''">
 
 						<div v-for="plotConfig, plotIndex in multiVisualizers"
 							:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex : ''"
 							class="plot-tab-content-wrapper"
 							:class="(multiVisualizersType == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
-							<h6 v-html="plotConfig.label" v-if="multiVisualizersType != 'tabs'"></h6>
+							<h6 v-html="utils.Formatters.replaceWithParams(plotConfig.label, pageParams)" v-if="multiVisualizersType != 'tabs'"></h6>
 							<research-section-visualizers :plotConfig="plotConfig"
 								:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 								:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
@@ -390,8 +432,19 @@ export default Vue.component("research-section", {
 		},
 		multiVisualizers() {
 			if (!!this.sectionData) {
-				if (!!this.sectionConfig["visualizers"]) {
+				if (!!this.sectionConfig["visualizers"] && this.sectionConfig["visualizers"]["wrapper type"] != "grouped tabs") {
 					return this.sectionConfig["visualizers"]["visualizers"];
+				} else {
+					return null;
+				}
+			} else {
+				return null
+			}
+		},
+		vizGroups() {
+			if (!!this.sectionData) {
+				if (!!this.sectionConfig["visualizers"] && this.sectionConfig["visualizers"]["wrapper type"] == "grouped tabs") {
+					return this.sectionConfig["visualizers"]["groups"];
 				} else {
 					return null;
 				}
