@@ -174,17 +174,6 @@
                             </div>
                         </div>
                         <criterion-function-group>
-                            <filter-enumeration-control
-                                :field="'annotation'"
-                                :multiple="true"
-                                :options="
-                                    $store.state.cs2ct.data.map(
-                                        (d) => d.annotation
-                                    )
-                                "
-                            >
-                                <div class="label">Annotation</div>
-                            </filter-enumeration-control>
                             <filter-less-control
                                 :field="'totalEntropy'"
                                 :pill-formatter="
@@ -194,6 +183,11 @@
                             >
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
+                            <filter-greater-control
+                                :field="'variants'"
+                            >
+                                <div class="label">Variants (&ge;)</div>
+                            </filter-greater-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <c2ct-table
