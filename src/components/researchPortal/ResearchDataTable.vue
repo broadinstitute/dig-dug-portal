@@ -314,7 +314,7 @@
 					<!-- testing dynamic sub table-->
 					<template v-if="!!tableFormat['column formatting']"
 					v-for="(itemValue, itemKey) in tableFormat['column formatting']">
-					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(itemKey+value[itemKey]+index)" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index)" :key="value[itemKey]"
+					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(itemKey+value[itemKey]+index)" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(itemKey + value[itemKey] + index)" :key="value[itemKey]"
 					>
 					<td :colspan="topRowNumber">
 						<research-sub-section
@@ -391,6 +391,7 @@ export default Vue.component("research-data-table", {
 			stared: false,
 			staredAll: false,
 			subSectionData:[],
+			subSectionHidden:[],
 			subSectionLoading:[]
 		};
 	},
@@ -719,6 +720,11 @@ export default Vue.component("research-data-table", {
 		getRowID(TEXT) {
 			return TEXT.replace(/[^a-zA-Z0-9]/g, '_');
 		},
+		ifHidden(TEXT) {
+			let id = this.getRowID(TEXT);
+
+			return (this.subSectionHidden.includes(id))? 'hidden' : '';
+		},
 		setParameter(VALUE,KEY,SECTION,PARAMETERS){
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
@@ -783,7 +789,6 @@ export default Vue.component("research-data-table", {
 			if(ifLoadedBefore != true) {
 				let paramsString = VALUE;
 
-				//console.log("paramsString", paramsString)
 				switch (queryType) {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
@@ -800,6 +805,14 @@ export default Vue.component("research-data-table", {
 			} else {
 				let fKEY = this.getRowID(KEY + VALUE + INDEX)
 				this.utils.uiUtils.showHideElement(fKEY);
+
+				let elementClassList = document.getElementsByClassName(fKEY)[0].classList;
+
+				if(!!elementClassList.contains("hidden")) {
+					this.subSectionHidden.push(fKEY);
+				} else {
+					this.subSectionHidden = this.subSectionHidden.filter(s => s != fKEY);
+				}
 			}
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
