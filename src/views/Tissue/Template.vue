@@ -121,13 +121,13 @@
                     <div class="card-body">
                         <h4 class="card-title">
                             Credible Sets to Cell Type (CS2CT) results for
-                            {{ $parent.phenotypeDisplayName }}
+                            {{ $store.state.selectedPhenotype?.description }}
                             (Ancestry:
                             {{
-                                $parent.cs2ctAncestry == ""
+                                $store.state.selectedAncestry == ""
                                     ? "All"
                                     : $parent.ancestryFormatter(
-                                          $parent.cs2ctAncestry
+                                        $store.state.selectedAncestry
                                       )
                             }})
                             <tooltip-documentation

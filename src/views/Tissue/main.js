@@ -157,6 +157,7 @@ new Vue({
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        phenotypeFormatter: Formatters.phenotypeFormatter,
         newTissue(tissue) {
             this.selectTissue = tissue;
         },
