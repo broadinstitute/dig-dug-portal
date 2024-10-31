@@ -90,12 +90,6 @@ export default Vue.component("c2ct-table", {
             sortByCorrelation: false,
             fields: [
                 {
-                    key: "annotation",
-                    label: "Annotation",
-                    formatter: Formatters.annotationFormatter,
-                    sortable: true,
-                },
-                {
                     key: "tissue",
                     label: "Tissue",
                     formatter: Formatters.tissueFormatter,

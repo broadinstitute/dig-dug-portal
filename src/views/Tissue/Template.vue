@@ -165,6 +165,7 @@
                                         <div class="label">Search by annotation</div>
                                     </span>
                                     <select v-model="$parent.annotation"
+                                        class="form-control"
                                         @change="$parent.onAnnotationSelected()">
                                         <option v-for="anno in $store.state.annotationOptions"
                                             :value="anno">
