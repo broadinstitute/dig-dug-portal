@@ -184,6 +184,13 @@
                             </div>
                         </div>
                         <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'source'"
+                                :multiple="true"
+                                :options="$parent.cs2ctData.map(d => d.source)"
+                            >
+                                <div class="label">Source</div>
+                            </filter-enumeration-control>
                             <filter-less-control
                                 :field="'totalEntropy'"
                                 :pill-formatter="

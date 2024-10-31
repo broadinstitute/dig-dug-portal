@@ -101,6 +101,12 @@ export default Vue.component("c2ct-table", {
                     sortable: true,
                 },
                 {
+                    key: "source",
+                    label: "Source",
+                    sortable: true,
+                    formatter: Formatters.tissueFormatter,
+                },
+                {
                     key: "chromosome",
                     label: "Clump start - end",
                 },

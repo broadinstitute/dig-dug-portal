@@ -250,10 +250,17 @@
                         </div>
                         <criterion-function-group>
                             <filter-enumeration-control
+                                :field="'source'"
+                                :multiple="true"
+                                :options="$parent.c2ctData.map(d => d.source)"
+                            >
+                                <div class="label">Source</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
                                 :field="'tissue'"
                                 :multiple="true"
                                 :options="
-                                    $store.state.c2ct.data.map((d) => d.tissue)
+                                    $parent.c2ctData.map((d) => d.tissue)
                                 "
                             >
                                 <div class="label">Tissue</div>
