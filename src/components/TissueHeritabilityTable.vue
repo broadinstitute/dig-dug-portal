@@ -211,7 +211,6 @@ export default Vue.component("TissueHeritabilityTable", {
         topPhenotype(newPhenotype){
             let details = {
                 phenotype: newPhenotype,
-                ancestry: this.ancestry
             };
             this.$emit("topPhenotypeFound", details);
         }

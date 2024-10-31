@@ -136,11 +136,6 @@ new Vue({
             });
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
-        phenotypeDisplayName() {
-            let phenotype = this.$store.state.selectedPhenotype;
-            let map = this.$store.state.bioPortal.phenotypeMap;
-            return map[phenotype]?.description || "";
-        },
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -167,8 +162,10 @@ new Vue({
             this.$store.dispatch("getTissue");
         },
         getTopPhenotype(details) {
-            this.$store.commit("setTopPhenotype", details.phenotype);
-            this.$store.dispatch("getCs2ct");
+            if (this.$store.state.selectedPhenotype === null){
+                this.$store.dispatch("onPhenotypeChange", details.phenotype);
+            }
+            //this.$store.dispatch("getCs2ct");
         },
         onAnnotationSelected(){
             this.$store.commit("setSelectedAnnotation", this.annotation);
