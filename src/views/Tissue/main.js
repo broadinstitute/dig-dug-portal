@@ -134,7 +134,7 @@ new Vue({
                 d.originalBiosample = d.biosample;
                 d.biosample = Formatters.tissueFormatter(d.biosample);
             });
-            return data;
+            return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
         phenotypeDisplayName() {
             let phenotype = this.$store.state.selectedPhenotype;
