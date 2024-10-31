@@ -163,6 +163,7 @@ a:hover {
     width: 490px;
     margin-left: -20px;
     border-right: solid 1px #5ec8e8;
+    padding: 0 20px 20px 0;
 }
 
 .front-top-banner-cvdkp .front-logo-img {
@@ -251,7 +252,7 @@ a:hover {
 }
 
 .front-logo-tagline-mdkp {
-    transform: translate(0%, 85%);
+    transform: translate(0%, 65%);
 }
 
 .front-logo-tagline-t2dkp {
