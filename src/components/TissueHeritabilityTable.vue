@@ -258,7 +258,7 @@ export default Vue.component("TissueHeritabilityTable", {
             return this.subTableData[query];
         },
         toSpace(phrase) {
-            return phrase.replaceAll("_", " ");
+            return phrase;
         },
     },
 });
