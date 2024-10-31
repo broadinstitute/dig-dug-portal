@@ -68,6 +68,7 @@ new Vue({
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
+            annotation: "",
         };
     },
 
@@ -236,9 +237,13 @@ new Vue({
                 pValuePills.forEach((e) => (e.hidden = false));
             }
         },
+        "$store.state.annotationOptions"(data) {
+            this.annotation = data[0];
+        },
     },
 
     created() {
+        this.$store.dispatch("getAnnotations");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -276,6 +281,10 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
+        onAnnotationSelected(){
+            this.$store.commit("setSelectedAnnotation", this.annotation);
+            this.$store.dispatch("getCs2ct");
+        }
     },
 
     render(createElement, context) {

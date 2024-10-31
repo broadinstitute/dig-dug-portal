@@ -228,18 +228,26 @@
                             name="phenotype.cs2ct.subheader"
                             :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
+                        <div
+                            class="filtering-ui-wrapper container-fluid temporary-card"
+                        >
+                            <div class="row filtering-ui-content">
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">Search by annotation</div>
+                                    </span>
+                                    <select v-model="$parent.annotation"
+                                        class="form-control"
+                                        @change="$parent.onAnnotationSelected()">
+                                        <option v-for="anno in $store.state.annotationOptions"
+                                            :value="anno">
+                                            {{ anno }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                         <criterion-function-group>
-                            <filter-enumeration-control
-                                :field="'annotation'"
-                                :multiple="true"
-                                :options="
-                                    $store.state.c2ct.data.map(
-                                        (d) => d.annotation
-                                    )
-                                "
-                            >
-                                <div class="label">Annotation</div>
-                            </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'tissue'"
                                 :multiple="true"
@@ -249,6 +257,11 @@
                             >
                                 <div class="label">Tissue</div>
                             </filter-enumeration-control>
+                            <filter-greater-control
+                                :field="'varTotal'"
+                            >
+                                <div class="label">Variants (&ge;)</div>
+                            </filter-greater-control>
                             <filter-less-control
                                 :field="'totalEntropy'"
                                 :pill-formatter="

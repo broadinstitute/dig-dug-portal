@@ -5,6 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -33,6 +34,8 @@ export default new Vuex.Store({
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         manhattanPlotAvailable: true,
+        annotationOptions: [],
+        selectedAnnotation: "",
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -69,7 +72,20 @@ export default new Vuex.Store({
         onAncestryChange(context){
             context.dispatch("queryPhenotype");
         },
-
+        async getAnnotations(context) {
+            console.log("LOGGING ANNOTATIONS:");
+			let annotations = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/c2ct-annotation/2?columns=annotation`)
+				.then(resp => resp.json())
+				.then(json => {
+					if (json.count == 0) {
+						return null;
+					}
+					return json.keys.map(key => key[0])
+				});
+            console.log(annotations);
+            context.state.annotationOptions = annotations;
+            context.state.selectedAnnotation = annotations[0];
+		},
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
