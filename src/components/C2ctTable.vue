@@ -135,6 +135,7 @@ export default Vue.component("c2ct-table", {
                     key: "variantSifter",
                     label: "variantSifter",
                     sortable: false,
+                    tdClass: "text-center"
                 }
             ],
         };
