@@ -41,13 +41,12 @@
                 <div :class="diseaseGroup.name + 'kp-logo-wrapper col-md-4'">
                     <a href="/">
                         <img
-                            v-if="frontContents.field_banner_logo"
-                            :src="
-                                '//kp4cd.org/sites/default/files/vueportal/' +
-                                frontContents.field_banner_logo
-                            "
-                            :class="diseaseGroup.name + 'kp-logo'"
-                        />
+                                v-if="frontContents.field_banner_logo"
+                                :src="'//kp4cd.org/sites/default/files/vueportal/' +
+                                    frontContents.field_banner_logo
+                                    "
+                                :class="diseaseGroup.name + 'kp-logo'"
+                            />
                         <img
                             v-else
                             src="//kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
