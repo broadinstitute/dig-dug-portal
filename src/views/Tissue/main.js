@@ -87,6 +87,7 @@ new Vue({
                     },
                 ],
             },
+            annotation: "",
         };
     },
     computed: {
@@ -168,14 +169,18 @@ new Vue({
             this.$store.commit("setTopPhenotype", details.phenotype);
             this.$store.dispatch("getCs2ct");
         },
+        onAnnotationSelected(){
+            this.$store.commit("setSelectedAnnotation", this.annotation);
+            this.$store.dispatch("getCs2ct");
+        }
     },
     watch: {
+        "$store.state.annotationOptions"(data) {
+            this.annotation = data[0];
+        },
         "$store.state.selectedAncestry"(){
             this.$store.dispatch("getCs2ct");
         },
-        "store.state.selectedAnnotation"(){
-            this.$store.dispatch("getCs2ct");
-        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

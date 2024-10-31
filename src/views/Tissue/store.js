@@ -42,6 +42,9 @@ export default new Vuex.Store({
                 state.selectedPhenotype = phenotype;
             }
         },
+        setSelectedAnnotation(state, annotation){
+            state.selectedAnnotation = annotation || state.selectedAnnotation;
+        }
     },
     actions: {
         getTissue(context) {
