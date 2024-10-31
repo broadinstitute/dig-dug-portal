@@ -171,6 +171,14 @@
                                         </option>
                                     </select>
                                 </div>
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">Search by ancestry</div>
+                                    </span>
+                                    <ancestry-selectpicker
+                                        :ancestries="$store.state.ancestryOptions">
+                                    </ancestry-selectpicker>
+                                </div>
                             </div>
                         </div>
                         <criterion-function-group>

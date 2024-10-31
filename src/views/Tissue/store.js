@@ -97,6 +97,17 @@ export default new Vuex.Store({
             context.state.annotationOptions = annotations;
             context.state.selectedAnnotation = annotations[0];
 		},
+        async getAncestries(context) {
+			let ancestries = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/c2ct-tissue/4?columns=ancestry`)
+				.then(resp => resp.json())
+				.then(json => {
+					if (json.count == 0) {
+						return null;
+					}
+					return json.keys.map(key => key[0])
+				});
+            context.state.ancestryOptions = ancestries;
+		},
     },
     getters: {
         tissueData(state) {

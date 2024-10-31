@@ -14,6 +14,7 @@ import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -43,6 +44,7 @@ new Vue({
         MouseSummaryTable,
         C2ctTable,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
     },
     mixins: [pageMixin],
     data() {
@@ -150,6 +152,7 @@ new Vue({
             this.$store.dispatch("getTissue");
         }
         this.$store.dispatch("getAnnotations");
+        this.$store.dispatch("getAncestries");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
