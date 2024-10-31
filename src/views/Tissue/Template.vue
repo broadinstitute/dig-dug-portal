@@ -192,7 +192,7 @@
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
                             <filter-greater-control
-                                :field="'variants'"
+                                :field="'varTotal'"
                             >
                                 <div class="label">Variants (&ge;)</div>
                             </filter-greater-control>
