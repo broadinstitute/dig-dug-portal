@@ -74,11 +74,9 @@ export default new Vuex.Store({
         getCs2ct(context){
             let queryString = `${context.state.selectedAnnotation},${context.state.tissueName}`;
             if (!!context.state.selectedAncestry){
-                console.log("querying with ancestry");
                 queryString = `${context.state.selectedAncestry},${queryString}`;
             }
             queryString = `${context.state.selectedPhenotype.name},${queryString}`;
-            console.log(queryString);
             context.dispatch("cs2ct/query", { q : queryString });
         },
         onPhenotypeChange(context, phenotype){

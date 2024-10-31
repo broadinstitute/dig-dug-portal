@@ -21,7 +21,7 @@ export default new Vuex.Store({
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
         geneticCorrelation: bioIndex("genetic-correlation"),
         pathwayAssoc: bioIndex("pathway-associations"),
-        c2ct: bioIndex("c2ct"),
+        c2ct: bioIndex("c2ct-annotation"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -54,6 +54,9 @@ export default new Vuex.Store({
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
         },
+        setSelectedAnnotation(state, annotation){
+            state.selectedAnnotation = annotation || state.selectedAnnotation;
+        }
     },
     getters: {
         docDetails(state) {
@@ -73,7 +76,6 @@ export default new Vuex.Store({
             context.dispatch("queryPhenotype");
         },
         async getAnnotations(context) {
-            console.log("LOGGING ANNOTATIONS:");
 			let annotations = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/c2ct-annotation/2?columns=annotation`)
 				.then(resp => resp.json())
 				.then(json => {
@@ -82,7 +84,6 @@ export default new Vuex.Store({
 					}
 					return json.keys.map(key => key[0])
 				});
-            console.log(annotations);
             context.state.annotationOptions = annotations;
             context.state.selectedAnnotation = annotations[0];
 		},
@@ -128,8 +129,16 @@ export default new Vuex.Store({
             context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
-            context.dispatch("c2ct/query", ancestryOptionalQuery);
+            context.dispatch("getCs2ct");
             context.state.manhattanPlotAvailable = true;
+        },
+        getCs2ct(context){
+            let queryString = context.state.phenotype.name;
+            if (!!context.state.selectedAncestry){
+                queryString = `${context.state.selectedAncestry},${queryString}`;
+            }
+            queryString = `${queryString},${context.state.selectedAnnotation}`;
+            context.dispatch("c2ct/query", { q : queryString });
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
