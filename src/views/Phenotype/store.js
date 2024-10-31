@@ -21,7 +21,8 @@ export default new Vuex.Store({
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
         geneticCorrelation: bioIndex("genetic-correlation"),
         pathwayAssoc: bioIndex("pathway-associations"),
-        c2ct: bioIndex("c2ct-annotation"),
+        c2ct: bioIndex("c2ct"),
+        c2ctAnnotation: bioIndex("c2ct-annotation"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -137,8 +138,12 @@ export default new Vuex.Store({
             if (!!context.state.selectedAncestry){
                 queryString = `${context.state.selectedAncestry},${queryString}`;
             }
-            queryString = `${queryString},${context.state.selectedAnnotation}`;
-            context.dispatch("c2ct/query", { q : queryString });
+            if (!!context.state.selectedAnnotation){
+                queryString = `${queryString},${context.state.selectedAnnotation}`;
+                context.dispatch("c2ctAnnotation/query", { q : queryString });
+            } else {
+                context.dispatch("c2ct/query", { q : queryString });
+            }
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);

@@ -182,7 +182,9 @@ new Vue({
             return focusedData;
         },
         c2ctData() {
-            let data = this.$store.state.c2ct.data;
+            let data = !!this.$store.state.selectedAnnotation ? 
+                this.$store.state.c2ctAnnotation.data :
+                this.$store.state.c2ct.data;
             data.forEach((d) => {
                 // Makes biosamples show up alphabetically in the dropdown menu.
                 d.originalBiosample = d.biosample;
@@ -236,9 +238,6 @@ new Vue({
                 allFilterPills.forEach((e) => (e.hidden = false));
                 pValuePills.forEach((e) => (e.hidden = false));
             }
-        },
-        "$store.state.annotationOptions"(data) {
-            this.annotation = data[0];
         },
     },
 
