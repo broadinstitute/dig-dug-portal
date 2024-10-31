@@ -8,7 +8,7 @@
                     : ancestryFormatter(ancestry)
             }})
         </h4>
-        <div class="filtering-ui-wrapper container-fluid">
+        <!-- <div class="filtering-ui-wrapper container-fluid">
             <div class="row filtering-ui-content">
                 <div class="col filter-col-md">
                     <div class="label">Ancestry</div>
@@ -22,7 +22,7 @@
                     ></ancestry-selectpicker>
                 </div>
             </div>
-        </div>
+        </div> -->
         <documentation
             name="tissue.global-enrichment.subheader"
             :contentFill="$parent.docDetails"

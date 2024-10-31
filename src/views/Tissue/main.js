@@ -14,6 +14,7 @@ import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -43,6 +44,7 @@ new Vue({
         MouseSummaryTable,
         C2ctTable,
         PhenotypeSelectPicker,
+        AncestrySelectPicker,
     },
     mixins: [pageMixin],
     data() {
@@ -85,6 +87,7 @@ new Vue({
                     },
                 ],
             },
+            annotation: "",
         };
     },
     computed: {
@@ -131,10 +134,10 @@ new Vue({
                 d.originalBiosample = d.biosample;
                 d.biosample = Formatters.tissueFormatter(d.biosample);
             });
-            return data;
+            return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
         phenotypeDisplayName() {
-            let phenotype = this.$store.state.credibleSetPhenotype;
+            let phenotype = this.$store.state.selectedPhenotype;
             let map = this.$store.state.bioPortal.phenotypeMap;
             return map[phenotype]?.description || "";
         },
@@ -148,10 +151,13 @@ new Vue({
         if (this.tissue) {
             this.$store.dispatch("getTissue");
         }
+        this.$store.dispatch("getAnnotations");
+        this.$store.dispatch("getAncestries");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        phenotypeFormatter: Formatters.phenotypeFormatter,
         newTissue(tissue) {
             this.selectTissue = tissue;
         },
@@ -161,16 +167,21 @@ new Vue({
             this.$store.dispatch("getTissue");
         },
         getTopPhenotype(details) {
-            // Credible set is based on top phenotype or user selected phenotype,
-            // whichever is changed most recently.
             this.$store.commit("setTopPhenotype", details.phenotype);
-            this.$store.dispatch(
-                "getCs2ct",
-                details.phenotype,
-                details.ancestry
-            );
+            this.$store.dispatch("getCs2ct");
+        },
+        onAnnotationSelected(){
+            this.$store.commit("setSelectedAnnotation", this.annotation);
+            this.$store.dispatch("getCs2ct");
+        }
+    },
+    watch: {
+        "$store.state.annotationOptions"(data) {
+            this.annotation = data[0];
+        },
+        "$store.state.selectedAncestry"(){
+            this.$store.dispatch("getCs2ct");
         },
     },
-
     render: (h) => h(Template),
 }).$mount("#app");

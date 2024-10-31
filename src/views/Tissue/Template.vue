@@ -121,13 +121,13 @@
                     <div class="card-body">
                         <h4 class="card-title">
                             Credible Sets to Cell Type (CS2CT) results for
-                            {{ $parent.phenotypeDisplayName }}
+                            {{ $store.state.selectedPhenotype?.description }}
                             (Ancestry:
                             {{
-                                $parent.cs2ctAncestry == ""
+                                $store.state.selectedAncestry == ""
                                     ? "All"
                                     : $parent.ancestryFormatter(
-                                          $parent.cs2ctAncestry
+                                        $store.state.selectedAncestry
                                       )
                             }})
                             <tooltip-documentation
@@ -149,29 +149,47 @@
                             class="filtering-ui-wrapper container-fluid temporary-card"
                         >
                             <div class="row filtering-ui-content">
-                                <span>
-                                    <div class="label">Search by phenotype</div>
-                                </span>
-                                <phenotype-selectpicker
-                                    :phenotypes="
-                                        $store.state.bioPortal.phenotypes
-                                    "
-                                    class="col filter-col-md"
-                                >
-                                </phenotype-selectpicker>
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">Search by phenotype</div>
+                                    </span>
+                                    <phenotype-selectpicker
+                                        :phenotypes="
+                                            $store.state.bioPortal.phenotypes
+                                        "
+                                    >
+                                    </phenotype-selectpicker>
+                                </div>
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">Search by annotation</div>
+                                    </span>
+                                    <select v-model="$parent.annotation"
+                                        class="form-control"
+                                        @change="$parent.onAnnotationSelected()">
+                                        <option v-for="anno in $store.state.annotationOptions"
+                                            :value="anno">
+                                            {{ anno }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">Search by ancestry</div>
+                                    </span>
+                                    <ancestry-selectpicker
+                                        :ancestries="$store.state.ancestryOptions">
+                                    </ancestry-selectpicker>
+                                </div>
                             </div>
                         </div>
                         <criterion-function-group>
                             <filter-enumeration-control
-                                :field="'annotation'"
+                                :field="'source'"
                                 :multiple="true"
-                                :options="
-                                    $store.state.cs2ct.data.map(
-                                        (d) => d.annotation
-                                    )
-                                "
+                                :options="$parent.cs2ctData.map(d => d.source)"
                             >
-                                <div class="label">Annotation</div>
+                                <div class="label">Source</div>
                             </filter-enumeration-control>
                             <filter-less-control
                                 :field="'totalEntropy'"
@@ -182,13 +200,18 @@
                             >
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
+                            <filter-greater-control
+                                :field="'varTotal'"
+                            >
+                                <div class="label">Variants (&ge;)</div>
+                            </filter-greater-control>
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <c2ct-table
                                     :c2ct-data="$parent.cs2ctData"
                                     :filter="filter"
                                     :phenotype="
-                                        $store.state.credibleSetPhenotype
+                                        $store.state.selectedPhenotype
                                     "
                                 >
                                 </c2ct-table>
