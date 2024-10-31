@@ -161,11 +161,10 @@ new Vue({
             this.$store.commit("setTissueName", this.tissue);
             this.$store.dispatch("getTissue");
         },
-        getTopPhenotype(details) {
+        getTopPhenotype(phenotype) {
             if (this.$store.state.selectedPhenotype === null){
-                this.$store.dispatch("onPhenotypeChange", details.phenotype);
+                this.$store.dispatch("onPhenotypeChange", phenotype);
             }
-            //this.$store.dispatch("getCs2ct");
         },
         onAnnotationSelected(){
             this.$store.commit("setSelectedAnnotation", this.annotation);
