@@ -146,8 +146,8 @@ export default Vue.component("TissueHeritabilityTable", {
                     label: "Biosample",
                     formatter: (value) =>
                         !value
-                            ? `All biosamples (${this.toSpace(this.tissue)})`
-                            : this.toSpace(value),
+                            ? `All biosamples (${this.tissue})`
+                            : value,
                     tdClass: (value) => (!value ? "all_biosamples" : ""),
                     sortable: true,
                 },
@@ -174,7 +174,7 @@ export default Vue.component("TissueHeritabilityTable", {
             return this.itemData?.length || 0;
         },
         tableKey(){
-            return `${this.toSpace(this.tissue)},${this.ancestry}`;
+            return `${this.tissue},${this.ancestry}`;
         },
         itemData(){
             if (!this.tableData[this.tableKey]){
@@ -237,7 +237,7 @@ export default Vue.component("TissueHeritabilityTable", {
         async queryPartitionedHeritability(item) {
             let queryString = `${item.phenotype},${this.ancestry},${
                 item.annotation
-            },${this.toSpace(this.tissue)}`;
+            },${this.tissue}`;
             if (!this.subTableData[queryString]) {
                 let data = await query(
                     "partitioned-heritability-tissue",
@@ -254,11 +254,8 @@ export default Vue.component("TissueHeritabilityTable", {
         getSubTableData(item) {
             let query = `${item.phenotype},${this.ancestry},${
                 item.annotation
-            },${this.toSpace(this.tissue)}`;
+            },${this.tissue}`;
             return this.subTableData[query];
-        },
-        toSpace(phrase) {
-            return phrase;
         },
     },
 });
