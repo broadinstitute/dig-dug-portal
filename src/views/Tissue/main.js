@@ -87,7 +87,6 @@ new Vue({
                     },
                 ],
             },
-            annotation: "",
         };
     },
     computed: {
@@ -137,7 +136,7 @@ new Vue({
             return data;
         },
         phenotypeDisplayName() {
-            let phenotype = this.$store.state.credibleSetPhenotype;
+            let phenotype = this.$store.state.selectedPhenotype;
             let map = this.$store.state.bioPortal.phenotypeMap;
             return map[phenotype]?.description || "";
         },
@@ -166,20 +165,17 @@ new Vue({
             this.$store.dispatch("getTissue");
         },
         getTopPhenotype(details) {
-            // Credible set is based on top phenotype or user selected phenotype,
-            // whichever is changed most recently.
             this.$store.commit("setTopPhenotype", details.phenotype);
-            this.$store.dispatch(
-                "getCs2ct",
-                details.phenotype,
-                details.ancestry
-            );
+            this.$store.dispatch("getCs2ct");
         },
     },
     watch: {
-        "$store.state.annotationOptions"(data) {
-            this.annotation = data[0];
+        "$store.state.selectedAncestry"(){
+            this.$store.dispatch("getCs2ct");
         },
+        "store.state.selectedAnnotation"(){
+            this.$store.dispatch("getCs2ct");
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

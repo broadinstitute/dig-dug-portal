@@ -114,7 +114,6 @@ export default Vue.component("c2ct-table", {
                     key: "varTotal",
                     label: "Variants",
                     sortable: true,
-                    tdClass: "text-right",
                 },
                 {
                     key: "overlapLeadSNP",

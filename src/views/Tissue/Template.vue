@@ -164,7 +164,7 @@
                                     <span>
                                         <div class="label">Search by annotation</div>
                                     </span>
-                                    <select v-model="$parent.annotation">
+                                    <select v-model="$store.state.selectedAnnotation">
                                         <option v-for="anno in $store.state.annotationOptions"
                                             :value="anno">
                                             {{ anno }}
@@ -202,7 +202,7 @@
                                     :c2ct-data="$parent.cs2ctData"
                                     :filter="filter"
                                     :phenotype="
-                                        $store.state.credibleSetPhenotype
+                                        $store.state.selectedPhenotype
                                     "
                                 >
                                 </c2ct-table>

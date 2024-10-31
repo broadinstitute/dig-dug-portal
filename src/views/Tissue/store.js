@@ -27,7 +27,6 @@ export default new Vuex.Store({
         selectedAncestry: "",
         selectedPhenotype: null,
         topPhenotype: null,
-        credibleSetPhenotype: null,
         annotationOptions: [],
         selectedAnnotation: "",
     },
@@ -39,7 +38,9 @@ export default new Vuex.Store({
         },
         setTopPhenotype(state, phenotype) {
             state.topPhenotype = phenotype || state.topPhenotype;
-            state.credibleSetPhenotype = phenotype;
+            if (!state.selectedPhenotype){
+                state.selectedPhenotype = phenotype;
+            }
         },
     },
     actions: {
@@ -67,18 +68,18 @@ export default new Vuex.Store({
             context.state.selectedTissue = tissue;
             keyParams.set({ tissue: tissue });
         },
-        getCs2ct(context, phenotype, ancestry){
+        getCs2ct(context){
             let queryString = `${context.state.selectedAnnotation},${context.state.tissueName}`;
-            if (!!ancestry){
-                queryString = `${ancestry},${queryString}`;
+            if (!!context.state.selectedAncestry){
+                console.log("querying with ancestry");
+                queryString = `${context.state.selectedAncestry},${queryString}`;
             }
-            queryString = `${phenotype},${queryString}`;
+            queryString = `${context.state.selectedPhenotype.name},${queryString}`;
             console.log(queryString);
             context.dispatch("cs2ct/query", { q : queryString });
         },
         onPhenotypeChange(context, phenotype){
             context.state.selectedPhenotype = phenotype;
-            context.state.credibleSetPhenotype = phenotype.name;
 
             // Credible set is based on top phenotype or user selected phenotype,
             // whichever is changed most recently.
