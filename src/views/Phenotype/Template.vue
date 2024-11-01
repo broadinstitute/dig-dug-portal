@@ -211,7 +211,9 @@
                                     ? "All"
                                     : $parent.ancestryFormatter(
                                         $store.state.selectedAncestry
-                                      )}}, Annotation: {{ 
+                                      )}}, Annotation: 
+                            {{ $store.state.selectedAnnotation == ""
+                                ? "All" : 
                                 $parent.tissueFormatter($store.state.selectedAnnotation)
                             }})
                             <tooltip-documentation

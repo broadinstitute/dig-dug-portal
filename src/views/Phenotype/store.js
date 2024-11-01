@@ -86,7 +86,6 @@ export default new Vuex.Store({
 					return json.keys.map(key => key[0])
 				});
             context.state.annotationOptions = annotations;
-            context.state.selectedAnnotation = annotations[0];
 		},
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
