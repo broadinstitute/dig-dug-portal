@@ -123,12 +123,12 @@
                             Credible Sets to Cell Type (CS2CT) results for
                             {{ $store.state.selectedPhenotype?.description }}
                             (Ancestry:
-                            {{
-                                $store.state.selectedAncestry == ""
+                            {{ $store.state.selectedAncestry == ""
                                     ? "All"
                                     : $parent.ancestryFormatter(
                                         $store.state.selectedAncestry
-                                      )
+                                      )}}, Annotation: {{ 
+                                $parent.tissueFormatter($store.state.selectedAnnotation)
                             }})
                             <tooltip-documentation
                                 name="phenotype.cs2ct.tooltip"
@@ -162,6 +162,14 @@
                                 </div>
                                 <div class="col filter-col-md">
                                     <span>
+                                        <div class="label">Search by ancestry</div>
+                                    </span>
+                                    <ancestry-selectpicker
+                                        :ancestries="$store.state.ancestryOptions">
+                                    </ancestry-selectpicker>
+                                </div>
+                                <div class="col filter-col-md">
+                                    <span>
                                         <div class="label">Search by annotation</div>
                                     </span>
                                     <select v-model="$parent.annotation"
@@ -173,14 +181,7 @@
                                         </option>
                                     </select>
                                 </div>
-                                <div class="col filter-col-md">
-                                    <span>
-                                        <div class="label">Search by ancestry</div>
-                                    </span>
-                                    <ancestry-selectpicker
-                                        :ancestries="$store.state.ancestryOptions">
-                                    </ancestry-selectpicker>
-                                </div>
+                                
                             </div>
                         </div>
                         <criterion-function-group>
