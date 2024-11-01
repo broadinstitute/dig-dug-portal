@@ -15,7 +15,7 @@
                 small
                 responsive="sm"
                 :items="tableData"
-                :fields="fields"
+                :fields="!isTissuePage ? fields : fields.filter(f => f.key !== 'annotation')"
                 :per-page="perPage"
                 :current-page="currentPage"
                 ><template #head(posteriorProbability)="data">
@@ -82,7 +82,7 @@ export default Vue.component("c2ct-table", {
     components: {
         DataDownload,
     },
-    props: ["c2ctData", "filter", "phenotype"],
+    props: ["c2ctData", "filter", "phenotype", "isTissuePage"],
     data() {
         return {
             perPage: 10,
@@ -103,6 +103,12 @@ export default Vue.component("c2ct-table", {
                 {
                     key: "source",
                     label: "Source",
+                    sortable: true,
+                    formatter: Formatters.tissueFormatter,
+                },
+                {
+                    key: "annotation",
+                    label: "Annotation",
                     sortable: true,
                     formatter: Formatters.tissueFormatter,
                 },

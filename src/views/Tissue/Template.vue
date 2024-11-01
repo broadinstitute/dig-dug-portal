@@ -211,6 +211,7 @@
                                 <c2ct-table
                                     :c2ct-data="$parent.cs2ctData"
                                     :filter="filter"
+                                    :isTissuePage="true"
                                     :phenotype="
                                         $store.state.selectedPhenotype
                                     "
