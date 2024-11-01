@@ -66,12 +66,12 @@
                 :per-page="perPage"
             ></b-pagination>
         </div>
-        <!-- <div v-else>
+        <div v-else>
             <b-alert show variant="warning" class="text-center">
                 <b-icon icon="exclamation-triangle"></b-icon> No data available
                 for this query.
             </b-alert>
-        </div> -->
+        </div>
     </div>
 </template>
 <script>
