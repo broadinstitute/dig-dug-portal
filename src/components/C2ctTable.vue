@@ -15,7 +15,7 @@
                 small
                 responsive="sm"
                 :items="tableData"
-                :fields="!isTissuePage ? fields : fields.filter(f => f.key !== 'annotation')"
+                :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
                 ><template #head(posteriorProbability)="data">
@@ -103,12 +103,6 @@ export default Vue.component("c2ct-table", {
                 {
                     key: "source",
                     label: "Source",
-                    sortable: true,
-                    formatter: Formatters.tissueFormatter,
-                },
-                {
-                    key: "annotation",
-                    label: "Annotation",
                     sortable: true,
                     formatter: Formatters.tissueFormatter,
                 },

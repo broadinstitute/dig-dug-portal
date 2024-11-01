@@ -212,8 +212,7 @@
                                     : $parent.ancestryFormatter(
                                         $store.state.selectedAncestry
                                       )}}, Annotation: 
-                            {{ $store.state.selectedAnnotation == ""
-                                ? "All" : 
+                            {{ 
                                 $parent.tissueFormatter($store.state.selectedAnnotation)
                             }})
                             <tooltip-documentation
@@ -256,13 +255,6 @@
                                 :options="$parent.c2ctData.map(d => d.source)"
                             >
                                 <div class="label">Source</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'annotation'"
-                                :multiple="true"
-                                :options="$parent.c2ctData.map(d => d.annotation)"
-                            >
-                                <div class="label">Annotation</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'tissue'"
