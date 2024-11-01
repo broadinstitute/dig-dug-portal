@@ -56,7 +56,7 @@ export default new Vuex.Store({
             keyParams.set({ phenotype: PHENOTYPE.name });
         },
         setSelectedAnnotation(state, annotation){
-            state.selectedAnnotation = annotation || state.selectedAnnotation;
+            state.selectedAnnotation = annotation;
         }
     },
     getters: {
@@ -137,7 +137,7 @@ export default new Vuex.Store({
             if (!!context.state.selectedAncestry){
                 queryString = `${context.state.selectedAncestry},${queryString}`;
             }
-            if (!!context.state.selectedAnnotation){
+            if (context.state.selectedAnnotation !== ''){
                 queryString = `${queryString},${context.state.selectedAnnotation}`;
                 context.dispatch("c2ctAnnotation/query", { q : queryString });
             } else {

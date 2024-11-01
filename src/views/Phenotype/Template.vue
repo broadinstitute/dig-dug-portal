@@ -259,6 +259,13 @@
                                 <div class="label">Source</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
+                                :field="'annotation'"
+                                :multiple="true"
+                                :options="$parent.c2ctData.map(d => d.annotation)"
+                            >
+                                <div class="label">Annotation</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
                                 :field="'tissue'"
                                 :multiple="true"
                                 :options="
