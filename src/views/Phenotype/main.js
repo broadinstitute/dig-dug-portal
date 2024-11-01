@@ -254,6 +254,7 @@ new Vue({
         ...sessionUtils,
         intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        tissueFormatter: Formatters.tissueFormatter,
         maFormatter(value) {
             return value
                 .split(";")

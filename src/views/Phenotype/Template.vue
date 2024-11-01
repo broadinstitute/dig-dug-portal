@@ -207,12 +207,12 @@
                             Credible Sets to Cell Type (CS2CT) results for
                             {{ $store.state.phenotype.description }}
                             (Ancestry:
-                            {{
-                                $store.state.ancestry == ""
+                            {{ $store.state.selectedAncestry == ""
                                     ? "All"
                                     : $parent.ancestryFormatter(
-                                          $store.state.ancestry
-                                      )
+                                        $store.state.selectedAncestry
+                                      )}}, Annotation: {{ 
+                                $parent.tissueFormatter($store.state.selectedAnnotation)
                             }})
                             <tooltip-documentation
                                 name="phenotype.cs2ct.tooltip"
