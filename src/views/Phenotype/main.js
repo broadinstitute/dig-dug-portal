@@ -206,7 +206,9 @@ new Vue({
             //Initial query. Should only happen once.
             this.$store.dispatch("queryPhenotype");
         },
-
+        "$store.state.annotationOptions"(data) {
+            this.annotation = data[0];
+        },
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
@@ -254,6 +256,7 @@ new Vue({
         ...sessionUtils,
         intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        tissueFormatter: Formatters.tissueFormatter,
         maFormatter(value) {
             return value
                 .split(";")
