@@ -29,11 +29,15 @@
             :contentMap="$store.state.bioPortal.documentations"
         ></documentation>
         <div v-if="itemData.length > 0">
-            <div v-html="'Total rows: ' + itemData.length"
+            <div
+                v-html="'Total rows: ' + itemData.length"
                 class="table-total-rows"
             ></div>
             <div class="text-right mb-2">
-                <data-download :data="itemData" :filename="`tissue_enrichment_${tissue}_${this.ancestry}`">
+                <data-download
+                    :data="itemData"
+                    :filename="`tissue_enrichment_${tissue}_${this.ancestry}`"
+                >
                 </data-download>
             </div>
         </div>
@@ -176,26 +180,25 @@ export default Vue.component("TissueHeritabilityTable", {
         tableKey(){
             return `${this.tissue},${this.ancestry}`;
         },
-        itemData(){
-            if (!this.tableData[this.tableKey]){
+        itemData() {
+            if (!this.tableData[this.tableKey]) {
                 return [];
             }
             return this.tableData[this.tableKey];
         },
-        topPhenotype(){
-            if (!this.itemData || this.itemData.length === 0){
+        topPhenotype() {
+            if (!this.itemData || this.itemData.length === 0) {
                 return "";
             }
             let item = this.itemData[0];
-            for (let i = 0; i < this.itemData.length; i++){
+            for (let i = 0; i < this.itemData.length; i++) {
                 let nextItem = this.itemData[i];
-                if (nextItem.pValue < item.pValue){
+                if (nextItem.pValue < item.pValue) {
                     item = nextItem;
                 }
             }
             return item.phenotype;
-        }
-        
+        },
     },
     watch: {
         "$store.state.selectedAncestry"(ancestry) {
