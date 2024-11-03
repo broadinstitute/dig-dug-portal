@@ -343,7 +343,7 @@ export default Vue.component("pigean-table", {
                 <template #row-details="row">
                     <research-phewas-plot
                         v-if="
-                            phewasData[phewasKey(row.item)]?.length > 0 &&
+                            phewasData[phewasKey(row.item)].length > 0 &&
                             row.item.phewasActive
                         "
                         style="width: 100%"
@@ -373,7 +373,7 @@ export default Vue.component("pigean-table", {
                     <pigean-table
                         v-if="
                             row.item.subtableActive === 1 &&
-                            subtableData[subtableKey(row.item)]?.length > 0
+                            subtableData[subtableKey(row.item)].length > 0
                         "
                         :pigeanData="subtableData[subtableKey(row.item)]"
                         :config="{ fields: config.subtableFields }"

@@ -121,7 +121,7 @@
                     <div class="card-body">
                         <h4 class="card-title">
                             Credible Sets to Cell Type (CS2CT) results for
-                            {{ $store.state.selectedPhenotype?.description }}
+                            {{ $store.state.selectedPhenotype.description }}
                             (Ancestry:
                             {{
                                 $store.state.selectedAncestry == ""
