@@ -84,7 +84,7 @@
                                 field="H"
                                 :pill-formatter="
                                     (filterDefinition) =>
-                                        `genericity ≤ ${filterDefinition.threshold}`
+                                        `genericity &le; ${filterDefinition.threshold}`
                                 "
                             >
                                 <div class="label">Genericity (&le;)</div>
@@ -123,12 +123,17 @@
                             Credible Sets to Cell Type (CS2CT) results for
                             {{ $store.state.selectedPhenotype?.description }}
                             (Ancestry:
-                            {{ $store.state.selectedAncestry == ""
+                            {{
+                                $store.state.selectedAncestry == ""
                                     ? "All"
                                     : $parent.ancestryFormatter(
-                                        $store.state.selectedAncestry
-                                      )}}, Annotation: {{ 
-                                $parent.tissueFormatter($store.state.selectedAnnotation)
+                                          $store.state.selectedAncestry
+                                      )
+                            }}, Annotation:
+                            {{
+                                $parent.tissueFormatter(
+                                    $store.state.selectedAnnotation
+                                )
                             }})
                             <tooltip-documentation
                                 name="phenotype.cs2ct.tooltip"
@@ -151,7 +156,9 @@
                             <div class="row filtering-ui-content">
                                 <div class="col filter-col-md">
                                     <span>
-                                        <div class="label">Search by phenotype</div>
+                                        <div class="label">
+                                            Search by phenotype
+                                        </div>
                                     </span>
                                     <phenotype-selectpicker
                                         :phenotypes="
@@ -162,33 +169,46 @@
                                 </div>
                                 <div class="col filter-col-md">
                                     <span>
-                                        <div class="label">Search by ancestry</div>
+                                        <div class="label">
+                                            Search by ancestry
+                                        </div>
                                     </span>
                                     <ancestry-selectpicker
-                                        :ancestries="$store.state.ancestryOptions">
+                                        :ancestries="
+                                            $store.state.ancestryOptions
+                                        "
+                                    >
                                     </ancestry-selectpicker>
                                 </div>
                                 <div class="col filter-col-md">
                                     <span>
-                                        <div class="label">Search by annotation</div>
+                                        <div class="label">
+                                            Search by annotation
+                                        </div>
                                     </span>
-                                    <select v-model="$parent.annotation"
+                                    <select
+                                        v-model="$parent.annotation"
                                         class="form-control"
-                                        @change="$parent.onAnnotationSelected()">
-                                        <option v-for="anno in $store.state.annotationOptions"
-                                            :value="anno">
+                                        @change="$parent.onAnnotationSelected()"
+                                    >
+                                        <option
+                                            v-for="anno in $store.state
+                                                .annotationOptions"
+                                            :value="anno"
+                                        >
                                             {{ anno }}
                                         </option>
                                     </select>
                                 </div>
-                                
                             </div>
                         </div>
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'source'"
                                 :multiple="true"
-                                :options="$parent.cs2ctData.map(d => d.source)"
+                                :options="
+                                    $parent.cs2ctData.map((d) => d.source)
+                                "
                             >
                                 <div class="label">Source</div>
                             </filter-enumeration-control>
@@ -201,9 +221,7 @@
                             >
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
-                            <filter-greater-control
-                                :field="'varTotal'"
-                            >
+                            <filter-greater-control :field="'varTotal'">
                                 <div class="label">Variants (&ge;)</div>
                             </filter-greater-control>
 
@@ -212,9 +230,7 @@
                                     :c2ct-data="$parent.cs2ctData"
                                     :filter="filter"
                                     :isTissuePage="true"
-                                    :phenotype="
-                                        $store.state.selectedPhenotype
-                                    "
+                                    :phenotype="$store.state.selectedPhenotype"
                                 >
                                 </c2ct-table>
                             </template>
@@ -255,26 +271,32 @@
                                 field="P_adj_sex"
                                 placeholder="Set P-Value ..."
                             >
-                                <div class="label">Adjusted p-value: sex (&le;)</div>
+                                <div class="label">
+                                    Adjusted p-value: sex (&le;)
+                                </div>
                             </filter-pvalue-control>
                             <filter-pvalue-control
                                 field="P_adj_strain"
                                 placeholder="Set P-Value ..."
                             >
-                                <div class="label">Adjusted p-value: strain (&le;)</div>
+                                <div class="label">
+                                    Adjusted p-value: strain (&le;)
+                                </div>
                             </filter-pvalue-control>
                             <filter-pvalue-control
                                 field="P_adj_strain_sex"
                                 placeholder="Set P-Value ..."
                             >
-                                <div class="label">Adjusted p-value: strain and sex (&le;)</div>
+                                <div class="label">
+                                    Adjusted p-value: strain and sex (&le;)
+                                </div>
                             </filter-pvalue-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <mouse-summary-table
-                                :items="$store.state.mouseSummary.data"
-                                :filter="filter">
+                                    :items="$store.state.mouseSummary.data"
+                                    :filter="filter"
+                                >
                                 </mouse-summary-table>
-                                
                             </template>
                         </criterion-function-group>
                     </div>
