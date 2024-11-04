@@ -166,11 +166,12 @@ export default Vue.component("pigean-table", {
             }
         },
         phewasKey(item) {
-            return `${item.phenotype},${this.sigma},${this.genesetSize},${item.cluster}`;
+            let keyString = `${item.phenotype},${this.sigma},${this.genesetSize},${item.factor}`;
+            return keyString;
         },
         subtableKey(item) {
             if (this.config.queryParam === "cluster") {
-                return `${item.phenotype},${this.sigma},${this.genesetSize},${item.cluster}`;
+                return `${item.phenotype},${this.sigma},${this.genesetSize},${item.factor}`;
             }
             return `${item.phenotype},${item[this.config.queryParam]},${
                 this.sigma
