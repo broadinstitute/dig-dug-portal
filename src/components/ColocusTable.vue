@@ -219,7 +219,7 @@ export default Vue.component("ColocusTable", {
                 {
                     key: "coloc_h4",
                     label: "H4",
-                    desc: "Posterior probability of H4 from colocalization",
+                    desc: "Posterior probability of H4 from coloc",
                 },
                 {
                     key: "r2",
@@ -236,7 +236,7 @@ export default Vue.component("ColocusTable", {
         fetchData() {
             this.loading = true;
             fetch(
-                `https://staging.amp.colocus.app/api/v1/coloc/?genes=${this.geneName}`
+                `https://amp.colocus.app/api/v1/coloc/?genes=${this.geneName}`
             )
                 .then((response) => response.json())
                 .then((data) => {

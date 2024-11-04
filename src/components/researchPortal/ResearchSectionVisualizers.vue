@@ -1,6 +1,7 @@
 <template>
 	<div class="col-md-12">
 		<div
+			v-if="!!plotData"
 			class="plot-legend"
 			v-html="plotLegend"
 		></div>
