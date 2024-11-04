@@ -166,11 +166,12 @@ export default Vue.component("pigean-table", {
             }
         },
         phewasKey(item) {
-            return `${item.phenotype},${this.sigma},${this.genesetSize},${item.cluster}`;
+            let keyString = `${item.phenotype},${this.sigma},${this.genesetSize},${item.factor}`;
+            return keyString;
         },
         subtableKey(item) {
             if (this.config.queryParam === "cluster") {
-                return `${item.phenotype},${this.sigma},${this.genesetSize},${item.cluster}`;
+                return `${item.phenotype},${this.sigma},${this.genesetSize},${item.factor}`;
             }
             return `${item.phenotype},${item[this.config.queryParam]},${
                 this.sigma
@@ -343,8 +344,9 @@ export default Vue.component("pigean-table", {
                 <template #row-details="row">
                     <research-phewas-plot
                         v-if="
-                            phewasData[phewasKey(row.item)].length > 0 &&
-                            row.item.phewasActive
+                            row.item.phewasActive &&
+                            phewasData[phewasKey(row.item)]?.length > 0
+                            
                         "
                         style="width: 100%"
                         :canvas-id="`pigean_${row.item.phenotype}_${generateId(
@@ -363,7 +365,7 @@ export default Vue.component("pigean-table", {
                         v-if="
                             row.item.subtableActive === 2 &&
                             subtable2Data[subtableKey(row.item)] &&
-                            subtable2Data[subtableKey(row.item)].length > 0
+                            subtable2Data[subtableKey(row.item)]?.length > 0
                         "
                         :pigeanData="subtable2Data[subtableKey(row.item)]"
                         :config="{ fields: config.subtable2Fields }"
@@ -373,7 +375,7 @@ export default Vue.component("pigean-table", {
                     <pigean-table
                         v-if="
                             row.item.subtableActive === 1 &&
-                            subtableData[subtableKey(row.item)].length > 0
+                            subtableData[subtableKey(row.item)]?.length > 0
                         "
                         :pigeanData="subtableData[subtableKey(row.item)]"
                         :config="{ fields: config.subtableFields }"
