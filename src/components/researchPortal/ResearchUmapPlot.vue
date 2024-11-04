@@ -1,12 +1,13 @@
 <template>
-    <div style="display:flex; flex-direction: column;">
-        <div>{{ title }}</div>
-        <div v-if="points" style="display:flex; justify-content: flex-end; gap:3px;">
+    <div style="display:flex; flex-direction: column; width: min-content; position:relative">
+        <strong>{{ title }}</strong>
+        <div v-if="points" style="display:flex; align-items: center; justify-content: flex-end; gap:5px; position: absolute; right: 5px; top: 5px; z-index: 1">
+            <!--<div><span style="font-family: monospace;">{{ points.length.toLocaleString() }}</span> cells</div>-->
             <button @click="showLabels = !showLabels">
                 <svg style="width:20px;" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"  xml:space="preserve" transform="rotate(270)"><path d="M24.896 9.463a.997.997 0 0 0-.707-.293l-12.957-.001a1 1 0 0 0-1 .996l-.046 13.005a.998.998 0 0 0 .293.711l16.995 16.995a.997.997 0 0 0 1.414 0l13.004-13.004a.999.999 0 0 0 0-1.414L24.896 9.463zm3.285 29.292L12.188 22.761l.041-11.592 11.547.001 15.995 15.995-11.59 11.59z"/><circle cx="20.362" cy="19.346" r="2.61"/></svg>
             </button>
             <button @click="resetPanZoom">
-                <svg style="width:20px;" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 12H4V4h8v2H6v6zM28 12h-2V6h-6V4h8v8zM12 28H4v-8h2v6h6v2zM28 28h-8v-2h6v-6h2v8zM15 10h2v4h-2zM10 15h4v2h-4zM18 15h4v2h-4zM15 18h2v4h-2z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
+                <svg style="width:18px;" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 12H4V4h8v2H6v6zM28 12h-2V6h-6V4h8v8zM12 28H4v-8h2v6h6v2zM28 28h-8v-2h6v-6h2v8zM15 10h2v4h-2zM10 15h4v2h-4zM18 15h4v2h-4zM15 18h2v4h-2z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
             </button>
         </div>
         <div class="umap-wrap" :style="`min-width:${width}px;`">
@@ -38,23 +39,19 @@
         type: String,
         required: false,
       },
-      points: {
-        //expects array of point vector objects [{X:0, Y:0},...]
+      points: {                             //expects array of point vector objects [{X:0, Y:0},...]
         type: (Array, null),
         required: true,
       },
-      colors: {
-        //expects array of hex strings, parallels points ["#fff", ...]
+      colors: {                             //expects array of hex strings, parallels points ["#fff", ...]
         type: Array,
         required: false,
       },
-      cellLabels: {
-        //exects array of strings of cell labels ["cell1", "cell2",...]
+      cellLabels: {                         //exects array of strings of cell labels ["cell1", "cell2",...]
         type: Array,
         required: false,
       },
-      cellLabelsMap: {
-        //expects array of ints that are indeces of cellLabels array, parallels points [0, 1, 0, 2,...]
+      cellLabelsMap: {                      //expects array of ints that are indeces of cellLabels array, parallels points [0, 1, 0, 2,...]
         type: Array,
         required: false,
       },
@@ -62,20 +59,17 @@
         type: String,
         required: false,
       },
-      width:{
-        //desired width of umap plot, plot is rendered with square aspect ratio
+      width:{                               //desired width of umap plot, plot is rendered with square aspect ratio
         type: Number,
         deafult: 400,
         required: false,
       },
-      labelSizePx: {
-        //desired size of cluster labels on umap
+      labelSizePx: {                        //desired size of cluster labels on umap
         type: Number,
         default: 20,
         required: false,
       },
-      dotSize: {
-        //desired size of dots on umap
+      dotSize: {                            //desired size of dots on umap
         type: Number,
         default: 2,
         required: false,
@@ -120,7 +114,7 @@
         },
         highlightLabel: {
             handler(){
-                //console.log(this.highlightLabel);
+                this.drawUMAP();
             }
         },
         cellLabels:{
@@ -152,8 +146,8 @@
         drawUMAP(){
             const {points, colors, width} = this;
 
-            //console.log('drawingUMAP');
-            console.log('drawUMAP', points, colors);
+            console.log('drawingUMAP');
+            //console.log('drawUMAP', points, colors);
 
             if(!points) return;
 
@@ -163,10 +157,10 @@
             const ctx = canvas.getContext("2d");
             const canvasWidth = width;
 
-            canvas.width = canvasWidth*2;
-            canvas.height = canvasWidth*2;
             canvas.style.width = canvasWidth+'px';
             canvas.style.height = canvasWidth+'px';
+            canvas.width = canvasWidth*2;
+            canvas.height = canvasWidth*2;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -198,7 +192,7 @@
             }
 
             this.clusterCenters = {};
-            console.log('--', this.cellLabels, this.cellLabelsMap);
+            //console.log('--', this.cellLabels, this.cellLabelsMap);
 
             // Save the current state
             ctx.save();
@@ -207,8 +201,13 @@
             ctx.translate(this.viewTransform.x, this.viewTransform.y);
             ctx.scale(this.viewTransform.scale, this.viewTransform.scale);
 
+            const wantHighlight = this.highlightLabel !== '';
+            const haveLabels = (this.cellLabels && this.cellLabelsMap);
+            let label;
+
             //draw points
             points.forEach((coord, index) => {
+                //calc dot positions
                 const px = coord.X;
                 const py = coord.Y;
                 
@@ -217,14 +216,10 @@
 
                 //console.log(px, py, x, y)
 
-                ctx.beginPath();
-                ctx.arc(x, y, this.dotSize / this.viewTransform.scale, 0, 2 * Math.PI);
-                ctx.fillStyle = colors ? colors[index] : '#666';
-                ctx.fill();
-
-                //calculate cluster centers
-                if(this.cellLabels && this.cellLabelsMap){
-                    const label = this.cellLabels[this.cellLabelsMap[index]];
+                //calc cluster centers
+                label = null;
+                if(haveLabels){
+                    label = this.cellLabels[this.cellLabelsMap[index]];
                     if(!label || label.trim()==='' || label === undefined) return;
                     if (!this.clusterCenters[label]) {
                         this.clusterCenters[label] = { x: 0, y: 0, count: 0 };
@@ -233,10 +228,18 @@
                     this.clusterCenters[label].y += y;
                     this.clusterCenters[label].count += 1;
                 }
+
+                //draw dots
+                const isLabelToHighlight = (label && wantHighlight) && (label === this.highlightLabel);
+                ctx.beginPath();
+                ctx.arc(x, y, this.dotSize / this.viewTransform.scale, 0, 2 * Math.PI);
+                ctx.fillStyle = colors ? wantHighlight ? isLabelToHighlight ? colors[index] : '#eee' : colors[index] : '#666';
+                ctx.fill();
             });
 
             ctx.restore();
 
+            //calc cluster centers
             if(Object.keys(this.clusterCenters).length>0){
                 Object.keys(this.clusterCenters).forEach(label => {
                     const center = this.clusterCenters[label];
@@ -245,12 +248,12 @@
                 });
             }
 
-            console.log('clusterCenters', this.clusterCenters);
+            //console.log('clusterCenters', this.clusterCenters);
 
             this.addClusterLabels();
         },
         addClusterLabels(){
-            console.log('addClusterLabels', this.clusterCenters);
+            //console.log('addClusterLabels', this.clusterCenters);
             const canvas = this.$refs.umapCanvasLabels;
             const ctx = canvas.getContext("2d");
             const canvasWidth = this.width;
@@ -420,6 +423,7 @@
     position: relative;
     aspect-ratio: 1;
     border:1px solid #ccc;
+    width: fit-content;
  }
  .umap-overlay{
     position:absolute;
@@ -441,8 +445,9 @@
     width: auto;
     height: auto;
     background: #eee;
-    top:0;
-    right:0;
+    top:5px;
+    left:5px;
+    padding: 2px 5px;
  }
  .umapTooltip.hidden{
     display:none;
