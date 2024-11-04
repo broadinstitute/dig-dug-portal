@@ -123,7 +123,6 @@ export default Vue.component("pigean-table", {
         },
         async getPhewas(row) {
             let queryKey = this.phewasKey(row.item);
-            console.log(queryKey);
             if (!this.phewasData[queryKey]) {
                 let data = await query("pigean-phewas", queryKey);
                 Vue.set(this.phewasData, queryKey, data);
