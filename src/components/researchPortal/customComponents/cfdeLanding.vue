@@ -17,9 +17,9 @@
                 <div v-if="sectionConfigs['content']['search examples']" class="search-extras f-row">
                     <div class="f-row" style="gap:5px">
                         Try 
-                        <template v-for="example in sectionConfigs['content']['search examples']">
+                        <templte v-for="example in sectionConfigs['content']['search examples']">
                             <a :href="example.url">{{example.value}}</a>
-                        </template>
+                        </templte>
                     </div>
                 </div>
             </div>
@@ -141,7 +141,7 @@
                                 </div>
                             </div>
                             <div class="f-row" style="align-self:flex-end">
-                                <div class="example-item-analysis">See on <a :href="`/research.html?pageid=kc_entity_${example.type.toLowerCase()}&entity=${example.type.toLowerCase()}&${example.type.toLowerCase()}=${example.entity}`">{{ example.type }}</a> page</div>
+                                <div class="example-item-analysis">See on <a :href="`/r/kc_entity_${example.type.toLowerCase()}&entity=${example.type.toLowerCase()}&${example.type.toLowerCase()}=${example.entity}`">{{ example.type }}</a> page</div>
                             </div>
                         </div>
                     </template>
@@ -176,7 +176,7 @@
                         <div>Uncover gene set patterns across integrated Common Fund programs—designed for advanced
                             cross-dataset exploration.
                         </div>
-                        <a href="/research.html?pageid=kc_gene_set_browser_source&source=all" style="align-self: flex-end;">Start here</a>
+                        <a href="/r/kc_gene_set_browser_source&source=all" style="align-self: flex-end;">Start here</a>
                     </div>
                     <div class="f-col">
                         <div class="analysis-figure"><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/dge.png"></div>
@@ -184,7 +184,7 @@
                         <div>Compare differentially expressed genes across tissues and diseases, driving insights into
                             gene regulation and disease mechanisms.
                         </div>
-                        <a href="/research.html?pageid=kc_dge_top_20&q=1&source=kc_diffexp" style="align-self: flex-end;">Start here</a>
+                        <a href="/r/kc_dge_top_20&q=1&source=kc_diffexp" style="align-self: flex-end;">Start here</a>
                     </div>
                 </div>
             </div>
@@ -205,7 +205,7 @@
                                     <h3>{{ value.name }}</h3>
                                     <div v-html="value.spotlight"></div>
                                 </div>
-                                <a style="align-self: flex-end;" :href="`/research.html?DCC=${key}&pageid=kc_programs`">Learn More</a>
+                                <a style="align-self: flex-end;" :href="`/r/kc_programs?DCC=${key}`">Learn More</a>
                             </div>
                         </div>
                     </template>
@@ -612,7 +612,7 @@ export default Vue.component("cfde-landing", {
         },
         clickDcc(e){
             const val = e.target.dataset.value;
-            window.location.href = `/research.html?pageid=kc_programs&DCC=${val}`;
+            window.location.href = `/r/kc_programs&DCC=${val}`;
         },
         outHandler(e) {
             if (this.freezeSelection) {
