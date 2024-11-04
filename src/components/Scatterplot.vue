@@ -69,8 +69,8 @@ export default Vue.component("scatterplot", {
       let margin = {
         top: 10,
         right: 30,
-        bottom: 35,
-        left: 60
+        bottom: 60,
+        left: 90
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
@@ -125,7 +125,7 @@ export default Vue.component("scatterplot", {
             .style("font-size", "13px");
       this.svg.append("text")
         .attr("text-anchor", "middle")
-        .attr("y", height + margin.top + 22)
+        .attr("y", height + margin.top + 40)
         .attr("x", width/2)
         .text(this.config.xAxisLabel || this.config.xField);
       

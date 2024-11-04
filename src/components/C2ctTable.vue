@@ -82,19 +82,13 @@ export default Vue.component("c2ct-table", {
     components: {
         DataDownload,
     },
-    props: ["c2ctData", "filter", "phenotype"],
+    props: ["c2ctData", "filter", "phenotype", "isTissuePage"],
     data() {
         return {
             perPage: 10,
             currentPage: 1,
             sortByCorrelation: false,
             fields: [
-                {
-                    key: "annotation",
-                    label: "Annotation",
-                    formatter: Formatters.annotationFormatter,
-                    sortable: true,
-                },
                 {
                     key: "tissue",
                     label: "Tissue",
@@ -107,6 +101,12 @@ export default Vue.component("c2ct-table", {
                     sortable: true,
                 },
                 {
+                    key: "source",
+                    label: "Source",
+                    sortable: true,
+                    formatter: Formatters.tissueFormatter,
+                },
+                {
                     key: "chromosome",
                     label: "Clump start - end",
                 },
@@ -114,7 +114,6 @@ export default Vue.component("c2ct-table", {
                     key: "varTotal",
                     label: "Variants",
                     sortable: true,
-                    tdClass: "text-right",
                 },
                 {
                     key: "overlapLeadSNP",
@@ -142,6 +141,7 @@ export default Vue.component("c2ct-table", {
                     key: "variantSifter",
                     label: "variantSifter",
                     sortable: false,
+                    tdClass: "text-center"
                 }
             ],
         };

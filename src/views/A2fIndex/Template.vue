@@ -16,7 +16,8 @@
                                 <div class="front-logo-wrapper">
                                     <img v-if="$parent.frontContents
                                             .field_front_logo
-                                        " class="front-logo-img" :src="'https://kp4cd.org/sites/default/files/vueportal/' +
+                                        " class="front-logo-img"
+                                        :src="'https://kp4cd.org/sites/default/files/vueportal/' +
         $parent.frontContents
             .field_front_logo
         " />
