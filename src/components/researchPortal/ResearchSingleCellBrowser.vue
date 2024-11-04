@@ -142,7 +142,7 @@
                 </div>
                 <div v-if="expressionStats.length>0" style="display:flex; flex-direction: column;">
                     <strong>Gene Expression</strong>
-                    <research-dot-plot v-for="(item, i) in expressionStats"
+                    <research-dot-plot v-for="(item, i) in expressionStats" :key="item"
                         :data="item"
                         orientation="horizontal"
                         :width="620"
