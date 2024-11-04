@@ -166,8 +166,7 @@ export default Vue.component("pigean-table", {
             }
         },
         phewasKey(item) {
-            let keyString = `${item.phenotype},${this.sigma},${this.genesetSize},${item.factor}`;
-            return keyString;
+            return `${item.phenotype},${this.sigma},${this.genesetSize},${item.factor}`;
         },
         subtableKey(item) {
             if (this.config.queryParam === "cluster") {
@@ -346,7 +345,6 @@ export default Vue.component("pigean-table", {
                         v-if="
                             row.item.phewasActive &&
                             phewasData[phewasKey(row.item)]?.length > 0
-                            
                         "
                         style="width: 100%"
                         :canvas-id="`pigean_${row.item.phenotype}_${generateId(
