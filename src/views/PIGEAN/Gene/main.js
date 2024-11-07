@@ -45,7 +45,7 @@ new Vue({
                 { key: "combined", label: "Combined genetic support" },
                 { key: "huge_score", label: "GWAS unweighted" },
                 { key: "log_bf", label: "GWAS weighted" },
-                { key: "prior", label: "Gene set evidence" },
+                { key: "prior", label: "Indirect support" },
             ],
             tableConfig: {
                 fields: [
@@ -68,7 +68,7 @@ new Vue({
                     },
                     {
                         key: "prior",
-                        label: "Gene set evidence",
+                        label: "Indirect support",
                         sortable: true,
                     },
                     { key: "expand", label: "Gene sets" },
@@ -82,7 +82,7 @@ new Vue({
             },
             pigeanPlotConfig: {
                 xField: "prior",
-                xAxisLabel: "Gene set evidence",
+                xAxisLabel: "Indirect support",
                 yField: "log_bf",
                 yAxisLabel: "Direct support (w/ gene sets)",
                 dotKey: "phenotype",

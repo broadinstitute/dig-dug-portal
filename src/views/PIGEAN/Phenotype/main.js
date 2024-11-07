@@ -56,7 +56,7 @@ new Vue({
                 { key: "combined_probability", label: "Combined probability" },
                 { key: "huge_score", label: "Direct support (w/o gene sets)" },
                 { key: "log_bf", label: "Direct support (w/ gene sets)" },
-                { key: "prior", label: "Gene set evidence" },
+                { key: "prior", label: "Indirect support" },
             ],
             tableConfig: {
                 fields: [
@@ -80,7 +80,7 @@ new Vue({
                     },
                     {
                         key: "prior",
-                        label: "Gene set evidence",
+                        label: "Indirect support",
                         sortable: true,
                     },
                     { key: "n", label: "Number of gene sets", sortable: true },
@@ -95,7 +95,7 @@ new Vue({
             },
             genePigeanPlotConfig: {
                 xField: "prior",
-                xAxisLabel: "Gene set evidence",
+                xAxisLabel: "Indirect support",
                 yField: "log_bf",
                 yAxisLabel: "Direct support (w/ gene sets)",
                 dotKey: "gene",
@@ -137,7 +137,7 @@ new Vue({
                     },
                     {
                         key: "prior",
-                        label: "Gene set evidence",
+                        label: "Indirect support",
                         sortable: true,
                     },
                 ],
@@ -183,7 +183,7 @@ new Vue({
                         label: "Direct support (w/ gene sets)",
                         sortable: true,
                     },
-                    { key: "prior", label: "Prior", sortable: true },
+                    { key: "prior", label: "Indirect support", sortable: true },
                 ],
                 subtable2Fields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
