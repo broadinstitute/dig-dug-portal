@@ -72,7 +72,7 @@ new Vue({
                     },
                     {
                         key: "prior",
-                        label: "Gene set evidence",
+                        label: "Indirect support",
                         sortable: true,
                     },
                 ],
