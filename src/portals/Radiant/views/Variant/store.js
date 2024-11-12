@@ -14,13 +14,15 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        variantData: bioIndex("variants",{query_private:true}),
+        variantData: bioIndex("variant"),
         transcriptConsequences: bioIndex("transcript-consequences"),
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
         regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
         //variantPhenotypeData: bioIndex("variant-phenotype",this.gene,{},true),
+        gqualitymetrics: bioIndex("genotype-quality-metrics"),
+        squalitymetrics: bioIndex("site-quality-metrics"),
     },
 
     state: {
@@ -61,10 +63,10 @@ export default new Vuex.Store({
                             });
                         });
                 } else {
-                    context.commit("setVariant", { varId: newVarId });
+                    context.commit("setVariant", { varId: newVarId});
                 }
-
-                await context.dispatch("variantData/query", { q: newVarId });
+                console.log("queryVariant: newVarId="+newVarId);
+                await context.dispatch("variantData/query", { q: newVarId});
                 context.state.badSearch = false;
                 context.dispatch("queryAll");
             } else {
