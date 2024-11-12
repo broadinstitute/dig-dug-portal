@@ -104,7 +104,7 @@
                     </div>
                 </div>
             </div>
-
+<!--
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
@@ -151,7 +151,7 @@
                                     "></sitequalitymetrics-tab>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div class="card mdkp-card">
                 <div class="card-body">
