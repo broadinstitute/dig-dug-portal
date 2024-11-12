@@ -311,7 +311,7 @@ module.exports = {
             config.devtool = "cheap-module-source-map";
         }
     },
-    outputDir: "portals/A2FKP/dist",
+    outputDir: "portals/Radiant/dist",
     productionSourceMap: false,
     pages,
 };
