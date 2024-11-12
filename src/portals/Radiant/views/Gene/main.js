@@ -13,14 +13,18 @@ import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
-import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
-import Formatters from "@/utils/formatters";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker";
+import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
 import VariantSearch from "@/portals/Radiant/components/VariantSearch";
-import keyParams from "@/utils/keyParams";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import HugeScoresTable from "@/components/HugeScoresTable.vue";
+import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
+import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -28,11 +32,25 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 
+import sessionUtils from "@/utils/sessionUtils";
+import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
+
 import Counter from "@/utils/idCounter";
+import regionUtils from "@/utils/regionUtils";
+
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlert,
@@ -58,6 +76,8 @@ new Vue({
         Documentation,
         Autocomplete,
         GeneSelectPicker,
+        AncestrySelectPicker,
+        TranscriptSelectPicker,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         FilterPValue,
@@ -65,17 +85,27 @@ new Vue({
         FilterGreaterThan,
         LocusZoom,
         LocusZoomPhewasPanel,
+        ResearchPheWAS,
+        ResearchExpressionDisplay,
+        ResearchDataTable,
         SearchHeaderWrapper,
         ResultsDashboard,
         NCATSPredicateTable,
         VariantSearch,
         ColorBarPlot,
+        GenePageCombinedEvidenceTable,
+        HugeCalScoreSection,
+        HugeScoresTable,
+        EffectorGenesSectionOnGene,
+        ResearchSingleSearch,
     },
 
     data() {
         return {
             counter: 0,
             genePageSearchCriterion: [],
+            phenotypeFilterList: [],
+            activeTab: "hugeScorePheWASPlot",
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
@@ -101,17 +131,186 @@ new Vue({
                     title: "Universal Protein Resource",
                     link: "https://www.uniprot.org/uniprot/",
                 },
-                opentargets: {
-                    title: "Open Targets",
-                    link: "https://genetics.opentargets.org/Gene/",
+            },
+            noTranscriptDataPortal: ["sleep", "lung", "ndkp", "autoimmune"],
+            plotColors: [
+                "#007bff",
+                "#048845",
+                "#8490C8",
+                "#BF61A5",
+                "#EE3124",
+                "#FCD700",
+                "#5555FF",
+                "#7aaa1c",
+                "#9F78AC",
+                "#F88084",
+                "#F5A4C7",
+                "#CEE6C1",
+                "#cccc00",
+                "#6FC7B6",
+                "#D5A768",
+                "#d4d4d4",
+            ],
+            phewasPlotMargin: {
+                leftMargin: 150,
+                rightMargin: 40,
+                topMargin: 20,
+                bottomMargin: 100,
+                bump: 11,
+            },
+            hugeScoreRenderConfig: {
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "renderScore",
+                "convert y -log10": "false",
+                "y axis label": "Log(HuGE score)",
+                "x axis label": "",
+                "beta field": "null",
+                "hover content": ["bf_common", "bf_rare", "huge"],
+                thresholds: [Math.log(3), Math.log(30)],
+                "label in black": "greater than",
+                height: "600",
+                "plot margin": {
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
+            },
+            commonVariantRenderConfig: {
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "phenotype group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "beta",
+                "beta field": "null",
+                "hover content": ["pValue"],
+                thresholds: ["2.5e-6"],
+                height: "600",
+                "plot margin": {
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
+            },
+            rareVariantRenderConfig: {
+                type: "phewas plot",
+                "group by": "phenotype group",
+                "render by": "phenotype",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "beta",
+                "beta field": "beta",
+                "hover content": ["pValue", "beta"],
+                thresholds: ["2.5e-6", "0.05"],
+                height: "600",
+                "plot margin": {
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
                 },
             },
         };
     },
 
     computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+                regionUtils: regionUtils,
+            };
+            return utils;
+        },
+        /// for disease systems
+        diseaseInSession() {
+            if (this.$store.state.diseaseInSession == null) {
+                return "";
+            } else {
+                return this.$store.state.diseaseInSession;
+            }
+        },
+        phenotypesInSession() {
+            if (this.$store.state.phenotypesInSession == null) {
+                return this.$store.state.bioPortal.phenotypes;
+            } else {
+                return this.$store.state.phenotypesInSession;
+            }
+        },
+        rawPhenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+        ///
+        phenotypeOptions() {
+            return this.phenotypesInSession
+                .filter((x) => x.name != this.$store.state.phenotype)
+                .map((phenotype) => phenotype.name);
+        },
+
+        transcriptOr52k() {
+            let endpoint = !this.$store.state.selectedTranscript
+                ? this.$store.state.associations52k
+                : this.$store.state.transcriptAssoc;
+            this.$store.state.restricted = endpoint.restricted;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                endpoint.data = sessionUtils.getInSession(
+                    endpoint.data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
+            }
+
+            let assocMap = {};
+
+            for (let i in endpoint.data) {
+                const assoc = endpoint.data[i];
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+            endpoint.data.sort(
+                (a, b) =>
+                    this.pValueFormatter(a.pValue) -
+                    this.pValueFormatter(b.pValue)
+            );
+
+            return endpoint.data;
+        },
+
         geneassociations() {
             let data = this.$store.state.geneassociations.data;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
+            }
+
             let assocMap = {};
 
             for (let i in data) {
@@ -132,15 +331,98 @@ new Vue({
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
         },
+        //filter associations that only exist in the phenotypeMap
+        filteredAssociations() {
+            return (
+                this.geneassociations.filter((row) => {
+                    return this.phenotypeMap[row.phenotype];
+                }) || []
+            );
+        },
+        hugeScores() {
+            let data = sortUtils.sortArrOfObjects(
+                this.$store.state.hugeScores.data,
+                "huge",
+                "number",
+                "desc"
+            );
 
-        smallestpValuePhenotype() {
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
+            }
+
+            let hugeMap = {};
+
+            for (let i in data) {
+                const score = data[i];
+                let phenotypeEntity =
+                    this.$store.state.bioPortal.phenotypeMap[score.phenotype];
+                score["group"] = phenotypeEntity
+                    ? phenotypeEntity.group
+                    : "No group info";
+                score["renderScore"] = Math.log(data[i].huge);
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[score.phenotype]) {
+                    continue;
+                }
+
+                hugeMap[score.phenotype] = score;
+            }
+
+            // convert to an array, sorted by p-value
+            let x = Object.values(hugeMap);
+            return x;
+        },
+
+        associations52k() {
+            let data = this.$store.state.associations52k.data;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                data = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "phenotype"
+                );
+            }
+
+            let assocMap = {};
+
+            for (let i in data) {
+                const assoc = data[i];
+
+                // skip associations not part of the disease group
+                if (!this.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+            // convert to an array, sorted by p-value
+            let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            return x;
+        },
+        geneExpression() {
+            let data = this.$store.state.geneExpression.data;
+            return data;
+        },
+
+        /*smallestpValuePhenotype() {
             // let data = this.$store.state.varassociations.data;
             // let x = data.sort(
             //     (a, b) => a.pValue - b.pValue
             // );
 
             return "T2D";
-        },
+        },*/
         selectedPhenotypes() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             if (Object.keys(phenotypeMap).length === 0) {
@@ -156,32 +438,6 @@ new Vue({
             if (this.selectedPhenotypes.length > 0) {
                 return this.selectedPhenotypes[0].name;
             } else return "T2D";
-        },
-        eglData() {
-            let geneSymbol = this.$store.state.geneName;
-            if (this.selectedPhenotype == "T2D") {
-                if (this.$store.state.kp4cd.eglData.data) {
-                    let effectordata = this.$store.state.kp4cd.eglData.data;
-                    let effectorGeneData = {};
-
-                    for (var i = 0; i < effectordata.length; ++i) {
-                        if (
-                            effectordata[i].gene.toLowerCase() ===
-                            geneSymbol.toLowerCase()
-                        ) {
-                            effectorGeneData = effectordata[i];
-                            if (effectorGeneData.category == "(T2D_related)") {
-                                effectorGeneData.category = "No Evidence";
-                            }
-                            break;
-                        }
-                        //if the gene is in GWAS but not in mccarthy data
-                    }
-                    return effectorGeneData;
-                }
-            } else {
-                return { category: "in GWAS" };
-            }
         },
 
         queries() {
@@ -224,25 +480,15 @@ new Vue({
 
         alternateNames() {
             let geneData = this.$store.state.gene.data;
-            if (geneData.length > 0) {
-                return this.$store.state.genes.data
-                    .filter((g) => g.start == geneData[0].start)
-                    .filter((g) => g.end == geneData[0].end)
-                    .filter((g) => g.source !== "symbol")
-                    .sort((a, b) => {
-                        if (a.source < b.source) return -1;
-                        if (a.source > b.source) return 1;
-                        return 0;
-                    });
-            } else {
-                return [];
-            }
-        },
-        ensemblElement() {
-            return (
-                this.alternateNames.find((name) => name.source === "ensembl") ||
-                {}
-            );
+            return this.$store.state.genes.data
+                .filter((g) => g.start == geneData[0].start)
+                .filter((g) => g.end == geneData[0].end)
+                .filter((g) => g.source !== "symbol")
+                .sort((a, b) => {
+                    if (a.source < b.source) return -1;
+                    if (a.source > b.source) return 1;
+                    return 0;
+                });
         },
 
         dbReference() {
@@ -299,7 +545,7 @@ new Vue({
             );
         },
 
-        documentationMap() {
+        docDetails() {
             let symbol = this.geneSymbol;
             let r = this.region;
 
@@ -323,38 +569,31 @@ new Vue({
             let topPhenotype = "LDL";
             if (newData.length > 0) {
                 topPhenotype = newData[0].phenotype;
-                console.log("top-phenotype", topPhenotype);
                 if (this.genePageSearchCriterion[0] != topPhenotype) {
                     this.genePageSearchCriterion = [];
                 }
                 this.pushCriterionPhenotype(topPhenotype);
 
                 this.$store.dispatch("getVarAssociationsData", topPhenotype);
-
-                //this.$store.dispatch("getEGLData");
             }
-
-            //this.pushCriterionPhenotype(newTopPhenotype)
-            // if (removedPhenotypes.length > 0) {
-            //     this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
-            // }
-            // this.$store.dispatch("getEGLData");
+        },
+        geneExpressionTable() {
+            console.log(this.geneExpressionTable);
         },
 
-        // selectedPhenotypes(phenotypes, oldPhenotypes) {
-        //     const removedPhenotypes = _.difference(
-        //         oldPhenotypes.map(p => p.name),
-        //         phenotypes.map(p => p.name)
-        //     );
-        //     this.$store.dispatch("get52KAssociationData");
-        //     if (removedPhenotypes.length > 0) {
-        //         this.$store.dispatch(
-        //             "getVarAssociationsData",
-        //             phenotypes[0].name
-        //         );
-        //     }
-        //     this.$store.dispatch("getEGLData");
-        // },
+        selectedPhenotypes(phenotypes, oldPhenotypes) {
+            const removedPhenotypes = _.difference(
+                oldPhenotypes.map((p) => p.name),
+                phenotypes.map((p) => p.name)
+            );
+            this.$store.dispatch("get52KAssociationData");
+            if (removedPhenotypes.length > 0) {
+                this.$store.dispatch(
+                    "getVarAssociationsData",
+                    phenotypes[0].name
+                );
+            }
+        },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
@@ -363,7 +602,7 @@ new Vue({
         // the region for the gene was found
         region(region) {
             if (region) {
-                uiUtils.hideElement("pageSearchHeaderContent");
+                //uiUtils.hideElement("pageSearchHeaderContent");
                 this.$store.dispatch("queryGeneRegion", region);
             }
         },
@@ -372,26 +611,74 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
+            this.$store.dispatch("getHugeScoresData");
+        },
+        "$store.state.selectedAncestry"(newAncestry) {
+            let geneQuery = !newAncestry
+                ? { q: this.$store.state.geneName }
+                : { q: `${this.$store.state.geneName},${newAncestry}` };
+            this.$store.dispatch("geneassociations/query", geneQuery);
+        },
+        "$store.state.selectedTranscript"(newTranscript) {
+            if (newTranscript) {
+                this.$store.dispatch("transcriptAssoc/query", {
+                    q: newTranscript,
+                });
+            }
+        },
+        "$store.state.geneName"(NAME) {
+            this.$store.dispatch("getHugeScoresData");
         },
     },
 
     created() {
+        /// disease systems
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        ////
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
         //this.$store.dispatch("queryAssociations");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
+        this.$store.dispatch("bioPortal/getDatasets");
         this.pushCriterionPhenotype("T2D");
+        this.checkGeneName(this.$store.state.geneName);
     },
 
     methods: {
         ...uiUtils,
+        ...sessionUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
+
+        async checkGeneName(KEY) {
+            let gene = await regionUtils.geneSymbol(KEY);
+
+            if (!!gene && gene != KEY) {
+                document.getElementById("invalidGeneMessage").innerHTML =
+                    "Your search term is an alias name for gene symbol " +
+                    gene +
+                    ". Please enter a new search term above, or go to the " +
+                    gene +
+                    " Gene page";
+
+                document
+                    .getElementById("invalidGeneRedirect")
+                    .setAttribute("href", "/gene.html?gene=" + gene);
+                uiUtils.showElement("invalidGeneWarning");
+                //uiUtils.showElement("pageSearchHeaderContent");
+            }
+        },
+
+        hideGeneWarning() {
+            uiUtils.hideElement("invalidGeneWarning");
+        },
+
         pushCriterionPhenotype(phenotypeName) {
             this.genePageSearchCriterion.push({
                 field: "phenotype",
@@ -435,20 +722,29 @@ new Vue({
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
-        isExomeWideSignificant(data, trait) {
-            if (data.length) {
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == trait) {
-                        if (data[i].pValue <= 2.5e-6) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        },
+
         topPhenotype(topAssocData) {
             return topAssocData[0];
+        },
+        renderPhewas(REF) {
+            this.activeTab = REF;
+            let refComponent = this.$children[0].$refs[REF];
+            setTimeout(function () {
+                refComponent.renderPheWas();
+            }, 500);
+        },
+        filterPhenotype(newFilters) {
+            this.phenotypeFilterList = newFilters;
+        },
+        clearCriterion(criterion) {
+            if (criterion === "transcript") {
+                this.$store.state.selectedTranscript = "";
+                return;
+            }
+            if (criterion === "ancestry") {
+                this.$store.state.selectedAncestry = "";
+                return;
+            }
         },
     },
 
