@@ -46,27 +46,34 @@ export default Vue.component("NetworkGraph", {
     },
     methods: {
         async fetchGraphData() {
+            this.loading = true;
             try {
-                this.loading = true;
-                //API call to fetch graph data, hardcoded for now but should be passed in as props
                 const response = await fetch(
                     "https://bioindex-dev.hugeamp.org/api/bio/query/pigean-graph?q=T2D,2,small"
                 );
                 const data = await response.json();
-                console.log("data log:", data.data[0]);
+
                 this.nodes.clear();
                 this.edges.clear();
                 this.nodes.add(data.data[0].nodes);
                 this.edges.add(data.data[0].edges);
 
                 await this.$nextTick();
-                this.initNetwork();
+                await this.initNetwork();
+
+                // Initial fit after data load
+                if (this.network) {
+                    this.network.fit({
+                        animation: false,
+                    });
+                }
             } catch (error) {
-                console.error("Error fetching graph data:", error);
+                console.error("Error:", error);
             } finally {
                 this.loading = false;
             }
         },
+
         initNetwork() {
             if (!this.$refs.networkContainer) return;
 
@@ -77,7 +84,7 @@ export default Vue.component("NetworkGraph", {
             };
             const options = {
                 physics: {
-                    enabled: false,
+                    enabled: true,
                     stabilization: {
                         enabled: true,
                         iterations: 100,
@@ -85,28 +92,36 @@ export default Vue.component("NetworkGraph", {
                         fit: true,
                     },
                 },
-                interaction: {
-                    dragNodes: true,
-                    dragView: true,
-                    zoomView: true,
-                },
             };
 
             this.network = new Network(container, data, options);
+
+            // Add stabilization events
+            this.network.on("startStabilizing", () => {
+                this.stabilizing = true;
+            });
+
+            this.network.on("stabilizationProgress", (params) => {
+                this.stabilizationProgress =
+                    (params.iterations / params.total) * 100;
+            });
 
             this.network.on("stabilizationIterationsDone", () => {
                 this.stabilizing = false;
                 this.stabilizationProgress = 100;
                 this.network.setOptions({ physics: false });
 
-                // Add slight delay before fitting
+                // Final fit after stabilization with animation
                 setTimeout(() => {
-                    this.network.fit({
-                        animation: {
-                            duration: 1000,
-                            easingFunction: "easeInOutQuad",
-                        },
-                    });
+                    if (this.network) {
+                        this.network.fit({
+                            animation: {
+                                duration: 1000,
+                                easingFunction: "easeInOutQuad",
+                            },
+                            scale: 1.2, // Zoom out slightly more
+                        });
+                    }
                 }, 500);
             });
         },
@@ -118,7 +133,7 @@ export default Vue.component("NetworkGraph", {
 .network-container {
     position: relative;
     width: 100%;
-    height: 600px;
+    height: 400px;
 }
 
 .stabilization-progress {
