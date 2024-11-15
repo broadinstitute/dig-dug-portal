@@ -24,6 +24,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import NetworkGraph from "@/components/NetworkGraph.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
 new Vue({
     store,
@@ -42,6 +43,7 @@ new Vue({
         Heatmap,
         ResearchHeatmap,
         FilterPValue,
+        NetworkGraph,
     },
     mixins: [pageMixin],
     data() {
@@ -415,8 +417,8 @@ new Vue({
             let data = structuredClone(originalData);
             let mechanisms = this.mechanismMap;
             for (let i = 0; i < data.length; i++) {
-                let label = mechanisms[data[i].factor].label;
-                let score = mechanisms[data[i].factor].score;
+                let label = mechanisms[data[i].factor].label || "";
+                let score = mechanisms[data[i].factor].score || "";
                 data[i].mechanism = `${score}___${label}`;
             }
             return data;

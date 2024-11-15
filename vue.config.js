@@ -378,7 +378,6 @@ module.exports = {
         });
 
         // add the transform rule for bioindex
-        // Helen 2021-06-17
         config.module.rules.push({
             test: /bioIndexUtils\.js$/,
             loader: "string-replace-loader",
@@ -389,6 +388,23 @@ module.exports = {
             },
         });
 
+        // Add the rule for handling .js files with babel-loader
+        config.module.rules.push({
+            test: /\.js$/,
+            include: [/node_modules\/vis-network/, /node_modules\/vis-data/],
+            use: {
+                loader: "babel-loader",
+                options: {
+                    presets: ["@babel/preset-env"],
+                    plugins: ["@babel/plugin-transform-runtime"],
+                },
+            },
+        });
+        config.resolve.alias = {
+            ...config.resolve.alias,
+            "vis-network": "vis-network/standalone/umd/vis-network.min.js",
+            "vis-data": "vis-data/standalone/umd/vis-data.min.js",
+        };
         // create inline maps for dev builds
         if (process.env.NODE_ENV !== "production") {
             //config.devtool = "inline-source-map";
