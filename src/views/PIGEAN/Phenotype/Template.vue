@@ -89,13 +89,18 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">
-                        Genes with genetic support
-                    </h4>
-                    <div style="margin-bottom: 1rem;">
+                    <h4 class="card-title">Network Graph</h4>
+                    <network-graph></network-graph>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">Genes with genetic support</h4>
+                    <div style="margin-bottom: 1rem">
                         Combined genetic support is composed of direct support
-                        (from GWAS associations near the gene) and indirect support
-                        (membership in gene sets with genetic support). 
+                        (from GWAS associations near the gene) and indirect
+                        support (membership in gene sets with genetic support).
                         Units are log-odds of probability.
                     </div>
                     <criterion-function-group>
@@ -146,11 +151,11 @@
                     <h4 class="card-title">
                         Gene sets that affect genetic support
                     </h4>
-                    <div style="margin-bottom: 1rem;">
-                        Gene sets affect the log-odds of the probability 
-                        that a gene is involved in a trait. Effect sizes are 
-                        calculated for the gene set in isolation (marginal) 
-                        and in a joint model with all gene sets together (joint).
+                    <div style="margin-bottom: 1rem">
+                        Gene sets affect the log-odds of the probability that a
+                        gene is involved in a trait. Effect sizes are calculated
+                        for the gene set in isolation (marginal) and in a joint
+                        model with all gene sets together (joint).
                     </div>
                     <criterion-function-group>
                         <filter-enumeration-control
@@ -210,15 +215,17 @@
                         </tooltip-documentation>
                     </h4>
                     <div>
-                        Mechanisms are determined by latent factorization 
-                        of the membership matrix of significant genes and gene sets.
+                        Mechanisms are determined by latent factorization of the
+                        membership matrix of significant genes and gene sets.
                     </div>
                     <criterion-function-group>
                         <div class="col filter-col-md">
                             <div class="label">P-value (<=)</div>
-                            <input type="number" 
+                            <input
+                                type="number"
                                 class="form-control"
-                                v-model.lazy="$parent.heatmapMaxP"/>
+                                v-model.lazy="$parent.heatmapMaxP"
+                            />
                         </div>
                     </criterion-function-group>
                     <heatmap
@@ -226,15 +233,15 @@
                         :heatmapData="$parent.heatmapData"
                         :renderConfig="$parent.heatmapConfig"
                         :sectionId="`${$store.state.phenotype.name}_topPhewas`"
-                        >
+                    >
                     </heatmap>
-                        <pigean-table
-                            v-if="$parent.plotReady"
-                            :pigeanData="$store.state.pigeanFactor.data"
-                            :config="$parent.factorTableConfig"
-                            :phewasRenderConfig="$parent.renderConfig"
-                        >
-                        </pigean-table>
+                    <pigean-table
+                        v-if="$parent.plotReady"
+                        :pigeanData="$store.state.pigeanFactor.data"
+                        :config="$parent.factorTableConfig"
+                        :phewasRenderConfig="$parent.renderConfig"
+                    >
+                    </pigean-table>
                 </div>
             </div>
         </div>
