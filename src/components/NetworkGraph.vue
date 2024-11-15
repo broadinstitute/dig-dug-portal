@@ -25,6 +25,7 @@ import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 
 export default Vue.component("NetworkGraph", {
+    //props: phenotype, sigma and geneset size
     data() {
         return {
             network: null,
