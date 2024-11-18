@@ -16,6 +16,10 @@
                     <geneset-selectpicker></geneset-selectpicker>
                 </div>
                 <div class="col filter-col-md">
+                    <div class="label">Trait group</div>
+                    <trait-group-selectpicker></trait-group-selectpicker>
+                </div>
+                <div class="col filter-col-md">
                     <div class="label">Number of gene sets included</div>
                     <geneset-size-selectpicker></geneset-size-selectpicker>
                 </div>

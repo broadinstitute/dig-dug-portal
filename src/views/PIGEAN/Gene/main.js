@@ -5,6 +5,7 @@ import store from "./store.js";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
+import TraitGroupSelectPicker from "@/components/TraitGroupSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -28,6 +29,7 @@ new Vue({
         SearchHeaderWrapper,
         GeneSelectPicker,
         GenesetSizeSelectPicker,
+        TraitGroupSelectPicker,
         PigeanTable,
         PigeanPlot,
         ResearchPheWAS,

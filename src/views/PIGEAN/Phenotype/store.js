@@ -29,6 +29,8 @@ export default new Vuex.Store({
         manhattanPlotAvailable: false,
         genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
         genesetSizeToQuery: null,
+        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroupToQuery: null,
     },
     mutations: {
         setGenesetSize(state, genesetSize){
@@ -44,6 +46,10 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
+        },
+        setTraitGroup(state, traitGroup){
+            state.traitGroup = traitGroup || state.traitGroup;
+            keyParams.set({ traitGroup: state.traitGroup });
         },
     },
     getters: {
@@ -64,7 +70,9 @@ export default new Vuex.Store({
             context.state.phenotype = context.state.selectedPhenotype;
             let name = context.state.phenotype.name;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
+            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setGenesetSize", genesetSize);
+            context.commit("setTraitGroup", traitGroup);
             
             let query = { q: `${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`, limit: 1000 };
             context.dispatch("pigeanPhenotype/query", query);

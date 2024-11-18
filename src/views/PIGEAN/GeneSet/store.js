@@ -21,6 +21,8 @@ export default new Vuex.Store({
         genesetToQuery: "",
         genesetSizeToQuery: null,
         aliasName: null,
+        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroupToQuery: null,
     },
 
     mutations: {
@@ -32,6 +34,10 @@ export default new Vuex.Store({
             state.genesetSize = genesetSize || state.genesetSize;
             keyParams.set({ genesetSize: state.genesetSize });
         },
+        setTraitGroup(state, traitGroup){
+            state.traitGroup = traitGroup || state.traitGroup;
+            keyParams.set({ traitGroup: state.traitGroup });
+        },
     },
 
     getters: {
@@ -41,8 +47,10 @@ export default new Vuex.Store({
         async queryGeneset(context, symbol) {
             let name = context.state.genesetToQuery || context.state.geneset;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
+            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setGeneset", name);
             context.commit("setGenesetSize", genesetSize);
+            context.commit("setTraitGroup", traitGroup);
 
             if (!!name) {
                 context.dispatch("pigeanGeneset/query", { q: 
