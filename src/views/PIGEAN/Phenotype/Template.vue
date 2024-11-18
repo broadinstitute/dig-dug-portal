@@ -53,10 +53,6 @@
                     </ul>
                 </div>
                 <div class="col filter-col-md">
-                    <div class="label">Gene set size preference</div>
-                    <sigma-selectpicker></sigma-selectpicker>
-                </div>
-                <div class="col filter-col-md">
                     <div class="label">Number of gene sets included</div>
                     <geneset-size-selectpicker></geneset-size-selectpicker>
                 </div>
@@ -93,13 +89,11 @@
                     <template
                         v-if="
                             $store.state.phenotype &&
-                            $store.state.sigma &&
                             $store.state.genesetSize
                         "
                     >
                         <network-graph
                             :phenotype="$store.state.phenotype"
-                            :sigma="$store.state.sigma"
                             :geneset-size="$store.state.genesetSize"
                         ></network-graph>
                     </template>

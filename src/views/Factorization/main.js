@@ -10,7 +10,6 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSelectPicker from "@/components/GenesetSelectPicker.vue";
-import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanBayesTable from "@/components/PigeanBayesTable.vue";
@@ -45,7 +44,6 @@ new Vue({
         PigeanPlot,
         ResearchPheWAS,
         GenesetSelectPicker,
-        SigmaSelectPicker,
         GenesetSizeSelectPicker,
         CriterionFunctionGroup,
         FilterEnumeration,
