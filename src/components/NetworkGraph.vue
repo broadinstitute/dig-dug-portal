@@ -1,5 +1,12 @@
 <template>
-    <div class="network-container">
+    <div class="network-container" :style="containerStyle">
+        <button
+            class="physics-button"
+            @click="togglePhysics"
+            :disabled="stabilizing"
+        >
+            {{ physicsEnabled ? "Disable" : "Enable" }} Physics
+        </button>
         <div
             v-show="!loading && !stabilizing"
             ref="networkContainer"
@@ -14,7 +21,7 @@
                 ></div>
             </div>
             <div class="progress-text">
-                Stabilizing: {{ Math.round(stabilizationProgress) }}%
+                {{ Math.round(stabilizationProgress) }}%
             </div>
         </div>
     </div>
@@ -25,16 +32,30 @@ import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 
 export default Vue.component("NetworkGraph", {
-    //props: phenotype, sigma and geneset size
     data() {
         return {
             network: null,
             loading: false,
             stabilizing: false,
             stabilizationProgress: 0,
-            nodes: new DataSet([]),
-            edges: new DataSet([]),
+            nodes: new DataSet({
+                queue: true, // Enable queue mode for batch updates
+            }),
+            edges: new DataSet({
+                queue: true,
+            }),
+            physicsEnabled: false,
         };
+    },
+    computed: {
+        containerStyle() {
+            return {
+                height: "600px",
+                position: "relative",
+                width: "100%",
+                overflow: "hidden", // Prevent internal scrolling
+            };
+        },
     },
     async mounted() {
         await this.$nextTick();
@@ -57,7 +78,9 @@ export default Vue.component("NetworkGraph", {
                 this.nodes.clear();
                 this.edges.clear();
                 this.nodes.add(data.data[0].nodes);
+                this.nodes.flush(); // Force update after batch
                 this.edges.add(data.data[0].edges);
+                this.edges.flush();
 
                 await this.$nextTick();
                 await this.initNetwork();
@@ -75,55 +98,139 @@ export default Vue.component("NetworkGraph", {
             }
         },
 
-        initNetwork() {
-            if (!this.$refs.networkContainer) return;
+        async loadNetworkData() {
+            this.loading = true;
+            const chunkSize = 1000;
 
+            for (let i = 0; i < this.data.length; i += chunkSize) {
+                const chunk = this.data.slice(i, i + chunkSize);
+                await new Promise((resolve) => {
+                    requestAnimationFrame(() => {
+                        this.nodes.add(chunk);
+                        resolve();
+                    });
+                });
+            }
+
+            this.loading = false;
+        },
+
+        // Pre-process data before adding to network
+        preprocessData(rawData) {
+            return rawData.map((item) => ({
+                id: item.id,
+                label: item.label,
+                // Only include necessary properties
+                // Remove unnecessary nesting
+                ...this.getVisualProperties(item),
+            }));
+        },
+
+        initNetwork() {
             const container = this.$refs.networkContainer;
-            const data = {
-                nodes: this.nodes,
-                edges: this.edges,
-            };
+            const data = { nodes: this.nodes, edges: this.edges };
+
             const options = {
                 physics: {
                     enabled: true,
                     stabilization: {
                         enabled: true,
-                        iterations: 100,
-                        updateInterval: 50,
+                        iterations: 150, // Fewer iterations
+                        updateInterval: 40, // Slightly faster updates
                         fit: true,
                     },
+                    barnesHut: {
+                        gravitationalConstant: -4000,
+                        centralGravity: 0.1, // Increased to prevent drift
+                        springLength: 200,
+                        springConstant: 0.015, // Slightly stiffer springs
+                        damping: 0.15, // Less damping for more movement
+                        avoidOverlap: 1,
+                    },
+                    minVelocity: 0.15, // Slightly higher min velocity
+                    maxVelocity: 15, // Slightly higher max velocity
+                    timestep: 0.35, // Slightly larger timesteps
+                },
+                layout: {
+                    improvedLayout: true,
+                    randomSeed: undefined, // Random layout each time
+                    clusterThreshold: 150,
+                    hierarchical: {
+                        enabled: false,
+                    },
+                },
+                interaction: {
+                    navigationButtons: true,
+                    keyboard: true,
+                    hideEdgesOnDrag: true,
+                    hideEdgesOnZoom: true,
+                },
+                nodes: {
+                    scaling: {
+                        min: 8, // Smaller minimum size
+                        max: 24, // Smaller maximum size
+                    },
+                },
+                edges: {
+                    smooth: {
+                        type: "continuous",
+                        forceDirection: "none",
+                        roundness: 0.5,
+                    },
+                    length: 250, // Longer default edge length
                 },
             };
 
             this.network = new Network(container, data, options);
 
-            // Add stabilization events
-            this.network.on("startStabilizing", () => {
-                this.stabilizing = true;
-            });
-
-            this.network.on("stabilizationProgress", (params) => {
-                this.stabilizationProgress =
-                    (params.iterations / params.total) * 100;
-            });
-
+            // Add complete physics disable after stabilization
             this.network.on("stabilizationIterationsDone", () => {
                 this.stabilizing = false;
                 this.stabilizationProgress = 100;
-                this.network.setOptions({ physics: false });
 
-                // Final fit after stabilization with animation
-                setTimeout(() => {
-                    if (this.network) {
-                        this.network.fit({
-                            animation: {
-                                duration: 1000,
-                                easingFunction: "easeInOutQuad",
-                            },
-                            scale: 1.2, // Zoom out slightly more
-                        });
-                    }
-                }, 500);
+                // Completely disable physics
+                this.network.setOptions({
+                    physics: {
+                        enabled: false,
+                        stabilization: {
+                            enabled: false,
+                        },
+                    },
+                });
+
+                // Lock positions
+                const positions = this.network.getPositions();
+                Object.keys(positions).forEach((nodeId) => {
+                    this.nodes.update({
+                        id: nodeId,
+                        fixed: true,
+                        x: positions[nodeId].x,
+                        y: positions[nodeId].y,
+                    });
+                });
+            });
+        },
+
+        togglePhysics() {
+            this.physicsEnabled = !this.physicsEnabled;
+
+            // Update physics settings
+            this.network.setOptions({
+                physics: {
+                    enabled: this.physicsEnabled,
+                    stabilization: {
+                        enabled: false, // Don't re-stabilize on toggle
+                    },
+                },
+            });
+
+            // Update node fixed states
+            const positions = this.network.getPositions();
+            Object.keys(positions).forEach((nodeId) => {
+                this.nodes.update({
+                    id: nodeId,
+                    fixed: !this.physicsEnabled,
+                });
             });
         },
     },
@@ -132,9 +239,14 @@ export default Vue.component("NetworkGraph", {
 
 <style scoped>
 .network-container {
-    position: relative;
-    width: 100%;
-    height: 400px;
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.vis-network {
+    outline: none;
+    will-change: transform;
 }
 
 .stabilization-progress {
@@ -181,5 +293,32 @@ export default Vue.component("NetworkGraph", {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+:fullscreen {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.physics-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.physics-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.physics-button:hover:not(:disabled) {
+    background: #f5f5f5;
 }
 </style>
