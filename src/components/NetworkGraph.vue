@@ -8,13 +8,23 @@
             :disabled="stabilizing"
             @click="togglePhysics"
         >
-            {{ physicsEnabled ? "Disable" : "Enable" }} Physics
+            <b-icon :icon="!physicsEnabled ? 'x' : 'check2'"></b-icon> Physics
         </button>
         <button
-            class="btn btn-sm ml-2 control-button nav-button"
+            class="btn btn-sm control-button nav-button"
             @click="toggleNavigation"
         >
-            {{ showNavigation ? "Hide" : "Show" }} Navigation
+            <b-icon :icon="!showNavigation ? 'eye-slash' : 'eye'"></b-icon>
+            Navigation
+        </button>
+        <button
+            class="btn btn-sm control-button fullscreen-button"
+            @click="toggleFullscreen"
+        >
+            <b-icon
+                :icon="isFullscreen ? 'fullscreen-exit' : 'fullscreen'"
+            ></b-icon>
+            Fullscreen
         </button>
         <div
             v-show="!loading && !stabilizing"
@@ -72,15 +82,19 @@ export default Vue.component("NetworkGraph", {
             physicsEnabled: false,
             error: null,
             showNavigation: false,
+            isFullscreen: false,
         };
     },
     computed: {
         containerStyle() {
             return {
-                height: "400px",
-                position: "relative",
+                height: this.isFullscreen ? "100vh" : "400px",
                 width: "100%",
-                overflow: "hidden", // Prevent internal scrolling
+                position: this.isFullscreen ? "fixed" : "relative",
+                top: this.isFullscreen ? "0" : "auto",
+                left: this.isFullscreen ? "0" : "auto",
+                zIndex: this.isFullscreen ? "9999" : "1",
+                background: "#fff",
             };
         },
     },
@@ -107,11 +121,18 @@ export default Vue.component("NetworkGraph", {
     async mounted() {
         await this.$nextTick();
         await this.fetchGraphData();
+        document.addEventListener("fullscreenchange", () => {
+            this.isFullscreen = !!document.fullscreenElement;
+            if (this.network) {
+                this.network.fit();
+            }
+        });
     },
     beforeDestroy() {
         if (this.network) {
             this.network.destroy();
         }
+        document.removeEventListener("fullscreenchange", () => {});
     },
     methods: {
         async fetchGraphData() {
@@ -319,6 +340,18 @@ export default Vue.component("NetworkGraph", {
             });
         },
 
+        async toggleFullscreen() {
+            try {
+                if (!this.isFullscreen) {
+                    await this.$refs.networkContainer.requestFullscreen();
+                } else {
+                    await document.exitFullscreen();
+                }
+            } catch (error) {
+                console.error("Fullscreen error:", error);
+            }
+        },
+
         async refreshGraph() {
             try {
                 this.error = null;
@@ -436,11 +469,15 @@ export default Vue.component("NetworkGraph", {
 }
 
 .physics-button {
-    right: 160px; /* Make room for nav button */
+    right: 274px; /* Position for first button */
 }
 
 .nav-button {
-    right: 10px;
+    right: 140px; /* Position for middle button */
+}
+
+.fullscreen-button {
+    right: 10px; /* Position for last button */
 }
 
 .control-button:disabled {
@@ -462,5 +499,18 @@ export default Vue.component("NetworkGraph", {
     padding: 1rem;
     border-radius: 4px;
     z-index: 1000;
+}
+
+.fullscreen-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+/* Fullscreen styles */
+:fullscreen {
+    background: white;
+    padding: 20px;
 }
 </style>
