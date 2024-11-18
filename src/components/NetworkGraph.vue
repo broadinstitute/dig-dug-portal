@@ -8,7 +8,10 @@
             :disabled="stabilizing"
             @click="togglePhysics"
         >
-            <b-icon :icon="!physicsEnabled ? 'x' : 'check2'"></b-icon> Physics
+            <b-icon
+                :icon="!physicsEnabled ? 'toggle-off' : 'toggle-on'"
+            ></b-icon>
+            Physics
         </button>
         <button
             class="btn btn-sm control-button nav-button"
