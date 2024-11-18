@@ -90,7 +90,19 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">Network Graph</h4>
-                    <network-graph></network-graph>
+                    <template
+                        v-if="
+                            $store.state.phenotype &&
+                            $store.state.sigma &&
+                            $store.state.genesetSize
+                        "
+                    >
+                        <network-graph
+                            :phenotype="$store.state.phenotype"
+                            :sigma="$store.state.sigma"
+                            :geneset-size="$store.state.genesetSize"
+                        ></network-graph>
+                    </template>
                 </div>
             </div>
 
