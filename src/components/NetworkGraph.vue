@@ -32,6 +32,23 @@ import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 
 export default Vue.component("NetworkGraph", {
+    props: {
+        phenotype: {
+            type: Object,
+            required: true,
+            default: () => ({}),
+        },
+        sigma: {
+            type: [Number, String],
+            required: true,
+            default: 2,
+        },
+        genesetSize: {
+            type: String,
+            required: true,
+            default: "small",
+        },
+    },
     data() {
         return {
             network: null,
@@ -57,6 +74,26 @@ export default Vue.component("NetworkGraph", {
             };
         },
     },
+    watch: {
+        phenotype: {
+            handler(newVal, oldVal) {
+                if (newVal?.name !== oldVal?.name) {
+                    this.refreshGraph();
+                }
+            },
+            deep: true,
+        },
+        sigma: {
+            handler() {
+                this.refreshGraph();
+            },
+        },
+        genesetSize: {
+            handler() {
+                this.refreshGraph();
+            },
+        },
+    },
     async mounted() {
         await this.$nextTick();
         await this.fetchGraphData();
@@ -69,9 +106,12 @@ export default Vue.component("NetworkGraph", {
     methods: {
         async fetchGraphData() {
             this.loading = true;
+            //just the number
+            const sigmaNum = this.sigma.replace("sigma", "");
+            const phenotype = this.phenotype.name;
             try {
                 const response = await fetch(
-                    "https://bioindex-dev.hugeamp.org/api/bio/query/pigean-graph?q=T2D,2,small"
+                    `https://bioindex-dev.hugeamp.org/api/bio/query/pigean-graph?q=${phenotype},${sigmaNum},${this.genesetSize}`
                 );
                 const data = await response.json();
 
@@ -232,6 +272,43 @@ export default Vue.component("NetworkGraph", {
                     fixed: !this.physicsEnabled,
                 });
             });
+        },
+
+        async refreshGraph() {
+            try {
+                this.loading = true;
+                this.stabilizing = true;
+                this.stabilizationProgress = 0;
+
+                // Cleanup existing network
+                if (this.network) {
+                    this.network.destroy();
+                    this.network = null;
+                }
+
+                // Clear datasets
+                this.nodes.clear();
+                this.edges.clear();
+
+                // Fetch new data and reinitialize
+                await this.fetchGraphData();
+                await this.$nextTick();
+                await this.initNetwork();
+
+                // Fit view
+                if (this.network) {
+                    this.network.fit({
+                        animation: {
+                            duration: 1000,
+                            easingFunction: "easeInOutQuad",
+                        },
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to refresh graph:", error);
+            } finally {
+                this.loading = false;
+            }
         },
     },
 });
