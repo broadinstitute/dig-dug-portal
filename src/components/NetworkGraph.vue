@@ -4,11 +4,17 @@
             No data available for the selected parameters
         </div>
         <button
-            class="physics-button"
-            @click="togglePhysics"
+            class="btn btn-sm control-button physics-button"
             :disabled="stabilizing"
+            @click="togglePhysics"
         >
             {{ physicsEnabled ? "Disable" : "Enable" }} Physics
+        </button>
+        <button
+            class="btn btn-sm ml-2 control-button nav-button"
+            @click="toggleNavigation"
+        >
+            {{ showNavigation ? "Hide" : "Show" }} Navigation
         </button>
         <div
             v-show="!loading && !stabilizing"
@@ -33,6 +39,7 @@
 import Vue from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
+import { error } from "jquery";
 
 export default Vue.component("NetworkGraph", {
     props: {
@@ -66,6 +73,7 @@ export default Vue.component("NetworkGraph", {
             }),
             physicsEnabled: false,
             error: null,
+            showNavigation: false,
         };
     },
     computed: {
@@ -123,6 +131,8 @@ export default Vue.component("NetworkGraph", {
                 // Check if data exists
                 if (!data.data?.[0]?.nodes?.length) {
                     this.error = "No data available";
+                    this.nodes.clear();
+                    this.edges.clear();
                     return; // Early return to prevent rerender
                 }
 
@@ -212,7 +222,7 @@ export default Vue.component("NetworkGraph", {
                     },
                 },
                 interaction: {
-                    navigationButtons: true,
+                    navigationButtons: this.showNavigation, // Off by default
                     keyboard: true,
                     hideEdgesOnDrag: true,
                     hideEdgesOnZoom: true,
@@ -286,8 +296,18 @@ export default Vue.component("NetworkGraph", {
             });
         },
 
+        toggleNavigation() {
+            this.showNavigation = !this.showNavigation;
+            this.network?.setOptions({
+                interaction: {
+                    navigationButtons: this.showNavigation,
+                },
+            });
+        },
+
         async refreshGraph() {
             try {
+                this.error = null;
                 this.loading = true;
                 this.stabilizing = true;
                 this.stabilizationProgress = 0;
@@ -390,24 +410,31 @@ export default Vue.component("NetworkGraph", {
     padding: 0;
 }
 
-.physics-button {
+.control-button {
     position: absolute;
     top: 10px;
-    right: 10px;
-    z-index: 1000;
     padding: 8px 16px;
     background: white;
     border: 1px solid #ddd;
     border-radius: 4px;
     cursor: pointer;
+    z-index: 9;
 }
 
-.physics-button:disabled {
+.physics-button {
+    right: 160px; /* Make room for nav button */
+}
+
+.nav-button {
+    right: 10px;
+}
+
+.control-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.physics-button:hover:not(:disabled) {
+.control-button:hover:not(:disabled) {
     background: #f5f5f5;
 }
 
