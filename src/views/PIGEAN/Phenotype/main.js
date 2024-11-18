@@ -416,16 +416,17 @@ new Vue({
         namesAndMechanisms(originalData) {
             let data = structuredClone(originalData);
             let mechanisms = this.mechanismMap;
-            for (let i = 0; i < data.length; i++) {
-                let label = mechanisms[data[i].factor].label || "";
-                let score = mechanisms[data[i].factor].score || "";
-                data[i].mechanism = `${score}___${label}`;
-            }
+            data.forEach((item) => {
+                const mechanism = mechanisms[item.factor] || {};
+                item.mechanism = `${mechanism.score || ""}___${
+                    mechanism.label || ""
+                }`;
+            });
             return data;
         },
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");
