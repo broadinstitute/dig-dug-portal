@@ -1,7 +1,7 @@
 <template>
     <div class="network-container" :style="containerStyle">
         <div v-if="error" class="error-alert">
-            No data available for the selected parameters
+            {{ error }}
         </div>
         <button
             class="btn btn-sm control-button physics-button"
@@ -37,9 +37,7 @@
 </template>
 <script>
 import Vue from "vue";
-import { Network } from "vis-network";
-import { DataSet } from "vis-data";
-import { error } from "jquery";
+import { Network, DataSet } from "vis-network";
 
 export default Vue.component("NetworkGraph", {
     props: {
@@ -136,10 +134,26 @@ export default Vue.component("NetworkGraph", {
                     return; // Early return to prevent rerender
                 }
 
+                // Clear existing data
                 this.nodes.clear();
                 this.edges.clear();
-                this.nodes.add(data.data[0].nodes);
-                this.nodes.flush(); // Force update after batch
+
+                // Track seen IDs and filter duplicates
+                const seenIds = new Set();
+                const uniqueNodes = data.data[0].nodes.filter((node) => {
+                    if (seenIds.has(node.id)) {
+                        console.warn(`Duplicate node ID found: ${node.id}`);
+                        return false;
+                    }
+                    seenIds.add(node.id);
+                    return true;
+                });
+
+                // Add filtered nodes
+                this.nodes.add(uniqueNodes);
+                this.nodes.flush();
+
+                // Add edges after node validation
                 this.edges.add(data.data[0].edges);
                 this.edges.flush();
 

@@ -1,6 +1,6 @@
 {
   "name": "dig-dug-t2dkp",
-  "version": "3.0.0",
+  "version": "4.0.1",
   "private": true,
   "scripts": {
     "watch": "vue-cli-service build --mode development --watch",
@@ -32,8 +32,7 @@
     "tabix-reader": "^1.0.1",
     "trapi-client": "^0.0.3",
     "url-parse": "^1.5.10",
-    "vis-data": "7.1.6",
-    "vis-network": "9.1.6",
+    "vis-network": "9.1.9",
     "vis-util": "^5.0.7",
     "vue": "^2.7.16",
     "vue-async-computed": "^3.9.0",
