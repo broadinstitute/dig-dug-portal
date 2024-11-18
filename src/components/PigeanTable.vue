@@ -81,14 +81,11 @@ export default Vue.component("pigean-table", {
             }
             return data;
         },
-        sigma() {
-            return parseInt(keyParams.sigma.slice(-1));
-        },
         genesetSize() {
             return keyParams.genesetSize;
         },
         suffix() {
-            return `&sigma=sigma${this.sigma}&genesetSize=${this.genesetSize}`;
+            return `&genesetSize=${this.genesetSize}`;
         },
     },
     methods: {
@@ -166,15 +163,14 @@ export default Vue.component("pigean-table", {
             }
         },
         phewasKey(item) {
-            return `${item.phenotype},${this.sigma},${this.genesetSize},${item.factor}`;
+            return `${item.phenotype},${this.genesetSize},${item.factor}`;
         },
         subtableKey(item) {
             if (this.config.queryParam === "cluster") {
-                return `${item.phenotype},${this.sigma},${this.genesetSize},${item.factor}`;
+                return `${item.phenotype},${this.genesetSize},${item.factor}`;
             }
             return `${item.phenotype},${item[this.config.queryParam]},${
-                this.sigma
-            },${this.genesetSize}`;
+                this.genesetSize}`;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
