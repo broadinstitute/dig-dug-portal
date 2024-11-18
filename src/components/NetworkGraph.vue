@@ -1,5 +1,8 @@
 <template>
     <div class="network-container" :style="containerStyle">
+        <div v-if="error" class="error-alert">
+            No data available for the selected parameters
+        </div>
         <button
             class="physics-button"
             @click="togglePhysics"
@@ -62,12 +65,13 @@ export default Vue.component("NetworkGraph", {
                 queue: true,
             }),
             physicsEnabled: false,
+            error: null,
         };
     },
     computed: {
         containerStyle() {
             return {
-                height: "600px",
+                height: "400px",
                 position: "relative",
                 width: "100%",
                 overflow: "hidden", // Prevent internal scrolling
@@ -106,6 +110,7 @@ export default Vue.component("NetworkGraph", {
     methods: {
         async fetchGraphData() {
             this.loading = true;
+            this.error = null;
             //just the number
             const sigmaNum = this.sigma.replace("sigma", "");
             const phenotype = this.phenotype.name;
@@ -114,6 +119,12 @@ export default Vue.component("NetworkGraph", {
                     `https://bioindex-dev.hugeamp.org/api/bio/query/pigean-graph?q=${phenotype},${sigmaNum},${this.genesetSize}`
                 );
                 const data = await response.json();
+
+                // Check if data exists
+                if (!data.data?.[0]?.nodes?.length) {
+                    this.error = "No data available";
+                    return; // Early return to prevent rerender
+                }
 
                 this.nodes.clear();
                 this.edges.clear();
@@ -132,6 +143,7 @@ export default Vue.component("NetworkGraph", {
                     });
                 }
             } catch (error) {
+                this.error = error.message;
                 console.error("Error:", error);
             } finally {
                 this.loading = false;
@@ -397,5 +409,17 @@ export default Vue.component("NetworkGraph", {
 
 .physics-button:hover:not(:disabled) {
     background: #f5f5f5;
+}
+
+.error-alert {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff3f3;
+    border: 1px solid #ff4444;
+    padding: 1rem;
+    border-radius: 4px;
+    z-index: 1000;
 }
 </style>
