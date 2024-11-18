@@ -138,7 +138,7 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
     }
     return data;
 }
-export const DEFAULT_SIGMA = "sigma2";
+export const DEFAULT_SIGMA = 2;
 export const DEFAULT_GENESET_SIZE = "small";
 
 export default {

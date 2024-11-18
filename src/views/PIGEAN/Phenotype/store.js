@@ -29,7 +29,6 @@ export default new Vuex.Store({
         manhattanPlotAvailable: false,
         genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
         genesetSizeToQuery: null,
-        sigmaInt: 2,
     },
     mutations: {
         setGenesetSize(state, genesetSize){
@@ -67,7 +66,7 @@ export default new Vuex.Store({
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
             context.commit("setGenesetSize", genesetSize);
             
-            let query = { q: `${name},${context.state.sigmaInt},${genesetSize}`, limit: 1000 };
+            let query = { q: `${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`, limit: 1000 };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
             context.dispatch("pigeanFactor/query", query);

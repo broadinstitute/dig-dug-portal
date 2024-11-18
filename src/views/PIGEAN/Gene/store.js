@@ -21,7 +21,6 @@ export default new Vuex.Store({
         geneToQuery: "",
         genesetSizeToQuery: null,
         aliasName: null,
-        sigmaInt: 2
     },
 
     mutations: {
@@ -74,7 +73,7 @@ export default new Vuex.Store({
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
                 context.dispatch("pigeanGene/query", { q: 
-                    `${name},${context.state.sigmaInt},${genesetSize}` });
+                    `${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}` });
             }
         },
     },

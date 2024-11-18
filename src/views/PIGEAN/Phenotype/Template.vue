@@ -89,13 +89,11 @@
                     <template
                         v-if="
                             $store.state.phenotype &&
-                            $store.state.sigma &&
                             $store.state.genesetSize
                         "
                     >
                         <network-graph
                             :phenotype="$store.state.phenotype"
-                            :sigma="$store.state.sigma"
                             :geneset-size="$store.state.genesetSize"
                         ></network-graph>
                     </template>
