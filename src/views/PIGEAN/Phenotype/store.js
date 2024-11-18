@@ -27,16 +27,12 @@ export default new Vuex.Store({
         diseaseInSession: null,
         selectedPhenotype: null,
         manhattanPlotAvailable: false,
-        sigma: keyParams.sigma || bioIndexUtils.DEFAULT_SIGMA,
-        sigmaToQuery: null,
         genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
-        genesetSizeToQuery: null, 
+        genesetSizeToQuery: null,
+        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroupToQuery: null,
     },
     mutations: {
-        setSigma(state, sigma){
-            state.sigma = sigma || state.sigma
-            keyParams.set({ sigma: state.sigma });
-        },
         setGenesetSize(state, genesetSize){
             state.genesetSize = genesetSize || state.genesetSize;
             keyParams.set({ genesetSize: state.genesetSize });
@@ -50,6 +46,10 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
+        },
+        setTraitGroup(state, traitGroup){
+            state.traitGroup = traitGroup || state.traitGroup;
+            keyParams.set({ traitGroup: state.traitGroup });
         },
     },
     getters: {
@@ -69,13 +69,12 @@ export default new Vuex.Store({
         queryPhenotype(context) {
             context.state.phenotype = context.state.selectedPhenotype;
             let name = context.state.phenotype.name;
-            let sigma = context.state.sigmaToQuery || context.state.sigma;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
-            context.commit("setSigma", sigma);
+            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setGenesetSize", genesetSize);
+            context.commit("setTraitGroup", traitGroup);
             
-            let sigmaInt = parseInt(sigma.slice(-1));
-            let query = { q: `${name},${sigmaInt},${genesetSize}`, limit: 1000 };
+            let query = { q: `${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`, limit: 1000 };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
             context.dispatch("pigeanFactor/query", query);

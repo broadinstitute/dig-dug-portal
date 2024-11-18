@@ -13,7 +13,6 @@ import sessionUtils from "@/utils/sessionUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
-import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
@@ -30,7 +29,6 @@ new Vue({
     store,
     components: {
         SearchHeaderWrapper,
-        SigmaSelectPicker,
         GenesetSizeSelectPicker,
         ResearchMPlot,
         RawImage,
@@ -392,9 +390,6 @@ new Vue({
         },
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
-        },
-        queryString(DETAILS) {
-            return `${DETAILS.phenotype},${DETAILS.sigma},${DETAILS.gene_set_size},${DETAILS.factor}`;
         },
         filterHeatmapData(p) {
             let phewasData = this.namesAndMechanisms(

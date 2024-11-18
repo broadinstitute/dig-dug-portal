@@ -17,12 +17,13 @@ export default new Vuex.Store({
     },
     state: {
         geneName: keyParams.gene,
-        sigma: keyParams.sigma || bioIndexUtils.DEFAULT_SIGMA,
         genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
         geneToQuery: "",
-        sigmaToQuery: null,
         genesetSizeToQuery: null,
         aliasName: null,
+        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroupToQuery: null,
+
     },
 
     mutations: {
@@ -30,13 +31,13 @@ export default new Vuex.Store({
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
         },
-        setSigma(state, sigma){
-            state.sigma = sigma || state.sigma;
-            keyParams.set({ sigma: state.sigma });
-        },
         setGenesetSize(state, genesetSize){
             state.genesetSize = genesetSize || state.genesetSize;
             keyParams.set({ genesetSize: state.genesetSize });
+        },
+        setTraitGroup(state, traitGroup){
+            state.traitGroup = traitGroup || state.traitGroup;
+            keyParams.set({ traitGroup: state.traitGroup });
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
@@ -73,17 +74,15 @@ export default new Vuex.Store({
     actions: {
         async queryGeneName(context, symbol) {
             let name = context.state.geneToQuery || context.state.geneName;
-            let sigma = context.state.sigmaToQuery || context.state.sigma;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
+            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setGeneName", name);
-            context.commit("setSigma", sigma);
             context.commit("setGenesetSize", genesetSize);
-
-            let sigmaInt = parseInt(sigma.slice(-1));
+            context.commit("setTraitGroup", traitGroup);
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
                 context.dispatch("pigeanGene/query", { q: 
-                    `${name},${sigmaInt},${genesetSize}` });
+                    `${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}` });
             }
         },
     },

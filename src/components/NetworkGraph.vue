@@ -56,11 +56,6 @@ export default Vue.component("NetworkGraph", {
             required: true,
             default: () => ({}),
         },
-        sigma: {
-            type: [Number, String],
-            required: true,
-            default: 2,
-        },
         genesetSize: {
             type: String,
             required: true,
@@ -107,11 +102,6 @@ export default Vue.component("NetworkGraph", {
             },
             deep: true,
         },
-        sigma: {
-            handler() {
-                this.refreshGraph();
-            },
-        },
         genesetSize: {
             handler() {
                 this.refreshGraph();
@@ -139,11 +129,11 @@ export default Vue.component("NetworkGraph", {
             this.loading = true;
             this.error = null;
             //just the number
-            const sigmaNum = this.sigma.replace("sigma", "");
             const phenotype = this.phenotype.name;
             try {
                 const response = await fetch(
-                    `https://bioindex-dev.hugeamp.org/api/bio/query/pigean-graph?q=${phenotype},${sigmaNum},${this.genesetSize}`
+                    `https://bioindex-dev.hugeamp.org/api/bio/query/pigean-graph?q=${phenotype},${
+                        bioIndexUtils.DEFAULT_SIGMA},${this.genesetSize}`
                 );
                 const data = await response.json();
 
