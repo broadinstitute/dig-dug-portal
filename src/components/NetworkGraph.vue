@@ -47,6 +47,7 @@
 </template>
 <script>
 import Vue from "vue";
+import { BIO_INDEX_HOST, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import { Network, DataSet } from "vis-network";
 
 export default Vue.component("NetworkGraph", {
@@ -132,8 +133,7 @@ export default Vue.component("NetworkGraph", {
             const phenotype = this.phenotype.name;
             try {
                 const response = await fetch(
-                    `https://bioindex-dev.hugeamp.org/api/bio/query/pigean-graph?q=${phenotype},${
-                        bioIndexUtils.DEFAULT_SIGMA},${this.genesetSize}`
+                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${phenotype},${DEFAULT_SIGMA},${this.genesetSize}`
                 );
                 const data = await response.json();
 
@@ -445,6 +445,7 @@ export default Vue.component("NetworkGraph", {
     overflow: hidden;
     margin: 0;
     padding: 0;
+    background: white;
 }
 
 .control-button {
@@ -496,11 +497,5 @@ export default Vue.component("NetworkGraph", {
     top: 10px;
     right: 10px;
     z-index: 1000;
-}
-
-/* Fullscreen styles */
-:fullscreen {
-    background: white;
-    padding: 20px;
 }
 </style>
