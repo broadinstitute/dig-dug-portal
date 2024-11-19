@@ -338,18 +338,6 @@ new Vue({
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            console.log("We're not using this anymore");
-            /* let name = keyParams.phenotype;
-            let phenotype = phenotypeMap[name];
-
-            if (phenotype) {
-                this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.name });
-            }
-            //Initial query. Should only happen once.
-            this.$store.dispatch("queryPhenotype"); */
-        },
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
@@ -372,14 +360,12 @@ new Vue({
         ...uiUtils,
         ...sessionUtils,
         getToolTipPosition(ELEMENT) {
-            console.log(ELEMENT);
             uiUtils.getToolTipPosition(ELEMENT);
         },
         setSelectedPhenotype(PHENOTYPE) {
             let oldStylePhenotype = this.toOldStyle(PHENOTYPE);
             this.newPhenotypeSearchKey = oldStylePhenotype.description;
             this.phenotypeSearchKey = null;
-            console.log(JSON.stringify(oldStylePhenotype));
             this.$store.dispatch("selectedPhenotype", oldStylePhenotype);
         },
         ifPhenotypeInSearch(DESCRIPTION) {
@@ -442,14 +428,13 @@ new Vue({
         },
         lookupInPigeanMap(){
             let name = keyParams.phenotype;
-            console.log(name);
             let newPhenotype = this.pigeanPhenotypeMap[name];
-            console.log(JSON.stringify(newPhenotype));
             let phenotype = this.toOldStyle(newPhenotype);
-            console.log(JSON.stringify(phenotype));
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
                 keyParams.set({ phenotype: phenotype.name });
+                this.$store.state.traitGroupToQuery = phenotype.trait_group;
+                keyParams.set({ traitGroup: phenotype.trait_group });
             }
             //Initial query. Should only happen once.
             this.$store.dispatch("queryPhenotype");

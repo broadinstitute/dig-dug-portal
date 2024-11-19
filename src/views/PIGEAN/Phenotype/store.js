@@ -30,7 +30,7 @@ export default new Vuex.Store({
         manhattanPlotAvailable: false,
         genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
         genesetSizeToQuery: null,
-        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroup: keyParams.traitGroup,
         traitGroupToQuery: null,
     },
     mutations: {
@@ -47,6 +47,8 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
+            state.traitGroupToQuery = PHENOTYPE.trait_group;
+            keyParams.set({ traitGroup: PHENOTYPE.trait_group});
         },
         setTraitGroup(state, traitGroup){
             state.traitGroup = traitGroup || state.traitGroup;
