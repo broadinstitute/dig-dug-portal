@@ -48,6 +48,11 @@ new Vue({
         return {
             plotColors: plotUtils.plotColors(),
             pigeanPhenotypeMap: {},
+            traitGroups: {
+                portal: "A2F",
+                gcat_trait:"GWAS Catalog",
+                rare_v2: "Orphanet"
+            },
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
