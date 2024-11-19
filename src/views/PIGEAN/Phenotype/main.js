@@ -47,7 +47,6 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
-            pigeanPhenotypeMap: {},
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
@@ -297,9 +296,6 @@ new Vue({
                 return this.$store.state.phenotypesInSession;
             }
         },
-        pigeanPhenotypes(){
-            return this.$store.state.pigeanAllPhenotypes.data;
-        },
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
@@ -338,11 +334,20 @@ new Vue({
             });
             return mechanisms;
         },
+        pigeanPhenotypeMap(){
+            let phenotypeMap = {};
+            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
+            phenotypes.forEach(item => {
+                phenotypeMap[item.phenotype] = item;
+            });
+            return phenotypeMap;
+        }
     },
 
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            let name = keyParams.phenotype;
+            console.log("We're not using this anymore");
+            /* let name = keyParams.phenotype;
             let phenotype = phenotypeMap[name];
 
             if (phenotype) {
@@ -350,7 +355,7 @@ new Vue({
                 keyParams.set({ phenotype: phenotype.name });
             }
             //Initial query. Should only happen once.
-            this.$store.dispatch("queryPhenotype");
+            this.$store.dispatch("queryPhenotype"); */
         },
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
@@ -359,6 +364,20 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        pigeanPhenotypeMap(pigeanMap){
+            let name = keyParams.phenotype;
+            console.log(name);
+            let newPhenotype = pigeanMap[name];
+            console.log(JSON.stringify(newPhenotype));
+            let phenotype = this.toOldStyle(newPhenotype);
+            console.log(JSON.stringify(phenotype));
+            if (phenotype) {
+                this.$store.state.selectedPhenotype = phenotype;
+                keyParams.set({ phenotype: phenotype.name });
+            }
+            //Initial query. Should only happen once.
+            this.$store.dispatch("queryPhenotype");
+        }
     },
 
     async created() {
@@ -367,8 +386,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = this.mapPhenotypes();
-
     },
     methods: {
         ...uiUtils,
@@ -378,11 +395,7 @@ new Vue({
             uiUtils.getToolTipPosition(ELEMENT);
         },
         setSelectedPhenotype(PHENOTYPE) {
-            let oldStylePhenotype = structuredClone(PHENOTYPE);
-            oldStylePhenotype.description = PHENOTYPE.phenotype_name;
-            oldStylePhenotype.name = PHENOTYPE.phenotype;
-            oldStylePhenotype.group = PHENOTYPE.display_group;
-
+            let oldStylePhenotype = this.toOldStyle(PHENOTYPE);
             this.newPhenotypeSearchKey = oldStylePhenotype.description;
             this.phenotypeSearchKey = null;
             console.log(JSON.stringify(oldStylePhenotype));
@@ -431,14 +444,12 @@ new Vue({
             });
             return data;
         },
-        mapPhenotypes(){
-            let phenotypeMap = {};
-            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
-            phenotypes.forEach(item => {
-                phenotypeMap[item.phenotype] = item;
-            });
-            console.log(JSON.stringify(phenotypeMap));
-            return phenotypeMap;
+        toOldStyle(newStylePhenotype){
+            let oldStyle = structuredClone(newStylePhenotype);
+            oldStyle.description = newStylePhenotype.phenotype_name;
+            oldStyle.name = newStylePhenotype.phenotype;
+            oldStyle.group = newStylePhenotype.display_group;
+            return oldStyle;
         }
     },
 

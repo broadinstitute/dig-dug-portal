@@ -34,7 +34,7 @@
                         v-if="!!$parent.phenotypeSearchKey"
                         class="page-phenotypes-list"
                     >
-                        <template v-for="item in $parent.pigeanPhenotypes">
+                        <template v-for="item in $store.state.pigeanAllPhenotypes.data">
                             <li
                                 v-if="
                                     !!$parent.ifPhenotypeInSearch(
