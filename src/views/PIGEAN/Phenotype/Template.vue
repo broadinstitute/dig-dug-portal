@@ -48,6 +48,8 @@
                                     @click="$parent.setSelectedPhenotype(item)"
                                     v-html="item.phenotype_name"
                                 ></a>
+                                <span class="trait-group"> ({{ 
+                                    $parent.traitGroups[item.trait_group] }})</span>
                             </li>
                         </template>
                     </ul>
@@ -301,5 +303,8 @@
 }
 .b-tooltip {
     color: green !important;
+}
+span.trait-group{
+    color: #495057;
 }
 </style>
