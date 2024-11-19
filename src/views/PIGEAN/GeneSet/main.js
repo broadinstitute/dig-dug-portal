@@ -38,6 +38,7 @@ new Vue({
 
     data() {
         return {
+            pigeanPhenotypeMap: {},
             filterFields: [
                 { key: "beta_uncorrected", label: "Effect (uncorrected)" },
                 { key: "beta", label: "Effect (joint)" },
@@ -122,7 +123,7 @@ new Vue({
         plotReady() {
             return (
                 this.$store.state.pigeanGeneset.data.length > 0 &&
-                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
+                Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
         phewasAdjustedData() {
@@ -136,17 +137,39 @@ new Vue({
             }
             return adjustedData;
         },
+        pigeanMap(){
+            return this.pigeanPhenotypeMap;
+        }
     },
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
     },
+    methods: {
+        mapPhenotypes(){
+            let phenotypeMap = {};
+            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
+            phenotypes.forEach(item => {
+                phenotypeMap[item.phenotype] = this.toOldStyle(item);
+            });
+            return phenotypeMap;
+        },
+        toOldStyle(newStylePhenotype){
+            let oldStyle = structuredClone(newStylePhenotype);
+            oldStyle.description = newStylePhenotype.phenotype_name;
+            oldStyle.name = newStylePhenotype.phenotype;
+            oldStyle.group = newStylePhenotype.display_group;
+            return oldStyle;
+        },
+    },
 
-    created() {
+    async created() {
         this.$store.dispatch("queryGeneset", this.$store.state.geneset);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = this.mapPhenotypes();
     },
 
     render(createElement, context) {
