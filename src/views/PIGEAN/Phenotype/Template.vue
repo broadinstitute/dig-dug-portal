@@ -34,19 +34,19 @@
                         v-if="!!$parent.phenotypeSearchKey"
                         class="page-phenotypes-list"
                     >
-                        <template v-for="item in $parent.phenotypesInSession">
+                        <template v-for="item in $store.state.pigeanAllPhenotypes.data">
                             <li
                                 v-if="
                                     !!$parent.ifPhenotypeInSearch(
-                                        item.description
+                                        item.phenotype_name
                                     )
                                 "
-                                :key="item.name"
+                                :key="item.phenotype"
                             >
                                 <a
                                     href="javascript:;"
                                     @click="$parent.setSelectedPhenotype(item)"
-                                    v-html="item.description"
+                                    v-html="item.phenotype_name"
                                 ></a>
                             </li>
                         </template>

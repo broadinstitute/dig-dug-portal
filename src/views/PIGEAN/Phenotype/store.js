@@ -18,6 +18,7 @@ export default new Vuex.Store({
         pigeanFactor: bioIndex("pigean-factor"),
         pigeanPheWAS: bioIndex("pigean-phewas"),
         pigeanTopPhewas: bioIndex("pigean-top-phewas"),
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -29,7 +30,7 @@ export default new Vuex.Store({
         manhattanPlotAvailable: false,
         genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
         genesetSizeToQuery: null,
-        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroup: keyParams.traitGroup,
         traitGroupToQuery: null,
     },
     mutations: {
@@ -46,6 +47,8 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
+            state.traitGroupToQuery = PHENOTYPE.trait_group;
+            keyParams.set({ traitGroup: PHENOTYPE.trait_group});
         },
         setTraitGroup(state, traitGroup){
             state.traitGroup = traitGroup || state.traitGroup;
@@ -61,7 +64,6 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            console.log(phenotype);
             context.state.selectedPhenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
@@ -87,8 +89,10 @@ export default new Vuex.Store({
             context.commit("setDiseaseInSession", DISEASE);
         },
         selectedPhenotype(context, PHENOTYPE) {
-            console.log("onState", PHENOTYPE);
             context.commit("setSelectedPhenotype", PHENOTYPE);
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
     },
 });

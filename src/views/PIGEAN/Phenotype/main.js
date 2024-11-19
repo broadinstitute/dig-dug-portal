@@ -47,6 +47,7 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
+            pigeanPhenotypeMap: "",
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
@@ -337,18 +338,6 @@ new Vue({
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            let name = keyParams.phenotype;
-            let phenotype = phenotypeMap[name];
-
-            if (phenotype) {
-                this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.name });
-            }
-            //Initial query. Should only happen once.
-            this.$store.dispatch("queryPhenotype");
-        },
-
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
@@ -358,23 +347,26 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = this.mapPhenotypes();
+        this.lookupInPigeanMap();
     },
     methods: {
         ...uiUtils,
         ...sessionUtils,
         getToolTipPosition(ELEMENT) {
-            console.log(ELEMENT);
             uiUtils.getToolTipPosition(ELEMENT);
         },
         setSelectedPhenotype(PHENOTYPE) {
-            this.newPhenotypeSearchKey = PHENOTYPE.description;
+            let oldStylePhenotype = this.toOldStyle(PHENOTYPE);
+            this.newPhenotypeSearchKey = oldStylePhenotype.description;
             this.phenotypeSearchKey = null;
-            this.$store.dispatch("selectedPhenotype", PHENOTYPE);
+            this.$store.dispatch("selectedPhenotype", oldStylePhenotype);
         },
         ifPhenotypeInSearch(DESCRIPTION) {
             let searchKeys = this.phenotypeSearchKey.split(" ");
@@ -419,6 +411,34 @@ new Vue({
             });
             return data;
         },
+        mapPhenotypes(){
+            let phenotypeMap = {};
+            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
+            phenotypes.forEach(item => {
+                phenotypeMap[item.phenotype] = item;
+            });
+            return phenotypeMap;
+        },
+        toOldStyle(newStylePhenotype){
+            let oldStyle = structuredClone(newStylePhenotype);
+            oldStyle.description = newStylePhenotype.phenotype_name;
+            oldStyle.name = newStylePhenotype.phenotype;
+            oldStyle.group = newStylePhenotype.display_group;
+            return oldStyle;
+        },
+        lookupInPigeanMap(){
+            let name = keyParams.phenotype;
+            let newPhenotype = this.pigeanPhenotypeMap[name];
+            let phenotype = this.toOldStyle(newPhenotype);
+            if (phenotype) {
+                this.$store.state.selectedPhenotype = phenotype;
+                keyParams.set({ phenotype: phenotype.name });
+                this.$store.state.traitGroupToQuery = phenotype.trait_group;
+                keyParams.set({ traitGroup: phenotype.trait_group });
+            }
+            //Initial query. Should only happen once.
+            this.$store.dispatch("queryPhenotype");
+        }
     },
 
     render(createElement) {
