@@ -47,6 +47,7 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
+            pigeanPhenotypeMap: "",
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
@@ -334,14 +335,6 @@ new Vue({
             });
             return mechanisms;
         },
-        pigeanPhenotypeMap(){
-            let phenotypeMap = {};
-            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
-            phenotypes.forEach(item => {
-                phenotypeMap[item.phenotype] = item;
-            });
-            return phenotypeMap;
-        }
     },
 
     watch: {
@@ -364,20 +357,6 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        pigeanPhenotypeMap(pigeanMap){
-            let name = keyParams.phenotype;
-            console.log(name);
-            let newPhenotype = pigeanMap[name];
-            console.log(JSON.stringify(newPhenotype));
-            let phenotype = this.toOldStyle(newPhenotype);
-            console.log(JSON.stringify(phenotype));
-            if (phenotype) {
-                this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.name });
-            }
-            //Initial query. Should only happen once.
-            this.$store.dispatch("queryPhenotype");
-        }
     },
 
     async created() {
@@ -386,6 +365,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = this.mapPhenotypes();
+        this.lookupInPigeanMap();
     },
     methods: {
         ...uiUtils,
@@ -444,12 +425,34 @@ new Vue({
             });
             return data;
         },
+        mapPhenotypes(){
+            let phenotypeMap = {};
+            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
+            phenotypes.forEach(item => {
+                phenotypeMap[item.phenotype] = item;
+            });
+            return phenotypeMap;
+        },
         toOldStyle(newStylePhenotype){
             let oldStyle = structuredClone(newStylePhenotype);
             oldStyle.description = newStylePhenotype.phenotype_name;
             oldStyle.name = newStylePhenotype.phenotype;
             oldStyle.group = newStylePhenotype.display_group;
             return oldStyle;
+        },
+        lookupInPigeanMap(){
+            let name = keyParams.phenotype;
+            console.log(name);
+            let newPhenotype = this.pigeanPhenotypeMap[name];
+            console.log(JSON.stringify(newPhenotype));
+            let phenotype = this.toOldStyle(newPhenotype);
+            console.log(JSON.stringify(phenotype));
+            if (phenotype) {
+                this.$store.state.selectedPhenotype = phenotype;
+                keyParams.set({ phenotype: phenotype.name });
+            }
+            //Initial query. Should only happen once.
+            this.$store.dispatch("queryPhenotype");
         }
     },
 
