@@ -157,7 +157,7 @@ new Vue({
                     adjustedData[i].combined = 0;
                 }
             }
-            return adjustedData;
+            return adjustedData.filter(item => item.log_bf > 0 || item.prior > 0);
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;
