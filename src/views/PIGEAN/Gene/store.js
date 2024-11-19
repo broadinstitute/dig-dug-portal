@@ -83,7 +83,7 @@ export default new Vuex.Store({
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
                 context.dispatch("pigeanGene/query", { q: 
-                    `${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}` });
+                    `${traitGroup},${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}` });
             }
         },
         async getPigeanPhenotypes(context) {
