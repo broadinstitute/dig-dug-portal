@@ -296,6 +296,9 @@ new Vue({
                 return this.$store.state.phenotypesInSession;
             }
         },
+        pigeanPhenotypes(){
+            return this.$store.state.pigeanAllPhenotypes.data;
+        },
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
@@ -359,6 +362,9 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        phenotypesInSession(phenotypes){
+            console.log("Phenotypes in session: ", JSON.stringify(phenotypes));
+        }
     },
 
     created() {
@@ -376,9 +382,15 @@ new Vue({
             uiUtils.getToolTipPosition(ELEMENT);
         },
         setSelectedPhenotype(PHENOTYPE) {
-            this.newPhenotypeSearchKey = PHENOTYPE.description;
+            let oldStylePhenotype = structuredClone(PHENOTYPE);
+            oldStylePhenotype.description = PHENOTYPE.phenotype_name;
+            oldStylePhenotype.name = PHENOTYPE.phenotype;
+            oldStylePhenotype.group = PHENOTYPE.display_group;
+
+            this.newPhenotypeSearchKey = oldStylePhenotype.description;
             this.phenotypeSearchKey = null;
-            this.$store.dispatch("selectedPhenotype", PHENOTYPE);
+            console.log(JSON.stringify(oldStylePhenotype));
+            this.$store.dispatch("selectedPhenotype", oldStylePhenotype);
         },
         ifPhenotypeInSearch(DESCRIPTION) {
             let searchKeys = this.phenotypeSearchKey.split(" ");
