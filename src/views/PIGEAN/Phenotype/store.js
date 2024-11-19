@@ -62,7 +62,6 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            console.log(phenotype);
             context.state.selectedPhenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
@@ -88,12 +87,10 @@ export default new Vuex.Store({
             context.commit("setDiseaseInSession", DISEASE);
         },
         selectedPhenotype(context, PHENOTYPE) {
-            console.log("onState", PHENOTYPE);
             context.commit("setSelectedPhenotype", PHENOTYPE);
         },
         async getPigeanPhenotypes(context) {
             await context.dispatch("pigeanAllPhenotypes/query", {q:1});
-            console.log(JSON.stringify(context.state.pigeanAllPhenotypes.data));
         },
     },
 });

@@ -47,6 +47,7 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
+            pigeanPhenotypeMap: {},
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
@@ -351,28 +352,23 @@ new Vue({
             //Initial query. Should only happen once.
             this.$store.dispatch("queryPhenotype");
         },
-
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
         },
-        "$store.state.pigeanAllPhenotypes": function(phenotypes){
-            console.log(JSON.stringify(phenotypes));
-        },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        phenotypesInSession(phenotypes){
-            console.log("Phenotypes in session: ", JSON.stringify(phenotypes));
-        }
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("getPigeanPhenotypes");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = this.mapPhenotypes();
+
     },
     methods: {
         ...uiUtils,
@@ -435,6 +431,15 @@ new Vue({
             });
             return data;
         },
+        mapPhenotypes(){
+            let phenotypeMap = {};
+            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
+            phenotypes.forEach(item => {
+                phenotypeMap[item.phenotype] = item;
+            });
+            console.log(JSON.stringify(phenotypeMap));
+            return phenotypeMap;
+        }
     },
 
     render(createElement) {
