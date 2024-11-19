@@ -41,6 +41,7 @@ new Vue({
 
     data() {
         return {
+            pigeanPhenotypeMap: {},
             filterFields: [
                 { key: "combined", label: "Combined genetic support" },
                 { key: "huge_score", label: "GWAS unweighted" },
@@ -144,13 +145,11 @@ new Vue({
         plotReady() {
             return (
                 this.$store.state.pigeanGene.data.length > 0 &&
-                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
+                Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
         phewasAdjustedData() {
-            let adjustedData = JSON.parse(
-                JSON.stringify(this.$store.state.pigeanGene.data)
-            ); // Deep copy
+            let adjustedData = structuredClone(this.pigeanFilteredData); // Deep copy
             for (let i = 0; i < adjustedData.length; i++) {
                 if (adjustedData[i].combined < 0) {
                     adjustedData[i].combined = 0;
@@ -158,6 +157,12 @@ new Vue({
             }
             return adjustedData;
         },
+        pigeanFilteredData(){
+            return this.$store.state.pigeanGene.data.filter(item => item.log_bf > 0 || item.prior > 0);
+        },
+        pigeanMap(){
+            return this.pigeanPhenotypeMap;
+        }
     },
     watch: {
         diseaseGroup(group) {
@@ -165,10 +170,12 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = this.mapPhenotypes();
     },
     methods: {
         // go to region page
@@ -180,6 +187,21 @@ new Vue({
                     r.chromosome
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
+        },
+        mapPhenotypes(){
+            let phenotypeMap = {};
+            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
+            phenotypes.forEach(item => {
+                phenotypeMap[item.phenotype] = this.toOldStyle(item);
+            });
+            return phenotypeMap;
+        },
+        toOldStyle(newStylePhenotype){
+            let oldStyle = structuredClone(newStylePhenotype);
+            oldStyle.description = newStylePhenotype.phenotype_name;
+            oldStyle.name = newStylePhenotype.phenotype;
+            oldStyle.group = newStylePhenotype.display_group;
+            return oldStyle;
         },
     },
 
