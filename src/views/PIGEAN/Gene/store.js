@@ -14,6 +14,7 @@ export default new Vuex.Store({
         kp4cd,
         gene: bioIndex("gene"),
         pigeanGene: bioIndex("pigean-gene"),
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },
     state: {
         geneName: keyParams.gene,
@@ -84,6 +85,9 @@ export default new Vuex.Store({
                 context.dispatch("pigeanGene/query", { q: 
                     `${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}` });
             }
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
     },
 });

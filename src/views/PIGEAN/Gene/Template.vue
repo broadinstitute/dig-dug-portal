@@ -111,13 +111,10 @@
                             "
                             :label-formatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
+                                    $parent.pigeanMap[
+                                            phenotype
+                                        ]?.description
+                                    || phenotype
                             "
                             :multiple="true"
                         >
@@ -142,7 +139,7 @@
                                             $parent.phewasAdjustedData
                                         "
                                         :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                            $parent.pigeanMap
                                         "
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
@@ -160,7 +157,7 @@
                                         "
                                         :config="$parent.pigeanPlotConfig"
                                         :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                            $parent.pigeanMap
                                         "
                                         :filter="filter"
                                     >
@@ -172,7 +169,7 @@
                                     v-if="$parent.plotReady"
                                     :pigean-data="$store.state.pigeanGene.data"
                                     :phenotype-map="
-                                        $store.state.bioPortal.phenotypeMap
+                                        $parent.pigeanMap
                                     "
                                     :config="$parent.tableConfig"
                                     :filter="filter"
