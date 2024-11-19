@@ -153,7 +153,7 @@
                                     <pigean-plot
                                         v-if="$parent.plotReady"
                                         :pigean-data="
-                                            $store.state.pigeanGene.data
+                                            $parent.pigeanFilteredData
                                         "
                                         :config="$parent.pigeanPlotConfig"
                                         :phenotype-map="
@@ -167,7 +167,7 @@
                             <div class="card-body pigean-table">
                                 <pigean-table
                                     v-if="$parent.plotReady"
-                                    :pigean-data="$store.state.pigeanGene.data"
+                                    :pigean-data="$parent.pigeanFilteredData"
                                     :phenotype-map="
                                         $parent.pigeanMap
                                     "
