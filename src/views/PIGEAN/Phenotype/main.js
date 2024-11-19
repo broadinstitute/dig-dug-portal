@@ -353,6 +353,9 @@ new Vue({
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
         },
+        "$store.state.pigeanAllPhenotypes": function(phenotypes){
+            console.log(JSON.stringify(phenotypes));
+        },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
@@ -363,6 +366,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("getPigeanPhenotypes");
     },
     methods: {
         ...uiUtils,
