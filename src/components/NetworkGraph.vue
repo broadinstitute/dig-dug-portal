@@ -216,88 +216,122 @@ export default Vue.component("NetworkGraph", {
             }));
         },
 
-        initNetwork() {
-            const container = this.$refs.networkContainer;
-            const data = { nodes: this.nodes, edges: this.edges };
-
-            const options = {
+        getNetworkOptions() {
+            return {
                 physics: {
-                    enabled: true,
+                    enabled: false,
                     stabilization: {
                         enabled: true,
-                        iterations: 150, // Fewer iterations
-                        updateInterval: 40, // Slightly faster updates
+                        iterations: 150,
+                        updateInterval: 40,
                         fit: true,
                     },
                     barnesHut: {
                         gravitationalConstant: -4000,
-                        centralGravity: 0.1, // Increased to prevent drift
+                        centralGravity: 0.1,
                         springLength: 200,
-                        springConstant: 0.015, // Slightly stiffer springs
-                        damping: 0.15, // Less damping for more movement
-                        avoidOverlap: 1,
-                    },
-                    minVelocity: 0.15, // Slightly higher min velocity
-                    maxVelocity: 15, // Slightly higher max velocity
-                    timestep: 0.35, // Slightly larger timesteps
-                },
-                layout: {
-                    improvedLayout: true,
-                    randomSeed: undefined, // Random layout each time
-                    clusterThreshold: 150,
-                    hierarchical: {
-                        enabled: false,
+                        springConstant: 0.015,
+                        damping: 0.15,
                     },
                 },
                 interaction: {
-                    navigationButtons: this.showNavigation, // Off by default
+                    navigationButtons: this.showNavigation,
                     keyboard: true,
                     hideEdgesOnDrag: true,
                     hideEdgesOnZoom: true,
                 },
-                nodes: {
-                    scaling: {
-                        min: 8, // Smaller minimum size
-                        max: 24, // Smaller maximum size
-                    },
-                },
-                edges: {
-                    smooth: {
-                        type: "continuous",
-                        forceDirection: "none",
-                        roundness: 0.5,
-                    },
-                    length: 250, // Longer default edge length
-                },
             };
+        },
+
+        processGraphData(data) {
+            // Process nodes with unique IDs
+            const uniqueNodes = Array.from(
+                new Map(
+                    data.data[0].nodes.map((node) => [
+                        String(node.id),
+                        { ...node, id: String(node.id) },
+                    ])
+                ).values()
+            );
+
+            // Process edges
+            const validEdges = data.data[0].edges.map((edge) => ({
+                ...edge,
+                from: String(edge.from),
+                to: String(edge.to),
+            }));
+
+            return { uniqueNodes, validEdges };
+        },
+
+        async resetNetworkState() {
+            if (this.network) {
+                this.network.destroy();
+                this.network = null;
+            }
+            this.nodes = new DataSet({ queue: true });
+            this.edges = new DataSet({ queue: true });
+        },
+
+        async refreshGraph() {
+            try {
+                this.error = null;
+                this.loading = true;
+                this.stabilizing = true;
+                this.stabilizationProgress = 0;
+
+                await this.resetNetworkState();
+
+                const response = await fetch(
+                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${this.phenotype.name},${DEFAULT_SIGMA},${this.genesetSize}`
+                );
+                const data = await response.json();
+
+                if (!data.data?.[0]?.nodes?.length) {
+                    this.error = "No data available";
+                    return;
+                }
+
+                const { uniqueNodes, validEdges } = this.processGraphData(data);
+
+                await this.nodes.add(uniqueNodes);
+                await this.nodes.flush();
+                await this.edges.add(validEdges);
+                await this.edges.flush();
+
+                await this.$nextTick();
+                await this.initNetwork();
+            } catch (error) {
+                console.error("Refresh error:", error);
+                this.error = error.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async initNetwork() {
+            const container = this.$refs.networkContainer;
+            if (!container) return;
+
+            const data = { nodes: this.nodes, edges: this.edges };
+            const options = this.getNetworkOptions();
 
             this.network = new Network(container, data, options);
 
-            // Add complete physics disable after stabilization
+            // Add event listeners
+            this.setupNetworkEvents();
+        },
+
+        setupNetworkEvents() {
+            this.network.on("stabilizationProgress", (params) => {
+                this.stabilizationProgress =
+                    (params.iterations / params.total) * 100;
+            });
+
             this.network.on("stabilizationIterationsDone", () => {
                 this.stabilizing = false;
                 this.stabilizationProgress = 100;
-
-                // Completely disable physics
-                this.network.setOptions({
-                    physics: {
-                        enabled: false,
-                        stabilization: {
-                            enabled: false,
-                        },
-                    },
-                });
-
-                // Lock positions
-                const positions = this.network.getPositions();
-                Object.keys(positions).forEach((nodeId) => {
-                    this.nodes.update({
-                        id: nodeId,
-                        fixed: true,
-                        x: positions[nodeId].x,
-                        y: positions[nodeId].y,
-                    });
-                });
+                this.network.setOptions({ physics: { enabled: false } });
             });
         },
 
@@ -342,44 +376,6 @@ export default Vue.component("NetworkGraph", {
                 }
             } catch (error) {
                 console.error("Fullscreen error:", error);
-            }
-        },
-
-        async refreshGraph() {
-            try {
-                this.error = null;
-                this.loading = true;
-                this.stabilizing = true;
-                this.stabilizationProgress = 0;
-
-                // Cleanup existing network
-                if (this.network) {
-                    this.network.destroy();
-                    this.network = null;
-                }
-
-                // Clear datasets
-                this.nodes.clear();
-                this.edges.clear();
-
-                // Fetch new data and reinitialize
-                await this.fetchGraphData();
-                await this.$nextTick();
-                await this.initNetwork();
-
-                // Fit view
-                if (this.network) {
-                    this.network.fit({
-                        animation: {
-                            duration: 1000,
-                            easingFunction: "easeInOutQuad",
-                        },
-                    });
-                }
-            } catch (error) {
-                console.error("Failed to refresh graph:", error);
-            } finally {
-                this.loading = false;
             }
         },
     },
