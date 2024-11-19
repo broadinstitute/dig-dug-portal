@@ -8,13 +8,26 @@
             :disabled="stabilizing"
             @click="togglePhysics"
         >
-            {{ physicsEnabled ? "Disable" : "Enable" }} Physics
+            <b-icon
+                :icon="!physicsEnabled ? 'toggle-off' : 'toggle-on'"
+            ></b-icon>
+            Physics
         </button>
         <button
-            class="btn btn-sm ml-2 control-button nav-button"
+            class="btn btn-sm control-button nav-button"
             @click="toggleNavigation"
         >
-            {{ showNavigation ? "Hide" : "Show" }} Navigation
+            <b-icon :icon="!showNavigation ? 'eye-slash' : 'eye'"></b-icon>
+            Navigation
+        </button>
+        <button
+            class="btn btn-sm control-button fullscreen-button"
+            @click="toggleFullscreen"
+        >
+            <b-icon
+                :icon="isFullscreen ? 'fullscreen-exit' : 'fullscreen'"
+            ></b-icon>
+            Fullscreen
         </button>
         <div
             v-show="!loading && !stabilizing"
@@ -37,8 +50,8 @@
 </template>
 <script>
 import Vue from "vue";
+import { BIO_INDEX_HOST, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import { Network, DataSet } from "vis-network";
-import bioIndexUtils from "@/utils/bioIndexUtils";
 
 export default Vue.component("NetworkGraph", {
     props: {
@@ -68,15 +81,19 @@ export default Vue.component("NetworkGraph", {
             physicsEnabled: false,
             error: null,
             showNavigation: false,
+            isFullscreen: false,
         };
     },
     computed: {
         containerStyle() {
             return {
-                height: "400px",
-                position: "relative",
+                height: this.isFullscreen ? "100vh" : "400px",
                 width: "100%",
-                overflow: "hidden", // Prevent internal scrolling
+                position: this.isFullscreen ? "fixed" : "relative",
+                top: this.isFullscreen ? "0" : "auto",
+                left: this.isFullscreen ? "0" : "auto",
+                zIndex: this.isFullscreen ? "9999" : "1",
+                background: "#fff",
             };
         },
     },
@@ -98,11 +115,18 @@ export default Vue.component("NetworkGraph", {
     async mounted() {
         await this.$nextTick();
         await this.fetchGraphData();
+        document.addEventListener("fullscreenchange", () => {
+            this.isFullscreen = !!document.fullscreenElement;
+            if (this.network) {
+                this.network.fit();
+            }
+        });
     },
     beforeDestroy() {
         if (this.network) {
             this.network.destroy();
         }
+        document.removeEventListener("fullscreenchange", () => {});
     },
     methods: {
         async fetchGraphData() {
@@ -112,8 +136,7 @@ export default Vue.component("NetworkGraph", {
             const phenotype = this.phenotype.name;
             try {
                 const response = await fetch(
-                    `https://bioindex-dev.hugeamp.org/api/bio/query/pigean-graph?q=${phenotype},${
-                        bioIndexUtils.DEFAULT_SIGMA},${this.genesetSize}`
+                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${phenotype},${DEFAULT_SIGMA},${this.genesetSize}`
                 );
                 const data = await response.json();
 
@@ -193,88 +216,122 @@ export default Vue.component("NetworkGraph", {
             }));
         },
 
-        initNetwork() {
-            const container = this.$refs.networkContainer;
-            const data = { nodes: this.nodes, edges: this.edges };
-
-            const options = {
+        getNetworkOptions() {
+            return {
                 physics: {
-                    enabled: true,
+                    enabled: false,
                     stabilization: {
                         enabled: true,
-                        iterations: 150, // Fewer iterations
-                        updateInterval: 40, // Slightly faster updates
+                        iterations: 150,
+                        updateInterval: 40,
                         fit: true,
                     },
                     barnesHut: {
                         gravitationalConstant: -4000,
-                        centralGravity: 0.1, // Increased to prevent drift
+                        centralGravity: 0.1,
                         springLength: 200,
-                        springConstant: 0.015, // Slightly stiffer springs
-                        damping: 0.15, // Less damping for more movement
-                        avoidOverlap: 1,
-                    },
-                    minVelocity: 0.15, // Slightly higher min velocity
-                    maxVelocity: 15, // Slightly higher max velocity
-                    timestep: 0.35, // Slightly larger timesteps
-                },
-                layout: {
-                    improvedLayout: true,
-                    randomSeed: undefined, // Random layout each time
-                    clusterThreshold: 150,
-                    hierarchical: {
-                        enabled: false,
+                        springConstant: 0.015,
+                        damping: 0.15,
                     },
                 },
                 interaction: {
-                    navigationButtons: this.showNavigation, // Off by default
+                    navigationButtons: this.showNavigation,
                     keyboard: true,
                     hideEdgesOnDrag: true,
                     hideEdgesOnZoom: true,
                 },
-                nodes: {
-                    scaling: {
-                        min: 8, // Smaller minimum size
-                        max: 24, // Smaller maximum size
-                    },
-                },
-                edges: {
-                    smooth: {
-                        type: "continuous",
-                        forceDirection: "none",
-                        roundness: 0.5,
-                    },
-                    length: 250, // Longer default edge length
-                },
             };
+        },
+
+        processGraphData(data) {
+            // Process nodes with unique IDs
+            const uniqueNodes = Array.from(
+                new Map(
+                    data.data[0].nodes.map((node) => [
+                        String(node.id),
+                        { ...node, id: String(node.id) },
+                    ])
+                ).values()
+            );
+
+            // Process edges
+            const validEdges = data.data[0].edges.map((edge) => ({
+                ...edge,
+                from: String(edge.from),
+                to: String(edge.to),
+            }));
+
+            return { uniqueNodes, validEdges };
+        },
+
+        async resetNetworkState() {
+            if (this.network) {
+                this.network.destroy();
+                this.network = null;
+            }
+            this.nodes = new DataSet({ queue: true });
+            this.edges = new DataSet({ queue: true });
+        },
+
+        async refreshGraph() {
+            try {
+                this.error = null;
+                this.loading = true;
+                this.stabilizing = true;
+                this.stabilizationProgress = 0;
+
+                await this.resetNetworkState();
+
+                const response = await fetch(
+                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${this.phenotype.name},${DEFAULT_SIGMA},${this.genesetSize}`
+                );
+                const data = await response.json();
+
+                if (!data.data?.[0]?.nodes?.length) {
+                    this.error = "No data available";
+                    return;
+                }
+
+                const { uniqueNodes, validEdges } = this.processGraphData(data);
+
+                await this.nodes.add(uniqueNodes);
+                await this.nodes.flush();
+                await this.edges.add(validEdges);
+                await this.edges.flush();
+
+                await this.$nextTick();
+                await this.initNetwork();
+            } catch (error) {
+                console.error("Refresh error:", error);
+                this.error = error.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async initNetwork() {
+            const container = this.$refs.networkContainer;
+            if (!container) return;
+
+            const data = { nodes: this.nodes, edges: this.edges };
+            const options = this.getNetworkOptions();
 
             this.network = new Network(container, data, options);
 
-            // Add complete physics disable after stabilization
+            // Add event listeners
+            this.setupNetworkEvents();
+        },
+
+        setupNetworkEvents() {
+            this.network.on("stabilizationProgress", (params) => {
+                this.stabilizationProgress =
+                    (params.iterations / params.total) * 100;
+            });
+
             this.network.on("stabilizationIterationsDone", () => {
                 this.stabilizing = false;
                 this.stabilizationProgress = 100;
-
-                // Completely disable physics
-                this.network.setOptions({
-                    physics: {
-                        enabled: false,
-                        stabilization: {
-                            enabled: false,
-                        },
-                    },
-                });
-
-                // Lock positions
-                const positions = this.network.getPositions();
-                Object.keys(positions).forEach((nodeId) => {
-                    this.nodes.update({
-                        id: nodeId,
-                        fixed: true,
-                        x: positions[nodeId].x,
-                        y: positions[nodeId].y,
-                    });
-                });
+                this.network.setOptions({ physics: { enabled: false } });
             });
         },
 
@@ -310,41 +367,15 @@ export default Vue.component("NetworkGraph", {
             });
         },
 
-        async refreshGraph() {
+        async toggleFullscreen() {
             try {
-                this.error = null;
-                this.loading = true;
-                this.stabilizing = true;
-                this.stabilizationProgress = 0;
-
-                // Cleanup existing network
-                if (this.network) {
-                    this.network.destroy();
-                    this.network = null;
-                }
-
-                // Clear datasets
-                this.nodes.clear();
-                this.edges.clear();
-
-                // Fetch new data and reinitialize
-                await this.fetchGraphData();
-                await this.$nextTick();
-                await this.initNetwork();
-
-                // Fit view
-                if (this.network) {
-                    this.network.fit({
-                        animation: {
-                            duration: 1000,
-                            easingFunction: "easeInOutQuad",
-                        },
-                    });
+                if (!this.isFullscreen) {
+                    await this.$refs.networkContainer.requestFullscreen();
+                } else {
+                    await document.exitFullscreen();
                 }
             } catch (error) {
-                console.error("Failed to refresh graph:", error);
-            } finally {
-                this.loading = false;
+                console.error("Fullscreen error:", error);
             }
         },
     },
@@ -413,6 +444,7 @@ export default Vue.component("NetworkGraph", {
     overflow: hidden;
     margin: 0;
     padding: 0;
+    background: white;
 }
 
 .control-button {
@@ -427,11 +459,15 @@ export default Vue.component("NetworkGraph", {
 }
 
 .physics-button {
-    right: 160px; /* Make room for nav button */
+    right: 274px; /* Position for first button */
 }
 
 .nav-button {
-    right: 10px;
+    right: 140px; /* Position for middle button */
+}
+
+.fullscreen-button {
+    right: 10px; /* Position for last button */
 }
 
 .control-button:disabled {
@@ -452,6 +488,13 @@ export default Vue.component("NetworkGraph", {
     border: 1px solid #ff4444;
     padding: 1rem;
     border-radius: 4px;
+    z-index: 1000;
+}
+
+.fullscreen-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
     z-index: 1000;
 }
 </style>
