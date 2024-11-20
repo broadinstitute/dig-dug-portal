@@ -24,14 +24,18 @@ export default new Vuex.Store({
     mutations: {
         setGenesetSize(state, genesetSize) {
             state.genesetSize = genesetSize || state.genesetSize;
+            keyParams.set({ genesetSize: genesetSize });
+        },
+        setPhenotype(state, phenotype) {
+            state.phenotype = phenotype || state.phenotype;
+            keyParams.set({ phenotype: phenotype.name});
         },
     },
     actions: {
         sendSearch(context, phenotype) {
-            context.state.phenotype = phenotype;
-            keyParams.set({ phenotype: phenotype.name });
-            context.state.genesetSize = context.state.genesetSizeToQuery;
-            keyParams.set({ genesetSize: context.state.genesetSize });
+            context.commit("setPhenotype", phenotype);
+            context.commit("setGenesetSize", context.state.genesetSizeToQuery);
+            
         },
         async getPigeanPhenotypes(context) {
             await context.dispatch("pigeanAllPhenotypes/query", { q: 1 });
