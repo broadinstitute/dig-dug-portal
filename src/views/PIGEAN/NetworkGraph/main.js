@@ -27,10 +27,6 @@ new Vue({
         };
     },
     computed: {
-        phenotype() {
-            let currentPhenotype = keyParams.phenotype || "";
-            return currentPhenotype;
-        },
         genesetSize() {
             return keyParams.genesetSize || "small";
         },
@@ -63,18 +59,24 @@ new Vue({
         },
         searchPhenotype(){
             this.$store.dispatch("onPhenotypeChange", this.selectedPhenotype);
-        }
+        },
+        mapPhenotypes(){
+            let phenotypeMap = {};
+            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
+            phenotypes.forEach(item => {
+                phenotypeMap[item.phenotype] = this.toOldStyle(item);
+            });
+            return phenotypeMap;
+        },
     },
     async created() {
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         await this.$store.dispatch("getPigeanPhenotypes");
-        let initialPhenotype = {
-            name: keyParams.phenotype
-        };
+        this.pigeanPhenotypeMap = this.mapPhenotypes();
+        let initialPhenotype = this.pigeanPhenotypeMap[keyParams.phenotype];
         this.$store.dispatch("onPhenotypeChange", initialPhenotype)
-
     },
     render(createElement) {
         return createElement(Template);

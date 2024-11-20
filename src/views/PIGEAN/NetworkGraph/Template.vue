@@ -74,7 +74,11 @@
             </search-header-wrapper>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Mechanism Graph</h4>
+                    <h4 class="card-title">Mechanism Graph
+                        <span v-if="!!$store.state.phenotype">
+                            for {{ $store.state.phenotype?.description }}
+                        </span>
+                    </h4>
                     <template v-if="$store.state.phenotype && $parent.genesetSize">
                         <network-graph
                             :phenotype="$store.state.phenotype.name"
