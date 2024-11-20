@@ -3,12 +3,14 @@ import Template from "./Template.vue";
 import store from "./store";
 
 import NetworkGraph from "@/components/NetworkGraph.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import keyParams from "@/utils/keyParams";
 import { pageMixin } from "@/mixins/pageMixin.js";
 new Vue({
     store,
     components: {
         NetworkGraph,
+        SearchHeaderWrapper,
     },
     mixins: [pageMixin],
     data() {
