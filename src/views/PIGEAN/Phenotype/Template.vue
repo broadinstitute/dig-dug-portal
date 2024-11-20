@@ -222,7 +222,7 @@
                         </div>
                     </criterion-function-group>
                     <div class="row mb-4">
-                        <div class="col-md-4" id="mechanism-graph-outer">
+                        <div id="mechanism-graph-outer" class="col-md-4">
                             <div class="label">
                                 <strong>Mechanism Graph</strong>
                             </div>
@@ -338,4 +338,7 @@ a.btn-outline-primary:hover {
 #mechanism-graph-inner {
     padding-top: 200px;
 }
+/* .network-container >>> div.vis-network {
+    border: none;
+} */
 </style>
