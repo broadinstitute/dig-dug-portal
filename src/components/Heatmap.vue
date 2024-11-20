@@ -333,7 +333,10 @@ export default Vue.component("heatmap", {
 
             this.renderData.columns.map((c) => {
                 var div = document.createElement("div");
-                var t = document.createTextNode(this.getPhenotypeDescription(c));
+                let shortName = this.truncateColumn(
+                    this.getPhenotypeDescription(c)
+                );
+                var t = document.createTextNode(shortName);
                 div.appendChild(t);
                 div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document
@@ -593,7 +596,7 @@ export default Vue.component("heatmap", {
             if (!this.renderConfig.truncateColumns){
                 return longString;
             }
-            return longString.length <= 25 ? longString : `${longString.slice(0,25)}...`;
+            return longString.length <= 30 ? longString : `${longString.slice(0,30)}...`;
         },
         getPhenotypeDescription(phenotypeName){
             if (!!this.phenotypeMap[phenotypeName]){

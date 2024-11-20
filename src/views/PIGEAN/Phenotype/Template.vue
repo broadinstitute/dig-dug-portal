@@ -336,7 +336,7 @@ a.btn-outline-primary:hover {
     padding: 10px;
 }
 #mechanism-graph-inner {
-    padding-top: 200px;
+    padding-top: 20px;
 }
 /* .network-container >>> div.vis-network {
     border: none;
