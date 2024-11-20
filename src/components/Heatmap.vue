@@ -64,7 +64,8 @@ export default Vue.component("heatmap", {
             separator: "___",
             lo: null,
             mid: null,
-            hi: null
+            hi: null,
+            alwaysHideTooltip: true,
         };
     },
     modules: {
@@ -241,6 +242,9 @@ export default Vue.component("heatmap", {
             scaleLegendWrapper.innerHTML = scaleLegendContent;
         },
         checkPosition(event) {
+            if (this.alwaysHideTooltip){
+                return;
+            }
             let e = event;
             let rect = e.target.getBoundingClientRect();
 
