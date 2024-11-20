@@ -28,9 +28,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = this.mapPhenotypes();
-        this.lookupInPigeanMap();
     },
     render(createElement) {
         return createElement(Template);
