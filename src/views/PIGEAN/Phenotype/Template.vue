@@ -221,13 +221,49 @@
                             />
                         </div>
                     </criterion-function-group>
-                    <heatmap
-                        v-if="$store.state.pigeanTopPhewas.data.length > 0"
-                        :heatmapData="$parent.heatmapData"
-                        :renderConfig="$parent.heatmapConfig"
-                        :sectionId="`${$store.state.phenotype.name}_topPhewas`"
-                    >
-                    </heatmap>
+                    <div class="row mb-4">
+                        <div id="mechanism-graph-outer" class="col-md-4">
+                            <div class="label">
+                                <strong>Mechanism Graph</strong>
+                            </div>
+                            <div id="mechanism-graph-inner">
+                                <template
+                                    v-if="
+                                        $store.state.phenotype &&
+                                        $store.state.genesetSize
+                                    "
+                                >
+                                    <div class="text-right mb-2">
+                                        <b-button
+                                            size="sm"
+                                            variant="outline-primary"
+                                            :to="`/pigean/network_graph.html?phenotype=${$store.state.phenotype.name}&genesetSize=${$store.state.genesetSize}`"
+                                            target="_blank"
+                                            ><b-icon icon="node-plus"></b-icon>
+                                            View Detailed Graph
+                                        </b-button>
+                                    </div>
+
+                                    <network-graph
+                                        :phenotype="$store.state.phenotype"
+                                        :geneset-size="$store.state.genesetSize"
+                                        :is-embed="true"
+                                    ></network-graph>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <heatmap
+                                v-if="
+                                    $store.state.pigeanTopPhewas.data.length > 0
+                                "
+                                :heatmapData="$parent.heatmapData"
+                                :renderConfig="$parent.heatmapConfig"
+                                :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                            >
+                            </heatmap>
+                        </div>
+                    </div>
                     <pigean-table
                         v-if="$parent.plotReady"
                         :pigeanData="$store.state.pigeanFactor.data"
@@ -235,34 +271,6 @@
                         :phewasRenderConfig="$parent.renderConfig"
                     >
                     </pigean-table>
-                </div>
-            </div>
-
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4 class="card-title">Mechanism Graph</h4>
-                    <template
-                        v-if="
-                            $store.state.phenotype && $store.state.genesetSize
-                        "
-                    >
-                        <div class="text-right mb-2">
-                            <b-button
-                                size="sm"
-                                variant="outline-primary"
-                                :to="`/pigean/network_graph.html?phenotype=${$store.state.phenotype.name}&genesetSize=${$store.state.genesetSize}`"
-                                target="_blank"
-                                ><b-icon icon="node-plus"></b-icon>
-                                View Detailed Graph
-                            </b-button>
-                        </div>
-
-                        <network-graph
-                            :phenotype="$store.state.phenotype"
-                            :geneset-size="$store.state.genesetSize"
-                            :is-embed="true"
-                        ></network-graph>
-                    </template>
                 </div>
             </div>
         </div>
@@ -324,4 +332,13 @@ a.btn-outline-primary:hover {
     color: #ffffff !important;
     border-color: #007bff;
 }
+#mechanism-graph-outer {
+    padding: 10px;
+}
+#mechanism-graph-inner {
+    padding-top: 200px;
+}
+/* .network-container >>> div.vis-network {
+    border: none;
+} */
 </style>
