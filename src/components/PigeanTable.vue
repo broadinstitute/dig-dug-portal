@@ -6,6 +6,7 @@ import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import PigeanTable from "./PigeanTable.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -166,14 +167,14 @@ export default Vue.component("pigean-table", {
             }
         },
         phewasKey(item) {
-            return `${item.phenotype},${this.genesetSize},${this.traitGroup},${item.factor}`;
+            return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
         },
         subtableKey(item) {
             if (this.config.queryParam === "cluster") {
-                return `${item.phenotype},${this.genesetSize},${this.traitGroup},${item.factor}`;
+                return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
             }
             return `${item.phenotype},${item[this.config.queryParam]},${
-                this.genesetSize},${this.traitGroup}`;
+                DEFAULT_SIGMA},${this.genesetSize}`;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
