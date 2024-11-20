@@ -251,6 +251,7 @@
                                 size="sm"
                                 variant="outline-primary"
                                 :to="`/pigean/network_graph.html?phenotype=${$store.state.phenotype.name}&genesetSize=${$store.state.genesetSize}`"
+                                target="_blank"
                                 ><b-icon icon="node-plus"></b-icon>
                                 View Detailed Graph
                             </b-button>

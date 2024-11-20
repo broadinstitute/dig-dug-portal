@@ -111,7 +111,7 @@ export default Vue.component("NetworkGraph", {
     watch: {
         phenotype: {
             handler(newVal, oldVal) {
-                if (newVal?.name !== oldVal?.name) {
+                if (newVal !== oldVal) {
                     this.refreshGraph();
                 }
             },
