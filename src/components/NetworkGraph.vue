@@ -56,7 +56,7 @@ import { Network, DataSet } from "vis-network";
 export default Vue.component("NetworkGraph", {
     props: {
         phenotype: {
-            type: Object,
+            type: [Object, String],
             required: true,
             default: () => ({}),
         },
@@ -82,12 +82,18 @@ export default Vue.component("NetworkGraph", {
             error: null,
             showNavigation: false,
             isFullscreen: false,
+            isEmbed: false,
         };
     },
     computed: {
+        phenotypeName() {
+            return typeof this.phenotype === "string"
+                ? this.phenotype
+                : this.phenotype.name || "";
+        },
         containerStyle() {
             return {
-                height: this.isFullscreen ? "100vh" : "400px",
+                height: !this.isEmbed ? "90vh" : "400px",
                 width: "100%",
                 position: this.isFullscreen ? "fixed" : "relative",
                 top: this.isFullscreen ? "0" : "auto",
@@ -132,11 +138,9 @@ export default Vue.component("NetworkGraph", {
         async fetchGraphData() {
             this.loading = true;
             this.error = null;
-            //just the number
-            const phenotype = this.phenotype.name;
             try {
                 const response = await fetch(
-                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${phenotype},${DEFAULT_SIGMA},${this.genesetSize}`
+                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${this.phenotypeName},${DEFAULT_SIGMA},${this.genesetSize}`
                 );
                 const data = await response.json();
 
@@ -237,8 +241,8 @@ export default Vue.component("NetworkGraph", {
                 interaction: {
                     navigationButtons: this.showNavigation,
                     keyboard: true,
-                    hideEdgesOnDrag: true,
-                    hideEdgesOnZoom: true,
+                    hideEdgesOnDrag: false,
+                    hideEdgesOnZoom: false,
                 },
             };
         },

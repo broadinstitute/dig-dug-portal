@@ -244,7 +244,16 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Mechanism Graph</h4>
+                    <h4 class="card-title">
+                        Mechanism Graph<b-button
+                            size="sm"
+                            class="text-right"
+                            variant="outline-primary"
+                            :to="`/pigean/network_graph.html?phenotype=${$store.state.phenotype.name}&genesetSize=${$store.state.genesetSize}`"
+                        >
+                            View Mechanism Graph
+                        </b-button>
+                    </h4>
                     <template
                         v-if="
                             $store.state.phenotype && $store.state.genesetSize
