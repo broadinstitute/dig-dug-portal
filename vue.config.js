@@ -320,6 +320,13 @@ let pages = {
         title: "PIGEAN Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "pigean_phenotype"],
     },
+    network_graph: {
+        entry: "src/views/PIGEAN/NetworkGraph/main.js",
+        template: "public/index.html",
+        filename: "pigean/network_graph.html",
+        title: "Network Graph",
+        chunks: ["chunk-vendors", "chunk-common", "network_graph"],
+    },
     factorization: {
         entry: "src/views/Factorization/main.js",
         template: "public/index.html",
@@ -345,6 +352,9 @@ if (process.env.NODE_ENV === "production") {
 module.exports = {
     devServer: {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+        },
     },
     configureWebpack: (config) => {
         let bioindex_dev = process.env.BIOINDEX_DEV;

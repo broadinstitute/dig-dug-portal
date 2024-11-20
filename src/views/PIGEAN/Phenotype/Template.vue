@@ -34,7 +34,10 @@
                         v-if="!!$parent.phenotypeSearchKey"
                         class="page-phenotypes-list"
                     >
-                        <template v-for="item in $store.state.pigeanAllPhenotypes.data">
+                        <template
+                            v-for="item in $store.state.pigeanAllPhenotypes
+                                .data"
+                        >
                             <li
                                 v-if="
                                     !!$parent.ifPhenotypeInSearch(
@@ -48,8 +51,11 @@
                                     @click="$parent.setSelectedPhenotype(item)"
                                     v-html="item.phenotype_name"
                                 ></a>
-                                <span class="trait-group"> ({{ 
-                                    $parent.traitGroups[item.trait_group] }})</span>
+                                <span class="trait-group">
+                                    ({{
+                                        $parent.traitGroups[item.trait_group]
+                                    }})</span
+                                >
                             </li>
                         </template>
                     </ul>
@@ -82,23 +88,6 @@
                             {{ $store.state.phenotype.description }}
                         </span>
                     </div>
-                </div>
-            </div>
-
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4 class="card-title">Network Graph</h4>
-                    <template
-                        v-if="
-                            $store.state.phenotype &&
-                            $store.state.genesetSize
-                        "
-                    >
-                        <network-graph
-                            :phenotype="$store.state.phenotype"
-                            :geneset-size="$store.state.genesetSize"
-                        ></network-graph>
-                    </template>
                 </div>
             </div>
 
@@ -137,9 +126,7 @@
                                 v-if="$parent.plotReady"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
-                                :phenotypeMap="
-                                    $parent.pigeanMap
-                                "
+                                :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
                             >
                             </pigean-plot>
@@ -192,9 +179,7 @@
                                 v-if="$parent.plotReady"
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
-                                :phenotypeMap="
-                                    $parent.pigeanMap
-                                "
+                                :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
                             >
                             </pigean-plot>
@@ -252,6 +237,33 @@
                     </pigean-table>
                 </div>
             </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">Mechanism Graph</h4>
+                    <template
+                        v-if="
+                            $store.state.phenotype && $store.state.genesetSize
+                        "
+                    >
+                        <div class="text-right mb-2">
+                            <b-button
+                                size="sm"
+                                variant="outline-primary"
+                                :to="`/pigean/network_graph.html?phenotype=${$store.state.phenotype.name}&genesetSize=${$store.state.genesetSize}`"
+                                ><b-icon icon="node-plus"></b-icon>
+                                View Detailed Graph
+                            </b-button>
+                        </div>
+
+                        <network-graph
+                            :phenotype="$store.state.phenotype"
+                            :geneset-size="$store.state.genesetSize"
+                            :is-embed="true"
+                        ></network-graph>
+                    </template>
+                </div>
+            </div>
         </div>
 
         <!-- Footer-->
@@ -304,7 +316,11 @@
 .b-tooltip {
     color: green !important;
 }
-span.trait-group{
+span.trait-group {
     color: #495057;
+}
+a.btn-outline-primary:hover {
+    color: #ffffff !important;
+    border-color: #007bff;
 }
 </style>

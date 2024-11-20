@@ -3,32 +3,34 @@
         <div v-if="error" class="error-alert">
             {{ error }}
         </div>
-        <button
-            class="btn btn-sm control-button physics-button"
-            :disabled="stabilizing"
-            @click="togglePhysics"
+        <template v-if="!isEmbed">
+            <button
+                class="btn btn-sm control-button physics-button"
+                :disabled="stabilizing"
+                @click="togglePhysics"
+            >
+                <b-icon
+                    :icon="physicsEnabled ? 'toggle-on' : 'toggle-off'"
+                ></b-icon>
+                Physics
+            </button>
+            <button
+                class="btn btn-sm control-button nav-button"
+                @click="toggleNavigation"
+            >
+                <b-icon :icon="!showNavigation ? 'eye-slash' : 'eye'"></b-icon>
+                Navigation
+            </button>
+            <button
+                class="btn btn-sm control-button fullscreen-button"
+                @click="toggleFullscreen"
+            >
+                <b-icon
+                    :icon="isFullscreen ? 'fullscreen-exit' : 'fullscreen'"
+                ></b-icon>
+                Fullscreen
+            </button></template
         >
-            <b-icon
-                :icon="!physicsEnabled ? 'toggle-off' : 'toggle-on'"
-            ></b-icon>
-            Physics
-        </button>
-        <button
-            class="btn btn-sm control-button nav-button"
-            @click="toggleNavigation"
-        >
-            <b-icon :icon="!showNavigation ? 'eye-slash' : 'eye'"></b-icon>
-            Navigation
-        </button>
-        <button
-            class="btn btn-sm control-button fullscreen-button"
-            @click="toggleFullscreen"
-        >
-            <b-icon
-                :icon="isFullscreen ? 'fullscreen-exit' : 'fullscreen'"
-            ></b-icon>
-            Fullscreen
-        </button>
         <div
             v-show="!loading && !stabilizing"
             ref="networkContainer"
@@ -56,7 +58,7 @@ import { Network, DataSet } from "vis-network";
 export default Vue.component("NetworkGraph", {
     props: {
         phenotype: {
-            type: Object,
+            type: [Object, String],
             required: true,
             default: () => ({}),
         },
@@ -64,6 +66,10 @@ export default Vue.component("NetworkGraph", {
             type: String,
             required: true,
             default: "small",
+        },
+        isEmbed: {
+            type: Boolean,
+            default: false,
         },
     },
     data() {
@@ -78,16 +84,21 @@ export default Vue.component("NetworkGraph", {
             edges: new DataSet({
                 queue: true,
             }),
-            physicsEnabled: false,
+            physicsEnabled: !this.isEmbed || false,
             error: null,
             showNavigation: false,
             isFullscreen: false,
         };
     },
     computed: {
+        phenotypeName() {
+            return typeof this.phenotype === "string"
+                ? this.phenotype
+                : this.phenotype.name || "";
+        },
         containerStyle() {
             return {
-                height: this.isFullscreen ? "100vh" : "400px",
+                height: !this.isEmbed ? "80vh" : "300px",
                 width: "100%",
                 position: this.isFullscreen ? "fixed" : "relative",
                 top: this.isFullscreen ? "0" : "auto",
@@ -132,11 +143,9 @@ export default Vue.component("NetworkGraph", {
         async fetchGraphData() {
             this.loading = true;
             this.error = null;
-            //just the number
-            const phenotype = this.phenotype.name;
             try {
                 const response = await fetch(
-                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${phenotype},${DEFAULT_SIGMA},${this.genesetSize}`
+                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${this.phenotypeName},${DEFAULT_SIGMA},${this.genesetSize}`
                 );
                 const data = await response.json();
 
@@ -218,27 +227,56 @@ export default Vue.component("NetworkGraph", {
 
         getNetworkOptions() {
             return {
+                // physics: {
+                //     enabled: false,
+                //     stabilization: {
+                //         enabled: true,
+                //         iterations: 150,
+                //         updateInterval: 40,
+                //         fit: true,
+                //     },
+                //     barnesHut: {
+                //         gravitationalConstant: -4000,
+                //         centralGravity: 0.1,
+                //         springLength: 200,
+                //         springConstant: 0.015,
+                //         damping: 0.15,
+                //     },
+                // },
+                // interaction: {
+                //     navigationButtons: this.showNavigation,
+                //     keyboard: true,
+                //     hideEdgesOnDrag: false,
+                //     hideEdgesOnZoom: false,
+                // },
                 physics: {
-                    enabled: false,
+                    enabled: true,
                     stabilization: {
                         enabled: true,
-                        iterations: 150,
-                        updateInterval: 40,
+                        iterations: 10,
+                        updateInterval: 50,
                         fit: true,
                     },
+                    timestep: 0.5,
+                    adaptiveTimestep: true,
                     barnesHut: {
-                        gravitationalConstant: -4000,
-                        centralGravity: 0.1,
-                        springLength: 200,
-                        springConstant: 0.015,
-                        damping: 0.15,
+                        gravitationalConstant: -10000,
+                        centralGravity: 0.5,
+                        springLength: 100,
+                        springConstant: 0.05,
+                        damping: 0.5,
+                        avoidOverlap: 0,
                     },
+                    minVelocity: 0.1,
+                    maxVelocity: 50,
+                    solver: "barnesHut",
                 },
                 interaction: {
+                    dragNodes: true,
+                    hideEdgesOnDrag: false,
+                    hideEdgesOnZoom: false,
                     navigationButtons: this.showNavigation,
                     keyboard: true,
-                    hideEdgesOnDrag: true,
-                    hideEdgesOnZoom: true,
                 },
             };
         },
@@ -283,7 +321,7 @@ export default Vue.component("NetworkGraph", {
                 await this.resetNetworkState();
 
                 const response = await fetch(
-                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${this.phenotype.name},${DEFAULT_SIGMA},${this.genesetSize}`
+                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${this.phenotypeName},${DEFAULT_SIGMA},${this.genesetSize}`
                 );
                 const data = await response.json();
 
@@ -316,7 +354,35 @@ export default Vue.component("NetworkGraph", {
             const data = { nodes: this.nodes, edges: this.edges };
             const options = this.getNetworkOptions();
 
+            // In the network initialization code
             this.network = new Network(container, data, options);
+
+            // Add multiple event listeners for proper stabilization and fitting
+            this.network.on("stabilizationStart", () => {
+                this.stabilizing = true;
+                this.stabilizationProgress = 0;
+            });
+
+            this.network.on("stabilizationProgress", (params) => {
+                this.stabilizationProgress = Math.round(
+                    (params.iterations / params.total) * 100
+                );
+            });
+
+            this.network.on("stabilizationIterationsDone", () => {
+                this.stabilizing = false;
+                this.stabilizationProgress = 100;
+                // Add slight delay to ensure nodes are in final position
+                setTimeout(() => {
+                    this.network.fit({
+                        animation: {
+                            duration: 1000,
+                            easingFunction: "easeInOutQuad",
+                        },
+                        padding: 50, // Add padding around nodes
+                    });
+                }, 100);
+            });
 
             // Add event listeners
             this.setupNetworkEvents();
@@ -331,7 +397,14 @@ export default Vue.component("NetworkGraph", {
             this.network.on("stabilizationIterationsDone", () => {
                 this.stabilizing = false;
                 this.stabilizationProgress = 100;
-                this.network.setOptions({ physics: { enabled: false } });
+                this.network.fit();
+                if (this.isEmbed) {
+                    this.network.setOptions({
+                        physics: {
+                            enabled: false,
+                        },
+                    });
+                }
             });
         },
 
