@@ -75,9 +75,9 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">Mechanism Graph</h4>
-                    <template v-if="$parent.phenotype && $parent.genesetSize">
+                    <template v-if="$store.state.phenotype && $parent.genesetSize">
                         <network-graph
-                            :phenotype="$parent.phenotype"
+                            :phenotype="$store.state.phenotype.name"
                             :geneset-size="$parent.genesetSize"
                         ></network-graph>
                     </template>

@@ -28,7 +28,9 @@ new Vue({
     },
     computed: {
         phenotype() {
-            return keyParams.phenotype || "";
+            let currentPhenotype = keyParams.phenotype || "";
+            console.log("view phenotype: ", currentPhenotype);
+            return currentPhenotype;
         },
         genesetSize() {
             return keyParams.genesetSize || "small";
@@ -65,12 +67,15 @@ new Vue({
         }
     },
     async created() {
-        await this.$store.dispatch("getPigeanPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        
-        console.log(JSON.stringify(this.$store.state.pigeanAllPhenotypes.data));
+        await this.$store.dispatch("getPigeanPhenotypes");
+        let initialPhenotype = {
+            name: keyParams.phenotype
+        };
+        this.$store.dispatch("onPhenotypeChange", initialPhenotype)
+
     },
     render(createElement) {
         return createElement(Template);

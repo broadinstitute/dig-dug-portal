@@ -18,6 +18,7 @@ export default new Vuex.Store({
     state: {
         phenotype: null,
         genesetSize: "small",
+        selectedPhenotype: null,
     },
     mutations: {
         setGenesetSize(state, genesetSize) {
@@ -26,7 +27,8 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            context.state.selectedPhenotype = phenotype;
+            console.log("dispatching ", phenotype.name);
+            context.state.phenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
         async getPigeanPhenotypes(context) {
