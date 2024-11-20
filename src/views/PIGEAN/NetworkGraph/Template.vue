@@ -60,6 +60,10 @@
                         </template>
                     </ul>
                 </div>
+                <div class="col filter-col-md">
+                    <div class="label">Number of gene sets included</div>
+                    <geneset-size-selectpicker></geneset-size-selectpicker>
+                </div>
                 <div class="region-search col filter-col-md hidden">
                     <div class="label">Search</div>
                     <button
@@ -82,7 +86,7 @@
                     <template v-if="$store.state.phenotype && $parent.genesetSize">
                         <network-graph
                             :phenotype="$store.state.phenotype.name"
-                            :geneset-size="$parent.genesetSize"
+                            :geneset-size="$store.state.genesetSize"
                         ></network-graph>
                     </template>
                 </div>

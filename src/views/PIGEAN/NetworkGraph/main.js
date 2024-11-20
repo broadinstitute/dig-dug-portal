@@ -4,6 +4,7 @@ import store from "./store";
 
 import NetworkGraph from "@/components/NetworkGraph.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import keyParams from "@/utils/keyParams";
 import { pageMixin } from "@/mixins/pageMixin.js";
 new Vue({
@@ -11,6 +12,7 @@ new Vue({
     components: {
         NetworkGraph,
         SearchHeaderWrapper,
+        GenesetSizeSelectPicker,
     },
     mixins: [pageMixin],
     data() {
@@ -58,7 +60,9 @@ new Vue({
             return oldStyle;
         },
         searchPhenotype(){
-            this.$store.dispatch("onPhenotypeChange", this.selectedPhenotype);
+            let phenotypeToSearch = this.selectedPhenotype 
+                || this.pigeanPhenotypeMap[keyParams.phenotype];
+            this.$store.dispatch("sendSearch", phenotypeToSearch);
         },
         mapPhenotypes(){
             let phenotypeMap = {};
@@ -76,7 +80,7 @@ new Vue({
         await this.$store.dispatch("getPigeanPhenotypes");
         this.pigeanPhenotypeMap = this.mapPhenotypes();
         let initialPhenotype = this.pigeanPhenotypeMap[keyParams.phenotype];
-        this.$store.dispatch("onPhenotypeChange", initialPhenotype)
+        this.$store.dispatch("sendSearch", initialPhenotype)
     },
     render(createElement) {
         return createElement(Template);

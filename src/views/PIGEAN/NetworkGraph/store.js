@@ -17,7 +17,8 @@ export default new Vuex.Store({
     },
     state: {
         phenotype: null,
-        genesetSize: "small",
+        genesetSize: keyParams.genesetSize || DEFAULT_GENESET_SIZE,
+        genesetSizeToQuery: keyParams.genesetSize || DEFAULT_GENESET_SIZE,
         selectedPhenotype: null,
     },
     mutations: {
@@ -26,9 +27,11 @@ export default new Vuex.Store({
         },
     },
     actions: {
-        onPhenotypeChange(context, phenotype) {
+        sendSearch(context, phenotype) {
             context.state.phenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
+            context.state.genesetSize = context.state.genesetSizeToQuery;
+            keyParams.set({ genesetSize: context.state.genesetSize });
         },
         async getPigeanPhenotypes(context) {
             await context.dispatch("pigeanAllPhenotypes/query", { q: 1 });
