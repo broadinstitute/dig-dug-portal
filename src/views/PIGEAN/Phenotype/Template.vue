@@ -127,7 +127,7 @@
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="
-                                    $store.state.bioPortal.phenotypeMap
+                                    $parent.pigeanMap
                                 "
                                 :filter="filter"
                             >
@@ -182,7 +182,7 @@
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
                                 :phenotypeMap="
-                                    $store.state.bioPortal.phenotypeMap
+                                    $parent.pigeanMap
                                 "
                                 :filter="filter"
                             >

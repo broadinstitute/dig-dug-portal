@@ -47,7 +47,7 @@ new Vue({
     data() {
         return {
             plotColors: plotUtils.plotColors(),
-            pigeanPhenotypeMap: "",
+            pigeanPhenotypeMap: {},
             traitGroups: {
                 portal: "A2F",
                 gcat_trait:"GWAS Catalog",
@@ -309,7 +309,7 @@ new Vue({
             return (
                 this.$store.state.genesetPhenotype.data.length > 0 &&
                 this.$store.state.pigeanPhenotype.data.length > 0 &&
-                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
+                Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
         heatmapData() {
@@ -340,6 +340,10 @@ new Vue({
             });
             return mechanisms;
         },
+        pigeanMap(){
+            return this.pigeanPhenotypeMap;
+        }
+
     },
 
     watch: {
@@ -420,7 +424,7 @@ new Vue({
             let phenotypeMap = {};
             let phenotypes = this.$store.state.pigeanAllPhenotypes.data
             phenotypes.forEach(item => {
-                phenotypeMap[item.phenotype] = item;
+                phenotypeMap[item.phenotype] = this.toOldStyle(item);
             });
             return phenotypeMap;
         },
@@ -433,8 +437,7 @@ new Vue({
         },
         lookupInPigeanMap(){
             let name = keyParams.phenotype;
-            let newPhenotype = this.pigeanPhenotypeMap[name];
-            let phenotype = this.toOldStyle(newPhenotype);
+            let phenotype = this.pigeanPhenotypeMap[name];
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
                 keyParams.set({ phenotype: phenotype.name });
