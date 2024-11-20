@@ -29,7 +29,6 @@ new Vue({
     computed: {
         phenotype() {
             let currentPhenotype = keyParams.phenotype || "";
-            console.log("view phenotype: ", currentPhenotype);
             return currentPhenotype;
         },
         genesetSize() {

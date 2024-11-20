@@ -27,7 +27,6 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            console.log("dispatching ", phenotype.name);
             context.state.phenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },

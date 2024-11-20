@@ -111,9 +111,7 @@ export default Vue.component("NetworkGraph", {
     watch: {
         phenotype: {
             handler(newVal, oldVal) {
-                console.log("component received: ", newVal);
                 if (newVal !== oldVal) {
-                    console.log("should be refreshing");
                     this.refreshGraph();
                 }
             },
