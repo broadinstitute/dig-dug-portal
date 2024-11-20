@@ -16,6 +16,14 @@ new Vue({
     data() {
         return {
             pigeanPhenotypeMap: {},
+            phenotypeSearchKey: null,
+            newPhenotypeSearchKey: null,
+            selectedPhenotype: null,
+            traitGroups: {
+                portal: "A2F",
+                gcat_trait:"GWAS Catalog",
+                rare_v2: "Orphanet"
+            },
         };
     },
     computed: {
@@ -26,10 +34,43 @@ new Vue({
             return keyParams.genesetSize || "small";
         },
     },
+    methods: {
+        setSelectedPhenotype(PHENOTYPE) {
+            let oldStylePhenotype = this.toOldStyle(PHENOTYPE);
+            this.newPhenotypeSearchKey = oldStylePhenotype.description;
+            this.phenotypeSearchKey = null;
+            this.selectedPhenotype = oldStylePhenotype;
+        },
+        ifPhenotypeInSearch(DESCRIPTION) {
+            let searchKeys = this.phenotypeSearchKey.split(" ");
+            let isInPhenotype = 0;
+
+            searchKeys.map((w) => {
+                if (DESCRIPTION.toLowerCase().includes(w.toLowerCase())) {
+                    isInPhenotype++;
+                }
+            });
+
+            return isInPhenotype == searchKeys.length ? true : null;
+        },
+        toOldStyle(newStylePhenotype){
+            let oldStyle = structuredClone(newStylePhenotype);
+            oldStyle.description = newStylePhenotype.phenotype_name;
+            oldStyle.name = newStylePhenotype.phenotype;
+            oldStyle.group = newStylePhenotype.display_group;
+            return oldStyle;
+        },
+        searchPhenotype(){
+            this.$store.dispatch("onPhenotypeChange", this.selectedPhenotype);
+        }
+    },
     async created() {
+        await this.$store.dispatch("getPigeanPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        
+        console.log(JSON.stringify(this.$store.state.pigeanAllPhenotypes.data));
     },
     render(createElement) {
         return createElement(Template);

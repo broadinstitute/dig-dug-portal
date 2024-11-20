@@ -66,7 +66,7 @@
                         id="regionSearchGo"
                         class="btn btn-light btn-sm go"
                         type="button"
-                        @click="$store.dispatch('queryPhenotype')"
+                        @click="$parent.searchPhenotype()"
                     >
                         GO
                     </button>
