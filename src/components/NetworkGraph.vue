@@ -98,7 +98,7 @@ export default Vue.component("NetworkGraph", {
         },
         containerStyle() {
             return {
-                height: !this.isEmbed ? "80vh" : "300px",
+                height: !this.isEmbed ? "80vh" : "400px",
                 width: "100%",
                 position: this.isFullscreen ? "fixed" : "relative",
                 top: this.isFullscreen ? "0" : "auto",

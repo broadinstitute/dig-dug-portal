@@ -252,7 +252,7 @@ new Vue({
                 "construct the PheWAS and not to determine the factor weights.",
             heatmapConfig: {
                 type: "heat map",
-                label: "Mechanisms",
+                label: "Mechanisms PheWAS",
                 main: {
                     field: "Z",
                     label: "Z-score",
