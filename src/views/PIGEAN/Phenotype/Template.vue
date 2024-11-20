@@ -231,30 +231,32 @@
                             >
                             </heatmap>
                         </div>
-                        <div class="col-md-4" id="mechanism-graph">
+                        <div class="col-md-4" id="mechanism-graph-outer">
                             <div class="label"><strong>Mechanism Graph</strong></div>
-                            <template
-                                v-if="
-                                    $store.state.phenotype && $store.state.genesetSize
-                                "
-                            >
-                                <div class="text-right mb-2">
-                                    <b-button
-                                        size="sm"
-                                        variant="outline-primary"
-                                        :to="`/pigean/network_graph.html?phenotype=${$store.state.phenotype.name}&genesetSize=${$store.state.genesetSize}`"
-                                        target="_blank"
-                                        ><b-icon icon="node-plus"></b-icon>
-                                        View Detailed Graph
-                                    </b-button>
-                                </div>
+                                <div id="mechanism-graph-inner">
+                                    <template
+                                        v-if="
+                                            $store.state.phenotype && $store.state.genesetSize
+                                        "
+                                    >
+                                        <div class="text-right mb-2">
+                                            <b-button
+                                                size="sm"
+                                                variant="outline-primary"
+                                                :to="`/pigean/network_graph.html?phenotype=${$store.state.phenotype.name}&genesetSize=${$store.state.genesetSize}`"
+                                                target="_blank"
+                                                ><b-icon icon="node-plus"></b-icon>
+                                                View Detailed Graph
+                                            </b-button>
+                                        </div>
 
-                                <network-graph
-                                    :phenotype="$store.state.phenotype"
-                                    :geneset-size="$store.state.genesetSize"
-                                    :is-embed="true"
-                                ></network-graph>
-                            </template>
+                                        <network-graph
+                                            :phenotype="$store.state.phenotype"
+                                            :geneset-size="$store.state.genesetSize"
+                                            :is-embed="true"
+                                        ></network-graph>
+                                    </template>
+                                </div>
                         </div>
                     </div>
                     <pigean-table
@@ -325,7 +327,10 @@ a.btn-outline-primary:hover {
     color: #ffffff !important;
     border-color: #007bff;
 }
-#mechanism-graph{
+#mechanism-graph-outer {
     padding: 10px;
+}
+#mechanism-graph-inner {
+    padding-top: 200px;
 }
 </style>
