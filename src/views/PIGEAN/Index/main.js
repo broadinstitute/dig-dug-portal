@@ -369,12 +369,14 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.getStats();
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.formatAllPhenotypes();
     },
 
     methods: {
@@ -392,9 +394,7 @@ new Vue({
                 let data = dataConvert.csv2Json(
                     contJson[0]["field_data_points"]
                 );
-                console.log(data);
                 this.stats = data;
-                console.log(this.stats);
             }
         },
         capitalize(str) {
@@ -402,6 +402,21 @@ new Vue({
                 return char.toUpperCase();
             });
         },
+        toOldStyle(newStylePhenotype){
+            let oldStyle = structuredClone(newStylePhenotype);
+            oldStyle.description = newStylePhenotype.phenotype_name;
+            oldStyle.name = newStylePhenotype.phenotype;
+            oldStyle.group = newStylePhenotype.display_group;
+            return oldStyle;
+        },
+        formatAllPhenotypes(){
+            let newPhenotypes = this.$store.state.pigeanAllPhenotypes.data;
+            let output = [];
+            for (let i = 0; i < newPhenotypes.length; i++){
+                output.push(this.toOldStyle(newPhenotypes[i]));
+            }
+            this.$store.dispatch("phenotypesInSession", output);
+        }
     },
 
     render(createElement, context) {

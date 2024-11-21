@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
+import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
 import variantUtils from "@/utils/variantUtils";
@@ -15,6 +16,7 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },
     state: {
         geneOrRegionOrVariant: null,
@@ -89,6 +91,9 @@ export default new Vuex.Store({
         //select gene on autocomplete.
         async onDatasetChange(context, dataset) {
             window.location.href = "./dinspector.html?dataset=" + dataset.name;
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
 
     },
