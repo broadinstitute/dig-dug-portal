@@ -272,11 +272,11 @@ export default Vue.component("NetworkGraph", {
                     solver: "barnesHut",
                 },
                 interaction: {
-                    dragNodes: true,
-                    hideEdgesOnDrag: false,
-                    hideEdgesOnZoom: false,
+                    dragNodes: !this.isEmbed,
                     navigationButtons: this.showNavigation,
-                    keyboard: true,
+                    keyboard: !this.isEmbed,
+                    dragView: !this.isEmbed,
+                    zoomView: !this.isEmbed,
                 },
             };
         },
