@@ -17,9 +17,11 @@
                 <div v-if="sectionConfigs['content']['search examples']" class="search-extras f-row">
                     <div class="f-row" style="gap:5px">
                         Try 
-                        <templte v-for="example in sectionConfigs['content']['search examples']">
-                            <a :href="example.url">{{example.value}}</a>
-                        </templte>
+                        <a v-for="example in sectionConfigs['content']['search examples']" 
+                            :key="example.value"
+                            :href="example.url">
+                            {{example.value}}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -281,6 +283,7 @@ export default Vue.component("cfde-landing", {
             examplesInterval: null,
             currSpotlight: -1,
             currExample: -1,
+            dccsSorted: []
         };
     },
     mounted() {
@@ -320,7 +323,7 @@ export default Vue.component("cfde-landing", {
                 setTimeout(() => {
                     this.simulateMouseOverSequence();
                 }, 400);
-            }, 100);
+            }, 200);
             this.sectionTitles = document.querySelectorAll('.section-title');
             this.highlightTopmostTitle();
         },
@@ -353,24 +356,24 @@ export default Vue.component("cfde-landing", {
                 entities: new Set()
             };
 
-            Object.entries(data).forEach(dccItem => {
-                console.log('--', dccItem);
-                const dcc = dccItem[0];
+            data.forEach(dccItem => {
+                //console.log('--', dccItem);
+                const dcc = dccItem["dcc"];
 
                 // add to map
                 map[dcc] = {
-                    logo: dccItem[1]["basic"]["logo"] || "",
-                    name: dccItem[1]["basic"]["name"] || "",
-                    omics: dccItem[1]["omics"] || [],
-                    entities: dccItem[1]["entities"] || [],
-                    info: dccItem[1]["basic"]["short description"] || "",
-                    spotlight: dccItem[1]["basic"]["spotlight"] || ""
+                    logo: dccItem["logo"] || "",
+                    name: dccItem["name"] || "",
+                    omics: dccItem["omics"] || [],
+                    entities: dccItem["entities"] || [],
+                    info: dccItem["short description"] || "",
+                    spotlight: dccItem["spotlight"] || ""
                 };
 
                 // add to sets (ensure uniqueness)
                 sets.programs.add(dcc);
-                (dccItem[1]["omics"] || []).forEach(omic => sets.omics.add(omic));
-                (dccItem[1]["entities"] || []).forEach(entity => sets.entities.add(entity));
+                (dccItem["omics"] || []).forEach(omic => sets.omics.add(omic));
+                (dccItem["entities"] || []).forEach(entity => sets.entities.add(entity));
             });
 
             // sets to arrays
@@ -388,31 +391,31 @@ export default Vue.component("cfde-landing", {
         },
         parseExamples(data){
             const examples = [];
-            Object.entries(data).forEach(dccItem => {
-                const dcc = dccItem[0];
+            data.forEach(dccItem => {
+                const dcc = dccItem["dcc"];
 
-                if(dccItem[1]["examples"]["gene_analysis"]!="" &&
-                dccItem[1]["examples"]["gene_example"]!=""
+                if(dccItem["examples"]["gene_analysis"]!="" &&
+                    dccItem["examples"]["gene_example"]!=""
                 ){
                     examples.push({
                         type: 'gene',
-                        logo: dccItem[1]["basic"]["logo"] || "",
-                        name: dccItem[1]["basic"]["name"] || "",
-                        analysis: dccItem[1]["examples"]["gene_analysis"],
-                        example: dccItem[1]["examples"]["gene_example"],
-                        entity: dccItem[1]["examples"]["example_gene"]
+                        logo: dccItem["logo"] || "",
+                        name: dccItem["name"] || "",
+                        analysis: dccItem["examples"]["gene_analysis"],
+                        example: dccItem["examples"]["gene_example"],
+                        entity: dccItem["examples"]["example_gene"]
                     });
                 }
-                if(dccItem[1]["examples"]["disease_analysis"]!="" &&
-                dccItem[1]["examples"]["disease_example"]!=""
+                if(dccItem["examples"]["disease_analysis"]!="" &&
+                    dccItem["examples"]["disease_example"]!=""
                 ){
                     examples.push({
                         type: 'disease',
-                        logo: dccItem[1]["basic"]["logo"] || "",
-                        name: dccItem[1]["basic"]["name"] || "",
-                        analysis: dccItem[1]["examples"]["disease_analysis"],
-                        example: dccItem[1]["examples"]["disease_example"],
-                        entity: dccItem[1]["examples"]["example_disease"]
+                        logo: dccItem["logo"] || "",
+                        name: dccItem["name"] || "",
+                        analysis: dccItem["examples"]["disease_analysis"],
+                        example: dccItem["examples"]["disease_example"],
+                        entity: dccItem["examples"]["example_disease"]
                     });
                 }
             });
