@@ -13,7 +13,6 @@ import sessionUtils from "@/utils/sessionUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
-import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
@@ -24,12 +23,12 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import NetworkGraph from "@/components/NetworkGraph.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
 new Vue({
     store,
     components: {
         SearchHeaderWrapper,
-        SigmaSelectPicker,
         GenesetSizeSelectPicker,
         ResearchMPlot,
         RawImage,
@@ -42,11 +41,18 @@ new Vue({
         Heatmap,
         ResearchHeatmap,
         FilterPValue,
+        NetworkGraph,
     },
     mixins: [pageMixin],
     data() {
         return {
             plotColors: plotUtils.plotColors(),
+            pigeanPhenotypeMap: {},
+            traitGroups: {
+                portal: "A2F",
+                gcat_trait:"GWAS Catalog",
+                rare_v2: "Orphanet"
+            },
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
@@ -56,7 +62,7 @@ new Vue({
                 { key: "combined_probability", label: "Combined probability" },
                 { key: "huge_score", label: "Direct support (w/o gene sets)" },
                 { key: "log_bf", label: "Direct support (w/ gene sets)" },
-                { key: "prior", label: "Gene set evidence" },
+                { key: "prior", label: "Indirect support" },
             ],
             tableConfig: {
                 fields: [
@@ -80,7 +86,7 @@ new Vue({
                     },
                     {
                         key: "prior",
-                        label: "Gene set evidence",
+                        label: "Indirect support",
                         sortable: true,
                     },
                     { key: "n", label: "Number of gene sets", sortable: true },
@@ -95,7 +101,7 @@ new Vue({
             },
             genePigeanPlotConfig: {
                 xField: "prior",
-                xAxisLabel: "Gene set evidence",
+                xAxisLabel: "Indirect support",
                 yField: "log_bf",
                 yAxisLabel: "Direct support (w/ gene sets)",
                 dotKey: "gene",
@@ -137,7 +143,7 @@ new Vue({
                     },
                     {
                         key: "prior",
-                        label: "Gene set evidence",
+                        label: "Indirect support",
                         sortable: true,
                     },
                 ],
@@ -183,7 +189,7 @@ new Vue({
                         label: "Direct support (w/ gene sets)",
                         sortable: true,
                     },
-                    { key: "prior", label: "Prior", sortable: true },
+                    { key: "prior", label: "Indirect support", sortable: true },
                 ],
                 subtable2Fields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
@@ -246,7 +252,7 @@ new Vue({
                 "construct the PheWAS and not to determine the factor weights.",
             heatmapConfig: {
                 type: "heat map",
-                label: "Mechanisms",
+                label: "Mechanisms PheWAS",
                 main: {
                     field: "Z",
                     label: "Z-score",
@@ -303,7 +309,7 @@ new Vue({
             return (
                 this.$store.state.genesetPhenotype.data.length > 0 &&
                 this.$store.state.pigeanPhenotype.data.length > 0 &&
-                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
+                Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
         heatmapData() {
@@ -334,21 +340,13 @@ new Vue({
             });
             return mechanisms;
         },
+        pigeanMap(){
+            return this.pigeanPhenotypeMap;
+        }
+
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            let name = keyParams.phenotype;
-            let phenotype = phenotypeMap[name];
-
-            if (phenotype) {
-                this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.name });
-            }
-            //Initial query. Should only happen once.
-            this.$store.dispatch("queryPhenotype");
-        },
-
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
@@ -358,23 +356,26 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = this.mapPhenotypes();
+        this.lookupInPigeanMap();
     },
     methods: {
         ...uiUtils,
         ...sessionUtils,
         getToolTipPosition(ELEMENT) {
-            console.log(ELEMENT);
             uiUtils.getToolTipPosition(ELEMENT);
         },
         setSelectedPhenotype(PHENOTYPE) {
-            this.newPhenotypeSearchKey = PHENOTYPE.description;
+            let oldStylePhenotype = this.toOldStyle(PHENOTYPE);
+            this.newPhenotypeSearchKey = oldStylePhenotype.description;
             this.phenotypeSearchKey = null;
-            this.$store.dispatch("selectedPhenotype", PHENOTYPE);
+            this.$store.dispatch("selectedPhenotype", oldStylePhenotype);
         },
         ifPhenotypeInSearch(DESCRIPTION) {
             let searchKeys = this.phenotypeSearchKey.split(" ");
@@ -390,9 +391,6 @@ new Vue({
         },
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
-        },
-        queryString(DETAILS) {
-            return `${DETAILS.phenotype},${DETAILS.sigma},${DETAILS.gene_set_size},${DETAILS.factor}`;
         },
         filterHeatmapData(p) {
             let phewasData = this.namesAndMechanisms(
@@ -414,16 +412,44 @@ new Vue({
         namesAndMechanisms(originalData) {
             let data = structuredClone(originalData);
             let mechanisms = this.mechanismMap;
-            for (let i = 0; i < data.length; i++) {
-                let label = mechanisms[data[i].factor].label;
-                let score = mechanisms[data[i].factor].score;
-                data[i].mechanism = `${score}___${label}`;
-            }
+            data.forEach((item) => {
+                const mechanism = mechanisms[item.factor] || {};
+                item.mechanism = `${mechanism.score || ""}___${
+                    mechanism.label || ""
+                }`;
+            });
             return data;
         },
+        mapPhenotypes(){
+            let phenotypeMap = {};
+            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
+            phenotypes.forEach(item => {
+                phenotypeMap[item.phenotype] = this.toOldStyle(item);
+            });
+            return phenotypeMap;
+        },
+        toOldStyle(newStylePhenotype){
+            let oldStyle = structuredClone(newStylePhenotype);
+            oldStyle.description = newStylePhenotype.phenotype_name;
+            oldStyle.name = newStylePhenotype.phenotype;
+            oldStyle.group = newStylePhenotype.display_group;
+            return oldStyle;
+        },
+        lookupInPigeanMap(){
+            let name = keyParams.phenotype;
+            let phenotype = this.pigeanPhenotypeMap[name];
+            if (phenotype) {
+                this.$store.state.selectedPhenotype = phenotype;
+                keyParams.set({ phenotype: phenotype.name });
+                this.$store.state.traitGroupToQuery = phenotype.trait_group;
+                keyParams.set({ traitGroup: phenotype.trait_group });
+            }
+            //Initial query. Should only happen once.
+            this.$store.dispatch("queryPhenotype");
+        }
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");
