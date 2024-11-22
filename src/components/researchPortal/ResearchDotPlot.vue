@@ -1,5 +1,8 @@
 <template>
-    <div ref="plot"></div>
+    <div>
+        <div ref="plot"></div>
+        <div ref="tooltip" class="tooltip"></div>
+    </div>
   </template>
   
   <script>
@@ -210,12 +213,12 @@
                 .padding(0.1);
     
             const eScale = d3.scaleLinear()
-                .range([1, this.cellWidth / 2])//xLabel.bandwidth() / 2])
+                .range([1, xLabel.bandwidth() / 2.5])
                 .domain([0, 100])
                 .nice();
     
             const eScale2 = d3.scaleLinear()
-                .range([1, this.cellWidth / 2])// yLabel.bandwidth() / 2])
+                .range([1, yLabel.bandwidth() / 2.5])
                 .domain([0, 100])
                 .nice();
     
@@ -351,29 +354,89 @@
     
             //console.log('sumstatArray', sumstatArray)
     
+            const tooltip = this.$refs.tooltip;
     
-            const cells = svg.selectAll("boxes")
-                .data(sumstatArray)
-                .enter()
-
+            //const cells = svg.selectAll("boxes")
+            //    .data(sumstatArray)
+            //    .enter()
+            const cells = svg.append('g');
             if(isHorizontal){
-                cells.append('circle')
+                sumstatArray.forEach((d, i) => {
+                    const outerCircle = cells.append('circle')
+                        .attr('cx', xLabel(d.key) + xLabel.bandwidth() / 2 )
+                        .attr('cy', yLabelGene(d.gene) + yLabelGene.bandwidth() / 2 )
+                        .attr('r', eScale(100))
+                        .style('stroke', '#ccc')
+                        .attr('stroke-width', "0.5")
+                        .style('fill', '#f9f9f9')
+                        .attr('data-key', d.key)
+                        .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
+                        .node()
+
+                        // Tooltip mouseover
+                        outerCircle.addEventListener('mouseover', function(e){
+                            tooltip.innerHTML = `<div style="display:flex"><div style="width:70px; font-weight:bold">Gene</div>${d.gene}</div>
+                                                 <div style="display:flex"><div style="width:70px; font-weight:bold">Cell</div>${d.key}</div>
+                                                 <div style="display:flex"><div style="width:70px; font-weight:bold">Expr.</div>${d.mean.toFixed(4)}</div>
+                                                 <div style="display:flex"><div style="width:70px; font-weight:bold">% Expr.</div>${d.pctExpr.toFixed(4)}</div>`;
+                            tooltip.classList.add('show')
+                        })
+                        // Tooltip mousemove to follow the cursor
+                        outerCircle.addEventListener('mousemove', function(e){
+                            console.log(d);
+                            tooltip.style.top = (e.clientY - 10) + "px";
+                            tooltip.style.left = (e.clientX + 10) + "px";
+                        })
+                        // Tooltip mouseout to hide it
+                        outerCircle.addEventListener('mouseout', function(e){
+                            tooltip.classList.remove('show');
+                            tooltip.style.top = -100 + "px";
+                            tooltip.style.left = -100 + "px";
+                        });
+
+                    cells.append('circle')
+                        .attr('cx', xLabel(d.key) + xLabel.bandwidth() / 2 )
+                        .attr('cy', yLabelGene(d.gene) + yLabelGene.bandwidth() / 2 )
+                        .attr('r', eScale(d.pctExpr))
+                        .style('fill', color(d.mean))
+                        .style('pointer-events', 'none')
+                        .attr('data-key', d.key)
+                        .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
+                })
+                /*const outerCircle = cells.append('circle')
                     .attr('cx', d => xLabel(d.key) + xLabel.bandwidth() / 2 )
                     .attr('cy', d => yLabelGene(d.gene) + yLabelGene.bandwidth() / 2 )
                     .attr('r', eScale(100))
                     .style('stroke', '#ccc')
                     .attr('stroke-width', "0.5")
-                    .style('fill', 'none')
+                    .style('fill', 'white')
                     .attr('data-key', d => d.key)
                     .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
-    
+                    .node()
+
+                    // Tooltip mouseover
+                    outerCircle.addEventListener('mouseover', function(e){
+                        tooltip.innerHTML = `<strong>ok</strong><br>Total: `;
+                        tooltip.classList.add('show')
+                    })
+                    // Tooltip mousemove to follow the cursor
+                    outerCircle.addEventListener('mousemove', function(e){
+                        console.log(e);
+                        tooltip.style.top = (e.clientY - 10) + "px";
+                        tooltip.style.left = (e.clientX + 10) + "px";
+                    })
+                    // Tooltip mouseout to hide it
+                    outerCircle.addEventListener('mouseout', function(e){
+                        tooltip.classList.remove('show')
+                    });
+
                 cells.append('circle')
                     .attr('cx', d => xLabel(d.key) + xLabel.bandwidth() / 2 )
                     .attr('cy', d => yLabelGene(d.gene) + yLabelGene.bandwidth() / 2 )
                     .attr('r', d => eScale(d.pctExpr))
                     .style('fill', d => color(d.mean))
                     .attr('data-key', d => d.key)
-                    .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
+                    .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')*/
             }else{
                 cells.append('circle')
                     .attr('cx', d => xLabelGene(d.gene) + xLabelGene.bandwidth() / 2 )
@@ -407,5 +470,19 @@
 <style scoped>
     svg {
         font-family: sans-serif;
+    }
+    .tooltip{
+        position:fixed;
+        background: white;
+        padding: 5px 10px;
+        box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
+    }
+    .tooltip.show{
+        opacity: 1;
+    }
+    .tooltip .tooltip-grid-item{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        grid-column-gap: 5px;
     }
 </style>

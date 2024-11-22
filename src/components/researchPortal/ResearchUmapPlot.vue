@@ -24,7 +24,7 @@
                     @mouseleave="endPan"
             >
             </canvas>
-            <div ref="umapTooltip" class="umapTooltip"></div>
+            <div ref="umapTooltip" class="tooltip"></div>
         </div>
     </div>
   </template>
@@ -32,53 +32,81 @@
   <script>
   import * as d3 from 'd3';
   import Vue from 'vue';
+  import EventBus from "@/utils/eventBus"
   
   export default Vue.component('research-umap-plot', {
     props: {
-      title: {
-        type: String,
-        required: false,
-      },
-      points: {                             //expects array of point vector objects [{X:0, Y:0},...]
-        type: (Array, null),
-        required: true,
-      },
-      colors: {                             //expects array of hex strings, parallels points ["#fff", ...]
-        type: Array,
-        required: false,
-      },
-      cellLabels: {                         //exects array of strings of cell labels ["cell1", "cell2",...]
-        type: Array,
-        required: false,
-      },
-      cellLabelsMap: {                      //expects array of ints that are indeces of cellLabels array, parallels points [0, 1, 0, 2,...]
-        type: Array,
-        required: false,
-      },
-      highlightLabel: {
-        type: String,
-        required: false,
-      },
-      width:{                               //desired width of umap plot, plot is rendered with square aspect ratio
-        type: Number,
-        deafult: 400,
-        required: false,
-      },
-      labelSizePx: {                        //desired size of cluster labels on umap
-        type: Number,
-        default: 20,
-        required: false,
-      },
-      dotSize: {                            //desired size of dots on umap
-        type: Number,
-        default: 2,
-        required: false,
-      },
-      isLoading: {
-        type: Boolean,
-        default: false,
-        required: false,
-      }
+        sectionId: {
+            type: String,
+            required: false,
+        },
+        title: {
+            type: String,
+            required: false,
+        },
+        points: {                             //expects array of point vector objects [{X:0, Y:0},...]
+            type: (Array, null),
+            required: true,
+        },
+        colors: {                             //expects array of hex strings, parallels points ["#fff", ...]
+            type: Array,
+            required: false,
+        },
+
+        fields: {                             //expects BioIndex fields object
+            type: Object,
+            required: false,
+        },
+        cellTypeField: {                      //expects string of the "cell type" key (from fields object)
+            type: String,
+            required: false,
+        },
+        colorByField:{                        //expects string of the key to color by (from fields object)
+            type: String,
+            required: false,
+        },
+        hoverFields: {                        //expects string or array of strings of keys to show on cell hover (from fields object)
+            type: (String, Array),            //will automatically show cell id from NAMES array in fields object
+            required: false,
+        },
+        expression: {                         //expects array of expression values, parallels points [2.56, ...]
+            type: Array,
+            required: false,
+        },
+        expressionGene: {                     //name of gene whose expression is being dislayed
+            type: String,
+            required: false,
+        },
+
+
+        highlightLabel: {
+            type: String,
+            required: false,
+        },
+        highlightLabels: {
+            type: Array,
+            required: false,
+        },
+        width:{                               //desired width of umap plot, plot is rendered with square aspect ratio
+            type: Number,
+            deafult: 400,
+            required: false,
+        },
+        labelSizePx: {                        //desired size of cluster labels on umap
+            type: Number,
+            default: 20,
+            required: false,
+        },
+        dotSize: {                            //desired size of dots on umap
+            type: Number,
+            default: 4,
+            required: false,
+        },
+        isLoading: {
+            type: Boolean,
+            default: false,
+            required: false,
+        }
     },
     data() {
       return {
@@ -92,6 +120,7 @@
         pointBoundsCalculated: false,
         boundsSizeScaled: null,
         boundsOffset: null,
+        clusterCentersInitialized: false,
         clusterCenters: {},
         showLabels: true,  
         umapTooltipEl: null,
@@ -109,6 +138,7 @@
         points: {
             handler(){
                 this.pointBoundsCalculated = false;
+                this.clusterCentersInitialized = false;
                 this.drawUMAP();
             }
         },
@@ -117,14 +147,14 @@
                 this.drawUMAP();
             }
         },
-        cellLabels:{
+        highlightLabels: {
             handler(){
-                if(this.cellLabelsMap) this.addClusterLabels();
+                this.drawUMAP();
             }
         },
-        cellLabelsMap:{
+        cellTypeField:{
             handler(){
-                if(this.cellLabels) this.addClusterLabels();
+                this.drawUMAP();
             }
         },
         colors: {
@@ -138,6 +168,11 @@
     },
     mounted() {
         this.drawUMAP();
+
+        EventBus.$on('view-transform-change', this.handleUpdateViewTransform)
+    },
+    beforeDestroy() {
+        EventBus.$off('view-transform-change', this.handleUpdateViewTransform)
     },
     methods: {
         //
@@ -185,28 +220,58 @@
 
                 this.pointBoundsCalculated = true;
             }
-            
-            const boundsCenter = {
-                x: (this.center.x ),
-                y: (this.center.y )
-            }
 
-            this.clusterCenters = {};
-            //console.log('--', this.cellLabels, this.cellLabelsMap);
+            if (!this.clusterCentersInitialized && this.fields) {
+                this.clusterCenters = {};
+
+                points.forEach((coord, index) => {
+                    const px = coord.X;
+                    const py = coord.Y;
+
+                    const x = ((px - this.pointBounds.w) * this.zoom) + this.boundsOffset.x/2;
+                    const y = ((this.pointBounds.s - py) * this.zoom) + this.boundsOffset.y/2;
+
+                    let label = this.fields.metadata_labels[this.cellTypeField][this.fields.metadata[this.cellTypeField][index]];
+                    if (!label || label.trim() === '') return;
+
+                    // Initialize cluster center if not already present
+                    if (!this.clusterCenters[label]) {
+                        this.clusterCenters[label] = { x: 0, y: 0, count: 0 };
+                    }
+                    
+                    // Accumulate x, y positions and count
+                    this.clusterCenters[label].x += x;
+                    this.clusterCenters[label].y += y;
+                    this.clusterCenters[label].count += 1;
+                });
+
+                // Average the positions for each cluster center
+                Object.keys(this.clusterCenters).forEach(label => {
+                    const center = this.clusterCenters[label];
+                    center.x /= center.count;
+                    center.y /= center.count;
+                });
+
+                this.clusterCentersInitialized = true;
+            }
 
             // Save the current state
             ctx.save();
-            
+
             // Apply view transformation
             ctx.translate(this.viewTransform.x, this.viewTransform.y);
             ctx.scale(this.viewTransform.scale, this.viewTransform.scale);
-
+            
             const wantHighlight = this.highlightLabel !== '';
-            const haveLabels = (this.cellLabels && this.cellLabelsMap);
-            let label;
+
+            //optimization: used to cull points from rendering based on zoom level
+            const cullMod = points.length > 20000 ? Math.round(10-this.viewTransform.scale) : 1;
 
             //draw points
             points.forEach((coord, index) => {
+                //skip every 1 in X points
+                if(index % Math.max(1, cullMod)) return;
+
                 //calc dot positions
                 const px = coord.X;
                 const py = coord.Y;
@@ -216,39 +281,44 @@
 
                 //console.log(px, py, x, y)
 
-                //calc cluster centers
-                label = null;
-                if(haveLabels){
-                    label = this.cellLabels[this.cellLabelsMap[index]];
-                    if(!label || label.trim()==='' || label === undefined) return;
-                    if (!this.clusterCenters[label]) {
-                        this.clusterCenters[label] = { x: 0, y: 0, count: 0 };
-                    }
-                    this.clusterCenters[label].x += x;
-                    this.clusterCenters[label].y += y;
-                    this.clusterCenters[label].count += 1;
-                }
-
+                const labelField = this.colorByField || this.cellTypeField;
+                const label = this.fields.metadata_labels[labelField][this.fields.metadata[labelField][index]];
+                
                 //draw dots
                 const isLabelToHighlight = (label && wantHighlight) && (label === this.highlightLabel);
+                const isLabelSelected = this.highlightLabels.includes(label);
+                let color = colors ? colors[index] : '#eee';
+                if(colors){
+                    if(isLabelToHighlight){
+                        color = colors[index];
+                    }else{
+                        if(wantHighlight){
+                            color = 'rgba(100,100,100,0.05)';
+                        }else{
+                            if(isLabelSelected){
+                                color = colors[index];
+                            }else{
+                                if(this.highlightLabels.length===0){
+                                    color = colors[index];
+                                }else{
+                                    color = 'rgba(100,100,100,0.05)';
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+                let dotSize = this.dotSize / this.viewTransform.scale
+                //if(isLabelToHighlight) dotSize *= 2;
+                //dotSize /= this.viewTransform.scale;
+
                 ctx.beginPath();
-                ctx.arc(x, y, this.dotSize / this.viewTransform.scale, 0, 2 * Math.PI);
-                ctx.fillStyle = colors ? wantHighlight ? isLabelToHighlight ? colors[index] : '#eee' : colors[index] : '#666';
+                ctx.arc(x, y, dotSize, 0, 2 * Math.PI);
+                ctx.fillStyle = color;
                 ctx.fill();
             });
 
             ctx.restore();
-
-            //calc cluster centers
-            if(Object.keys(this.clusterCenters).length>0){
-                Object.keys(this.clusterCenters).forEach(label => {
-                    const center = this.clusterCenters[label];
-                    center.x /= center.count;
-                    center.y /= center.count;
-                });
-            }
-
-            //console.log('clusterCenters', this.clusterCenters);
 
             this.addClusterLabels();
         },
@@ -277,7 +347,7 @@
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.strokeStyle = "white";
-                ctx.lineWidth = 5;
+                ctx.lineWidth = 5 / (this.viewTransform.scale * 0.75);
 
                 Object.entries(this.clusterCenters).forEach(([label, center]) => {
                     const xOffset = 0;
@@ -327,8 +397,8 @@
             
             // get mouse position relative to canvas
             const rect = this.$refs.umapCanvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
+            const mouseX = (e.clientX*2) - (rect.left*2);
+            const mouseY = (e.clientY*2) - (rect.top*2);
 
             // calculate zoom
             const zoom = e.deltaY < 0 ? 1.1 : 0.9;
@@ -340,30 +410,43 @@
             this.viewTransform.y = mouseY - (mouseY - this.viewTransform.y) * zoom;
             
             this.drawUMAP();
+            this.updateViewTransform();
         },
         startPan(e) {
+            this.umapUnHover();
             this.isPanning = true;
-            this.lastX = e.clientX;
-            this.lastY = e.clientY;
+            const rect = this.$refs.umapCanvas.getBoundingClientRect();
+            this.lastX = (e.clientX*2) - (rect.left*2);
+            this.lastY = (e.clientY*2) - (rect.top*2);
         },
         endPan() {
             this.isPanning = false;
         },
         handlePan(e) {
-            const dx = e.clientX - this.lastX;
-            const dy = e.clientY - this.lastY;
-            
+            if (!this.isPanning) return;
+
+            const rect = this.$refs.umapCanvas.getBoundingClientRect();
+            const dx = (e.clientX*2) - (rect.left*2) - this.lastX;
+            const dy = (e.clientY*2) - (rect.top*2) - this.lastY;
+
             this.viewTransform.x += dx;
             this.viewTransform.y += dy;
-            
-            this.lastX = e.clientX;
-            this.lastY = e.clientY;
-            
-            this.drawUMAP();
+
+            if (!this.panAnimationFrame) {
+                this.panAnimationFrame = requestAnimationFrame(() => {
+                    this.drawUMAP();
+                    this.updateViewTransform();
+                    this.panAnimationFrame = null;
+                });
+            }
+
+            this.lastX = (e.clientX*2) - (rect.left*2);
+            this.lastY = (e.clientY*2) - (rect.top*2);
         },
         resetPanZoom(){
             this.viewTransform = {x: 0, y: 0, scale: 1};
             this.drawUMAP();
+            this.updateViewTransform();
         },
         handleMouseMove(e) {
             if (this.isPanning) {
@@ -376,10 +459,12 @@
             const rect = this.$refs.umapCanvas.getBoundingClientRect();
             const mouseX = (e.clientX*2) - (rect.left*2);
             const mouseY = (e.clientY*2) - (rect.top*2);
+            const mX = e.clientX;
+            const mY = e.clientY;
 
-            this.checkHover(mouseX, mouseY);
+            this.checkHover(mouseX, mouseY, mX, mY);
         },
-        checkHover(x, y) {
+        checkHover(x, y, xx, yy) {
             let radius = 0.05;
                 
             //adjust for pan/zoom
@@ -404,15 +489,38 @@
 
             //console.log(`Found ${nearbyPointIndices.length} points within radius ${radius}`);
 
-            if(nearbyPointIndices.length>0){
-                this.umapTooltipEl.innerHTML = this.cellLabels[this.cellLabelsMap[nearbyPointIndices[0]]];
-                this.umapTooltipEl.classList.remove('hidden');
+            if(nearbyPointIndices.length>0 && !this.isPanning){
+                let hoverHTML = `<div style="display:flex"><div style="width:100px; font-weight:bold">Cell ID</div>${this.fields.NAME[nearbyPointIndices[0]]}</div>`;
+                if(this.expression) hoverHTML += `<div style="display:flex"><div style="width:100px; font-weight:bold">Expression</div>${this.expression[nearbyPointIndices[0]]} ${this.expressionGene?'('+this.expressionGene+')':''}</div>`;
+                if(!this.hoverFields.includes(this.cellTypeField)) hoverHTML += `<div style="display:flex"><div style="width:100px; font-weight:bold; text-transform: capitalize;">${this.cellTypeField.replaceAll('_', ' ')}</div>${this.fields.metadata_labels[this.cellTypeField][this.fields.metadata[this.cellTypeField][nearbyPointIndices[0]]]}</div>`
+                if(!this.hoverFields.includes(this.colorByField) && this.colorByField !== this.cellTypeField) hoverHTML += `<div style="display:flex"><div style="width:100px; font-weight:bold; text-transform: capitalize;">${this.colorByField.replaceAll('_', ' ')}</div>${this.fields.metadata_labels[this.colorByField][this.fields.metadata[this.colorByField][nearbyPointIndices[0]]]}</div>`
+                this.hoverFields.forEach(field=>{
+                    if(this.fields.metadata_labels[field])
+                        hoverHTML += `<div style="display:flex"><div style="width:100px; font-weight:bold; text-transform: capitalize;">${field.replaceAll('_', ' ')}</div>${this.fields.metadata_labels[field][this.fields.metadata[field][nearbyPointIndices[0]]]}</div>`
+                })
+                this.umapTooltipEl.innerHTML = hoverHTML;
+                this.umapTooltipEl.style.top = (yy - 10) + "px";
+                this.umapTooltipEl.style.left = (xx + 10) + "px";
+                this.umapTooltipEl.classList.add('show');
             }else{
-                this.umapTooltipEl.classList.add('hidden');
+                this.umapTooltipEl.classList.remove('show');
+                this.umapTooltipEl.style.top = -100 + "px";
+                this.umapTooltipEl.style.left = -100 + "px";
             }
         },
         umapUnHover(){
-            this.umapTooltipEl.classList.add('hidden');
+            this.umapTooltipEl.classList.remove('show');
+            this.umapTooltipEl.style.top = -100 + "px";
+            this.umapTooltipEl.style.left = -100 + "px";
+        },
+        updateViewTransform(){
+            EventBus.$emit('view-transform-change', {id: this.sectionId, transform:this.viewTransform})
+        },
+        handleUpdateViewTransform(newViewTransform) {
+            if(newViewTransform.id===this.sectionId){
+                this.viewTransform = newViewTransform.transform;
+                this.drawUMAP();
+            }
         },
     },
   });
@@ -452,6 +560,15 @@
  .umapTooltip.hidden{
     display:none;
  }
+ .tooltip{
+    position:fixed;
+    background: white;
+    padding: 5px 10px;
+    box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
+  }
+  .tooltip.show{
+    opacity: 1;
+  }
  
 button {
     border: 1px solid rgba(0, 0, 0, .25);

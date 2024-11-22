@@ -170,11 +170,11 @@
 		></research-scatter-plot>
 		<research-single-cell-browser
 			v-if="plotConfig && plotConfig['type'] == 'cell browser'"
+			:sectionId="sectionId"
 			:renderConfig="plotConfig"
 			:utils="utils"
 			:data="plotData"
-		>
-		</research-single-cell-browser>
+		></research-single-cell-browser>
 		
 	</div>
 </template>

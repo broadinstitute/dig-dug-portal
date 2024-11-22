@@ -1,5 +1,8 @@
 <template>
-    <div ref="chart"></div>
+    <div>
+        <div ref="chart"></div>
+        <div ref="tooltip" class="tooltip"></div>
+    </div>
   </template>
   
   <script>
@@ -105,6 +108,10 @@
       //axisTicksFormat;
       //axisLabelKeys:
     },
+    data() {
+        return {
+        }
+    },
     watch: {
         data: {
             handler() {
@@ -115,6 +122,9 @@
         barType(newVal, oldVal) {
             this.drawChart();
         },
+        subCategoryKeys(newVal, oldVal){
+            this.drawChart();
+        },
         normalize(newVal, oldVal) {
             this.drawChart();
         },
@@ -123,9 +133,7 @@
         }
     },
     mounted() {
-        console.log('hi')
         if(this.data){
-            console.log('working...')
             this.drawChart();
         }else{
             console.log('no data');
@@ -150,7 +158,12 @@
                 };
 
                 // Calculate normalized values
-                result.normalizedValues = Object.values(value).map(count => (count / total) * 100);
+                //result.normalizedValues = Object.values(value).map(count => (count / total) * 100);
+                result.normalizedValues = this.subCategoryKeys.map(key => {
+                    const val = value[key] | 0;
+                    const normVal = (val / total) * 100;
+                    return normVal;
+                });
 
                 return result;
             });
@@ -199,6 +212,7 @@
             const processedData = (!Array.isArray(this.data)) || (Array.isArray(this.data) && isSingleCategory) 
                 ? data
                 : data.map(d => {
+                    //console.log('>>>>>>>>',d);
                     const total = subCategoryKeys.reduce((sum, key) => {
                         const val = d[key] | 0;
                         if (val > subCategoryMaxValue) {
@@ -218,12 +232,12 @@
                 });
 
             console.log('---BarChart');
-            //console.log('      ', {categoryKey, data:this.data, processedData});
+            //console.log('      ', {categoryKey, subCategoryKeys, rawData:this.data, data:data, processedData});
             //console.log('      ', {orientation, barType, normalize, singleCategoryKeys, subCategoryKeys, isSingleCategory,});
 
             //console.log('processed', processedData);
 
-            console.log('   ', {isSingleCategory, isStacked, showBarLabels})
+            //console.log('   ', {isSingleCategory, isStacked, showBarLabels})
 
             const hasTopLabel = this.labelTop && this.labelTop.trim()!=='';
             const hasBottomLabel = this.labelBottom && this.labelBottom.trim()!=='';
@@ -236,14 +250,14 @@
             const marginsH = {
                 top: this.showValues ? 20 : 10, 
                 right: 10, 
-                bottom: 10 + (isSingleCategory && isStacked ? 0 : !showBarLabels ? 0 : 60) + (hasBottomLabel ? axisLabelWidth : 0), 
+                bottom: 10 + (isSingleCategory && isStacked ? 0 : !showBarLabels ? 0 : 90) + (hasBottomLabel ? axisLabelWidth : 0), 
                 left: 10 + axisTicksWidth + (hasLeftLabel ? axisLabelWidth : 0)
             }
             const marginsV = {
                 top: axisTicksWidth + (hasTopLabel ? axisLabelWidth : 0),
                 right: this.showValues ? 30 : 10,
                 bottom: 10,
-                left: 10 + (isSingleCategory && isStacked ? 0 : !showBarLabels ? 0 : 80) + (hasLeftLabel ? axisLabelWidth : 0)
+                left: 10 + (isSingleCategory && isStacked ? 0 : !showBarLabels ? 0 : 90) + (hasLeftLabel ? axisLabelWidth : 0)
             }
             if(isSingleCategory && normalize) {
                 marginsV.left = 10 + (hasLeftLabel ? axisLabelWidth : 0);
@@ -283,12 +297,12 @@
             const yLabels = d3.scaleBand()
                 .domain(!(isSingleCategory && isStacked) ? singleCategoryKeys : [])
                 .range(graphHeightRange)
-                .padding(0.05);
+                .padding(0.1);
 
             const xLabels = d3.scaleBand()
                 .domain(!(isSingleCategory && isStacked) ? singleCategoryKeys : [])
                 .range(graphWidthRange)
-                .padding(0.05);
+                .padding(0.1);
 
             //scale bands for measures
             const yScale = d3.scaleLinear()
@@ -419,9 +433,9 @@
                 }else{
                     if(showBarLabels){
                         svg.append('g')
-                        .attr('transform', `translate(0,${height - marginBottom + 5})`)
+                        .attr('transform', `translate(0,${height - marginBottom})`)
                         .call(d3.axisBottom(xLabels).tickSizeOuter(0))
-                        .call(g => g.selectAll('.domain').remove())
+                        //.call(g => g.selectAll('.domain').remove())
                         .selectAll("text")
                         .style("text-anchor", "end")
                         .attr('font-size', '12px')
@@ -434,7 +448,7 @@
             if(!isSingleCategory){
                 const group = svg.append('g')
                     .selectAll('g')
-                    .data(processedData)
+                    .data(data)
                     .enter()
                     .append('g');
 
@@ -460,17 +474,19 @@
                                 .attr('x', 0)
                                 .attr('y', d => {
                                     const previousWidths = subCategoryKeys.slice(0, i).reduce((acc, subKey) => acc + y2(normalize ? (d.normalizedValues[subCategoryKeys.indexOf(subKey)] | 0 ) : (d[subKey] | 0)), 0);
+                                    //const previousWidths = subCategoryKeys.slice(0,i).reduce((acc, val) => acc + y2(val), 0);
+                                    const w = y2(normalize ? (d.normalizedValues[i] | 0) : (d[key] | 0));
+                                    const y = height - marginBottom - previousWidths - w;
+                                    
                                     //const test = [y2(31.799163179916317), y2(39.9581589958159), y2(28.24267782426778)];
                                     //console.log('~~~~', key, d.normalizedValues[i], previousWidths, y2(d.normalizedValues[i] | 0), test, test.reduce((acc, i) => acc + i, 0));
                                     //TODO: something off here for stacked bars when one of the keys is missing
-                                    return height - marginBottom - previousWidths - y2(normalize ? (d.normalizedValues[i] | 0) : (d[key] | 0));
+                                    return y;
                                 })
                                 .attr('width', xLabels.bandwidth())
-                                .attr('height', d => {
-                                    return y2(normalize ? (d.normalizedValues[i] | 0) : (d[key] | 0))
-                                })
+                                .attr('height', d =>  y2(normalize ? (d.normalizedValues[i] | 0) : (d[key] | 0)))
                                 .attr('fill', color(key));
-                    });
+                        });
                     }
                 }else{
                     if(this.orientation==='vertical'){
@@ -573,14 +589,15 @@
                     }
                 }else{
                     //grouped
-                    console.log('   single category, multiple bars');
+                    //console.log('   single category, multiple bars');
+                    const tooltip = this.$refs.tooltip;
                     const group = svg.append('g')
                     if(this.orientation==='vertical'){
                         
                         //vertical
                         singleCategoryKeys.forEach((key, i) => {
                             //draw bars
-                            group.append('rect')
+                            const rect = group.append('rect')
                                 .attr('data-label', key)
                                 .attr('x', marginLeft)
                                 .attr('y', yLabels(processedData[i][categoryKey]))
@@ -588,6 +605,25 @@
                                 .attr('height', yLabels.bandwidth())
                                 .attr('fill', color(key))
                                 .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===key ? '1' : '0.1')
+                                .node()
+                                
+                            // Tooltip mouseover
+                            rect.addEventListener('mouseover', function(e){
+                                tooltip.innerHTML = `<strong>${key}</strong><br>Total: ${processedData[i][totalKey].toLocaleString()}`;
+                                tooltip.classList.add('show')
+                            })
+                            // Tooltip mousemove to follow the cursor
+                            rect.addEventListener('mousemove', function(e){
+                                tooltip.style.top = (e.clientY - 10) + "px";
+                                tooltip.style.left = (e.clientX + 10) + "px";
+                            })
+                            // Tooltip mouseout to hide it
+                            rect.addEventListener('mouseout', function(e){
+                                tooltip.classList.remove('show');
+                                tooltip.style.top = -100 + "px";
+                                tooltip.style.left = -100 + "px";
+                            });
+                                
                             
                             //append text
                             if(this.showValues){
@@ -607,13 +643,31 @@
                         //horizontal
                         singleCategoryKeys.forEach((key, i) => {
                             //draw bars
-                            group.append('rect')
-                                .attr('x', xLabels(processedData[i][categoryKey]) + xLabels.bandwidth() / 2 - barWidth / 2)
+                            const rect = group.append('rect')
+                                .attr('x', xLabels(processedData[i][categoryKey]))
                                 .attr('y', height - marginBottom - y2(processedData[i][totalKey]))
-                                .attr('width', this.barWidth)// xLabels.bandwidth()) 
+                                .attr('width', xLabels.bandwidth()) 
                                 .attr('height', y2(processedData[i][totalKey]))
                                 .attr('fill', color(key))
                                 .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===key ? '1' : '0.1')
+                                .node()
+
+                            // Tooltip mouseover
+                            rect.addEventListener('mouseover', function(e){
+                                tooltip.innerHTML = `<strong>${key}</strong><br>Total: ${processedData[i][totalKey].toLocaleString()}`;
+                                tooltip.classList.add('show')
+                            })
+                            // Tooltip mousemove to follow the cursor
+                            rect.addEventListener('mousemove', function(e){
+                                tooltip.style.top = (e.clientY - 10) + "px";
+                                tooltip.style.left = (e.clientX + 10) + "px";
+                            })
+                            // Tooltip mouseout to hide it
+                            rect.addEventListener('mouseout', function(e){
+                                tooltip.classList.remove('show');
+                                tooltip.style.top = -100 + "px";
+                                tooltip.style.left = -100 + "px";
+                            });
                             
                             // append text
                             if(this.showValues){
@@ -645,6 +699,15 @@
   ::v-deep .chart-label{
     font-size:12px;
     opacity:0.5;
+  }
+  .tooltip{
+    position:fixed;
+    background: white;
+    padding: 5px 10px;
+    box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
+  }
+  .tooltip.show{
+    opacity: 1;
   }
   </style>
   
