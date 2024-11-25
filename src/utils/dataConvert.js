@@ -374,6 +374,24 @@ let csv2Json = function (DATA) {
     return jsonData;
 };
 
+let tsv2Json = function (DATA) {
+    const lines = DATA.split('\n');
+    const headers = lines.shift().split('\t');
+    const jsonArray = [];
+    const ifNumber = (str) => {
+        return !isNaN(str) && str.trim() !== '' ? Number(str) : str;
+    }
+    lines.forEach(line => {
+        const values = line.split('\t');
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = ifNumber(values[index]);
+        });
+        jsonArray.push(obj);
+    });
+    return jsonArray;
+}
+
 let flatJson = function (DATA) {
 
     /// first wrap values with comma
@@ -550,6 +568,7 @@ const object2Array = function (DATASET, COMPARECONFIG, KEY) {
 export default {
     convertData,
     csv2Json,
+    tsv2Json,
     object2Array,
     flatJson
 };
