@@ -41,7 +41,7 @@
                                         Gene Sets
                                     </div>
                                     <select class="form-control"
-                                        :v-model="$parent.genesetParam"
+                                        v-model="$parent.genesetParam"
                                     >
                                         <option v-for=" o in $store.state.genesetOptions"
                                             :value="o">
@@ -71,8 +71,11 @@
                     <h4>Factors</h4>
                     <pigean-bayes-table
                         :pigeanData="$parent.pigeanFactor"
-                        :isPigeanFactor="true"
-                        :fields="$parent.topFields">
+                        :geneData="$parent.geneFactor"
+                        :genesetData="$parent.genesetFactor"
+                        :fields="$parent.topFields"
+                        :geneFields="$parent.geneFields"
+                        :genesetFields="$parent.genesetFields">
                     </pigean-bayes-table>
                 </div>
             </div>

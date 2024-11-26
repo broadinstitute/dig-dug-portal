@@ -31,6 +31,8 @@ export default new Vuex.Store({
         tissueToQuery: "",
         geneToQuery: "",
         selectedAncestry: "",
+        loadingGene: false,
+        loadingExpression: false,
     },
 
     mutations: {
@@ -45,6 +47,12 @@ export default new Vuex.Store({
         setCommonVariantsLength(state, NUM) {
             state.commonVariantsLength = NUM;
         },
+        setLoadingGene(state, loading=true){
+            state.loadingGene = loading;
+        },
+        setLoadingExpression(state, loading=true){
+            state.loadingExpression = loading;
+        }
     },
     getters: {
         region(state) {
@@ -80,8 +88,13 @@ export default new Vuex.Store({
             context.state.geneToQuery = geneName;
         },
         async queryDiffExp(context) {
+            context.commit("setLoadingExpression");
+
             let gene = context.state.geneToQuery || context.state.gene;
+            context.commit("setLoadingGene");
             context.commit("setGeneName", gene);
+            await context.dispatch("homologGene/query", {q: gene});
+            context.commit("setLoadingGene", false);
 
             let tissue = context.state.tissueToQuery || context.state.tissue;
             context.commit("setTissueName", tissue);
@@ -95,12 +108,12 @@ export default new Vuex.Store({
                 context.dispatch("hugeScores/query", query);
                 context.dispatch("associations52k/query", query);
                 context.dispatch("geneassociations/query", query);
-                context.dispatch("homologGene/query", query);
                 context.dispatch("geneToTranscript/query", query);
             }
             if (!!gene && !!tissue) {
-                context.dispatch("diffExp/query", { q: 
+                await context.dispatch("diffExp/query", { q: 
                     `${gene},${tissue}` });
+                context.commit("setLoadingExpression", false);
             }
         },
     },

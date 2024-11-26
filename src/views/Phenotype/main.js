@@ -68,6 +68,7 @@ new Vue({
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
+            annotation: "",
         };
     },
 
@@ -181,13 +182,15 @@ new Vue({
             return focusedData;
         },
         c2ctData() {
-            let data = this.$store.state.c2ct.data;
+            let data = !!this.$store.state.selectedAnnotation ? 
+                this.$store.state.c2ctAnnotation.data :
+                this.$store.state.c2ct.data;
             data.forEach((d) => {
                 // Makes biosamples show up alphabetically in the dropdown menu.
                 d.originalBiosample = d.biosample;
                 d.biosample = Formatters.tissueFormatter(d.biosample);
             });
-            return data;
+            return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
     },
 
@@ -203,7 +206,9 @@ new Vue({
             //Initial query. Should only happen once.
             this.$store.dispatch("queryPhenotype");
         },
-
+        "$store.state.annotationOptions"(data) {
+            this.annotation = data[0];
+        },
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
@@ -239,6 +244,7 @@ new Vue({
     },
 
     created() {
+        this.$store.dispatch("getAnnotations");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -250,6 +256,7 @@ new Vue({
         ...sessionUtils,
         intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        tissueFormatter: Formatters.tissueFormatter,
         maFormatter(value) {
             return value
                 .split(";")
@@ -276,6 +283,10 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
+        onAnnotationSelected(){
+            this.$store.commit("setSelectedAnnotation", this.annotation);
+            this.$store.dispatch("getCs2ct");
+        }
     },
 
     render(createElement, context) {

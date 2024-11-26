@@ -1,9 +1,6 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.config.productionTip = false;
 
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import StaticPageInfo from "@/components/StaticPageInfo.vue";
@@ -17,24 +14,6 @@ new Vue({
         PortalDatasetsListTable,
     },
     mixins: [pageMixin],
-
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-    },
 
     computed: {
         diseaseGroup() {
@@ -86,5 +65,19 @@ new Vue({
                 portal: group.name,
             });
         },
+    },
+
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+    },
+
+    methods: {
+        ...uiUtils,
+    },
+
+    render(createElement) {
+        return createElement(Template);
     },
 }).$mount("#app");

@@ -6,6 +6,7 @@ import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import PigeanTable from "./PigeanTable.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -16,7 +17,14 @@ export default Vue.component("pigean-table", {
         DataDownload,
         PigeanTable,
     },
-    props: ["pigeanData", "phenotypeMap", "config", "isSubtable", "filter", "phewasRenderConfig"],
+    props: [
+        "pigeanData",
+        "phenotypeMap",
+        "config",
+        "isSubtable",
+        "filter",
+        "phewasRenderConfig",
+    ],
     data() {
         return {
             perPage: 10,
@@ -74,14 +82,14 @@ export default Vue.component("pigean-table", {
             }
             return data;
         },
-        sigma() {
-            return parseInt(keyParams.sigma.slice(-1));
-        },
         genesetSize() {
             return keyParams.genesetSize;
         },
+        traitGroup(){
+            return keyParams.traitGroup;
+        },
         suffix() {
-            return `&sigma=sigma${this.sigma}&genesetSize=${this.genesetSize}`;
+            return `&genesetSize=${this.genesetSize}&traitGroup=${this.traitGroup}`;
         },
     },
     methods: {
@@ -92,9 +100,9 @@ export default Vue.component("pigean-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        phewasPlotShow(row){
+        phewasPlotShow(row) {
             this.getPhewas(row);
-            this.toggleTable(row, 'phewas');
+            this.toggleTable(row, "phewas");
         },
         async getSubtable(row, whichSubtable) {
             let queryKey = this.subtableKey(row.item);
@@ -116,7 +124,7 @@ export default Vue.component("pigean-table", {
         },
         async getPhewas(row) {
             let queryKey = this.phewasKey(row.item);
-            if (!this.phewasData[queryKey]){
+            if (!this.phewasData[queryKey]) {
                 let data = await query("pigean-phewas", queryKey);
                 Vue.set(this.phewasData, queryKey, data);
             }
@@ -124,11 +132,10 @@ export default Vue.component("pigean-table", {
         showDetails(row, tableNum) {
             this.toggleTable(row, tableNum);
             this.getSubtable(row, tableNum);
-            
         },
-        toggleTable(row, subtable){
+        toggleTable(row, subtable) {
             let show = false;
-            if (subtable === 'phewas'){
+            if (subtable === "phewas") {
                 show = !row.item.phewasActive;
             } else if (subtable === row.item.subtableActive) {
                 show = false;
@@ -136,43 +143,41 @@ export default Vue.component("pigean-table", {
                 show = true;
             }
             // Toggle active table
-            if (subtable === 'phewas'){
+            if (subtable === "phewas") {
                 row.item.phewasActive = !row.item.phewasActive;
             } else {
                 row.item.subtableActive = !show ? 0 : subtable;
             }
             // Hide details if it's currently showing and no tables should be active
-            if (!show 
-                && row.detailsShowing 
-                && !row.item.phewasActive 
-                && row.item.subtableActive === 0){
+            if (
+                !show &&
+                row.detailsShowing &&
+                !row.item.phewasActive &&
+                row.item.subtableActive === 0
+            ) {
                 row.toggleDetails();
             }
             // Show details if it's currently not showing but it should be
-            if (show 
-                && !row.detailsShowing 
-                && (row.item.phewasActive || row.item.subtableActive !== 0)){
-                    row.toggleDetails();
-                }
-            
+            if (
+                show &&
+                !row.detailsShowing &&
+                (row.item.phewasActive || row.item.subtableActive !== 0)
+            ) {
+                row.toggleDetails();
+            }
         },
-        phewasKey(item){
-            return `${item.phenotype},${
-                this.sigma},${
-                this.genesetSize},${
-                item.cluster}`;
+        phewasKey(item) {
+            return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
         },
         subtableKey(item) {
             if (this.config.queryParam === "cluster") {
-                return `${item.phenotype},${this.sigma},${this.genesetSize},${item.cluster}`;
+                return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
             }
             return `${item.phenotype},${item[this.config.queryParam]},${
-                this.sigma
-            },${this.genesetSize}`;
+                DEFAULT_SIGMA},${this.genesetSize}`;
         },
-        generateId(label){
-            return label.replaceAll(",","")
-                .replaceAll(" ", "_");
+        generateId(label) {
+            return label.replaceAll(",", "").replaceAll(" ", "_");
         },
         probability(val, prior = 0.05) {
             let a = Math.exp(Math.log(prior) + val);
@@ -221,10 +226,7 @@ export default Vue.component("pigean-table", {
                     filename="pigean_gene"
                 ></data-download>
             </div>
-            <div
-                v-html="'Total rows: ' + rows"
-                class="table-total-rows"
-            ></div>
+            <div v-html="'Total rows: ' + rows" class="table-total-rows"></div>
             <b-table
                 :hover="isSubtable"
                 small
@@ -242,7 +244,7 @@ export default Vue.component("pigean-table", {
                             r.item.label.length > 50
                                 ? `${r.item.label.slice(0, 50)}...`
                                 : r.item.label
-                        }}    
+                        }}
                     </span>
                 </template>
                 <template #cell(gene)="r">
@@ -281,11 +283,7 @@ export default Vue.component("pigean-table", {
                         size="sm"
                         @click="showDetails(row, 1)"
                     >
-                        {{
-                            row.detailsShowing
-                                ? "Hide"
-                                : "Show"
-                        }}
+                        {{ row.detailsShowing ? "Hide" : "Show" }}
                     </b-button>
                 </template>
                 <template #cell(expand1)="row">
@@ -344,17 +342,18 @@ export default Vue.component("pigean-table", {
                 </template>
                 <template #row-details="row">
                     <research-phewas-plot
-                        v-if="phewasData[phewasKey(row.item)]?.length > 0 && row.item.phewasActive"
-                        style="width:100%"
-                        :canvas-id="`pigean_${row.item.phenotype}_${
-                            generateId(row.item.label)}`"
+                        v-if="
+                            row.item.phewasActive &&
+                            phewasData[phewasKey(row.item)] &&
+                            phewasData[phewasKey(row.item)].length > 0
+                        "
+                        style="width: 100%"
+                        :canvas-id="`pigean_${row.item.phenotype}_${generateId(
+                            row.item.label
+                        )}`"
                         :plot-name="`PIGEAN_${row.item.phenotype}`"
-                        :phenotypes-data="
-                            phewasData[phewasKey(row.item)]
-                        "
-                        :phenotype-map="
-                            $store.state.bioPortal.phenotypeMap
-                        "
+                        :phenotypes-data="phewasData[phewasKey(row.item)]"
+                        :phenotype-map="$store.state.bioPortal.phenotypeMap"
                         :colors="plotColors"
                         :render-config="phewasRenderConfig"
                         :utils="utilsBox"
@@ -364,7 +363,8 @@ export default Vue.component("pigean-table", {
                     <pigean-table
                         v-if="
                             row.item.subtableActive === 2 &&
-                            subtable2Data[subtableKey(row.item)]?.length > 0
+                            subtable2Data[subtableKey(row.item)] &&
+                            subtable2Data[subtableKey(row.item)].length > 0
                         "
                         :pigeanData="subtable2Data[subtableKey(row.item)]"
                         :config="{ fields: config.subtable2Fields }"
@@ -374,7 +374,8 @@ export default Vue.component("pigean-table", {
                     <pigean-table
                         v-if="
                             row.item.subtableActive === 1 &&
-                            subtableData[subtableKey(row.item)]?.length > 0
+                            subtableData[subtableKey(row.item)] &&
+                            subtableData[subtableKey(row.item)].length > 0
                         "
                         :pigeanData="subtableData[subtableKey(row.item)]"
                         :config="{ fields: config.subtableFields }"

@@ -609,7 +609,7 @@
                         </tooltip-documentation>
                         <a href="https://amp.colocus.app" target="_blank">
                             <b-img
-                                src="https://amp.colocus.app/img/logo.b68fc6f0.png"
+                                src="/images/icons/colocus_logo.png"
                                 alt="colocus logo"
                                 height="20"
                                 right
@@ -690,10 +690,40 @@
                         :content-map="$store.state.bioPortal.documentations"
                     >
                     </documentation>
-                    <mouse-summary-table
-                        :items="$store.state.mouseSummary.data"
-                        :is-gene-page="true"
-                    ></mouse-summary-table>
+                    <criterion-function-group>
+                        <filter-pvalue-control
+                            field="P_adj_sex"
+                            placeholder="Set P-Value ..."
+                        >
+                            <div class="label">
+                                Adjusted p-value: sex (&le;)
+                            </div>
+                        </filter-pvalue-control>
+                        <filter-pvalue-control
+                            field="P_adj_strain"
+                            placeholder="Set P-Value ..."
+                        >
+                            <div class="label">
+                                Adjusted p-value: strain (&le;)
+                            </div>
+                        </filter-pvalue-control>
+                        <filter-pvalue-control
+                            field="P_adj_strain_sex"
+                            placeholder="Set P-Value ..."
+                        >
+                            <div class="label">
+                                Adjusted p-value: strain and sex (&le;)
+                            </div>
+                        </filter-pvalue-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <mouse-summary-table
+                                :items="$store.state.mouseSummary.data"
+                                :is-gene-page="true"
+                                :filter="filter"
+                            >
+                            </mouse-summary-table>
+                        </template>
+                    </criterion-function-group>
                 </div>
             </div>
             <div class="card mdkp-card">

@@ -517,7 +517,7 @@
                                 <div class="f-row" style="width:1010px;gap: 20px;" v-if="$parent.expressionStats.length>0">
                                     <div class="f-col" style="width: 600px; min-width:600px; overflow-x: scroll; padding-bottom:20px">
                                         <div class="chart-title">Gene expression by <b>{{$parent.cellTypeInfo.key}}</b></div>
-                                        <heatmap-dot-plot v-for="(item, i) in $parent.expressionStats"
+                                        <heatmap-dot-plot v-for="(item, i) in $parent.expressionStats" :key="item"
                                             :data="item"
                                             orientation="horizontal"
                                             :fitToSize="false"

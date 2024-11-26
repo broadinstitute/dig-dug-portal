@@ -588,17 +588,20 @@ export default Vue.component("ResearchPhewasPlot", {
                           bump: 10,
                       };
 
-                this.utils.plotUtils.renderAxisWBump(
-                    ctx,
-                    canvasWidth,
-                    canvasHeight,
-                    plotMargin,
-                    "y",
-                    5,
-                    minY,
-                    maxY,
-                    this.renderConfig["y axis label"]
-                );
+                if(this.renderData.data.length > 1) {
+                    this.utils.plotUtils.renderAxisWBump(
+                        ctx,
+                        canvasWidth,
+                        canvasHeight,
+                        plotMargin,
+                        "y",
+                        5,
+                        minY,
+                        maxY,
+                        this.renderConfig["y axis label"]
+                    );
+                }
+                
 
                 this.utils.plotUtils.renderAxisWBump(
                     ctx,
@@ -916,7 +919,7 @@ export default Vue.component("ResearchPhewasPlot", {
                                     ctx.fillText(
                                         h + ": " + p[h],
                                         xPos + 15,
-                                        yPos + infoIndex * 20
+                                        yPos + infoIndex * 40
                                     );
                                     infoIndex++;
                                 });

@@ -1,7 +1,5 @@
 <template>
-	<div class="scatter-plot-content row" id="rp_scatter_plot" style="display: flex; flex-direction: row; justify-content: center;">
-		
-		
+	<div v-if="renderData.length > 0" class="scatter-plot-content row" id="rp_scatter_plot" style="display: flex; flex-direction: row; justify-content: center;">
 		<div class="" style="display: flex;">
 			<div class="">
 				<div :id="'scatter_dot_value' + sectionId" 
@@ -43,7 +41,7 @@
 			</div>
 				-->
 				<canvas
-					v-if="renderData.length > 0 && !!renderConfig && !groupsList && !multiList"
+					v-if="!!renderConfig && !groupsList && !multiList"
 					:id="'scatterPlot' + sectionId"
 					class="scatter-plot"
 					:width="plotDimension.width"
@@ -61,7 +59,7 @@
 				</canvas>
 			</div>
 
-			<template v-if="renderData.length > 0 && !!renderConfig && !!multiList">
+			<template v-if="!!renderConfig && !!multiList">
 				<div class="scatter-plot-groups" style="display: flex; flex-wrap: wrap;">
 					<div class="scatter-plot-group" v-for="(fieldpair, index) in multiList">
 						<div class="colors-list">
@@ -95,7 +93,7 @@
 				<div style="display:flex; flex-direction: column;">
 					<div style="display:flex; flex-direction: column;">
 						<label 
-							v-if="renderData.length > 0 && !!renderConfig && renderConfig['y axis fields'].length > 1"
+							v-if="!!renderConfig && renderConfig['y axis fields'].length > 1"
 						>
 							Y Axis
 						</label>
@@ -112,7 +110,7 @@
 						</select>
 
 						<label 
-							v-if="renderData.length > 0 && !!renderConfig && renderConfig['x axis fields'].length > 1"
+							v-if="!!renderConfig && renderConfig['x axis fields'].length > 1"
 						>
 							X Axis
 						</label>
@@ -130,7 +128,7 @@
 					</div>
 					<div class="color-key-options" style="display:flex; flex-direction: column;">
 						<label 
-							v-if="renderData.length > 0 && !!renderConfig && renderConfig['color by'].length > 1"
+							v-if="!!renderConfig && renderConfig['color by'].length > 1"
 						>
 							Color by
 						</label>
@@ -148,7 +146,7 @@
 
 						<div 
 							class="color-key"
-							v-if="renderData.length > 0 && !!renderConfig && !!colorByList 
+							v-if="!!renderConfig && !!colorByList 
 							&& !colorByGradient"
 						>
 							<div style="text-align: right; font-size: 10px; font-style: italic;">click key to highlight</div>
@@ -165,7 +163,7 @@
 
 						<div 
 							class="color-key"
-							v-if="renderData.length > 0 && !!renderConfig && !!colorByList 
+							v-if="!!renderConfig && !!colorByList 
 							&& !!colorByGradient"
 						>
 							<div style="text-align: right; font-size: 10px; font-style: italic;">drag sliders to highlight in range</div>
@@ -194,7 +192,7 @@
 					</div>
 				</div>
 				<!--
-				<template v-if="renderData.length > 0 && !!renderConfig && !!colorByList">
+				<template v-if="!!renderConfig && !!colorByList">
 				<div class="scatter-plot-groups" style="display: flex; flex-wrap: wrap;">
 					<div class="scatter-plot-group" v-for="color in colorByList[colorByField]">
 						<canvas
@@ -220,7 +218,7 @@
 			</div>
 		</div>
 
-		<template v-if="renderData.length > 0 && !!renderConfig && !!groupsList">
+		<template v-if="!!renderConfig && !!groupsList">
 			<div class="colors-list">
 				<div v-for="anno, annoIndex in colorsList" class="anno-bubble-wrapper">
 					<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex % 16]">&nbsp;</span>
@@ -1009,7 +1007,7 @@ export default Vue.component("research-scatter-plot", {
 			if (posData.length > 0) {
 				//console.log("dot", posData.length);
 				let posContent = posData.length > 5 && EVENT_TYPE == 'move' && !this.isDotPanelClick ? 
-					'<strong>There are more items to disply. <br />Click to view the full list.</strong><br /><br />' : "";
+					'<strong>There are more items to display. <br />Click to view the full list.</strong><br /><br />' : "";
 
 				let cIndex = 0;
 				posData.map(d => {
