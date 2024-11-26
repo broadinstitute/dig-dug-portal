@@ -408,16 +408,16 @@ let flatJson = function (DATA) {
                 wrappedObj[dKey] = '"' + dValue + '"';
             } else if (typeof dValue == 'object') {
 
-                let obj2Sting = JSON.stringify(dValue)
+                let obj2String = JSON.stringify(dValue)
 
-                obj2Sting = obj2Sting.replaceAll('"', '');
+                obj2String = obj2String.replaceAll('"', '');
 
-                if (obj2Sting.includes(',')) {
+                if (obj2String.includes(',')) {
 
-                    obj2Sting = '"' + obj2Sting + '"';
+                    obj2String = '"' + obj2String + '"';
                 }
 
-                wrappedObj[dKey] = obj2Sting;
+                wrappedObj[dKey] = obj2String;
             }
             else {
                 wrappedObj[dKey] = dValue;
