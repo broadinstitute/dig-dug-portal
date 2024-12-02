@@ -75,6 +75,12 @@
 									</div>
 									<div
 										class="convert-2-csv btn-sm"
+										@click="convertJson2Tsv(filteredData, pageID + sectionId + '_filtered')"
+									>
+										TSV
+									</div>
+									<div
+										class="convert-2-csv btn-sm"
 										@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
 									>
 										JSON
@@ -1175,6 +1181,9 @@ export default Vue.component("research-data-table", {
 
 			//next convert json to csv
 			this.utils.uiUtils.saveByorCsv(jsonData, FILENAME);
+		},
+		convertJson2Tsv(DATA, FILENAME) {
+			this.utils.uiUtils.saveByorTsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
 			this.utils.uiUtils.saveJson(DATA, FILENAME);
