@@ -75,6 +75,7 @@
                                             <div class="colorize-option"
                                                 :class="cellCompositionVars['a'].highlightLabels.length===0?'active':''"
                                                 @click="resetLabels('a')"
+                                                v-b-tooltip:hover.left="'color all labels'"
                                             >
                                                 <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                                             </div>
@@ -95,6 +96,7 @@
                                                 <div class="colorize-option"
                                                     :class="(cellCompositionVars['a'].highlightLabels.length===0||cellCompositionVars['a'].highlightLabels.includes(label))?'active':''"
                                                     @click="labelClick(label, 'a')"
+                                                    v-b-tooltip:hover.left.window="'isolate label'"
                                                 >
                                                     <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="color"/></svg>
                                                 </div>
@@ -162,11 +164,12 @@
                                             </button>
                                         </div>
                                         <div v-if="expressionStats.length>0" style="margin-top:4px; flex-grow:1; overflow-x: hidden; overflow-y: auto;">
-                                            <div  v-for="gene in Object.keys(expressionStats[0])" style="display:flex; flex-direction: column;">
+                                            <div v-for="gene in Object.keys(expressionStats[0])" style="display:flex; flex-direction: column;">
                                                 <div style="display:flex; gap: 5px;">
                                                     <div class="colorize-option" 
                                                         :class="geneExpressionVars['a'].selectedGene===gene?'active':''"
                                                         @click="geneClick(gene, 'a')"
+                                                        v-b-tooltip:hover.left.window="'color by gene'"
                                                     >
                                                         <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                                                     </div>
@@ -247,6 +250,7 @@
                                             <div class="colorize-option"
                                                 :class="cellCompositionVars['b'].highlightLabels.length===0?'active':''"
                                                 @click="resetLabels('a')"
+                                                v-b-tooltip:hover.left="'color all labels'"
                                             >
                                                 <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                                             </div>
@@ -267,6 +271,7 @@
                                                 <div class="colorize-option"
                                                     :class="(cellCompositionVars['b'].highlightLabels.length===0||cellCompositionVars['b'].highlightLabels.includes(label))?'active':''"
                                                     @click="labelClick(label, 'b')"
+                                                    v-b-tooltip:hover.left.window="'isolate label'"
                                                 >
                                                     <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="color"/></svg>
                                                 </div>
@@ -339,6 +344,7 @@
                                                     <div class="colorize-option" 
                                                         :class="geneExpressionVars['b'].selectedGene===gene?'active':''"
                                                         @click="geneClick(gene, 'b')"
+                                                        v-b-tooltip:hover.left.window="'color by gene'"
                                                     >
                                                         <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                                                     </div>
