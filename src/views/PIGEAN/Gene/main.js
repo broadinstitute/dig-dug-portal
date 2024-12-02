@@ -45,8 +45,8 @@ new Vue({
             pigeanPhenotypeMap: {},
             filterFields: [
                 { key: "combined", label: "Combined genetic support" },
-                { key: "huge_score", label: "GWAS unweighted" },
-                { key: "log_bf", label: "GWAS weighted" },
+                { key: "huge_score", label: "Direct support w/o gene sets" },
+                { key: "log_bf", label: "Direct support w/ gene sets" },
                 { key: "prior", label: "Indirect support" },
             ],
             tableConfig: {
