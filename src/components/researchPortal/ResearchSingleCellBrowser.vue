@@ -32,6 +32,7 @@
                 </div>
             </div>
             <div class="" style="display:flex; gap:5px">
+                <!--left tab group-->
                 <div class="tabs-group">
                     <div class="tabs-wrapper" style="align-self:flex-end">
                         <div class="tab" 
@@ -207,6 +208,7 @@
                     </div>
                 </div>
                 <div style="padding: 4px 0 0 0">vs</div>
+                <!--right tab group-->
                 <div class="tabs-group">
                     <div class="tabs-wrapper">
                         <div class="tab" 
@@ -383,7 +385,8 @@
                 </div>
             </div>
 
-            <div style="display:flex; gap:20px">
+            <div style="display:flex; gap:25px">
+                <!-- cell proportion-->
                 <div v-if="showCellProportion" style="display:flex; flex-direction: column; gap:20px; border:1px solid #ddd; padding:20px;">
                     <div v-if="segmentByCounts" style="display:flex; flex-direction: column; width: min-content; gap:20px;">
                         <div style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">Cell Proportion</span> <span style="font-style: italic;">{{ segmentByLabel }}</span> per <span style="font-style: italic;">{{ displayByLabel }}</span></div>
@@ -448,6 +451,7 @@
                         />
                     </div>
                 </div>
+                <!-- marker genes-->
                 <div v-if="showMarkerGenes" style="display:flex; flex-direction: column; gap:20px; border:1px solid #ddd; padding:20px;">
                     <div v-if="expressionStats.length>0" style="display:flex; flex-direction: column; width: min-content;">
                         <div style="display:flex; justify-content: space-between;">
@@ -646,6 +650,38 @@
                     this.init();
                 }
             },
+            clean(){
+                this.cellCompositionVars = {
+                    "a": {
+                        umapColors: null,
+                        colorByLabel: null,
+                        highlightLabel: '',
+                        highlightLabels: [],
+                        cellTypeInfo: null
+                    },
+                    "b": {
+                        umapColors: null,
+                        colorByLabel: null,
+                        highlightLabel: '',
+                        highlightLabels: [],
+                        cellTypeInfo: null
+                    }
+                },
+                this.geneExpressionVars = {
+                    "a": {
+                        umapGeneColors: null,
+                        selectedGene: null,
+                        expressionStats: [],
+                        selectedLabel: null,
+                    },
+                    "b": {
+                        umapGeneColors: null,
+                        selectedGene: null,
+                        expressionStats: [],
+                        selectedLabel: null,
+                    }
+                }
+            },
             async init(){
                 /*
                 if(this.data.length !== 1){
@@ -677,6 +713,8 @@
                         return;
                     }
                 }
+
+                this.clean();
                 
                 console.log(`loading dataset: ${this.datasetData.datasetId}`);
                 console.log('   data', this.datasetData);
