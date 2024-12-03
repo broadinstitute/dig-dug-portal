@@ -9,6 +9,9 @@
             <button @click="resetPanZoom" v-b-tooltip.hover.bottom title="recenter">
                 <svg style="width:18px;" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 12H4V4h8v2H6v6zM28 12h-2V6h-6V4h8v8zM12 28H4v-8h2v6h6v2zM28 28h-8v-2h6v-6h2v8zM15 10h2v4h-2zM10 15h4v2h-4zM18 15h4v2h-4zM15 18h2v4h-2z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
             </button>
+            <button v-b-tooltip.hover.bottom.html title="zoom: mouse wheel or pinch<br>pan: click + drag">
+                <svg style="width:18px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 19.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Zm0 1.5a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm.75-6v1.5h-1.5V15h1.5Zm-2.25-4.568C10.5 9.662 11.15 9 12 9s1.5.663 1.5 1.432c0 .307-.185.671-.592 1.084-.395.4-.898.743-1.315 1.013l-.343.222v1.499h1.5v-.688c.381-.259.833-.595 1.225-.992.507-.514 1.025-1.24 1.025-2.138C15 8.79 13.635 7.5 12 7.5s-3 1.291-3 2.932h1.5Z" fill="#000"/></svg>   
+            </button>
         </div>
         <div class="umap-wrap" :style="`min-width:${width}px;`">
             <div class="umap-overlay" v-if="!points || isLoading">
@@ -221,7 +224,7 @@
                 this.pointBoundsCalculated = true;
             }
 
-            if (!this.clusterCentersInitialized && this.fields) {
+            if (this.fields && !this.clusterCentersInitialized) {
                 this.clusterCenters = {};
 
                 points.forEach((coord, index) => {
