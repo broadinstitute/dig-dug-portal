@@ -157,7 +157,8 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("ResearchPhewasPlot", {
     props: [
         "canvasId", "phenotypeMap", "phenotypesData", "renderConfig", "pkgData", "pkgDataSelected",
-        "colors", "plotMargin", "filter", "options", "sectionId", "sectionId", "utils", "plotName"
+        "colors", "plotMargin", "filter", "options", "sectionId", "sectionId", "utils", "plotName",
+        "top1500"
     ],
 
     data() {
@@ -201,20 +202,23 @@ export default Vue.component("ResearchPhewasPlot", {
 
             if (!!this.phenotypesData) {
                 let phenotypesData = cloneDeep(this.phenotypesData);
+                phenotypesData.forEach(d => {
+                    d["rawPValue"] = this.getPValue(d);
+                });
+                phenotypesData = phenotypesData.sort((a,b) => a.rawPValue - b.rawPValue);
+                if (!!this.top1500){
+                    // Restrict to the top 1500 phenotypes by p-value
+                    // for when 6500 traits are used.
+                    phenotypesData = phenotypesData.slice(0,1500);
+                }
 
                 phenotypesData.map((d) => {
-                    let pValue =
-                        typeof d[this.renderConfig["y axis field"]] == "string"
-                            ? Number(d[this.renderConfig["y axis field"]])
-                            : d[this.renderConfig["y axis field"]];
-                    d["rawPValue"] = pValue;
-
                     if (
                         this.renderConfig["convert y -log10"] == true ||
                         this.renderConfig["convert y -log10"] == "true"
                     ) {
                         d[this.renderConfig["y axis field"] + "-log10"] =
-                            -Math.log10(pValue);
+                            -Math.log10(d["rawPValue"]);
                     }
 
                     if (
@@ -270,6 +274,11 @@ export default Vue.component("ResearchPhewasPlot", {
         },
     },
     methods: {
+        getPValue(d){
+            return typeof d[this.renderConfig["y axis field"]] == "string"
+                ? Number(d[this.renderConfig["y axis field"]])
+                : d[this.renderConfig["y axis field"]];
+        },
         downloadImage(ID, NAME, TYPE) {
             if (TYPE == "svg") {
                 this.$refs[this.canvasId + "_pheWasPlot"].renderPlot();
