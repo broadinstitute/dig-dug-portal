@@ -358,6 +358,7 @@ export default Vue.component("pigean-table", {
                         :render-config="phewasRenderConfig"
                         :utils="utilsBox"
                         :native-dl-btn="false"
+                        :top1500="true"
                     >
                     </research-phewas-plot>
                     <pigean-table
