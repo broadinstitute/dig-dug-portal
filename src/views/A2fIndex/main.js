@@ -102,6 +102,7 @@ new Vue({
         },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
+
                 return this.$store.state.bioPortal.phenotypes;
             } else {
                 return this.$store.state.phenotypesInSession;
