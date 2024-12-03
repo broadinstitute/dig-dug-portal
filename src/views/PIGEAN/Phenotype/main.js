@@ -9,6 +9,7 @@ import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
+import pigeanUtils from "@/utils/pigeanUtils.js";
 import sessionUtils from "@/utils/sessionUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -362,7 +363,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = this.mapPhenotypes();
+        this.pigeanPhenotypeMap = 
+            pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
         this.lookupInPigeanMap();
     },
     methods: {
@@ -372,7 +374,7 @@ new Vue({
             uiUtils.getToolTipPosition(ELEMENT);
         },
         setSelectedPhenotype(PHENOTYPE) {
-            let oldStylePhenotype = this.toOldStyle(PHENOTYPE);
+            let oldStylePhenotype = pigeanUtils.toOldStyle(PHENOTYPE);
             this.newPhenotypeSearchKey = oldStylePhenotype.description;
             this.phenotypeSearchKey = null;
             this.$store.dispatch("selectedPhenotype", oldStylePhenotype);
@@ -419,21 +421,6 @@ new Vue({
                 }`;
             });
             return data;
-        },
-        mapPhenotypes(){
-            let phenotypeMap = {};
-            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
-            phenotypes.forEach(item => {
-                phenotypeMap[item.phenotype] = this.toOldStyle(item);
-            });
-            return phenotypeMap;
-        },
-        toOldStyle(newStylePhenotype){
-            let oldStyle = structuredClone(newStylePhenotype);
-            oldStyle.description = newStylePhenotype.phenotype_name;
-            oldStyle.name = newStylePhenotype.phenotype;
-            oldStyle.group = newStylePhenotype.display_group;
-            return oldStyle;
         },
         lookupInPigeanMap(){
             let name = keyParams.phenotype;
