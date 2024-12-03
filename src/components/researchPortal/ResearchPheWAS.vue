@@ -201,6 +201,8 @@ export default Vue.component("ResearchPhewasPlot", {
 
             if (!!this.phenotypesData) {
                 let phenotypesData = cloneDeep(this.phenotypesData);
+                console.log("plot received: ", phenotypesData.length);
+                console.log(JSON.stringify(phenotypesData.slice(0,10)));
 
                 phenotypesData.map((d) => {
                     let pValue =

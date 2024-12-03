@@ -126,6 +126,7 @@ export default Vue.component("pigean-table", {
             let queryKey = this.phewasKey(row.item);
             if (!this.phewasData[queryKey]) {
                 let data = await query("pigean-phewas", queryKey);
+                console.log(data.length);
                 Vue.set(this.phewasData, queryKey, data);
             }
         },
@@ -353,7 +354,7 @@ export default Vue.component("pigean-table", {
                         )}`"
                         :plot-name="`PIGEAN_${row.item.phenotype}`"
                         :phenotypes-data="phewasData[phewasKey(row.item)]"
-                        :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        :phenotype-map="phenotypeMap || $store.state.bioPortal.phenotypeMap"
                         :colors="plotColors"
                         :render-config="phewasRenderConfig"
                         :utils="utilsBox"
