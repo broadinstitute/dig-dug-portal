@@ -353,11 +353,12 @@ export default Vue.component("pigean-table", {
                         )}`"
                         :plot-name="`PIGEAN_${row.item.phenotype}`"
                         :phenotypes-data="phewasData[phewasKey(row.item)]"
-                        :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        :phenotype-map="phenotypeMap || $store.state.bioPortal.phenotypeMap"
                         :colors="plotColors"
                         :render-config="phewasRenderConfig"
                         :utils="utilsBox"
                         :native-dl-btn="false"
+                        :top1500="true"
                     >
                     </research-phewas-plot>
                     <pigean-table
