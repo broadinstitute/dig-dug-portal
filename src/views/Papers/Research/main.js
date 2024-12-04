@@ -68,7 +68,7 @@ new Vue({
         ResearchSingleSearch,
         ResearchSingleSearchV2,
         ResearchSingleSearchCFDE,
-        ResearchLoadingSpinner
+        ResearchLoadingSpinner,
     },
     mixins: [pageMixin],
     data() {
@@ -76,7 +76,6 @@ new Vue({
             starItems: [],
             sectionsData: [],
             sectionDescriptions: null,
-            pageID: null,
             regionZoom: 0,
             regionViewArea: 0,
             devID: null,
@@ -187,27 +186,38 @@ new Vue({
                 return JSON.parse(contents[0]["field_data_table_format"]);
             }
         },
+        pageID() {
+            if (keyParams.pageid) {
+                return keyParams.pageid;
+            } else if (window.location.pathname.includes("/r/")) {
+                let path = window.location.pathname;
+                let pathParts = path.split("/");
+                let pageID = pathParts[2];
+                return pageID;
+            } else {
+                return null;
+            }
+        },
         pageParams() {
             let params = {};
-            if (!!this.multiSectionsSearchParameters) {
-
-                this.multiSectionsSearchParameters.map(mp => {
-                    let values = (!!mp.values && !!Array.isArray(mp.values)) ? {} : null;
+            if (this.multiSectionsSearchParameters) {
+                this.multiSectionsSearchParameters.map((mp) => {
+                    let values =
+                        !!mp.values && !!Array.isArray(mp.values) ? {} : null;
                     if (values != null) {
-                        mp.values.map(v => {
-                            values[v.value] = v.label
-                        })
+                        mp.values.map((v) => {
+                            values[v.value] = v.label;
+                        });
                     }
 
                     params[mp.parameter] = {
                         label: mp.label,
-                        values: values
-                    }
-                })
+                        values: values,
+                    };
+                });
             }
 
             return params;
-
         },
         initialDescriptions() {
             let contents = this.researchPage;
@@ -310,8 +320,6 @@ new Vue({
                 return null;
             }
         },
-
-        /////sections setting end
 
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -688,11 +696,11 @@ new Vue({
 
                         let processedData =
                             this.dataTableFormat != null &&
-                                !!this.dataTableFormat["data convert"]
+                            !!this.dataTableFormat["data convert"]
                                 ? this.convertData(
-                                    this.dataTableFormat["data convert"],
-                                    mergedData
-                                )
+                                      this.dataTableFormat["data convert"],
+                                      mergedData
+                                  )
                                 : this.convertData("no convert", mergedData);
 
                         if (
@@ -716,11 +724,11 @@ new Vue({
 
                         let processedData =
                             this.dataTableFormat != null &&
-                                !!this.dataTableFormat["data convert"]
+                            !!this.dataTableFormat["data convert"]
                                 ? this.convertData(
-                                    this.dataTableFormat["data convert"],
-                                    returnData
-                                )
+                                      this.dataTableFormat["data convert"],
+                                      returnData
+                                  )
                                 : this.convertData("no convert", returnData);
 
                         if (
@@ -755,11 +763,11 @@ new Vue({
 
                     let processedData =
                         this.dataTableFormat != null &&
-                            !!this.dataTableFormat["data convert"]
+                        !!this.dataTableFormat["data convert"]
                             ? this.convertData(
-                                this.dataTableFormat["data convert"],
-                                returnData
-                            )
+                                  this.dataTableFormat["data convert"],
+                                  returnData
+                              )
                             : this.convertData("no convert", returnData);
 
                     if (
@@ -854,8 +862,8 @@ new Vue({
                             section["section id"] + "_tableLegend"
                         )
                             ? document.getElementById(
-                                section["section id"] + "_tableLegend"
-                            ).innerHTML
+                                  section["section id"] + "_tableLegend"
+                              ).innerHTML
                             : "";
                         if (!!sTableLegend) {
                             //sTableLegends[section["section id"]] = sTableLegend;
@@ -903,8 +911,8 @@ new Vue({
                             section["section id"] + "_plotLegend"
                         )
                             ? document.getElementById(
-                                section["section id"] + "_plotLegend"
-                            ).innerHTML
+                                  section["section id"] + "_plotLegend"
+                              ).innerHTML
                             : "";
                         if (!!sPlotLegend) {
                             //sPlotLegends[section["section id"]] = sPlotLegend;
@@ -1114,16 +1122,16 @@ new Vue({
 
                         let dataPoint =
                             initialData.includes("http://") ||
-                                initialData.includes("https://")
+                            initialData.includes("https://")
                                 ? initialData
                                 : "https://hugeampkpncms.org/sites/default/files/users/user" +
-                                this.uid +
-                                "/" +
-                                initialData;
+                                  this.uid +
+                                  "/" +
+                                  initialData;
 
                         let domain =
                             initialData.includes("http://") ||
-                                initialData.includes("https://")
+                            initialData.includes("https://")
                                 ? "external"
                                 : "hugeampkpn";
 
@@ -1212,14 +1220,14 @@ new Vue({
                                         posStart == null
                                             ? c[posField]
                                             : c[posField] < posStart
-                                                ? c[posField]
-                                                : posStart;
+                                            ? c[posField]
+                                            : posStart;
                                     posEnd =
                                         posEnd == null
                                             ? c[posField]
                                             : c[posField] > posEnd
-                                                ? c[posField]
-                                                : posEnd;
+                                            ? c[posField]
+                                            : posEnd;
                                 });
 
                                 region = chr + ":" + posStart + "-" + posEnd;
@@ -1256,14 +1264,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.$store.dispatch("hugeampkpncms/getResearchMode", {
-            pageID: keyParams.pageid,
-        });
-
-        /*this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");*/
-        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
         if (this.pageID) {
             this.$store.dispatch("hugeampkpncms/getResearchMode", {
                 pageID: this.pageID,
@@ -1275,10 +1275,13 @@ new Vue({
         ...uiUtils,
         ...sessionUtils,
         updateParams() {
-            console.log("updateParams() called")
+            console.log("updateParams() called");
         },
         getReplaced(CONTENT) {
-            return this.utilsBox.Formatters.replaceWithParams(CONTENT, this.pageParams);
+            return this.utilsBox.Formatters.replaceWithParams(
+                CONTENT,
+                this.pageParams
+            );
         },
         getExampleLink(EXAMPLE) {
             let exampleLink;
@@ -1290,9 +1293,9 @@ new Vue({
                             param["target page"]["page id"];
                         exampleLink += !!param["target page"]["entity"]
                             ? "&" +
-                            param["target page"]["entity parameter"] +
-                            "=" +
-                            param["target page"]["entity"]
+                              param["target page"]["entity parameter"] +
+                              "=" +
+                              param["target page"]["entity"]
                             : "";
                         exampleLink +=
                             "&" +
@@ -1398,9 +1401,9 @@ new Vue({
             let pageEntities = this.sectionConfigs["entity"];
             let sectionInEntity =
                 !pageEntities ||
-                    (!!pageEntities &&
-                        !!entity &&
-                        !!pageEntities[entity].includes(SECTION))
+                (!!pageEntities &&
+                    !!entity &&
+                    !!pageEntities[entity].includes(SECTION))
                     ? true
                     : null;
 
@@ -1668,14 +1671,14 @@ new Vue({
             var objPattern = new RegExp(
                 // Delimiters.
                 "(\\" +
-                strDelimiter +
-                "|\\r?\\n|\\r|^)" +
-                // Quoted fields.
-                '(?:"([^"]*(?:""[^"]*)*)"|' +
-                // Standard fields.
-                '([^"\\' +
-                strDelimiter +
-                "\\r\\n]*))",
+                    strDelimiter +
+                    "|\\r?\\n|\\r|^)" +
+                    // Quoted fields.
+                    '(?:"([^"]*(?:""[^"]*)*)"|' +
+                    // Standard fields.
+                    '([^"\\' +
+                    strDelimiter +
+                    "\\r\\n]*))",
                 "gi"
             );
 
