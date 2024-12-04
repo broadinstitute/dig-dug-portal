@@ -1166,6 +1166,11 @@ new Vue({
                         menuParam
                     );
                 }
+
+                //set page title
+                if (content[0]["title"] != false) {
+                    document.title = content[0]["title"];
+                }
             }
         },
 
