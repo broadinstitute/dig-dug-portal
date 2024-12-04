@@ -69,8 +69,18 @@
                                         :isLoading="isLoadingData"
                                     />
                                 </div>
-                                <div v-if="colorByOptions" style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
+                                <div v-if="colorByOptions" style="display:flex; flex-direction: column; align-self: flex-start; width:200px; height:400px">
                                     <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
+                                    <research-single-cell-selector 
+                                        :data="rawData['metadata_labels']"
+                                        layout="dropdown"
+                                        :colors="labelColors"
+                                        :defaultLabel="cellCompositionVars['a'].colorByLabel"
+                                        @on-update="handleSelectorUpdate($event, 'a', '1')"
+                                        @on-hover="handleSelectorHover($event, 'a', '1')"
+                                    />
+
+                                    <!--
                                     <div style="display:flex; flex-direction: column; height: 400px">
                                         <div style="display:flex; gap:5px;">
                                             <div class="colorize-option"
@@ -101,7 +111,6 @@
                                                 >
                                                     <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="color"/></svg>
                                                 </div>
-                                                <!--<div :style="`width:10px; height:21px; background:${color}; pointer-events:none;`"></div>-->
                                                 <div style="white-space: nowrap; cursor:default"
                                                     :style="`opacity:${(cellCompositionVars['a'].highlightLabel!==''&&cellCompositionVars['a'].highlightLabel!==label)?'0.5':'1'}`"
                                                 >
@@ -110,6 +119,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    -->
                                 </div>
                             </div>
                             <div>
@@ -247,6 +257,15 @@
                                 </div>
                                 <div v-if="colorByOptions" style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
                                     <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
+                                    <research-single-cell-selector 
+                                        :data="rawData['metadata_labels']"
+                                        layout="dropdown"
+                                        :colors="labelColors"
+                                        :defaultLabel="cellCompositionVars['b'].colorByLabel"
+                                        @on-update="handleSelectorUpdate($event, 'b', '1')"
+                                        @on-hover="handleSelectorHover($event, 'b', '1')"
+                                    />
+                                    <!--
                                     <div style="display:flex; flex-direction: column; height: 400px">
                                         <div style="display:flex; gap:5px;">
                                             <div class="colorize-option"
@@ -277,7 +296,6 @@
                                                 >
                                                     <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="color"/></svg>
                                                 </div>
-                                                <!--<div :style="`width:10px; height:21px; background:${color}; pointer-events:none;`"></div>-->
                                                 <div style="white-space: nowrap; cursor:default"
                                                     :style="`opacity:${(cellCompositionVars['b'].highlightLabel!==''&&cellCompositionVars['b'].highlightLabel!==label)?'0.5':'1'}`"
                                                 >
@@ -286,6 +304,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    -->
                                 </div>
                             </div>
                             <div>
@@ -508,6 +527,7 @@
     import ResearchBarPlotV2 from "@/components/researchPortal/ResearchBarPlotV2.vue";
     import ResearchDotPlot from "@/components/researchPortal/ResearchDotPlot.vue";
     import ResearchViolinPlot from "@/components/researchPortal/ResearchViolinPlot.vue";
+    import ResearchSingleCellSelector from "@/components/researchPortal/ResearchSingleCellSelector.vue";
 
     const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"]
 
@@ -516,7 +536,8 @@
             ResearchUmapPlot,
             ResearchBarPlotV2,
             ResearchDotPlot,
-            ResearchViolinPlot
+            ResearchViolinPlot,
+            ResearchSingleCellSelector
         },
         props: {
             sectionId: {
@@ -968,6 +989,17 @@
                     return true;
                 }
                 return false;
+            },
+
+            handleSelectorUpdate(e, group, id){
+                console.log('selector updated', group, id, e);
+                this.cellCompositionVars[group].highlightLabels = e.coloredLabels;
+                this.selectColorBy(e.coloredField, group);
+            },
+
+            handleSelectorHover(e, group, id){
+                console.log('selector hovered', group, id, e);
+                this.cellCompositionVars[group].highlightLabel = e.hoveredLabel;
             },
 
             /*
