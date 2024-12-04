@@ -951,6 +951,9 @@ export default Vue.component("research-section", {
 
 						this.queryGraphQl(query, this.dataPoint["url"], paramsString, paramsType, params)
 						break;
+					case "openApi":
+						this.queryOpenApi();
+						break;
 					case "component":
 						this.loadingDataFlag = "down";
 						break;
@@ -987,6 +990,68 @@ export default Vue.component("research-section", {
 			fetchGraphQL(graphqlQuery)
 				.then(data => {
 					this.processLoadedApi(data, PARAM, TYPE, PARAMS);
+				})
+				.catch(error => console.error('Error fetching GraphQL:', error));
+		},
+
+		queryOpenApi() {
+
+			async function fetchGraphQL(query) {
+				const response = await fetch('https://search.motrpac-data.org/search/api', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb3RycGFjX2RhdGFfaHViIiwiZXhwIjoxNzMxNzA4MjQ5fQ.eh7Htyt-Lj7SsXVqY5SyugIjIv9OT_XR6bjsHqAdCg8'
+					},
+					body: JSON.stringify( query ),
+				});
+
+				if (!response.ok) {
+					throw new Error(`GraphQL request failed with status ${response.status}`);
+				}
+
+				return response.json();
+			}
+
+			let Query = {
+					"ktype": "gene",
+					"keys": "TP53",
+					"omics": [
+						"transcriptomics",
+						"proteomics"
+					],
+					"filters": {
+						"assay": [],
+						"tissue": []
+					},
+					"fields": [
+						"gene_symbol",
+						"feature_ID",
+						"tissue",
+						"assay",
+						"sex",
+						"comparison_group",
+						"logFC",
+						"logFC_se",
+						"p_value",
+						"adj_p_value",
+						"p_value_male",
+						"p_value_female"
+					],
+					"unique_fields": [
+						"tissue",
+						"assay"
+					],
+					"size": 10000,
+					"start": 0,
+					"save": false
+				}
+
+			fetchGraphQL(Query)
+				.then(data => {
+
+					console.log(data)
+					//this.processLoadedApi(data, PARAM, TYPE, PARAMS);
 				})
 				.catch(error => console.error('Error fetching GraphQL:', error));
 		},
