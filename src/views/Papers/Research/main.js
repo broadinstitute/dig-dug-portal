@@ -1259,6 +1259,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
+        console.log("this.pageID", this.pageID);
         if (this.pageID) {
             this.$store.dispatch("hugeampkpncms/getResearchMode", {
                 pageID: this.pageID,
