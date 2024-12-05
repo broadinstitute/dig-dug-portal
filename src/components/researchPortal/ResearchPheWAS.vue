@@ -732,14 +732,12 @@ export default Vue.component("ResearchPhewasPlot", {
                                         : this.phenotypeMap[
                                               p[this.renderConfig["render by"]]
                                           ]["description"];
-                                console.log("name: ", pName);
                                 let greaterThan = !!this.renderConfig["label in black"] &&
                                         this.renderConfig["label in black"] ===
                                             "greater than"
                                 let passesThreshold = greaterThan 
                                     ? p.rawPValue >= Number(this.renderConfig["thresholds"][0]) 
                                     : p.rawPValue <= Number(this.renderConfig["thresholds"][0]);
-                                console.log(passesThreshold);
 
                                 if (
                                     this.renderConfig["beta field"] != "null" &&
@@ -757,7 +755,6 @@ export default Vue.component("ResearchPhewasPlot", {
                                             )
                                         );
                                     } else {
-                                        console.log("beta2", p[this.renderConfig["beta field"]])
                                         this.renderDot(
                                             ctx,
                                             xPos,
@@ -808,10 +805,10 @@ export default Vue.component("ResearchPhewasPlot", {
                                 let labelXpos = labelOrigin + 24 * labelIndex;
 
                                 labelXpos = xPos > labelXpos ? xPos : labelXpos;
-
                                 if (
                                     labelIndex == 0 ||
-                                    labelXpos < maxWidthPerGroup
+                                    labelXpos < maxWidthPerGroup //|| passesThreshold 
+                                    // This is incredibly messy
                                 ) {
                                     ctx.font = "22px Arial";
                                     ctx.fillStyle = passesThreshold
@@ -823,8 +820,6 @@ export default Vue.component("ResearchPhewasPlot", {
                                     ctx.rotate((90 * -Math.PI) / 180);
                                     ctx.textAlign = "start";
                                     ctx.fillText(pName, 0, 0);
-                                    console.log(pName);
-                                    console.log(JSON.stringify(ctx.fillStyle));
                                     ctx.restore();
 
                                     ctx.lineWidth = 1;
