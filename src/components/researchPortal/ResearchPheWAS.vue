@@ -760,7 +760,7 @@ export default Vue.component("ResearchPhewasPlot", {
                                     }
                                     
                                 } else {
-                                    console.log("GENE PAGE PIGEAN PHEWAS");
+                                    // GENE PAGE PIGEAN PHEWAS
                                     this.renderDot(
                                         ctx,
                                         xPos,
