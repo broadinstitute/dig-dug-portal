@@ -732,6 +732,14 @@ export default Vue.component("ResearchPhewasPlot", {
                                         : this.phenotypeMap[
                                               p[this.renderConfig["render by"]]
                                           ]["description"];
+                                console.log("name: ", pName);
+                                let greaterThan = !!this.renderConfig["label in black"] &&
+                                        this.renderConfig["label in black"] ===
+                                            "greater than"
+                                let passesThreshold = greaterThan 
+                                    ? p.rawPValue >= Number(this.renderConfig["thresholds"][0]) 
+                                    : p.rawPValue <= Number(this.renderConfig["thresholds"][0]);
+                                console.log(passesThreshold);
 
                                 if (
                                     this.renderConfig["beta field"] != "null" &&
@@ -806,37 +814,17 @@ export default Vue.component("ResearchPhewasPlot", {
                                     labelXpos < maxWidthPerGroup
                                 ) {
                                     ctx.font = "22px Arial";
-                                    if (
-                                        !!this.renderConfig["label in black"] &&
-                                        this.renderConfig["label in black"] ==
-                                            "greater than"
-                                    ) {
-                                        ctx.fillStyle =
-                                            p.rawPValue >=
-                                            Number(
-                                                this.renderConfig[
-                                                    "thresholds"
-                                                ][0]
-                                            )
-                                                ? "#000000"
-                                                : "#00000050";
-                                    } else {
-                                        ctx.fillStyle =
-                                            p.rawPValue <=
-                                            Number(
-                                                this.renderConfig[
-                                                    "thresholds"
-                                                ][0]
-                                            )
-                                                ? "#000000"
-                                                : "#00000050";
-                                    }
+                                    ctx.fillStyle = passesThreshold
+                                        ? "#000000"
+                                        : "#00000050";
 
                                     ctx.save();
                                     ctx.translate(labelXpos + 10, yPos - 24);
                                     ctx.rotate((90 * -Math.PI) / 180);
                                     ctx.textAlign = "start";
                                     ctx.fillText(pName, 0, 0);
+                                    console.log(pName);
+                                    console.log(JSON.stringify(ctx.fillStyle));
                                     ctx.restore();
 
                                     ctx.lineWidth = 1;
