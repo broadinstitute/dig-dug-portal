@@ -241,18 +241,18 @@ export default Vue.component("research-single-search", {
 						return null;
 					}
 
-					let tissues = json.keys.map(key => key[0])
+					let tissues = json.keys.map(key => key[0].replaceAll("_", " "))
 
 					return tissues;
 				});
+
+			
 
 			//return tissues;
 			if (!!tissues1 && tissues2) {
 				let tissues = tissues1.concat(tissues2);
 
 				let uniqueList = [...new Set(tissues)];
-
-				//console.log(uniqueList);
 
 				let tissuesList = [];
 				uniqueList.map(tissue => {
@@ -261,6 +261,7 @@ export default Vue.component("research-single-search", {
 
 					tissuesList.push(tempObj)
 				});
+
 				this.customList["tissues"] = tissuesList;
 			}
 		},

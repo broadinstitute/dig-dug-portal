@@ -269,6 +269,7 @@
                         :pigeanData="$store.state.pigeanFactor.data"
                         :config="$parent.factorTableConfig"
                         :phewasRenderConfig="$parent.renderConfig"
+                        :phenotypeMap="$parent.pigeanMap"
                     >
                     </pigean-table>
                 </div>

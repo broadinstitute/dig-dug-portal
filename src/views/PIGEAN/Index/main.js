@@ -15,6 +15,7 @@ import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
+import pigeanUtils from "@/utils/pigeanUtils.js";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
@@ -402,18 +403,11 @@ new Vue({
                 return char.toUpperCase();
             });
         },
-        toOldStyle(newStylePhenotype){
-            let oldStyle = structuredClone(newStylePhenotype);
-            oldStyle.description = newStylePhenotype.phenotype_name;
-            oldStyle.name = newStylePhenotype.phenotype;
-            oldStyle.group = newStylePhenotype.display_group;
-            return oldStyle;
-        },
         formatAllPhenotypes(){
             let newPhenotypes = this.$store.state.pigeanAllPhenotypes.data;
             let output = [];
             for (let i = 0; i < newPhenotypes.length; i++){
-                output.push(this.toOldStyle(newPhenotypes[i]));
+                output.push(pigeanUtils.toOldStyle(newPhenotypes[i]));
             }
             this.$store.dispatch("phenotypesInSession", output);
         }

@@ -75,6 +75,12 @@
 									</div>
 									<div
 										class="convert-2-csv btn-sm"
+										@click="convertJson2Tsv(filteredData, pageID + sectionId + '_filtered')"
+									>
+										TSV
+									</div>
+									<div
+										class="convert-2-csv btn-sm"
 										@click="saveJson(filteredData, pageID + sectionId + '_filtered')"
 									>
 										JSON
@@ -148,21 +154,21 @@
 						<b-icon
 							:icon="!!stared ? 'star-fill' : 'star'"
 							style="color: #ffcc00; cursor: pointer"
-							
-							
 						>
+						</b-icon>
+						<span class="star-items-options">
+							<ul>
+								<li><a href="javascript:;" @click="showHideStared()">Show stard only</a></li>
+								<li><a href="javascript:;" @click="starAll()">Star / unstar all</a></li>
+							</ul>
+						</span>
+					</th>
+					<th v-if="!!tableFormat['select column']" class="select-items-control">
 						
-					</b-icon>
-					<span class="star-items-options">
-								<ul>
-									<li><a href="javascript:;" @click="showHideStared()">Show stard only</a></li>
-									<li><a href="javascript:;" @click="starAll()">Star / unstar all</a></li>
-								</ul>
-							</span>
 					</th>
 					<template v-for="(value, index) in topRows">
 						<th
-							v-if="getIfChecked(value) == true"
+							v-if="getIfChecked(value) == true && value !== tableFormat['select column']"
 							:key="index"
 							@click="!!multiSectionPage?callFilter(value):applySorting(value)"
 							class="byor-tooltip"
@@ -212,11 +218,15 @@
 								></b-icon
 							></span>
 						</td>
+						<td v-if="!!tableFormat['select column']">
+							<button @click="selectRow(value)" :disabled="isSelected(value)">Select</button>
+						</td>
 						<template
 							v-for="(tdValue, tdKey) in value"
 							v-if="
 								topRows.includes(tdKey) &&
-								getIfChecked(tdKey) == true
+								getIfChecked(tdKey) == true &&
+								tdKey !== tableFormat['select column']
 							"
 						>
 							<td
@@ -361,6 +371,7 @@
 
 <script>
 import Vue from "vue";
+import EventBus from "@/utils/eventBus";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
@@ -396,6 +407,7 @@ export default Vue.component("research-data-table", {
 			compareGroups: [],
 			stared: false,
 			staredAll: false,
+			selected: null,
 			subSectionData:[],
 			subSectionHidden:[],
 			subSectionLoading:[]
@@ -1122,6 +1134,19 @@ export default Vue.component("research-data-table", {
 				this.stared = false;
 			}
 		},
+		selectRow(ITEM){
+			let value = ITEM[this.tableFormat["select column"]];
+			this.selected = value;
+			EventBus.$emit('on-select', {id: this.sectionId, value});
+		},
+		isSelected(ITEM){
+			let value = ITEM[this.tableFormat["select column"]];
+			if(this.selected===value){
+				return true;
+			}else{
+				return false;
+			}
+		},
 		getColorIndex(SKEY) {
 			let colorIndex = "";
 			let compareGroups = this.compareGroups;
@@ -1156,6 +1181,9 @@ export default Vue.component("research-data-table", {
 
 			//next convert json to csv
 			this.utils.uiUtils.saveByorCsv(jsonData, FILENAME);
+		},
+		convertJson2Tsv(DATA, FILENAME) {
+			this.utils.uiUtils.saveByorTsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
 			this.utils.uiUtils.saveJson(DATA, FILENAME);

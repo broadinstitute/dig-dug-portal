@@ -18,6 +18,7 @@ import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
+import pigeanUtils from "@/utils/pigeanUtils.js";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import { pageMixin } from "@/mixins/pageMixin.js";
@@ -148,30 +149,13 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
     },
-    methods: {
-        mapPhenotypes(){
-            let phenotypeMap = {};
-            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
-            phenotypes.forEach(item => {
-                phenotypeMap[item.phenotype] = this.toOldStyle(item);
-            });
-            return phenotypeMap;
-        },
-        toOldStyle(newStylePhenotype){
-            let oldStyle = structuredClone(newStylePhenotype);
-            oldStyle.description = newStylePhenotype.phenotype_name;
-            oldStyle.name = newStylePhenotype.phenotype;
-            oldStyle.group = newStylePhenotype.display_group;
-            return oldStyle;
-        },
-    },
-
     async created() {
         this.$store.dispatch("queryGeneset", this.$store.state.geneset);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = this.mapPhenotypes();
+        this.pigeanPhenotypeMap = 
+            pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
 
     render(createElement, context) {

@@ -20,6 +20,7 @@ import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
+import pigeanUtils from "@/utils/pigeanUtils.js";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
@@ -44,8 +45,8 @@ new Vue({
             pigeanPhenotypeMap: {},
             filterFields: [
                 { key: "combined", label: "Combined genetic support" },
-                { key: "huge_score", label: "GWAS unweighted" },
-                { key: "log_bf", label: "GWAS weighted" },
+                { key: "huge_score", label: "Direct support w/o gene sets" },
+                { key: "log_bf", label: "Direct support w/ gene sets" },
                 { key: "prior", label: "Indirect support" },
             ],
             tableConfig: {
@@ -175,7 +176,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = this.mapPhenotypes();
+        this.pigeanPhenotypeMap = 
+            pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
     methods: {
         // go to region page
@@ -187,21 +189,6 @@ new Vue({
                     r.chromosome
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
-        },
-        mapPhenotypes(){
-            let phenotypeMap = {};
-            let phenotypes = this.$store.state.pigeanAllPhenotypes.data
-            phenotypes.forEach(item => {
-                phenotypeMap[item.phenotype] = this.toOldStyle(item);
-            });
-            return phenotypeMap;
-        },
-        toOldStyle(newStylePhenotype){
-            let oldStyle = structuredClone(newStylePhenotype);
-            oldStyle.description = newStylePhenotype.phenotype_name;
-            oldStyle.name = newStylePhenotype.phenotype;
-            oldStyle.group = newStylePhenotype.display_group;
-            return oldStyle;
         },
     },
 
