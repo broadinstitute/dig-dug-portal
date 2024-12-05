@@ -914,6 +914,7 @@ export default Vue.component("research-section", {
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.add("loading");
 				}
+				let urlString, query, autoToken;
 				switch (queryType) {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
@@ -928,7 +929,7 @@ export default Vue.component("research-section", {
 						break;
 					case "graphQl":
 						// first added for CFDE project, to query data from IDG(pharos)
-						let urlString;
+						
 
 						if (paramsType == "array") {
 							urlString = this.dataPoint["query string"].replace("$parameter", paramsString)
@@ -947,12 +948,43 @@ export default Vue.component("research-section", {
 							})
 						}
 
-						let query = `${urlString}`;
+						query = `${urlString}`;
 
 						this.queryGraphQl(query, this.dataPoint["url"], paramsString, paramsType, params)
 						break;
 					case "openApi":
-						this.queryOpenApi();
+
+						/*if (paramsType == "array") {
+							urlString = this.dataPoint["body"].replace("$parameter", paramsString)
+						} else if (paramsType == "replace to field") {
+
+							urlString = this.dataPoint["body"]
+
+							params.map((param, pIndex) => {
+								let paramList = this.customList[param]
+								let replaceFrom = this.dataPoint["replace from"];
+								let replaceTo = this.dataPoint["replace to"];
+
+								let paramValue = paramList.filter(item => item[replaceFrom] == paramsString.split(",")[pIndex])[0][replaceTo];
+
+								urlString = urlString.replace("$" + param, paramValue);
+							})
+						}*/
+
+						//console.log(this.dataPoint["header"]);
+
+						let header = this.dataPoint["header"];
+						let body = this.dataPoint["body"];
+
+						console.log("params",params,paramsString);
+						body["keys"] = "TP53";
+
+						let paramStrArr = paramsString.split(",");
+
+						/*params.map((param, pIndex) => {
+						}*/
+
+						this.queryOpenApi(header, body, this.dataPoint["url"], paramsString, paramsType, params);
 						break;
 					case "component":
 						this.loadingDataFlag = "down";
@@ -994,14 +1026,42 @@ export default Vue.component("research-section", {
 				.catch(error => console.error('Error fetching GraphQL:', error));
 		},
 
-		queryOpenApi() {
+		queryOpenApi(HEADER,BODY, URL, PARAM, TYPE, PARAMS) {
+
+			console.log(URL, PARAM, TYPE, PARAMS)
+
+			//const query = QUERY;
+
+			async function fetchApi(header,body) {
+				const response = await fetch(URL, {
+					method: 'POST',
+					headers: header,
+					body: JSON.stringify(body),
+				});
+
+				if (!response.ok) {
+					throw new Error(`Request failed with status ${response.status}`);
+				}
+
+				return response.json();
+			}
+
+			fetchApi(HEADER,BODY)
+				.then(data => {
+					console.log(data);
+					this.processLoadedApi(data, PARAM, TYPE, PARAMS);
+				})
+				.catch(error => console.error('Error fetching GraphQL:', error));
+		},
+
+		/*queryOpenApi() {
 
 			async function fetchGraphQL(query) {
 				const response = await fetch('https://search.motrpac-data.org/search/api', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb3RycGFjX2RhdGFfaHViIiwiZXhwIjoxNzMxNzA4MjQ5fQ.eh7Htyt-Lj7SsXVqY5SyugIjIv9OT_XR6bjsHqAdCg8'
+						'Authorization': 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb3RycGFjX2RhdGFfaHViIiwiZXhwIjoxNzM5NTc4MDY3fQ.ezIAP3qa_FGg0ZI5uoC79ay0xWwg6rmHrgEnxa6bvaU'
 					},
 					body: JSON.stringify( query ),
 				});
@@ -1055,7 +1115,7 @@ export default Vue.component("research-section", {
 				})
 				.catch(error => console.error('Error fetching GraphQL:', error));
 		},
-
+*/
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
 			//console.log("PARAMS", PARAMS);
