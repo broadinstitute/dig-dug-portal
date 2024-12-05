@@ -24,19 +24,12 @@
                     :utils="utilsBox"
                 >
                 </research-single-search-cfde>
-                <div
-                    v-if="sectionConfigs['content']['search examples']"
-                    class="search-extras f-row"
-                >
-                    <div class="f-row" style="gap: 5px">
-                        Try
-                        <template
-                            v-for="example in sectionConfigs['content'][
-                                'search examples'
-                            ]"
-                        >
-                            <a :href="example.url">{{ example.value }}</a>
-                        </template>
+                <div v-if="sectionConfigs['content']['search examples']" class="search-extras f-row">
+                    <div class="f-row" style="gap:5px">
+                        Try 
+                        <templte v-for="example in sectionConfigs['content']['search examples']">
+                            <a :href="example.url">{{example.value}}</a>
+                        </templte>
                     </div>
                 </div>
             </div>
@@ -334,7 +327,7 @@
             </div>
         </div>
 
-        <div class="home-section-container">
+        <div class="home-section-container" style="gap:40px;">
             <h3 class="section-title">More</h3>
             <div class="home-section-wrap" v-if="this.parsedData">
                 <h3 class="kc">Common Fund Program Spotlight</h3>
@@ -395,11 +388,20 @@
                     </div>
                 </div>
             </div>
-            <div
-                class="home-section-wrap"
-                style="margin: 40px"
-                v-if="this.parsedData"
-            >
+            <div class="home-section-wrap" v-if="this.newsFeed">
+                <h3 class="kc">Knowledge Center News</h3>
+                <div class="home-section f-col" style="padding-top:30px;">
+                    <div class="news-item f-row" v-for="item in this.newsFeed">
+                        <div class="thumbnail" v-html="item.field_thumbnail_image"></div>
+                        <div class="f-col">
+                            <a :href="`/r/kc_news?nid=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
+                            <div class="" v-html="item.body"></div>
+                        </div>
+                    </div>
+                    <a style="align-self: flex-end;" :href="`/r/kc_news`">See All News</a>
+                </div>
+            </div>
+            <div class="home-section-wrap" v-if="this.parsedData">
                 <h3 class="kc">CFDE Workbench</h3>
                 <div class="home-section">
                     <div class="f-row">
@@ -481,11 +483,27 @@ export default Vue.component("cfde-landing", {
             examplesInterval: null,
             currSpotlight: -1,
             currExample: -1,
+            dccsSorted: [],
+            newsFeed: null,
+            domObserver: null,
+            headerLoaded: false,
         };
     },
     mounted() {
-        window.addEventListener("resize", this.handleResize);
-        window.addEventListener("scroll", this.highlightTopmostTitle);
+        //race condition hack, the nav bar is the last component to load on the page
+        //and braks the layout of the dcc map, this watches for the nav
+        //to load then draws the DCC map
+        this.domObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if(this.headerLoaded) return;
+                this.onDomChange();
+            });
+        });
+        this.domObserver.observe(document.querySelector('.research-header-menu-wrapper'), { childList: true, subtree: false });
+        
+        window.addEventListener('resize', this.handleResize);
+        window.addEventListener('scroll', this.highlightTopmostTitle);
+
         this.init();
     },
     beforeDestroy() {
@@ -496,52 +514,43 @@ export default Vue.component("cfde-landing", {
     watch: {},
     updated() {},
     methods: {
+        onDomChange(){
+            console.log("nav rendered");
+            this.headerLoaded = true;
+            if(this.parsedData) this.drawArrows();
+            this.domObserver.disconnect();
+        },
         async init() {
-            const data = await this.loadFile(
-                this.sectionConfigs["content"]["custom"]["viz data"]
-            );
-            //this.parsedData = await this.parseEntities(data);
+            //must use dataset endpoint to load csv file from hugeampkpncms (otherwise CORS error)
+            const cmsFilePrefix = "https://hugeampkpncms.org/servedata/dataset?dataset=";
+            const cmsFileUrl = this.sectionConfigs["content"]["custom"]["viz data"];
+            const data = await this.loadFile(cmsFilePrefix+cmsFileUrl);
             //console.log('parsedData', this.parsedData);
             const jsonData = await JSON.parse(data);
+            //jsonData.sort((a, b) => a["dcc"].localeCompare(b["dcc"]));
             this.parsedData = this.parseData(jsonData);
             this.examplesData = this.parseExamples(jsonData);
-            console.log("examples", this.examplesData);
-            setTimeout(() => {
-                const edges = this.getNodePoints();
-                this.renderEdges(edges);
-                this.changeExample(null);
-                this.changeSpotlight(null);
-                this.spotlightInterval = setInterval(() => {
-                    this.changeSpotlight(null);
-                }, 10000);
-                this.examplesInterval = setInterval(() => {
-                    this.changeExample(null);
-                }, 10000);
-                setTimeout(() => {
-                    this.simulateMouseOverSequence();
-                }, 400);
-            }, 100);
-            this.sectionTitles = document.querySelectorAll(".section-title");
+            console.log('examples', this.examplesData);
+
+            if(this.headerLoaded) this.drawArrows();
+            
+            this.sectionTitles = document.querySelectorAll('.section-title');
             this.highlightTopmostTitle();
+
+            const newsFeedUrl = this.sectionConfigs["content"]["custom"]["news feed"];
+            if(newsFeedUrl) {
+                const newsFeed = await this.loadFile(newsFeedUrl);
+                if(newsFeed.length > 5) newsFeed.length = 5;
+                this.newsFeed = newsFeed;
+                //console.log('news feed', {newsFeedUrl, newsFeed: this.newsFeed});
+            }
         },
         async loadFile(src) {
-            //must use dataset endpoint to load csv file from hugeampkpncms (otherwise CORS error)
-            const fetchUrl =
-                "https://hugeampkpncms.org/servedata/dataset?dataset=" + src;
-            //however, dataset enpoint parses the original csv and escapes special characters
-            let data = await fetch(fetchUrl).then((resp) => {
+            const fetchUrl = src;
+            let data = await fetch(fetchUrl).then(resp => {
                 return resp.json();
-                //return resp.text(fetchUrl)
             });
 
-            return data;
-
-            //we must undo all of that to get the original data
-            data = data.replace(/\\u0022/g, '"'); //quotes
-            data = data.replace(/\\\//g, "/"); //slashes
-            data = data.replace(/\\n/g, "\n"); //line breaks
-            data = data.replace(/\\r/g, "\r"); //carriage returns
-            data = data.substring(1, data.length - 1); //remove surrounding quotes
             return data;
         },
         parseData(data) {
@@ -554,35 +563,31 @@ export default Vue.component("cfde-landing", {
                 entities: new Set(),
             };
 
-            Object.entries(data).forEach((dccItem) => {
-                console.log("--", dccItem);
-                const dcc = dccItem[0];
+            data.forEach(dccItem => {
+                //console.log('--', dccItem);
+                const dcc = dccItem["dcc"];
 
                 // add to map
                 map[dcc] = {
-                    logo: dccItem[1]["basic"]["logo"] || "",
-                    name: dccItem[1]["basic"]["name"] || "",
-                    omics: dccItem[1]["omics"] || [],
-                    entities: dccItem[1]["entities"] || [],
-                    info: dccItem[1]["basic"]["short description"] || "",
-                    spotlight: dccItem[1]["basic"]["spotlight"] || "",
+                    logo: dccItem["logo"] || "",
+                    name: dccItem["name"] || "",
+                    omics: dccItem["omics"] || [],
+                    entities: dccItem["entities"] || [],
+                    info: dccItem["short description"] || "",
+                    spotlight: dccItem["spotlight"] || ""
                 };
 
                 // add to sets (ensure uniqueness)
                 sets.programs.add(dcc);
-                (dccItem[1]["omics"] || []).forEach((omic) =>
-                    sets.omics.add(omic)
-                );
-                (dccItem[1]["entities"] || []).forEach((entity) =>
-                    sets.entities.add(entity)
-                );
+                (dccItem["omics"] || []).forEach(omic => sets.omics.add(omic));
+                (dccItem["entities"] || []).forEach(entity => sets.entities.add(entity));
             });
 
             // sets to arrays
             const setsAsArrays = {
                 programs: Array.from(sets.programs),
-                omics: Array.from(sets.omics),
-                entities: Array.from(sets.entities),
+                omics: Array.from(sets.omics).sort(),
+                entities: Array.from(sets.entities).sort()
             };
 
             console.log({ map, sets: setsAsArrays });
@@ -593,33 +598,31 @@ export default Vue.component("cfde-landing", {
         },
         parseExamples(data) {
             const examples = [];
-            Object.entries(data).forEach((dccItem) => {
-                const dcc = dccItem[0];
+            data.forEach(dccItem => {
+                const dcc = dccItem["dcc"];
 
-                if (
-                    dccItem[1]["examples"]["gene_analysis"] != "" &&
-                    dccItem[1]["examples"]["gene_example"] != ""
-                ) {
+                if(dccItem["examples"]["gene_analysis"]!="" &&
+                    dccItem["examples"]["gene_example"]!=""
+                ){
                     examples.push({
-                        type: "gene",
-                        logo: dccItem[1]["basic"]["logo"] || "",
-                        name: dccItem[1]["basic"]["name"] || "",
-                        analysis: dccItem[1]["examples"]["gene_analysis"],
-                        example: dccItem[1]["examples"]["gene_example"],
-                        entity: dccItem[1]["examples"]["example_gene"],
+                        type: 'gene',
+                        logo: dccItem["logo"] || "",
+                        name: dccItem["name"] || "",
+                        analysis: dccItem["examples"]["gene_analysis"],
+                        example: dccItem["examples"]["gene_example"],
+                        entity: dccItem["examples"]["example_gene"]
                     });
                 }
-                if (
-                    dccItem[1]["examples"]["disease_analysis"] != "" &&
-                    dccItem[1]["examples"]["disease_example"] != ""
-                ) {
+                if(dccItem["examples"]["disease_analysis"]!="" &&
+                    dccItem["examples"]["disease_example"]!=""
+                ){
                     examples.push({
-                        type: "disease",
-                        logo: dccItem[1]["basic"]["logo"] || "",
-                        name: dccItem[1]["basic"]["name"] || "",
-                        analysis: dccItem[1]["examples"]["disease_analysis"],
-                        example: dccItem[1]["examples"]["disease_example"],
-                        entity: dccItem[1]["examples"]["example_disease"],
+                        type: 'disease',
+                        logo: dccItem["logo"] || "",
+                        name: dccItem["name"] || "",
+                        analysis: dccItem["examples"]["disease_analysis"],
+                        example: dccItem["examples"]["disease_example"],
+                        entity: dccItem["examples"]["example_disease"]
                     });
                 }
             });
@@ -633,56 +636,22 @@ export default Vue.component("cfde-landing", {
             }
             return array;
         },
-        async parseEntities(data) {
-            const lines = data.split("\n");
-            const headers = lines[0].split(",");
-            const result = {};
-
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].match(
-                    /(".*?"|[^",\r\n]+|(?<=,)(?=,))/g
-                ); //.split(',');
-                const dcc = values[0];
-                result[dcc] = {
-                    entities: {},
-                    omics: {},
-                    resources: {},
-                    povs: {},
-                    logo: "",
-                    info: {},
-                };
-
-                for (let j = 1; j < headers.length; j++) {
-                    const [prefix, key] = headers[j].split("_");
-                    if (prefix && key) {
-                        let group;
-                        if (prefix === "a") {
-                            group = "entities";
-                        } else if (prefix === "b") {
-                            group = "omics";
-                        } else if (prefix === "c") {
-                            group = "povs";
-                        } else if (prefix === "d") {
-                            group = "logo";
-                            result[dcc][group] = values[j];
-                            continue;
-                        } else if (prefix === "e") {
-                            group = "resources";
-                        } else if (prefix === "r") {
-                            group = "info";
-                            result[dcc][group][key.trim()] = values[j];
-                            continue;
-                        }
-                        result[dcc][group][key.trim()] = values[j]
-                            ? parseInt(values[j])
-                            : null;
-                    }
-                }
-            }
-
-            return result;
-            //this.parsedData = result;
-            //console.log(this.parsedData);
+        drawArrows(){
+            setTimeout(() => {
+                const edges = this.getNodePoints();
+                this.renderEdges(edges);
+                this.changeExample(null);
+                this.changeSpotlight(null);
+                this.spotlightInterval = setInterval(() => {
+                    this.changeSpotlight(null);
+                }, 10000);
+                this.examplesInterval = setInterval(() => {
+                    this.changeExample(null);
+                }, 10000);
+                setTimeout(() => {
+                    this.simulateMouseOverSequence();
+                }, 200);
+            }, 100);
         },
         drawEdge(from, to, thickness, value) {
             let nodeConnectOffset = 20;
@@ -1020,10 +989,9 @@ export default Vue.component("cfde-landing", {
                 )
                 .classList.add("active");
         },
-        changeExample(e) {
-            console.log("example", this.currExample);
-            const randInt = (min, max) =>
-                Math.floor(Math.random() * (max - min + 1)) + min;
+        changeExample(e){
+            //console.log('example', this.currExample);
+            const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
             let currExample = this.currExample;
             const max = this.examplesData.length;
             let dir = "next";
@@ -1099,7 +1067,8 @@ export default Vue.component("cfde-landing", {
 });
 </script>
 <style scoped>
-<style scoped > .line-svg {
+
+.line-svg {
     pointer-events: none;
 }
 .f-tooltip {
@@ -1468,7 +1437,7 @@ export default Vue.component("cfde-landing", {
     }
 
     .hero-wrapper {
-        width: 800px;
+        width: 900px;
         /*background: #f8f6f6;*/
         padding: 0px;
         gap: 20px;
@@ -1517,7 +1486,7 @@ export default Vue.component("cfde-landing", {
 
     .dcc-icon {
         width: 85px;
-        width: 85px;
+        height: 85px;
         aspect-ratio: 1;
         background: #ebebeb;
         display: flex;
@@ -1735,8 +1704,8 @@ export default Vue.component("cfde-landing", {
         overflow-y: auto;
         margin: 0 0 20px;
         padding: 10px;
-        border-radius: 10px;
-        box-shadow: inset 0 -40px 20px -20px #ddd;
+        border-radius: 0px;
+        box-shadow: inset 0 -20px 20px -20px #ddd;
     }
 
     .spotlight-prev,
@@ -1788,6 +1757,22 @@ export default Vue.component("cfde-landing", {
     }
     .analysis-figure img {
         height: inherit;
+    }
+
+    .news-item{
+        gap:20px;
+        border-bottom: 1px solid #ccc;
+    }
+    .news-item:last-of-type{
+        border: 0;
+        
+    }
+    ::v-deep .news-item .thumbnail p{
+        padding: 0;
+        margin: 0;
+    }
+    ::v-deep .news-item .thumbnail img{
+        width: 150px;
     }
 }
 </style>
