@@ -186,6 +186,10 @@ export default Vue.component("ResearchPhewasPlot", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        greaterThan(){
+            return !!this.renderConfig["label in black"] &&
+                this.renderConfig["label in black"] === "greater than";
+        },
         phenotypeMapConfig() {
             if (this.renderConfig["phenotype map"] == "null") {
                 return null;
@@ -210,6 +214,10 @@ export default Vue.component("ResearchPhewasPlot", {
                     // Restrict to the top 1500 phenotypes by p-value
                     // for when 6500 traits are used.
                     phenotypesData = phenotypesData.slice(0,1500);
+                }
+                if (!!this.greaterThan){
+                    // Shows the "significant" phenotypes first in the group.
+                    phenotypesData.reverse();
                 }
 
                 phenotypesData.map((d) => {
@@ -732,10 +740,7 @@ export default Vue.component("ResearchPhewasPlot", {
                                         : this.phenotypeMap[
                                               p[this.renderConfig["render by"]]
                                           ]["description"];
-                                let greaterThan = !!this.renderConfig["label in black"] &&
-                                        this.renderConfig["label in black"] ===
-                                            "greater than"
-                                let passesThreshold = greaterThan 
+                                let passesThreshold = this.greaterThan 
                                     ? p.rawPValue >= Number(this.renderConfig["thresholds"][0]) 
                                     : p.rawPValue <= Number(this.renderConfig["thresholds"][0]);
 
