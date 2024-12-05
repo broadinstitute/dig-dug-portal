@@ -5,7 +5,7 @@ export function toOldStyle(newStylePhenotype){
     let oldStyle = structuredClone(newStylePhenotype);
     oldStyle.description = newStylePhenotype.phenotype_name;
     oldStyle.name = newStylePhenotype.phenotype;
-    oldStyle.group = newStylePhenotype.display_group;
+    oldStyle.group = newStylePhenotype.display_group.replaceAll(" ", "_");
     return oldStyle;
 }
 
