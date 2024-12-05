@@ -854,6 +854,7 @@ export default Vue.component("ResearchPhewasPlot", {
                     }
                 } else {
                     for (const [key, value] of Object.entries(renderData)) {
+                        
                         let keyIndex =
                             groupsArr.indexOf(key) % this.colors.length;
                         let fillColor = this.colors[keyIndex];
