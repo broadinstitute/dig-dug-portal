@@ -237,30 +237,51 @@
 						:regionZoom="regionZoom" :regionViewArea="regionViewArea" :region="regionParam"
 						:starItems="starItems" @on-star="starColumn">
 					</research-section-visualizers>
-					<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
-						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-						:tableFormat="tableFormat"
-						:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
-						:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
-						:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
-						:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
-						:utils="utils" @clicked-sort="sortData" :region="regionParam" :regionZoom="regionZoom"
-						:regionViewArea="regionViewArea" 
-						:colors="colors" :plotMargin="plotMargin"
-						@on-star="starColumn" @on-filtering="updateData">
-					</research-data-table>
-					<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
-						:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-						:tableFormat="tableFormat"
-						:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
-						:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
-						:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
-						:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
-						:utils="utils" :thumbnailWidth="!!sectionConfig['filters vertical'] && !!sectionConfig['filters vertical']['width'] ?
-							sectionConfig['filters vertical']['width'] : 250" @clicked-sort="sortData" :region="regionParam"
-						:regionZoom="regionZoom" :regionViewArea="regionViewArea" :openCardPreset="openInfoCard"
-						@on-star="starColumn" @on-filtering="updateData" @on-openCard="setOpenInfoCard">
-					</research-info-cards>
+					<template v-if="!!tableFormat && !tableFormat['display type']">
+						<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
+							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+							:tableFormat="tableFormat"
+							:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
+							:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
+							:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
+							:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
+							:utils="utils" @clicked-sort="sortData" :region="regionParam" :regionZoom="regionZoom"
+							:regionViewArea="regionViewArea" 
+							:colors="colors" :plotMargin="plotMargin"
+							@on-star="starColumn" @on-filtering="updateData">
+						</research-data-table>
+						
+						<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
+							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+							:tableFormat="tableFormat"
+							:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
+							:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
+							:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
+							:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
+							:utils="utils" :thumbnailWidth="!!sectionConfig['filters vertical'] && !!sectionConfig['filters vertical']['width'] ?
+								sectionConfig['filters vertical']['width'] : 250" @clicked-sort="sortData" :region="regionParam"
+							:regionZoom="regionZoom" :regionViewArea="regionViewArea" :openCardPreset="openInfoCard"
+							@on-star="starColumn" @on-filtering="updateData" @on-openCard="setOpenInfoCard">
+						</research-info-cards>
+					</template>
+
+					<template v-if="!!tableFormat && !!tableFormat['display type']">
+						<template v-if="tableFormat['display type'] == 'tabs'">
+							<research-data-table
+								:pageID="sectionIndex"
+								:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+								:tableFormat="tableFormat"
+								:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
+								:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
+								:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
+								:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
+								:utils="utils" @clicked-sort="sortData" :region="regionParam" :regionZoom="regionZoom"
+								:regionViewArea="regionViewArea" 
+								:colors="colors" :plotMargin="plotMargin"
+								@on-star="starColumn" @on-filtering="updateData">
+							</research-data-table>
+						</template>
+					</template>
 				</div>
 				<div class="vertical-filter"
 					v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'"
@@ -908,8 +929,6 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString();
 
-			//console.log("paramsString", paramsString)
-
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.add("loading");
@@ -954,35 +973,18 @@ export default Vue.component("research-section", {
 						break;
 					case "openApi":
 
-						/*if (paramsType == "array") {
-							urlString = this.dataPoint["body"].replace("$parameter", paramsString)
-						} else if (paramsType == "replace to field") {
-
-							urlString = this.dataPoint["body"]
-
-							params.map((param, pIndex) => {
-								let paramList = this.customList[param]
-								let replaceFrom = this.dataPoint["replace from"];
-								let replaceTo = this.dataPoint["replace to"];
-
-								let paramValue = paramList.filter(item => item[replaceFrom] == paramsString.split(",")[pIndex])[0][replaceTo];
-
-								urlString = urlString.replace("$" + param, paramValue);
-							})
-						}*/
-
-						//console.log(this.dataPoint["header"]);
-
 						let header = this.dataPoint["header"];
 						let body = this.dataPoint["body"];
 
-						console.log("params",params,paramsString);
-						body["keys"] = "TP53";
-
 						let paramStrArr = paramsString.split(",");
 
-						/*params.map((param, pIndex) => {
-						}*/
+						params.map((param, pIndex) => {
+							for (const [key, value] of Object.entries(body)) {
+								if(value == '$'+param) {
+									body[key] = paramStrArr[pIndex];
+								}
+							}
+						})
 
 						this.queryOpenApi(header, body, this.dataPoint["url"], paramsString, paramsType, params);
 						break;
@@ -1028,10 +1030,6 @@ export default Vue.component("research-section", {
 
 		queryOpenApi(HEADER,BODY, URL, PARAM, TYPE, PARAMS) {
 
-			console.log(URL, PARAM, TYPE, PARAMS)
-
-			//const query = QUERY;
-
 			async function fetchApi(header,body) {
 				const response = await fetch(URL, {
 					method: 'POST',
@@ -1048,78 +1046,11 @@ export default Vue.component("research-section", {
 
 			fetchApi(HEADER,BODY)
 				.then(data => {
-					console.log(data);
 					this.processLoadedApi(data, PARAM, TYPE, PARAMS);
 				})
 				.catch(error => console.error('Error fetching GraphQL:', error));
 		},
-
-		/*queryOpenApi() {
-
-			async function fetchGraphQL(query) {
-				const response = await fetch('https://search.motrpac-data.org/search/api', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb3RycGFjX2RhdGFfaHViIiwiZXhwIjoxNzM5NTc4MDY3fQ.ezIAP3qa_FGg0ZI5uoC79ay0xWwg6rmHrgEnxa6bvaU'
-					},
-					body: JSON.stringify( query ),
-				});
-
-				if (!response.ok) {
-					throw new Error(`GraphQL request failed with status ${response.status}`);
-				}
-
-				return response.json();
-			}
-
-			let Query = {
-					"ktype": "gene",
-					"keys": "TP53",
-					"omics": [
-						"transcriptomics",
-						"proteomics"
-					],
-					"filters": {
-						"assay": [],
-						"tissue": []
-					},
-					"fields": [
-						"gene_symbol",
-						"feature_ID",
-						"tissue",
-						"assay",
-						"sex",
-						"comparison_group",
-						"logFC",
-						"logFC_se",
-						"p_value",
-						"adj_p_value",
-						"p_value_male",
-						"p_value_female"
-					],
-					"unique_fields": [
-						"tissue",
-						"assay"
-					],
-					"size": 10000,
-					"start": 0,
-					"save": false
-				}
-
-			fetchGraphQL(Query)
-				.then(data => {
-
-					console.log(data)
-					//this.processLoadedApi(data, PARAM, TYPE, PARAMS);
-				})
-				.catch(error => console.error('Error fetching GraphQL:', error));
-		},
-*/
 		async queryBioindex(QUERY, TYPE, PARAMS) {
-
-			//console.log("PARAMS", PARAMS);
-			//console.log("QUERY", QUERY);
 
 			this.searched.push(QUERY);
 
@@ -1139,8 +1070,6 @@ export default Vue.component("research-section", {
 			} else {
 				dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
 			}
-
-			//console.log("dataUrl replaced", dataUrl);
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -1448,6 +1377,7 @@ export default Vue.component("research-section", {
 
 			// often data is wrapped by multiple layers of wrappers
 			let dataWrapper = this.dataPoint["data wrapper"];
+			let dataWrappers = this.dataPoint["data wrappers"];
 
 			// process data by data type
 			switch (this.dataPoint["data type"]) {
@@ -1480,6 +1410,107 @@ export default Vue.component("research-section", {
 				case "line json":
 					data = CONTENT;
 
+					break;
+				case "json lines":
+					if (!!dataWrapper) {
+
+						let tempData = []
+
+						let dataEntity = CONTENT;
+							dataWrapper["headers"].map(w => {
+								dataEntity = dataEntity[w];
+							})
+
+							let headers = dataEntity;
+
+							dataEntity = CONTENT;
+
+							dataWrapper["data"].map(w => {
+								dataEntity = dataEntity[w];
+							})
+
+							dataEntity.map(item,itemIndex => {
+								let tempObj = {}
+
+								item.map((column, columnIndex) => {
+									tempObj[headers[columnIndex]] = column;
+								})
+
+								tempData.push(tempObj);
+							})
+
+						data = tempData;
+						
+					} else if (!!dataWrappers){
+
+						let tempData = []
+						let headers = [];
+
+
+						dataWrappers.map(dataWrapper => {
+
+							let dataEntity = CONTENT;
+
+							dataWrapper["headers"].map(w => {
+								dataEntity = dataEntity[w];
+							})
+
+							headers = headers.concat(dataEntity);
+
+						})
+
+						let uniqHeaders = [...new Set(headers)];
+
+						uniqHeaders.push("stamp")
+						
+
+						dataWrappers.map(dataWrapper => {
+
+							let dataEntity = CONTENT;
+							dataWrapper["headers"].map(w => {
+
+								dataEntity = dataEntity[w];
+							})
+
+							let tempHeaders = dataEntity;
+
+							dataEntity = CONTENT;
+
+							dataWrapper["data"].map(w => {
+								dataEntity = dataEntity[w];
+							})
+
+							dataEntity.map((item,itemIndex) => {
+								let tempObj = {}
+
+								item.map((column, columnIndex) => {
+									tempObj[headers[columnIndex]] = column;
+								})
+
+								tempObj["stamp"] = dataWrapper["stamp"];
+
+								tempData.push(tempObj);
+							})
+
+						})
+
+						let mergedData = [];
+
+						tempData.map(d => {
+							let tempObj = {}
+							uniqHeaders.map(header => {
+								tempObj[header] = (!!d[header])? d[header]:"";
+							})
+
+							mergedData.push(tempObj);
+						})
+
+						data = mergedData;
+
+					} else {
+						data = CONTENT;
+					}
+					
 					break;
 
 				case "csv":
@@ -1629,7 +1660,6 @@ export default Vue.component("research-section", {
 			/// 'checkbox' filter 'uncheck' filter gets applied here
 			if(!!this.sectionConfig && !!this.sectionConfig.filters) {
 				let chkboxFilters = this.sectionConfig.filters.filter( f => f.type == 'checkbox');
-				console.log('chkboxFilters', chkboxFilters);
 
 				let tempArr = [...new Set(this.sectionData)];
 				chkboxFilters.map( f =>{
@@ -1657,7 +1687,6 @@ export default Vue.component("research-section", {
 			}
 
 			if (!!this.sectionConfig["after data load"]) {
-				//console.log('this.sectionConfig["after data load"]', this.sectionConfig["after data load"])
 
 				this.sectionConfig["after data load"].map(act => {
 					switch (act.type) {
