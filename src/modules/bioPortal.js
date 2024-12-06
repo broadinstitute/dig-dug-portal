@@ -105,7 +105,7 @@ export default {
             for (let i in state.diseaseGroups) {
                 let group = state.diseaseGroups[i];
 
-                if (group.name == state.host.subDomain) {
+                if (group.name == state.host.subDomain?.replace("dev", "")) {
                     return group;
                 }
             }
@@ -116,7 +116,7 @@ export default {
 
         //this is the root portal, display all data for group
         isRootPortal(state, getters) {
-            if (!state.host.subDomain)
+            if (!state.host.subDomain?.replace("dev", ""))
                 //no subdomain found, assume main portal
                 return true;
             else {
@@ -150,7 +150,7 @@ export default {
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md" },
+                { q: state.host.subDomain?.replace("dev", "") || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -162,7 +162,7 @@ export default {
         },
         async getDocumentations({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md" },
+                { q: state.host.subDomain?.replace("dev", "") || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -174,7 +174,7 @@ export default {
         },
         async getAncestries({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md" },
+                { q: state.host.subDomain?.replace("dev", "") || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -186,7 +186,7 @@ export default {
         // fetch all the complicaitons for given disease group
         async getComplications({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md" },
+                { q: state.host.subDomain?.replace("dev", "") || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -200,7 +200,7 @@ export default {
         // fetch all datasets for this portal
         async getDatasets({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md" },
+                { q: state.host.subDomain?.replace("dev", "") || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
