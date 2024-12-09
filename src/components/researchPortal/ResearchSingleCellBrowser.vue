@@ -617,7 +617,6 @@
                 segmentByCounts: null,
 
                 datasetId: null,
-                datasetName: null,
                 cellTypeField: null,
 
                 geneNames: [],
@@ -626,7 +625,6 @@
 
                 dataLoaded: false,
                 preloadItem: '',
-                tissueDisplay: '',
                 highlightHoverTimeout: null,
 
                 selectedTabs: {"a":"1", "b":"2"},
@@ -668,10 +666,14 @@
                 if(data.id===this.sectionId){
                     console.log(this.sectionId, 'Received on-select event:', data);
                     this.datasetId = data.value;
+                    if(this.renderConfig["parameters"]?.datasetId){
+                        keyParams.set({[this.renderConfig["parameters"]?.datasetId] : this.datasetId});
+                    }
                     this.init();
                 }
             },
             clean(){
+                this.expressionStats = [];
                 this.cellCompositionVars = {
                     "a": {
                         umapColors: null,
@@ -704,19 +706,8 @@
                 }
             },
             async init(){
-                /*
-                if(this.data.length !== 1){
-                    if(this.datasetData) {
-                        console.log('--->', this.datasetData);
-                    }else{
-                        console.log("please select a dataset");
-                        return;
-                    }
-                }else{
-                    this.datasetId = this.data[0].datasetId;
-                }
-                */
-
+                //check which components to enable based on cofig options
+                //all are enabled by default
                 this.componentsConfig = this.renderConfig["components"];
                 this.showCellInfo = this.componentsConfig?.["cell info"]?.enabled ?? true;
                 this.showCellProportion = this.componentsConfig?.["cell proportion"]?.enabled ?? true;
@@ -725,9 +716,16 @@
 
                 this.presetsConfig = this.renderConfig["presets"];
 
-                //if user has not selected a dataset from the list
+                //check for datasetId
+                /* it can come from multiple places
+                    1. 'on-select' event from byor
+                    2. query string param
+                    3. config preset
+                */
                 if(!this.datasetId || this.datasetId === ''){
-                    if(this.presetsConfig?.datasetId){
+                    if(keyParams[this.renderConfig["parameters"]?.datasetId]){
+                        this.datasetId = keyParams[this.renderConfig["parameters"].datasetId];
+                    }else if(this.presetsConfig?.datasetId){
                         this.datasetId = this.presetsConfig.datasetId
                     }else{
                         console.log('select a dataset');
@@ -735,17 +733,21 @@
                     }
                 }
 
-                this.clean();
-                
-                console.log(`loading dataset: ${this.datasetData.datasetId}`);
+                console.log(`requested dataset: ${this.datasetId}`);
+
+                //make sure it exists in the metadata
+                if(!this.data.find(x => x.datasetId === this.datasetId)){
+                    console.log('dataset', this.datasetId, 'not in collection');
+                    this.datasetId = null;
+                    return;
+                }
+
                 console.log('   data', this.datasetData);
 
-                this.tissueDisplay = this.datasetData["Tissue"];
-                this.datasetName = this.datasetData["Name"];
-                this.cellTypeField = this.presetsConfig?.["cell type label"];
-                console.log("cellTypeField", this.cellTypeField, this.presetsConfig);
-                this.cellCompositionVars['a'].colorByLabel = this.cellTypeField;
-
+                //clear existing data
+                this.clean();
+                
+                //fetch base data
                 this.dataLoaded = false;
                 this.preloadItem = 'fields';
                 this.rawData = await this.fetchFields();
@@ -762,9 +764,17 @@
 
                 //pre-calculate colors for fields in each category
                 this.labelColors = this.calcLabelColors(this.rawData);
+                
                 this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ');
                 
                 this.getColorByOptions();
+
+                //which label designates cell types
+                this.cellTypeField = this.presetsConfig?.["cell type label"];
+
+                console.log("cellTypeField", this.cellTypeField, this.presetsConfig);
+
+                this.cellCompositionVars['a'].colorByLabel = this.cellTypeField;
 
                 this.selectColorBy(this.cellTypeField, 'a');
                 this.selectColorBy(this.cellTypeField, 'b');
@@ -786,17 +796,17 @@
                     console.log('cell proportion component disabled')
                 }
 
-                this.expressionStats = [];
-                
-
-                if(keyParams.gene){
-                    this.fetchGeneExpression(keyParams.gene.toUpperCase());
+                //load gene data from parameters
+                if(this.renderConfig["parameters"]?.gene){
+                    if(keyParams[this.renderConfig["parameters"].gene]){
+                        this.fetchGeneExpression(keyParams.gene.toUpperCase());
+                    }
                 }
-
                 
+                //load gene data from config
                 if(this.presetsConfig?.["genes"]){
                     this.presetsConfig["genes"].forEach(async (gene) => {
-                        await this.fetchGeneExpression(gene.toUpperCase());
+                        this.fetchGeneExpression(gene.toUpperCase());
                     })
                 }
                 
@@ -813,22 +823,10 @@
 
                 this.colorByOptions = colorByOptions2;
             },
-            updateDataUrl(url, paramaters){
-                let updatedUrl = url;
-                //tmp
-                //updatedUrl = updatedUrl.replace(`$datasetId`, this.datasetData['Tissue'].toLowerCase());
-
-                //use below once metadata is fixed
-                paramaters.forEach(param => {
-                    if(param !== 'gene')
-                        updatedUrl = updatedUrl.replace(`$${param}`, this.datasetData[param]); //.toLowerCase().replaceAll(" ", "_")
-                })
-                return updatedUrl;
-            },
             async fetchFields() {
                 console.log('getting fields');
                 const fieldsDataPoint = this.renderConfig["data points"].find(x => x.role === "fields");
-                const fieldsUrl = this.updateDataUrl(fieldsDataPoint.url, fieldsDataPoint.parameters);
+                const fieldsUrl = fieldsDataPoint.url.replace('$datasetId', this.datasetId);
                 try {
                     const response = await fetch(fieldsUrl);
                     const rawData = await response.json();
@@ -842,7 +840,7 @@
             async fetchCoordinates() {
                 console.log('getting coordinates');
                 const coordinatesDataPoint = this.renderConfig["data points"].find(x => x.role === "coordinates");
-                const coordinatesUrl = this.updateDataUrl(coordinatesDataPoint.url, coordinatesDataPoint.parameters);
+                const coordinatesUrl = coordinatesDataPoint.url.replace('$datasetId', this.datasetId);
                 try {
                     const response = await fetch(coordinatesUrl);
                     const json = this.utils.dataConvert.tsv2Json(await response.text());
@@ -855,11 +853,11 @@
             async fetchGeneExpression(gene){
                 console.log('fetchGeneExpression', gene);
                 const expressionDataPoint = this.renderConfig["data points"].find(x => x.role === "expression");
-                const expressionUrl = this.updateDataUrl(expressionDataPoint.url, expressionDataPoint.parameters);
+                const expressionUrl = expressionDataPoint.url.replace('$datasetId', this.datasetId).replace('$gene', gene);
                 //this.isLoading = true;
                 await Vue.nextTick();
                 try{
-                    const response = await fetch(expressionUrl+','+gene);
+                    const response = await fetch(expressionUrl);
                     const json = await response.json();
                     const expression = json.data[0]['expression'];
                     this.geneNames.push(gene);
