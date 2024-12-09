@@ -24,7 +24,7 @@ export default new Vuex.Store({
         aliasName: null,
         traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
         traitGroupToQuery: null,
-        allTraitsData: []
+        phewasData: null
     },
 
     mutations: {
@@ -47,8 +47,9 @@ export default new Vuex.Store({
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
         },
-        setAllTraitsData(state, allTraitsData){
-            state.allTraitsData = allTraitsData || state.allTraitsData;
+        setPhewasData(state, phewasData){
+            state.phewasData = phewasData;
+            console.log(JSON.stringify(state.phewasData));
         }
     },
 
@@ -86,8 +87,9 @@ export default new Vuex.Store({
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
                 if (traitGroup !== 'all'){
-                    context.dispatch("pigeanGene/query", { q: 
+                    await context.dispatch("pigeanGene/query", { q: 
                         `${traitGroup},${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`});
+                    context.commit("setPhewasData", context.state.pigeanGene.data);
                     return;
                 }
                 // If ALL is selected, query all trait groups and get top results across all
@@ -102,8 +104,7 @@ export default new Vuex.Store({
                     let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
                     traitsData = traitsData.concat(groupData);
                 }
-                console.log(JSON.stringify(traitsData));
-                context.commit("setAllTraitsData", traitsData);
+                context.commit("setPhewasData", traitsData);
             }
         },
         async getPigeanPhenotypes(context) {
