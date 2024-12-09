@@ -1166,6 +1166,31 @@ new Vue({
                         menuParam
                     );
                 }
+
+                //set page title
+                if (content[0]["title"] != false) {
+                    document.title = content[0]["title"];
+                }
+
+                //set page description
+                if (content[0]["description"] != false) {
+                    let metaDesc = document.querySelector(
+                        'meta[name="description"]'
+                    );
+                    if (metaDesc) {
+                        metaDesc.setAttribute(
+                            "content",
+                            content[0]["description"]
+                        );
+                    } else {
+                        let meta = document.createElement("meta");
+                        meta.name = "description";
+                        meta.content = content[0]["description"];
+                        document
+                            .getElementsByTagName("head")[0]
+                            .appendChild(meta);
+                    }
+                }
             }
         },
 
