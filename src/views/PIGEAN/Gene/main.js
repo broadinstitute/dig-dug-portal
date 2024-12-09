@@ -159,7 +159,10 @@ new Vue({
             return adjustedData;
         },
         pigeanFilteredData(){
-            return this.$store.state.pigeanGene.data.filter(item => item.log_bf > 0 || item.prior > 0);
+            let rawData = this.$store.state.traitGroup === "all"
+                ? this.$store.state.allTraitsData 
+                : this.$store.state.pigeanGene.data;
+            return rawData.filter(item => item.log_bf > 0 || item.prior > 0);
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;

@@ -24,7 +24,7 @@ export default new Vuex.Store({
         aliasName: null,
         traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
         traitGroupToQuery: null,
-
+        allTraitsData: []
     },
 
     mutations: {
@@ -47,6 +47,9 @@ export default new Vuex.Store({
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
         },
+        setAllTraitsData(state, allTraitsData){
+            state.allTraitsData = allTraitsData || state.allTraitsData;
+        }
     },
 
     getters: {
@@ -82,9 +85,25 @@ export default new Vuex.Store({
             context.commit("setTraitGroup", traitGroup);
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
-                context.dispatch("pigeanGene/query", { q: 
-                    `${traitGroup},${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`,
-                    limit: 1000 });
+                if (traitGroup !== 'all'){
+                    context.dispatch("pigeanGene/query", { q: 
+                        `${traitGroup},${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`});
+                    return;
+                }
+                // If ALL is selected, query all trait groups and get top results across all
+                const TRAIT_GROUPS = ["portal", "gcat_trait", "rare_v2"];
+                let traitsData = [];
+                console.log("you are here");
+                for (let i = 0; i < TRAIT_GROUPS.length; i++){
+                    let group = TRAIT_GROUPS[i];
+                    console.log(group);
+                    let traitQuery = `${group},${context.state.geneName},${
+                        bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
+                    let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
+                    traitsData = traitsData.concat(groupData);
+                }
+                console.log(JSON.stringify(traitsData));
+                context.commit("setAllTraitsData", traitsData);
             }
         },
         async getPigeanPhenotypes(context) {
