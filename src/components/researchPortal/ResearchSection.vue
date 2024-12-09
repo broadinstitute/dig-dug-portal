@@ -267,19 +267,35 @@
 
 					<template v-if="!!tableFormat && !!tableFormat['display type']">
 						<template v-if="tableFormat['display type'] == 'tabs'">
-							<research-data-table
-								:pageID="sectionIndex"
-								:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-								:tableFormat="tableFormat"
-								:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
-								:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
-								:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
-								:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
-								:utils="utils" @clicked-sort="sortData" :region="regionParam" :regionZoom="regionZoom"
-								:regionViewArea="regionViewArea" 
-								:colors="colors" :plotMargin="plotMargin"
-								@on-star="starColumn" @on-filtering="updateData">
-							</research-data-table>
+							<div class="sub-tab-ui-wrapper" :id="'tableTabs' + sectionID">
+								<div v-for="tab, tabIndex in tableFormat['tabs']" :id="'tabUi' + sectionID + tab['id']"
+									class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tab['id'],
+										'tableTabs' + sectionID,
+										'tableContent' + sectionID + tab['id'], 'tableContentGroup' + sectionID, false)">
+									{{ utils.Formatters.replaceWithParams(tab['header'], pageParams) }}
+								</div>
+							</div>
+
+							<div :id="'tableContentGroup' + sectionID">
+								<div v-for="tab, tabIndex in tableFormat['tabs']" :id="'tableContent' + sectionID + tab['id']"
+									class="tab-content-wrapper"
+									:class="(tabIndex == 0) ? '' : 'hidden-content'">
+									<research-data-table
+										v-if="!!sectionData"
+										:pageID="sectionIndex"
+										:dataset="buildTabData(sectionData,tab)"
+										:tableFormat="buildTabFormat(tableFormat,tab)"
+										:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
+										:tableLegend="getSectionTableLegend(sectionID)" :dataComparisonConfig="dataComparisonConfig"
+										:searchParameters="groupSearchParameters" :pkgData="null" :pkgDataSelected="null"
+										:phenotypeMap="phenotypeMap" :sectionId="sectionID" :multiSectionPage="true" :starItems="starItems"
+										:utils="utils" @clicked-sort="sortData" :region="regionParam" :regionZoom="regionZoom"
+										:regionViewArea="regionViewArea" 
+										:colors="colors" :plotMargin="plotMargin"
+										@on-star="starColumn" @on-filtering="updateData">
+									</research-data-table>
+								</div>
+							</div>
 						</template>
 					</template>
 				</div>
@@ -544,6 +560,45 @@ export default Vue.component("research-section", {
 		},
 	},
 	methods: {
+		buildTabData(DATA,TAB) {
+
+			let tabData = [];
+
+			switch (TAB["group type"]) {
+				case "search":
+
+				tabData = DATA.filter(d => d[TAB["group by"]] == TAB["group value"])
+					break;
+
+				case "search other than":
+
+				tabData = DATA.filter(d => d[TAB["group by"]] != TAB["group value"])
+					break;	
+
+			}
+
+			return tabData;
+		},
+		buildTabFormat(TABLE,TAB) {
+
+			let tabFormat ={};
+
+			tabFormat["top rows"] = TAB["top rows"];
+
+			if(TABLE["column formatting"]) {
+				tabFormat["column formatting"] = TABLE["column formatting"];
+			}
+
+			if(TAB["features"]) {
+				tabFormat["features"] = TABLE["features"];
+
+				TABLE["features"].map(feature => {
+					tabFormat[feature] = TAB[feature]
+				})
+			}
+			
+			return tabFormat;
+		},
 		meetRequirements() {
 			let required = this.sectionConfig['required parameters to display'];
 			let meetRequired = true;
