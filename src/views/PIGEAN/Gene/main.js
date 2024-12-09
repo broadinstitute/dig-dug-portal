@@ -160,10 +160,7 @@ new Vue({
         },
         pigeanFilteredData(){
             let rawData = this.$store.state.phewasData;
-            console.log(JSON.stringify(rawData));
-            console.log(rawData.length)
             let filteredData = rawData.filter(item => item.log_bf > 0 || item.prior > 0);
-            console.log(filteredData.length);
             return filteredData;
         },
         pigeanMap(){
@@ -174,6 +171,9 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        "this.$store.state.phewasData"(newData){
+            console.log(JSON.stringify(newData));
+        }
     },
 
     async created() {

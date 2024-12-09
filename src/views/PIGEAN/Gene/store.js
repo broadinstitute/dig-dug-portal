@@ -24,7 +24,7 @@ export default new Vuex.Store({
         aliasName: null,
         traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
         traitGroupToQuery: null,
-        phewasData: null
+        phewasData: null,
     },
 
     mutations: {
@@ -48,8 +48,8 @@ export default new Vuex.Store({
             state.aliasName = aliasName || state.aliasName;
         },
         setPhewasData(state, phewasData){
-            state.phewasData = phewasData;
-            console.log(JSON.stringify(state.phewasData));
+            state.phewasData = phewasData || state.phewasData;
+            console.log("phewas data is set", JSON.stringify(state.phewasData));
         }
     },
 
@@ -90,21 +90,19 @@ export default new Vuex.Store({
                     await context.dispatch("pigeanGene/query", { q: 
                         `${traitGroup},${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`});
                     context.commit("setPhewasData", context.state.pigeanGene.data);
-                    return;
+                } else {
+                    // If ALL is selected, query all trait groups and get top results across all
+                    const TRAIT_GROUPS = ["portal", "gcat_trait", "rare_v2"];
+                    let traitsData = [];
+                    for (let i = 0; i < TRAIT_GROUPS.length; i++){
+                        let group = TRAIT_GROUPS[i];
+                        let traitQuery = `${group},${context.state.geneName},${
+                            bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
+                        let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
+                        traitsData = traitsData.concat(groupData);
+                    }
+                    context.commit("setPhewasData", traitsData);
                 }
-                // If ALL is selected, query all trait groups and get top results across all
-                const TRAIT_GROUPS = ["portal", "gcat_trait", "rare_v2"];
-                let traitsData = [];
-                console.log("you are here");
-                for (let i = 0; i < TRAIT_GROUPS.length; i++){
-                    let group = TRAIT_GROUPS[i];
-                    console.log(group);
-                    let traitQuery = `${group},${context.state.geneName},${
-                        bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
-                    let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
-                    traitsData = traitsData.concat(groupData);
-                }
-                context.commit("setPhewasData", traitsData);
             }
         },
         async getPigeanPhenotypes(context) {
