@@ -207,7 +207,9 @@
 								</span>
 								<span v-for="value, vIndex in buildOptions(filter.field,'chkbox')"
 									:key="value">
-									<input type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
+									<input 
+									v-if="!!filter.uncheck && !!filter.uncheck.includes(value)"
+									type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
 										:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
 										:value="value"
 										@change="
@@ -218,8 +220,23 @@
 												vIndex
 											)
 											"
-										checked
-									/><label :for="value">{{ value }}</label>
+									/>
+									<input 
+										v-else
+										type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
+											:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
+											:value="value"
+											@change="
+												filterDataChkbox(
+													$event,
+													filter.field,
+													filter.type,
+													vIndex
+												)
+												"
+											checked
+										/>
+									<label :for="value">{{ value }}</label>
 								</span>
 									
 								</div>
@@ -421,8 +438,10 @@ export default Vue.component("research-section-filters", {
 			}
 		}
 	},
-	computed: {},
-	watch: {},
+	computed: {
+	},
+	watch: {
+	},
 	methods: {
 		//...uiUtils,
 		callSort(e, sortDirection) {

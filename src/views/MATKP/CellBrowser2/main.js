@@ -52,7 +52,7 @@ const datasetsTemp = {
         "donor_characteristics": ["sex",  "diet__type", "depot__ontology_label", "cell_cycle__phase", "organism_weight" ],
         "cellTypes": ["cell_type__custom", "cell_subtype__custom"],
         "conditions": ["diet__type"],
-        "markerGenes": ["Adipoq", "Pdgfra"],// "Msln", "Jam2", "Prox1", "Steap4", "Myocd", "Mafb", "Cybb", "Flt3", "Cpa3", "Csf3r", "Ms4a1", "Klrd1", "Il7r", "Dcdc2a", "Erbb4"],
+        "markerGenes": ["Adipoq", "Pdgfra", "Msln", "Jam2", "Prox1", "Steap4", "Myocd", "Mafb", "Cybb", "Flt3", "Cpa3", "Csf3r", "Ms4a1", "Klrd1", "Il7r", "Dcdc2a", "Erbb4"],
     }
 }
   
@@ -248,13 +248,15 @@ new Vue({
             
             //all categories in dataset
             const allCategories = this.listOfCategories; 
+            //this broke key/value alignmengts down the line
             for(const [key, value] of Object.entries(this.rawData.metadata_labels)){
-                this.sortArray(value);
+                //this.sortArray(value);
             }
             
             //parse raw arrays, into json table object
             const parsedData = this.parseRawDataByCategory(this.rawData, allCategories);
 
+            console.log('parsedData', parsedData);
             //get dataset config
             this.datasetConfig = datasetsTemp[this.activeDataset];
 
@@ -289,22 +291,31 @@ new Vue({
             const parsedDataSamples = this.filterUniqueByCategory(parsedData, this.datasetConfig.samples);
             this.totalDonors = parsedDataDonors.length;
             this.totalSamples = parsedDataSamples.length;
+            console.log('parsedDataSamples', parsedDataSamples);
 
             //study
             if(this.datasetConfig.study_characteristics){
-                const results = [];
-                this.datasetConfig.study_characteristics.forEach(item => {
-                    if(Array.isArray(item) && item.length===2){
-                        const counts = this.getGroupedCounts(parsedDataDonors, item);
-                        results.push({
-                            key: item[0],
-                            subKey: item[1],
-                            data: counts
-                        });
-                    }
-                })
-                this.donorInfoGroups = results;
+                const studyCategories = [... new Set([this.datasetConfig.donors, ...this.datasetConfig.study_characteristics.flat()])];
+                const parsedDataTest = this.parseRawDataByCategory(this.rawData, studyCategories);
+                const parsedDataDonors2 = this.filterUniqueByCategory2(parsedDataTest, this.datasetConfig.donors);
+                console.log('parsedDataDonors2', parsedDataDonors2)
+
+                if(this.datasetConfig.study_characteristics){
+                    const results = [];
+                    this.datasetConfig.study_characteristics.forEach(item => {
+                        if(Array.isArray(item) && item.length===2){
+                            const counts = this.getGroupedCounts(parsedDataDonors2, item);
+                            results.push({
+                                key: item[0],
+                                subKey: item[1],
+                                data: counts
+                            });
+                        }
+                    })
+                    this.donorInfoGroups = results;
+                }
             }
+            
 
             //donors
             const donorInfoSubset = this.datasetConfig.donor_characteristics.slice(0, 4);
@@ -442,8 +453,8 @@ new Vue({
             //process data based on user selected categories
             for (let i = 0; i < NAME.length; i++) {
                 const record = {};
-                for (const cat in categoryKeys) {
-                    const category = categoryKeys[cat];
+                for (const n in categoryKeys) {
+                    const category = categoryKeys[n];
                     if (metadata.hasOwnProperty(category)) {
                         const labelIdx = metadata[category][i];
                         const label = metadata_labels[category][labelIdx];
@@ -469,24 +480,33 @@ new Vue({
               return true;
             });
         },
-        filterUniqueByCategoryRows(parsedData, key) {
-            const uniques = new Set();
-            return parsedData.filter(obj => {
-                if (uniques.has(obj[key])) {
-                    return false;
+        filterUniqueByCategory2(parsedData, key) {
+            const seen = new Map();
+            console.log('filterUniqueByCategory2', key);
+            return parsedData.filter(item => {
+                const keyValue = item[key];
+                const restOfItem = JSON.stringify({ ...item, [key]: undefined });
+        
+                if (seen.has(keyValue)) {
+                    const existingEntries = seen.get(keyValue);
+                    if (existingEntries.has(restOfItem)) {
+                        return false;
+                    }
+                    existingEntries.add(restOfItem);
                 } else {
-                    uniques.add(obj[key]);
-                    return true;
+                    seen.set(keyValue, new Set([restOfItem]));
                 }
+                return true;
             });
         },
         getCounts(parsedData, categoryKeys, uniqueKey=null){
-            console.log('getCounts', categoryKeys, uniqueKey);
+            console.log('getCounts', parsedData, categoryKeys, uniqueKey);
             //get counts from parsed data by keys
             const calculateCounts = (data, keys) => {
                 return keys.reduce((acc, key) => {
-                    acc[key] = data.reduce((acc, donor) => {
-                        acc[donor[key]] = (acc[donor[key]] || 0) + 1;
+                    console.log('   key', key);
+                    acc[key] = data.reduce((acc, row) => {
+                        acc[row[key]] = (acc[row[key]] || 0) + 1;
                         return acc;
                     }, {});
                     return acc;
@@ -831,14 +851,13 @@ new Vue({
         
 
         updateDonorsInfo(categories){
-            //FIX: "donor_id" should be reference
             const parsedData = this.parseRawDataByCategory(this.rawData, [this.datasetConfig.donors, ...categories]);
+            console.log('     parsedData', parsedData);
             const filterUniqueDonors = this.filterUniqueByCategory(parsedData, this.datasetConfig.donors);
             const countsByDonor =  this.getCounts(filterUniqueDonors, categories);
             this.donorInfo = countsByDonor;
-
-            const filterUniqueDonorsRows = this.filterUniqueByCategoryRows(parsedData, this.datasetConfig.donors);
-            const donorRowsTable = this.bTableFromRowData(filterUniqueDonorsRows);
+            console.log('   updateDonorsInfo donorInfo', this.donorInfo)
+            const donorRowsTable = this.bTableFromRowData(filterUniqueDonors);
             this.donorsTable = donorRowsTable;
             return;
         },

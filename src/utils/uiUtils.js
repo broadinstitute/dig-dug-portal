@@ -324,6 +324,136 @@ let saveByorCsv = function (DATA, FILENAME) {
     document.body.removeChild(downloadLink);
 };
 
+let saveByorTsv = function (DATA, FILENAME) {
+    let topRows = [];
+    let features = {};
+    const downloadFilename = FILENAME || "download";
+
+    DATA.map((d) => {
+        for (let [key, value] of Object.entries(d)) {
+            if (key != "features") {
+                if (typeof value == "object" && !value.length) {
+                    for (let [vKey, vValue] of Object.entries(value)) {
+                        let headerKey = key + "__" + vKey;
+                        if (!topRows.includes(headerKey)) {
+                            topRows.push(headerKey);
+                        }
+                    }
+                } else {
+                    if (!topRows.includes(key)) {
+                        topRows.push(key);
+                    }
+                }
+            } else {
+                for (let [fKey, fValue] of Object.entries(value)) {
+                    if (!features[fKey]) {
+                        features[fKey] = [];
+                    }
+
+                    for (let [fVKey, fVValue] of Object.entries(fValue[0])) {
+                        if (!features[fKey].includes(fVKey)) {
+                            features[fKey].push(fVKey);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    let csvData = [];
+
+    if (Object.keys(features).length > 0) {
+        DATA.map((d) => {
+            for (let [fKey, fValue] of Object.entries(features)) {
+                for (let i = 0; i < d.features[fKey].length; i++) {
+                    let dArr = [];
+
+                    topRows.map((t) => {
+                        let path = t.split("__");
+                        if (path.length == 2) {
+                            let cValue =
+                                d[path[0]][path[1]] !== null
+                                    ? d[path[0]][path[1]] === 0
+                                        ? 0
+                                        : d[path[0]][path[1]]
+                                    : "";
+                            dArr.push(cValue);
+                        } else {
+                            let cValue =
+                                d[path[0]] !== null
+                                    ? d[path[0]] === 0
+                                        ? 0
+                                        : d[path[0]]
+                                    : "";
+                            dArr.push(cValue);
+                        }
+                    });
+
+                    for (let [fRKey, fRValue] of Object.entries(features)) {
+                        if (fRKey == fKey) {
+                            features[fRKey].map((cKey) => {
+                                dArr.push(d.features[fRKey][i][cKey]);
+                            });
+                        } else {
+                            features[fRKey].map((cKey) => {
+                                dArr.push("");
+                            });
+                        }
+                    }
+                    csvData.push(dArr);
+                }
+            }
+        });
+    } else if (Object.keys(features).length == 0) {
+        DATA.map((d) => {
+            let dArr = [];
+            topRows.map((t) => {
+                let path = t.split("__");
+                if (path.length == 2) {
+                    let cValue =
+                        d[path[0]][path[1]] !== null
+                            ? d[path[0]][path[1]] === 0
+                                ? 0
+                                : d[path[0]][path[1]]
+                            : "";
+                    dArr.push(cValue);
+                } else {
+                    let cValue =
+                        d[path[0]] !== null
+                            ? d[path[0]] === 0
+                                ? 0
+                                : d[path[0]]
+                            : "";
+                    dArr.push(cValue);
+                }
+            });
+            csvData.push(dArr);
+        });
+    }
+
+    let header = topRows;
+
+    for (let [fKey, fValue] of Object.entries(features)) {
+        fValue.map((fCKey) => {
+            header.push("feature__" + fKey + "__" + fCKey);
+        });
+    }
+
+    let csv = [
+        header.join("\t"), // header row first
+        ...csvData.map((row) => row.join("\t")),
+    ].join("\r\n");
+
+    let downloadLink = document.createElement("a");
+    let blob = new Blob(["\ufeff", csv]);
+    let url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = downloadFilename + ".tsv"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+};
+
 let convertJson2Csv = function (DATA, FILENAME) {
     const items = DATA;
     const downloadFilename = FILENAME || "download";
@@ -622,6 +752,11 @@ let downloadChart = function (URL, FILENAME) {
     link.click();
     document.body.removeChild(link);
 };
+
+let copy2Clipboard = function (CONTENT) {
+    window.navigator.clipboard.writeText(CONTENT);
+}
+
 export default {
     addRemoveClass,
     popOutElement,
@@ -639,6 +774,7 @@ export default {
     convertJson2Csv,
     convertJson2Tsv,
     saveByorCsv,
+    saveByorTsv,
     saveJson,
     getAxisTicks,
     showTabContent,
@@ -651,5 +787,6 @@ export default {
     toggleFixedSummarySection,
     showHidePanel,
     downloadImg,
-    downloadChart
+    downloadChart,
+    copy2Clipboard
 };

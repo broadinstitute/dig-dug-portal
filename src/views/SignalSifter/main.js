@@ -2,15 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
-
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
-import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
@@ -27,30 +19,14 @@ import { isEqual } from "lodash";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
-
 import sessionUtils from "@/utils/sessionUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert,
-} from "@/components/Alert";
-
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
-    modules: {},
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
-        Documentation,
         ManhattanPlot,
         ClumpedAssociationsTable,
         UnauthorizedMessage,
@@ -62,75 +38,15 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
     },
-
+    mixins: [pageMixin],
     data() {
         return {
             filterList: [],
             displayedFilterList: {},
         };
     },
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        ancestryFormatter: Formatters.ancestryFormatter,
-        ...sessionUtils,
-
-        removePhenotype(index) {
-            this.$store.commit("removePhenotype", index);
-        },
-
-        phenotypeColor(index) {
-            return Colors[index];
-        },
-        setPhenotypeParams(phenotypes) {
-            // keyParams.set({
-            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
-            // });
-            //console.log(Object.entries(this.displayedFilterList));
-            //console.log("set", phenotypes);
-        },
-        unsetFilter(filterList, filter) {
-            if (!filterList) return {};
-
-            const _filterList = filterList.filter(
-                (el) =>
-                    !(
-                        el.field === filter.field &&
-                        el.threshold === filter.threshold
-                    )
-            );
-            return _filterList;
-        },
-        alignedBeta(row) {
-            return row.beta * (row.alignment || 1);
-        },
-    },
 
     computed: {
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
@@ -234,5 +150,51 @@ new Vue({
                     );
             }
         },
+    },
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+    },
+
+    methods: {
+        ...uiUtils,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        ...sessionUtils,
+
+        removePhenotype(index) {
+            this.$store.commit("removePhenotype", index);
+        },
+
+        phenotypeColor(index) {
+            return Colors[index];
+        },
+        setPhenotypeParams(phenotypes) {
+            // keyParams.set({
+            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
+            // });
+            //console.log(Object.entries(this.displayedFilterList));
+            //console.log("set", phenotypes);
+        },
+        unsetFilter(filterList, filter) {
+            if (!filterList) return {};
+
+            const _filterList = filterList.filter(
+                (el) =>
+                    !(
+                        el.field === filter.field &&
+                        el.threshold === filter.threshold
+                    )
+            );
+            return _filterList;
+        },
+        alignedBeta(row) {
+            return row.beta * (row.alignment || 1);
+        },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
     },
 }).$mount("#app");

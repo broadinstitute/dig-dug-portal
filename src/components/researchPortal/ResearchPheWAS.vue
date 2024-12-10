@@ -8,8 +8,8 @@
             >
             </download-chart>-->
             <div
-                class="col-md-12"
                 :id="canvasId + 'pheWasPlotWrapper'"
+                class="col-md-12"
                 style="display: inline-block"
             >
                 <div
@@ -33,7 +33,10 @@
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
                         <strong>{{ ptKey }}</strong
                         ><br />
-                        <span v-for="(dValue, dKey) in ptValue.data">
+                        <span
+                            v-for="(dValue, dKey) in ptValue.data"
+                            :key="dKey"
+                        >
                             <span>{{ dKey + ": " }}</span
                             ><span>{{ dValue }}</span> <br
                         /></span>
@@ -46,8 +49,8 @@
                             "
                         >
                             <button
-                                class="option-button"
                                 v-if="!!options.includes('add phenotype')"
+                                class="option-button"
                                 @click="addPhenotype(ptValue.id)"
                             >
                                 Add this phenotype below
@@ -147,17 +150,31 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";
-import DownloadChart from "../DownloadChart.vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("ResearchPhewasPlot", {
+    components: {
+        pheWasPlotVector,
+    },
     props: [
-        "canvasId", "phenotypeMap", "phenotypesData", "renderConfig", "pkgData", "pkgDataSelected",
-        "colors", "plotMargin", "filter", "options", "sectionId", "sectionId", "utils", "plotName"
+        "canvasId",
+        "phenotypeMap",
+        "phenotypesData",
+        "renderConfig",
+        "pkgData",
+        "pkgDataSelected",
+        "colors",
+        "plotMargin",
+        "filter",
+        "options",
+        "sectionId",
+        "sectionId",
+        "utils",
+        "plotName",
+        "top1500",
     ],
 
     data() {
@@ -171,20 +188,13 @@ export default Vue.component("ResearchPhewasPlot", {
         };
     },
     modules: {},
-    components: {
-        pheWasPlotVector,
-    },
-    created: function () {
-        this.renderPheWas();
-    },
-    mounted: function () {
-        window.addEventListener("resize", this.onResize);
-        this.renderPheWas();
-    },
-    beforeDestroy() {
-        window.removeEventListener("resize", this.onResize);
-    },
     computed: {
+        greaterThan() {
+            return (
+                !!this.renderConfig["label in black"] &&
+                this.renderConfig["label in black"] === "greater than"
+            );
+        },
         phenotypeMapConfig() {
             if (this.renderConfig["phenotype map"] == "null") {
                 return null;
@@ -193,28 +203,38 @@ export default Vue.component("ResearchPhewasPlot", {
             ) {
                 return "kpPhenotypeMap";
             }
+            return null;
         },
         renderData() {
             this.showCanvas = true;
             let content = {};
             content["data"] = [];
 
-            if (!!this.phenotypesData) {
+            if (this.phenotypesData) {
                 let phenotypesData = cloneDeep(this.phenotypesData);
+                phenotypesData.forEach((d) => {
+                    d["rawPValue"] = this.getPValue(d);
+                });
+                phenotypesData = phenotypesData.sort(
+                    (a, b) => a.rawPValue - b.rawPValue
+                );
+                if (this.top1500) {
+                    // Restrict to the top 1500 phenotypes by p-value
+                    // for when 6500 traits are used.
+                    phenotypesData = phenotypesData.slice(0, 1500);
+                }
+                if (this.greaterThan) {
+                    // Shows the "significant" phenotypes first in the group.
+                    phenotypesData.reverse();
+                }
 
                 phenotypesData.map((d) => {
-                    let pValue =
-                        typeof d[this.renderConfig["y axis field"]] == "string"
-                            ? Number(d[this.renderConfig["y axis field"]])
-                            : d[this.renderConfig["y axis field"]];
-                    d["rawPValue"] = pValue;
-
                     if (
                         this.renderConfig["convert y -log10"] == true ||
                         this.renderConfig["convert y -log10"] == "true"
                     ) {
                         d[this.renderConfig["y axis field"] + "-log10"] =
-                            -Math.log10(pValue);
+                            -Math.log10(d["rawPValue"]);
                     }
 
                     if (
@@ -227,7 +247,7 @@ export default Vue.component("ResearchPhewasPlot", {
                     }
                 });
             }
-            if (!!this.filter) {
+            if (this.filter) {
                 content.data = content.data.filter(this.filter);
             }
 
@@ -239,19 +259,17 @@ export default Vue.component("ResearchPhewasPlot", {
             }
         },
         adjPlotMargin() {
-            let customPlotMargin = !!this.renderConfig["plot margin"]
+            let customPlotMargin = this.renderConfig["plot margin"]
                 ? this.renderConfig["plot margin"]
                 : null;
 
-            let plotMargin = !!customPlotMargin
+            let plotMargin = customPlotMargin
                 ? {
                       left: customPlotMargin.left,
                       right: customPlotMargin.right,
                       top: customPlotMargin.top,
                       bottom: customPlotMargin.bottom,
-                      bump: !!customPlotMargin.bump
-                          ? customPlotMargin.bump
-                          : 10,
+                      bump: customPlotMargin.bump ? customPlotMargin.bump : 10,
                   }
                 : {
                       left: this.plotMargin.leftMargin,
@@ -269,7 +287,22 @@ export default Vue.component("ResearchPhewasPlot", {
             this.renderPheWas();
         },
     },
+    created: function () {
+        this.renderPheWas();
+    },
+    mounted: function () {
+        window.addEventListener("resize", this.onResize);
+        this.renderPheWas();
+    },
+    beforeDestroy() {
+        window.removeEventListener("resize", this.onResize);
+    },
     methods: {
+        getPValue(d) {
+            return typeof d[this.renderConfig["y axis field"]] == "string"
+                ? Number(d[this.renderConfig["y axis field"]])
+                : d[this.renderConfig["y axis field"]];
+        },
         downloadImage(ID, NAME, TYPE) {
             if (TYPE == "svg") {
                 this.$refs[this.canvasId + "_pheWasPlot"].renderPlot();
@@ -346,11 +379,11 @@ export default Vue.component("ResearchPhewasPlot", {
             let rawX = e.clientX - rect.left;
             let rawY = e.clientY - rect.top;
 
-            let customPlotMargin = !!this.renderConfig["plot margin"]
+            let customPlotMargin = this.renderConfig["plot margin"]
                 ? this.renderConfig["plot margin"]
                 : null;
 
-            let plotMargin = !!customPlotMargin
+            let plotMargin = customPlotMargin
                 ? {
                       left: customPlotMargin.left,
                       right: customPlotMargin.right,
@@ -475,9 +508,7 @@ export default Vue.component("ResearchPhewasPlot", {
                     let calcString = "";
 
                     expression.map((e) => {
-                        let eValue = !!["+", "-", "*", "/", "(", ")"].includes(
-                            e
-                        )
+                        let eValue = ["+", "-", "*", "/", "(", ")"].includes(e)
                             ? e
                             : typeof e === "number"
                             ? e
@@ -505,7 +536,9 @@ export default Vue.component("ResearchPhewasPlot", {
             );
 
             if (!!canvas && !!wrapper) {
-                let canvasWidth = wrapper.clientWidth * 2;
+                let canvasWidth = this.renderConfig.width
+                    ? this.renderConfig.width * 2
+                    : wrapper.clientWidth * 2;
                 let canvasHeight = Number(this.renderConfig["height"]) * 2;
 
                 let c, ctx;
@@ -569,10 +602,10 @@ export default Vue.component("ResearchPhewasPlot", {
 
                 ctx.stroke();
 
-                let customPlotMargin = !!this.renderConfig["plot margin"]
+                let customPlotMargin = this.renderConfig["plot margin"]
                     ? this.renderConfig["plot margin"]
                     : null;
-                let plotMargin = !!customPlotMargin
+                let plotMargin = customPlotMargin
                     ? {
                           left: customPlotMargin.left,
                           right: customPlotMargin.right,
@@ -588,17 +621,19 @@ export default Vue.component("ResearchPhewasPlot", {
                           bump: 10,
                       };
 
-                this.utils.plotUtils.renderAxisWBump(
-                    ctx,
-                    canvasWidth,
-                    canvasHeight,
-                    plotMargin,
-                    "y",
-                    5,
-                    minY,
-                    maxY,
-                    this.renderConfig["y axis label"]
-                );
+                if (this.renderData.data.length > 1) {
+                    this.utils.plotUtils.renderAxisWBump(
+                        ctx,
+                        canvasWidth,
+                        canvasHeight,
+                        plotMargin,
+                        "y",
+                        5,
+                        minY,
+                        maxY,
+                        this.renderConfig["y axis label"]
+                    );
+                }
 
                 this.utils.plotUtils.renderAxisWBump(
                     ctx,
@@ -705,7 +740,14 @@ export default Vue.component("ResearchPhewasPlot", {
                                                   "y axis field"
                                               ] + "-log10"
                                           ]
-                                        : p[this.renderConfig["y axis field"]];
+                                        : !!p[
+                                              this.renderConfig["y axis field"]
+                                          ] &&
+                                          p[
+                                              this.renderConfig["y axis field"]
+                                          ] != 0
+                                        ? p[this.renderConfig["y axis field"]]
+                                        : 0;
 
                                 let yFromMinY = -minY + yValue;
 
@@ -720,22 +762,47 @@ export default Vue.component("ResearchPhewasPlot", {
                                         : this.phenotypeMap[
                                               p[this.renderConfig["render by"]]
                                           ]["description"];
+                                let passesThreshold = this.greaterThan
+                                    ? p.rawPValue >=
+                                      Number(this.renderConfig["thresholds"][0])
+                                    : p.rawPValue <=
+                                      Number(
+                                          this.renderConfig["thresholds"][0]
+                                      );
 
                                 if (
                                     this.renderConfig["beta field"] != "null" &&
                                     !!this.renderConfig["beta field"]
                                 ) {
-                                    this.renderTriangle(
-                                        ctx,
-                                        xPos,
-                                        yPos,
-                                        fillColor,
-                                        strokeColor,
-                                        Math.sign(
-                                            p[this.renderConfig["beta field"]]
-                                        )
-                                    );
+                                    if (
+                                        !!p[this.renderConfig["beta field"]] &&
+                                        p[this.renderConfig["beta field"]] != 0
+                                    ) {
+                                        this.renderTriangle(
+                                            ctx,
+                                            xPos,
+                                            yPos,
+                                            fillColor,
+                                            strokeColor,
+                                            Math.sign(
+                                                p[
+                                                    this.renderConfig[
+                                                        "beta field"
+                                                    ]
+                                                ]
+                                            )
+                                        );
+                                    } else {
+                                        this.renderDot(
+                                            ctx,
+                                            xPos,
+                                            yPos,
+                                            fillColor,
+                                            strokeColor
+                                        );
+                                    }
                                 } else {
+                                    // GENE PAGE PIGEAN PHEWAS
                                     this.renderDot(
                                         ctx,
                                         xPos,
@@ -775,37 +842,15 @@ export default Vue.component("ResearchPhewasPlot", {
                                 let labelXpos = labelOrigin + 24 * labelIndex;
 
                                 labelXpos = xPos > labelXpos ? xPos : labelXpos;
-
                                 if (
                                     labelIndex == 0 ||
-                                    labelXpos < maxWidthPerGroup
+                                    labelXpos < maxWidthPerGroup //|| passesThreshold
+                                    // This is incredibly messy
                                 ) {
                                     ctx.font = "22px Arial";
-                                    if (
-                                        !!this.renderConfig["label in black"] &&
-                                        this.renderConfig["label in black"] ==
-                                            "greater than"
-                                    ) {
-                                        ctx.fillStyle =
-                                            p.rawPValue >=
-                                            Number(
-                                                this.renderConfig[
-                                                    "thresholds"
-                                                ][0]
-                                            )
-                                                ? "#000000"
-                                                : "#00000050";
-                                    } else {
-                                        ctx.fillStyle =
-                                            p.rawPValue <=
-                                            Number(
-                                                this.renderConfig[
-                                                    "thresholds"
-                                                ][0]
-                                            )
-                                                ? "#000000"
-                                                : "#00000050";
-                                    }
+                                    ctx.fillStyle = passesThreshold
+                                        ? "#000000"
+                                        : "#00000050";
 
                                     ctx.save();
                                     ctx.translate(labelXpos + 10, yPos - 24);
@@ -846,7 +891,10 @@ export default Vue.component("ResearchPhewasPlot", {
                                         p[this.renderConfig["render by"]]
                                     ])
                             ) {
-                                if (this.renderConfig["beta field"] != "null") {
+                                if (
+                                    !!p[this.renderConfig["beta field"]] &&
+                                    p[this.renderConfig["beta field"]] != 0
+                                ) {
                                     this.renderTriangle(
                                         ctx,
                                         xPos,
@@ -903,7 +951,7 @@ export default Vue.component("ResearchPhewasPlot", {
                                     ctx.fillText(
                                         h + ": " + p[h],
                                         xPos + 15,
-                                        yPos + infoIndex * 20
+                                        yPos + infoIndex * 40
                                     );
                                     infoIndex++;
                                 });
@@ -1013,7 +1061,7 @@ export default Vue.component("ResearchPhewasPlot", {
                 .filter((s) => s.type == this.renderConfig["star key"])
                 .map((s) => s.id);
 
-            if (!!selectedItems.includes(ITEM)) {
+            if (selectedItems.includes(ITEM)) {
                 return true;
             } else {
                 return false;

@@ -138,8 +138,9 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
     }
     return data;
 }
-export const DEFAULT_SIGMA = "sigma2";
+export const DEFAULT_SIGMA = 2;
 export const DEFAULT_GENESET_SIZE = "small";
+export const DEFAULT_TRAIT_GROUP = "all";
 
 export default {
     query,
@@ -150,5 +151,6 @@ export default {
     BIO_INDEX_HOST,
     BIO_INDEX_HOST_PRIVATE,
     DEFAULT_SIGMA,
-    DEFAULT_GENESET_SIZE
+    DEFAULT_GENESET_SIZE,
+    DEFAULT_TRAIT_GROUP
 };

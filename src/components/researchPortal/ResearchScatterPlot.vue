@@ -1,11 +1,10 @@
 <template>
-	<div class="scatter-plot-content row" id="rp_scatter_plot" style="display: flex; flex-direction: row; justify-content: center;">
-		
-		
+	<div v-if="renderData.length > 0" class="scatter-plot-content row" id="rp_scatter_plot" style="display: flex; flex-direction: row; justify-content: center;">
 		<div class="" style="display: flex;">
 			<div class="">
 				<div :id="'scatter_dot_value' + sectionId" 
 					class="scatter-dot-value hidden"
+					@mouseenter="checkPosition($event, '', 'enter popup')"
 					>
 					<div :style="!!isDotPanelClick ? 'display:block' : 'display:none'" class="fixed-info-box-close" @click="checkPosition($event,'','click')">
 						<b-icon icon="x-circle-fill"></b-icon>
@@ -42,7 +41,7 @@
 			</div>
 				-->
 				<canvas
-					v-if="renderData.length > 0 && !!renderConfig && !groupsList && !multiList"
+					v-if="!!renderConfig && !groupsList && !multiList"
 					:id="'scatterPlot' + sectionId"
 					class="scatter-plot"
 					:width="plotDimension.width"
@@ -55,16 +54,17 @@
 						"
 					@mousemove="checkPosition($event, '', 'move')"
 					@click="checkPosition($event,'','click')"
+					@mouseleave="checkPosition($event, '', 'leave')"
 				>
 				</canvas>
 			</div>
 
-			<template v-if="renderData.length > 0 && !!renderConfig && !!multiList">
+			<template v-if="!!renderConfig && !!multiList">
 				<div class="scatter-plot-groups" style="display: flex; flex-wrap: wrap;">
 					<div class="scatter-plot-group" v-for="(fieldpair, index) in multiList">
 						<div class="colors-list">
 							<div v-for="anno, annoIndex in colorsList" class="anno-bubble-wrapper">
-								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex % 16]">&nbsp;</span>
 								<span>{{ anno }}</span>
 							</div>
 						</div>
@@ -81,6 +81,7 @@
 								'px;'"
 							@click="checkPosition($event, 'multi'+index, 'click')"
 							@mousemove="checkPosition($event, 'multi'+index, 'move')"
+							@mouseleave="checkPosition($event, '', 'leave')"
 						>
 						</canvas>
 					</div>
@@ -92,7 +93,7 @@
 				<div style="display:flex; flex-direction: column;">
 					<div style="display:flex; flex-direction: column;">
 						<label 
-							v-if="renderData.length > 0 && !!renderConfig && renderConfig['y axis fields'].length > 1"
+							v-if="!!renderConfig && renderConfig['y axis fields'].length > 1"
 						>
 							Y Axis
 						</label>
@@ -109,7 +110,7 @@
 						</select>
 
 						<label 
-							v-if="renderData.length > 0 && !!renderConfig && renderConfig['x axis fields'].length > 1"
+							v-if="!!renderConfig && renderConfig['x axis fields'].length > 1"
 						>
 							X Axis
 						</label>
@@ -127,7 +128,7 @@
 					</div>
 					<div class="color-key-options" style="display:flex; flex-direction: column;">
 						<label 
-							v-if="renderData.length > 0 && !!renderConfig && renderConfig['color by'].length > 1"
+							v-if="!!renderConfig && renderConfig['color by'].length > 1"
 						>
 							Color by
 						</label>
@@ -145,7 +146,7 @@
 
 						<div 
 							class="color-key"
-							v-if="renderData.length > 0 && !!renderConfig && !!colorByList 
+							v-if="!!renderConfig && !!colorByList 
 							&& !colorByGradient"
 						>
 							<div style="text-align: right; font-size: 10px; font-style: italic;">click key to highlight</div>
@@ -155,14 +156,14 @@
 								@click="setHighlightField($event, anno)"
 								style="cursor:pointer;"
 							>
-								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+								<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex % 16]">&nbsp;</span>
 								<span>{{ anno }}</span>
 							</div>
 						</div>
 
 						<div 
 							class="color-key"
-							v-if="renderData.length > 0 && !!renderConfig && !!colorByList 
+							v-if="!!renderConfig && !!colorByList 
 							&& !!colorByGradient"
 						>
 							<div style="text-align: right; font-size: 10px; font-style: italic;">drag sliders to highlight in range</div>
@@ -191,7 +192,7 @@
 					</div>
 				</div>
 				<!--
-				<template v-if="renderData.length > 0 && !!renderConfig && !!colorByList">
+				<template v-if="!!renderConfig && !!colorByList">
 				<div class="scatter-plot-groups" style="display: flex; flex-wrap: wrap;">
 					<div class="scatter-plot-group" v-for="color in colorByList[colorByField]">
 						<canvas
@@ -217,10 +218,10 @@
 			</div>
 		</div>
 
-		<template v-if="renderData.length > 0 && !!renderConfig && !!groupsList">
+		<template v-if="!!renderConfig && !!groupsList">
 			<div class="colors-list">
 				<div v-for="anno, annoIndex in colorsList" class="anno-bubble-wrapper">
-					<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex]">&nbsp;</span>
+					<span class="anno-bubble" :style="'background-color:'+ compareGroupColors[annoIndex % 16]">&nbsp;</span>
 					<span>{{ anno }}</span>
 				</div>
 			</div>
@@ -239,6 +240,7 @@
 					"
 				@click="checkPosition($event,group,'click')"
 				@mousemove="checkPosition($event, group, 'move')"
+				@mouseleave="checkPosition($event, '', 'leave')"
 			>
 			</canvas>
 		</template>
@@ -567,7 +569,7 @@ export default Vue.component("research-scatter-plot", {
 	},
 	watch: {
 		renderData(DATA){
-			console.log(DATA);
+			//console.log(DATA);
 			this.renderPlot()
 		},
 		groupsList(LIST){
@@ -662,7 +664,7 @@ export default Vue.component("research-scatter-plot", {
 				let cIndex = 0
 				this.colorsList.map(color =>{
 					let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] === color);
-					let dotColor = this.compareGroupColors[cIndex];
+					let dotColor = this.compareGroupColors[cIndex % 16];
 					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 					//this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 					cIndex++;
@@ -680,7 +682,8 @@ export default Vue.component("research-scatter-plot", {
 						if(GROUP[2]) colorField = GROUP[2]; //GROUP var for 'multi plot' is multi
 						this.colorByList[ colorField ].map(color => {
 							let coloredData = DATA.filter(d => d.color[ colorField ] === color);
-							let dotColor = this.compareGroupColors[cIndex];
+							let dotColor = this.compareGroupColors[cIndex % 16];
+							//console.log("dot 2", dotColor)
 							this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 							this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 							cIndex++;
@@ -693,7 +696,7 @@ export default Vue.component("research-scatter-plot", {
 						this.colorByList[ this.renderConfig["color field"] ].map(color => {
 							if(GROUP === color){
 								let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
-								let dotColor = this.compareGroupColors[cIndex];
+								let dotColor = this.compareGroupColors[cIndex % 16];
 								this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData, this.starItems, this.renderConfig["star key"]);
 								this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 								cIndex++;
@@ -748,7 +751,7 @@ export default Vue.component("research-scatter-plot", {
 							//so we can color them together
 							const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
 							//default, get dot color for this group from preset color list
-							let dotColor = this.compareGroupColors[cIndex];
+							let dotColor = this.compareGroupColors[cIndex % 16];
 							//if this value group was selected by user, change color opacities
 							//eg #ffffff50 > hi=#ffffff90, lo=#ffffff05
 							if(highlight){
@@ -988,6 +991,8 @@ export default Vue.component("research-scatter-plot", {
 			let data = (!!GROUP) ? this.posData[GROUP] : this.posData;
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
 			let wrapperContent = document.querySelector('#scatter_dot_value_content' + this.sectionId);
+
+			//console.log("sectionId",this.sectionId)
 			//let canvas = document.querySelector('#scatterPlot' + this.sectionId + GROUP);
 			let canvas = e.target;
 
@@ -1002,7 +1007,7 @@ export default Vue.component("research-scatter-plot", {
 			if (posData.length > 0) {
 				//console.log("dot", posData.length);
 				let posContent = posData.length > 5 && EVENT_TYPE == 'move' && !this.isDotPanelClick ? 
-					'<strong>There are more items to disply. <br />Click to view the full list.</strong><br /><br />' : "";
+					'<strong>There are more items to display. <br />Click to view the full list.</strong><br /><br />' : "";
 
 				let cIndex = 0;
 				posData.map(d => {
@@ -1066,19 +1071,19 @@ export default Vue.component("research-scatter-plot", {
 					wrapperContent.innerHTML = posContent;
 
 					//autoclose timeout
-					clearTimeout(this.dotPanelCloseTimer);
-					this.dotPanelCloseTimer = setTimeout(()=>{
+					//clearTimeout(this.dotPanelCloseTimer);
+					/* this.dotPanelCloseTimer = setTimeout(()=>{
 						this.isDotPanelClick = false;
 						wrapper.setAttribute("class", "scatter-dot-value hidden");
-					}, 10000);
+					}, 10000);*/
 				}
 
-				if(EVENT_TYPE == 'move') {
+				/*if(EVENT_TYPE == 'move') {
 					this.dotPanelCloseTimer = setTimeout(() => {
 						this.isDotPanelClick = false;
 						wrapper.setAttribute("class", "scatter-dot-value hidden");
 					}, 10000);
-				}
+				}*/
 
 			} else {
 				if (EVENT_TYPE == 'click') {
@@ -1086,9 +1091,22 @@ export default Vue.component("research-scatter-plot", {
 					wrapper.setAttribute("class", "scatter-dot-value hidden");
 					clearTimeout(this.dotPanelCloseTimer);
 				}
+
 				if (EVENT_TYPE == 'move' && !this.isDotPanelClick) {
 					wrapperContent.innerHTML = "";
 					wrapper.setAttribute("class", "scatter-dot-value hidden");
+					clearTimeout(this.dotPanelCloseTimer);
+				}
+
+				if(EVENT_TYPE == 'leave') {
+					this.dotPanelCloseTimer = setTimeout(() => {
+						this.isDotPanelClick = false;
+						wrapper.setAttribute("class", "scatter-dot-value hidden");
+					}, 2000);
+				}
+
+				if (EVENT_TYPE == 'enter popup') {
+					this.isDotPanelClick = true;
 					clearTimeout(this.dotPanelCloseTimer);
 				}
 			}
@@ -1119,7 +1137,7 @@ $(function () { });
     margin-bottom: 3px;
 }
 .anno-bubble-wrapper span {
-    font-size: 13px;
+    font-size: 13px !important;
     display: inline-block;
 }
 .anno-bubble-wrapper span.anno-bubble {

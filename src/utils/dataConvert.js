@@ -167,7 +167,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "raw":
-
                     let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
 
                     if (d[c["raw field"]] === 0) {
@@ -234,6 +233,14 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     tempObj[c["field name"]] = (!!PHENOTYPE_MAP[pID] ? PHENOTYPE_MAP[pID].description : pID);
                     d[c["field name"]] = tempObj[c["field name"]];
+                    break;
+
+                case "boolean to string":
+                    let value = d[c["raw field"]] === true || d[c["raw field"]] == 1 ? "true" :
+                        d[c["raw field"]] === false || d[c["raw field"]] === 0 ? "false" : ""
+
+                    tempObj[c["field name"]] = value;
+
                     break;
 
             }
@@ -374,6 +381,80 @@ let csv2Json = function (DATA) {
     return jsonData;
 };
 
+let tsv2Json = function (DATA) {
+    const lines = DATA.split('\n');
+    const headers = lines.shift().split('\t');
+    const jsonArray = [];
+    const ifNumber = (str) => {
+        return !isNaN(str) && str.trim() !== '' ? Number(str) : str;
+    }
+    lines.forEach(line => {
+        const values = line.split('\t');
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = ifNumber(values[index]);
+        });
+        jsonArray.push(obj);
+    });
+    return jsonArray;
+}
+
+let flatJson = function (DATA) {
+
+    /// first wrap values with comma
+
+    let wrappedData = []
+
+    DATA.map(row => {
+
+        let wrappedObj = {}
+
+        for (const [dKey, dValue] of Object.entries(row)) {
+
+            if (typeof dValue == 'string' && dValue.includes(',')) {
+                wrappedObj[dKey] = '"' + dValue + '"';
+            } else if (typeof dValue == 'object') {
+
+                let obj2Sting = JSON.stringify(dValue)
+
+                obj2Sting = obj2Sting.replaceAll('"', '');
+
+                if (obj2Sting.includes(',')) {
+
+                    obj2Sting = '"' + obj2Sting + '"';
+                }
+
+                wrappedObj[dKey] = obj2Sting;
+            }
+            else {
+                wrappedObj[dKey] = dValue;
+            }
+
+        }
+        wrappedData.push(wrappedObj);
+    })
+
+    let flatJson = [];
+
+    wrappedData.map(row => {
+        let flatObj = flatten(row);
+        flatJson.push(flatObj);
+    })
+
+    return flatJson;
+
+}
+
+let flatten = function (obj, path = '') {
+    if (!(obj instanceof Object)) return { [path.replace(/\.$/g, '')]: obj };
+
+    return Object.keys(obj).reduce((output, key) => {
+        return obj instanceof Array ?
+            { ...output, ...flatten(obj[key], path + '[' + key + '].') } :
+            { ...output, ...flatten(obj[key], path + key + '.') };
+    }, {});
+}
+
 let testNumber = function (STR) {
     let reg = /^-?[\d.]+(?:e-?\d+)?$/;
     return reg.test(STR);
@@ -494,5 +575,7 @@ const object2Array = function (DATASET, COMPARECONFIG, KEY) {
 export default {
     convertData,
     csv2Json,
-    object2Array
+    tsv2Json,
+    object2Array,
+    flatJson
 };

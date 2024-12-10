@@ -35,8 +35,8 @@
                     <gene-selectpicker></gene-selectpicker>
                 </div>
                 <div class="col filter-col-md">
-                    <div class="label">Gene set size preference</div>
-                    <sigma-selectpicker></sigma-selectpicker>
+                    <div class="label">Trait group</div>
+                    <trait-group-selectpicker></trait-group-selectpicker>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Number of gene sets included</div>
@@ -111,13 +111,10 @@
                             "
                             :label-formatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
+                                    $parent.pigeanMap[
+                                            phenotype
+                                        ]?.description
+                                    || phenotype
                             "
                             :multiple="true"
                         >
@@ -142,7 +139,7 @@
                                             $parent.phewasAdjustedData
                                         "
                                         :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                            $parent.pigeanMap
                                         "
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
@@ -156,11 +153,11 @@
                                     <pigean-plot
                                         v-if="$parent.plotReady"
                                         :pigean-data="
-                                            $store.state.pigeanGene.data
+                                            $parent.pigeanFilteredData
                                         "
                                         :config="$parent.pigeanPlotConfig"
                                         :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                            $parent.pigeanMap
                                         "
                                         :filter="filter"
                                     >
@@ -170,9 +167,9 @@
                             <div class="card-body pigean-table">
                                 <pigean-table
                                     v-if="$parent.plotReady"
-                                    :pigean-data="$store.state.pigeanGene.data"
+                                    :pigean-data="$parent.pigeanFilteredData"
                                     :phenotype-map="
-                                        $store.state.bioPortal.phenotypeMap
+                                        $parent.pigeanMap
                                     "
                                     :config="$parent.tableConfig"
                                     :filter="filter"

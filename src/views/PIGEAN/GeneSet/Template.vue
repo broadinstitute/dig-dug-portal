@@ -16,8 +16,8 @@
                     <geneset-selectpicker></geneset-selectpicker>
                 </div>
                 <div class="col filter-col-md">
-                    <div class="label">Gene set size preference</div>
-                    <sigma-selectpicker></sigma-selectpicker>
+                    <div class="label">Trait group</div>
+                    <trait-group-selectpicker></trait-group-selectpicker>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Number of gene sets included</div>
@@ -91,13 +91,10 @@
                             "
                             :label-formatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
+                                    $parent.pigeanMap[
+                                            phenotype
+                                        ]?.description
+                                    || phenotype
                             "
                             :multiple="true"
                         >
@@ -121,9 +118,7 @@
                                         :phenotypes-data="
                                             $parent.phewasAdjustedData
                                         "
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
                                         :utils="$parent.utilsBox"
@@ -139,9 +134,7 @@
                                             $store.state.pigeanGeneset.data
                                         "
                                         :config="$parent.pigeanPlotConfig"
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
                                         :filter="filter"
                                     >
                                     </pigean-plot>
@@ -152,9 +145,7 @@
                                         :pigean-data="
                                             $store.state.pigeanGeneset.data
                                         "
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
                                         :config="$parent.tableConfig"
                                         :filter="filter"
                                     >

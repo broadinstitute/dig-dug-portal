@@ -647,7 +647,7 @@ const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX,
     let xStep = plotWidth / (XMAX - XMIN);
     let yStep = plotHeight / (YMAX - YMIN);
 
-    let stared = [...new Set(STARS.filter(s => s.type == STAR_FIELD).map(s => s.id))];
+    let stared = (STARS) ? [...new Set(STARS.filter(s => s.type == STAR_FIELD).map(s => s.id))] : [];
 
     DATA.map(d => {
         let xVal = d.xValue ? d.xValue : d.x;

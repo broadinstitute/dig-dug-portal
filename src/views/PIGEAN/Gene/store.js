@@ -14,15 +14,17 @@ export default new Vuex.Store({
         kp4cd,
         gene: bioIndex("gene"),
         pigeanGene: bioIndex("pigean-gene"),
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },
     state: {
         geneName: keyParams.gene,
-        sigma: keyParams.sigma || bioIndexUtils.DEFAULT_SIGMA,
         genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
         geneToQuery: "",
-        sigmaToQuery: null,
         genesetSizeToQuery: null,
         aliasName: null,
+        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroupToQuery: null,
+        phewasData: [],
     },
 
     mutations: {
@@ -30,13 +32,13 @@ export default new Vuex.Store({
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
         },
-        setSigma(state, sigma){
-            state.sigma = sigma || state.sigma;
-            keyParams.set({ sigma: state.sigma });
-        },
         setGenesetSize(state, genesetSize){
             state.genesetSize = genesetSize || state.genesetSize;
             keyParams.set({ genesetSize: state.genesetSize });
+        },
+        setTraitGroup(state, traitGroup){
+            state.traitGroup = traitGroup || state.traitGroup;
+            keyParams.set({ traitGroup: state.traitGroup });
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
@@ -45,6 +47,9 @@ export default new Vuex.Store({
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
         },
+        setPhewasData(state, phewasData){
+            state.phewasData = phewasData || state.phewasData;
+        }
     },
 
     getters: {
@@ -73,18 +78,35 @@ export default new Vuex.Store({
     actions: {
         async queryGeneName(context, symbol) {
             let name = context.state.geneToQuery || context.state.geneName;
-            let sigma = context.state.sigmaToQuery || context.state.sigma;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
+            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setGeneName", name);
-            context.commit("setSigma", sigma);
             context.commit("setGenesetSize", genesetSize);
-
-            let sigmaInt = parseInt(sigma.slice(-1));
+            context.commit("setTraitGroup", traitGroup);
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
-                context.dispatch("pigeanGene/query", { q: 
-                    `${name},${sigmaInt},${genesetSize}` });
+                if (traitGroup !== 'all'){
+                    await context.dispatch("pigeanGene/query", { q: 
+                        `${traitGroup},${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`});
+                    context.commit("setPhewasData", context.state.pigeanGene.data);
+                } else {
+                    // If ALL is selected, query all trait groups and get top results across all
+                    const TRAIT_GROUPS = ["portal", "gcat_trait", "rare_v2"];
+                    let traitsData = [];
+                    for (let i = 0; i < TRAIT_GROUPS.length; i++){
+                        let group = TRAIT_GROUPS[i];
+                        let traitQuery = `${group},${context.state.geneName},${
+                            bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
+                        let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
+                        traitsData = traitsData.concat(groupData);
+                    }
+                    traitsData = traitsData.sort((a,b) => b.combined - a.combined);
+                    context.commit("setPhewasData", traitsData.slice(0,1500));
+                }
             }
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
     },
 });

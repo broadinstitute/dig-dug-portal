@@ -2,17 +2,11 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-Vue.config.productionTip = false;
-
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import NewsFeedSection from "@/components/frontPage/NewsFeedSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 import DiseaseSystems from "@/components/DiseaseSystems.vue";
-import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
-import Documentation from "@/components/Documentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
@@ -21,37 +15,27 @@ import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
+import pigeanUtils from "@/utils/pigeanUtils.js";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert,
-} from "@/components/Alert";
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
-
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         PhenotypeSelectPicker,
         DatasetSelectPicker,
         NewsFeedSection,
         DiseaseGroupSelect,
-        TooltipDocumentation,
-        Documentation,
         Autocomplete,
         ResearchSingleSearch,
         ResearchPageDescription,
         DiseaseSystems,
     },
+    mixins: [pageMixin],
 
     data: {
         selected: "",
@@ -146,10 +130,6 @@ new Vue({
             };
             return utils;
         },
-
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
         diseaseGroups() {
             return this.$store.state.bioPortal.diseaseGroups;
         },
@@ -172,14 +152,6 @@ new Vue({
         },
         matchingGenes() {
             return this.$store.state.matchingGenes;
-        },
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
         },
         geneOrRegionOrVariant() {
             return this.$store.state.geneOrRegionOrVariant;
@@ -398,20 +370,18 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.getStats();
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.formatAllPhenotypes();
     },
 
     methods: {
         ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
         showHideElement(ID) {
             uiUtils.showHideElement(ID);
         },
@@ -425,9 +395,7 @@ new Vue({
                 let data = dataConvert.csv2Json(
                     contJson[0]["field_data_points"]
                 );
-                console.log(data);
                 this.stats = data;
-                console.log(this.stats);
             }
         },
         capitalize(str) {
@@ -435,6 +403,14 @@ new Vue({
                 return char.toUpperCase();
             });
         },
+        formatAllPhenotypes(){
+            let newPhenotypes = this.$store.state.pigeanAllPhenotypes.data;
+            let output = [];
+            for (let i = 0; i < newPhenotypes.length; i++){
+                output.push(pigeanUtils.toOldStyle(newPhenotypes[i]));
+            }
+            this.$store.dispatch("phenotypesInSession", output);
+        }
     },
 
     render(createElement, context) {
