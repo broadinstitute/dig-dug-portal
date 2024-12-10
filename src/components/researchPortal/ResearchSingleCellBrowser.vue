@@ -32,6 +32,7 @@
                 </div>
             </div>
             <div class="" style="display:flex; gap:5px">
+                <!--left tab group-->
                 <div class="tabs-group">
                     <div class="tabs-wrapper" style="align-self:flex-end">
                         <div class="tab" 
@@ -68,13 +69,24 @@
                                         :isLoading="isLoadingData"
                                     />
                                 </div>
-                                <div v-if="colorByOptions" style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
+                                <div v-if="colorByOptions" style="display:flex; flex-direction: column; align-self: flex-start; width:200px; height:400px">
                                     <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
+                                    <research-single-cell-selector 
+                                        :data="rawData['metadata_labels']"
+                                        layout="dropdown"
+                                        :colors="labelColors"
+                                        :defaultLabel="cellCompositionVars['a'].colorByLabel"
+                                        @on-update="handleSelectorUpdate($event, 'a', '1')"
+                                        @on-hover="handleSelectorHover($event, 'a', '1')"
+                                    />
+
+                                    <!--
                                     <div style="display:flex; flex-direction: column; height: 400px">
                                         <div style="display:flex; gap:5px;">
                                             <div class="colorize-option"
                                                 :class="cellCompositionVars['a'].highlightLabels.length===0?'active':''"
                                                 @click="resetLabels('a')"
+                                                v-b-tooltip:hover.left="'color all labels'"
                                             >
                                                 <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                                             </div>
@@ -95,10 +107,10 @@
                                                 <div class="colorize-option"
                                                     :class="(cellCompositionVars['a'].highlightLabels.length===0||cellCompositionVars['a'].highlightLabels.includes(label))?'active':''"
                                                     @click="labelClick(label, 'a')"
+                                                    v-b-tooltip:hover.left.window="'isolate label'"
                                                 >
                                                     <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="color"/></svg>
                                                 </div>
-                                                <!--<div :style="`width:10px; height:21px; background:${color}; pointer-events:none;`"></div>-->
                                                 <div style="white-space: nowrap; cursor:default"
                                                     :style="`opacity:${(cellCompositionVars['a'].highlightLabel!==''&&cellCompositionVars['a'].highlightLabel!==label)?'0.5':'1'}`"
                                                 >
@@ -107,6 +119,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    -->
                                 </div>
                             </div>
                             <div>
@@ -162,11 +175,12 @@
                                             </button>
                                         </div>
                                         <div v-if="expressionStats.length>0" style="margin-top:4px; flex-grow:1; overflow-x: hidden; overflow-y: auto;">
-                                            <div  v-for="gene in Object.keys(expressionStats[0])" style="display:flex; flex-direction: column;">
+                                            <div v-for="gene in Object.keys(expressionStats[0])" style="display:flex; flex-direction: column;">
                                                 <div style="display:flex; gap: 5px;">
                                                     <div class="colorize-option" 
                                                         :class="geneExpressionVars['a'].selectedGene===gene?'active':''"
                                                         @click="geneClick(gene, 'a')"
+                                                        v-b-tooltip:hover.left.window="'color by gene'"
                                                     >
                                                         <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                                                     </div>
@@ -204,6 +218,7 @@
                     </div>
                 </div>
                 <div style="padding: 4px 0 0 0">vs</div>
+                <!--right tab group-->
                 <div class="tabs-group">
                     <div class="tabs-wrapper">
                         <div class="tab" 
@@ -242,11 +257,21 @@
                                 </div>
                                 <div v-if="colorByOptions" style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
                                     <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
+                                    <research-single-cell-selector 
+                                        :data="rawData['metadata_labels']"
+                                        layout="dropdown"
+                                        :colors="labelColors"
+                                        :defaultLabel="cellCompositionVars['b'].colorByLabel"
+                                        @on-update="handleSelectorUpdate($event, 'b', '1')"
+                                        @on-hover="handleSelectorHover($event, 'b', '1')"
+                                    />
+                                    <!--
                                     <div style="display:flex; flex-direction: column; height: 400px">
                                         <div style="display:flex; gap:5px;">
                                             <div class="colorize-option"
                                                 :class="cellCompositionVars['b'].highlightLabels.length===0?'active':''"
                                                 @click="resetLabels('a')"
+                                                v-b-tooltip:hover.left="'color all labels'"
                                             >
                                                 <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                                             </div>
@@ -267,10 +292,10 @@
                                                 <div class="colorize-option"
                                                     :class="(cellCompositionVars['b'].highlightLabels.length===0||cellCompositionVars['b'].highlightLabels.includes(label))?'active':''"
                                                     @click="labelClick(label, 'b')"
+                                                    v-b-tooltip:hover.left.window="'isolate label'"
                                                 >
                                                     <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="color"/></svg>
                                                 </div>
-                                                <!--<div :style="`width:10px; height:21px; background:${color}; pointer-events:none;`"></div>-->
                                                 <div style="white-space: nowrap; cursor:default"
                                                     :style="`opacity:${(cellCompositionVars['b'].highlightLabel!==''&&cellCompositionVars['b'].highlightLabel!==label)?'0.5':'1'}`"
                                                 >
@@ -279,6 +304,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    -->
                                 </div>
                             </div>
                             <div>
@@ -339,6 +365,7 @@
                                                     <div class="colorize-option" 
                                                         :class="geneExpressionVars['b'].selectedGene===gene?'active':''"
                                                         @click="geneClick(gene, 'b')"
+                                                        v-b-tooltip:hover.left.window="'color by gene'"
                                                     >
                                                         <svg viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                                                     </div>
@@ -377,7 +404,8 @@
                 </div>
             </div>
 
-            <div style="display:flex; gap:20px">
+            <div style="display:flex; gap:25px">
+                <!-- cell proportion-->
                 <div v-if="showCellProportion" style="display:flex; flex-direction: column; gap:20px; border:1px solid #ddd; padding:20px;">
                     <div v-if="segmentByCounts" style="display:flex; flex-direction: column; width: min-content; gap:20px;">
                         <div style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">Cell Proportion</span> <span style="font-style: italic;">{{ segmentByLabel }}</span> per <span style="font-style: italic;">{{ displayByLabel }}</span></div>
@@ -442,6 +470,7 @@
                         />
                     </div>
                 </div>
+                <!-- marker genes-->
                 <div v-if="showMarkerGenes" style="display:flex; flex-direction: column; gap:20px; border:1px solid #ddd; padding:20px;">
                     <div v-if="expressionStats.length>0" style="display:flex; flex-direction: column; width: min-content;">
                         <div style="display:flex; justify-content: space-between;">
@@ -498,6 +527,7 @@
     import ResearchBarPlotV2 from "@/components/researchPortal/ResearchBarPlotV2.vue";
     import ResearchDotPlot from "@/components/researchPortal/ResearchDotPlot.vue";
     import ResearchViolinPlot from "@/components/researchPortal/ResearchViolinPlot.vue";
+    import ResearchSingleCellSelector from "@/components/researchPortal/ResearchSingleCellSelector.vue";
 
     const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"]
 
@@ -506,7 +536,8 @@
             ResearchUmapPlot,
             ResearchBarPlotV2,
             ResearchDotPlot,
-            ResearchViolinPlot
+            ResearchViolinPlot,
+            ResearchSingleCellSelector
         },
         props: {
             sectionId: {
@@ -586,7 +617,6 @@
                 segmentByCounts: null,
 
                 datasetId: null,
-                datasetName: null,
                 cellTypeField: null,
 
                 geneNames: [],
@@ -595,7 +625,6 @@
 
                 dataLoaded: false,
                 preloadItem: '',
-                tissueDisplay: '',
                 highlightHoverTimeout: null,
 
                 selectedTabs: {"a":"1", "b":"2"},
@@ -637,23 +666,48 @@
                 if(data.id===this.sectionId){
                     console.log(this.sectionId, 'Received on-select event:', data);
                     this.datasetId = data.value;
+                    if(this.renderConfig["parameters"]?.datasetId){
+                        keyParams.set({[this.renderConfig["parameters"]?.datasetId] : this.datasetId});
+                    }
                     this.init();
                 }
             },
-            async init(){
-                /*
-                if(this.data.length !== 1){
-                    if(this.datasetData) {
-                        console.log('--->', this.datasetData);
-                    }else{
-                        console.log("please select a dataset");
-                        return;
+            clean(){
+                this.expressionStats = [];
+                this.cellCompositionVars = {
+                    "a": {
+                        umapColors: null,
+                        colorByLabel: null,
+                        highlightLabel: '',
+                        highlightLabels: [],
+                        cellTypeInfo: null
+                    },
+                    "b": {
+                        umapColors: null,
+                        colorByLabel: null,
+                        highlightLabel: '',
+                        highlightLabels: [],
+                        cellTypeInfo: null
                     }
-                }else{
-                    this.datasetId = this.data[0].datasetId;
+                },
+                this.geneExpressionVars = {
+                    "a": {
+                        umapGeneColors: null,
+                        selectedGene: null,
+                        expressionStats: [],
+                        selectedLabel: null,
+                    },
+                    "b": {
+                        umapGeneColors: null,
+                        selectedGene: null,
+                        expressionStats: [],
+                        selectedLabel: null,
+                    }
                 }
-                */
-
+            },
+            async init(){
+                //check which components to enable based on cofig options
+                //all are enabled by default
                 this.componentsConfig = this.renderConfig["components"];
                 this.showCellInfo = this.componentsConfig?.["cell info"]?.enabled ?? true;
                 this.showCellProportion = this.componentsConfig?.["cell proportion"]?.enabled ?? true;
@@ -662,25 +716,38 @@
 
                 this.presetsConfig = this.renderConfig["presets"];
 
-                //if user has not selected a dataset from the list
+                //check for datasetId
+                /* it can come from multiple places
+                    1. 'on-select' event from byor
+                    2. query string param
+                    3. config preset
+                */
                 if(!this.datasetId || this.datasetId === ''){
-                    if(this.presetsConfig?.datasetId){
+                    if(keyParams[this.renderConfig["parameters"]?.datasetId]){
+                        this.datasetId = keyParams[this.renderConfig["parameters"].datasetId];
+                    }else if(this.presetsConfig?.datasetId){
                         this.datasetId = this.presetsConfig.datasetId
                     }else{
                         console.log('select a dataset');
                         return;
                     }
                 }
-                
-                console.log(`loading dataset: ${this.datasetData.datasetId}`);
+
+                console.log(`requested dataset: ${this.datasetId}`);
+
+                //make sure it exists in the metadata
+                if(!this.data.find(x => x.datasetId === this.datasetId)){
+                    console.log('dataset', this.datasetId, 'not in collection');
+                    this.datasetId = null;
+                    return;
+                }
+
                 console.log('   data', this.datasetData);
 
-                this.tissueDisplay = this.datasetData["Tissue"];
-                this.datasetName = this.datasetData["Name"];
-                this.cellTypeField = this.presetsConfig?.["cell type label"];
-                console.log("cellTypeField", this.cellTypeField, this.presetsConfig);
-                this.cellCompositionVars['a'].colorByLabel = this.cellTypeField;
-
+                //clear existing data
+                this.clean();
+                
+                //fetch base data
                 this.dataLoaded = false;
                 this.preloadItem = 'fields';
                 this.rawData = await this.fetchFields();
@@ -697,9 +764,17 @@
 
                 //pre-calculate colors for fields in each category
                 this.labelColors = this.calcLabelColors(this.rawData);
+                
                 this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ');
                 
                 this.getColorByOptions();
+
+                //which label designates cell types
+                this.cellTypeField = this.presetsConfig?.["cell type label"];
+
+                console.log("cellTypeField", this.cellTypeField, this.presetsConfig);
+
+                this.cellCompositionVars['a'].colorByLabel = this.cellTypeField;
 
                 this.selectColorBy(this.cellTypeField, 'a');
                 this.selectColorBy(this.cellTypeField, 'b');
@@ -721,17 +796,17 @@
                     console.log('cell proportion component disabled')
                 }
 
-                this.expressionStats = [];
-                
-
-                if(keyParams.gene){
-                    this.fetchGeneExpression(keyParams.gene.toUpperCase());
+                //load gene data from parameters
+                if(this.renderConfig["parameters"]?.gene){
+                    if(keyParams[this.renderConfig["parameters"].gene]){
+                        this.fetchGeneExpression(keyParams.gene.toUpperCase());
+                    }
                 }
-
                 
+                //load gene data from config
                 if(this.presetsConfig?.["genes"]){
                     this.presetsConfig["genes"].forEach(async (gene) => {
-                        await this.fetchGeneExpression(gene.toUpperCase());
+                        this.fetchGeneExpression(gene.toUpperCase());
                     })
                 }
                 
@@ -748,22 +823,10 @@
 
                 this.colorByOptions = colorByOptions2;
             },
-            updateDataUrl(url, paramaters){
-                let updatedUrl = url;
-                //tmp
-                //updatedUrl = updatedUrl.replace(`$datasetId`, this.datasetData['Tissue'].toLowerCase());
-
-                //use below once metadata is fixed
-                paramaters.forEach(param => {
-                    if(param !== 'gene')
-                        updatedUrl = updatedUrl.replace(`$${param}`, this.datasetData[param]); //.toLowerCase().replaceAll(" ", "_")
-                })
-                return updatedUrl;
-            },
             async fetchFields() {
                 console.log('getting fields');
                 const fieldsDataPoint = this.renderConfig["data points"].find(x => x.role === "fields");
-                const fieldsUrl = this.updateDataUrl(fieldsDataPoint.url, fieldsDataPoint.parameters);
+                const fieldsUrl = fieldsDataPoint.url.replace('$datasetId', this.datasetId);
                 try {
                     const response = await fetch(fieldsUrl);
                     const rawData = await response.json();
@@ -777,7 +840,7 @@
             async fetchCoordinates() {
                 console.log('getting coordinates');
                 const coordinatesDataPoint = this.renderConfig["data points"].find(x => x.role === "coordinates");
-                const coordinatesUrl = this.updateDataUrl(coordinatesDataPoint.url, coordinatesDataPoint.parameters);
+                const coordinatesUrl = coordinatesDataPoint.url.replace('$datasetId', this.datasetId);
                 try {
                     const response = await fetch(coordinatesUrl);
                     const json = this.utils.dataConvert.tsv2Json(await response.text());
@@ -790,11 +853,11 @@
             async fetchGeneExpression(gene){
                 console.log('fetchGeneExpression', gene);
                 const expressionDataPoint = this.renderConfig["data points"].find(x => x.role === "expression");
-                const expressionUrl = this.updateDataUrl(expressionDataPoint.url, expressionDataPoint.parameters);
+                const expressionUrl = expressionDataPoint.url.replace('$datasetId', this.datasetId).replace('$gene', gene);
                 //this.isLoading = true;
                 await Vue.nextTick();
                 try{
-                    const response = await fetch(expressionUrl+','+gene);
+                    const response = await fetch(expressionUrl);
                     const json = await response.json();
                     const expression = json.data[0]['expression'];
                     this.geneNames.push(gene);
@@ -924,6 +987,17 @@
                     return true;
                 }
                 return false;
+            },
+
+            handleSelectorUpdate(e, group, id){
+                console.log('selector updated', group, id, e);
+                this.cellCompositionVars[group].highlightLabels = e.coloredLabels;
+                this.selectColorBy(e.coloredField, group);
+            },
+
+            handleSelectorHover(e, group, id){
+                console.log('selector hovered', group, id, e);
+                this.cellCompositionVars[group].highlightLabel = e.hoveredLabel;
             },
 
             /*
