@@ -1,5 +1,6 @@
 <template>
     <select v-model="traitGroup" class="form-control">
+        <option value="all">All</option>
         <option value="portal">A2F</option>
         <option value="gcat_trait">GWAS Catalog</option>
         <option value="rare_v2">Orphanet</option>
