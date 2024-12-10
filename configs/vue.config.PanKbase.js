@@ -17,6 +17,55 @@ let pages = {
         title: "Page Not Found",
         chunks: ["chunk-vendors", "chunk-common", "page404"],
     },
+    databrowser: {
+        entry: "src/portals/PanKbase/views/DataBrowser/main.js",
+        template: "public/index.html",
+        filename: "databrowser.html",
+        title: "Data Browser",
+        chunks: ["chunk-vendors", "chunk-common", "databrowser"],
+    },
+    singlecell: {
+        entry: "src/portals/PanKbase/views/SingleCell/main.js",
+        template: "public/index.html",
+        filename: "singlecell.html",
+        title: "Single Cell",
+        chunks: ["chunk-vendors", "chunk-common", "singlecell"],
+    },
+    about: {
+        entry: "src/portals/PanKbase/views/About/main.js",
+        template: "public/index.html",
+        filename: "about.html",
+        title: "About",
+        chunks: ["chunk-vendors", "chunk-common", "about"],
+    },
+    programs: {
+        entry: "src/portals/PanKbase/views/Programs/main.js",
+        template: "public/index.html",
+        filename: "programs.html",
+        title: "Programs",
+        chunks: ["chunk-vendors", "chunk-common", "programs"],
+    },
+    people: {
+        entry: "src/portals/PanKbase/views/People/main.js",
+        template: "public/index.html",
+        filename: "people.html",
+        title: "People",
+        chunks: ["chunk-vendors", "chunk-common", "people"],
+    },
+    help: {
+        entry: "src/portals/PanKbase/views/Help/main.js",
+        template: "public/index.html",
+        filename: "help.html",
+        title: "Help",
+        chunks: ["chunk-vendors", "chunk-common", "help"],
+    },
+    contact: {
+        entry: "src/portals/PanKbase/views/Contact/main.js",
+        template: "public/index.html",
+        filename: "contact.html",
+        title: "Contact",
+        chunks: ["chunk-vendors", "chunk-common", "contact"],
+    },
 };
 
 module.exports = {
