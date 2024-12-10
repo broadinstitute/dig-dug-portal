@@ -100,7 +100,8 @@ export default new Vuex.Store({
                         let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
                         traitsData = traitsData.concat(groupData);
                     }
-                    context.commit("setPhewasData", traitsData);
+                    traitsData = traitsData.sort((a,b) => b.combined - a.combined);
+                    context.commit("setPhewasData", traitsData.slice(0,1500));
                 }
             }
         },

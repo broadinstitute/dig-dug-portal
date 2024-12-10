@@ -160,7 +160,6 @@ new Vue({
         },
         pigeanFilteredData(){
             let rawData = structuredClone(this.phewasAllData);
-            console.log("Raw data", JSON.stringify(rawData));
             let filteredData = rawData.filter(item => item.log_bf > 0 || item.prior > 0);
             return filteredData;
         },
@@ -176,7 +175,7 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         phewasAllData(newData){
-            console.log("watching", JSON.stringify(newData));
+            //console.log("watching", JSON.stringify(newData));
         }
     },
 
