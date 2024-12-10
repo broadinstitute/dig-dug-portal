@@ -812,10 +812,12 @@ export default Vue.component("research-data-table", {
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
 						this.queryBioindex(paramsString, paramsType, params, dataPoint, tableFormat,INDEX, KEY);
 						break;
-					/*case "api":
-						this.queryApi(paramsString, paramsType, params);
+					case "api":
+
+					console.log(paramsString, paramsType, params, dataPoint, tableFormat,KEY)
+						this.queryApi(paramsString, paramsType, params, dataPoint, tableFormat,INDEX, KEY);
 						break;
-					case "file":
+					/*case "file":
 						let parameter = this.dataPoint["parameter"]
 						this.queryFile(parameter);
 						break;*/
@@ -891,6 +893,115 @@ export default Vue.component("research-data-table", {
 
 			let data = CONTENT.data;
 
+
+			// if loaded data is processed
+			let tableFormat = TABLE_FORMAT;
+
+			if (!!tableFormat && !!tableFormat["data convert"]) {
+				let convertConfig = tableFormat["data convert"];
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+			}
+
+			// Apply pre-filters
+
+			if(!!tableFormat["pre filters"]) {
+
+				let tempArr = [...new Set(data)];
+
+				tableFormat["pre filters"].map(filter =>{
+
+					switch (filter.type) {
+						case 'filter out':
+							filter.values.map(v => {
+								tempArr = tempArr.filter(f => f[filter.field] != v);
+							})
+							
+							break;
+					}
+				})
+
+				data = tempArr;
+			}
+
+			//
+
+			let tempObj = {
+				key: this.getRowID(KEY+QUERY+INDEX),
+				data: data
+			}
+
+			this.subSectionData.push(tempObj);
+
+			if (!!CONTENT.continuation) {
+				this.queryBiContinue(CONTENT.continuation, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+			}
+			/* implement pre filters later */
+				//data = this.checkPreFilters(data)			
+		},
+
+		async queryApi(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
+
+			console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+
+			let dataUrl = DATA_POINT.url;
+			let fKEY = this.getRowID(KEY + QUERY + INDEX);
+
+			if (TYPE == "replace") {
+				PARAMS.map((param, pIndex) => {
+					if (!!QUERY.split(",")[pIndex]) {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					} else {
+						dataUrl = dataUrl.replace("$" + param + ",", '');
+						dataUrl = dataUrl.replace(",$" + param, '');
+						dataUrl = dataUrl.replace("$" + param, '');
+					}
+				})
+
+			}
+
+			this.subSectionLoading.push(fKEY); //start loading
+			try {
+
+				let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+				this.subSectionLoading.splice(this.subSectionLoading.indexOf(fKEY), 1); //finish loading
+
+				if (contentJson) {
+					
+					let data = {}
+					if(!!DATA_POINT["data wrapper"]) {
+
+					let dataEntity = contentJson;
+
+						DATA_POINT["data wrapper"].map(w => {
+
+							dataEntity = dataEntity[w];
+						})
+
+						if (!Array.isArray(dataEntity)) {
+							dataEntity = [dataEntity];
+						}
+
+						data["data"] = dataEntity;
+
+					} else {
+						data["data"] = CONTENT
+					}
+
+					this.processLoadedApi(data, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+				}
+
+			} catch (error) {
+				console.log(error);
+			}
+		
+		},
+
+		processLoadedApi(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
+
+			let data = CONTENT.data;
+
+			console.log("data",data);
 
 			// if loaded data is processed
 			let tableFormat = TABLE_FORMAT;
