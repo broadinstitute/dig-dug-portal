@@ -64,10 +64,9 @@ export default new Vuex.Store({
                 context.commit("setPhewasData", context.state.pigeanGeneset.data);
             } else {
                 // If ALL is selected, query all trait groups and get top results across all
-                const TRAIT_GROUPS = ["portal", "gcat_trait", "rare_v2"];
                 let traitsData = [];
-                for (let i = 0; i < TRAIT_GROUPS.length; i++){
-                    let group = TRAIT_GROUPS[i];
+                for (let i = 0; i < bioIndexUtils.TRAIT_GROUPS.length; i++){
+                    let group = bioIndexUtils.TRAIT_GROUPS[i];
                     let traitQuery = `${group},${name},${
                         bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`;
                     let groupData = await bioIndexUtils.query("pigean-gene-set", traitQuery);
