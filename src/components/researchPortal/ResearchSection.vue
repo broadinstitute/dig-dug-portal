@@ -271,8 +271,9 @@
 								<div v-for="tab, tabIndex in tableFormat['tabs']" :id="'tabUi' + sectionID + tab['id']"
 									class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tab['id'],
 										'tableTabs' + sectionID,
-										'tableContent' + sectionID + tab['id'], 'tableContentGroup' + sectionID, false)">
-									{{ utils.Formatters.replaceWithParams(tab['header'], pageParams) }}
+										'tableContent' + sectionID + tab['id'], 'tableContentGroup' + sectionID, false)"
+									v-html="utils.Formatters.replaceWithParams(tab['header'], pageParams)"
+									>
 								</div>
 							</div>
 
