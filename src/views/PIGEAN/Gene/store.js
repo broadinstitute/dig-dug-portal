@@ -48,7 +48,7 @@ export default new Vuex.Store({
             state.aliasName = aliasName || state.aliasName;
         },
         setPhewasData(state, phewasData){
-            state.phewasData = phewasData || state.phewasData;
+            state.phewasData = phewasData;
         }
     },
 
@@ -77,6 +77,7 @@ export default new Vuex.Store({
 
     actions: {
         async queryGeneName(context, symbol) {
+            await context.commit("setPhewasData", []);
             let name = context.state.geneToQuery || context.state.geneName;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
             let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
