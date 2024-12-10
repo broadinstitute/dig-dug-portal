@@ -42,7 +42,6 @@ export default new Vuex.Store({
         },
         setPhewasData(state, phewasData){
             state.phewasData = phewasData;
-            console.log(JSON.stringify(phewasData));
         }
     },
 
