@@ -3,11 +3,14 @@
         <strong>{{ title }}</strong>
         <div v-if="points" style="display:flex; align-items: center; justify-content: flex-end; gap:5px; position: absolute; right: 5px; top: 5px; z-index: 1">
             <!--<div><span style="font-family: monospace;">{{ points.length.toLocaleString() }}</span> cells</div>-->
-            <button @click="showLabels = !showLabels">
+            <button @click="showLabels = !showLabels" v-b-tooltip.hover.bottom title="toggle labels">
                 <svg style="width:20px;" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"  xml:space="preserve" transform="rotate(270)"><path d="M24.896 9.463a.997.997 0 0 0-.707-.293l-12.957-.001a1 1 0 0 0-1 .996l-.046 13.005a.998.998 0 0 0 .293.711l16.995 16.995a.997.997 0 0 0 1.414 0l13.004-13.004a.999.999 0 0 0 0-1.414L24.896 9.463zm3.285 29.292L12.188 22.761l.041-11.592 11.547.001 15.995 15.995-11.59 11.59z"/><circle cx="20.362" cy="19.346" r="2.61"/></svg>
             </button>
-            <button @click="resetPanZoom">
+            <button @click="resetPanZoom" v-b-tooltip.hover.bottom title="recenter">
                 <svg style="width:18px;" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M6 12H4V4h8v2H6v6zM28 12h-2V6h-6V4h8v8zM12 28H4v-8h2v6h6v2zM28 28h-8v-2h6v-6h2v8zM15 10h2v4h-2zM10 15h4v2h-4zM18 15h4v2h-4zM15 18h2v4h-2z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
+            </button>
+            <button v-b-tooltip.hover.bottom.html title="zoom: mouse wheel or pinch<br>pan: click + drag">
+                <svg style="width:18px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 19.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Zm0 1.5a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm.75-6v1.5h-1.5V15h1.5Zm-2.25-4.568C10.5 9.662 11.15 9 12 9s1.5.663 1.5 1.432c0 .307-.185.671-.592 1.084-.395.4-.898.743-1.315 1.013l-.343.222v1.499h1.5v-.688c.381-.259.833-.595 1.225-.992.507-.514 1.025-1.24 1.025-2.138C15 8.79 13.635 7.5 12 7.5s-3 1.291-3 2.932h1.5Z" fill="#000"/></svg>   
             </button>
         </div>
         <div class="umap-wrap" :style="`min-width:${width}px;`">
@@ -24,7 +27,7 @@
                     @mouseleave="endPan"
             >
             </canvas>
-            <div ref="umapTooltip" class="tooltip"></div>
+            <div ref="umapTooltip" class="scb-tooltip"></div>
         </div>
     </div>
   </template>
@@ -221,7 +224,7 @@
                 this.pointBoundsCalculated = true;
             }
 
-            if (!this.clusterCentersInitialized && this.fields) {
+            if (this.fields && !this.clusterCentersInitialized) {
                 this.clusterCenters = {};
 
                 points.forEach((coord, index) => {
@@ -560,15 +563,15 @@
  .umapTooltip.hidden{
     display:none;
  }
- .tooltip{
+.scb-tooltip{
     position:fixed;
     background: white;
     padding: 5px 10px;
     box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
-  }
-  .tooltip.show{
+}
+.scb-tooltip.show{
     opacity: 1;
-  }
+}
  
 button {
     border: 1px solid rgba(0, 0, 0, .25);
