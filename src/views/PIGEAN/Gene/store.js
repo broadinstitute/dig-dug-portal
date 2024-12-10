@@ -24,7 +24,7 @@ export default new Vuex.Store({
         aliasName: null,
         traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
         traitGroupToQuery: null,
-        phewasData: null,
+        phewasData: [],
     },
 
     mutations: {
@@ -49,7 +49,6 @@ export default new Vuex.Store({
         },
         setPhewasData(state, phewasData){
             state.phewasData = phewasData || state.phewasData;
-            console.log("phewas data is set", JSON.stringify(state.phewasData));
         }
     },
 

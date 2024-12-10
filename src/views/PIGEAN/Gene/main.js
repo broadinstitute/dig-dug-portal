@@ -145,7 +145,7 @@ new Vue({
         },
         plotReady() {
             return (
-                this.$store.state.pigeanGene.data.length > 0 &&
+                this.pigeanFilteredData.length > 0 &&
                 Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
@@ -159,20 +159,24 @@ new Vue({
             return adjustedData;
         },
         pigeanFilteredData(){
-            let rawData = this.$store.state.phewasData;
+            let rawData = structuredClone(this.phewasAllData);
+            console.log("Raw data", JSON.stringify(rawData));
             let filteredData = rawData.filter(item => item.log_bf > 0 || item.prior > 0);
             return filteredData;
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;
+        },
+        phewasAllData(){
+            return this.$store.state.phewasData;
         }
     },
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        "this.$store.state.phewasData"(newData){
-            console.log(JSON.stringify(newData));
+        phewasAllData(newData){
+            console.log("watching", JSON.stringify(newData));
         }
     },
 
