@@ -125,14 +125,12 @@ new Vue({
         },
         plotReady() {
             return (
-                this.$store.state.pigeanGeneset.data.length > 0 &&
+                this.phewasAllData.length > 0 &&
                 Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
         phewasAdjustedData() {
-            let adjustedData = JSON.parse(
-                JSON.stringify(this.$store.state.pigeanGeneset.data)
-            ); // Deep copy
+            let adjustedData = structuredClone(this.phewasAllData);
             for (let i = 0; i < adjustedData.length; i++) {
                 if (adjustedData[i].beta_uncorrected < 0) {
                     adjustedData[i].beta_uncorrected = 0;
@@ -142,6 +140,9 @@ new Vue({
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;
+        },
+        phewasAllData(){
+            return this.$store.state.phewasData;
         }
     },
     watch: {

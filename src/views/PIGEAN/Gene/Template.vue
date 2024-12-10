@@ -105,7 +105,7 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $store.state.pigeanGene.data.map(
+                                $parent.phewasAllData.map(
                                     (d) => d.phenotype
                                 )
                             "
