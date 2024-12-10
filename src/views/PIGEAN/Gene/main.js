@@ -174,9 +174,6 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        phewasAllData(newData){
-            //console.log("watching", JSON.stringify(newData));
-        }
     },
 
     async created() {
