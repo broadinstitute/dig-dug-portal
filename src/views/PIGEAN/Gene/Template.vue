@@ -163,6 +163,11 @@
                                         @dotHovered="(dot) => $parent.showLink(dot)"
                                     >
                                     </pigean-plot>
+                                    <p> View phenotype:
+                                        <a :href="$parent.phenotypeLinkAddress"
+                                            v-html="$parent.phenotypeLinkText">
+                                        </a>
+                                    </p>
                                 </div>
                             </div>
                             <div class="card-body pigean-table">
