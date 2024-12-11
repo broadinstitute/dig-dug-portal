@@ -195,6 +195,9 @@ new Vue({
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
+        showLink(dot){
+            console.log(dot);
+        }
     },
 
     render(createElement, context) {

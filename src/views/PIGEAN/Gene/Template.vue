@@ -160,6 +160,7 @@
                                             $parent.pigeanMap
                                         "
                                         :filter="filter"
+                                        @dotHovered="(dot) => $parent.showLink(dot)"
                                     >
                                     </pigean-plot>
                                 </div>
