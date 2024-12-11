@@ -168,6 +168,7 @@ export default Vue.component("pigean-plot", {
     hoverDot(dotString) {
       this.unHoverDot();
 
+      this.$emit("dotHovered", dotString);
       let xcoord = d3.event.layerX;
       let ycoord = d3.event.layerY;
 
