@@ -175,7 +175,8 @@ new Vue({
                 return "";
             }
             return `/pigean/phenotype.html?phenotype=${this.hoverPhenotype
-                }&genesetSize=${this.genesetSize}&traitGroup=${this.traitGroup}`;
+                }&genesetSize=${this.$store.state.genesetSize}&traitGroup=${
+                    this.$store.state.traitGroup}`;
         },
         phenotypeLinkText(){
             return this.pigeanMap[this.hoverPhenotype]?.description || this.hoverPhenotype;
