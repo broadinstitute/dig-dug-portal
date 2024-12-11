@@ -20,14 +20,14 @@ let pages = {
     databrowser: {
         entry: "src/portals/PanKbase/views/DataBrowser/main.js",
         template: "public/index.html",
-        filename: "databrowser.html",
+        filename: "data-browser.html",
         title: "Data Browser",
         chunks: ["chunk-vendors", "chunk-common", "databrowser"],
     },
     singlecell: {
         entry: "src/portals/PanKbase/views/SingleCell/main.js",
         template: "public/index.html",
-        filename: "singlecell.html",
+        filename: "single-cell.html",
         title: "Single Cell",
         chunks: ["chunk-vendors", "chunk-common", "singlecell"],
     },

@@ -1,61 +1,27 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 
-import "../../assets/layout.css"
-import "../../assets/pkb-styles.css"
+import "../../assets/layout.css";
+import "../../assets/pkb-styles.css";
+
+import { pankbaseMixin } from "../../mixins/pankbaseMixin.js";
 
 Vue.config.productionTip = false;
 
-import pkbHeader from "../../components/pkb-header.vue"
-import pkbHero from "../../components/pkb-hero.vue"
-import pkbFooter from "../../components/pkb-footer.vue"
+import pkbHero from "../../components/pkb-hero.vue";
 
 new Vue({
-    data: {
-    },
-
     components: {
-        pkbHeader,
         pkbHero,
-        pkbFooter
     },
+    mixins: [pankbaseMixin],
+    data: {},
 
-    created() {
-        this.injectFavicon('https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/favicon-32x32.png');
-        this.injectFont('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
-    },
+    computed: {},
 
-    render(createElement, context) {
+    watch: {},
+
+    render(createElement) {
         return createElement(Template);
     },
-
-    methods: {
-        injectFavicon(faviconUrl) { //todo: make util
-            let favicon = document.querySelector('link[rel="icon"]');
-            if (!favicon) {
-                favicon = document.createElement('link')
-                favicon.setAttribute('rel', 'icon')
-                favicon.setAttribute('type', 'image/png')
-                favicon.setAttribute('id', 'alex')
-                document.head.appendChild(favicon)
-            }
-            favicon.setAttribute('href', faviconUrl);
-        },
-        injectFont(fontUrl){ //todo: make util
-			const linkTag = document.createElement('link');
-			linkTag.rel = 'stylesheet';
-			linkTag.href = fontUrl;
-			document.head.appendChild(linkTag);
-			linkTag.onload = () => {
-			};
-		}
-    },
-
-    computed: {
-        
-    },
-
-    watch: {
-
-    }
 }).$mount("#app");

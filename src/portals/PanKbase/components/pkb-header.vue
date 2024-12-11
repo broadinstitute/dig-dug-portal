@@ -1,51 +1,51 @@
 <template>
     <div class="pkb-nav">
         <div class="logo">
-            <img src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/pkb-4.svg">
+            <a href="/"
+                ><img
+                    src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/pkb-4.svg"
+            /></a>
         </div>
         <div class="menu-wrapper">
             <div class="topmenu">
-                <a class="topmenu-item">Login 
-                    <img style="height:15px;width:15px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg">
+                <a class="topmenu-item"
+                    >Login
+                    <img
+                        style="height: 15px; width: 15px"
+                        src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"
+                    />
                 </a>
             </div>
             <div class="menu">
                 <div class="menu-item-wrapper">
-                    <a class="menu-item">Catalog</a>
-                    <div class="submenu">
-                        <a class="submenu-item">Raw Data Sets</a>
-                        <a class="submenu-item">Processed Data Sets</a>
-                        <a class="submenu-item">Files</a>
-                    </div>
+                    <a class="menu-item" href="/data-browser.html"
+                        >Data Browser</a
+                    >
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item">Pankgraph</a>
+                    <a class="menu-item" href="/single-cell.html"
+                        >Single Cell</a
+                    >
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item">Compute</a>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item">Methodology</a>
-                    <div class="submenu">
-                        <a class="submenu-item">Schemas</a>
-                        <a class="submenu-item">Expreimental Standards</a>
-                        <a class="submenu-item">Computational Standards</a>
-                        <a class="submenu-item">Genome References</a>
-                        <a class="submenu-item">Audit Documentation</a>
-                    </div>
+                    <a class="menu-item" href="/people.html">People</a>
                 </div>
                 <div class="menu-item-wrapper">
                     <a class="menu-item">About</a>
                     <div class="submenu">
-                        <a class="submenu-item">PanKbase</a>
-                        <a class="submenu-item">Policies</a>
+                        <a class="submenu-item" href="/projects.html"
+                            >Project</a
+                        >
+                        <a class="submenu-item" href="/programs.html"
+                            >Programs</a
+                        >
                     </div>
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item">Help</a>
-                    <div class="submenu">
-                        <a class="submenu-item">Data Submission</a>
-                    </div>
+                    <a class="menu-item" href="/help.html">Help</a>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item" href="/contact.html">Contact</a>
                 </div>
             </div>
         </div>
@@ -55,23 +55,47 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("pkb-header", {
+export default Vue.component("PkbHeader", {
     components: {},
-    props: {
-    },
+    props: {},
     data() {
-        return {
-        };
+        return {};
     },
     computed: {},
     created() {
+        this.injectFavicon(
+            "https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/favicon-32x32.png"
+        );
+        this.injectFont(
+            "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+        );
     },
     methods: {
+        injectFavicon(faviconUrl) {
+            //todo: make util
+            let favicon = document.querySelector('link[rel="icon"]');
+            if (!favicon) {
+                favicon = document.createElement("link");
+                favicon.setAttribute("rel", "icon");
+                favicon.setAttribute("type", "image/png");
+                favicon.setAttribute("id", "alex");
+                document.head.appendChild(favicon);
+            }
+            favicon.setAttribute("href", faviconUrl);
+        },
+        injectFont(fontUrl) {
+            //todo: make util
+            const linkTag = document.createElement("link");
+            linkTag.rel = "stylesheet";
+            linkTag.href = fontUrl;
+            document.head.appendChild(linkTag);
+            linkTag.onload = () => {};
+        },
     },
 });
 </script>
 <style scoped>
-.pkb-nav{
+.pkb-nav {
     width: 100%;
     background: #fafafa;
     display: flex;
@@ -80,16 +104,16 @@ export default Vue.component("pkb-header", {
     border-bottom: 2px solid var(--pkb-primary-green);
     box-shadow: 0px 2px 5px var(--pkb-primary-green);
     z-index: 10;
-    font-family: 'Open Sans', sans-serif;
+    font-family: "Open Sans", sans-serif;
 
     a,
-    a:visited{
-        color:black !important;
+    a:visited {
+        color: black !important;
     }
     .logo {
         display: flex;
         align-items: baseline;
-        cursor:pointer;
+        cursor: pointer;
     }
     .logo-text {
         position: relative;
@@ -129,14 +153,14 @@ export default Vue.component("pkb-header", {
     .topmenu-item:hover {
         color: var(--pkb-secondary-green) !important;
     }
-    .topmenu-item:hover svg *{
-        stroke:var(--pkb-secondary-green) !important;
+    .topmenu-item:hover svg * {
+        stroke: var(--pkb-secondary-green) !important;
     }
     .menu {
         display: flex;
         font-weight: 600;
     }
-    .menu-item-wrapper{
+    .menu-item-wrapper {
         position: relative;
         display: flex;
     }
@@ -157,8 +181,8 @@ export default Vue.component("pkb-header", {
         color: var(--pkb-primary-green) !important;
         border-bottom: 5px solid var(--pkb-primary-green);
     }
-    .menu-item-wrapper:hover > .submenu{
-        display:flex;
+    .menu-item-wrapper:hover > .submenu {
+        display: flex;
     }
     .submenu {
         position: absolute;
@@ -180,8 +204,8 @@ export default Vue.component("pkb-header", {
         width: -webkit-fill-available;
         text-align: right;
     }
-    .submenu-item:hover{
-        color:white !important;
+    .submenu-item:hover {
+        color: white !important;
         cursor: pointer;
     }
 }

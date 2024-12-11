@@ -1,26 +1,24 @@
 <template>
-    <div class="pkb-footer">
-        Footer.
-    </div>
+    <div class="pkb-footer">Footer.</div>
 </template>
 
 <script>
 import Vue from "vue";
 
-export default Vue.component("pkb-footer", {
+export default Vue.component("PkbFooter", {
     components: {},
     props: {},
     data() {
         return {};
     },
-    created() {},
     computed: {},
+    created() {},
     methods: {},
 });
 </script>
 
 <style scoped>
-.pkb-footer{
+.pkb-footer {
     width: 100%;
     background: #fafafa;
     display: flex;
