@@ -217,7 +217,7 @@ export default Vue.component("pigean-plot", {
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);
       dot.phenotype = this.phDesc(dot.phenotype);
-      let tooltipText = '<p><a style="visibility:hidden" id="closeTooltip">';
+      let tooltipText = '<p class="close-tooltip"><a style="visibility:hidden">';
       tooltipText = tooltipText.concat('x</a><p>')
       tooltipText=tooltipText.concat(`${
         Formatters.tissueFormatter(this.config.dotKey)}: ${
@@ -302,5 +302,10 @@ export default Vue.component("pigean-plot", {
   @import url("/css/effectorGenes.css");
   .tooltip span {
       display: block;
+  }
+  p.close-tooltip{
+    text-align: right;
+    margin: 0px;
+    padding: 0px;
   }
 </style>
