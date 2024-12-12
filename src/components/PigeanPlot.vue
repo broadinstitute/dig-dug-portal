@@ -151,6 +151,12 @@ export default Vue.component("pigean-plot", {
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
+      
+      // Click behavior for dots
+      this.svg.selectAll("circle")
+        .on("click", function(d){
+          console.log("click! ", JSON.stringify(d));
+        }) 
     },
     extremeVal(field, min=true){
       let filteredData = this.pigeanData.filter(d => 
@@ -167,8 +173,6 @@ export default Vue.component("pigean-plot", {
     },
     hoverDot(dotString) {
       this.unHoverDot();
-
-      this.$emit("dotHovered", dotString);
       let xcoord = d3.event.layerX;
       let ycoord = d3.event.layerY;
 

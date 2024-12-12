@@ -160,17 +160,8 @@
                                             $parent.pigeanMap
                                         "
                                         :filter="filter"
-                                        @dotHovered="(dot) => $parent.showLink(dot)"
                                     >
                                     </pigean-plot>
-                                    <div id="pigean-hover-link">
-                                        <p v-if="!!$parent.phenotypeLinkAddress">
-                                            View phenotype:
-                                            <a :href="$parent.phenotypeLinkAddress"
-                                                v-html="$parent.phenotypeLinkText">
-                                            </a>
-                                        </p>
-                                    </div>
                                 </div>
                             </div>
                             <div class="card-body pigean-table">
