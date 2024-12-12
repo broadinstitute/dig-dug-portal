@@ -35,7 +35,6 @@ export default Vue.component("pigean-plot", {
         tooltip: null,
         tooltipElement: null,
         tooltipPinned: false,
-        tooltipVisible: false,
         colorMap: this.groupColors(),
         allHoverFields: this.getHoverFields(),
         hoverBoxPosition: this.config.hoverBoxPosition || "left",
@@ -62,6 +61,7 @@ export default Vue.component("pigean-plot", {
   },
   methods: {
     drawChart(){
+      this.tooltipPinned = false;
       let margin = {
         top: 10,
         right: 30,
@@ -76,7 +76,6 @@ export default Vue.component("pigean-plot", {
         .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
-          .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
@@ -186,7 +185,6 @@ export default Vue.component("pigean-plot", {
       let ycoord = d3.event.layerY;
 
       // Tooltip content
-      this.tooltipVisible = true;
       this.tooltip
         .style("opacity", 1)
         .html(this.getTooltipContent(dotString));
@@ -212,9 +210,10 @@ export default Vue.component("pigean-plot", {
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);
       dot.phenotype = this.phDesc(dot.phenotype);
-      let tooltipText = `${
+      let tooltipText = `<p><a id="closeTooltip">x</a><p>`
+      tooltipText=tooltipText.concat(`${
         Formatters.tissueFormatter(this.config.dotKey)}: ${
-          dot[this.config.dotKey]}`;
+          dot[this.config.dotKey]}`);
       tooltipText = tooltipText.concat(
         `<span>${this.config.xAxisLabel}: ${
           dot[this.config.xField]}</span>`);
@@ -237,7 +236,6 @@ export default Vue.component("pigean-plot", {
     hideTooltip(){
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
-        this.tooltipVisible = false;
       }
     },
     groupColors(){
