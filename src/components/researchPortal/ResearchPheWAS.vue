@@ -152,6 +152,7 @@
 import Vue from "vue";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";
 Vue.use(BootstrapVueIcons);
 
@@ -175,6 +176,8 @@ export default Vue.component("ResearchPhewasPlot", {
         "utils",
         "plotName",
         "top1500",
+        "linkPhenotypes",
+        "isPigean"
     ],
 
     data() {
@@ -427,12 +430,9 @@ export default Vue.component("ResearchPhewasPlot", {
                         if (y >= yLoc[0] && y <= yLoc[1]) {
                             yValue.map((xPos) => {
                                 if (x >= xPos.start && x <= xPos.end) {
+                                    console.log(JSON.stringify(xPos));
                                     this.hoverItems[xPos.name] = xPos;
-                                    infoContent +=
-                                        "<strong>" +
-                                        xPos.name +
-                                        "</strong><br />";
-
+                                    infoContent +=`<strong>${xPos.name}</strong><br />`;
                                     this.renderConfig["hover content"].map(
                                         (h) => {
                                             infoContent +=
@@ -755,13 +755,11 @@ export default Vue.component("ResearchPhewasPlot", {
                                     canvasHeight -
                                     plotMargin.bottom -
                                     yFromMinY * yStep;
-
+                                let rawPhenotype = p[this.renderConfig["render by"]];
                                 let pName =
                                     this.phenotypeMapConfig == null
-                                        ? p[this.renderConfig["render by"]]
-                                        : this.phenotypeMap[
-                                              p[this.renderConfig["render by"]]
-                                          ]["description"];
+                                        ? rawPhenotype
+                                        : this.phenotypeMap[rawPhenotype]["description"];
                                 let passesThreshold = this.greaterThan
                                     ? p.rawPValue >=
                                       Number(this.renderConfig["thresholds"][0])

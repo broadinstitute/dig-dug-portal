@@ -119,6 +119,8 @@
                                             $parent.phewasAdjustedData
                                         "
                                         :phenotype-map="$parent.pigeanMap"
+                                        :linkPhenotypes="true"
+                                        :isPigean="true"
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
                                         :utils="$parent.utilsBox"
