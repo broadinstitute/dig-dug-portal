@@ -18,6 +18,8 @@ import * as d3 from "d3";
 import DownloadChart from "./DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
 import Formatters from "@/utils/formatters";
+import { BootstrapVueIcons } from "bootstrap-vue";
+Vue.use(BootstrapVueIcons);
 export default Vue.component("pigean-plot", {
   components: {
   },
@@ -156,8 +158,9 @@ export default Vue.component("pigean-plot", {
       // Click behavior for dots
       this.svg.selectAll("circle")
         .on("click", d => {
-          console.log("click! ", JSON.stringify(d));
           if (!this.tooltipPinned){
+            let closeButton = this.tooltip.select("a");
+            closeButton.style("visibility", "visible");
             this.tooltipPinned = true;
           }
         });
@@ -176,7 +179,6 @@ export default Vue.component("pigean-plot", {
       return val;
     },
     hoverDot(dotString) {
-      console.log("tooltip pinned? ", this.tooltipPinned);
       if (this.tooltipPinned){
         return;
       }
@@ -215,7 +217,8 @@ export default Vue.component("pigean-plot", {
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);
       dot.phenotype = this.phDesc(dot.phenotype);
-      let tooltipText = `<p><a id="closeTooltip">x</a><p>`
+      let tooltipText = '<p><a style="visibility:hidden" id="closeTooltip">';
+      tooltipText = tooltipText.concat('x</a><p>')
       tooltipText=tooltipText.concat(`${
         Formatters.tissueFormatter(this.config.dotKey)}: ${
           dot[this.config.dotKey]}`);
