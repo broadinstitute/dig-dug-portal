@@ -34,6 +34,8 @@ export default Vue.component("pigean-plot", {
         xMedian: 0,
         tooltip: null,
         tooltipElement: null,
+        tooltipPinned: false,
+        tooltipVisible: false,
         colorMap: this.groupColors(),
         allHoverFields: this.getHoverFields(),
         hoverBoxPosition: this.config.hoverBoxPosition || "left",
@@ -154,9 +156,12 @@ export default Vue.component("pigean-plot", {
       
       // Click behavior for dots
       this.svg.selectAll("circle")
-        .on("click", function(d){
+        .on("click", d => {
           console.log("click! ", JSON.stringify(d));
-        }) 
+          if (!this.tooltipPinned){
+            this.tooltipPinned = true;
+          }
+        });
     },
     extremeVal(field, min=true){
       let filteredData = this.pigeanData.filter(d => 
@@ -172,11 +177,16 @@ export default Vue.component("pigean-plot", {
       return val;
     },
     hoverDot(dotString) {
+      console.log("tooltip pinned? ", this.tooltipPinned);
+      if (this.tooltipPinned){
+        return;
+      }
       this.unHoverDot();
       let xcoord = d3.event.layerX;
       let ycoord = d3.event.layerY;
 
       // Tooltip content
+      this.tooltipVisible = true;
       this.tooltip
         .style("opacity", 1)
         .html(this.getTooltipContent(dotString));
@@ -227,6 +237,7 @@ export default Vue.component("pigean-plot", {
     hideTooltip(){
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
+        this.tooltipVisible = false;
       }
     },
     groupColors(){
