@@ -31,12 +31,12 @@ let pages = {
         title: "Single Cell",
         chunks: ["chunk-vendors", "chunk-common", "singlecell"],
     },
-    about: {
-        entry: "src/portals/PanKbase/views/About/main.js",
+    projects: {
+        entry: "src/portals/PanKbase/views/Projects/main.js",
         template: "public/index.html",
-        filename: "about.html",
-        title: "About",
-        chunks: ["chunk-vendors", "chunk-common", "about"],
+        filename: "projects.html",
+        title: "Projects",
+        chunks: ["chunk-vendors", "chunk-common", "projects"],
     },
     programs: {
         entry: "src/portals/PanKbase/views/Programs/main.js",
