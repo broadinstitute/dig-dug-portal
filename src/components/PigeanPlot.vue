@@ -188,6 +188,11 @@ export default Vue.component("pigean-plot", {
       this.tooltip
         .style("opacity", 1)
         .html(this.getTooltipContent(dotString));
+      this.tooltip.selectAll("a")
+        .on("click", () => {
+          this.tooltipPinned = false;
+          this.hideTooltip();
+        });
 
       let leftOffset = this.tooltipElement.clientWidth;
       let hoverLeft = this.dotHoverLeft(dotString);
