@@ -17,13 +17,14 @@ import Vue from "vue";
 import * as d3 from "d3";
 import DownloadChart from "./DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "config", "phenotypeMap", "filter"],
+  props: ["pigeanData", "config", "phenotypeMap", "filter", "genesetSize", "traitGroup"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
@@ -59,6 +60,12 @@ export default Vue.component("pigean-plot", {
         data = data.filter(this.filter);
       }
       return data;
+    },
+    linkSuffix(){
+      return `&genesetSize=${this.$store.state.genesetSize 
+          || bioIndexUtils.DEFAULT_GENESET_SIZE
+        }&traitGroup=${this.$store.state.traitGroup
+          || bioIndexUtils.DEFAULT_TRAIT_GROUP}`;
     }
   },
   methods: {
@@ -215,13 +222,16 @@ export default Vue.component("pigean-plot", {
         : this.hoverBoxPosition === "left";
     },
     getTooltipContent(dotString){
+      console.log(dotString);
       let dot = JSON.parse(dotString);
+      let dKey = this.config.dotKey;
+      let dKeyContent = dot[dKey]; // Get raw content before formatting
       dot.phenotype = this.phDesc(dot.phenotype);
+      let linkAddress = `/pigean/${dKey}.html?${dKey}=${dKeyContent}${this.linkSuffix}`;
       let tooltipText = '<p class="close-tooltip"><a style="visibility:hidden">';
       tooltipText = tooltipText.concat('x</a><p>')
       tooltipText=tooltipText.concat(`${
-        Formatters.tissueFormatter(this.config.dotKey)}: ${
-          dot[this.config.dotKey]}`);
+        Formatters.tissueFormatter(dKey)}: <a href="${linkAddress}">${dot[dKey]}</a>`);
       tooltipText = tooltipText.concat(
         `<span>${this.config.xAxisLabel}: ${
           dot[this.config.xField]}</span>`);
