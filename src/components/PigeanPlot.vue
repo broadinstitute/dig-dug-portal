@@ -169,8 +169,6 @@ export default Vue.component("pigean-plot", {
       this.svg.selectAll("circle")
         .on("click", d => {
           if (!this.tooltipPinned){
-            let closeButton = this.tooltip.select("a");
-            closeButton.style("visibility", "visible");
             this.tooltipPinned = true;
           }
         });
@@ -231,7 +229,7 @@ export default Vue.component("pigean-plot", {
       let dKeyContent = dot[dKey]; // Get raw content before formatting
       dot.phenotype = this.phDesc(dot.phenotype);
       let linkAddress = `/pigean/${dKey}.html?${dKey}=${dKeyContent}${this.linkSuffix}`;
-      let tooltipText = '<p class="close-tooltip"><a style="visibility:hidden">';
+      let tooltipText = '<p class="close-tooltip"><a>';
       tooltipText = tooltipText.concat('x</a><p>')
       tooltipText=tooltipText.concat(`${
         Formatters.tissueFormatter(dKey)}: <a href="${linkAddress}">${dot[dKey]}</a>`);
