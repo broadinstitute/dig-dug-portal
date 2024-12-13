@@ -32,7 +32,11 @@
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
                         <strong v-if="!linkPhenotypes">{{ ptKey }}</strong>
-                        <strong v-else><a>{{ ptKey }}</a></strong>
+                        <strong v-else>
+                            <a :href="phenotypeLink(ptKey)">
+                                {{ phenotypeMap[ptKey].description }}
+                            </a>
+                        </strong>
                         <br />
                         <span
                             v-for="(dValue, dKey) in ptValue.data"
@@ -1083,6 +1087,17 @@ export default Vue.component("ResearchPhewasPlot", {
                 action: "remove",
             });
         },
+        phenotypeLink(rawPhenotype){
+            let destination = `/phenotype.html?phenotype=${rawPhenotype}`;
+            if (this.isPigean){
+                let suffix = `&genesetSize=${this.$store.state.genesetSize 
+                    || bioIndexUtils.DEFAULT_GENESET_SIZE
+                    }&traitGroup=${this.$store.state.traitGroup
+                    || bioIndexUtils.DEFAULT_TRAIT_GROUP}`;
+                destination = `/pigean${destination}${suffix}`;
+            }
+            return destination;
+        }
     },
 });
 </script>
