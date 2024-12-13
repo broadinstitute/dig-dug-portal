@@ -424,7 +424,6 @@ export default Vue.component("ResearchPhewasPlot", {
             if (infoBox.getAttribute("class").includes("fixed") == false) {
                 let infoContent = "";
                 this.hoverItems = {};
-
                 if (
                     x >= plotMargin.left / 2 &&
                     x <= rect.width - plotMargin.right / 2
@@ -438,7 +437,6 @@ export default Vue.component("ResearchPhewasPlot", {
                             yValue.map((xPos) => {
                                 if (x >= xPos.start && x <= xPos.end) {
                                     this.hoverItems[xPos.id] = xPos;
-                                    console.log(JSON.stringify(this.hoverItems));
                                     infoContent +=`<strong>${xPos.name}</strong><br />`;
                                     this.renderConfig["hover content"].map(
                                         (h) => {
@@ -456,6 +454,7 @@ export default Vue.component("ResearchPhewasPlot", {
                 }
 
                 if (TYPE == "hover") {
+                    this.hoverDots(JSON.stringify(this.hoverItems));
                     if (infoContent == "") {
                         if (
                             infoBox.getAttribute("class").includes("fixed") ==
@@ -1096,6 +1095,10 @@ export default Vue.component("ResearchPhewasPlot", {
                 destination = `/pigean${destination}${suffix}`;
             }
             return destination;
+        },
+        hoverDots(dots){
+            console.log(this.isPigean, dots);
+            this.$emit("dotsHovered", dots)
         }
     },
 });

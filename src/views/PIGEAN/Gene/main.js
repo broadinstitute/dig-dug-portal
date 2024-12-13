@@ -195,6 +195,10 @@ new Vue({
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
+        hoverDots(dots){
+            console.log("wheee");
+            console.log(dots);
+        }
     },
 
     render(createElement, context) {

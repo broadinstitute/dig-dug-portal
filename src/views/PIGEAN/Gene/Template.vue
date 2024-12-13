@@ -148,6 +148,7 @@
                                         :utils="$parent.utilsBox"
                                         :filter="filter"
                                         :native-dl-btn="false"
+                                        @dotsHovered="(dots) => $parent.hoverDots(dots)"
                                     >
                                     </research-phewas-plot>
                                 </div>
