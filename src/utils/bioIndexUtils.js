@@ -140,7 +140,8 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
 }
 export const DEFAULT_SIGMA = 2;
 export const DEFAULT_GENESET_SIZE = "small";
-export const DEFAULT_TRAIT_GROUP = "portal";
+export const DEFAULT_TRAIT_GROUP = "all";
+export const TRAIT_GROUPS = ["portal", "gcat_trait", "rare_v2"];
 
 export default {
     query,
@@ -152,5 +153,6 @@ export default {
     BIO_INDEX_HOST_PRIVATE,
     DEFAULT_SIGMA,
     DEFAULT_GENESET_SIZE,
-    DEFAULT_TRAIT_GROUP
+    DEFAULT_TRAIT_GROUP,
+    TRAIT_GROUPS
 };

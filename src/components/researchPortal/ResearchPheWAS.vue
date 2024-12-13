@@ -31,8 +31,13 @@
                     <span :id="canvasId + 'pheWasInfoBoxContent'"></span>
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
-                        <strong>{{ ptKey }}</strong
-                        ><br />
+                        <strong v-if="!linkPhenotypes">{{ ptKey }}</strong>
+                        <strong v-else>
+                            <a :href="phenotypeLink(ptKey)">
+                                {{ phenotypeMap[ptKey].description }}
+                            </a>
+                        </strong>
+                        <br />
                         <span
                             v-for="(dValue, dKey) in ptValue.data"
                             :key="dKey"
@@ -152,6 +157,7 @@
 import Vue from "vue";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";
 Vue.use(BootstrapVueIcons);
 
@@ -175,6 +181,8 @@ export default Vue.component("ResearchPhewasPlot", {
         "utils",
         "plotName",
         "top1500",
+        "linkPhenotypes",
+        "isPigean"
     ],
 
     data() {
@@ -427,12 +435,12 @@ export default Vue.component("ResearchPhewasPlot", {
                         if (y >= yLoc[0] && y <= yLoc[1]) {
                             yValue.map((xPos) => {
                                 if (x >= xPos.start && x <= xPos.end) {
-                                    this.hoverItems[xPos.name] = xPos;
-                                    infoContent +=
-                                        "<strong>" +
-                                        xPos.name +
-                                        "</strong><br />";
-
+                                    if (this.linkPhenotypes){
+                                        this.hoverItems[xPos.id] = xPos;
+                                    } else {
+                                        this.hoverItems[xPos.name] = xPos;
+                                    }
+                                    infoContent +=`<strong>${xPos.name}</strong><br />`;
                                     this.renderConfig["hover content"].map(
                                         (h) => {
                                             infoContent +=
@@ -755,13 +763,11 @@ export default Vue.component("ResearchPhewasPlot", {
                                     canvasHeight -
                                     plotMargin.bottom -
                                     yFromMinY * yStep;
-
+                                let rawPhenotype = p[this.renderConfig["render by"]];
                                 let pName =
                                     this.phenotypeMapConfig == null
-                                        ? p[this.renderConfig["render by"]]
-                                        : this.phenotypeMap[
-                                              p[this.renderConfig["render by"]]
-                                          ]["description"];
+                                        ? rawPhenotype
+                                        : this.phenotypeMap[rawPhenotype]["description"];
                                 let passesThreshold = this.greaterThan
                                     ? p.rawPValue >=
                                       Number(this.renderConfig["thresholds"][0])
@@ -1081,6 +1087,17 @@ export default Vue.component("ResearchPhewasPlot", {
                 action: "remove",
             });
         },
+        phenotypeLink(rawPhenotype){
+            let destination = `/phenotype.html?phenotype=${rawPhenotype}`;
+            if (this.isPigean){
+                let suffix = `&genesetSize=${this.$store.state.genesetSize 
+                    || bioIndexUtils.DEFAULT_GENESET_SIZE
+                    }&traitGroup=${this.$store.state.traitGroup
+                    || bioIndexUtils.DEFAULT_TRAIT_GROUP}`;
+                destination = `/pigean${destination}${suffix}`;
+            }
+            return destination;
+        }
     },
 });
 </script>

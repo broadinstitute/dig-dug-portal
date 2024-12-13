@@ -105,7 +105,7 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $store.state.pigeanGene.data.map(
+                                $parent.phewasAllData.map(
                                     (d) => d.phenotype
                                 )
                             "
@@ -141,6 +141,8 @@
                                         :phenotype-map="
                                             $parent.pigeanMap
                                         "
+                                        :linkPhenotypes="true"
+                                        :isPigean="true"
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
                                         :utils="$parent.utilsBox"
@@ -246,5 +248,9 @@
 
 .card-body.pigean-table {
     padding-top: 0;
+}
+
+#pigean-hover-link{
+    padding-left: 25px;
 }
 </style>
