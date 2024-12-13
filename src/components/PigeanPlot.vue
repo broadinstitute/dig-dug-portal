@@ -17,11 +17,14 @@ import Vue from "vue";
 import * as d3 from "d3";
 import DownloadChart from "./DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
+import { BootstrapVueIcons } from "bootstrap-vue";
+Vue.use(BootstrapVueIcons);
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "config", "phenotypeMap", "filter"],
+  props: ["pigeanData", "config", "phenotypeMap", "filter", "genesetSize", "traitGroup"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
@@ -34,6 +37,7 @@ export default Vue.component("pigean-plot", {
         xMedian: 0,
         tooltip: null,
         tooltipElement: null,
+        tooltipPinned: false,
         colorMap: this.groupColors(),
         allHoverFields: this.getHoverFields(),
         hoverBoxPosition: this.config.hoverBoxPosition || "left",
@@ -56,10 +60,17 @@ export default Vue.component("pigean-plot", {
         data = data.filter(this.filter);
       }
       return data;
+    },
+    linkSuffix(){
+      return `&genesetSize=${this.$store.state.genesetSize 
+          || bioIndexUtils.DEFAULT_GENESET_SIZE
+        }&traitGroup=${this.$store.state.traitGroup
+          || bioIndexUtils.DEFAULT_TRAIT_GROUP}`;
     }
   },
   methods: {
     drawChart(){
+      this.tooltipPinned = false;
       let margin = {
         top: 10,
         right: 30,
@@ -74,7 +85,6 @@ export default Vue.component("pigean-plot", {
         .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
-          .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
@@ -151,6 +161,16 @@ export default Vue.component("pigean-plot", {
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
+      
+      // Click behavior for dots
+      this.svg.selectAll("circle")
+        .on("click", d => {
+          if (!this.tooltipPinned){
+            let closeButton = this.tooltip.select("a");
+            closeButton.style("visibility", "visible");
+            this.tooltipPinned = true;
+          }
+        });
     },
     extremeVal(field, min=true){
       let filteredData = this.pigeanData.filter(d => 
@@ -166,9 +186,10 @@ export default Vue.component("pigean-plot", {
       return val;
     },
     hoverDot(dotString) {
+      if (this.tooltipPinned){
+        return;
+      }
       this.unHoverDot();
-
-      this.$emit("dotHovered", dotString);
       let xcoord = d3.event.layerX;
       let ycoord = d3.event.layerY;
 
@@ -176,6 +197,11 @@ export default Vue.component("pigean-plot", {
       this.tooltip
         .style("opacity", 1)
         .html(this.getTooltipContent(dotString));
+      this.tooltip.selectAll("a")
+        .on("click", () => {
+          this.tooltipPinned = false;
+          this.hideTooltip();
+        });
 
       let leftOffset = this.tooltipElement.clientWidth;
       let hoverLeft = this.dotHoverLeft(dotString);
@@ -196,11 +222,16 @@ export default Vue.component("pigean-plot", {
         : this.hoverBoxPosition === "left";
     },
     getTooltipContent(dotString){
+      console.log(dotString);
       let dot = JSON.parse(dotString);
+      let dKey = this.config.dotKey;
+      let dKeyContent = dot[dKey]; // Get raw content before formatting
       dot.phenotype = this.phDesc(dot.phenotype);
-      let tooltipText = `${
-        Formatters.tissueFormatter(this.config.dotKey)}: ${
-          dot[this.config.dotKey]}`;
+      let linkAddress = `/pigean/${dKey}.html?${dKey}=${dKeyContent}${this.linkSuffix}`;
+      let tooltipText = '<p class="close-tooltip"><a style="visibility:hidden">';
+      tooltipText = tooltipText.concat('x</a><p>')
+      tooltipText=tooltipText.concat(`${
+        Formatters.tissueFormatter(dKey)}: <a href="${linkAddress}">${dot[dKey]}</a>`);
       tooltipText = tooltipText.concat(
         `<span>${this.config.xAxisLabel}: ${
           dot[this.config.xField]}</span>`);
@@ -281,5 +312,10 @@ export default Vue.component("pigean-plot", {
   @import url("/css/effectorGenes.css");
   .tooltip span {
       display: block;
+  }
+  p.close-tooltip{
+    text-align: right;
+    margin: 0px;
+    padding: 0px;
   }
 </style>

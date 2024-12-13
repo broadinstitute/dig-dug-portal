@@ -43,7 +43,6 @@ new Vue({
     data() {
         return {
             pigeanPhenotypeMap: {},
-            hoverPhenotype: "",
             filterFields: [
                 { key: "combined", label: "Combined genetic support" },
                 { key: "huge_score", label: "Direct support w/o gene sets" },
@@ -170,17 +169,6 @@ new Vue({
         phewasAllData(){
             return this.$store.state.phewasData;
         },
-        phenotypeLinkAddress(){
-            if (!this.hoverPhenotype){
-                return "";
-            }
-            return `/pigean/phenotype.html?phenotype=${this.hoverPhenotype
-                }&genesetSize=${this.$store.state.genesetSize}&traitGroup=${
-                    this.$store.state.traitGroup}`;
-        },
-        phenotypeLinkText(){
-            return this.pigeanMap[this.hoverPhenotype]?.description || this.hoverPhenotype;
-        }
     },
     watch: {
         diseaseGroup(group) {
@@ -207,10 +195,6 @@ new Vue({
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
-        showLink(dot){
-            let dotObject = JSON.parse(dot);
-            this.hoverPhenotype = dotObject.phenotype;
-        }
     },
 
     render(createElement, context) {
