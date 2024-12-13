@@ -454,7 +454,9 @@ export default Vue.component("ResearchPhewasPlot", {
                 }
 
                 if (TYPE == "hover") {
-                    this.hoverDots(JSON.stringify(this.hoverItems));
+                    if (Object.keys(this.hoverItems).length > 0){
+                        this.$emit("dotsHovered", JSON.stringify(this.hoverItems));
+                    }
                     if (infoContent == "") {
                         if (
                             infoBox.getAttribute("class").includes("fixed") ==
@@ -1096,10 +1098,6 @@ export default Vue.component("ResearchPhewasPlot", {
             }
             return destination;
         },
-        hoverDots(dots){
-            console.log(this.isPigean, dots);
-            this.$emit("dotsHovered", dots)
-        }
     },
 });
 </script>
