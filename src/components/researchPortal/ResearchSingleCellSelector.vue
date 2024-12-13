@@ -6,11 +6,16 @@
                 <div class="colorize-option on" @click="colorOption($event, selectedOption)" v-b-tooltip:hover.left="'color all labels'">
                     <svg width="1em" viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                 </div>
-                <select style="width: 100%;" @change="selectOption($event)" v-model="selectedOption">
-                    <option v-for="(value, key) of data" :value="key">
-                        {{ key }}
-                    </option>
-                </select>
+                <template v-if="showSelect">
+                    <select style="width: 100%;" @change="selectOption($event)" v-model="selectedOption">
+                        <option v-for="(value, key) of data" :value="key">
+                            {{ key }}
+                        </option>
+                    </select>
+                </template>
+                <template v-else>
+                    <div style="font-size:16px; font-weight: bold;">{{ selectedOption }}</div>
+                </template>
             </div>
             <div class="dropdown-content">
                 <div class="dropdown-option" v-for="label of data[selectedOption]" :key="label">
@@ -96,6 +101,11 @@ export default Vue.component('research-single-cell-selector', {
             type: String,
             required: false,
             default: 'dropdown'
+        },
+        showSelect:{
+            type: Boolean,
+            required: false,
+            default: true,
         },
         colors: {
             type: Object,
