@@ -24,7 +24,10 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("pigean-plot", {
   components: {
   },
-  props: ["pigeanData", "config", "phenotypeMap", "filter", "genesetSize", "traitGroup"],
+  props: [
+    "pigeanData", "config", "phenotypeMap", "filter", 
+    "genesetSize", "traitGroup", "matchingHoverDots"
+  ],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
@@ -304,6 +307,9 @@ export default Vue.component("pigean-plot", {
   watch: {
     chartData(){
       this.drawChart();
+    },
+    matchingHoverDots(newDots){
+      console.log("dots received ", newDots);
     }
   }
 });

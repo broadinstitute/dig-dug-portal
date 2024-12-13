@@ -148,7 +148,7 @@
                                         :utils="$parent.utilsBox"
                                         :filter="filter"
                                         :native-dl-btn="false"
-                                        @dotsHovered="(dots) => $parent.hoverDots(dots)"
+                                        @dotsHovered="(dots) => $parent.hoverDots(dots, true)"
                                     >
                                     </research-phewas-plot>
                                 </div>
@@ -163,6 +163,7 @@
                                             $parent.pigeanMap
                                         "
                                         :filter="filter"
+                                        :matchingHoverDots="$parent.hoverDotsToPigean"
                                     >
                                     </pigean-plot>
                                 </div>

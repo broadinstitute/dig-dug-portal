@@ -454,7 +454,7 @@ export default Vue.component("ResearchPhewasPlot", {
                 }
 
                 if (TYPE == "hover") {
-                    if (Object.keys(this.hoverItems).length > 0){
+                    if (Object.keys(this.hoverItems).length > 0 && !!this.isPigean){
                         this.$emit("dotsHovered", JSON.stringify(this.hoverItems));
                     }
                     if (infoContent == "") {
