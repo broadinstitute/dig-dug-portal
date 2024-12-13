@@ -150,7 +150,7 @@ export default Vue.component("pigean-plot", {
         .data(this.chartData)
         .enter()
         .append("circle")
-          .attr("class", d => `${d[this.config.dotKey]}`)
+          .attr("class", d => `dot_${d[this.config.dotKey]}`)
           .attr("cx", d => 
             d[this.config.xField] === undefined
               ? this.xScale(0) 
@@ -193,6 +193,7 @@ export default Vue.component("pigean-plot", {
         return;
       }
       this.unHoverDot();
+      this.$emit("dotsHovered", dotString)
       let xcoord = d3.event.layerX;
       let ycoord = d3.event.layerY;
 
@@ -225,7 +226,6 @@ export default Vue.component("pigean-plot", {
         : this.hoverBoxPosition === "left";
     },
     getTooltipContent(dotString){
-      console.log(dotString);
       let dot = JSON.parse(dotString);
       let dKey = this.config.dotKey;
       let dKeyContent = dot[dKey]; // Get raw content before formatting
@@ -302,6 +302,16 @@ export default Vue.component("pigean-plot", {
         });
       }
       return fields;
+    },
+    highlightDot(phenotype){
+      let dot = this.svg.select(`circle.dot_${phenotype}`);
+      dot.attr("r", 7)
+          .attr("stroke", "black")
+    },
+    unHighlightDots(){
+      this.svg.selectAll("circle")
+          .attr("r", 5)
+          .attr("stroke", this.dotOutlineColor)
     }
   },
   watch: {
@@ -309,7 +319,9 @@ export default Vue.component("pigean-plot", {
       this.drawChart();
     },
     matchingHoverDots(newDots){
-      console.log("dots received ", newDots);
+      this.unHighlightDots();
+      let phenotypes = Object.keys(JSON.parse(newDots));
+      phenotypes.forEach(phenotype => this.highlightDot(phenotype));
     }
   }
 });

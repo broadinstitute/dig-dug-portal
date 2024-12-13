@@ -184,7 +184,8 @@ export default Vue.component("ResearchPhewasPlot", {
         "plotName",
         "top1500",
         "linkPhenotypes",
-        "isPigean"
+        "isPigean",
+        "matchingHoverDots",
     ],
 
     data() {
@@ -296,6 +297,9 @@ export default Vue.component("ResearchPhewasPlot", {
         renderData(content) {
             this.renderPheWas();
         },
+        matchingHoverDots(newDots){
+            console.log("received by phewas", newDots);
+        }
     },
     created: function () {
         this.renderPheWas();
