@@ -5,7 +5,7 @@
         <!-- BODY -->
 
         <div class="pkb-body">
-            <b-button variant="primary">Primary</b-button>
+           <b-table :items="$parent.donors" :fields="$parent.donorsFields"  class="table table-striped table-hover table-sm" head-variant="light"></b-table>
         </div>
         <!-- FOOTER -->
         <pkb-footer></pkb-footer>
