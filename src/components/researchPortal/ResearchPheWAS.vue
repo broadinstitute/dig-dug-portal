@@ -31,10 +31,12 @@
                     <span :id="canvasId + 'pheWasInfoBoxContent'"></span>
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
-                        <strong v-if="!linkPhenotypes">{{ ptKey }}</strong>
+                        <strong v-if="!linkPhenotypes">
+                            {{ phenotypeMap[ptKey]?.description || ptKey}}
+                        </strong>
                         <strong v-else>
                             <a :href="phenotypeLink(ptKey)">
-                                {{ phenotypeMap[ptKey].description }}
+                                {{ phenotypeMap[ptKey]?.description || ptKey}}
                             </a>
                         </strong>
                         <br />
@@ -182,7 +184,8 @@ export default Vue.component("ResearchPhewasPlot", {
         "plotName",
         "top1500",
         "linkPhenotypes",
-        "isPigean"
+        "isPigean",
+        "matchingHoverDots",
     ],
 
     data() {
@@ -294,6 +297,9 @@ export default Vue.component("ResearchPhewasPlot", {
         renderData(content) {
             this.renderPheWas();
         },
+        matchingHoverDots(newDots){
+            console.log("received by phewas", newDots);
+        }
     },
     created: function () {
         this.renderPheWas();
@@ -422,7 +428,6 @@ export default Vue.component("ResearchPhewasPlot", {
             if (infoBox.getAttribute("class").includes("fixed") == false) {
                 let infoContent = "";
                 this.hoverItems = {};
-
                 if (
                     x >= plotMargin.left / 2 &&
                     x <= rect.width - plotMargin.right / 2
@@ -435,11 +440,7 @@ export default Vue.component("ResearchPhewasPlot", {
                         if (y >= yLoc[0] && y <= yLoc[1]) {
                             yValue.map((xPos) => {
                                 if (x >= xPos.start && x <= xPos.end) {
-                                    if (this.linkPhenotypes){
-                                        this.hoverItems[xPos.id] = xPos;
-                                    } else {
-                                        this.hoverItems[xPos.name] = xPos;
-                                    }
+                                    this.hoverItems[xPos.id] = xPos;
                                     infoContent +=`<strong>${xPos.name}</strong><br />`;
                                     this.renderConfig["hover content"].map(
                                         (h) => {
@@ -457,6 +458,9 @@ export default Vue.component("ResearchPhewasPlot", {
                 }
 
                 if (TYPE == "hover") {
+                    if (Object.keys(this.hoverItems).length > 0 && !!this.isPigean){
+                        this.$emit("dotsHovered", JSON.stringify(this.hoverItems));
+                    }
                     if (infoContent == "") {
                         if (
                             infoBox.getAttribute("class").includes("fixed") ==
@@ -1097,7 +1101,7 @@ export default Vue.component("ResearchPhewasPlot", {
                 destination = `/pigean${destination}${suffix}`;
             }
             return destination;
-        }
+        },
     },
 });
 </script>
