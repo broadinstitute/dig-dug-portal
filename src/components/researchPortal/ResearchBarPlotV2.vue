@@ -620,8 +620,8 @@
                             // Tooltip mouseout to hide it
                             rect.addEventListener('mouseout', function(e){
                                 tooltip.classList.remove('show');
-                                tooltip.style.top = -100 + "px";
-                                tooltip.style.left = -100 + "px";
+                                tooltip.style.top = -1000 + "px";
+                                tooltip.style.left = -1000 + "px";
                             });
                                 
                             
@@ -665,8 +665,8 @@
                             // Tooltip mouseout to hide it
                             rect.addEventListener('mouseout', function(e){
                                 tooltip.classList.remove('show');
-                                tooltip.style.top = -100 + "px";
-                                tooltip.style.left = -100 + "px";
+                                tooltip.style.top = -1000 + "px";
+                                tooltip.style.left = -1000 + "px";
                             });
                             
                             // append text
