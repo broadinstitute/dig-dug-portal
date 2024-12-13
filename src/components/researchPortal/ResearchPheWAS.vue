@@ -31,8 +31,9 @@
                     <span :id="canvasId + 'pheWasInfoBoxContent'"></span>
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
-                        <strong>{{ ptKey }}</strong
-                        ><br />
+                        <strong v-if="!linkPhenotypes">{{ ptKey }}</strong>
+                        <strong v-else><a>{{ ptKey }}</a></strong>
+                        <br />
                         <span
                             v-for="(dValue, dKey) in ptValue.data"
                             :key="dKey"
@@ -430,8 +431,11 @@ export default Vue.component("ResearchPhewasPlot", {
                         if (y >= yLoc[0] && y <= yLoc[1]) {
                             yValue.map((xPos) => {
                                 if (x >= xPos.start && x <= xPos.end) {
-                                    console.log(JSON.stringify(xPos));
-                                    this.hoverItems[xPos.name] = xPos;
+                                    if (this.linkPhenotypes){
+                                        this.hoverItems[xPos.id] = xPos;
+                                    } else {
+                                        this.hoverItems[xPos.name] = xPos;
+                                    }
                                     infoContent +=`<strong>${xPos.name}</strong><br />`;
                                     this.renderConfig["hover content"].map(
                                         (h) => {
