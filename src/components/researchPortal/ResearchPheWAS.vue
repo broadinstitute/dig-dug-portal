@@ -440,6 +440,7 @@ export default Vue.component("ResearchPhewasPlot", {
                                     } else {
                                         this.hoverItems[xPos.name] = xPos;
                                     }
+                                    console.log(JSON.stringify(this.hoverItems));
                                     infoContent +=`<strong>${xPos.name}</strong><br />`;
                                     this.renderConfig["hover content"].map(
                                         (h) => {
