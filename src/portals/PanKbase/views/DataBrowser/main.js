@@ -9,7 +9,6 @@ Vue.config.productionTip = false;
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getResource } from "@/portals/PanKbase/utils/api";
 
-
 new Vue({
     components: {},
     mixins: [pankbaseMixin],
@@ -24,34 +23,68 @@ new Vue({
         analysesTotal: 0,
         donorsFields: [
             { key: "accession", label: "Accession" },
-
-            { key: "award.@id", label: "Award" },
-            { key: "human_donor_identifiers", label: "Identifiers" },
+            {
+                key: "award.@id",
+                label: "Award",
+                formatter: (value) =>
+                    value ? value.split("/").slice(-2, -1)[0] : "",
+            },
+            {
+                key: "human_donor_identifiers",
+                label: "Identifiers",
+                formatter: (value) => (value ? value.join(", ") : ""),
+            },
             { key: "lab.title", label: "Lab" },
             { key: "sex", label: "Sex" },
             { key: "status", label: "Status" },
         ],
         assaysFields: [
             { key: "accession", label: "Accession" },
-
             { key: "assay_term.term_name", label: "Assay Name" },
-            { key: "award.@id", label: "Award" },
+            {
+                key: "award.@id",
+                label: "Award",
+                formatter: (value) =>
+                    value ? value.split("/").slice(-2, -1)[0] : "",
+            },
             { key: "lab.title", label: "Lab" },
             { key: "status", label: "Status" },
         ],
         processedResultsFields: [
             { key: "accession", label: "Accession" },
-
-            { key: "award.@id", label: "Award" },
-            { key: "award.title", label: "Award Title" },
+            {
+                key: "award.@id",
+                label: "Award",
+                formatter: (value) =>
+                    value ? value.split("/").slice(-2, -1)[0] : "",
+            },
+            {
+                key: "award.title",
+                label: "Award Title",
+                formatter: (value) => {
+                    if (value) {
+                        const words = value.split(" ");
+                        if (words.length > 4) {
+                            return words.slice(0, 4).join(" ") + " ...";
+                        }
+                        return value;
+                    }
+                    return "";
+                },
+            },
             { key: "lab.title", label: "Lab" },
+            { key: "donors[0].taxa", label: "Taxa" },
             { key: "summary", label: "Summary" },
             { key: "status", label: "Status" },
         ],
         analysesFields: [
             { key: "accession", label: "Accession" },
-
-            { key: "award.@id", label: "Award" },
+            {
+                key: "award.@id",
+                label: "Award",
+                formatter: (value) =>
+                    value ? value.split("/").slice(-2, -1)[0] : "",
+            },
             { key: "lab.title", label: "Lab" },
             { key: "status", label: "Status" },
         ],

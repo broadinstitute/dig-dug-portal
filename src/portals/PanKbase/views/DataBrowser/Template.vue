@@ -1,9 +1,9 @@
 <template>
     <div class="pkb-wrapper f-col fill-height align-h-center">
-        <!-- NAV -->
+        <!-- HEADER -->
         <pkb-header></pkb-header>
-        <!-- BODY -->
 
+        <!-- BODY -->
         <div class="pkb-body">
             <b-card no-body>
                 <b-tabs card>
@@ -22,8 +22,9 @@
                                 class="pagination justify-content-center"
                                 :total-rows="$parent.donorsTotal"
                                 :per-page="$parent.perPageDonors"
-                            ></b-pagination
-                        ></b-card-text>
+                            ></b-pagination>
+                            Total rows: {{ $parent.donorsTotal }}</b-card-text
+                        >
                     </b-tab>
                     <b-tab title="Assays">
                         <b-card-text
@@ -40,8 +41,9 @@
                                 class="pagination justify-content-center"
                                 :total-rows="$parent.assaysTotal"
                                 :per-page="$parent.perPageAssays"
-                            ></b-pagination
-                        ></b-card-text>
+                            ></b-pagination>
+                            Total rows: {{ $parent.assaysTotal }}</b-card-text
+                        >
                     </b-tab>
                     <b-tab title="Analyses">
                         <b-card-text
@@ -58,8 +60,9 @@
                                 class="pagination justify-content-center"
                                 :total-rows="$parent.analysesTotal"
                                 :per-page="$parent.perPageAnalyses"
-                            ></b-pagination
-                        ></b-card-text>
+                            ></b-pagination>
+                            Total rows: {{ $parent.analysesTotal }}</b-card-text
+                        >
                     </b-tab>
                     <b-tab title="Processed Results">
                         <b-card-text
@@ -76,12 +79,15 @@
                                 class="pagination justify-content-center"
                                 :total-rows="$parent.processedResultsTotal"
                                 :per-page="$parent.perPageProcessedResults"
-                            ></b-pagination
-                        ></b-card-text>
+                            ></b-pagination>
+                            Total rows:
+                            {{ $parent.processedResultsTotal }}</b-card-text
+                        >
                     </b-tab>
                 </b-tabs>
             </b-card>
         </div>
+
         <!-- FOOTER -->
         <pkb-footer></pkb-footer>
     </div>
