@@ -94,7 +94,7 @@
 </template>
 
 <style scoped>
-.pkb-nav {
-    background: #fafafa99 !important;
+button {
+    border-radius: unset;
 }
 </style>
