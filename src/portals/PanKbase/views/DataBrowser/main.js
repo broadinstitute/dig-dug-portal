@@ -1,11 +1,7 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
-
-Vue.config.productionTip = false;
-
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getResource } from "@/portals/PanKbase/utils/api";
 

@@ -6,8 +6,6 @@ import "../../assets/pkb-styles.css";
 
 import { pankbaseMixin } from "../../mixins/pankbaseMixin.js";
 
-Vue.config.productionTip = false;
-
 import pkbHero from "../../components/pkb-hero.vue";
 
 new Vue({
