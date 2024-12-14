@@ -93,8 +93,4 @@
     </div>
 </template>
 
-<style scoped>
-button {
-    border-radius: unset !important;
-}
-</style>
+<style scoped></style>

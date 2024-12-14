@@ -3,26 +3,27 @@
 :root {
     --pkb-primary-green: #219197;
     --pkb-secondary-green: #94c95e;
-    --pkb-black: #2D2E2F;
+    --pkb-black: #2d2e2f;
     --pkb-disabled-grey: #dddddd;
 }
 
-html, body{
+html,
+body {
     margin: 0;
     padding: 0;
-    font-family: 'Open Sans', sans-serif !important;
+    font-family: "Open Sans", sans-serif !important;
     font-size: 14px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-*{
+* {
     box-sizing: border-box;
 }
 
 /* body */
-.pkb-wrapper{
+.pkb-wrapper {
     flex: 1;
 }
 .pkb-body {
@@ -44,54 +45,57 @@ html, body{
 
 /* elements */
 
-h1{
+h1 {
     font-size: 34px;
     line-height: 42px;
     letter-spacing: -1.5px;
     margin: 0;
 }
-h2{
+h2 {
     font-size: 28px;
     line-height: 36px;
-    letter-spacing: -.8px;
+    letter-spacing: -0.8px;
     margin: 0;
 }
-h3{
+h3 {
     font-size: 24px;
     line-height: 32px;
-    letter-spacing: -.6px;
+    letter-spacing: -0.6px;
     margin: 0;
 }
-h4{
+h4 {
     font-size: 20px;
     line-height: 28px;
-    letter-spacing: -.4px;
+    letter-spacing: -0.4px;
     margin: 0;
 }
-h1, h2, h3, h4{
+h1,
+h2,
+h3,
+h4 {
     color: var(--pkb-black);
     position: relative;
 }
 
-.bold{
+.bold {
     font-weight: 600;
 }
-.small{
+.small {
     font-size: 12px;
 }
 
 a,
-a:visited{
+a:visited {
     color: var(--pkb-primary-green) !important;
     text-decoration: none;
     font-weight: 600;
     width: fit-content;
 }
-a:hover{
+a:hover {
     color: var(--pkb-secondary-green) !important;
 }
 
-button{
+/* button{
     border: 1px solid var(--pkb-secondary-green);
     background: white;
     width: fit-content;
@@ -99,19 +103,19 @@ button{
     border-radius: 10px;
     font-family: 'Open Sans';
     cursor: pointer;
-}
-button:not(:disabled):hover{
+} */
+button:not(:disabled):hover {
     background: var(--pkb-secondary-green);
-    color:white;
+    color: white;
 }
-button.alt1{
+button.alt1 {
     background: var(--pkb-secondary-green);
 }
-button.alt1:not(:disabled):hover{
+button.alt1:not(:disabled):hover {
     border-color: 1px solid var(--pkb-primary-green);
     background: var(--pkb-primary-green);
 }
-button:disabled{
+button:disabled {
     border: 1px solid var(--pkb-disabled-green);
     background: var(--pkb-disabled-grey);
     cursor: default;
@@ -120,18 +124,20 @@ button:disabled{
 select {
     padding: 5px 10px;
     padding-right: 40px;
-    font-family: 'Open Sans';
+    font-family: "Open Sans";
     border: 1px solid var(--pkb-secondary-green);
     border-radius: 10px;
     appearance: none;
     cursor: pointer;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6" fill="none" stroke="black" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>') no-repeat right 10px center;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6" fill="none" stroke="black" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>')
+        no-repeat right 10px center;
     background-size: 10px;
     width: fit-content;
 }
-select:hover{
-    color:white;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6" fill="none" stroke="white" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>') no-repeat right 10px center;
+select:hover {
+    color: white;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6" fill="none" stroke="white" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>')
+        no-repeat right 10px center;
     background-color: var(--pkb-secondary-green);
     background-size: 10px;
     border: 1px solid var(--pkb-secondary-green);
@@ -147,7 +153,7 @@ input[type="checkbox"] {
     outline: none;
     transition: outline 0.1s;
     margin: 0;
-    cursor:pointer;
+    cursor: pointer;
 }
 input[type="checkbox"]:checked {
     background-size: 60%;
@@ -185,10 +191,10 @@ input[type="radio"] {
     outline: none;
     transition: outline 0.1s;
     margin: 0;
-    cursor:pointer;
+    cursor: pointer;
 }
 input[type="radio"]:checked:after {
-    content: '';
+    content: "";
     display: block;
     width: 60%;
     aspect-ratio: 1;
