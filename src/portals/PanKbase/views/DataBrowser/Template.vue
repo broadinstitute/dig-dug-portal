@@ -95,6 +95,6 @@
 
 <style scoped>
 button {
-    border-radius: unset;
+    border-radius: unset !important;
 }
 </style>
