@@ -98,6 +98,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     d[c["field name"]] = tempObj[c["field name"]];
 
                     break;
+
                 case "sub to top":
 
                     let subList = d;
