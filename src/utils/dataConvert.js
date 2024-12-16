@@ -80,6 +80,45 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
             let cType = c.type;
 
             switch (cType) {
+                case "sub to top":
+
+                    let subList = d;
+
+                    if (!!c["sub path"]) {
+                        c["sub path"].map(path => {
+                            subList = subList[path];
+                        })
+                    }
+
+                    if (!!subList) {
+                        let subRow;
+
+                        if (!!c["copy by"]) {
+
+                            switch (c["copy by"]) {
+
+                                case "condition":
+
+                                    if (c["condition"]["type"] == "equal to") {
+
+                                        subList.map(row => {
+                                            //console.log("field", row[c["condition"]["field"]], c["condition"]["value"])
+
+                                            if (row[c["condition"]["field"]] == c["condition"]["value"]) {
+                                                subRow = row
+                                            }
+                                        })
+                                    }
+
+                                    break;
+                            }
+                        }
+
+                        tempObj[c["field name"]] = subRow[c["raw field"]];
+                    }
+
+                    break;
+
                 case "join":
                     tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
                     d[c["field name"]] = tempObj[c["field name"]];
@@ -126,7 +165,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                 case "calculate":
 
-
                     let calType = c["calculation type"];
 
                     switch (calType) {
@@ -140,7 +178,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             let calcString = "";
 
                             c["expression"].map(e => {
-                                let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : (typeof e === 'number') ? e : d[e];
+                                let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : (typeof e === 'number') ? e :
+                                    (!!tempObj[e] || tempObj[e] === 0) ? (tempObj[e] === 0) ? 0 : tempObj[e] : (d[e] === 0) ? 0 : d[e];
                                 calcString += eValue;
                             });
 
@@ -242,6 +281,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     tempObj[c["field name"]] = value;
 
                     break;
+
+
 
             }
         })
