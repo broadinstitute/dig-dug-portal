@@ -133,28 +133,42 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     let newFields = c["field name"];
                     let newFieldValues = [];
-                    let string2Split = d[c["field to split"]];
-                    let loopIndex = 1;
-                    c["split by"].map(s => {
+                    let string2Split = (!!tempObj[c["field to split"]]) ? tempObj[c["field to split"]] : d[c["field to split"]];
 
-                        let [key, ...rest] = string2Split.split(s);
-                        string2Split = rest.join(s)
+                    //console.log('c["field name"]', c["field name"]);
 
-                        if (loopIndex < c["split by"].length) {
-                            newFieldValues.push(key)
-                        } else if (loopIndex = c["split by"].length) {
-                            newFieldValues.push(key)
-                            newFieldValues.push(rest.join(s))
-                        }
-                        loopIndex++;
-                    })
+                    if (!!string2Split) {
+                        let loopIndex = 1;
+                        c["split by"].map(s => {
 
-                    loopIndex = 0;
-                    newFields.map(f => {
-                        tempObj[f] = newFieldValues[loopIndex];
-                        d[f] = tempObj[f];
-                        loopIndex++;
-                    })
+                            let [key, ...rest] = string2Split.split(s);
+                            string2Split = rest.join(s)
+
+                            if (loopIndex < c["split by"].length) {
+                                newFieldValues.push(key)
+                            } else if (loopIndex = c["split by"].length) {
+                                newFieldValues.push(key)
+                                newFieldValues.push(rest.join(s))
+                            }
+                            loopIndex++;
+                        })
+
+                        //console.log("newFieldValues", newFieldValues);
+
+                        loopIndex = 0;
+                        newFields.map(f => {
+                            tempObj[f] = newFieldValues[loopIndex];
+                            d[f] = tempObj[f];
+
+
+
+                            loopIndex++;
+                        })
+
+                        console.log(tempObj);
+                    }
+
+
 
                     break;
 
