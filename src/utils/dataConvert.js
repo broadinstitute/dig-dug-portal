@@ -282,8 +282,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     break;
 
-
-
             }
         })
         return tempObj;

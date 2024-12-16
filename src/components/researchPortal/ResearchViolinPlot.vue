@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div ref="chartWrapper">
         <div ref="chart"></div>
         <div ref="tooltip" class="tooltip"></div>
     </div>
@@ -15,16 +15,21 @@
         type: (Array, null),
         required: true,
       },
-      colors: {                        
-        type: Array,
-        required: false,
+      primaryKey: {                   
+        type: String,
+        required: true,
       },
-      width: {
+      subsetKey: {                   
+        type: String,
+        required: false,
+        default: null
+      },
+      width: {                          //unused, chart will take size of its parent container
         type: Number,
         requred: false,
-        default: 620
+        default: 600
       },
-      height: {
+      height: {                         
         type: Number,
         requred: false,
         default: 300
@@ -33,6 +38,14 @@
         type: String,
         required: false,
       },
+      yAxisLabel: {
+        type: String,
+        required: false,
+      },
+      xAxisLabel: {
+        type: String,
+        required: false,
+      }
     },
     data() {
         return {
@@ -52,57 +65,134 @@
         }else{
             console.log('no data');
         }
-            
+        //window.addEventListener('resize', this.handleResize);
+    },
+    beforeDestroy(){
+        //window.removeEventListener('resize', this.handleResize);
     },
     methods: {
+        handleResize(){
+            this.drawChart();
+        },
         drawChart(){
             console.log("---Violin Plot");
-            //console.log("   data", this.data);
+            console.log("   data", this.data);
 
             if(!this.data) return;
 
             const tooltip = this.$refs.tooltip;
+            const primaryKey = this.primaryKey;
+            const subsetKey = this.subsetKey;
 
-            const svg = d3.select(this.$refs.chart).html('')
+            const keys = Array.from(new Set(this.data.map((d) => d[primaryKey])));
+            const hasSubsetKey = subsetKey && this.data[0][subsetKey] && this.data[0][subsetKey] !== "";
+            const domain = hasSubsetKey ? this.data.map((d) => d[primaryKey] +' - '+d[subsetKey]) : keys;
+
+            //pre-render x-axis labels to get the their max height
+            //this way we can ensure long labels dont get cut off at the bottom
+            const tempsvg = d3.select(this.$refs.chart)
                 .append('svg')
-                .attr('width', this.width)
-                .attr('height', this.height)
+            const templabels = tempsvg.append("g")
+                .selectAll("text")
+                .data(keys).enter()
+                .append("text").text(d => d)
+                .style("text-anchor", "end")
+                .attr('font-size', '12px')
+                .attr("transform", "rotate(-55)");
+            const bbox = templabels.node().parentNode.getBBox();
+            const labelsHeight = bbox.height;     
 
-            const margin = { top: 20, right: 10, bottom: 100, left: 40 };
-            const plotWidth = this.width - margin.left - margin.right;
-            const plotHeight = this.height - margin.top - margin.bottom;
+            //clear rendering
+            d3.select(this.$refs.chart).html('')
+
+            //calculate sizes and margins
+            const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
+            const labels = { xAxis: this.xAxisLabel?20:0, yAxis: this.yAxisLabel?20:0 }
+            const margin = { top: 20, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
+            let width = parentWidth;
+            let height = this.height;
+            if(margin.bottom > (height/2)){
+                height = margin.bottom * 2;
+            }
+            let plotWidth = width - margin.left - margin.right - labels.xAxis;
+            let plotHeight = height - margin.top - margin.bottom - labels.yAxis;
+
+            /*
+            //update plot width so each violin has min size
+            //warn: this will cause violin plot to be wider than requested
+            //if there are many items
+            let itemWidth = plotWidth / this.data.length;
+            itemWidth = itemWidth < 10 ? 10 : itemWidth;
+            plotWidth = itemWidth * this.data.length;
+            width = plotWidth + margin.left + margin.right; 
+            */
 
             const min = d3.min(this.data, (d) => d.min);
             const max = d3.max(this.data, (d) => d.max);
 
+            const svg = d3.select(this.$refs.chart)
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+
+            if(this.xAxisLabel){
+                const label = svg.append('g')
+                    .append('text')
+                    .attr('class', 'chart-label')
+                    .text(this.xAxisLabel)
+                    const bbox = label.node().getBBox();
+                    const xAxisLabelTopPosition = (margin.top + plotHeight / 2) + (bbox.width / 2);
+                    label.attr('transform', `rotate(-90) translate( -${(xAxisLabelTopPosition)}, 15)`);
+            }
+            if(this.yAxisLabel){
+                const label = svg.append('g')
+                    .append('text')
+                    .attr('class', 'chart-label')
+                    .text(this.yAxisLabel)
+                    const bbox = label.node().getBBox();
+                    const yAxisLabelLeftPosition = width - (plotWidth/2) - (bbox.width / 2);
+                    label.attr('transform', `translate(${yAxisLabelLeftPosition},${height - 15})`)
+            }
+
             const plot = svg.append("g")
-                .attr("transform", `translate(${margin.left},${margin.top})`);
+                .attr("transform", `translate(${margin.left+labels.xAxis},${margin.top})`);
+
+            const entryKey = (entry) => {
+                if(hasSubsetKey){
+                    return entry[primaryKey] + ' - ' + entry[subsetKey];
+                }else{
+                    return entry[primaryKey];
+                }
+            }
 
             // x scale
             const x = d3.scaleBand()
-                .domain(this.data.map((d) => d.key))
-                .range([0, plotWidth])
-                .padding(0.4);
+                .domain(domain)
+                .range([5, plotWidth])
+                .padding(0);
+
+            let x2;
+            if(hasSubsetKey){
+                x2 = d3.scaleBand()
+                    .domain(keys)
+                    .range([5, plotWidth])
+                    .padding(0);
+            }
 
             // y scale
             const y = d3.scaleLinear()
                 .domain([min, max])
                 .range([plotHeight, 0])
                 .nice();
-            
-            //color scale
-            const color = d3.scaleOrdinal()
-                .domain(this.data.map((d) => d.key))
-                .range(this.colors);
 
             //x-axis ticks
             plot.append("g")
                 .attr("transform", `translate(0,${plotHeight})`)
-                .call(d3.axisBottom(x))
+                .call(d3.axisBottom( hasSubsetKey ? x2 : x))
                 .selectAll("text")
                 .style("text-anchor", "end")
                 .attr('font-size', '12px')
-                .attr("transform", "rotate(-35) translate(-5, 0)");
+                .attr("transform", "rotate(-55) translate(-5, 0)");
 
             //y-axis ticks
             plot.append("g")
@@ -110,13 +200,24 @@
 
             const boxWidth = x.bandwidth() * 0.6;
 
+            if(hasSubsetKey){
+                keys.forEach((key, i) => {
+                    plot.append('rect')
+                        .attr("width", x2.bandwidth())    
+                        .attr('height', plotHeight)
+                        .attr('x', x2(key))
+                        .attr('class', 'violin-bg')
+                        .attr('fill', i % 2 ? '#fff' : '#eee')
+                })
+            }
+
             this.data.forEach((entry) => {
-                const xCenter = x(entry.key) + x.bandwidth() / 2;
+                const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
 
                 const box = plot.append('g')
                     .attr("width", boxWidth)
                     .attr("class", "violin-group")
-                    .attr("data-key", entry.key);
+                    .attr("data-key", entryKey(entry));
 
                 const boxNode = box.node();
 
@@ -141,7 +242,7 @@
                 box.append('path')
                     .datum(density.concat(mirroredDensity)) // Combine for full violin
                     .attr('d', violinPath)
-                    .attr('fill', color(entry.key))
+                    .attr('fill', entry.color)
                     .attr('stroke', 'none');
 
                 // Draw box
@@ -150,7 +251,8 @@
                     .attr("y", y(entry.q3))
                     .attr("width", 5)
                     .attr("height", Math.max(0, y(entry.q1) - y(entry.q3))) // Avoid negative heights
-                    .attr("fill", "black");
+                    .attr("fill", "transparent")
+                    .attr("stroke", "black")
 
                 // Median line
                 box.append("line")
@@ -202,12 +304,15 @@
 
                 // Tooltip mouseover
                 boxNode.addEventListener('mouseover', function(e){
-                    tooltip.innerHTML = `<strong>${entry.key}</strong>
-                                        <div style="display:flex;"><div style="width:50px">Max:</div> ${entry.max}</div>
-                                        <div style="display:flex;"><div style="width:50px">Q3:</div> ${entry.q3}</div>
-                                        <div style="display:flex;"><div style="width:50px">Median:</div> ${entry.median.toFixed(4)}</div>
-                                        <div style="display:flex;"><div style="width:50px">Q1:</div> ${entry.q1}</div>
-                                        <div style="display:flex;"><div style="width:50px">Min:</div> ${entry.min}</div>
+                    tooltip.innerHTML = `
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${primaryKey}:</div> ${entry[primaryKey]}</div>
+                                        <div style="display:${hasSubsetKey?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${subsetKey}:</div> ${entry[subsetKey]}</div>
+                                        <div style="display:${entry.gene?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Gene:</div> ${entry.gene}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Max:</div> ${entry.max}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q3:</div> ${entry.q3}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Median:</div> ${entry.median.toFixed(4)}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q1:</div> ${entry.q1}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Min:</div> ${entry.min}</div>
                                          `;
                     tooltip.classList.add('show')
                 })
@@ -219,8 +324,8 @@
                 // Tooltip mouseout to hide it
                 boxNode.addEventListener('mouseout', function(e){
                     tooltip.classList.remove('show');
-                    tooltip.style.top = -100 + "px";
-                    tooltip.style.left = -100 + "px";
+                    tooltip.style.top = -1000 + "px";
+                    tooltip.style.left = -1000 + "px";
                 });
             });
         },
