@@ -72,6 +72,16 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
         return string.slice(0, -1)
     }
 
+    let getParameterByName = function (name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
     let applyConvert = function (d, CONVERT, PHENOTYPE_MAP) {
         let tempObj = {};
 
@@ -80,6 +90,14 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
             let cType = c.type;
 
             switch (cType) {
+                case "from parameter":
+                    let param = c["parameter"];
+
+                    tempObj[c["field name"]] = getParameterByName(param);
+
+                    d[c["field name"]] = tempObj[c["field name"]];
+
+                    break;
                 case "sub to top":
 
                     let subList = d;
