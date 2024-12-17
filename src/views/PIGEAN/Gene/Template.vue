@@ -105,7 +105,7 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $store.state.pigeanGene.data.map(
+                                $parent.phewasAllData.map(
                                     (d) => d.phenotype
                                 )
                             "
@@ -141,11 +141,15 @@
                                         :phenotype-map="
                                             $parent.pigeanMap
                                         "
+                                        :linkPhenotypes="true"
+                                        :isPigean="true"
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
                                         :utils="$parent.utilsBox"
                                         :filter="filter"
                                         :native-dl-btn="false"
+                                        @dotsHovered="(dots) => $parent.hoverDots(dots, true)"
+                                        :matchingHoverDots="$parent.hoverDotsToPhewas"
                                     >
                                     </research-phewas-plot>
                                 </div>
@@ -160,6 +164,8 @@
                                             $parent.pigeanMap
                                         "
                                         :filter="filter"
+                                        @dotsHovered="(dots) => $parent.hoverDots(dots)"
+                                        :matchingHoverDots="$parent.hoverDotsToPigean"
                                     >
                                     </pigean-plot>
                                 </div>
@@ -246,5 +252,9 @@
 
 .card-body.pigean-table {
     padding-top: 0;
+}
+
+#pigean-hover-link{
+    padding-left: 25px;
 }
 </style>

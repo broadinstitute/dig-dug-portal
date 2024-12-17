@@ -48,7 +48,7 @@ export default new Vuex.Store({
             state.aliasName = aliasName || state.aliasName;
         },
         setPhewasData(state, phewasData){
-            state.phewasData = phewasData || state.phewasData;
+            state.phewasData = phewasData;
         }
     },
 
@@ -77,6 +77,7 @@ export default new Vuex.Store({
 
     actions: {
         async queryGeneName(context, symbol) {
+            await context.commit("setPhewasData", []);
             let name = context.state.geneToQuery || context.state.geneName;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
             let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
@@ -91,10 +92,9 @@ export default new Vuex.Store({
                     context.commit("setPhewasData", context.state.pigeanGene.data);
                 } else {
                     // If ALL is selected, query all trait groups and get top results across all
-                    const TRAIT_GROUPS = ["portal", "gcat_trait", "rare_v2"];
                     let traitsData = [];
-                    for (let i = 0; i < TRAIT_GROUPS.length; i++){
-                        let group = TRAIT_GROUPS[i];
+                    for (let i = 0; i < bioIndexUtils.TRAIT_GROUPS.length; i++){
+                        let group = bioIndexUtils.TRAIT_GROUPS[i];
                         let traitQuery = `${group},${context.state.geneName},${
                             bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
                         let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
