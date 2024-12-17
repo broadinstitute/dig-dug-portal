@@ -189,7 +189,7 @@ new Vue({
         pageID() {
             if (keyParams.pageid) return keyParams.pageid;
             if (window.location.pathname.includes("/r/")) {
-                return window.location.pathname.split("/")[2];
+                return window.location.pathname.split("/")[2].split("&")[0];
             }
             return new URLSearchParams(window.location.search).get("pageid");
         },
