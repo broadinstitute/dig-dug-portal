@@ -1499,9 +1499,8 @@ export default Vue.component("research-section", {
 						
 					} else if (!!dataWrappers){
 
-						let tempData = []
-						let headers = [];
-
+						let tempData = {}
+						let headers = {};
 
 						dataWrappers.map(dataWrapper => {
 
@@ -1511,54 +1510,41 @@ export default Vue.component("research-section", {
 								dataEntity = dataEntity[w];
 							})
 
-							headers = headers.concat(dataEntity);
+							//headers = headers.concat(dataEntity);
+							headers[dataWrapper["stamp"]] = dataEntity;
+							//headers[dataWrapper["stamp"]].push("stamp");
 
 						})
 
-						let uniqHeaders = [...new Set(headers)];
-
-						uniqHeaders.push("stamp")
-						
-
 						dataWrappers.map(dataWrapper => {
 
 							let dataEntity = CONTENT;
-							dataWrapper["headers"].map(w => {
-
-								dataEntity = dataEntity[w];
-							})
-
-							let tempHeaders = dataEntity;
-
-							dataEntity = CONTENT;
 
 							dataWrapper["data"].map(w => {
 								dataEntity = dataEntity[w];
 							})
-
-							dataEntity.map((item,itemIndex) => {
-								let tempObj = {}
-
-								item.map((column, columnIndex) => {
-									tempObj[headers[columnIndex]] = column;
-								})
-
-								tempObj["stamp"] = dataWrapper["stamp"];
-
-								tempData.push(tempObj);
-							})
-
+							tempData[dataWrapper["stamp"]] = dataEntity;
 						})
 
-						let mergedData = [];
+						let mergedData = []
 
-						tempData.map(d => {
-							let tempObj = {}
-							uniqHeaders.map(header => {
-								tempObj[header] = (!!d[header])? d[header]:"";
+						dataWrappers.map(dataWrapper => {
+
+							let stamp = dataWrapper["stamp"];
+
+							tempData[stamp].map(item => {
+								let tempObj = {};
+
+								headers[stamp].map((header, hIndex) => {
+
+									tempObj[header] = item[hIndex];
+
+								})
+
+								tempObj["stamp"] = stamp;
+								mergedData.push(tempObj)
 							})
 
-							mergedData.push(tempObj);
 						})
 
 						data = mergedData;

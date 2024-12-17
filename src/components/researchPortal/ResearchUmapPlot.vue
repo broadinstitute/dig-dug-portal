@@ -363,7 +363,7 @@
             ctx.restore();
         },
         calculateScaleFactor(canvas) {
-            const paddingPct = 10;
+            const paddingPct = 20;
             const boundsSize = {
                 w: Math.abs(this.pointBounds.w) + Math.abs(this.pointBounds.e),
                 h: Math.abs(this.pointBounds.n) + Math.abs(this.pointBounds.s)
@@ -507,14 +507,14 @@
                 this.umapTooltipEl.classList.add('show');
             }else{
                 this.umapTooltipEl.classList.remove('show');
-                this.umapTooltipEl.style.top = -100 + "px";
-                this.umapTooltipEl.style.left = -100 + "px";
+                this.umapTooltipEl.style.top = -1000 + "px";
+                this.umapTooltipEl.style.left = -1000 + "px";
             }
         },
         umapUnHover(){
             this.umapTooltipEl.classList.remove('show');
-            this.umapTooltipEl.style.top = -100 + "px";
-            this.umapTooltipEl.style.left = -100 + "px";
+            this.umapTooltipEl.style.top = -1000 + "px";
+            this.umapTooltipEl.style.left = -1000 + "px";
         },
         updateViewTransform(){
             EventBus.$emit('view-transform-change', {id: this.sectionId, transform:this.viewTransform})
@@ -565,6 +565,8 @@
  }
 .scb-tooltip{
     position:fixed;
+    top:-1000px;
+    left:-1000px;
     background: white;
     padding: 5px 10px;
     box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;

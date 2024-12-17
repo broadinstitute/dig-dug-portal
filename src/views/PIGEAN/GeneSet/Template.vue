@@ -85,7 +85,7 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $store.state.pigeanGeneset.data.map(
+                                $parent.phewasAllData.map(
                                     (d) => d.phenotype
                                 )
                             "
@@ -119,6 +119,8 @@
                                             $parent.phewasAdjustedData
                                         "
                                         :phenotype-map="$parent.pigeanMap"
+                                        :linkPhenotypes="true"
+                                        :isPigean="true"
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
                                         :utils="$parent.utilsBox"
@@ -130,9 +132,7 @@
                                 <div class="col-md-4">
                                     <pigean-plot
                                         v-if="$parent.plotReady"
-                                        :pigean-data="
-                                            $store.state.pigeanGeneset.data
-                                        "
+                                        :pigean-data="$parent.phewasAllData"
                                         :config="$parent.pigeanPlotConfig"
                                         :phenotype-map="$parent.pigeanMap"
                                         :filter="filter"
@@ -142,9 +142,7 @@
                                 <div class="card-body pigean-table">
                                     <pigean-table
                                         v-if="$parent.plotReady"
-                                        :pigean-data="
-                                            $store.state.pigeanGeneset.data
-                                        "
+                                        :pigean-data="$parent.phewasAllData"
                                         :phenotype-map="$parent.pigeanMap"
                                         :config="$parent.tableConfig"
                                         :filter="filter"
