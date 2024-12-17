@@ -9,6 +9,7 @@ new Vue({
     components: {},
     mixins: [pankbaseMixin],
     data: {
+        dataUrl: process.env.VUE_APP_DATA_BASE_URL,
         donors: [],
         assays: [],
         processedResults: [],
