@@ -112,6 +112,8 @@ new Vue({
                     bottom: 300,
                 },
             },
+            dotsToPhewas: "",
+            dotsToPigean: ""
         };
     },
     computed: {
@@ -169,6 +171,12 @@ new Vue({
         phewasAllData(){
             return this.$store.state.phewasData;
         },
+        hoverDotsToPigean(){
+            return this.dotsToPigean;
+        },
+        hoverDotsToPhewas(){
+            return this.dotsToPhewas;
+        }
     },
     watch: {
         diseaseGroup(group) {
@@ -195,6 +203,13 @@ new Vue({
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
+        hoverDots(dots, fromPhewas=false){
+            if (fromPhewas){
+                this.dotsToPigean = dots;
+            } else {
+                this.dotsToPhewas = dots;
+            }
+        }
     },
 
     render(createElement, context) {
