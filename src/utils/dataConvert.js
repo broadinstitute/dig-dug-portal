@@ -72,6 +72,16 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
         return string.slice(0, -1)
     }
 
+    let getParameterByName = function (name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
     let applyConvert = function (d, CONVERT, PHENOTYPE_MAP) {
         let tempObj = {};
 
@@ -80,6 +90,54 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
             let cType = c.type;
 
             switch (cType) {
+                case "from parameter":
+                    let param = c["parameter"];
+
+                    tempObj[c["field name"]] = getParameterByName(param);
+
+                    d[c["field name"]] = tempObj[c["field name"]];
+
+                    break;
+
+                case "sub to top":
+
+                    let subList = d;
+
+                    if (!!c["sub path"]) {
+                        c["sub path"].map(path => {
+                            subList = subList[path];
+                        })
+                    }
+
+                    if (!!subList) {
+                        let subRow;
+
+                        if (!!c["copy by"]) {
+
+                            switch (c["copy by"]) {
+
+                                case "condition":
+
+                                    if (c["condition"]["type"] == "equal to") {
+
+                                        subList.map(row => {
+                                            //console.log("field", row[c["condition"]["field"]], c["condition"]["value"])
+
+                                            if (row[c["condition"]["field"]] == c["condition"]["value"]) {
+                                                subRow = row
+                                            }
+                                        })
+                                    }
+
+                                    break;
+                            }
+                        }
+
+                        tempObj[c["field name"]] = subRow[c["raw field"]];
+                    }
+
+                    break;
+
                 case "join":
                     tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
                     d[c["field name"]] = tempObj[c["field name"]];
@@ -94,28 +152,42 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     let newFields = c["field name"];
                     let newFieldValues = [];
-                    let string2Split = d[c["field to split"]];
-                    let loopIndex = 1;
-                    c["split by"].map(s => {
+                    let string2Split = (!!tempObj[c["field to split"]]) ? tempObj[c["field to split"]] : d[c["field to split"]];
 
-                        let [key, ...rest] = string2Split.split(s);
-                        string2Split = rest.join(s)
+                    //console.log('c["field name"]', c["field name"]);
 
-                        if (loopIndex < c["split by"].length) {
-                            newFieldValues.push(key)
-                        } else if (loopIndex = c["split by"].length) {
-                            newFieldValues.push(key)
-                            newFieldValues.push(rest.join(s))
-                        }
-                        loopIndex++;
-                    })
+                    if (!!string2Split) {
+                        let loopIndex = 1;
+                        c["split by"].map(s => {
 
-                    loopIndex = 0;
-                    newFields.map(f => {
-                        tempObj[f] = newFieldValues[loopIndex];
-                        d[f] = tempObj[f];
-                        loopIndex++;
-                    })
+                            let [key, ...rest] = string2Split.split(s);
+                            string2Split = rest.join(s)
+
+                            if (loopIndex < c["split by"].length) {
+                                newFieldValues.push(key)
+                            } else if (loopIndex = c["split by"].length) {
+                                newFieldValues.push(key)
+                                newFieldValues.push(rest.join(s))
+                            }
+                            loopIndex++;
+                        })
+
+                        //console.log("newFieldValues", newFieldValues);
+
+                        loopIndex = 0;
+                        newFields.map(f => {
+                            tempObj[f] = newFieldValues[loopIndex];
+                            d[f] = tempObj[f];
+
+
+
+                            loopIndex++;
+                        })
+
+                        console.log(tempObj);
+                    }
+
+
 
                     break;
 
@@ -125,7 +197,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "calculate":
-
 
                     let calType = c["calculation type"];
 
@@ -140,7 +211,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             let calcString = "";
 
                             c["expression"].map(e => {
-                                let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : (typeof e === 'number') ? e : d[e];
+                                let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : (typeof e === 'number') ? e :
+                                    (!!tempObj[e] || tempObj[e] === 0) ? (tempObj[e] === 0) ? 0 : tempObj[e] : (d[e] === 0) ? 0 : d[e];
                                 calcString += eValue;
                             });
 
@@ -167,7 +239,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "raw":
-
                     let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
 
                     if (d[c["raw field"]] === 0) {
@@ -234,6 +305,14 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     tempObj[c["field name"]] = (!!PHENOTYPE_MAP[pID] ? PHENOTYPE_MAP[pID].description : pID);
                     d[c["field name"]] = tempObj[c["field name"]];
+                    break;
+
+                case "boolean to string":
+                    let value = d[c["raw field"]] === true || d[c["raw field"]] == 1 ? "true" :
+                        d[c["raw field"]] === false || d[c["raw field"]] === 0 ? "false" : ""
+
+                    tempObj[c["field name"]] = value;
+
                     break;
 
             }

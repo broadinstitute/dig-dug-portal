@@ -69,7 +69,7 @@ new Vue({
                     parameter: "gene",
                     "data point": {
                         type: "api",
-                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene/3?columns=gene`,
+                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene/4?columns=gene`,
                         "data type": "json",
                         "data wrapper": ["keys"],
                     },
@@ -82,7 +82,7 @@ new Vue({
                     parameter: "geneset",
                     "data point": {
                         type: "api",
-                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene-set/3?columns=gene_set`,
+                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene-set/4?columns=gene_set`,
                         "data type": "json",
                         "data wrapper": ["keys"],
                     },
@@ -104,6 +104,44 @@ new Vue({
                 //         url: "/pigean/phenotype.html?",
                 //     },
                 // },
+                {
+                    parameter: "phenotype",
+                    values: "kp phenotypes",
+                    "target page": {
+                        label: "Search Phenotype",
+                        url: "/pigean/phenotype.html?",
+                    },
+                },
+            ],
+        },
+        altConfig: {
+            "search instruction": "Search gene, geneset or phenotype",
+            "search examples": [
+                {
+                    parameter: "gene",
+                    value: "PLAU",
+                },
+                {
+                    parameter: "gene",
+                    value: "MLX",
+                },
+            ],
+            "search parameters": [
+                {
+                    parameter: "gene",
+                    values: "kp genes",
+                    "target page": {
+                        label: "Search Gene",
+                        url: "/pigean/gene.html?",
+                    },
+                },
+                {
+                    parameter: "geneset",
+                    "target page": {
+                        label: "Search Geneset",
+                        url: "/pigean/geneset.html?",
+                    },
+                },
                 {
                     parameter: "phenotype",
                     values: "kp phenotypes",

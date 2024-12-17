@@ -112,6 +112,8 @@ new Vue({
                     bottom: 300,
                 },
             },
+            dotsToPhewas: "",
+            dotsToPigean: ""
         };
     },
     computed: {
@@ -145,7 +147,7 @@ new Vue({
         },
         plotReady() {
             return (
-                this.$store.state.pigeanGene.data.length > 0 &&
+                this.pigeanFilteredData.length > 0 &&
                 Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
@@ -159,10 +161,21 @@ new Vue({
             return adjustedData;
         },
         pigeanFilteredData(){
-            return this.$store.state.pigeanGene.data.filter(item => item.log_bf > 0 || item.prior > 0);
+            let rawData = structuredClone(this.phewasAllData);
+            let filteredData = rawData.filter(item => item.log_bf > 0 || item.prior > 0);
+            return filteredData;
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;
+        },
+        phewasAllData(){
+            return this.$store.state.phewasData;
+        },
+        hoverDotsToPigean(){
+            return this.dotsToPigean;
+        },
+        hoverDotsToPhewas(){
+            return this.dotsToPhewas;
         }
     },
     watch: {
@@ -190,6 +203,13 @@ new Vue({
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
+        hoverDots(dots, fromPhewas=false){
+            if (fromPhewas){
+                this.dotsToPigean = dots;
+            } else {
+                this.dotsToPhewas = dots;
+            }
+        }
     },
 
     render(createElement, context) {
