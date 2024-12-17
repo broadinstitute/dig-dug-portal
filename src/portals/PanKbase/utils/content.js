@@ -1,3 +1,6 @@
+import dataConvert from "@/utils/dataConvert";
+
+
 const CONTENT_URL = "https://hugeampkpncms.org/rest/data?pageid=";
 
 export async function getPankbaseContent(contentId){
@@ -6,5 +9,6 @@ export async function getPankbaseContent(contentId){
   console.log(resourceUrl);
   let jsonContent = await fetch(resourceUrl).then(
     resp => resp.json());
-  return jsonContent;
+  let csvContent = jsonContent[0].field_data_points;
+  return dataConvert.csv2Json(csvContent);
 }

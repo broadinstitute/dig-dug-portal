@@ -12,13 +12,18 @@ new Vue({
     data() {
         return {
             pageId: "pankbase_people",
+            people: []
         };
     },
-    computed: {},
+    computed: {
+        peopleList(){
+            return this.people;
+        }
+    },
     watch: {},
     async created() {
-        let content = await getPankbaseContent("pankbase_people");
-        console.log(JSON.stringify(content));
+        let content = await getPankbaseContent(this.pageId);
+        this.people = content;
     },
 
     render(createElement, context) {
