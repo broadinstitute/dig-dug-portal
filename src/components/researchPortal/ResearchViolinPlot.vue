@@ -49,6 +49,8 @@
     },
     data() {
         return {
+            eventElements: [],
+            tooltip: null,
         }
     },
     watch: {
@@ -69,6 +71,9 @@
     },
     beforeDestroy(){
         //window.removeEventListener('resize', this.handleResize);
+        if(this.eventElements.length>0) {
+            this.removeAllListeners(this.eventElements);
+        }
     },
     methods: {
         handleResize(){
@@ -80,13 +85,17 @@
 
             if(!this.data) return;
 
-            const tooltip = this.$refs.tooltip;
+            //clear previous event listeners
+            if(this.eventElements.length>0) {
+                this.removeAllListeners(this.eventElements);
+                this.eventElements = [];
+            }
+
+            const tooltip = this.tooltip = this.$refs.tooltip;
             const primaryKey = this.primaryKey;
             const subsetKey = this.subsetKey;
-
+            const hasSubsetKey = subsetKey;
             const keys = Array.from(new Set(this.data.map((d) => d[primaryKey])));
-            const hasSubsetKey = subsetKey && this.data[0][subsetKey] && this.data[0][subsetKey] !== "";
-            const domain = hasSubsetKey ? this.data.map((d) => d[primaryKey] +' - '+d[subsetKey]) : keys;
 
             //pre-render x-axis labels to get the their max height
             //this way we can ensure long labels dont get cut off at the bottom
@@ -108,7 +117,7 @@
             //calculate sizes and margins
             const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
             const labels = { xAxis: this.xAxisLabel?20:0, yAxis: this.yAxisLabel?20:0 }
-            const margin = { top: 20, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
+            const margin = { top: 10, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
             let width = parentWidth;
             let height = this.height;
             if(margin.bottom > (height/2)){
@@ -127,6 +136,7 @@
             width = plotWidth + margin.left + margin.right; 
             */
 
+            //get absolute min/max values
             const min = d3.min(this.data, (d) => d.min);
             const max = d3.max(this.data, (d) => d.max);
 
@@ -135,6 +145,7 @@
                 .attr('width', width)
                 .attr('height', height)
 
+            //rednder axis labels
             if(this.xAxisLabel){
                 const label = svg.append('g')
                     .append('text')
@@ -155,7 +166,8 @@
             }
 
             const plot = svg.append("g")
-                .attr("transform", `translate(${margin.left+labels.xAxis},${margin.top})`);
+                .attr("transform", `translate(${margin.left+labels.xAxis},${margin.top})`)
+                .attr("class", 'plot');
 
             const entryKey = (entry) => {
                 if(hasSubsetKey){
@@ -164,6 +176,8 @@
                     return entry[primaryKey];
                 }
             }
+
+            const domain = hasSubsetKey ? this.data.map((d) => d[primaryKey] +' - '+d[subsetKey]) : keys;
 
             // x scale
             const x = d3.scaleBand()
@@ -200,6 +214,8 @@
 
             const boxWidth = x.bandwidth() * 0.6;
 
+            //add background boxes to separate primaryKey sections
+            //when they have subsetKey items
             if(hasSubsetKey){
                 keys.forEach((key, i) => {
                     plot.append('rect')
@@ -211,15 +227,19 @@
                 })
             }
 
+            //draw the violins
             this.data.forEach((entry) => {
                 const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
 
                 const box = plot.append('g')
                     .attr("width", boxWidth)
-                    .attr("class", "violin-group")
-                    .attr("data-key", entryKey(entry));
+                    .attr('class', 'bar')
+                    .attr('data-label', `${entry[primaryKey]},${hasSubsetKey ? entry[subsetKey] : ''}`)
+                    /*.attr("class", "violin-group")
+                    .attr("data-key", entryKey(entry));*/
 
                 const boxNode = box.node();
+                this.addListener(boxNode, entry);
 
                 // kde
                 const bandwidth = 1;
@@ -300,33 +320,6 @@
                     .attr("height", y(entry.min) - y(entry.max))
                     .attr("fill", "transparent")
                     .style("pointer-events", "all");
-
-
-                // Tooltip mouseover
-                boxNode.addEventListener('mouseover', function(e){
-                    tooltip.innerHTML = `
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${primaryKey}:</div> ${entry[primaryKey]}</div>
-                                        <div style="display:${hasSubsetKey?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${subsetKey}:</div> ${entry[subsetKey]}</div>
-                                        <div style="display:${entry.gene?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Gene:</div> ${entry.gene}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Max:</div> ${entry.max}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q3:</div> ${entry.q3}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Median:</div> ${entry.median.toFixed(4)}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q1:</div> ${entry.q1}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Min:</div> ${entry.min}</div>
-                                         `;
-                    tooltip.classList.add('show')
-                })
-                // Tooltip mousemove to follow the cursor
-                boxNode.addEventListener('mousemove', function(e){
-                    tooltip.style.top = (e.clientY - 10) + "px";
-                    tooltip.style.left = (e.clientX + 10) + "px";
-                })
-                // Tooltip mouseout to hide it
-                boxNode.addEventListener('mouseout', function(e){
-                    tooltip.classList.remove('show');
-                    tooltip.style.top = -1000 + "px";
-                    tooltip.style.left = -1000 + "px";
-                });
             });
         },
         kde(kernel, thresholds, data) {
@@ -338,16 +331,72 @@
                 return Math.abs(u) <= 1 ? 0.75 * (1 - u * u) / bandwidth : 0;
             };
         },
-        doHighlight(key){
-            const svg = this.$refs.chart;
-            const violins = svg.querySelectorAll('.violin-group');
-            violins.forEach(violin=>{
-                if(!key || violin.dataset.key===key){
-                    violin.style.opacity = '1';
-                }else{
-                    violin.style.opacity = '0.1';
-                }
+        addListener(el, entry){
+            const mouseOver = this.mouseOverHandler.bind(this, entry);
+            const mouseMove = this.mouseMoveHandler.bind(this);
+            const mouseOut = this.mouseOutHandler.bind(this);
+            el._listeners = { mouseOver, mouseMove, mouseOut };
+            this.eventElements.push(el);
+            // Tooltip mouseover
+            el.addEventListener('mouseover', mouseOver);
+            el.addEventListener('mousemove', mouseMove);
+            el.addEventListener('mouseout', mouseOut);
+        },
+        removeListener(el){
+            if(el._listeners){
+                el.addEventListener('mouseover', el._listeners.mouseOver);
+                el.addEventListener('mousemove', el._listeners.mouseMove);
+                el.addEventListener('mouseout', el._listeners.mouseOut);
+                delete el._listeners;
+            }
+        },
+        removeAllListeners(elsArr){
+            console.log(`removing event listeners for ${elsArr.length} elements`);
+            elsArr.forEach(el=>{
+                this.removeListener(el);
+            });
+        },
+        mouseOverHandler(entry){
+            this.tooltip.innerHTML = `<div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.primaryKey}:</div> ${entry[this.primaryKey]}</div>
+                                        <div style="display:${entry[this.subsetKey]?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.subsetKey}:</div> ${entry[this.subsetKey]}</div>
+                                        <div style="display:${entry.gene?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Gene:</div> ${entry.gene}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Max:</div> ${entry.max}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q3:</div> ${entry.q3}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Median:</div> ${entry.median.toFixed(4)}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q1:</div> ${entry.q1}</div>
+                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Min:</div> ${entry.min}</div>
+                                `;
+            this.tooltip.classList.add('show')
+        },
+        mouseMoveHandler(e){
+            this.tooltip.style.top = (e.clientY - 10) + "px";
+            this.tooltip.style.left = (e.clientX + 10) + "px";
+        },
+        mouseOutHandler(e){
+            this.tooltip.classList.remove('show');
+            this.tooltip.style.top = -1000 + "px";
+            this.tooltip.style.left = -1000 + "px";
+        },
+        doHighlight(label){
+            const plot = this.$refs.chart.querySelector(`.plot`);
+            if(!plot) return;
+            plot.classList.remove('highlighting');
+            const matchingEls = this.$refs.chart.querySelectorAll(`.plot .bar`);
+            matchingEls.forEach(el => {
+                el.classList.remove('on');
             })
+            if(label && label != ''){
+                const matchingEls = this.$refs.chart.querySelectorAll(`.bar[data-label*="${label}"]`);
+                let hasHighlight = false;
+                matchingEls.forEach(el => {
+                    const elLabels = el.dataset.label.split(',');
+                    if(elLabels.includes(label)){
+                        el.classList.add('on');
+                        hasHighlight=true;
+                    }
+                })
+                if(hasHighlight) plot.classList.add('highlighting');
+            }
         }
     },
   });
@@ -368,6 +417,12 @@
     box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
   }
   .tooltip.show{
+    opacity: 1;
+  }
+  ::v-deep .plot.highlighting .bar{
+    opacity: 0.2;
+  }
+  ::v-deep .plot.highlighting .bar.on{
     opacity: 1;
   }
   </style>
