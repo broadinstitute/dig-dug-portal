@@ -163,7 +163,7 @@
     position: absolute;
     width: 100%;
 }
-.pkb-hero-bg img[data-v-365f9957] {
+.pkb-hero-bg img {
     position: absolute;
     width: 1300px;
     top: -400px;
