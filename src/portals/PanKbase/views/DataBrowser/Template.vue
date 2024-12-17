@@ -16,7 +16,17 @@
                                 hover
                                 responsive="sm"
                                 head-variant="light"
-                            ></b-table>
+                            >
+                                <template #cell(accession)="data">
+                                    <a
+                                        :href="
+                                            $parent.dataUrl + data.item['@id']
+                                        "
+                                        target="_blank"
+                                        >{{ data.item.accession }}</a
+                                    >
+                                </template>
+                            </b-table>
                             <b-pagination
                                 v-model="$parent.currentPageDonors"
                                 class="pagination justify-content-center"
@@ -35,7 +45,17 @@
                                 hover
                                 responsive="sm"
                                 head-variant="light"
-                            ></b-table>
+                            >
+                                <template #cell(accession)="data">
+                                    <a
+                                        :href="
+                                            $parent.dataUrl + data.item['@id']
+                                        "
+                                        target="_blank"
+                                        >{{ data.item.accession }}</a
+                                    >
+                                </template>
+                            </b-table>
                             <b-pagination
                                 v-model="$parent.currentPageAssays"
                                 class="pagination justify-content-center"
@@ -54,7 +74,16 @@
                                 hover
                                 responsive="sm"
                                 head-variant="light"
-                            ></b-table>
+                                ><template #cell(accession)="data">
+                                    <a
+                                        :href="
+                                            $parent.dataUrl + data.item['@id']
+                                        "
+                                        target="_blank"
+                                        >{{ data.item.accession }}</a
+                                    >
+                                </template></b-table
+                            >
                             <b-pagination
                                 v-model="$parent.currentPageAnalyses"
                                 class="pagination justify-content-center"
@@ -73,7 +102,16 @@
                                 hover
                                 responsive="sm"
                                 head-variant="light"
-                            ></b-table>
+                                ><template #cell(accession)="data">
+                                    <a
+                                        :href="
+                                            $parent.dataUrl + data.item['@id']
+                                        "
+                                        target="_blank"
+                                        >{{ data.item.accession }}</a
+                                    >
+                                </template></b-table
+                            >
                             <b-pagination
                                 v-model="$parent.currentPageProcessedResults"
                                 class="pagination justify-content-center"
