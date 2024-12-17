@@ -386,7 +386,7 @@
                     <div class="news-item f-row" v-for="item in this.newsFeed">
                         <div class="thumbnail" v-html="item.field_thumbnail_image"></div>
                         <div class="f-col">
-                            <a :href="`/r/kc_news?nid=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
+                            <a :href="`/r/kc_news_item?id=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
                             <div class="" v-html="item.body"></div>
                         </div>
                     </div>
