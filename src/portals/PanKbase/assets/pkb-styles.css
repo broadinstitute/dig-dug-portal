@@ -28,8 +28,8 @@ body {
 }
 .pkb-body {
     padding: 40px;
-    min-width: 1200px;
     max-width: 1400px;
+    width: 100%;
 }
 
 .box {
