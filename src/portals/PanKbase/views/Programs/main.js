@@ -3,19 +3,28 @@ import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
-import { getResource } from "@/portals/PanKbase/utils/api";
+import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 
 new Vue({
     components: {
     },
     mixins: [pankbaseMixin],
     data() {
-        return {};
+        return {
+            pageId: "pankbase_programs",
+            about: ""
+        };
     },
-    computed: {},
+    computed: {
+        programInfo(){
+            return this.about;
+        }
+    },
     watch: {},
-    created() {},
-
+    async created() {
+        let content = await getPankbaseContent(this.pageId, true);
+        this.about = content;
+    },
     render(createElement, context) {
         return createElement(Template);
     },

@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div class="menu-item-wrapper">
-                <a class="menu-item" href="/help.html">Help</a>
+                <a class="menu-item">Help</a>
                 <div class="submenu">
                     <a class="submenu-item" href="/contact.html">Contact</a>
                     <a class="submenu-item" href="/">Metadata | Data Standards</a>

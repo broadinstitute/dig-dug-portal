@@ -72,10 +72,16 @@ new Vue({
             }
         };
     },
-    computed: {},
+    computed: {
+        singleCellInfo(){
+            return this.about;
+        }
+    },
     watch: {},
-    created() {},
-
+    async created() {
+        let content = await getPankbaseContent(this.pageId, true);
+        this.about = content;
+    },
     render(createElement, context) {
         return createElement(Template);
     },

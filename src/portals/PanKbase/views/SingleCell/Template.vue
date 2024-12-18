@@ -4,6 +4,9 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
+<<<<<<< HEAD
+        <div v-html="$parent.singleCellInfo"></div>
+=======
           <research-single-cell-browser 
             v-if="true"
             sectionId="scb"
@@ -11,6 +14,7 @@
             :utils="$parent.utils"
             :data="$parent.data"
           ></research-single-cell-browser>
+>>>>>>> pankbase-main
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

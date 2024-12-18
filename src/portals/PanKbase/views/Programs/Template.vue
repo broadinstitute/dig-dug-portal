@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-          Programs page content goes here
+        <div v-html="$parent.programInfo"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

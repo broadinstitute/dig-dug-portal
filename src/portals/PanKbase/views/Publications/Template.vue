@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-          Help page content goes here
+        <div v-html="$parent.publicationsInfo"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

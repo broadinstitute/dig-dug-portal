@@ -52,12 +52,12 @@ let pages = {
         title: "People",
         chunks: ["chunk-vendors", "chunk-common", "people"],
     },
-    help: {
-        entry: "src/portals/PanKbase/views/Help/main.js",
+    publications: {
+        entry: "src/portals/PanKbase/views/Publications/main.js",
         template: "src/portals/PanKbase/index.html",
-        filename: "help.html",
-        title: "Help",
-        chunks: ["chunk-vendors", "chunk-common", "help"],
+        filename: "publications.html",
+        title: "Publications",
+        chunks: ["chunk-vendors", "chunk-common", "publications"],
     },
     contact: {
         entry: "src/portals/PanKbase/views/Contact/main.js",
@@ -66,6 +66,7 @@ let pages = {
         title: "Contact",
         chunks: ["chunk-vendors", "chunk-common", "contact"],
     },
+
 };
 
 module.exports = {
