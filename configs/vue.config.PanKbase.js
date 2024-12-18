@@ -31,6 +31,27 @@ let pages = {
         title: "Single Cell",
         chunks: ["chunk-vendors", "chunk-common", "singlecell"],
     },
+    analyticallibrary: {
+        entry: "src/portals/PanKbase/views/AnalyticalLibrary/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "analytical-library.html",
+        title: "Analytical Library",
+        chunks: ["chunk-vendors", "chunk-common", "analyticallibrary"]
+    },
+    metadata: {
+        entry: "src/portals/PanKbase/views/MetadataDataStandards/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "metadata-data-standards.html",
+        title: "Metadata | Data Standards",
+        chunks: ["chunk-vendors", "chunk-common", "metadata"]
+    },
+    tools: {
+        entry: "src/portals/PanKbase/views/ToolsPipelines/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "tools-pipelines.html",
+        title: "Tools | Pipelines",
+        chunks: ["chunk-vendors", "chunk-common", "tools"]
+    },
     projects: {
         entry: "src/portals/PanKbase/views/Projects/main.js",
         template: "src/portals/PanKbase/index.html",
@@ -66,7 +87,27 @@ let pages = {
         title: "Contact",
         chunks: ["chunk-vendors", "chunk-common", "contact"],
     },
-
+    collaborate: {
+        entry: "src/portals/PanKbase/views/Collaborate/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "collaborate.html",
+        title: "Collaborate",
+        chunks: ["chunk-vendors", "chunk-common", "collaborate"]
+    },
+    policies: {
+        entry: "src/portals/PanKbase/views/Policies/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "policies.html",
+        title: "Policies",
+        chunks: ["chunk-vendors", "chunk-common", "policies"]
+    },
+    tutorials: {
+        entry: "src/portals/PanKbase/views/Tutorials/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "tutorials.html",
+        title: "Tutorials",
+        chunks: ["chunk-vendors", "chunk-common", "tutorials"]
+    },
 };
 
 module.exports = {

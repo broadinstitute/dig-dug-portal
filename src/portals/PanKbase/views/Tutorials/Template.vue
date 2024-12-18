@@ -4,13 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-          <research-single-cell-browser 
-            v-if="true"
-            sectionId="scb"
-            :renderConfig="$parent.scbConfig"
-            :utils="$parent.utils"
-            :data="$parent.data"
-          ></research-single-cell-browser>
+        <div v-html="$parent.tutorialsInfo"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 
