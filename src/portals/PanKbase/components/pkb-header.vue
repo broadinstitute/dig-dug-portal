@@ -52,7 +52,7 @@
                         <a class="submenu-item" href="/projects.html">Project</a>
                         <a class="submenu-item" href="/people.html">People</a>
                         <a class="submenu-item" href="/collaborate.html">Collaborate</a>
-                        <a class="submenu-item" href="/">Policies</a>
+                        <a class="submenu-item" href="/policies.html">Policies</a>
                     </div>
                 </div>
                 <div class="menu-item-wrapper">

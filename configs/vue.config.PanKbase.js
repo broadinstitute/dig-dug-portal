@@ -72,6 +72,13 @@ let pages = {
         filename: "collaborate.html",
         title: "Collaborate",
         chunks: ["chunk-vendors", "chunk-common", "collaborate"]
+    },
+    policies: {
+        entry: "src/portals/PanKbase/views/Policies/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "policies.html",
+        title: "Policies",
+        chunks: ["chunk-vendors", "chunk-common", "policies"]
     }
 };
 
