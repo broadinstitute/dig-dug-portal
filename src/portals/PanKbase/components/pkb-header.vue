@@ -1,51 +1,66 @@
 <template>
     <div class="pkb-nav">
         <div class="logo">
-            <a href="/"
-                ><img
-                    src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/pkb-4.svg"
-            /></a>
+            <a href="/">
+                <img src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/pkb-4.svg"/>
+            </a>
         </div>
         <div class="menu-wrapper">
             <div class="topmenu">
-                <a class="topmenu-item"
-                    >Login
-                    <img
-                        style="height: 15px; width: 15px"
-                        src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"
-                    />
+                <a class="topmenu-item">
+                    Search <img style="height: 15px; width: 15px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/search-icon.svg"/>
+                </a>
+                <a class="topmenu-item">
+                    Analysis 
+                </a>
+                <a class="topmenu-item">
+                    Login <img style="height: 15px; width: 15px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"/>
                 </a>
             </div>
             <div class="menu">
-                <div class="menu-item-wrapper">
-                    <a class="menu-item" href="/data-browser.html"
-                        >Data Browser</a
-                    >
+                <div class="main-menu-items">
+                    <div class="menu-item-wrapper">
+                        <a class="menu-item menu-item-main" href="https://dev.pankgraph.org/">PanKgraph</a>
+                    </div>
+                    <div class="menu-item-wrapper">
+                        <a class="menu-item menu-item-main" href="/data-browser.html">Data Catalog</a>
+                    </div>
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item" href="/single-cell.html"
-                        >Single Cell</a
-                    >
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item" href="/people.html">People</a>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item">About</a>
+                    <a class="menu-item"  href="/">Data</a>
                     <div class="submenu">
-                        <a class="submenu-item" href="/projects.html"
-                            >Project</a
-                        >
-                        <a class="submenu-item" href="/programs.html"
-                            >Programs</a
-                        >
+                        <a class="submenu-item" href="/projects.html">Data Browser</a>
+                        <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
+                        <a class="submenu-item" href="/">Donor Metadata</a>
+                        <a class="submenu-item" href="/">APIs</a>
+                    </div>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item" href="/">Resources</a>
+                    <div class="submenu">
+                        <a class="submenu-item" href="/">Analytical Library</a>
+                        <a class="submenu-item" href="/">Publications</a>
+                    </div>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item" href="/">About</a>
+                    <div class="submenu">
+                        <a class="submenu-item" href="/programs.html">Programs</a>
+                        <a class="submenu-item" href="/projects.html">Project</a>
+                        <a class="submenu-item" href="/people.html">People</a>
+                        <a class="submenu-item" href="/collaborate.html">Collaborate</a>
+                        <a class="submenu-item" href="/policies.html">Policies</a>
                     </div>
                 </div>
                 <div class="menu-item-wrapper">
                     <a class="menu-item" href="/help.html">Help</a>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item" href="/contact.html">Contact</a>
+                    <div class="submenu">
+                        <a class="submenu-item" href="/contact.html">Contact</a>
+                        <a class="submenu-item" href="/">Metadata | Data Standards</a>
+                        <a class="submenu-item" href="/">Tools | Pipelines</a>
+                        <a class="submenu-item" href="/">Tutorials</a>
+                        <a class="submenu-item" href="/">Blog</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -58,9 +73,7 @@ import Vue from "vue";
 export default Vue.component("PkbHeader", {
     components: {},
     props: {},
-    data() {
-        return {};
-    },
+    data() { return {} },
     computed: {},
     created() {
         this.injectFavicon(
@@ -110,6 +123,9 @@ export default Vue.component("PkbHeader", {
     a:visited {
         color: black !important;
     }
+    a:hover{
+        text-decoration: none;
+    }
     .logo {
         display: flex;
         align-items: baseline;
@@ -139,7 +155,7 @@ export default Vue.component("PkbHeader", {
     .topmenu {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 0px;
     }
     .topmenu-item {
         color: var(--pkb-black);
@@ -164,6 +180,20 @@ export default Vue.component("PkbHeader", {
         position: relative;
         display: flex;
     }
+    .main-menu-items{
+        display:flex;
+        position: relative;
+        padding-right:2px;
+    }
+    .main-menu-items:after {
+        content: '';
+        position: absolute;
+        top:7px;
+        right: 0px;
+        width: 2px;
+        background-color: var(--pkb-primary-green);
+        height: 50%;
+    }
     .menu-item {
         position: relative;
         padding: 5px 10px;
@@ -172,6 +202,9 @@ export default Vue.component("PkbHeader", {
         font-weight: 600;
         color: var(--pkb-black);
         border-bottom: 5px solid transparent;
+    }
+    .menu-item.menu-item-main {
+        color: var(--pkb-primary-green) !important; 
     }
     .menu-item.menu-item-selected {
         color: var(--pkb-primary-green);
