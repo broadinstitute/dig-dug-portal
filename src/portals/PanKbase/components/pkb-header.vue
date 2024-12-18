@@ -31,7 +31,7 @@
                     <div class="submenu">
                         <a class="submenu-item" href="/projects.html">Data Browser</a>
                         <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
-                        <a class="submenu-item" href="/">Donor Metadata</a>
+                        <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
                         <a class="submenu-item" href="/">APIs</a>
                     </div>
                 </div>
@@ -48,8 +48,8 @@
                         <a class="submenu-item" href="/programs.html">Programs</a>
                         <a class="submenu-item" href="/projects.html">Project</a>
                         <a class="submenu-item" href="/people.html">People</a>
-                        <a class="submenu-item" href="/collaborate.html">Collaborate</a>
-                        <a class="submenu-item" href="/policies.html">Policies</a>
+                        <a class="submenu-item" href="/">Collaborate</a>
+                        <a class="submenu-item" href="/">Policies</a>
                     </div>
                 </div>
                 <div class="menu-item-wrapper">

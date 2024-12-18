@@ -46,7 +46,7 @@ new Vue({
                             title: "Donor Metadata",
                             body: "",
                             linkLabel: "Learn More",
-                            linkUrl: "/",
+                            linkUrl: "http://tools.cmdga.org:3838/metadata_analysis/",
                             bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-donors.png",
                             type: "medium",
                             comingSoon: false,
