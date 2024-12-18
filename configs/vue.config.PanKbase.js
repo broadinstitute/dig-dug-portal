@@ -66,7 +66,13 @@ let pages = {
         title: "Contact",
         chunks: ["chunk-vendors", "chunk-common", "contact"],
     },
-
+    collaborate: {
+        entry: "src/portals/PanKbase/views/Collaborate/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "collaborate.html",
+        title: "Collaborate",
+        chunks: ["chunk-vendors", "chunk-common", "collaborate"]
+    }
 };
 
 module.exports = {

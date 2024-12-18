@@ -36,7 +36,7 @@
                     <a class="submenu-item" href="/programs.html">Programs</a>
                     <a class="submenu-item" href="/projects.html">Project</a>
                     <a class="submenu-item" href="/people.html">People</a>
-                    <a class="submenu-item" href="/">Collaborate</a>
+                    <a class="submenu-item" href="/collaborate.html">Collaborate</a>
                     <a class="submenu-item" href="/">Policies</a>
                 </div>
             </div>
