@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-          Projects page content goes here
+        <div v-html="$parent.projectInfo"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

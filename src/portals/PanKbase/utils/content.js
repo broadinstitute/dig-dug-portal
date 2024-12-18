@@ -8,7 +8,7 @@ export async function getPankbaseContent(contentId, getBody=false){
   let jsonContent = await fetch(resourceUrl).then(
     resp => resp.json());
   if (jsonContent.length === 0){
-    return [];
+    return null;
   }
   if (getBody){
     return jsonContent[0].body;
