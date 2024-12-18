@@ -5,6 +5,15 @@
       <!-- BODY -->
       <div class="pkb-body">
         <div v-html="$parent.programInfo"></div>
+        <div class="row">
+          <div v-for="program in $parent.allPrograms" class="person col-md-6">
+            <img :src="program.bgImage" height="300px"/>
+            <h4>{{ program.title }}</h4>
+            <p>{{ program.body }}</p>
+            <a :href="program.linkUrl">{{ program.linkLabel }}</a>
+
+          </div>
+        </div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 
