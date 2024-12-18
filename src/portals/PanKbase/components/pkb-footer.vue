@@ -24,7 +24,7 @@
                 <a class="menu-item" href="/">Resources</a>
                 <div class="submenu">
                     <a class="submenu-item" href="/projects.html">Analytical Library</a>
-                    <a class="submenu-item" href="/programs.html">Publications</a>
+                    <a class="submenu-item" href="/publications.html">Publications</a>
                 </div>
             </div>
             <div class="menu-item-wrapper">
@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div class="menu-item-wrapper">
-                <a class="menu-item" href="/help.html">Help</a>
+                <a class="menu-item">Help</a>
                 <div class="submenu">
                     <a class="submenu-item" href="/contact.html">Contact</a>
                     <a class="submenu-item" href="/">Metadata | Data Standards</a>
