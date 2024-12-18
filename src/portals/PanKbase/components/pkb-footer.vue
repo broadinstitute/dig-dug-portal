@@ -23,13 +23,8 @@
             <div class="menu-item-wrapper">
                 <a class="menu-item" href="/">Resources</a>
                 <div class="submenu">
-<<<<<<< HEAD
-                    <a class="submenu-item" href="/projects.html">Analytical Library</a>
-                    <a class="submenu-item" href="/publications.html">Publications</a>
-=======
                     <a class="submenu-item" href="/">Analytical Library</a>
                     <a class="submenu-item" href="/">Publications</a>
->>>>>>> pankbase-main
                 </div>
             </div>
             <div class="menu-item-wrapper">
