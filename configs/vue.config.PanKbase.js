@@ -108,6 +108,41 @@ let pages = {
         title: "Tutorials",
         chunks: ["chunk-vendors", "chunk-common", "tutorials"]
     },
+    hpap: {
+        entry: "src/portals/PanKbase/views/HPAP/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "hpap-program.html",
+        title: "HPAP",
+        chunks: ["chunk-vendors", "chunk-common", "hpap"]
+    },
+    iidp: {
+        entry: "src/portals/PanKbase/views/IIDP/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "iidp-program.html",
+        title: "IIDP",
+        chunks: ["chunk-vendors", "chunk-common", "iidp"]
+    },
+    npod: {
+        entry: "src/portals/PanKbase/views/NPOD/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "npod-program.html",
+        title: "nPOD",
+        chunks: ["chunk-vendors", "chunk-common", "npod"]
+    },
+    pancreatlas: {
+        entry: "src/portals/PanKbase/views/Pancreatlas/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "pancreatlas-program.html",
+        title: "Pancreatlas",
+        chunks: ["chunk-vendors", "chunk-common", "pancreatlas"]
+    },
+    adi: {
+        entry: "src/portals/PanKbase/views/ADI/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "adi-program.html",
+        title: "ADI",
+        chunks: ["chunk-vendors", "chunk-common", "adi"]
+    },
 };
 
 module.exports = {
