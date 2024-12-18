@@ -8,7 +8,7 @@
             <img :src="person['Photo']" height="300px"/>
             <h4>{{ person["Name"] }}</h4>
             <h5>{{ person["Affiliation"] }}</h5>
-            <p>{{ person["Role"] }}</p>
+            <p class="bio">{{ person["Role"] }}</p>
 
           </div>
       </div>
@@ -18,6 +18,10 @@
 </template>
 <style>
   .person {
-    margin-bottom: 25px;
+    padding: 25px;
+  }
+  .bio {
+    width: 85%;
+    text-align: justify;
   }
 </style>
