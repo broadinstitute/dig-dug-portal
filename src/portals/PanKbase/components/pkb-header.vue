@@ -23,7 +23,10 @@
                         <a class="menu-item menu-item-main" href="https://dev.pankgraph.org/">PanKgraph</a>
                     </div>
                     <div class="menu-item-wrapper">
-                        <a class="menu-item menu-item-main" href="/data-browser.html">Data Catalog</a>
+                        <a class="menu-item menu-item-main" href="/single-cell.html">Integrated Cell Browser</a>
+                    </div>
+                    <div class="menu-item-wrapper">
+                        <a class="menu-item menu-item-main" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
                     </div>
                 </div>
                 <div class="menu-item-wrapper">
@@ -53,7 +56,7 @@
                     </div>
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item">Help</a>
+                    <a class="menu-item" href="/">Help</a>
                     <div class="submenu">
                         <a class="submenu-item" href="/contact.html">Contact</a>
                         <a class="submenu-item" href="/">Metadata | Data Standards</a>
@@ -223,7 +226,7 @@ export default Vue.component("PkbHeader", {
         right: 0;
         background: var(--pkb-secondary-green);
         padding: 10px 10px 15px 15px;
-        border-radius: 0 0 10px 10px;
+        border-radius: 0 0 5px 5px;
         width: max-content;
         flex-direction: column;
         align-items: flex-end;

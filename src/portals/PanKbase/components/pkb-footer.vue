@@ -8,7 +8,10 @@
                     <a class="menu-item menu-item-main" href="https://dev.pankgraph.org/">PanKgraph</a>
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item menu-item-main" href="/data-browser.html">Data Catalog</a>
+                    <a class="menu-item menu-item-main" href="/single-cell.html">Integrated Cell Browser</a>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item menu-item-main" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
                 </div>
             </div>
             <div class="menu-item-wrapper">
@@ -24,7 +27,7 @@
                 <a class="menu-item" href="/">Resources</a>
                 <div class="submenu">
                     <a class="submenu-item" href="/">Analytical Library</a>
-                    <a class="submenu-item" href="/">Publications</a>
+                    <a class="submenu-item" href="/publications.html">Publications</a>
                 </div>
             </div>
             <div class="menu-item-wrapper">
@@ -38,7 +41,7 @@
                 </div>
             </div>
             <div class="menu-item-wrapper">
-                <a class="menu-item">Help</a>
+                <a class="menu-item" href="/">Help</a>
                 <div class="submenu">
                     <a class="submenu-item" href="/contact.html">Contact</a>
                     <a class="submenu-item" href="/">Metadata | Data Standards</a>
