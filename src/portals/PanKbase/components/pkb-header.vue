@@ -41,7 +41,7 @@
                 <div class="menu-item-wrapper">
                     <a class="menu-item" href="/">Resources</a>
                     <div class="submenu">
-                        <a class="submenu-item" href="/">Analytical Library</a>
+                        <a class="submenu-item" href="/analytical-library.html">Analytical Library</a>
                         <a class="submenu-item" href="/publications.html">Publications</a>
                     </div>
                 </div>
@@ -59,9 +59,9 @@
                     <a class="menu-item" href="/">Help</a>
                     <div class="submenu">
                         <a class="submenu-item" href="/contact.html">Contact</a>
-                        <a class="submenu-item" href="/">Metadata | Data Standards</a>
-                        <a class="submenu-item" href="/">Tools | Pipelines</a>
-                        <a class="submenu-item" href="/">Tutorials</a>
+                        <a class="submenu-item" href="/metadata-data-standards.html">Metadata | Data Standards</a>
+                        <a class="submenu-item" href="/tools-pipelines.html">Tools | Pipelines</a>
+                        <a class="submenu-item" href="/tutorials.html">Tutorials</a>
                         <a class="submenu-item" href="/">Blog</a>
                     </div>
                 </div>
