@@ -143,6 +143,20 @@ let pages = {
         title: "ADI",
         chunks: ["chunk-vendors", "chunk-common", "adi"]
     },
+    apis: {
+        entry: "src/portals/PanKbase/views/APIs/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "apis.html",
+        title: "APIs",
+        chunks: ["chunk-vendors", "chunk-common", "apis"]
+    },
+    news: {
+        entry: "src/portals/PanKbase/views/News/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "news.html",
+        title: "News",
+        chunks: ["chunk-vendors", "chunk-common", "news"]
+    },
 };
 
 module.exports = {

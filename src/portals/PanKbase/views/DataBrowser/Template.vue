@@ -5,6 +5,7 @@
 
         <!-- BODY -->
         <div class="pkb-body">
+            <div v-html="$parent.info"></div>
             <b-card no-body>
                 <b-tabs card>
                     <b-tab title="Donors" active>

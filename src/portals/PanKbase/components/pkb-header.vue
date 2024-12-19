@@ -32,7 +32,7 @@
                 <div class="menu-item-wrapper">
                     <a class="menu-item"  href="/">Data</a>
                     <div class="submenu">
-                        <a class="submenu-item" href="/projects.html">Data Browser</a>
+                        <a class="submenu-item" href="/data-browser.html">Data Browser</a>
                         <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
                         <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
                         <a class="submenu-item" href="/apis.html">APIs</a>

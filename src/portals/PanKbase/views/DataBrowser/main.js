@@ -4,6 +4,7 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getResource } from "@/portals/PanKbase/utils/api";
+import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 
 new Vue({
     components: {},
@@ -93,6 +94,9 @@ new Vue({
         currentPageAssays: 1,
         currentPageProcessedResults: 1,
         currentPageAnalyses: 1,
+
+        pageId: "pankbase_databrowser",
+        info: null,
     },
     computed: {},
     watch: {
@@ -115,6 +119,8 @@ new Vue({
         this.fetchAssays();
         this.fetchAnalyses();
         this.fetchProcessedResults();
+        let content = await getPankbaseContent(this.pageId, true);
+        this.info = content;
     },
     methods: {
         async fetchDonors(page = 1) {
