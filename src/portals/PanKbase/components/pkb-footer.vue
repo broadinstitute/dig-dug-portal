@@ -20,7 +20,7 @@
                     <a class="submenu-item" href="/projects.html">Data Browser</a>
                     <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
                     <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
-                    <a class="submenu-item" href="/">APIs</a>
+                    <a class="submenu-item" href="/apis.html">APIs</a>
                 </div>
             </div>
             <div class="menu-item-wrapper">
@@ -47,7 +47,7 @@
                     <a class="submenu-item" href="/metadata-data-standards.html">Metadata | Data Standards</a>
                     <a class="submenu-item" href="/tools-pipelines.html">Tools | Pipelines</a>
                     <a class="submenu-item" href="/tutorials.html">Tutorials</a>
-                    <a class="submenu-item" href="/">Blog</a>
+                    <a class="submenu-item" href="/news.html">News</a>
                 </div>
             </div>
         </div>

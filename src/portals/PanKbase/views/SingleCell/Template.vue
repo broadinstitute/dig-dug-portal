@@ -4,6 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
+         <div v-html="$parent.info"></div>
           <research-single-cell-browser 
             v-if="true"
             sectionId="scb"

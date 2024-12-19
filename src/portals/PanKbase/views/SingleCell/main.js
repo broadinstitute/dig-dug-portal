@@ -14,7 +14,7 @@ new Vue({
     mixins: [pankbaseMixin],
     data() {
         return {
-            //update single cell component so it doesnt require data prop
+            //alex, update single cell component so it doesnt require data prop
             //it should just load the 'metadata' data point from its config
             data: [
                 {
@@ -69,7 +69,9 @@ new Vue({
                   "cell type label": "Cell Type",
                   "genes": ["INS", "GCG", "SST", "PPY", "PRSS1", "CFTR", "PLVAP", "PDGFRB", "PTPRC"]
                 }
-            }
+            },
+            pageId: "pankbase_cellbrowser",
+            info: null,
         };
     },
     computed: {
@@ -78,7 +80,9 @@ new Vue({
         }
     },
     watch: {},
-    created() {
+    async created() {
+        let content = await getPankbaseContent(this.pageId, true);
+        this.info = content;
     },
     render(createElement, context) {
         return createElement(Template);
