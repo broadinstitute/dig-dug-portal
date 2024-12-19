@@ -305,6 +305,14 @@
 						</template>
 						<td v-if="tableFormat['features'] != undefined">
 							<span
+								v-if="!tableFormat['features required column']"
+								href="javascript:;"
+								@click="showHideFeature('feature_' + sectionId + index)"
+								class="show-evidence-btn btn"
+								>View</span
+							>
+							<span
+								v-else-if="checkFeatureExist(value,tableFormat['features required column'])"
 								href="javascript:;"
 								@click="showHideFeature('feature_' + sectionId + index)"
 								class="show-evidence-btn btn"
@@ -735,6 +743,22 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
+		checkFeatureExist(DATA,PATH) {
+			let ifExist = true;
+
+			let value = DATA;
+			PATH.map(step => {
+				value = value[step];
+
+				if(!value) {
+					ifExist = false
+				} else if (value=="" || value == undefined) {
+					ifExist = false
+				}
+			})
+
+			return ifExist;
+		},
 		getRowID(TEXT) {
 			return TEXT.replace(/[^a-zA-Z0-9]/g, '_');
 		},
