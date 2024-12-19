@@ -56,7 +56,7 @@
                                         Search for gene, geneset or phenotype
                                     </h4>
                                     <research-single-search
-                                        :single-search-config="$parent.config"
+                                        :single-search-config="$parent.altConfig"
                                         :phenotypes="
                                             $parent.phenotypesInSession
                                         "

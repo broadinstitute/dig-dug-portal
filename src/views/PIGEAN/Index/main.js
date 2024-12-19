@@ -114,6 +114,44 @@ new Vue({
                 },
             ],
         },
+        altConfig: {
+            "search instruction": "Search gene, geneset or phenotype",
+            "search examples": [
+                {
+                    parameter: "gene",
+                    value: "PLAU",
+                },
+                {
+                    parameter: "gene",
+                    value: "MLX",
+                },
+            ],
+            "search parameters": [
+                {
+                    parameter: "gene",
+                    values: "kp genes",
+                    "target page": {
+                        label: "Search Gene",
+                        url: "/pigean/gene.html?",
+                    },
+                },
+                {
+                    parameter: "geneset",
+                    "target page": {
+                        label: "Search Geneset",
+                        url: "/pigean/geneset.html?",
+                    },
+                },
+                {
+                    parameter: "phenotype",
+                    values: "kp phenotypes",
+                    "target page": {
+                        label: "Search Phenotype",
+                        url: "/pigean/phenotype.html?",
+                    },
+                },
+            ],
+        },
     },
 
     computed: {

@@ -42,6 +42,7 @@
 						:sectionId="sectionId"
 						:utils="utils"
 						:ref="sectionId + '_heatmap'"
+						@mousemove="checkPosition($event)" 
 					>
 					</research-heatmap-vector>
 				</div>

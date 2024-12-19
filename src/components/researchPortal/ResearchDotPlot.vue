@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div style="width:min-content">
         <div ref="plot"></div>
         <div ref="tooltip" class="tooltip"></div>
     </div>
@@ -12,7 +12,15 @@
   export default Vue.component('research-dot-plot', {
     props: {
         data: {
-            type: Object,
+            type: Array,
+            required: true,
+        },
+        geneKey:{
+            type:String,
+            required: true,
+        },
+        primaryKey:{
+            type: String,
             required: true,
         },
         width:{
@@ -94,66 +102,45 @@
         renderPlot() {
             console.log('---DotPlot')
             console.log('   data', this.data);
-            //return;
-            //const { data } = this;
-            const sumstat = this.data;
-            //console.log('   sumstat', sumstat);
-    
-            //console.log('heatmapDotPlot', this.data);
-            //console.log('heatmapDotPlot', data, typeof data);
-    
-            const isHorizontal = this.orientation === 'horizontal';
-    
-            const keys = Object.keys(sumstat);
-            //console.log('   keys', keys);
-            const gene = keys[0];
-            const labels = keys.length === 1 ? sumstat[gene].map(item => item.key) : getUniqueValuesByKey(sumstat, 'key');
-    
-            function getUniqueValuesByKey(data, key) {
-                const uniqueValuesSet = new Set();
-    
-                Object.values(data).forEach(array => {
-                    array.forEach(item => {
-                        if (item.hasOwnProperty(key)) {
-                            uniqueValuesSet.add(item[key]);
-                        }
-                    });
-                });
-    
-                return Array.from(uniqueValuesSet);
+
+            if(!this.geneKey){
+                console.log('   geneKey required');
+                return;
             }
-    
+            if(!this.primaryKey){
+                console.log('   primaryKey required');
+                return;
+            }
+
+            const geneKey = this.geneKey;
+            const primaryKey = this.primaryKey;
+            const keys = Array.from(new Set(this.data.map(d => d[geneKey])));
+            const labels = Array.from(new Set(this.data.map(d => d[primaryKey])));
+            const allMeans = this.data.map(d => d.mean);
+
+            const tooltip = this.$refs.tooltip;
+
+            //console.log('   genes', keys); 
             //console.log('   labels', labels);
-    
-            /*
-            const densityData = {};
-            keys.map(gene => {
-                densityData[gene] = labels.map(label => {
-                    return {
-                    label: label,
-                    values: data[gene][label]
-                    };
-                })
-            });
-            */
-    
-            //console.log('   densityData', densityData)
-    
-            /*const marginH = {
-            top: this.marginTop || (this.positionXLabelsOnTop ? 50 : 10), 
-            bottom: this.marginBottom || (this.positionXLabelsOnTop ? 10 : 50), 
-            right: this.marginRight || (this.positionYLabelsOnRight ? 50 : 10), 
-            left: this.marginLeft || (this.positionYLabelsOnRight ? 10 : 50)
-            };
-            const marginV = {
-            top: this.marginTop || (this.positionXLabelsOnTop ? 50 : 10), 
-            bottom: this.marginBottom || (this.positionXLabelsOnTop ? 10 : 50), 
-            right: this.marginRight || (this.positionYLabelsOnRight ? 50 : 10), 
-            left: this.marginLeft || (this.positionYLabelsOnRight ? 10 : 50)
-            };*/
+
+            const tempsvg = d3.select(this.$refs.plot)
+                .append('svg')
+            const templabels = tempsvg.append("g")
+                .selectAll("text")
+                .data(labels).enter()
+                .append("text").text(d => d)
+                .style("text-anchor", "end")
+                .attr('font-size', '12px')
+                .attr("transform", "rotate(-55)");
+            const bbox = templabels.node().parentNode.getBBox();
+            const labelsHeight = bbox.height; 
+            d3.select(this.$refs.plot).html('')
+
+
+            const isHorizontal = this.orientation === 'horizontal';
             const marginH = {
                 top: (this.showXLabels ? this.positionXLabelsOnTop ? 80 : 5 : 5) + this.marginTop, 
-                bottom: (this.showXLabels ? this.positionXLabelsOnTop ? 5 : 80 : 5) + this.marginBottom, 
+                bottom: (this.showXLabels ? this.positionXLabelsOnTop ? 5 : labelsHeight : 5) + this.marginBottom, 
                 right: (this.showYLabels ? this.positionYLabelsOnRight ? 80 : 5 : 5) + this.marginRight, 
                 left: (this.showYLabels ? this.positionYLabelsOnRight ? 5 : 80 : 5) + this.marginLeft
             };
@@ -164,40 +151,39 @@
                 left: (this.showYLabels ? this.positionYLabelsOnRight ? 5 : 80 : 5) + this.marginLeft
             };
             const margin = isHorizontal ? marginH : marginV;
-            const width = isHorizontal && this.fitToSize ? this.width : ((isHorizontal ? labels.length : keys.length) * this.cellWidth) + margin.left + margin.right;
-            const height = !isHorizontal && this.fitToSize ? this.height : ((isHorizontal ? keys.length : labels.length) * this.cellWidth) + margin.top + margin.bottom;
-    
-            console.log('   dimentions', {margin, width, height});
-            /*
             
-            const sumstat = {};
-            keys.forEach(gene => {
-                densityData[gene].forEach(item => {
-                //console.log(item);
-                const sortedValues = item.values ? item.values.sort(d3.descending) : [0];
-                const key = item.label;
-                const mean = d3.mean(sortedValues)
-                const q1 = d3.quantile(sortedValues, .25)
-                const median = d3.quantile(sortedValues, .5)
-                const q3 = d3.quantile(sortedValues, .75)
-                const interQuantileRange = q3 - q1
-                const min = sortedValues[0]
-                const max = sortedValues[sortedValues.length-1]
-                const pctExpr = (sortedValues.filter(val => val > 0).length / sortedValues.length) * 100;//sortedValues.length / 166149;
-                if(!sumstat[gene]) sumstat[gene] = [];
-                sumstat[gene].push({ key, mean, q1, median, q3, interQuantileRange, min, max, pctExpr });
-                })
-            })
-    
-            console.log('   sumstat', sumstat);
-            */
+            let width = 0;
+            let height = 0;
+            let plotWidth = 0;
+            let plotHeight = 0;
+            let cellWidth = 0;
+
+            if(this.fitToSize){
+                width = this.width;
+                plotWidth = width - margin.left - margin.right;
+                cellWidth = plotWidth / labels.length;
+                if(cellWidth > this.cellWidth){
+                    cellWidth = this.cellWidth;
+                    plotWidth = labels.length * cellWidth;
+                    width = plotWidth + margin.left + margin.right;
+                }
+                plotHeight = keys.length * cellWidth;
+                height = plotHeight + margin.top + margin.bottom;
+            }else{
+                plotWidth = labels.length * cellWidth;
+                width = plotWidth + margin.left + margin.right;
+                plotHeight = keys.length * cellWidth;
+                height = plotHeight + margin.top + margin.left;
+            }
+
+            console.log('   dimentions', {margin, width, height});
     
             const yLabel = d3.scaleBand()
                 .range([margin.top, height - margin.bottom])
                 .domain(labels)
                 .padding(0.1);
                 
-            const yLabelGene = d3.scaleBand()
+            const yGene = d3.scaleBand()
                 .range([margin.top, height - margin.bottom])
                 .domain(keys)
                 .padding(0.1);
@@ -207,48 +193,26 @@
                 .domain(labels)
                 .padding(0.1);
     
-            const xLabelGene = d3.scaleBand()
+            const xGene = d3.scaleBand()
                 .range([margin.left, width - margin.right])
                 .domain(keys)
                 .padding(0.1);
     
             const eScale = d3.scaleLinear()
-                .range([1, xLabel.bandwidth() / 2.5])
+                .range([1, xLabel.bandwidth() / 2])
                 .domain([0, 100])
                 .nice();
     
             const eScale2 = d3.scaleLinear()
-                .range([1, yLabel.bandwidth() / 2.5])
+                .range([1, yLabel.bandwidth() / 2])
                 .domain([0, 100])
                 .nice();
     
-                const allMeans = Object.values(sumstat).flat().map(d => d.mean);
-    
-                // Create the color scale
-                const color = d3.scaleSequential(d3.interpolatePlasma)
-                .domain([d3.max(allMeans), 0]);
-            /*
+            // Create the color scale
             const color = d3.scaleSequential(d3.interpolatePlasma)
-                .domain([d3.max(sumstat, d => d.mean), 0])
-                */
-    
-            //console.log('label scale', xLabel.range(), xLabel.domain(), xLabel.bandwidth())
-            //console.log('gene label scale', yLabelGene.range(), yLabelGene.domain(), yLabelGene.bandwidth())
-            //console.log('expression scale', eScale.range(), eScale.domain())
-    
-            const yScale = d3.scaleLinear()
-                .range([0, width])
-                //.domain([0, d3.max(densityData, d=> d3.max(d.values))])
-                .domain([0, d3.max(sumstat, d=> d3.max(d.max))])
-                .nice();
-    
-            const xScale = d3.scaleLinear()
-                .range([height, 0])
-                //.domain([d3.max(densityData, d=> d3.max(d.values)), 0])
-                .domain([d3.max(sumstat, d=> d3.max(d.max)), 0])
-                .nice();
+                .domain([d3.max(allMeans), 0]);
                 
-            const svg = d3.select(this.$refs.plot).html('')
+            const svg = d3.select(this.$refs.plot)
                 .append('svg')
                 .attr('width', width)
                 .attr('height', height)
@@ -278,7 +242,7 @@
                             
                         xAxis.selectAll("text")
                             .style("text-anchor", "end")
-                            .attr("transform", "rotate(-35) translate(-5, 0)")
+                            .attr("transform", "rotate(-55) translate(-5, 0)")
                     }
                 }
                 
@@ -287,12 +251,12 @@
                     if(this.positionYLabelsOnRight){
                         svg.append("g")
                             .attr('transform', `translate(${width - margin.right},0)`)
-                            .call(d3.axisRight(yLabelGene).tickSizeOuter(0))
+                            .call(d3.axisRight(yGene).tickSizeOuter(0))
                             .select(".domain").remove()
                     }else{
                         svg.append("g")
                             .attr('transform', `translate(${margin.left},0)`)
-                            .call(d3.axisLeft(yLabelGene).tickSizeOuter(0))
+                            .call(d3.axisLeft(yGene).tickSizeOuter(0))
                             .select(".domain").remove()
                     }
                     
@@ -303,7 +267,7 @@
                     if(this.positionXLabelsOnTop){
                         const xAxis = svg.append("g")
                         .attr('transform', `translate(0,${margin.top})`)
-                        xAxis.call(d3.axisTop(xLabelGene).tickSizeOuter(0))
+                        xAxis.call(d3.axisTop(xGene).tickSizeOuter(0))
                         
                         xAxis.select(".domain").remove()
             
@@ -317,7 +281,7 @@
                     }else{
                         const xAxis = svg.append("g")
                         .attr('transform', `translate(0,${height - margin.bottom})`)
-                        xAxis.call(d3.axisBottom(xLabelGene).tickSizeOuter(0))
+                        xAxis.call(d3.axisBottom(xGene).tickSizeOuter(0))
                         
                         xAxis.select(".domain").remove()
             
@@ -348,116 +312,71 @@
                 }
             }
     
-            const sumstatArray = Object.keys(sumstat).flatMap(gene => {
-                return sumstat[gene].map(data => ({ gene, ...data }));
-            });
-    
-            //console.log('sumstatArray', sumstatArray)
-    
-            const tooltip = this.$refs.tooltip;
-    
-            //const cells = svg.selectAll("boxes")
-            //    .data(sumstatArray)
-            //    .enter()
             const cells = svg.append('g');
+
             if(isHorizontal){
-                sumstatArray.forEach((d, i) => {
+                this.data.forEach((d, i) => {
                     const outerCircle = cells.append('circle')
-                        .attr('cx', xLabel(d.key) + xLabel.bandwidth() / 2 )
-                        .attr('cy', yLabelGene(d.gene) + yLabelGene.bandwidth() / 2 )
+                        .attr('cx', xLabel(d[primaryKey]) + xLabel.bandwidth() / 2 )
+                        .attr('cy', yGene(d[geneKey]) + yGene.bandwidth() / 2 )
                         .attr('r', eScale(100))
                         .style('stroke', '#ccc')
                         .attr('stroke-width', "0.5")
                         .style('fill', '#f9f9f9')
-                        .attr('data-key', d.key)
+                        .attr('data-key', d[primaryKey])
                         .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
                         .node()
 
                         // Tooltip mouseover
                         outerCircle.addEventListener('mouseover', function(e){
-                            tooltip.innerHTML = `<div style="display:flex"><div style="width:70px; font-weight:bold">Gene</div>${d.gene}</div>
-                                                 <div style="display:flex"><div style="width:70px; font-weight:bold">Cell</div>${d.key}</div>
+                            tooltip.innerHTML = `<div style="display:flex"><div style="width:70px; font-weight:bold">Gene</div>${d[geneKey]}</div>
+                                                 <div style="display:flex"><div style="width:70px; font-weight:bold">${primaryKey}</div>${d[primaryKey]}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">Expr.</div>${d.mean.toFixed(4)}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">% Expr.</div>${d.pctExpr.toFixed(4)}</div>`;
                             tooltip.classList.add('show')
                         })
                         // Tooltip mousemove to follow the cursor
                         outerCircle.addEventListener('mousemove', function(e){
-                            console.log(d);
+                            //console.log(d);
                             tooltip.style.top = (e.clientY - 10) + "px";
                             tooltip.style.left = (e.clientX + 10) + "px";
                         })
                         // Tooltip mouseout to hide it
                         outerCircle.addEventListener('mouseout', function(e){
                             tooltip.classList.remove('show');
-                            tooltip.style.top = -100 + "px";
-                            tooltip.style.left = -100 + "px";
+                            tooltip.style.top = -1000 + "px";
+                            tooltip.style.left = -1000 + "px";
                         });
 
                     cells.append('circle')
-                        .attr('cx', xLabel(d.key) + xLabel.bandwidth() / 2 )
-                        .attr('cy', yLabelGene(d.gene) + yLabelGene.bandwidth() / 2 )
+                        .attr('cx', xLabel(d[primaryKey]) + xLabel.bandwidth() / 2 )
+                        .attr('cy', yGene(d[geneKey]) + yGene.bandwidth() / 2 )
                         .attr('r', eScale(d.pctExpr))
                         .style('fill', color(d.mean))
                         .style('pointer-events', 'none')
-                        .attr('data-key', d.key)
-                        .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
+                        .attr('data-key', d[primaryKey])
+                        .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d[primaryKey] ? '1' : '0.1')
                 })
-                /*const outerCircle = cells.append('circle')
-                    .attr('cx', d => xLabel(d.key) + xLabel.bandwidth() / 2 )
-                    .attr('cy', d => yLabelGene(d.gene) + yLabelGene.bandwidth() / 2 )
-                    .attr('r', eScale(100))
-                    .style('stroke', '#ccc')
-                    .attr('stroke-width', "0.5")
-                    .style('fill', 'white')
-                    .attr('data-key', d => d.key)
-                    .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
-                    .node()
-
-                    // Tooltip mouseover
-                    outerCircle.addEventListener('mouseover', function(e){
-                        tooltip.innerHTML = `<strong>ok</strong><br>Total: `;
-                        tooltip.classList.add('show')
-                    })
-                    // Tooltip mousemove to follow the cursor
-                    outerCircle.addEventListener('mousemove', function(e){
-                        console.log(e);
-                        tooltip.style.top = (e.clientY - 10) + "px";
-                        tooltip.style.left = (e.clientX + 10) + "px";
-                    })
-                    // Tooltip mouseout to hide it
-                    outerCircle.addEventListener('mouseout', function(e){
-                        tooltip.classList.remove('show')
-                    });
-
-                cells.append('circle')
-                    .attr('cx', d => xLabel(d.key) + xLabel.bandwidth() / 2 )
-                    .attr('cy', d => yLabelGene(d.gene) + yLabelGene.bandwidth() / 2 )
-                    .attr('r', d => eScale(d.pctExpr))
-                    .style('fill', d => color(d.mean))
-                    .attr('data-key', d => d.key)
-                    .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')*/
             }else{
                 cells.append('circle')
-                    .attr('cx', d => xLabelGene(d.gene) + xLabelGene.bandwidth() / 2 )
+                    .attr('cx', d => xGene(d[geneKey]) + xGene.bandwidth() / 2 )
                     .attr('cy', d => {
-                        //console.log('     ????', d, d.key, yLabel(d.key), yLabel.bandwidth())
-                        return yLabel(d.key) + yLabel.bandwidth() / 2
+                        return yLabel(d[primaryKey]) + yLabel.bandwidth() / 2
                     } )
                     .attr('r', eScale2(100))
                     .style('stroke', '#ccc')
                     .attr('stroke-width', "0.5")
                     .style('fill', 'none')
-                    .attr('data-key', d => d.key)
-                    .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
+                    .attr('data-key', d => d[primaryKey])
+                    .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d[primaryKey] ? '1' : '0.1')
 
                 cells.append('circle')
-                    .attr('cx', d => xLabelGene(d.gene) + xLabelGene.bandwidth() / 2 )
-                    .attr('cy', d => yLabel(d.key) + yLabel.bandwidth() / 2 )
+                    .attr('cx', d => xGene(d[geneKey]) + xGene.bandwidth() / 2 )
+                    .attr('cy', d => yLabel(d[primaryKey]) + yLabel.bandwidth() / 2 )
                     .attr('r', d => eScale2(d.pctExpr))
                     .style('fill', d => color(d.mean))
-                    .attr('data-key', d => d.key)
-                    .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d.key ? '1' : '0.1')
+                    .attr('data-key', d => d[primaryKey])
+                    .attr('fill-opacity', d => this.highlightKey==='' ? '1' : this.highlightKey===d[primaryKey] ? '1' : '0.1')
             }
     
             svg.selectAll('text')
