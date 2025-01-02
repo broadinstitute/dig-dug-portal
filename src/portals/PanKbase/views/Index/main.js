@@ -46,7 +46,7 @@ new Vue({
                             title: "Donor Metadata",
                             body: "",
                             linkLabel: "Learn More",
-                            linkUrl: "http://tools.cmdga.org:3838/metadata_analysis/",
+                            linkUrl: "http://tools.cmdga.org:3838/metadata_analysis_assays/",
                             bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-donors.png",
                             type: "medium",
                             comingSoon: false,
@@ -197,7 +197,8 @@ new Vue({
                     "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_hirn.png",
                     "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_pancreatlas.png",
                     "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdga.png",
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdkp.png"
+                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdkp.png",
+                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_dknet.png"
                 ]
             },
             supporters: {

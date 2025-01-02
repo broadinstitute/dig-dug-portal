@@ -2,7 +2,7 @@
     <div class="pkb-nav">
         <div class="logo">
             <a href="/">
-                <img src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/pkb-4.svg"/>
+                <img style="height:50px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black-tagline.svg"/>
             </a>
         </div>
         <div class="menu-wrapper">
@@ -26,21 +26,21 @@
                         <a class="menu-item menu-item-main" href="/single-cell.html">Integrated Cell Browser</a>
                     </div>
                     <div class="menu-item-wrapper">
-                        <a class="menu-item menu-item-main" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
+                        <a class="menu-item menu-item-main" href="http://tools.cmdga.org:3838/metadata_analysis_assays/">Donor Metadata</a>
                     </div>
                 </div>
                 <div class="menu-item-wrapper">
                     <a class="menu-item"  href="/">Data</a>
                     <div class="submenu">
                         <a class="submenu-item" href="/data-browser.html">Data Browser</a>
-                        <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
-                        <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
+                        <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis_assays/">Donor Metadata</a>
                         <a class="submenu-item" href="/apis.html">APIs</a>
                     </div>
                 </div>
                 <div class="menu-item-wrapper">
                     <a class="menu-item" href="/">Resources</a>
                     <div class="submenu">
+                        <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
                         <a class="submenu-item" href="/analytical-library.html">Analytical Library</a>
                         <a class="submenu-item" href="/publications.html">Publications</a>
                     </div>
@@ -66,6 +66,9 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="pkb-beta">
+            beta
         </div>
     </div>
 </template>
@@ -112,6 +115,7 @@ export default Vue.component("PkbHeader", {
 </script>
 <style scoped>
 .pkb-nav {
+    position:relative;
     width: 100%;
     background: #fafafa;
     display: flex;
@@ -133,6 +137,7 @@ export default Vue.component("PkbHeader", {
         display: flex;
         align-items: baseline;
         cursor: pointer;
+        align-self: center;
     }
     .logo-text {
         position: relative;
@@ -243,6 +248,17 @@ export default Vue.component("PkbHeader", {
     .submenu-item:hover {
         color: white !important;
         cursor: pointer;
+    }
+    .pkb-beta {
+        height: 20px;
+        line-height: 16px;
+        background: #219197;
+        color: white;
+        padding: 2px 15px 0;
+        position: absolute;
+        bottom: -20px;
+        left: 19px;
+        mix-blend-mode: multiply;
     }
 }
 </style>

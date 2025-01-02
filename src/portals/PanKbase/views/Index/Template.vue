@@ -103,7 +103,7 @@
                 </div>
             </div>
 
-            <div class="section" style="gap:5px; margin: 40px 0 0">
+            <div class="section" style="gap:5px; margin: 40px 0">
                 <div class="partners" style="background:#fbfbfb">
                     <div class="partner-logo" v-for="item in $parent.content.partners.logos">
                         <img :src="item"/>
@@ -112,6 +112,7 @@
                 <div class="partners-title">{{ $parent.content.partners.title }}</div>
             </div>
 
+            <!--
             <div class="section" style="gap:5px; margin: 0 0 40px">
                 <div class="partners">
                     <div class="partner-logo" v-for="item in $parent.content.supporters.logos">
@@ -120,6 +121,7 @@
                 </div>
                 <div class="partners-title">{{ $parent.content.supporters.title }}</div>
             </div>
+            -->
 
             <div class="section" style="flex-direction: row;">
 

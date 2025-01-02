@@ -11,21 +11,21 @@
                     <a class="menu-item menu-item-main" href="/single-cell.html">Integrated Cell Browser</a>
                 </div>
                 <div class="menu-item-wrapper">
-                    <a class="menu-item menu-item-main" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
+                    <a class="menu-item menu-item-main" href="http://tools.cmdga.org:3838/metadata_analysis_assays/">Donor Metadata</a>
                 </div>
             </div>
             <div class="menu-item-wrapper">
                 <a class="menu-item"  href="/">Data</a>
                 <div class="submenu">
                     <a class="submenu-item" href="/data-browser.html">Data Browser</a>
-                    <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
-                    <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis/">Donor Metadata</a>
+                    <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis_assays/">Donor Metadata</a>
                     <a class="submenu-item" href="/apis.html">APIs</a>
                 </div>
             </div>
             <div class="menu-item-wrapper">
                 <a class="menu-item" href="/">Resources</a>
                 <div class="submenu">
+                    <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
                     <a class="submenu-item" href="/analytical-library.html">Analytical Library</a>
                     <a class="submenu-item" href="/publications.html">Publications</a>
                 </div>
@@ -54,7 +54,7 @@
         <div class="f-row" style="gap:20px">
             <div class="logo">
                 <a href="/">
-                    <img style="height:37px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/pkb-4.svg"/>
+                    <img style="height:37px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black.svg"/>
                 </a>
             </div>
             <div>
