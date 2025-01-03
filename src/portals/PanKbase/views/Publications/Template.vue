@@ -4,6 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
+        <h3 class="page-title">Publications</h3>
         <div v-html="$parent.publicationsInfo"></div>
       </div>
       <!-- FOOTER -->

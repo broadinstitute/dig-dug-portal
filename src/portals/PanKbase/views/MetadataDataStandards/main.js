@@ -3,7 +3,7 @@ import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
-import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
+import { getPankbaseContent, highlightIntro } from "@/portals/PanKbase/utils/content";
 
 new Vue({
     components: {
@@ -18,12 +18,12 @@ new Vue({
     computed: {
         metadataInfo(){
             return this.about;
-        }
+        },
     },
     watch: {},
     async created() {
         let content = await getPankbaseContent(this.pageId, true);
-        this.about = content;
+        this.about = highlightIntro(content);
     },
     render(createElement, context) {
         return createElement(Template);

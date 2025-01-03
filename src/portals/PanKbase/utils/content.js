@@ -19,3 +19,9 @@ export async function getPankbaseContent(contentId, getBody=false, getAll=false)
   let csvContent = jsonContent[0].field_data_points;
   return dataConvert.csv2Json(csvContent);
 }
+
+export function highlightIntro(content){
+  let tag = "<p>"
+  let newTag = "<p class='page-info'>"
+  return content.replace(tag, newTag);
+}
