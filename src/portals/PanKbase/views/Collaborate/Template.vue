@@ -4,6 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
+        <h3 class="page-title">Collaborate</h3>
         <div v-html="$parent.collaborateInfo"></div>
       </div>
       <!-- FOOTER -->
