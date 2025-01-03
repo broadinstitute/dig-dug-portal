@@ -1,53 +1,15 @@
 <template>
     <div class="pkb-footer">
-        <!-- for now, just copy/paste this element (class="menu") from pkb-header -->
-        <!-- TODO: create menu component that reads menu content from object then renders -->
         <div class="menu">
             <div class="main-menu-items">
-                <div class="menu-item-wrapper">
-                    <a class="menu-item menu-item-main" href="https://dev.pankgraph.org/">PanKgraph</a>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item menu-item-main" href="/single-cell.html">Integrated Cell Browser</a>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item menu-item-main" href="http://tools.cmdga.org:3838/metadata_analysis_assays/">Donor Metadata</a>
+                <div v-for="item in pkbMenu.highlightItems" class="menu-item-wrapper">
+                    <a class="menu-item menu-item-main" :href="item.path">{{ item.label }}</a>
                 </div>
             </div>
-            <div class="menu-item-wrapper">
-                <a class="menu-item"  href="/">Data</a>
-                <div class="submenu">
-                    <a class="submenu-item" href="/data-browser.html">Data Browser</a>
-                    <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis_assays/">Donor Metadata</a>
-                    <a class="submenu-item" href="/apis.html">APIs</a>
-                </div>
-            </div>
-            <div class="menu-item-wrapper">
-                <a class="menu-item" href="/">Resources</a>
-                <div class="submenu">
-                    <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
-                    <a class="submenu-item" href="/analytical-library.html">Analytical Library</a>
-                    <a class="submenu-item" href="/publications.html">Publications</a>
-                </div>
-            </div>
-            <div class="menu-item-wrapper">
-                <a class="menu-item" href="/">About</a>
-                <div class="submenu">
-                    <a class="submenu-item" href="/projects.html">Project</a>
-                    <a class="submenu-item" href="/people.html">People</a>
-                    <a class="submenu-item" href="/policies.html">Policies</a>
-                    <a class="submenu-item" href="/programs.html">Programs</a>
-                    <a class="submenu-item" href="/collaborate.html">Collaborate</a>
-                </div>
-            </div>
-            <div class="menu-item-wrapper">
-                <a class="menu-item" href="/">Help</a>
-                <div class="submenu">
-                    <a class="submenu-item" href="/contact.html">Contact</a>
-                    <a class="submenu-item" href="/metadata-data-standards.html">Metadata | Data Standards</a>
-                    <a class="submenu-item" href="/tools-pipelines.html">Tools | Pipelines</a>
-                    <a class="submenu-item" href="/tutorials.html">Tutorials</a>
-                    <a class="submenu-item" href="/news.html">News</a>
+            <div v-for="item in pkbMenu.menuItems" class="menu-item-wrapper">
+                <a class="menu-item" :href="item.path || null">{{ item.label }}</a>
+                <div v-if="item.subMenuItems" class="submenu">
+                    <a v-for="subItem in item.subMenuItems" class="submenu-item" :href="subItem.path || null">{{ subItem.label }}</a>
                 </div>
             </div>
         </div>
@@ -69,11 +31,16 @@
 
 <script>
 import Vue from "vue";
+import { pkbMenu } from '@/portals/PanKbase/assets/pkbMenu.js';
 
 export default Vue.component("PkbFooter", {
     components: {},
     props: {},
-    data() { return {} },
+    data() { 
+        return {
+            pkbMenu
+        } 
+    },
     computed: {},
     created() {},
     methods: {},

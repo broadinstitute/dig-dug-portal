@@ -19,50 +19,14 @@
             </div>
             <div class="menu">
                 <div class="main-menu-items">
-                    <div class="menu-item-wrapper">
-                        <a class="menu-item menu-item-main" href="https://dev.pankgraph.org/">PanKgraph</a>
-                    </div>
-                    <div class="menu-item-wrapper">
-                        <a class="menu-item menu-item-main" href="/single-cell.html">Integrated Cell Browser</a>
-                    </div>
-                    <div class="menu-item-wrapper">
-                        <a class="menu-item menu-item-main" href="http://tools.cmdga.org:3838/metadata_analysis_assays/">Donor Metadata</a>
+                    <div v-for="item in pkbMenu.highlightItems" class="menu-item-wrapper" :class="{active:isActive(item.path)}">
+                        <a class="menu-item menu-item-main" :href="item.path">{{ item.label }}</a>
                     </div>
                 </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item"  href="/">Data</a>
-                    <div class="submenu">
-                        <a class="submenu-item" href="/data-browser.html">Data Browser</a>
-                        <a class="submenu-item" href="http://tools.cmdga.org:3838/metadata_analysis_assays/">Donor Metadata</a>
-                        <a class="submenu-item" href="/apis.html">APIs</a>
-                    </div>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item" href="/">Resources</a>
-                    <div class="submenu">
-                        <a class="submenu-item" href="/single-cell.html">Integrated Cell Browser</a>
-                        <a class="submenu-item" href="/analytical-library.html">Analytical Library</a>
-                        <a class="submenu-item" href="/publications.html">Publications</a>
-                    </div>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item" href="/">About</a>
-                    <div class="submenu">
-                        <a class="submenu-item" href="/projects.html">Project</a>
-                        <a class="submenu-item" href="/people.html">People</a>
-                        <a class="submenu-item" href="/policies.html">Policies</a>
-                        <a class="submenu-item" href="/programs.html">Programs</a>
-                        <a class="submenu-item" href="/collaborate.html">Collaborate</a>
-                    </div>
-                </div>
-                <div class="menu-item-wrapper">
-                    <a class="menu-item" href="/">Help</a>
-                    <div class="submenu">
-                        <a class="submenu-item" href="/contact.html">Contact</a>
-                        <a class="submenu-item" href="/metadata-data-standards.html">Metadata | Data Standards</a>
-                        <a class="submenu-item" href="/tools-pipelines.html">Tools | Pipelines</a>
-                        <a class="submenu-item" href="/tutorials.html">Tutorials</a>
-                        <a class="submenu-item" href="/news.html">News</a>
+                <div v-for="item in pkbMenu.menuItems" class="menu-item-wrapper" :class="{active:isActive(item.path)}">
+                    <a class="menu-item" :href="item.path || null">{{ item.label }}</a>
+                    <div v-if="item.subMenuItems" class="submenu">
+                        <a v-for="subItem in item.subMenuItems" class="submenu-item" :href="subItem.path || null" :class="{active:isActive(subItem.path)}" :data-whatever="isActive(subItem.path).toString()">{{ subItem.label }}</a>
                     </div>
                 </div>
             </div>
@@ -74,16 +38,23 @@
 </template>
 
 <script>
-import Vue from "vue";
+import Vue, { triggerRef } from "vue";
+import { pkbMenu } from '@/portals/PanKbase/assets/pkbMenu.js';
+
+let menuItemActive = false;
 
 export default Vue.component("PkbHeader", {
     components: {},
     props: {},
-    data() { return {} },
+    data() { 
+        return {
+            pkbMenu
+        }
+    },
     computed: {},
     created() {
         this.injectFavicon(
-            "https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/favicon-32x32.png"
+            "https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-icon.png"
         );
         this.injectFont(
             "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
@@ -97,7 +68,6 @@ export default Vue.component("PkbHeader", {
                 favicon = document.createElement("link");
                 favicon.setAttribute("rel", "icon");
                 favicon.setAttribute("type", "image/png");
-                favicon.setAttribute("id", "alex");
                 document.head.appendChild(favicon);
             }
             favicon.setAttribute("href", faviconUrl);
@@ -109,6 +79,19 @@ export default Vue.component("PkbHeader", {
             linkTag.href = fontUrl;
             document.head.appendChild(linkTag);
             linkTag.onload = () => {};
+        },
+        isActive(path) {
+            //compare menu item's path to current path to set active
+            //but only the first instance
+            if(menuItemActive) return false;
+            const currentPath = window.location.pathname;
+            if (path === currentPath) {
+                menuItemActive = true;
+                return true;
+            }else{
+                return false;
+            }
+            
         },
     },
 });
@@ -218,7 +201,9 @@ export default Vue.component("PkbHeader", {
         color: var(--pkb-primary-green);
         border-bottom: 5px solid var(--pkb-primary-green);
     }
-    .menu-item-wrapper:hover .menu-item {
+    .menu-item-wrapper:hover .menu-item,
+    .menu-item-wrapper.active .menu-item,
+    .menu-item-wrapper:has(.submenu-item.active) .menu-item{
         color: var(--pkb-primary-green) !important;
         border-bottom: 5px solid var(--pkb-primary-green);
     }
@@ -245,7 +230,8 @@ export default Vue.component("PkbHeader", {
         width: -webkit-fill-available;
         text-align: right;
     }
-    .submenu-item:hover {
+    .submenu-item:hover,
+    .submenu-item.active {
         color: white !important;
         cursor: pointer;
     }
