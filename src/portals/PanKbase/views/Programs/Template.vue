@@ -5,7 +5,7 @@
       <!-- BODY -->
       <div class="pkb-body">
         <h3 class="page-title">Related Programs</h3>
-        <div v-html="$parent.programInfo" class="program-info"></div>
+        <div v-html="$parent.programInfo" class="page-info"></div>
         <div class="row">
           <div v-for="program in $parent.allPrograms" class="program col-md-6">
             <img :src="program.bgImage" height="300px"/>
@@ -27,8 +27,5 @@
   }
   .program img {
     margin-bottom: 10px;
-  }
-  .program-info{
-    font-size: 18px;
   }
 </style>

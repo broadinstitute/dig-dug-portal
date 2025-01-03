@@ -226,3 +226,6 @@ input.pkb[type="radio"]:disabled:checked {
 .page-title {
     margin-bottom: 25px;
 }
+.page-info {
+    font-size: 18px;
+}
