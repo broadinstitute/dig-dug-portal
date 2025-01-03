@@ -18,12 +18,14 @@ new Vue({
     computed: {
         metadataInfo(){
             return this.about;
-        }
+        },
     },
     watch: {},
     async created() {
         let content = await getPankbaseContent(this.pageId, true);
-        this.about = content;
+        let tag = "<p>"
+        let newTag = "<p class='page-info'>"
+        this.about = content.replace(tag, newTag);
     },
     render(createElement, context) {
         return createElement(Template);
