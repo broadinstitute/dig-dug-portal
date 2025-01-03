@@ -8,8 +8,8 @@
         <div class="row">
             <div v-for="person in $parent.peopleList" class="person col-md-6">
             <img :src="person['Photo']" height="300px"/>
-            <h4>{{ person["Name"] }}</h4>
-            <h5>{{ person["Affiliation"] }}</h5>
+            <h5>{{ person["Name"] }}</h5>
+            <h6>{{ person["Affiliation"] }}</h6>
             <p class="bio">{{ person["Role"] }}</p>
 
           </div>
@@ -27,5 +27,8 @@
   .bio {
     width: 85%;
     text-align: justify;
+  }
+  h5, h6 {
+    font-weight: bolder;
   }
 </style>
