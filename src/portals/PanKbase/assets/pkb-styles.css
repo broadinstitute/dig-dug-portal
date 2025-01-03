@@ -223,3 +223,6 @@ input.pkb[type="radio"]:disabled:checked {
         border-color: var(--pkb-secondary-green);
     }
 }
+.page-title {
+    margin-bottom: 25px;
+}
