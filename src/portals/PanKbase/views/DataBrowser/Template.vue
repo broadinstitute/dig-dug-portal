@@ -96,7 +96,7 @@
                             Total rows: {{ $parent.assaysTotal }}</b-card-text
                         >
                     </b-tab>
-                    <b-tab title="Analyses">
+                    <b-tab title="Processed Results">
                         <b-card-text
                             ><b-table
                                 :items="$parent.analyses"
@@ -124,7 +124,7 @@
                             Total rows: {{ $parent.analysesTotal }}</b-card-text
                         >
                     </b-tab>
-                    <b-tab title="Processed Results">
+                    <b-tab title="Analysis Results">
                         <b-card-text
                             ><b-table
                                 :items="$parent.processedResults"
