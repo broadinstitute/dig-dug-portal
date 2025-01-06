@@ -51,12 +51,21 @@ new Vue({
                 formatter: (value) =>
                     value ? value.split("/").slice(-2, -1)[0] : "",
             },
-            { key: "lab.title", label: "Lab" },
             {
-                key: "collections",
-                label: "Collections",
-                formatter: (value) => (value ? value.join(", ") : ""),
+                key: "sample_terms",
+                label: "Sample Terms",
+
+                //only join the term_name values of the sample_terms array
+                formatter: (value) => {
+                    if (value) {
+                        return value
+                            .map((sampleTerm) => sampleTerm.term_name)
+                            .join(", ");
+                    }
+                    return "";
+                },
             },
+            { key: "isolation_center", label: "Isolation Center" },
             { key: "summary", label: "Summary" },
             { key: "status", label: "Status" },
         ],
@@ -208,7 +217,8 @@ new Vue({
             const limit = this.perPageBiosamples;
             const from = (page - 1) * limit;
             getResource(
-                `search/?type=Biosample&limit=${limit}&from=${from}`
+                //`search/?type=Biosample&limit=${limit}&from=${from}`
+                `search/?type=Biosample&field=accession&field=award&field=sample_terms&field=status&field=summary&field=isolation_center&limit=${limit}&from=${from}`
             ).then((response) => {
                 this.biosamples = response["@graph"];
                 this.biosamplesTotal = response.total;
