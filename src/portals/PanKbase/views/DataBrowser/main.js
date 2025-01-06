@@ -12,10 +12,12 @@ new Vue({
     data: {
         dataUrl: process.env.VUE_APP_DATA_BASE_URL,
         donors: [],
+        biosamples: [],
         assays: [],
         processedResults: [],
         analyses: [],
         donorsTotal: 0,
+        biosamplesTotal: 0,
         assaysTotal: 0,
         processedResultsTotal: 0,
         analysesTotal: 0,
@@ -33,7 +35,29 @@ new Vue({
                 formatter: (value) => (value ? value.join(", ") : ""),
             },
             { key: "lab.title", label: "Lab" },
+            {
+                key: "collections",
+                label: "Collections",
+                formatter: (value) => (value ? value.join(", ") : ""),
+            },
             { key: "sex", label: "Sex" },
+            { key: "status", label: "Status" },
+        ],
+        biosamplesFields: [
+            { key: "accession", label: "Accession" },
+            {
+                key: "award.@id",
+                label: "Award",
+                formatter: (value) =>
+                    value ? value.split("/").slice(-2, -1)[0] : "",
+            },
+            { key: "lab.title", label: "Lab" },
+            {
+                key: "collections",
+                label: "Collections",
+                formatter: (value) => (value ? value.join(", ") : ""),
+            },
+            { key: "summary", label: "Summary" },
             { key: "status", label: "Status" },
         ],
         assaysFields: [
@@ -46,6 +70,7 @@ new Vue({
                     value ? value.split("/").slice(-2, -1)[0] : "",
             },
             { key: "lab.title", label: "Lab" },
+
             { key: "status", label: "Status" },
         ],
         processedResultsFields: [
@@ -71,6 +96,11 @@ new Vue({
                 },
             },
             { key: "lab.title", label: "Lab" },
+            {
+                key: "collections",
+                label: "Collections",
+                formatter: (value) => (value ? value.join(", ") : ""),
+            },
             { key: "donors[0].taxa", label: "Taxa" },
             { key: "summary", label: "Summary" },
             { key: "status", label: "Status" },
@@ -84,13 +114,20 @@ new Vue({
                     value ? value.split("/").slice(-2, -1)[0] : "",
             },
             { key: "lab.title", label: "Lab" },
+            {
+                key: "collections",
+                label: "Collections",
+                formatter: (value) => (value ? value.join(", ") : ""),
+            },
             { key: "status", label: "Status" },
         ],
         perPageDonors: 10,
+        perPageBiosamples: 10,
         perPageAssays: 10,
         perPageProcessedResults: 10,
         perPageAnalyses: 10,
         currentPageDonors: 1,
+        currentPageBiosamples: 1,
         currentPageAssays: 1,
         currentPageProcessedResults: 1,
         currentPageAnalyses: 1,
@@ -102,6 +139,9 @@ new Vue({
     watch: {
         currentPageDonors(newPage) {
             this.fetchDonors(newPage);
+        },
+        currentPageBiosamples(newPage) {
+            this.fetchBiosamples(newPage);
         },
         currentPageAssays(newPage) {
             this.fetchAssays(newPage);
@@ -116,6 +156,7 @@ new Vue({
     async created() {
         // Initial data load
         this.fetchDonors();
+        this.fetchBiosamples();
         this.fetchAssays();
         this.fetchAnalyses();
         this.fetchProcessedResults();
@@ -161,6 +202,16 @@ new Vue({
             ).then((response) => {
                 this.processedResults = response["@graph"];
                 this.processedResultsTotal = response.total;
+            });
+        },
+        async fetchBiosamples(page = 1) {
+            const limit = this.perPageBiosamples;
+            const from = (page - 1) * limit;
+            getResource(
+                `search/?type=Biosample&limit=${limit}&from=${from}`
+            ).then((response) => {
+                this.biosamples = response["@graph"];
+                this.biosamplesTotal = response.total;
             });
         },
     },
