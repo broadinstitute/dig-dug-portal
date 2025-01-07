@@ -4,6 +4,7 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent, highlightIntro } from "@/portals/PanKbase/utils/content";
+import dataConvert from "@/utils/dataConvert";
 
 new Vue({
     components: {
@@ -12,7 +13,8 @@ new Vue({
     data() {
         return {
             pageId: "pankbase_publications",
-            about: ""
+            about: "",
+            publications: []
         };
     },
     computed: {
@@ -22,8 +24,9 @@ new Vue({
     },
     watch: {},
     async created() {
-        let content = await getPankbaseContent(this.pageId, true);
-        this.about = highlightIntro(content);
+        let allContent = await getPankbaseContent(this.pageId, false, true);
+        this.about = allContent.body;
+        this.publications = dataConvert.csv2Json(allContent.field_data_points);
     },
     render(createElement, context) {
         return createElement(Template);
