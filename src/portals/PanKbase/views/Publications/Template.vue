@@ -14,7 +14,7 @@
             "
           >
             <div class="label">Filter by Category</div>
-        </filter-enumeration-control>
+        </filter-enumeration-control class="col filter-col-md">
           <template slot="filtered" slot-scope="{ filter }">
           <b-table 
             :items="$parent.publications.filter(filter)"

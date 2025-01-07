@@ -2,6 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
+import "../../assets/filtering.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent, highlightIntro } from "@/portals/PanKbase/utils/content";
 import dataConvert from "@/utils/dataConvert";
