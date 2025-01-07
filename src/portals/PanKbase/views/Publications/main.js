@@ -5,9 +5,13 @@ import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent, highlightIntro } from "@/portals/PanKbase/utils/content";
 import dataConvert from "@/utils/dataConvert";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 
 new Vue({
     components: {
+        CriterionFunctionGroup,
+        FilterEnumeration
     },
     mixins: [pankbaseMixin],
     data() {

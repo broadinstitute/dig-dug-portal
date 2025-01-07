@@ -6,8 +6,19 @@
       <div class="pkb-body">
         <h3 class="page-title">Publications</h3>
         <div v-html="$parent.publicationsInfo" class="page-info"></div>
-        <b-table
-          :items="$parent.publications"
+        <criterion-function-group>
+          <filter-enumeration-control
+            :field="'Publication Category'"
+            :options="
+                $parent.publications.map((pub) => pub['Publication Category'])
+            "
+          >
+            <div class="label">Filter by Category</div>
+        </filter-enumeration-control>
+          <template slot="filtered" slot-scope="{ filter }">
+          <b-table 
+            :items="$parent.publications.filter(filter)"
+            :sortable="true"
           >
             <template #cell(Publication)="p">
               <span>
@@ -15,7 +26,10 @@
                 {{ $parent.extractAuthors(p).rest }}
               </span>
             </template>
-        </b-table>
+          </b-table>
+        </template>
+        </criterion-function-group>
+        
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 
