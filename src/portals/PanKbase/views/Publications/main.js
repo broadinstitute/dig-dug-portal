@@ -22,6 +22,18 @@ new Vue({
             return this.about;
         }
     },
+    methods: {
+        extractAuthors(pubItem){
+            let pubCite = pubItem.item['Publication'];
+            let dotIndex = pubCite.indexOf(".");
+            if (dotIndex === -1){
+                return {authors: "", rest: pubCite};
+            }
+            let beforeDot = pubCite.slice(0, dotIndex + 1);
+            let afterDot = pubCite.slice(dotIndex + 1);
+            return {authors: beforeDot, rest: afterDot};
+        }
+    },
     watch: {},
     async created() {
         let allContent = await getPankbaseContent(this.pageId, false, true);

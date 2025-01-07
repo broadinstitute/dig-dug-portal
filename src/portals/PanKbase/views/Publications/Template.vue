@@ -9,6 +9,12 @@
         <b-table
           :items="$parent.publications"
           >
+            <template #cell(Publication)="p">
+              <span>
+                <strong>{{ $parent.extractAuthors(p).authors }}</strong>
+                {{ $parent.extractAuthors(p).rest }}
+              </span>
+            </template>
         </b-table>
       </div>
       <!-- FOOTER -->
