@@ -6,7 +6,7 @@
       <div class="pkb-body">
         <h2 class="page-title">People</h2>
         <div class="row">
-            <div v-for="person in $parent.peopleList" class="person col-md-6">
+            <div v-for="person in $parent.people" class="person col-md-6">
             <img :src="person['Photo']" height="300px"/>
             <h5>{{ person["Name"] }}</h5>
             <h6>{{ person["Affiliation"] }}</h6>

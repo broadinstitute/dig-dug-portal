@@ -10,11 +10,16 @@ new Vue({
     },
     mixins: [pankbaseMixin],
     data() {
-        return {};
+        return {
+            pageId: "pankbase_donor_metadata",
+            info: ""
+        };
     },
     computed: {},
     watch: {},
     async created() {
+        let content = await getPankbaseContent(this.pageId, true);
+        this.info = content;
     },
     render(createElement, context) {
         return createElement(Template);

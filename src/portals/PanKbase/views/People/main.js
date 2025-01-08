@@ -15,11 +15,6 @@ new Vue({
             people: []
         };
     },
-    computed: {
-        peopleList(){
-            return this.people;
-        }
-    },
     watch: {},
     async created() {
         let content = await getPankbaseContent(this.pageId);

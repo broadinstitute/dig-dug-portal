@@ -5,7 +5,7 @@
       <!-- BODY -->
       <div class="pkb-body">
         <h2 class="page-title">About This Project</h2>
-        <div v-html="$parent.projectInfo"></div>
+        <div v-html="$parent.about"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

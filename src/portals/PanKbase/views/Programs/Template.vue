@@ -5,9 +5,9 @@
       <!-- BODY -->
       <div class="pkb-body">
         <h2 class="page-title">Related Programs</h2>
-        <div v-html="$parent.programInfo" class="page-info"></div>
+        <div v-html="$parent.about" class="page-info"></div>
         <div class="row">
-          <div v-for="program in $parent.allPrograms" class="program col-md-6">
+          <div v-for="program in $parent.programs" class="program col-md-6">
             <img :src="program.bgImage" height="300px"/>
             <h4>
               <a :href="program.linkUrl">{{ program.title }}</a>

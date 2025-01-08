@@ -5,7 +5,7 @@
       <!-- BODY -->
       <div class="pkb-body">
         <h2 class="page-title">Tutorials</h2>
-        <div v-html="$parent.tutorialsInfo" class="page-info"></div>
+        <div v-html="$parent.about" class="page-info"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

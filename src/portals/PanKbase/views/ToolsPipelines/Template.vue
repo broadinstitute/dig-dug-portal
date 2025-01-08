@@ -5,7 +5,7 @@
       <!-- BODY -->
       <div class="pkb-body">
         <h2 class="page-title">Tools & Pipelines</h2>
-        <div v-html="$parent.toolsInfo" class="page-info"></div>
+        <div v-html="$parent.about" class="page-info"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

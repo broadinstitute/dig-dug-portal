@@ -5,6 +5,7 @@
       <!-- BODY -->
       <div class="pkb-body">
         <div>
+          <div v-html="$parent.info"></div>
           <iframe id="meta-embed" src="http://tools.cmdga.org:3838/metadata_analysis_assays/"></iframe>
         </div>
       </div>
