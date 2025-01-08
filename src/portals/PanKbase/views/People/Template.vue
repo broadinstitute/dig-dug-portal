@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-        <h3 class="page-title">People</h3>
+        <h2 class="page-title">People</h2>
         <div class="row">
             <div v-for="person in $parent.peopleList" class="person col-md-6">
             <img :src="person['Photo']" height="300px"/>

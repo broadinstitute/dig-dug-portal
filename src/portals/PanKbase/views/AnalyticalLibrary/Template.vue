@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-        <h3 class="page-title">Analytical Library</h3>
+        <h2 class="page-title">Analytical Library</h2>
         <div v-html="$parent.libraryInfo"></div>
       </div>
       <!-- FOOTER -->

@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-        <h3 class="page-title">Related Programs</h3>
+        <h2 class="page-title">Related Programs</h2>
         <div v-html="$parent.programInfo" class="page-info"></div>
         <div class="row">
           <div v-for="program in $parent.allPrograms" class="program col-md-6">

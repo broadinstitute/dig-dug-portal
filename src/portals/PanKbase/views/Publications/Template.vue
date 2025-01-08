@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-        <h3 class="page-title">Publications</h3>
+        <h2 class="page-title">Publications</h2>
         <div v-html="$parent.publicationsInfo" class="page-info"></div>
         <criterion-function-group>
           <filter-enumeration-control
