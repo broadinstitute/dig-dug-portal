@@ -1,15 +1,14 @@
 export const pkbMenu = {
     highlightItems: [
         { label: 'PanKgraph',               path: 'https://dev.pankgraph.org/' },
-        { label: 'Data Library',            path: 'https://data.pankbase.org' },
         { label: 'Integrated Cell Browser', path: '/single-cell.html' }
     ],
     menuItems: [
         { 
             label: 'Data', path: '', 
             subMenuItems: [
-                { label: 'Data Browser', path: '/data-browser.html' },
-                { label: 'Donor Metadata', path: 'http://tools.cmdga.org:3838/metadata_analysis_assays/' },
+                { label: 'Donor Summary', path: 'http://tools.cmdga.org:3838/metadata_analysis_assays/' },
+                { label: 'Data Browser', path: 'https://data.pankbase.org' },
                 { label: 'APIs',         path: '/apis.html' }
             ] 
         },{ 

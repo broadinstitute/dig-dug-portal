@@ -8,9 +8,9 @@
         <div v-html="$parent.publicationsInfo" class="page-info"></div>
         <criterion-function-group>
           <filter-enumeration-control
-            :field="'Publication Category'"
+            :field="'Category'"
             :options="
-                $parent.publications.map((pub) => pub['Publication Category'])
+                $parent.publications.map((pub) => pub['Category'])
             "
           >
             <div class="label">Filter by Category</div>
