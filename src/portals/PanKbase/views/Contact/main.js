@@ -12,18 +12,13 @@ new Vue({
     data() {
         return {
             pageId: "contact_pankbase",
-            contact: ""
+            about: ""
         };
-    },
-    computed: {
-        contactInfo(){
-            return this.contact;
-        }
     },
     watch: {},
     async created() {
         let content = await getPankbaseContent(this.pageId, true);
-        this.contact = content;
+        this.about = content;
     },
 
     render(createElement, context) {

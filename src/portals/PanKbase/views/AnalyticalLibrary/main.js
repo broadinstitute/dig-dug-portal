@@ -15,11 +15,6 @@ new Vue({
             about: ""
         };
     },
-    computed: {
-        libraryInfo(){
-            return this.about;
-        }
-    },
     watch: {},
     async created() {
         let content = await getPankbaseContent(this.pageId, true);

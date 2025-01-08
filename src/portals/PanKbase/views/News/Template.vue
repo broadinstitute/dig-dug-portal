@@ -5,7 +5,7 @@
       <!-- BODY -->
       <div class="pkb-body">
         <div class="f-row spread-out" style="align-items: baseline; margin: 0 0 20px">
-            <h3 class="page-title">News</h3> 
+            <h2 class="page-title">News</h2> 
             <a v-if="$parent.newsItem" href="/news.html">All News</a>
         </div>
 

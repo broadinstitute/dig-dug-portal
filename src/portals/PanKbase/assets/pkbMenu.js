@@ -7,7 +7,7 @@ export const pkbMenu = {
         { 
             label: 'Data', path: '', 
             subMenuItems: [
-                { label: 'Donor Summary', path: 'http://tools.cmdga.org:3838/metadata_analysis_assays/' },
+                { label: 'Donor Summary', path: '/donor-metadata.html' },
                 { label: 'Data Browser', path: 'https://data.pankbase.org' },
                 { label: 'APIs',         path: '/apis.html' }
             ] 
