@@ -96,7 +96,7 @@
                             <div class="item-body">{{ item.body }}</div>
                             <a class="item-btn" :href="item.linkUrl">{{ item.linkLabel }} ❯</a>
                         </div>
-                        <div class="item-bg cover">
+                        <div class="item-bg contain">
                             <img :src="item.bgImage"/>
                         </div>
                     </div>
