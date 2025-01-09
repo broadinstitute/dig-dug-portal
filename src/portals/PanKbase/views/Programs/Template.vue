@@ -8,7 +8,7 @@
         <div v-html="$parent.about" class="page-info"></div>
         <div class="row">
           <div v-for="program in $parent.programs" class="program col-md-6">
-            <img :src="program.bgImage" height="300px"/>
+            <img :src="program.bgImage"/>
             <h4>
               <a :href="program.linkUrl">{{ program.title }}</a>
             </h4>
@@ -27,5 +27,7 @@
   }
   .program img {
     margin-bottom: 10px;
+    width: 350px;
+    height: auto;
   }
 </style>
