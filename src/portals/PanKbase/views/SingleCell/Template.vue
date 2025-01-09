@@ -5,6 +5,21 @@
       <!-- BODY -->
       <div class="pkb-body">
          <div v-html="$parent.info"></div>
+         <b-table 
+              v-if="$parent.allMetadata"
+              style="margin-bottom:20px"
+              :items="$parent.allMetadata"
+              :fields="$parent.tableColumns"
+              striped
+              hover
+              responsive="sm"
+              head-variant="light"
+          >
+              <template #cell(datasetId)="data">
+                  <button v-if="data.item.datasetId !== $parent.selectedDataset" @click="$parent.selectDataset(data.item.datasetId)" class="pkb">Select</button>
+                  <div v-else>Selected</div>
+              </template>
+          </b-table>
           <research-single-cell-browser 
             v-if="true"
             sectionId="scb"

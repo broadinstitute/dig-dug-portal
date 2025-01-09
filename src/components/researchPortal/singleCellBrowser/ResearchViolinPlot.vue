@@ -116,6 +116,8 @@
 
             //calculate sizes and margins
             const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
+            console.log("parentWidth", parentWidth);
+
             const labels = { xAxis: this.xAxisLabel?20:0, yAxis: this.yAxisLabel?20:0 }
             const margin = { top: 10, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
             let width = parentWidth;
@@ -406,6 +408,7 @@
   svg {
     font-family: sans-serif;
   }
+  
   ::v-deep .chart-label{
     font-size:12px;
     opacity:0.5;

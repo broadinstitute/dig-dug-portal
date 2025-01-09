@@ -5,7 +5,9 @@ import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 import dataConvert from "@/utils/dataConvert";
-import ResearchSingleCellBrowser from "@/components/researchPortal/ResearchSingleCellBrowser.vue"
+import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
+import keyParams from "@/utils/keyParams";
+import EventBus from "@/utils/eventBus";
 
 new Vue({
     components: {
@@ -28,6 +30,9 @@ new Vue({
             utils: {
                 dataConvert: dataConvert
             },
+            allMetadata: null,
+            tableColumns: ["datasetName", "tissue", "method", "totalCells", { key: 'datasetId', label: 'View' }],
+            selectedDataset: null,
             scbConfig: {
                 "type": "cell browser",
                 "label": "Single Cell Browser",
@@ -48,6 +53,9 @@ new Vue({
                   },{
                     "role": "expression",
                     "url": "https://skin.hugeampkpnbi.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
+                  },{
+                    "role": "markers",
+                    "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
                   }
                 ],
                 "components": {
@@ -66,8 +74,7 @@ new Vue({
                 },
                 "presets": {
                   "datasetId": "HPAP",
-                  "cell type label": "Cell Type",
-                  "genes": ["INS", "GCG", "SST", "PPY", "PRSS1", "CFTR", "PLVAP", "PDGFRB", "PTPRC"]
+                  "cell type label": "Cell Type"
                 }
             },
             pageId: "pankbase_cellbrowser",
@@ -78,8 +85,35 @@ new Vue({
     async created() {
         let content = await getPankbaseContent(this.pageId, true);
         this.info = content;
+
+        if(keyParams[this.scbConfig["parameters"].datasetId]){
+          this.selectedDataset = keyParams[this.scbConfig["parameters"].datasetId];
+        }else{
+          this.selectedDataset = this.scbConfig["presets"]["datasetId"];
+        }
+        this.allMetadata = await this.fetchMetadata(this.scbConfig["data points"].find(x => x.role === "metadata").url);
+        
     },
     render(createElement, context) {
         return createElement(Template);
     },
+    methods: {
+      async fetchMetadata(url) {
+        console.log('getting metadata', url);
+        try {
+            const response = await fetch(url);
+            //returns line json
+            const text = await response.text();
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const metadata = lines.map(line => JSON.parse(line));
+            return metadata;
+        } catch (error) {
+            console.error('Error fetching metadata:', error);
+        }
+      },
+      selectDataset(datasetId){
+        this.selectedDataset = datasetId;
+        EventBus.$emit('on-select', {id: "scb", value: datasetId});
+      }
+    }
 }).$mount("#app");
