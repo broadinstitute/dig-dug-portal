@@ -12,7 +12,7 @@ export const pkbMenu = {
                     label: "Donor Summary",
                     path: "https://tools.cmdga.org/metadata_analysis_assays/",
                 },
-                { label: "Data Browser", path: "https://data.pankbase.org" },
+                { label: "Data Library", path: "https://data.pankbase.org" },
                 { label: "APIs", path: "/apis.html" },
             ],
         },
