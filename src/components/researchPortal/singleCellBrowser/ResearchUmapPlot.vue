@@ -14,8 +14,8 @@
             </button>
         </div>
         <div class="umap-wrap" :style="`min-width:${width}px;`">
-            <div class="umap-overlay" v-if="!points || isLoading">
-                {{isLoading ? 'Loading' : 'No data'}}
+            <div class="umap-overlay" v-if="!points">
+                {{'No data'}}
             </div>
             <canvas ref="umapCanvas" class="umap"></canvas>
             <canvas ref="umapCanvasLabels" class="umap" 
@@ -60,6 +60,10 @@
             type: Object,
             required: false,
         },
+        fieldColors: {
+            type: Object,
+            required: false,
+        },
         cellTypeField: {                      //expects string of the "cell type" key (from fields object)
             type: String,
             required: false,
@@ -79,9 +83,7 @@
         expressionGene: {                     //name of gene whose expression is being dislayed
             type: String,
             required: false,
-        },
-
-
+        },  
         highlightLabel: {
             type: String,
             required: false,
@@ -105,11 +107,6 @@
             default: 4,
             required: false,
         },
-        isLoading: {
-            type: Boolean,
-            default: false,
-            required: false,
-        }
     },
     data() {
       return {
@@ -134,7 +131,7 @@
         },
         isPanning: false,
         lastX: null,
-        lastY: null
+        lastY: null,
       }
     },
     watch: {
@@ -142,27 +139,27 @@
             handler(){
                 this.pointBoundsCalculated = false;
                 this.clusterCentersInitialized = false;
-                this.drawUMAP();
+                this.drawUMAP('points');
             }
         },
         highlightLabel: {
             handler(){
-                this.drawUMAP();
+                this.drawUMAP('highlightLabel');
             }
         },
         highlightLabels: {
             handler(){
-                this.drawUMAP();
+                this.drawUMAP('highlightLabels');
             }
         },
         cellTypeField:{
             handler(){
-                this.drawUMAP();
+                this.drawUMAP('cellTypeField');
             }
         },
-        colors: {
+        expression: {
             handler() {
-                this.drawUMAP();
+                this.drawUMAP('expression');
             }
         },
         showLabels() {
@@ -170,7 +167,7 @@
         }
     },
     mounted() {
-        this.drawUMAP();
+        this.drawUMAP('mounted');
 
         EventBus.$on('view-transform-change', this.handleUpdateViewTransform)
     },
@@ -181,10 +178,10 @@
         //
         //umap rendering
         //
-        drawUMAP(){
-            const {points, colors, width} = this;
+        drawUMAP(from=''){
+            const {points, colors, width, fieldColors} = this;
 
-            console.log('drawingUMAP');
+            console.log('drawingUMAP', from);
             //console.log('drawUMAP', points, colors);
 
             if(!points) return;
@@ -199,6 +196,12 @@
             canvas.style.height = canvasWidth+'px';
             canvas.width = canvasWidth*2;
             canvas.height = canvasWidth*2;
+
+            let getExpressionColor;
+            if(this.expression) {
+                getExpressionColor = d3.scaleSequential(d3.interpolatePlasma)
+                .domain([d3.max(this.expression), 0]);
+            }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -269,11 +272,14 @@
 
             //optimization: used to cull points from rendering based on zoom level
             const cullMod = points.length > 20000 ? Math.round(10-this.viewTransform.scale) : 1;
+            let pointsCount = 0;
 
             //draw points
             points.forEach((coord, index) => {
                 //skip every 1 in X points
                 if(index % Math.max(1, cullMod)) return;
+
+                pointsCount++;
 
                 //calc dot positions
                 const px = coord.X;
@@ -290,19 +296,28 @@
                 //draw dots
                 const isLabelToHighlight = (label && wantHighlight) && (label === this.highlightLabel);
                 const isLabelSelected = this.highlightLabels.includes(label);
-                let color = colors ? colors[index] : '#eee';
-                if(colors){
+
+                let color = '#eee';
+                if(fieldColors){
+                    const labelIdx = this.fields.metadata[labelField][index];
+                    const label = this.fields.metadata_labels[labelField][labelIdx];
+                    color = this.fieldColors[labelField][label];
+                }
+                if(this.expression){
+                    color = getExpressionColor(this.expression[index]);
+                }
+                //if(fieldColors){
                     if(isLabelToHighlight){
-                        color = colors[index];
+                        //color = colors[index];
                     }else{
                         if(wantHighlight){
                             color = 'rgba(100,100,100,0.05)';
                         }else{
                             if(isLabelSelected){
-                                color = colors[index];
+                                //color = colors[index];
                             }else{
                                 if(this.highlightLabels.length===0){
-                                    color = colors[index];
+                                    //color = colors[index];
                                 }else{
                                     color = 'rgba(100,100,100,0.05)';
                                 }
@@ -310,7 +325,7 @@
                         }
                         
                     }
-                }
+                //}
                 let dotSize = this.dotSize / this.viewTransform.scale
                 //if(isLabelToHighlight) dotSize *= 2;
                 //dotSize /= this.viewTransform.scale;
@@ -320,6 +335,8 @@
                 ctx.fillStyle = color;
                 ctx.fill();
             });
+
+            console.log("    POINTS RENDERED", pointsCount);
 
             ctx.restore();
 
