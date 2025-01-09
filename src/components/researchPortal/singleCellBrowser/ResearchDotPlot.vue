@@ -103,6 +103,10 @@
             console.log('---DotPlot')
             console.log('   data', this.data);
 
+            if(!this.data || this.data.length===0){
+                console.log('   expression data required');
+                return;
+            }
             if(!this.geneKey){
                 console.log('   geneKey required');
                 return;
@@ -134,15 +138,29 @@
                 .attr("transform", "rotate(-55)");
             const bbox = templabels.node().parentNode.getBBox();
             const labelsHeight = bbox.height; 
-            d3.select(this.$refs.plot).html('')
+            d3.select(this.$refs.plot).html('');
+
+            const tempsvg2 = d3.select(this.$refs.plot)
+                .append('svg')
+            const templabels2 = tempsvg2.append("g")
+                .selectAll("text")
+                .data(keys).enter()
+                .append("text").text(d => d)
+                .attr('font-size', '12px')
+            const bbox2 = templabels2.node().parentNode.getBBox();
+            const labelsWidth = bbox2.width; 
+            //console.log("***********", labelsWidth)
+            d3.select(this.$refs.plot).html('');
+
+
 
 
             const isHorizontal = this.orientation === 'horizontal';
             const marginH = {
-                top: (this.showXLabels ? this.positionXLabelsOnTop ? 80 : 5 : 5) + this.marginTop, 
-                bottom: (this.showXLabels ? this.positionXLabelsOnTop ? 5 : labelsHeight : 5) + this.marginBottom, 
-                right: (this.showYLabels ? this.positionYLabelsOnRight ? 80 : 5 : 5) + this.marginRight, 
-                left: (this.showYLabels ? this.positionYLabelsOnRight ? 5 : 80 : 5) + this.marginLeft
+                top: (this.showXLabels ? (this.positionXLabelsOnTop ? labelsHeight : 5) : 5) + this.marginTop, 
+                bottom: (this.showXLabels ? (this.positionXLabelsOnTop ? 5 : labelsHeight) : 5) + this.marginBottom, 
+                right: (this.showYLabels ? (this.positionYLabelsOnRight ? labelsWidth + 30 : 5) : 5) + this.marginRight, 
+                left: (this.showYLabels ? (this.positionYLabelsOnRight ? 5 : labelsWidth + 30) : 5) + this.marginLeft
             };
             const marginV = {
                 top: (this.showXLabels ? this.positionXLabelsOnTop ? 80 : 5 : 5) + this.marginTop, 
@@ -170,6 +188,7 @@
                 plotHeight = keys.length * cellWidth;
                 height = plotHeight + margin.top + margin.bottom;
             }else{
+                cellWidth = this.cellWidth;
                 plotWidth = labels.length * cellWidth;
                 width = plotWidth + margin.left + margin.right;
                 plotHeight = keys.length * cellWidth;
@@ -232,7 +251,7 @@
                             
                         xAxis.selectAll("text")
                             .style("text-anchor", "start")
-                            .attr("transform", "rotate(-35)")
+                            .attr("transform", "rotate(-55) translate(5, 0)")
                     }else{
                         const xAxis = svg.append("g")
                             .attr('transform', `translate(0, ${height - margin.bottom})`)
@@ -329,7 +348,7 @@
 
                         // Tooltip mouseover
                         outerCircle.addEventListener('mouseover', function(e){
-                            tooltip.innerHTML = `<div style="display:flex"><div style="width:70px; font-weight:bold">Gene</div>${d[geneKey]}</div>
+                            tooltip.innerHTML = `<div style="display:flex"><div style="width:70px; font-weight:bold">${geneKey}</div>${d[geneKey]}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">${primaryKey}</div>${d[primaryKey]}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">Expr.</div>${d.mean.toFixed(4)}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">% Expr.</div>${d.pctExpr.toFixed(4)}</div>`;
