@@ -16,7 +16,6 @@ export async function getPankbaseContent(contentId, getBody=false, getAll=false)
   if (getAll){
     return jsonContent[0];
   }
-  console.log(JSON.stringify(jsonContent));
   let csvContent = jsonContent[0].field_data_points;
   return dataConvert.csv2Json(csvContent);
 }

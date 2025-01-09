@@ -5,6 +5,7 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 
 import { pankbaseMixin } from "../../mixins/pankbaseMixin.js";
+import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 
 new Vue({
     components: {},
@@ -143,53 +144,8 @@ new Vue({
             external:{
                 title: "External Resources",
                 subtitle: "Research knowledge and tools from specialized sources",
-                rows: [
-                    {
-                        title: "HPAP",
-                        body: "Understanding type 1 and type 2 diabetes through deep molecular phenotyping",
-                        linkLabel: "Learn More",
-                        linkUrl: "/hpap-program.html",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/logos_programs/HPAP.png",
-                        type: "medium",
-                        comingSoon: false,
-                    },
-                    {
-                        title: "IIDP",
-                        body: "Distributing samples and data derived from human islets and associated tissues",
-                        linkLabel: "Learn More",
-                        linkUrl: "/iidp-program.html",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/logos_programs/IIDP.png",
-                        type: "medium",
-                        comingSoon: false,
-                    },
-                    {
-                        title: "nPOD",
-                        body: "Identifying mechanisms for prevention or reversal of type 1 diabetes",
-                        linkLabel: "Learn More",
-                        linkUrl: "/npod-program.html",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/logos_programs/npod.png",
-                        type: "medium",
-                        comingSoon: false,
-                    },
-                    {
-                        title: "Pancreatlas",
-                        body: "Facilitating pancreatic disease research through accessible imaging datasets",
-                        linkLabel: "Learn More",
-                        linkUrl: "/pancreatlas-program.html",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/logos_programs/pancreatlas.png",
-                        type: "medium",
-                        comingSoon: false,
-                    },
-                    {
-                        title: "ADI IsletCore",
-                        body: "Isolating, biobanking, and distributing human islets and associated tissues to support diabetes research",
-                        linkLabel: "Learn More",
-                        linkUrl: "/adi-program.html",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/logos_programs/ADI.png",
-                        type: "medium",
-                        comingSoon: false,
-                    }
-                ]
+                byor_node: "pankbase_programs",
+                rows: []
             },
             partners: {
                 title: "Our Partners",
@@ -225,6 +181,9 @@ new Vue({
 
     async created() {
         this.getNews();
+        let extResources = await getPankbaseContent(this.content.external.byor_node);
+        extResources.forEach(item => item.comingSoon = item.comingSoon === 'TRUE');
+        this.content.external.rows = extResources;
     },
 
     methods: {
