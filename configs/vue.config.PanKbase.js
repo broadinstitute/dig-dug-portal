@@ -157,6 +157,13 @@ let pages = {
         title: "News",
         chunks: ["chunk-vendors", "chunk-common", "news"]
     },
+    donormetadata: {
+        entry: "src/portals/PanKbase/views/DonorMetadata/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "donor-metadata.html",
+        title: "Donor Metadata",
+        chunks: ["chunk-vendors", "chunk-common", "donormetadata"]
+    }
 };
 
 module.exports = {

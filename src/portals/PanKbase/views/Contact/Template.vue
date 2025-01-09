@@ -4,8 +4,8 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-        <h3 class="page-title">Contact Us</h3>
-        <div v-html="$parent.contactInfo" class="page-info"></div>
+        <h2 class="page-title">Contact Us</h2>
+        <div v-html="$parent.about" class="page-info"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

@@ -37,6 +37,36 @@
                             Total rows: {{ $parent.donorsTotal }}</b-card-text
                         >
                     </b-tab>
+                    <b-tab title="BioSamples">
+                        <b-card-text
+                            ><b-table
+                                :items="$parent.biosamples"
+                                :fields="$parent.biosamplesFields"
+                                striped
+                                hover
+                                responsive="sm"
+                                head-variant="light"
+                            >
+                                <template #cell(accession)="data">
+                                    <a
+                                        :href="
+                                            $parent.dataUrl + data.item['@id']
+                                        "
+                                        target="_blank"
+                                        >{{ data.item.accession }}</a
+                                    >
+                                </template>
+                            </b-table>
+                            <b-pagination
+                                v-model="$parent.currentPageBiosamples"
+                                class="pagination justify-content-center"
+                                :total-rows="$parent.biosamplesTotal"
+                                :per-page="$parent.perPageBiosamples"
+                            ></b-pagination>
+                            Total rows:
+                            {{ $parent.biosamplesTotal }}</b-card-text
+                        >
+                    </b-tab>
                     <b-tab title="Assays">
                         <b-card-text
                             ><b-table
@@ -66,7 +96,7 @@
                             Total rows: {{ $parent.assaysTotal }}</b-card-text
                         >
                     </b-tab>
-                    <b-tab title="Analyses">
+                    <b-tab title="Processed Results">
                         <b-card-text
                             ><b-table
                                 :items="$parent.analyses"
@@ -94,7 +124,7 @@
                             Total rows: {{ $parent.analysesTotal }}</b-card-text
                         >
                     </b-tab>
-                    <b-tab title="Processed Results">
+                    <b-tab title="Analysis Results">
                         <b-card-text
                             ><b-table
                                 :items="$parent.processedResults"

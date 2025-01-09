@@ -74,11 +74,6 @@ new Vue({
             info: null,
         };
     },
-    computed: {
-        singleCellInfo(){
-            return this.about;
-        }
-    },
     watch: {},
     async created() {
         let content = await getPankbaseContent(this.pageId, true);

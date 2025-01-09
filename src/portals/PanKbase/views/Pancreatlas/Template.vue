@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-        <div v-html="$parent.detailedInfo"></div>
+        <div v-html="$parent.about"></div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

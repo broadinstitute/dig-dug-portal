@@ -17,14 +17,6 @@ new Vue({
             programs: [],
         };
     },
-    computed: {
-        programInfo(){
-            return this.about;
-        },
-        allPrograms(){
-            return this.programs;
-        }
-    },
     watch: {},
     async created() {
         let content = await getPankbaseContent(this.pageId, false, true);
