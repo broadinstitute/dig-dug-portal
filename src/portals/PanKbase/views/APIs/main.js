@@ -12,14 +12,13 @@ new Vue({
     data() {
         return {
             pageId: "pankbase_api_all",
-            info: ""
+            about: ""
         };
     },
-    computed: {},
     watch: {},
     async created() {
         let content = await getPankbaseContent(this.pageId, true);
-        this.info = content;
+        this.about = content;
     },
     render(createElement, context) {
         return createElement(Template);

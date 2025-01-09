@@ -22,11 +22,6 @@ new Vue({
             publications: []
         };
     },
-    computed: {
-        publicationsInfo(){
-            return this.about;
-        }
-    },
     methods: {
         extractAuthors(pubItem){
             let pubCite = pubItem.item['Publication'];

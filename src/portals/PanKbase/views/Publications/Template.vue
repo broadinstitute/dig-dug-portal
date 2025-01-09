@@ -4,13 +4,13 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-        <h3 class="page-title">Publications</h3>
-        <div v-html="$parent.publicationsInfo" class="page-info"></div>
+        <h2 class="page-title">Publications</h2>
+        <div v-html="$parent.about" class="page-info"></div>
         <criterion-function-group>
           <filter-enumeration-control
-            :field="'Publication Category'"
+            :field="'Category'"
             :options="
-                $parent.publications.map((pub) => pub['Publication Category'])
+                $parent.publications.map((pub) => pub['Category'])
             "
           >
             <div class="label">Filter by Category</div>
