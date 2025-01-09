@@ -21,7 +21,10 @@ new Vue({
     async created() {
         let content = await getPankbaseContent(this.pageId, false, true);
         this.about = content.body;
-        this.programs = dataConvert.csv2Json(content.field_data_points);
+        let allPrograms = dataConvert.csv2Json(content.field_data_points);
+        allPrograms.forEach(item => item.comingSoon = item.comingSoon === 'TRUE');
+        this.programs = allPrograms;
+
     },
     render(createElement, context) {
         return createElement(Template);
