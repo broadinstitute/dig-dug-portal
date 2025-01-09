@@ -136,6 +136,13 @@ let pages = {
         title: "Pancreatlas",
         chunks: ["chunk-vendors", "chunk-common", "pancreatlas"]
     },
+    prodo: {
+        entry: "src/portals/PanKbase/views/Prodo/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "prodo-program.html",
+        title: "Prodo",
+        chunks: ["chunk-vendors", "chunk-common", "prodo"]
+    },
     adi: {
         entry: "src/portals/PanKbase/views/ADI/main.js",
         template: "src/portals/PanKbase/index.html",
