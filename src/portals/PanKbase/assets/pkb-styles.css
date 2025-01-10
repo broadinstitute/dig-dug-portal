@@ -114,12 +114,17 @@ button.pkb.alt1 {
     background: var(--pkb-secondary-green);
 }
 button.pkb.alt1:not(:disabled):hover {
-    border-color: 1px solid var(--pkb-primary-green);
+    border: 1px solid var(--pkb-primary-green);
     background: var(--pkb-primary-green);
 }
 button.pkb:disabled {
     border: 1px solid var(--pkb-disabled-green);
     background: var(--pkb-disabled-grey);
+    cursor: default;
+}
+button.pkb.selected {
+    background: var(--pkb-secondary-green);
+    color: white;
     cursor: default;
 }
 

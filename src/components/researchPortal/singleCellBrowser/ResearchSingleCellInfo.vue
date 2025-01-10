@@ -1,5 +1,5 @@
 <template>
-    <div v-if="data" style="height:-webkit-fill-available; display:flex; width:100%; flex-direction:column; gap:10px; margin:0 0 10px 0;"">
+    <div v-if="data" style="height:100%; display:flex; width:100%; flex-direction:column; gap:10px; margin:0 0 10px 0;"">
         <div style="display:flex; gap:20px; background: #f8f8f8; padding: 20px;">
             <div style="display:flex; flex-direction:column; flex:1">
                 <strong style="font-size:20px">{{ data["datasetName"] }}</strong>

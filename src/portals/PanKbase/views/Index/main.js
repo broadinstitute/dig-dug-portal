@@ -16,7 +16,7 @@ new Vue({
         newsFeed: null,
         content:{
             hero:{
-                blurb: "A centralized resource of the human pancreas for diabetes research."
+                blurb: "A centralized knowledge base of the human pancreas for diabetes research."
             },
             resources:{
                 title: "Resources",
@@ -37,18 +37,18 @@ new Vue({
                             body: "",
                             linkLabel: "Learn More",
                             linkUrl: "/single-cell.html",
-                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap.jpg",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-scb.jpg",
                             type: "large",
                             comingSoon: false,
                         }
                     ],
                     [
                         {
-                            title: "Donor Metadata",
+                            title: "Donor Summary",
                             body: "",
                             linkLabel: "Learn More",
                             linkUrl: "http://tools.cmdga.org:3838/metadata_analysis_assays/",
-                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-donors.png",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-donors2.png",
                             type: "medium",
                             comingSoon: false,
                         },
@@ -122,22 +122,22 @@ new Vue({
                     {
                         title: "Pancreatic islet all donor single cell map",
                         linkLabel: "Explore",
-                        linkUrl: "/",
+                        linkUrl: "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA",
                     },
                     {
-                        title: "Pancreatic islet diabetics single cell map",
+                        title: "Identify quantitative trait loci for a gene",
                         linkLabel: "Explore",
-                        linkUrl: "/",
+                        linkUrl: "https://pankgraph.org/result?snpId=rs2402203&leadSnp=rs2402203&geneId=ENSG00000001626&relationship=fine_mapped_eQTL&tissueKey=&dataSource=splicing%3B+GTEx&geneSymbol=CFTR",
                     },
                     {
-                        title: "Top 20 DEG pancreas X diabetes",
+                        title: "Catalog of multi-program pancreatic donors",
                         linkLabel: "Explore",
-                        linkUrl: "/",
+                        linkUrl: "https://data.pankbase.org",
                     },
                     {
-                        title: "Identify pancreatic eQTLs for a gene",
+                        title: "Interactive maps of harmonized multi-program metadata",
                         linkLabel: "Explore",
-                        linkUrl: "/",
+                        linkUrl: "https://pankbase.org/donor-metadata.html",
                     }
                 ]
             },

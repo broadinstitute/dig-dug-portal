@@ -113,7 +113,8 @@
                         <div class="example-item-title">
                             {{ item.title }}
                         </div>
-                        <a :href="item.linkUrl">{{ item.linkLabel }} ❯</a>
+                        <a v-if="item.linkUrl" :href="item.linkUrl">{{ item.linkLabel }} ❯</a>
+                        <div v-else>{{ item.linkLabel }} ❯</div>
                     </div>
                 </div>
             </div>
@@ -136,7 +137,7 @@
                         <div class="item-copy">
                             <div class="item-title">{{ item.title }}</div>
                             <div class="item-body">{{ item.body }}</div>
-                            <a class="item-btn" :href="item.linkUrl"
+                            <a class="item-btn" :href="item.linkUrl" style="margin-top: auto;"
                                 >{{ item.linkLabel }} ❯</a
                             >
                         </div>
@@ -236,7 +237,7 @@
     left: calc(50% + 75px);
     top: 250px;
     max-width: 250px;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
     line-height: 22px;
 }
@@ -275,6 +276,8 @@
     width: -webkit-fill-available;
     max-width: 200px;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 .item-title {
     font-weight: bold;
@@ -310,6 +313,9 @@
         width: -webkit-fill-available;
         max-width: unset;
         padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
     }
     .item-title {
         font-weight: bold;
