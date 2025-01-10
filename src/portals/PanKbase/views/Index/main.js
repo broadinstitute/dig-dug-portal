@@ -29,17 +29,17 @@ new Vue({
                             linkLabel: "Learn More",
                             linkUrl: "https://pankgraph.org/",
                             bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph.jpg",
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph-ctfr.png",
                             type: "large",
                             comingSoon: false,
                         },
                         {
-                            title: "Integrated Maps of the pancreas",
+                            title: "Integrated Maps of Pancreatic Islets",
                             body: "",
                             linkLabel: "Learn More",
                             linkUrl: "/single-cell.html",
                             bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-scb.jpg",
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap2.png",
                             type: "large",
                             comingSoon: false,
                         },
@@ -88,7 +88,7 @@ new Vue({
                         linkLabel: "Learn More",
                         linkUrl: "/single-cell.html",
                         bgImage:
-                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-scexpression.png",
+                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap2.png",
                         type: "medium",
                         comingSoon: false,
                     },
