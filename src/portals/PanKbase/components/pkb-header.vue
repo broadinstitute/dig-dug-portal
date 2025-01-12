@@ -131,7 +131,7 @@ export default Vue.component("PkbHeader", {
     },
 });
 </script>
-<style scoped lang="scss">
+<style scoped>
 .pkb-nav {
     position: relative;
     width: 100%;
@@ -143,143 +143,142 @@ export default Vue.component("PkbHeader", {
     box-shadow: 0px 2px 5px var(--pkb-primary-green);
     z-index: 10;
     font-family: "Open Sans", sans-serif;
-
-    a,
-    a:visited {
-        color: black !important;
-    }
-    a:hover {
-        text-decoration: none;
-    }
-    .logo {
-        display: flex;
-        align-items: baseline;
-        cursor: pointer;
-        align-self: center;
-    }
-    .logo-text {
-        position: relative;
-        font-weight: 800;
-        font-size: 18px;
-        color: var(--pkb-primary-green);
-        margin-left: -10px;
-    }
-    .logo-super {
-        position: absolute;
-        bottom: 17px;
-        right: 0;
-        font-weight: 500;
-        font-size: 11px;
-        color: var(--pkb-secondary-green);
-    }
-    .menu-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 5px;
-    }
-    .topmenu {
-        display: flex;
-        align-items: center;
-        gap: 0px;
-    }
-    .topmenu-item {
-        color: var(--pkb-black);
-        padding: 5px 10px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        font-size: 12px;
-    }
-    .topmenu-item:hover {
-        color: var(--pkb-secondary-green) !important;
-    }
-    .topmenu-item:hover svg * {
-        stroke: var(--pkb-secondary-green) !important;
-    }
-    .menu {
-        display: flex;
-        font-weight: 600;
-    }
-    .menu-item-wrapper {
-        position: relative;
-        display: flex;
-    }
-    .main-menu-items {
-        display: flex;
-        position: relative;
-        padding-right: 2px;
-    }
-    .main-menu-items:after {
-        content: "";
-        position: absolute;
-        top: 7px;
-        right: 0px;
-        width: 2px;
-        background-color: var(--pkb-primary-green);
-        height: 50%;
-    }
-    .menu-item {
-        position: relative;
-        padding: 5px 10px;
-        cursor: pointer;
-        border-radius: 10px 10px 0 0;
-        font-weight: 600;
-        color: var(--pkb-black);
-        border-bottom: 5px solid transparent;
-    }
-    .menu-item.menu-item-main {
-        color: var(--pkb-primary-green) !important;
-    }
-    .menu-item.menu-item-selected {
-        color: var(--pkb-primary-green);
-        border-bottom: 5px solid var(--pkb-primary-green);
-    }
-    .menu-item-wrapper:hover .menu-item,
-    .menu-item-wrapper.active .menu-item,
-    .menu-item-wrapper:has(.submenu-item.active) .menu-item {
-        color: var(--pkb-primary-green) !important;
-        border-bottom: 5px solid var(--pkb-primary-green);
-    }
-    .menu-item-wrapper:hover > .submenu {
-        display: flex;
-    }
-    .submenu {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        background: var(--pkb-secondary-green);
-        padding: 10px 10px 15px 15px;
-        border-radius: 0 0 5px 5px;
-        width: max-content;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 5px;
-        display: none;
-        border-top: 2px solid var(--pkb-primary-green);
-        box-shadow: inset 0 7px 5px -5px var(--pkb-primary-green);
-    }
-    .submenu-item {
-        color: var(--pkb-black);
-        width: -webkit-fill-available;
-        text-align: right;
-    }
-    .submenu-item:hover,
-    .submenu-item.active {
-        color: white !important;
-        cursor: pointer;
-    }
-    .pkb-beta {
-        height: 20px;
-        line-height: 16px;
-        background: #219197;
-        color: white;
-        padding: 2px 15px 0;
-        position: absolute;
-        bottom: -20px;
-        left: 19px;
-        mix-blend-mode: multiply;
-    }
+}
+a,
+a:visited {
+    color: black !important;
+}
+a:hover {
+    text-decoration: none;
+}
+.logo {
+    display: flex;
+    align-items: baseline;
+    cursor: pointer;
+    align-self: center;
+}
+.logo-text {
+    position: relative;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--pkb-primary-green);
+    margin-left: -10px;
+}
+.logo-super {
+    position: absolute;
+    bottom: 17px;
+    right: 0;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--pkb-secondary-green);
+}
+.menu-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+.topmenu {
+    display: flex;
+    align-items: center;
+    gap: 0px;
+}
+.topmenu-item {
+    color: var(--pkb-black);
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.topmenu-item:hover {
+    color: var(--pkb-secondary-green) !important;
+}
+.topmenu-item:hover svg * {
+    stroke: var(--pkb-secondary-green) !important;
+}
+.menu {
+    display: flex;
+    font-weight: 600;
+}
+.menu-item-wrapper {
+    position: relative;
+    display: flex;
+}
+.main-menu-items {
+    display: flex;
+    position: relative;
+    padding-right: 2px;
+}
+.main-menu-items:after {
+    content: "";
+    position: absolute;
+    top: 7px;
+    right: 0px;
+    width: 2px;
+    background-color: var(--pkb-primary-green);
+    height: 50%;
+}
+.menu-item {
+    position: relative;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 10px 10px 0 0;
+    font-weight: 600;
+    color: var(--pkb-black);
+    border-bottom: 5px solid transparent;
+}
+.menu-item.menu-item-main {
+    color: var(--pkb-primary-green) !important;
+}
+.menu-item.menu-item-selected {
+    color: var(--pkb-primary-green);
+    border-bottom: 5px solid var(--pkb-primary-green);
+}
+.menu-item-wrapper:hover .menu-item,
+.menu-item-wrapper.active .menu-item,
+.menu-item-wrapper:has(.submenu-item.active) .menu-item {
+    color: var(--pkb-primary-green) !important;
+    border-bottom: 5px solid var(--pkb-primary-green);
+}
+.menu-item-wrapper:hover > .submenu {
+    display: flex;
+}
+.submenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--pkb-secondary-green);
+    padding: 10px 10px 15px 15px;
+    border-radius: 0 0 5px 5px;
+    width: max-content;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    display: none;
+    border-top: 2px solid var(--pkb-primary-green);
+    box-shadow: inset 0 7px 5px -5px var(--pkb-primary-green);
+}
+.submenu-item {
+    color: var(--pkb-black);
+    width: -webkit-fill-available;
+    text-align: right;
+}
+.submenu-item:hover,
+.submenu-item.active {
+    color: white !important;
+    cursor: pointer;
+}
+.pkb-beta {
+    height: 20px;
+    line-height: 16px;
+    background: #219197;
+    color: white;
+    padding: 2px 15px 0;
+    position: absolute;
+    bottom: -20px;
+    left: 19px;
+    mix-blend-mode: multiply;
 }
 </style>
