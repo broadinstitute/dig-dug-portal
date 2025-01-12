@@ -2,54 +2,80 @@
     <div class="pkb-nav">
         <div class="logo">
             <a href="/">
-                <img style="height:50px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black-tagline.svg"/>
+                <img
+                    style="height: 50px"
+                    src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black-tagline.svg"
+                />
             </a>
         </div>
         <div class="menu-wrapper">
             <div class="topmenu">
                 <a class="topmenu-item">
-                    Search <img style="height: 15px; width: 15px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/search-icon.svg"/>
+                    Search
+                    <img
+                        style="height: 15px; width: 15px"
+                        src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/search-icon.svg"
+                    />
                 </a>
+                <a class="topmenu-item"> Analysis </a>
                 <a class="topmenu-item">
-                    Analysis 
-                </a>
-                <a class="topmenu-item">
-                    Login <img style="height: 15px; width: 15px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"/>
+                    Login
+                    <img
+                        style="height: 15px; width: 15px"
+                        src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"
+                    />
                 </a>
             </div>
             <div class="menu">
                 <div class="main-menu-items">
-                    <div v-for="item in pkbMenu.highlightItems" class="menu-item-wrapper" :class="{active:isActive(item.path)}">
-                        <a class="menu-item menu-item-main" :href="item.path">{{ item.label }}</a>
+                    <div
+                        v-for="item in pkbMenu.highlightItems"
+                        class="menu-item-wrapper"
+                        :class="{ active: isActive(item.path) }"
+                    >
+                        <a class="menu-item menu-item-main" :href="item.path">{{
+                            item.label
+                        }}</a>
                     </div>
                 </div>
-                <div v-for="item in pkbMenu.menuItems" class="menu-item-wrapper" :class="{active:isActive(item.path)}">
-                    <a class="menu-item" :href="item.path || null">{{ item.label }}</a>
+                <div
+                    v-for="item in pkbMenu.menuItems"
+                    class="menu-item-wrapper"
+                    :class="{ active: isActive(item.path) }"
+                >
+                    <a class="menu-item" :href="item.path || null">{{
+                        item.label
+                    }}</a>
                     <div v-if="item.subMenuItems" class="submenu">
-                        <a v-for="subItem in item.subMenuItems" class="submenu-item" :href="subItem.path || null" :class="{active:isActive(subItem.path)}" :data-whatever="isActive(subItem.path).toString()">{{ subItem.label }}</a>
+                        <a
+                            v-for="subItem in item.subMenuItems"
+                            class="submenu-item"
+                            :href="subItem.path || null"
+                            :class="{ active: isActive(subItem.path) }"
+                            :data-whatever="isActive(subItem.path).toString()"
+                            >{{ subItem.label }}</a
+                        >
                     </div>
                 </div>
             </div>
         </div>
-        <div class="pkb-beta">
-            beta
-        </div>
+        <div class="pkb-beta">beta</div>
     </div>
 </template>
 
 <script>
-import Vue, { triggerRef } from "vue";
-import { pkbMenu } from '@/portals/PanKbase/assets/pkbMenu.js';
+import Vue from "vue";
+import { pkbMenu } from "@/portals/PanKbase/assets/pkbMenu.js";
 
 let menuItemActive = false;
 
 export default Vue.component("PkbHeader", {
     components: {},
     props: {},
-    data() { 
+    data() {
         return {
-            pkbMenu
-        }
+            pkbMenu,
+        };
     },
     computed: {},
     created() {
@@ -83,22 +109,21 @@ export default Vue.component("PkbHeader", {
         isActive(path) {
             //compare menu item's path to current path to set active
             //but only the first instance
-            if(menuItemActive) return false;
+            if (menuItemActive) return false;
             const currentPath = window.location.pathname;
             if (path === currentPath) {
                 menuItemActive = true;
                 return true;
-            }else{
+            } else {
                 return false;
             }
-            
         },
     },
 });
 </script>
 <style scoped>
 .pkb-nav {
-    position:relative;
+    position: relative;
     width: 100%;
     background: #fafafa;
     display: flex;
@@ -113,7 +138,7 @@ export default Vue.component("PkbHeader", {
     a:visited {
         color: black !important;
     }
-    a:hover{
+    a:hover {
         text-decoration: none;
     }
     .logo {
@@ -171,15 +196,15 @@ export default Vue.component("PkbHeader", {
         position: relative;
         display: flex;
     }
-    .main-menu-items{
-        display:flex;
+    .main-menu-items {
+        display: flex;
         position: relative;
-        padding-right:2px;
+        padding-right: 2px;
     }
     .main-menu-items:after {
-        content: '';
+        content: "";
         position: absolute;
-        top:7px;
+        top: 7px;
         right: 0px;
         width: 2px;
         background-color: var(--pkb-primary-green);
@@ -195,7 +220,7 @@ export default Vue.component("PkbHeader", {
         border-bottom: 5px solid transparent;
     }
     .menu-item.menu-item-main {
-        color: var(--pkb-primary-green) !important; 
+        color: var(--pkb-primary-green) !important;
     }
     .menu-item.menu-item-selected {
         color: var(--pkb-primary-green);
@@ -203,7 +228,7 @@ export default Vue.component("PkbHeader", {
     }
     .menu-item-wrapper:hover .menu-item,
     .menu-item-wrapper.active .menu-item,
-    .menu-item-wrapper:has(.submenu-item.active) .menu-item{
+    .menu-item-wrapper:has(.submenu-item.active) .menu-item {
         color: var(--pkb-primary-green) !important;
         border-bottom: 5px solid var(--pkb-primary-green);
     }
