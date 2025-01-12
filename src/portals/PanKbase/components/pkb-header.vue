@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div width="100%">
         <google-analytics></google-analytics>
         <div class="pkb-nav">
             <div class="logo">
