@@ -1,76 +1,86 @@
 <template>
-    <div class="pkb-nav">
-        <div class="logo">
-            <a href="/">
-                <img
-                    style="height: 50px"
-                    src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black-tagline.svg"
-                />
-            </a>
-        </div>
-        <div class="menu-wrapper">
-            <div class="topmenu">
-                <a class="topmenu-item">
-                    Search
+    <div>
+        <google-analytics></google-analytics>
+        <div class="pkb-nav">
+            <div class="logo">
+                <a href="/">
                     <img
-                        style="height: 15px; width: 15px"
-                        src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/search-icon.svg"
-                    />
-                </a>
-                <a class="topmenu-item"> Analysis </a>
-                <a class="topmenu-item">
-                    Login
-                    <img
-                        style="height: 15px; width: 15px"
-                        src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"
+                        style="height: 50px"
+                        src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black-tagline.svg"
                     />
                 </a>
             </div>
-            <div class="menu">
-                <div class="main-menu-items">
+            <div class="menu-wrapper">
+                <div class="topmenu">
+                    <a class="topmenu-item">
+                        Search
+                        <img
+                            style="height: 15px; width: 15px"
+                            src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/search-icon.svg"
+                        />
+                    </a>
+                    <a class="topmenu-item"> Analysis </a>
+                    <a class="topmenu-item">
+                        Login
+                        <img
+                            style="height: 15px; width: 15px"
+                            src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"
+                        />
+                    </a>
+                </div>
+                <div class="menu">
+                    <div class="main-menu-items">
+                        <div
+                            v-for="item in pkbMenu.highlightItems"
+                            class="menu-item-wrapper"
+                            :class="{ active: isActive(item.path) }"
+                        >
+                            <a
+                                class="menu-item menu-item-main"
+                                :href="item.path"
+                                >{{ item.label }}</a
+                            >
+                        </div>
+                    </div>
                     <div
-                        v-for="item in pkbMenu.highlightItems"
+                        v-for="item in pkbMenu.menuItems"
                         class="menu-item-wrapper"
                         :class="{ active: isActive(item.path) }"
                     >
-                        <a class="menu-item menu-item-main" :href="item.path">{{
+                        <a class="menu-item" :href="item.path || null">{{
                             item.label
                         }}</a>
-                    </div>
-                </div>
-                <div
-                    v-for="item in pkbMenu.menuItems"
-                    class="menu-item-wrapper"
-                    :class="{ active: isActive(item.path) }"
-                >
-                    <a class="menu-item" :href="item.path || null">{{
-                        item.label
-                    }}</a>
-                    <div v-if="item.subMenuItems" class="submenu">
-                        <a
-                            v-for="subItem in item.subMenuItems"
-                            class="submenu-item"
-                            :href="subItem.path || null"
-                            :class="{ active: isActive(subItem.path) }"
-                            :data-whatever="isActive(subItem.path).toString()"
-                            >{{ subItem.label }}</a
-                        >
+                        <div v-if="item.subMenuItems" class="submenu">
+                            <a
+                                v-for="subItem in item.subMenuItems"
+                                class="submenu-item"
+                                :href="subItem.path || null"
+                                :class="{ active: isActive(subItem.path) }"
+                                :data-whatever="
+                                    isActive(subItem.path).toString()
+                                "
+                                >{{ subItem.label }}</a
+                            >
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="pkb-beta">beta</div>
         </div>
-        <div class="pkb-beta">beta</div>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics4.vue";
 import { pkbMenu } from "@/portals/PanKbase/assets/pkbMenu.js";
 
 let menuItemActive = false;
 
 export default Vue.component("PkbHeader", {
-    components: {},
+    components: {
+        GoogleAnalytics,
+    },
     props: {},
     data() {
         return {
@@ -121,7 +131,7 @@ export default Vue.component("PkbHeader", {
     },
 });
 </script>
-<style scoped>
+<style scoped lang="scss">
 .pkb-nav {
     position: relative;
     width: 100%;
