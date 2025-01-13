@@ -23,7 +23,8 @@ new Vue({
             about: "",
             publications: [],
             perPage: 10,
-            currentPage: 1
+            currentPage: 1,
+            searchString: ""
         };
     },
     methods: {
@@ -42,7 +43,11 @@ new Vue({
     async created() {
         let allContent = await getPankbaseContent(this.pageId, false, true);
         this.about = allContent.body;
-        this.publications = dataConvert.csv2Json(allContent.field_data_points);
+        let allPubs = dataConvert.csv2Json(allContent.field_data_points);
+        allPubs.forEach(p =>
+            p.details = p['Publication'].concat(" ", p["Description"])
+        );
+        this.publications = allPubs;
     },
     render(createElement, context) {
         return createElement(Template);
