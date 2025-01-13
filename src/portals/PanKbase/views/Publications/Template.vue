@@ -21,21 +21,8 @@
           <div class="label">Filter by Category</div>
         </filter-enumeration-control class="col filter-col-md">
           <template slot="filtered" slot-scope="{ filter }">
-          <!-- <b-table 
-            :items="$parent.publications.filter(filter)"
-            :sortable="true"
-            :per-page="$parent.perPage"
-            :current-page="$parent.currentPage"
-          >
-            <template #cell(Publication)="p">
-              <span>
-                <strong>{{ $parent.extractAuthors(p).authors }}</strong>
-                {{ $parent.extractAuthors(p).rest }}
-              </span>
-            </template>
-          </b-table> -->
           <b-table 
-            :items="$parent.publications"
+            :items="$parent.publications.filter(filter)"
             :filter="$parent.searchString"
             :sortable="true"
             :per-page="$parent.perPage"
@@ -48,6 +35,20 @@
               </span>
             </template>
           </b-table>
+          <!-- <b-table 
+            :items="$parent.publications"
+            :filter="$parent.searchString"
+            :sortable="true"
+            :per-page="$parent.perPage"
+            :current-page="$parent.currentPage"
+          >
+            <template #cell(Publication)="p">
+              <span>
+                <strong>{{ $parent.extractAuthors(p).authors }}</strong>
+                {{ $parent.extractAuthors(p).rest }}
+              </span>
+            </template>
+          </b-table> -->
           <b-pagination
             class="pagination-sm justify-content-center"
             v-model="$parent.currentPage"

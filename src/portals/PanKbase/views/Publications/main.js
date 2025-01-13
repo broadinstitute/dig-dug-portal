@@ -44,9 +44,7 @@ new Vue({
         let allContent = await getPankbaseContent(this.pageId, false, true);
         this.about = allContent.body;
         let allPubs = dataConvert.csv2Json(allContent.field_data_points);
-        allPubs.forEach(p =>
-            p.details = p['Publication'].concat(" ", p["Description"])
-        );
+        //allPubs.forEach(p =>p.details = p['Publication'].concat(" ", p["Description"]));
         this.publications = allPubs;
     },
     render(createElement, context) {
