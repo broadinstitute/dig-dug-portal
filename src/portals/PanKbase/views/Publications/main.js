@@ -22,9 +22,11 @@ new Vue({
             pageId: "pankbase_publications",
             about: "",
             publications: [],
+            categories: [],
             perPage: 10,
             currentPage: 1,
-            searchString: ""
+            searchString: "",
+            searchCategory: ""
         };
     },
     methods: {
@@ -37,14 +39,37 @@ new Vue({
             let beforeDot = pubCite.slice(0, dotIndex + 1);
             let afterDot = pubCite.slice(dotIndex + 1);
             return {authors: beforeDot, rest: afterDot};
+        },
+        stringMatch(pub){
+            let publication = pub['Publication'].toLowerCase();
+            let description = pub['Description'].toLowerCase();
+            let search = this.searchString.toLowerCase();
+            return this.searchString === '' 
+                || publication.includes(search)
+                || description.includes(search);
+        },
+        categoryMatch(pub){
+            return this.searchCategory === ''
+                || pub['Category'] === this.searchCategory;
         }
+    },
+    computed: {
+        pubSearchResults(){
+            return this.publications.filter(p =>
+                this.categoryMatch(p) && this.stringMatch(p)
+            );
+        },
     },
     watch: {},
     async created() {
         let allContent = await getPankbaseContent(this.pageId, false, true);
         this.about = allContent.body;
         let allPubs = dataConvert.csv2Json(allContent.field_data_points);
-        //allPubs.forEach(p =>p.details = p['Publication'].concat(" ", p["Description"]));
+        allPubs.forEach(p => {
+            if (!this.categories.includes(p['Category'])){
+                this.categories.push(p['Category']);
+            }
+        });
         this.publications = allPubs;
     },
     render(createElement, context) {

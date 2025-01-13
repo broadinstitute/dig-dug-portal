@@ -11,19 +11,19 @@
             <div class="label">Search</div>
             <input v-model="$parent.searchString"/>
           </div>
-          
-          <filter-enumeration-control
-            :field="'Category'"
-            :options="
-                $parent.publications.map((pub) => pub['Category'])
-            "
-          >
-          <div class="label">Filter by Category</div>
-        </filter-enumeration-control class="col filter-col-md">
+          <div class="col filter-col-md">
+            <div class="label">Filter by Category</div>
+            <select v-model="$parent.searchCategory">
+              <option value="">All</option>
+              <option v-for="category in $parent.categories"
+                :value="category">
+                  {{ category }}
+              </option>
+            </select>
+          </div>
           <template slot="filtered" slot-scope="{ filter }">
           <b-table 
-            :items="$parent.publications.filter(filter)"
-            :filter="$parent.searchString"
+            :items="$parent.pubSearchResults"
             :sortable="true"
             :per-page="$parent.perPage"
             :current-page="$parent.currentPage"
@@ -35,25 +35,11 @@
               </span>
             </template>
           </b-table>
-          <!-- <b-table 
-            :items="$parent.publications"
-            :filter="$parent.searchString"
-            :sortable="true"
-            :per-page="$parent.perPage"
-            :current-page="$parent.currentPage"
-          >
-            <template #cell(Publication)="p">
-              <span>
-                <strong>{{ $parent.extractAuthors(p).authors }}</strong>
-                {{ $parent.extractAuthors(p).rest }}
-              </span>
-            </template>
-          </b-table> -->
           <b-pagination
             class="pagination-sm justify-content-center"
             v-model="$parent.currentPage"
             :per-page="$parent.perPage"
-            :total-rows="$parent.publications.filter(filter).length">
+            :total-rows="$parent.pubSearchResults.length">
           </b-pagination>
         </template>
         </criterion-function-group>
