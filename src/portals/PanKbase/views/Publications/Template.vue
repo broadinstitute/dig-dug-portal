@@ -7,13 +7,16 @@
         <h2 class="page-title">Publications</h2>
         <div v-html="$parent.about" class="page-info"></div>
         <criterion-function-group>
+          <filter-basic-control>
+            <div class="label">Search</div>
+          </filter-basic-control>
           <filter-enumeration-control
             :field="'Category'"
             :options="
                 $parent.publications.map((pub) => pub['Category'])
             "
           >
-            <div class="label">Filter by Category</div>
+          <div class="label">Filter by Category</div>
         </filter-enumeration-control class="col filter-col-md">
           <template slot="filtered" slot-scope="{ filter }">
           <b-table 

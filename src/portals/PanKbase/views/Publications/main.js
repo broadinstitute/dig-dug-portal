@@ -8,11 +8,13 @@ import { getPankbaseContent, highlightIntro } from "@/portals/PanKbase/utils/con
 import dataConvert from "@/utils/dataConvert";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterBasic from "@/components/criterion/FilterBasic.vue";
 
 new Vue({
     components: {
         CriterionFunctionGroup,
-        FilterEnumeration
+        FilterEnumeration,
+        FilterBasic
     },
     mixins: [pankbaseMixin],
     data() {
