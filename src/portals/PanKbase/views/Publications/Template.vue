@@ -19,6 +19,8 @@
           <b-table 
             :items="$parent.publications.filter(filter)"
             :sortable="true"
+            :per-page="$parent.perPage"
+            :current-page="$parent.currentPage"
           >
             <template #cell(Publication)="p">
               <span>
@@ -27,6 +29,12 @@
               </span>
             </template>
           </b-table>
+          <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="$parent.currentPage"
+            :per-page="$parent.perPage"
+            :total-rows="$parent.publications.filter(filter).length">
+          </b-pagination>
         </template>
         </criterion-function-group>
         

@@ -19,7 +19,9 @@ new Vue({
         return {
             pageId: "pankbase_publications",
             about: "",
-            publications: []
+            publications: [],
+            perPage: 10,
+            currentPage: 1
         };
     },
     methods: {
