@@ -14,11 +14,11 @@ new Vue({
 
     data: {
         newsFeed: null,
-        content:{
-            hero:{
-                blurb: "A centralized knowledge base of the human pancreas for diabetes research."
+        content: {
+            hero: {
+                blurb: "A centralized knowledge base of the human pancreas for diabetes research.",
             },
-            resources:{
+            resources: {
                 title: "Resources",
                 subtitle: "Learn what is unique to PanKbase",
                 rows: [
@@ -28,27 +28,30 @@ new Vue({
                             body: "",
                             linkLabel: "Learn More",
                             linkUrl: "https://pankgraph.org/",
-                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph.jpg",
+                            bgImage:
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph-ctfr.png",
                             type: "large",
                             comingSoon: false,
                         },
                         {
-                            title: "Integrated Maps of the pancreas",
+                            title: "Integrated Maps of Pancreatic Islets",
                             body: "",
                             linkLabel: "Learn More",
                             linkUrl: "/single-cell.html",
-                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-scb.jpg",
+                            bgImage:
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap2.png",
                             type: "large",
                             comingSoon: false,
-                        }
+                        },
                     ],
                     [
                         {
                             title: "Donor Summary",
                             body: "",
                             linkLabel: "Learn More",
-                            linkUrl: "http://tools.cmdga.org:3838/metadata_analysis_assays/",
-                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-donors2.png",
+                            linkUrl: "/donor-metadata.html",
+                            bgImage:
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-donors2.png",
                             type: "medium",
                             comingSoon: false,
                         },
@@ -57,7 +60,8 @@ new Vue({
                             body: "",
                             linkLabel: "Learn More",
                             linkUrl: "/",
-                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-manhattan.png",
+                            bgImage:
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-manhattan.png",
                             type: "medium",
                             comingSoon: true,
                         },
@@ -66,14 +70,15 @@ new Vue({
                             body: "",
                             linkLabel: "Learn More",
                             linkUrl: "/",
-                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-histology.png",
+                            bgImage:
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-histology.png",
                             type: "medium",
                             comingSoon: true,
-                        }
-                    ]
-                ]
+                        },
+                    ],
+                ],
             },
-            tools:{
+            tools: {
                 title: "Tools and Workflows",
                 subtitle: "Analyses you can do on PanKbase",
                 rows: [
@@ -82,7 +87,8 @@ new Vue({
                         body: "",
                         linkLabel: "Learn More",
                         linkUrl: "/single-cell.html",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-scexpression.png",
+                        bgImage:
+                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap2.png",
                         type: "medium",
                         comingSoon: false,
                     },
@@ -91,7 +97,8 @@ new Vue({
                         body: "",
                         linkLabel: "Learn More",
                         linkUrl: "https://pankgraph.org/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-relationships.png",
+                        bgImage:
+                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-relationships.png",
                         type: "medium",
                         comingSoon: false,
                     },
@@ -100,7 +107,8 @@ new Vue({
                         body: "",
                         linkLabel: "Learn More",
                         linkUrl: "/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
+                        bgImage:
+                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
                         type: "medium",
                         comingSoon: true,
                     },
@@ -109,11 +117,12 @@ new Vue({
                         body: "",
                         linkLabel: "Learn More",
                         linkUrl: "/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-eqtl.png",
+                        bgImage:
+                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-eqtl.png",
                         type: "medium",
                         comingSoon: true,
-                    }
-                ]
+                    },
+                ],
             },
             examples: {
                 title: "Browse Examples",
@@ -122,12 +131,14 @@ new Vue({
                     {
                         title: "Pancreatic islet all donor single cell map",
                         linkLabel: "Explore",
-                        linkUrl: "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA",
+                        linkUrl:
+                            "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA",
                     },
                     {
                         title: "Identify quantitative trait loci for a gene",
                         linkLabel: "Explore",
-                        linkUrl: "https://pankgraph.org/result?snpId=rs2402203&leadSnp=rs2402203&geneId=ENSG00000001626&relationship=fine_mapped_eQTL&tissueKey=&dataSource=splicing%3B+GTEx&geneSymbol=CFTR",
+                        linkUrl:
+                            "https://pankgraph.org/result?snpId=rs2402203&leadSnp=rs2402203&geneId=ENSG00000001626&relationship=fine_mapped_eQTL&tissueKey=&dataSource=splicing%3B+GTEx&geneSymbol=CFTR",
                     },
                     {
                         title: "Catalog of multi-program pancreatic donors",
@@ -138,14 +149,15 @@ new Vue({
                         title: "Interactive maps of harmonized multi-program metadata",
                         linkLabel: "Explore",
                         linkUrl: "https://pankbase.org/donor-metadata.html",
-                    }
-                ]
+                    },
+                ],
             },
-            external:{
+            external: {
                 title: "External Resources",
-                subtitle: "Research knowledge and tools from specialized sources",
+                subtitle:
+                    "Research knowledge and tools from specialized sources",
                 byor_node: "pankbase_programs",
-                rows: []
+                rows: [],
             },
             partners: {
                 title: "Our Partners",
@@ -154,25 +166,27 @@ new Vue({
                     "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_pancreatlas.png",
                     "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdga.png",
                     "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdkp.png",
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_dknet.png"
-                ]
+                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_dknet.png",
+                ],
             },
             supporters: {
                 title: "Supported By",
                 logos: [
                     "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_nih-niddk.png",
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_nih-odss.png"
-                ]
+                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_nih-odss.png",
+                ],
             },
 
-            collaborate: "PanKbase is a growing resource that is actively under development. If you have new data, analysis tools, features, or visualizations that you'd like us to incorporate, please contact us at <a href='mailto:help@pankbase.org'>help@pankbase.org</a>",
-        
-            news:{
-                feedUrl: "https://hugeampkpncms.org/rest/news_list?project=pankbase",
+            collaborate:
+                "PanKbase is a growing resource that is actively under development. If you have new data, analysis tools, features, or visualizations that you'd like us to incorporate, please contact us at <a href='mailto:help@pankbase.org'>help@pankbase.org</a>",
+
+            news: {
+                feedUrl:
+                    "https://hugeampkpncms.org/rest/news_list?project=pankbase",
                 newsUrl: "/news.html",
-                newsItemUrl: "/news.html?id="
-            }
-        }
+                newsItemUrl: "/news.html?id=",
+            },
+        },
     },
 
     computed: {},
@@ -181,23 +195,35 @@ new Vue({
 
     async created() {
         this.getNews();
-        let extResources = await getPankbaseContent(this.content.external.byor_node);
-        extResources.forEach(item => item.comingSoon = item.comingSoon === 'TRUE');
+        let extResources = await getPankbaseContent(
+            this.content.external.byor_node
+        );
+        extResources.forEach(
+            (item) => (item.comingSoon = item.comingSoon === "TRUE")
+        );
         this.content.external.rows = extResources;
     },
 
     methods: {
-        async getNews(){
+        async getNews() {
             const newsFeedUrl = this.content.news.feedUrl;
-            const newsFeed = await fetch(newsFeedUrl).then(resp => { return resp.json();});
+            const newsFeed = await fetch(newsFeedUrl).then((resp) => {
+                return resp.json();
+            });
             //trim feed to 5 items
-            if(newsFeed.length > 5) newsFeed.length = 5;
-            newsFeed.forEach(item=>{
+            if (newsFeed.length > 5) newsFeed.length = 5;
+            newsFeed.forEach((item) => {
                 //extract only the img element frforom thumbnail, wysiwyg html can be polluted sometimes
-                item.field_thumbnail_image = new DOMParser().parseFromString(item.field_thumbnail_image, 'text/html').querySelector('img')?.outerHTML || '';
-            })
+                item.field_thumbnail_image =
+                    new DOMParser()
+                        .parseFromString(
+                            item.field_thumbnail_image,
+                            "text/html"
+                        )
+                        .querySelector("img")?.outerHTML || "";
+            });
             this.newsFeed = newsFeed;
-        }
+        },
     },
 
     render(createElement) {
