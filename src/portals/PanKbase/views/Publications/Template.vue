@@ -7,18 +7,26 @@
         <h2 class="page-title">Publications</h2>
         <div v-html="$parent.about" class="page-info"></div>
         <criterion-function-group>
-          <filter-enumeration-control
-            :field="'Category'"
-            :options="
-                $parent.publications.map((pub) => pub['Category'])
-            "
-          >
+          <div class="col filter-col-md">
+            <div class="label">Search</div>
+            <input v-model="$parent.searchString"/>
+          </div>
+          <div class="col filter-col-md">
             <div class="label">Filter by Category</div>
-        </filter-enumeration-control class="col filter-col-md">
+            <select v-model="$parent.searchCategory">
+              <option value="">All</option>
+              <option v-for="category in $parent.categories"
+                :value="category">
+                  {{ category }}
+              </option>
+            </select>
+          </div>
           <template slot="filtered" slot-scope="{ filter }">
           <b-table 
-            :items="$parent.publications.filter(filter)"
+            :items="$parent.pubSearchResults"
             :sortable="true"
+            :per-page="$parent.perPage"
+            :current-page="$parent.currentPage"
           >
             <template #cell(Publication)="p">
               <span>
@@ -27,6 +35,12 @@
               </span>
             </template>
           </b-table>
+          <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="$parent.currentPage"
+            :per-page="$parent.perPage"
+            :total-rows="$parent.pubSearchResults.length">
+          </b-pagination>
         </template>
         </criterion-function-group>
         
