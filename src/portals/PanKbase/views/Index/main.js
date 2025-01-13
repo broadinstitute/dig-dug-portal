@@ -25,7 +25,7 @@ new Vue({
                     [
                         {
                             title: "PanKgraph",
-                            body: "",
+                            body: "Identifying quantitative trait loci (QTLs) for genes in pancreatic and islet tissues",
                             linkLabel: "Learn More",
                             linkUrl: "https://pankgraph.org/",
                             bgImage:
@@ -35,7 +35,7 @@ new Vue({
                         },
                         {
                             title: "Integrated Maps of Pancreatic Islets",
-                            body: "",
+                            body: "Single cell maps of gene expression and chromatin accessibility with data from >100 human donors from <a href='/hpap-program.html'>HPAP</a>, <a href='/iidp-program.html'>IIDP</a>, and <a target='_blank' href='https://prodolabs.com/'>Prodo</a>",
                             linkLabel: "Learn More",
                             linkUrl: "/single-cell.html",
                             bgImage:
@@ -47,7 +47,7 @@ new Vue({
                     [
                         {
                             title: "Donor Summary",
-                            body: "",
+                            body: "Summarized metadata of ~3500 donors from <a href='/hpap-program.html'>HPAP</a>, <a href='/iidp-program.html'>IIDP</a>, <a target='_blank' href='https://prodolabs.com/'>Prodo</a>, <a href='/adi-program.html'>ADI IsletCore</a>, <a href='/npod-program.html'>nPOD</a>, and <a href='/pancreatlas-program.html'>Pancreatlas</a>",
                             linkLabel: "Learn More",
                             linkUrl: "/donor-metadata.html",
                             bgImage:
@@ -161,19 +161,23 @@ new Vue({
             },
             partners: {
                 title: "Our Partners",
-                logos: [
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_hirn.png",
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_pancreatlas.png",
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdga.png",
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdkp.png",
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_dknet.png",
-                ],
-            },
-            supporters: {
-                title: "Supported By",
-                logos: [
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_nih-niddk.png",
-                    "https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_nih-odss.png",
+                list: [
+                    {
+                        url:"https://hirnetwork.org/",
+                        logo:"https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_hirn.png"
+                    },{
+                        url:"https://pancreatlas.org/",
+                        logo:"https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_pancreatlas.png"
+                    },{
+                        url:"https://cmdga.org/",
+                        logo:"https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdga.png"
+                    },{
+                        url:"https://hugeamp.org/",
+                        logo:"https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_cmdkp.png"
+                    },{
+                        url:"https://dknet.org/",
+                        logo:"https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_dknet.png"
+                    },
                 ],
             },
 

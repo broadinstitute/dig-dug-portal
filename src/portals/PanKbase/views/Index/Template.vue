@@ -36,7 +36,7 @@
                         >
                             <div>
                                 <div class="item-title">{{ item.title }}</div>
-                                <div class="item-body">{{ item.body }}</div>
+                                <div class="item-body" v-html="item.body"></div>
                             </div>
                             <a class="item-btn" :href="item.linkUrl"
                                 >{{ item.linkLabel }} ❯</a
@@ -55,7 +55,7 @@
                     >
                         <div class="item-copy">
                             <div class="item-title">{{ item.title }}</div>
-                            <div class="item-body">{{ item.body }}</div>
+                            <div class="item-body" v-html="item.body"></div>
                             <a class="item-btn" :href="item.linkUrl"
                                 >{{ item.linkLabel }} ❯</a
                             >
@@ -84,7 +84,7 @@
                     >
                         <div class="item-copy">
                             <div class="item-title">{{ item.title }}</div>
-                            <div class="item-body">{{ item.body }}</div>
+                            <div class="item-body" v-html="item.body"></div>
                             <a class="item-btn" :href="item.linkUrl"
                                 >{{ item.linkLabel }} ❯</a
                             >
@@ -136,7 +136,7 @@
                     >
                         <div class="item-copy">
                             <div class="item-title">{{ item.title }}</div>
-                            <div class="item-body">{{ item.body }}</div>
+                            <div class="item-body" v-html="item.body"></div>
                             <a class="item-btn" :href="item.linkUrl" style="margin-top: auto;"
                                 >{{ item.linkLabel }} ❯</a
                             >
@@ -152,26 +152,17 @@
                 <div class="partners" style="background: #fbfbfb">
                     <div
                         class="partner-logo"
-                        v-for="item in $parent.content.partners.logos"
+                        v-for="item in $parent.content.partners.list"
                     >
-                        <img :src="item" />
+                        <a :href="item.url || null" target="_blank">
+                            <img :src="item.logo" />
+                        </a>
                     </div>
                 </div>
                 <div class="partners-title">
                     {{ $parent.content.partners.title }}
                 </div>
             </div>
-
-            <!--
-            <div class="section" style="gap:5px; margin: 0 0 40px">
-                <div class="partners">
-                    <div class="partner-logo" v-for="item in $parent.content.supporters.logos">
-                        <img :src="item"/>
-                    </div>
-                </div>
-                <div class="partners-title">{{ $parent.content.supporters.title }}</div>
-            </div>
-            -->
 
             <div class="section" style="flex-direction: row">
                 <div class="collab f-col" style="flex: 1; gap: 10px">
@@ -278,6 +269,7 @@
     padding: 20px;
     display: flex;
     flex-direction: column;
+    gap: 5px;
 }
 .item-title {
     font-weight: bold;
@@ -370,7 +362,7 @@
     mix-blend-mode: darken;
 }
 .partner-logo img {
-    height: inherit;
+    height: 50px;
 }
 
 .news-items {
