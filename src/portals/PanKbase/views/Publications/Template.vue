@@ -36,7 +36,7 @@
             </template>
           </b-table>
           <b-pagination
-            class="pagination-sm justify-content-center"
+            class="pagination-md justify-content-center"
             v-model="$parent.currentPage"
             :per-page="$parent.perPage"
             :total-rows="$parent.pubSearchResults.length">
@@ -49,3 +49,13 @@
       <pkb-footer></pkb-footer> 
   </div>
 </template>
+<style>
+  .page-item.active .page-link {
+    color: #fff !important;
+    background-color: #219197 !important;
+    border-color: #219197 !important;
+  }
+  .page-link {
+    color: #219197 !important;
+  }
+</style>
