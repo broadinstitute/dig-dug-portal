@@ -1023,7 +1023,7 @@
                     console.log('dataset', this.datasetId, 'not in collection');
                     this.datasetId = null;
                     return;
-                }*/
+                }
 
                 console.log('   dataset info', datasetInfo);
                 */
