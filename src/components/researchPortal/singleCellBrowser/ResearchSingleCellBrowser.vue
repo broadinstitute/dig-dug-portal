@@ -63,6 +63,7 @@
                                             :labels="fields"
                                             :colors="labelColors"
                                             :cellTypeField="cellTypeField"
+                                            :colorByField="cellCompositionVars['a'].colorByField"
                                             :highlightLabel="cellCompositionVars['a'].highlightLabel"
                                             :highlightLabels="cellCompositionVars['a'].highlightLabels"
                                             :width="400"
@@ -106,7 +107,7 @@
                                                 :data="fields['metadata_labels']"
                                                 layout="dropdown"
                                                 :showColor="false"
-                                                :selectedField="cellCompositionVars['a'].colorByField"
+                                                :selectedField="cellCompositionVars['a'].displayByLabel"
                                                 @on-update="selectSegmentBy($event.selectedField, cellCompositionVars['a'].segmentByLabel, 'a')"
                                             />
                                         </div>
@@ -598,6 +599,7 @@
                                 :labels="fields"
                                 :colors="labelColors"
                                 :cellTypeField="cellTypeField"
+                                :colorByField="cellCompositionVars['a'].colorByField"
                                 :highlightLabel="cellCompositionVars['a'].highlightLabel"
                                 :highlightLabels="cellCompositionVars['a'].highlightLabels"
                                 :width="400"
@@ -1013,7 +1015,7 @@
                 }
 
                 console.log(`requested dataset: ${this.datasetId}`);
-
+                /*
                 const datasetInfo = this.data.find(x => x.datasetId === this.datasetId);
 
                 //make sure dataset exists in the metadata
@@ -1024,6 +1026,7 @@
                 }
 
                 console.log('   dataset info', datasetInfo);
+                */
 
                 //clear existing data
                 this.clean();
@@ -1089,17 +1092,19 @@
                 this.cellCompositionVars['a'].colorByField = this.cellTypeField;
 
                 this.selectColorBy(this.cellTypeField, 'a');
-                this.selectColorBy(this.cellTypeField, 'b');
+                //this.selectColorBy(this.cellTypeField, 'b');
 
                 this.selectSegmentBy(this.cellTypeField, "", 'a');
-                this.selectSegmentBy(this.cellTypeField, "", 'b');
+                //this.selectSegmentBy(this.cellTypeField, "", 'b');
 
-                this.geneExpressionVars['a'].selectedLabel = this.cellTypeField;
+                //this.geneExpressionVars['a'].selectedLabel = this.cellTypeField;
                 this.geneExpressionVars['b'].selectedLabel = this.cellTypeField;
 
                 this.dataReady = true;
 
                 await Vue.nextTick();
+
+                console.log('++++++++++++ READY')
 
                 //return;
                 
@@ -1159,7 +1164,6 @@
                             if(!paramGenesArray.includes(gene.toLowerCase())){
                                 paramGenesArray.push(gene);
                                 console.log(`not in list, adding: ${gene} to ${paramGenesArray}`)
-                                console.log(paramGenesArray.toString());
                                 keyParams.set({[this.renderConfig["parameters"].gene] : paramGenesArray.toString()});
                             }
                         }

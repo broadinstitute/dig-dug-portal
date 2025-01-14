@@ -1,5 +1,5 @@
 <template>
-    <div style="height:-webkit-fill-available; display:flex">
+    <div style="height:100%; display:flex">
         <!-- if layout is list-->
          <div v-if="layout==='list'" class="list-container" :class="[listDirection, listAlignment]">
             <div class="list-option" v-for="label of listData" :key="label">
