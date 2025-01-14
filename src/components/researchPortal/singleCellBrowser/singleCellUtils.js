@@ -103,9 +103,10 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
     if (!subsetKey) {
         // calculate counts by primary key only
         primaryLabels.forEach((label, index) => {
-            const indices = primaryValues
-                .map((value, i) => (value === index ? i : -1))
-                .filter(i => i !== -1);
+            const indices = [];
+                for (let i = 0; i < primaryValues.length; i++) {
+                    if (primaryValues[i] === index) indices.push(i);
+                }
 
             result.push({
                 [primaryKey]: label,  
@@ -119,9 +120,10 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
         const subsetLabels = keys[subsetKey];
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
-            const primaryIndices = primaryValues
-                .map((value, i) => (value === primaryIndex ? i : -1))
-                .filter(i => i !== -1);
+            const primaryIndices = [];
+                for (let i = 0; i < primaryValues.length; i++) {
+                    if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
+                }
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
                 const subsetIndices = primaryIndices.filter(
@@ -153,9 +155,10 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
     if (!subsetKey) {
         // calculate stats grouped by primary key only
         primaryLabels.forEach((label, index) => {
-            const indices = primaryValues
-                .map((value, i) => (value === index ? i : -1))
-                .filter(i => i !== -1);
+            const indices = [];
+            for (let i = 0; i < primaryValues.length; i++) {
+                if (primaryValues[i] === index) indices.push(i);
+            }
 
             const exprValues = indices.map(i => expression[i]);
             result.push({
@@ -171,9 +174,11 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
         const subsetLabels = keys[subsetKey];
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
-            const primaryIndices = primaryValues
-                .map((value, i) => (value === primaryIndex ? i : -1))
-                .filter(i => i !== -1);
+
+            const primaryIndices = [];
+            for (let i = 0; i < primaryValues.length; i++) {
+                if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
+            }
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
                 const subsetIndices = primaryIndices.filter(
@@ -193,6 +198,7 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
 
     return result;
 }
+
 
 function calculateExpressionStats(exprValues, partial=false) {
     const sortedValues = exprValues.sort(d3.ascending);
@@ -221,5 +227,4 @@ function calculateExpressionStats(exprValues, partial=false) {
             pctExpr
         }
     }
-    
 }
