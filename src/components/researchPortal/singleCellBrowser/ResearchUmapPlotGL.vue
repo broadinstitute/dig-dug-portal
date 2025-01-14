@@ -63,6 +63,10 @@
         type: String,
         required: false,
       },
+      colorByField: {
+        type:String,
+        required: false,
+      },
       width: {
         type: Number,
         default: 800,
@@ -123,6 +127,14 @@
           this.init();
         },
       },
+      colorByField() {
+        if (this.buffers.color && this.gl) {
+          this.gl.deleteBuffer(this.buffers.color);
+          this.buffers.color = null;
+        }
+        this.setupBuffers();
+        this.renderUMAP();
+      },
       highlightLabel() {
         // Rebuild buffers if highlightLabel changes
         this.setupBuffers();
@@ -135,6 +147,10 @@
       },
       // If expression changes, recalc colors
       expression() {
+        if (this.buffers.color && this.gl) {
+          this.gl.deleteBuffer(this.buffers.color);
+          this.buffers.color = null;
+        }
         this.expressionScale = d3.scaleSequential(d3.interpolatePlasma).domain([d3.max(this.expression), 0]),
         this.setupBuffers();
         this.renderUMAP();
@@ -150,7 +166,7 @@
     },
     methods: {
       init() {
-        this.buildQuadtree();
+        console.log("---glUMAP init");
 
         // 1) Setup canvases
         const canvas = this.$refs.umapCanvas;
@@ -168,6 +184,8 @@
         // 2) Calculate bounds & cluster centers
         this.calculatePointBounds();
         this.calculateClusterCenters();
+
+        this.buildQuadtree();
   
         // 3) WebGL
         this.initializeWebGL();
@@ -176,20 +194,19 @@
       },
 
       buildQuadtree() {
-        // If you haven't yet assigned an index to each point, do so here:
-        const points = this.points.map((pt, i) => ({ ...pt, index: i }));
-
+        console.log("   buildQuadtree");
+        //this.points.map((pt, i) => ({ ...pt, index: i }))
         this.quadtree = d3.quadtree()
             .x(d => d.X)
             .y(d => d.Y)
-            .addAll(points);
+            .addAll(this.points);
         },
 
         cleanUp(){
+          console.log("   cleanUp");
             const gl = this.gl;
             if (!gl) return;
 
-            // Example if you stored old buffers in this.buffers:
             if (this.buffers.position) {
                 gl.deleteBuffer(this.buffers.position);
                 this.buffers.position = null;
@@ -205,12 +222,13 @@
 
 
             if (this.quadtree) {
-                this.quadtree = null; // or some .removeAll() if available
+                this.quadtree = null;
             }
         },
 
   
       calculatePointBounds() {
+        console.log("   calculatePointBounds");
         this.pointBounds = { n: 0, s: 0, e: 0, w: 0 };
         this.points.forEach(({ X, Y }) => {
           if (X > this.pointBounds.e) this.pointBounds.e = X;
@@ -223,12 +241,12 @@
         const boundsHeight = Math.abs(this.pointBounds.s - this.pointBounds.n);
         const largestDim = Math.max(boundsWidth, boundsHeight);
   
-        // We'll scale so it roughly fills 80% of the canvas
+        // scale so it roughly fills 80% of the canvas
         const pixelWidth = this.$refs.umapCanvas.width; // in GL pixels
         this.scale = (pixelWidth * 0.8) / largestDim;
         this.resetScale = this.scale;
   
-        // Center bounding box in canvas
+        // center bounding box in canvas
         const xCenterData = 0.5 * (this.pointBounds.w + this.pointBounds.e);
         const yCenterData = 0.5 * (this.pointBounds.n + this.pointBounds.s);
   
@@ -236,17 +254,15 @@
         this.translate.y = (this.$refs.umapCanvas.height * 0.5) / this.scale - yCenterData;
         this.resetTranslate.x = this.translate.x;
         this.resetTranslate.y = this.translate.y;
-        console.log('----', this.scale, this.translate)
       },
   
-      // Build cluster center info { label, x, y }
+      // build cluster center info { label, x, y }
       calculateClusterCenters() {
+        console.log("   calculateClusterCenters");
         this.clusterCenters = [];
         const labelField = this.cellTypeField || Object.keys(this.labels.metadata_labels)[0];
         const metadata = this.labels.metadata[labelField];
         const metadataLabels = this.labels.metadata_labels[labelField];
-
-        console.log("$$$$$$$", this.labels, this.cellTypeField);
   
         const sums = {};
         this.points.forEach((pt, i) => {
@@ -268,6 +284,7 @@
       },
   
       initializeWebGL() {
+        console.log("   initializeWebGL");
         const canvas = this.$refs.umapCanvas;
         const gl = canvas.getContext('webgl');
         if (!gl) {
@@ -295,8 +312,8 @@
             vec2 zeroToOne = scaledPos / u_resolution;
             vec2 clipSpace = (zeroToOne * 2.0 - 1.0) * vec2(1, 1);
   
-            float baseSize = 5.0;
-            float extraSize = 3.0;
+            float baseSize = 3.0;
+            float extraSize = 5.0;
             gl_Position = vec4(clipSpace, 0, 1);
             gl_PointSize = baseSize + (extraSize * a_isHighlight);
   
@@ -312,7 +329,7 @@
   
           void main() {
             // Grey out non-highlighted
-            vec4 grey = vec4(0.6, 0.6, 0.6, 1.0);
+            vec4 grey = vec4(0.5, 0.5, 0.5, 1.0);
             gl_FragColor = mix(grey, v_color, v_isHighlight);
           }
         `;
@@ -325,60 +342,71 @@
   
       // --- THE KEY PART: Decide whether to color by expression or by label
       setupBuffers() {
+        console.log("   setupBuffers");
         const gl = this.gl;
         if (!gl) return;
-  
-        // Positions
-        const positions = new Float32Array(
-          this.points.flatMap(p => [p.X, p.Y])
-        );
-        const positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-        this.buffers.position = positionBuffer;
-  
+
         // Decide color for each cell
-        const labelField = this.cellTypeField || Object.keys(this.labels.metadata_labels)[0];
+        const labelField = this.colorByField || this.cellTypeField || Object.keys(this.labels.metadata_labels)[0];
         const metadata = this.labels.metadata[labelField];
         const metadataLabels = this.labels.metadata_labels[labelField];
   
-        const colors = new Float32Array(this.points.length * 4);
-  
-        for (let i = 0; i < this.points.length; i++) {
-          let r, g, b, a;
-          if (this.expression && this.expression[i] != null) {
-            // 1) Color by expression
-            const val = this.expression[i];
-            // clamp or assume 0..3
-            const colorStr = this.expressionScale(val);
-            const rgb = d3.color(colorStr).rgb();
-            r = rgb.r / 255;
-            g = rgb.g / 255;
-            b = rgb.b / 255;
-            a = 1;
-          } else {
-            // 2) Fallback: color by label
-            const labelIndex = metadata[i];
-            const label = metadataLabels[labelIndex];
-            const color = this.colors[labelField][label] || '#000000';
-            const rgb = d3.color(color).rgb();
-            r = rgb.r / 255;
-            g = rgb.g / 255;
-            b = rgb.b / 255;
-            a = 1;
-          }
-          const idx = i * 4;
-          colors[idx] = r;
-          colors[idx + 1] = g;
-          colors[idx + 2] = b;
-          colors[idx + 3] = a;
+        // Positions
+        if(!this.buffers.position){
+          console.log("      positions")
+          const positions = new Float32Array(
+            this.points.flatMap(p => [p.X, p.Y])
+          );
+          const positionBuffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+          this.buffers.position = positionBuffer;
         }
   
-        const colorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-        this.buffers.color = colorBuffer;
+        if(!this.buffers.color){
+          console.log("      colors")
+    
+          const colors = new Float32Array(this.points.length * 4);
+    
+          for (let i = 0; i < this.points.length; i++) {
+            let r, g, b, a;
+            if (this.expression && this.expression[i] != null) {
+              // 1) Color by expression
+              const val = this.expression[i];
+              // clamp or assume 0..3
+              const colorStr = this.expressionScale(val);
+              const rgb = d3.color(colorStr).rgb();
+              r = rgb.r / 255;
+              g = rgb.g / 255;
+              b = rgb.b / 255;
+              a = 1;
+            } else {
+              // 2) Fallback: color by label
+              const labelIndex = metadata[i];
+              const label = metadataLabels[labelIndex];
+              const color = this.colors[labelField][label] || '#000000';
+              const rgb = d3.color(color).rgb();
+              r = rgb.r / 255;
+              g = rgb.g / 255;
+              b = rgb.b / 255;
+              a = 1;
+            }
+            const idx = i * 4;
+            colors[idx] = r;
+            colors[idx + 1] = g;
+            colors[idx + 2] = b;
+            colors[idx + 3] = a;
+          }
+        
+        
   
+          const colorBuffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+          this.buffers.color = colorBuffer;
+        }
+  
+        console.log("      highlight")
         // Highlight array
         const highlightArray = new Float32Array(this.points.length);
         if (!this.highlightLabel && this.highlightLabels.length===0) {
@@ -405,6 +433,7 @@
       },
   
       renderPoints() {
+        console.log("   renderPoints");
         const gl = this.gl;
         if (!gl) return;
   
@@ -474,7 +503,7 @@
         const canvasHeight = this.$refs.umapCanvas.height;
   
         const mxScreen = (e.clientX - rect.left) * (canvasWidth / rect.width);
-        const myScreen = (e.clientY - rect.top)  * (canvasHeight / rect.height);
+        const myScreen = canvasHeight - ((e.clientY - rect.top) * (canvasHeight / rect.height));
   
         const oldScale = this.scale;
         const zoomFactor = 1.05;
@@ -495,7 +524,6 @@
         this.isDragging = true;
         this.lastMouse.x = e.clientX;
         this.lastMouse.y = e.clientY;
-        console.log('----', this.scale, this.translate);
       },
   
       onMouseMove(e) {
@@ -525,13 +553,14 @@
             // Search quadtree
             const radius = 0.05; // or some finite number
             const nearestPt = this.quadtree.find(mxData, myData, radius);
+            const nearestPtIdx = this.points.indexOf(nearestPt);
 
             if (nearestPt) {
                 let hoverHTML = '<div class="twoColGrid">';
-                hoverHTML += `<div style="font-weight:bold">Cell ID</div><div>${this.labels.NAME[nearestPt.index]}</div>`;
-                if(this.expression) hoverHTML += `<div style="font-weight:bold">Expression</div><div>${this.expression[nearestPt.index]} ${this.expressionGene?'('+this.expressionGene+')':''}</div>`;
+                hoverHTML += `<div style="font-weight:bold">Cell ID</div><div>${this.labels.NAME[nearestPtIdx]}</div>`;
+                if(this.expression) hoverHTML += `<div style="font-weight:bold">Expression</div><div>${this.expression[nearestPtIdx]} ${this.expressionGene?'('+this.expressionGene+')':''}</div>`;
                 Object.keys(this.labels.metadata_labels).forEach(field => {
-                    const value = this.labels.metadata_labels[field][this.labels.metadata[field][nearestPt.index]];
+                    const value = this.labels.metadata_labels[field][this.labels.metadata[field][nearestPtIdx]];
                     if(value && value !== ""){
                         hoverHTML += `<div style="font-weight:bold;">${field}</div><div>${value}</div>`
                     }
