@@ -63,6 +63,7 @@ export async function fetchGeneExpression(url, gene, datasetId){
         return expression;
     }catch(error){
         console.error('   Error fetching gene expression', error);
+        return null;
     }
 }
 
