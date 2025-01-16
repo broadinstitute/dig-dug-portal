@@ -43,7 +43,7 @@ export const pkbMenu = {
             label: "Help",
             path: "",
             subMenuItems: [
-                { label: "Contact", path: "/contact.html" },
+                { label: "Contact | Feedback", path: "/contact.html" },
                 {
                     label: "Metadata | Data Standards",
                     path: "/metadata-data-standards.html",
