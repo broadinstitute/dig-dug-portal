@@ -168,12 +168,21 @@
                                     </div>
                                     <div style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
                                         <strong style="font-size: 16px; margin: 0 0 5px;">Gene Search</strong>
-                                        <div style="display:flex; flex-direction: column; height: 400px">
+
+                                        <div style="display:flex; flex-direction: column; height: 400px; gap:5px">
                                             <div style="display:flex; gap:5px;">
-                                                <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:-webkit-fill-available;"/>
+                                                <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:100%; position:relative;"/>
                                                 <button @click="searchGene(geneToSearch)">
-                                                    <svg style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
+                                                    <svg :style="`display:${!geneLoading?'block':'none'}`" style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
+                                                    <div :style="`display:${geneLoading?'block':'none'}`" class="geneLoader"></div>
                                                 </button>
+                                            </div>
+
+                                            <div v-if="genesNotFound.length>0" style="display:flex; flex-direction:column; gap:1px; flex: 0 0 auto; max-height:100%; overflow-y: auto;">
+                                                <div v-for="gene in genesNotFound" style="display:flex; gap:5px; width:100%; background:#ff4500; color:white">
+                                                    <div style="display:flex; flex:1; align-items:center; padding:0 5px; font-size:12px;">{{gene}} not found.</div>
+                                                    <div @click="clearGeneNotFound(gene)" style="width:28px; height: 28px; display:flex; align-items:center; justify-content: center; font-size:18px; line-height:18px; cursor:pointer">×</div>
+                                                </div>
                                             </div>
 
                                             <research-single-cell-selector style="margin-top:4px; flex-grow:1; overflow-x: hidden; overflow-y: auto;"
@@ -182,7 +191,7 @@
                                                 listSelection="exclusive"
                                                 :colors="null"
                                                 :selectedField="geneExpressionVars['a'].selectedGene"
-                                                @on-update="geneClick($event.coloredLabels[0], 'a')"
+                                                @on-update="geneClick($event.coloredLabels[0], 'a')" 
                                             />
                                         </div>
                                     </div>
@@ -381,12 +390,19 @@
 
                                     <div style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
                                         <strong style="font-size: 16px; margin: 0 0 5px;">Gene Search</strong>
-                                        <div style="display:flex; flex-direction: column; height: 400px">
+                                        <div style="display:flex; flex-direction: column; height: 400px; gap:5px">
                                             <div style="display:flex; gap:5px;">
-                                                <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:-webkit-fill-available;"/>
+                                                <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:100%; position:relative;"/>
                                                 <button @click="searchGene(geneToSearch)">
-                                                    <svg style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
+                                                    <svg :style="`display:${!geneLoading?'block':'none'}`" style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
+                                                    <div :style="`display:${geneLoading?'block':'none'}`" class="geneLoader"></div>
                                                 </button>
+                                            </div>
+                                            <div v-if="genesNotFound.length>0" style="display:flex; flex-direction:column; gap:1px; flex: 0 0 auto; max-height:100%; overflow-y: auto;">
+                                                <div v-for="gene in genesNotFound" style="display:flex; gap:5px; width:100%; background:#ff4500; color:white">
+                                                    <div style="display:flex; flex:1; align-items:center; padding:0 5px; font-size:12px;">{{gene}} not found.</div>
+                                                    <div @click="clearGeneNotFound(gene)" style="width:28px; height: 28px; display:flex; align-items:center; justify-content: center; font-size:18px; line-height:18px; cursor:pointer">×</div>
+                                                </div>
                                             </div>
 
                                             <research-single-cell-selector style="margin-top:4px; flex-grow:1; overflow-x: hidden; overflow-y: auto;"
@@ -869,12 +885,12 @@
         },
         data() {
             return {
-                metadata: null, //raw metadata
+                allMetadata: null, //raw metadata for all datasets
+                metadata: null, //raw metadata for current dataset
                 fields: null,   //raw fields
                 coordinates: null,  //raw coordinates
                 markers: null, //raw marker genes
-
-                allMetadata: null,
+                
                 tableColumns: ["datasetName", "tissue", "method", "totalCells", { key: 'datasetId', label: 'View' }],
 
                 componentsConfig: null,
@@ -900,6 +916,8 @@
                 expressionData: {}, //obj, keys are gene names, values are arrays of raw expression per cell
                 expressionStatsAll: [], //array of objects, each obj is gene, mean expr., pct. expressing
                 geneToSearch: "",
+                geneLoading: null,
+                genesNotFound: [],
 
                 dataLoaded: false,
                 preloadItem: '',
@@ -951,6 +969,7 @@
                 this.expressionData = {};
                 this.geneNames = [];
                 this.expressionStatsAll = [];
+                this.genesNotFound = [];
                 this.cellCompositionVars = {
                     "a": {
                         colorByField: null,
@@ -1126,7 +1145,7 @@
                         console.log('loading param genes');
                         const paramGenesArray = paramGenes.split(',');
                         for (const gene of paramGenesArray) {
-                            await this.getGeneExpression(gene.toUpperCase());
+                            await this.getGeneExpression(gene.toUpperCase(), false);
                             await Vue.nextTick();
                         }
                     }else if(this.presetsConfig?.["genes"]){
@@ -1142,12 +1161,15 @@
             async getGeneExpression(gene, addToKeyParams = true, setAsSelected = false){
                 if(this.geneNames.includes(gene)) {
                     console.log(`${gene} already loaded`);
+                    if(setAsSelected) this.geneClick(gene, 'b');
                     return;
                 }
 
+                this.geneLoading = "gene";
                 const expressionUrl = this.renderConfig["data points"].find(x => x.role === "expression");
                 const expressionResult = await scUtils.fetchGeneExpression(expressionUrl.url, gene, this.datasetId);
-                
+                this.geneLoading = null;
+
                 if(expressionResult){
                     this.geneNames.push(gene);
                     Vue.set(this.expressionData, gene, expressionResult);
@@ -1177,6 +1199,11 @@
                     if(!this.geneExpressionVars['b'].selectedGene || setAsSelected){
                         this.geneClick(gene, 'b');
                     }
+                }else{
+                    if(!this.genesNotFound.includes(gene)){
+                        this.genesNotFound.push(gene);
+                    }
+                    await Vue.nextTick();
                 }
             },
 
@@ -1270,6 +1297,9 @@
                 //g.expressionStats = this.calcExpressionStats(gene, g.selectedLabel, g.subsetLabel);
                 g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, g.selectedLabel, g.subsetLabel);
                 g.selectedGene = gene;
+            },
+            clearGeneNotFound(e){
+                this.genesNotFound.splice(this.genesNotFound.indexOf(e), 1);
             },
 
             selectTab(group, id){
@@ -1410,5 +1440,25 @@ button:hover {
     font-size: 11px;
     line-height: 11px;
 }
+
+.geneLoader {
+    width: 20px;
+    height: 20px;
+    border: 3px solid black;
+    border-bottom-color: #ccc;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+}
+} 
 </style>
   
