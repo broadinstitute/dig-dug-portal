@@ -191,6 +191,8 @@ export default Vue.component('research-single-cell-selector', {
             const isArray = Array.isArray(this.data);
             if(isArray || this.layout==='list'){
                 this.selectedOption = this.selectedOption === this.selectedField ? '' : this.selectedField;
+                this.coloredOption = this.selectedField;
+                this.coloredLabels[0] = this.coloredOption;
                 this.listData = isArray ? this.data : this.data[this.selectedOption];
                 this.layout = 'list';
             }else{
