@@ -33,7 +33,7 @@ new Vue({
             allMetadata: null,
             tableColumns: [{ key: 'viewDataset', label: 'View' }, "datasetName", "tissue", "method", "totalCells", { key: 'downloadData', label: 'Download' }],
             downloadLinks: {
-              "islet_of_Langerhans_scRNA":"https://pankbase-data-v1.s3.us-west-2.amazonaws.com/analysis_resources/single_cell_objects/min.cel[…]ct_min.features5pct_rmDoublets_harmony_data.Rds",
+              "islet_of_Langerhans_scRNA":"https://pankbase-data-v1.s3.us-west-2.amazonaws.com/analysis_resources/single_cell_objects/min.cells0.01pct_min.features5pct_rmDoublets_harmony_data.Rds",
               "islet_of_Langerhans_snATAC":"https://pankbase-data-v1.s3.us-west-2.amazonaws.com/analysis_resources/single_cell_objects/hpap_atac.h5ad",
               "HPAP":"https://islet-hpap.s3.us-west-2.amazonaws.com/hpap_islet_scRNAseq.rds",
             },
