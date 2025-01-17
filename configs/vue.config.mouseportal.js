@@ -17,12 +17,12 @@ let pages = {
         title: "Page Not Found",
         chunks: ["chunk-vendors", "chunk-common", "page404"],
     },
-    contact: {
-        entry: "src/portals/MousePortal/views/Contact/main.js",
+    gene: {
+        entry: "src/portals/MousePortal/views/Gene/main.js",
         template: "src/portals/MousePortal/index.html",
-        filename: "contact.html",
-        title: "Contact",
-        chunks: ["chunk-vendors", "chunk-common", "contact"],
+        filename: "gene.html",
+        title: "Mouse Gene",
+        chunks: ["chunk-vendors", "chunk-common", "gene"],
     },
 };
 
