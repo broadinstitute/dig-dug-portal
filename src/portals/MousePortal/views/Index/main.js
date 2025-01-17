@@ -23,6 +23,14 @@ new Vue({
         return {
         };
     },
+    methods: {
+        goToGene(gene){
+            location.href = `/gene.html?gene=${gene}`;
+        },
+        goToTissue(tissue){
+            console.log("coming soon");
+        }
+    },
     computed: {
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];

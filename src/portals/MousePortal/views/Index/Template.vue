@@ -40,8 +40,12 @@
                                         <h4 style="color: #fff">
                                             Search by gene or tissue
                                         </h4>
-                                    <mouse-gene-select></mouse-gene-select>
-                                    <mouse-tissue-select></mouse-tissue-select>
+                                    <mouse-gene-select
+                                        @onGeneChange="gene => $parent.goToGene(gene)">
+                                    </mouse-gene-select>
+                                    <mouse-tissue-select
+                                        @onTissueChange="tissue => $parent.goToTissue(tissue)">
+                                    </mouse-tissue-select>
                                     </div>
                                 </div>
                                 

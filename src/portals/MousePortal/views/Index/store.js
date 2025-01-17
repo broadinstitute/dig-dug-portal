@@ -15,7 +15,8 @@ export default new Vuex.Store({
         kp4cd,
     },
     state: {
-        tissueKeys: []
+        tissueKeys: [],
+        tissueToQuery: "",
     },
 
     mutations: {},
