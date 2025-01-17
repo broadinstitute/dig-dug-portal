@@ -33,14 +33,15 @@ import regionUtils from "../../../../utils/regionUtils.js";
 import "../../assets/layout.css";
 import "../../assets/mouseportal.css";
 import "../../assets/mdkp_copy.css";
-import ResearchSingleSearch from "../../../../components/researchPortal/ResearchSingleSearch.vue";
+import MouseSingleSearch from "../../components/MouseSingleSearch.vue";
 import { pageMixin } from "../../../../mixins/pageMixin.js";
 
 new Vue({
     store,
     components: {
         MouseGeneSelect,
-        MouseTissueSelect
+        MouseTissueSelect,
+        MouseSingleSearch
     },
     mixins: [pageMixin],
     data() {

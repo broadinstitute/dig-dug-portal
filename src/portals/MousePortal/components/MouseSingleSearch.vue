@@ -67,7 +67,7 @@ import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 
-export default Vue.component("research-single-search", {
+export default Vue.component("mouse-single-search", {
 	props: ["singleSearchConfig", "utils"],
 	modules: {},
 

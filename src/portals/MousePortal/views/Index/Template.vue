@@ -40,11 +40,15 @@
                                         <h4 style="color: #fff">
                                             Search by gene or tissue
                                         </h4>
-                                        <research-single-search
+                                        <mouse-single-search
+                                            :singleSearchConfig="null"
+                                            :utils="$parent.utilsBox"
+                                        ></mouse-single-search>
+                                        <!-- <research-single-search
                                             :single-search-config="$parent.searchConfig"
                                             :phenotypes="[]"
                                             :utils="$parent.utilsBox">
-                                        </research-single-search>
+                                        </research-single-search> -->
                                     <!-- <mouse-gene-select
                                         @onGeneChange="gene => $parent.goToGene(gene)">
                                     </mouse-gene-select>
