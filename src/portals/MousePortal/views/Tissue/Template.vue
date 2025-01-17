@@ -69,7 +69,7 @@
                             </mouse-diff-exp-table>
                         </div>
                         <div v-else-if="!$store.state.gene || !$store.state.tissue">
-                            Select a tissue and a gene to view differential expression data.
+                            Select a gene to view differential expression data.
                         </div>
                         <div v-else-if="!$store.state.loadingExpression">
                             No differential expression data found for this
