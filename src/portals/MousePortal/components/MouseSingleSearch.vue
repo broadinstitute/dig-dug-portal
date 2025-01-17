@@ -381,7 +381,7 @@ export default Vue.component("mouse-single-search", {
 }
 
 .byor-single-search {
-	width: 100%;
+	width: 60%;
 	margin-left: auto;
 	margin-right: auto;
 }

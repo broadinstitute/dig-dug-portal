@@ -34,7 +34,6 @@ import regionUtils from "../../../../utils/regionUtils.js";
 import "../../assets/layout.css";
 import "../../assets/mouseportal.css";
 import "../../assets/mdkp_copy.css";
-import ResearchSingleSearch from "../../../../components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "../../../../mixins/pageMixin.js";
 new Vue({
     store,
@@ -46,7 +45,6 @@ new Vue({
         FilterLessThan,
         SearchHeaderWrapper,
         TissueSelectPicker,
-        ResearchSingleSearch,
         Scatterplot,
         MouseSummaryTable,
         MouseTissueSelect,

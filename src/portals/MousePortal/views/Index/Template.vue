@@ -38,7 +38,7 @@
                                 <div>
                                     <div class="filtering-ui-content row">
                                         <h4 style="color: #fff">
-                                            Search by gene or tissue
+                                            Search the Mouse Portal
                                         </h4>
                                         <mouse-single-search
                                             :singleSearchConfig="null"
@@ -86,6 +86,10 @@ p[id="home.example"] {
 
 .front-search-section .tab-pane {
     padding: 50px 0 50px 0;
+}
+
+.front-search-section {
+    margin-bottom: 50px;
 }
 
 .disease-systems-trees-wrapper {
