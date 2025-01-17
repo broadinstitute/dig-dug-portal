@@ -8,7 +8,7 @@
         ></page-header>
         <!-- Body -->
         <div v-if="$parent.diseaseGroup">
-            <div id="pigean" class="fluid">
+            <div class="fluid">
                 <div
                     :class="
                         'front-top-banner-' +
@@ -21,51 +21,32 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="front-logo-wrapper">
-                                    <img
-                                        v-if="
-                                            $parent.frontContents
-                                                .field_front_logo
-                                        "
-                                        class="front-logo-img"
-                                        :src="
-                                            'https://kp4cd.org/sites/default/files/vueportal/' +
-                                            $parent.frontContents
-                                                .field_front_logo
-                                        "
+                                    <img class="front-logo-img"
+                                        src="../../assets/placeholder_mouselogo.png"
                                     />
                                     <span
-                                        :class="
-                                            'front-logo-tagline front-logo-tagline-' +
-                                            $parent.diseaseGroup.name +
-                                            'kp'
-                                        "
+                                        class='front-logo-tagline'
                                         style="font-size: 2.3rem"
-                                        >Priors Inferred from GEne
-                                        ANotations</span
+                                        >Mouse Differential Expression Portal</span
                                     >
                                 </div>
                             </div>
                         </div>
 
-                        <!-- search for all portals except CMD -->
-
                         <div class="row front-search-section">
                             <div class="col-md-8 offset-md-2" align="center">
                                 <div class="single-search-wrapper">
                                     <h4 style="color: #fff">
-                                        Search for gene, geneset or phenotype
+                                        Search by gene or tissue
                                     </h4>
-                                    <research-single-search
-                                        :single-search-config="$parent.altConfig"
-                                        :phenotypes="
-                                            $parent.phenotypesInSession
-                                        "
-                                        :utils="$parent.utilsBox"
-                                    ></research-single-search>
+                                    <input />
                                 </div>
                             </div>
                         </div>
-
+                        <div class="about">
+                            <h4>About this project</h4>
+                            Lorem ipsum dolor sit amet
+                        </div>
                         <!-- end -->
                     </div>
                 </div>
@@ -214,7 +195,12 @@ p[id="home.example"] {
     font-size: 12px;
     max-width: 70px;
 }
-#pigean .front-logo-tagline-a2fkp {
-    transform: translate(0%, 40%);
+.front-logo-img {
+    max-height: 300px !important;
+    width: auto !important;
+}
+.about {
+    color: #fff;
+    font-size: smaller;
 }
 </style>

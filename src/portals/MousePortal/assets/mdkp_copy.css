@@ -1,0 +1,2489 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto+Condensed:100,200,300,400italic,400,700,700italic|Open+Sans:400,600, 700,700italic,600italic,600,400italic|Oswald:400,300,700");
+
+body.kp-default {
+    background-color: #eee;
+    font-family: "Roboto", Arial, sans-serif;
+}
+
+a {
+    /*color: #0097d6 !important;*/
+    color: #007bff !important;
+}
+
+a:hover {
+    /*text-decoration: none !important;*/
+}
+
+/*huge calculator*/
+#posteriorpriorplot .center-posterior-prior-plot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    border: 3px solid green;
+}
+
+/* front page */
+.front-top-banner-agingkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/agingkp_front_bg.png),
+        linear-gradient(#75bee9, #20c4f4);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-kidneykp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/kidneykp_front_bg.png),
+        linear-gradient(#96cbca, #619faf);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-autoimmunekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/autoimmunekp_front_bg.png),
+        linear-gradient(#71cddd, #009bc8);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-ocularkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/ocular_front_bg.png),
+        linear-gradient(#008fd0, #005e9e);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-reproductivekp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/reproductive_front_bg.png),
+        linear-gradient(#8f7fbb, #5e53a3);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-mdkp {
+    /*background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
+        linear-gradient(#0097d6, #8ed8f8);*/
+    background-image: linear-gradient(#0077b6, #5ec8e8);
+    background-position: 120% 0px, top left;
+}
+
+.front-top-banner-cvdkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/cvdkp_front_bg.png),
+        linear-gradient(#f58752, #fdbc63);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-sleepkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/sleepkp_front_bg.png),
+        linear-gradient(#74b9e2, #477cbf);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-t2dkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/t2dkp_front_bg.png),
+        linear-gradient(#55aaee, #3c80bd);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-skinkp {
+    background-image: linear-gradient(#286FB7, #61C2EE);
+    background-position: 120% 0px, top left;
+}
+
+.front-top-banner-cdkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/cdkp_front_bg.png),
+        linear-gradient(#73d253, #38942d);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-v2fkp,
+.front-top-banner-a2fkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/a2fkp_front_bg.png),
+        linear-gradient(#f7835c, #bd516f);
+    background-position: 100% 300px, top left;
+}
+
+.front-top-banner-t1dkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/t1dkp_front_bg.png),
+        linear-gradient(#5481c1, #aec5e7);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-mskkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/mskkp_front_bg.png),
+        linear-gradient(#bcafd6, #918bc3);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-lungkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/lungkp_front_bg.png),
+        linear-gradient(#7accc8, #08b89d);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-alskp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/alskp_front_bg.png),
+        linear-gradient(#5eb9e9, #4967b0);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-nephkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/nephkp_front_bg.png),
+        linear-gradient(#39bbed, #59be86);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-ndkpkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/ndkpkp_front_bg.png),
+        linear-gradient(#5698d2, #70a4d8);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-nagekp {
+    background-image: linear-gradient(#751dc7, #9928c5);
+    background-position: 120% 0px, top left;
+}
+
+.front-top-banner {
+    font-size: 16px;
+    background-repeat: no-repeat;
+    padding: 30px 0 20px 0;
+}
+
+.front-logo-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    width: 900px;
+}
+
+.front-logo-img {
+    width: 470px;
+    padding-right: 30px;
+    border-right: solid 1px #fff;
+    margin-right: 30px;
+    padding: 20px 20px 20px 0;
+    float: left;
+}
+
+.front-top-banner-mdkp .front-logo-img {
+    width: 490px;
+    margin-left: -20px;
+    border-right: solid 1px #5ec8e8;
+    padding: 0 20px 20px 0;
+}
+
+.front-top-banner-cvdkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-cdkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-sleepkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-t2dkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-skinkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-v2fkp .front-logo-img,
+.front-top-banner-a2fkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-t1dkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-mskkp .front-logo-img {
+    width: 470px;
+}
+
+.front-top-banner-alskp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-nephkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-ndkpkp .front-logo-img {
+    width: 470px;
+}
+
+.front-top-banner-nagekp .front-logo-img {
+    width: 470px;
+}
+
+.front-banner-btn {
+    border-radius: 30px !important;
+    width: 250px;
+    background: none;
+    border: solid 1px #fff !important;
+    color: #fff !important;
+}
+
+.front-logo-tagline {
+    color: #fff;
+    width: 400px;
+    font-size: 24px;
+    display: block;
+    float: left;
+}
+
+.front-logo-tagline-agingkp {
+    transform: translate(0%, 70%);
+}
+
+.front-logo-tagline-kidneykp {
+    transform: translate(0%, 75%);
+}
+
+.front-logo-tagline-autoimmunekp {
+    transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-ocularkp {
+    transform: translate(0%, 35%);
+}
+
+.front-logo-tagline-reproductivekp {
+    transform: translate(0%, 35%);
+}
+
+.front-logo-tagline-mdkp {
+    transform: translate(0%, 65%);
+}
+
+.front-logo-tagline-t2dkp {
+    transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-skinkp {
+    transform: translate(0%, 80%);
+}
+
+.front-logo-tagline-cvdkp {
+    transform: translate(0%, 29%);
+}
+
+.front-logo-tagline-cdkp {
+    transform: translate(0%, 35%);
+}
+
+.front-logo-tagline-sleepkp {
+    transform: translate(0%, 35%);
+}
+
+.front-logo-tagline-v2fkp,
+.front-logo-tagline-a2fkp {
+    transform: translate(0%, 85%);
+}
+
+.front-logo-tagline-t1dkp {
+    transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-mskkp {
+    transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-lungkp {
+    transform: translate(0%, 85%);
+}
+
+.front-logo-tagline-alskp {
+    transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-nephkp {
+    transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-ndkpkp {
+    transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-nagekp {
+    transform: translate(0%, 8%);
+}
+
+.front-banner-ui-tabs {
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    margin-top: 70px;
+    border-bottom: solid 1px rgba(255, 255, 255, 1);
+    font-size: 45px;
+    padding-bottom: 15px;
+    color: #fff;
+}
+
+.amp-banner-2021 {
+    height: 70px;
+    background-position-x: right;
+    background-position-y: top;
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_bg.jpg);
+    border-bottom: solid 1px #acd;
+}
+
+.amp-header {
+    height: 70px;
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_middle.png);
+    background-size: 100% 70px;
+}
+
+.amp-banner-right {
+    width: 100%;
+    height: 70px;
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_right.png);
+    background-repeat: no-repeat;
+    background-position: right;
+}
+
+.amp-banner-left {
+    height: 70px;
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_left.png);
+    background-repeat: no-repeat;
+    background-position: left top;
+    padding: 15px 0 0 20px;
+}
+
+.amp-banner-left a {
+    color: #fff !important;
+    font-size: 30px;
+    font-weight: 200;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+}
+
+.portals-2-mdkp-logo {
+    width: 500px;
+}
+
+.agingkp-logo {
+    height: 50px;
+}
+
+.kidneykp-logo {
+    height: 50px;
+}
+
+.autoimmunekp-logo {
+    height: 50px;
+}
+
+.ocularkp-logo {
+    height: 50px;
+}
+
+.reproductivekp-logo {
+    height: 50px;
+}
+
+.mdkp-logo {
+    height: 50px;
+}
+
+.t2dkp-logo {
+    height: 50px;
+}
+
+.skinkp-logo {
+    height: 50px;
+}
+
+.cvdkp-logo {
+    height: 50px;
+}
+
+.cdkp-logo {
+    height: 50px;
+}
+
+.sleepkp-logo {
+    height: 50px;
+}
+
+.v2fkp-logo,
+.a2fkp-logo {
+    height: 50px;
+}
+
+.t1dkp-logo {
+    height: 50px;
+}
+
+.mskkp-logo {
+    height: 50px;
+}
+
+.lungkp-logo {
+    height: 50px;
+}
+
+.alskp-logo {
+    height: 50px;
+}
+
+.nephkp-logo {
+    height: 50px;
+}
+
+.ndkpkp-logo {
+    height: 50px;
+}
+
+.nagekp-logo {
+    height: 50px;
+}
+
+.registered-mark {
+    display: none;
+}
+
+.mdkp-footer .registered-mark {
+    display: contents;
+}
+
+.agingkp-header,
+.agingkp-footer {
+    background-color: #75bee9;
+    height: 50px;
+}
+
+.kidneykp-header,
+.kidneykp-footer {
+    background-color: #96cbca;
+    height: 50px;
+}
+
+.autoimmunekp-header,
+.autoimmunekp-footer {
+    background-color: #71cddd;
+    height: 50px;
+}
+
+.ocularkp-header,
+.ocularkp-footer {
+    background-color: #008fd0;
+    height: 50px;
+}
+
+.reproductivekp-header,
+.reproductivekp-footer {
+    background-color: #8f7fbb;
+    height: 50px;
+}
+
+.mdkp-header,
+.mdkp-footer {
+    background-color: #0077b6;
+    height: 50px;
+}
+
+.cvdkp-header,
+.cvdkp-footer {
+    background-color: #f58752;
+    height: 50px;
+}
+
+.sleepkp-header,
+.sleepkp-footer {
+    background-color: #74b9e2;
+    height: 50px;
+}
+
+.cdkp-header,
+.cdkp-footer {
+    background-color: #73d253;
+    height: 50px;
+}
+
+.t2dkp-header,
+.t2dkp-footer {
+    background-color: #55aaee;
+    height: 50px;
+}
+
+.skinkp-header,
+.skinkp-footer {
+    background-color: #286fb7;
+    height: 50px;
+}
+
+.v2fkp-header,
+.v2fkp-footer,
+.a2fkp-header,
+.a2fkp-footer {
+    background-color: #f7835c;
+    height: 50px;
+}
+
+.t1dkp-header,
+.t1dkp-footer {
+    background-color: #5481c1;
+    height: 50px;
+}
+
+.mskkp-header,
+.mskkp-footer {
+    background-color: #bcafd6;
+    height: 50px;
+}
+
+.lungkp-header,
+.lungkp-footer {
+    background-color: #7accc8;
+    height: 50px;
+}
+
+.alskp-header,
+.alskp-footer {
+    background-color: #5eb9e9;
+    height: 50px;
+}
+
+.nephkp-header,
+.nephkp-footer {
+    background-color: #39bbed;
+    height: 50px;
+}
+
+.ndkpkp-header,
+.ndkpkp-footer {
+    background-color: #5698d2;
+    height: 50px;
+}
+
+.nagekp-header,
+.nagekp-footer {
+    background-color: #751dc7;
+    height: 50px;
+}
+
+.kp-menu-wrapper {
+    text-align: right;
+}
+
+.a2fkp-header>.a2fkp-logo-wrapper {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+.a2fkp-header>.kp-menu-wrapper {
+    position: absolute;
+    right: 15px;
+}
+
+.portal-menu-wrapper,
+.login-menu-wrapper {
+    display: inline-block;
+}
+
+.portal-menu-wrapper ul,
+.login-menu-wrapper ul,
+.portal-menu-wrapper,
+.login-menu-wrapper {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.portal-menu-wrapper>ul>li,
+.login-menu-wrapper>ul>li {
+    display: inline-block;
+    position: relative;
+    padding-top: 15px;
+}
+
+.login-menu-wrapper>ul>li>a {
+    border-left: solid 1px #fff;
+}
+
+.portal-menu-wrapper>ul>li>a,
+.login-menu-wrapper>ul>li>a {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #fff !important;
+    font-size: 16px;
+    font-weight: 300;
+}
+
+.portal-menu-wrapper .item+.item:before {
+    content: "" !important;
+}
+
+.portal-menu-wrapper>ul>li>ul {
+    display: none;
+    position: absolute;
+    z-index: 100000;
+    padding: 0;
+    margin: 0;
+}
+
+.portal-menu-wrapper>ul>li:hover>ul {
+    display: block;
+}
+
+.portal-menu-wrapper>ul>li>ul>li {
+    width: 100%;
+    padding: 0 !important;
+    font-size: 0.8em;
+    background-color: rgba(100, 100, 100, 0.85);
+    text-align: left;
+    list-style: none;
+}
+
+.portal-menu-wrapper>ul>li>ul>li:hover {
+    background-color: rgba(90, 90, 90, 1);
+}
+
+.portal-menu-wrapper>ul>li>ul>li>a {
+    display: block;
+    width: 100%;
+    padding: 5px 15px 5px 15px;
+    border-bottom: solid 1px #666;
+    list-style: none;
+    white-space: nowrap;
+    color: #ffffff !important;
+    font-size: 16px;
+    font-weight: 300;
+}
+
+.agingkp-footer,
+.kidneykp-footer,
+.autoimmunekp-footer,
+.ocularkp-footer,
+.reproductivekp-footer,
+.mdkp-footer,
+.cvdkp-footer,
+.sleepkp-footer,
+.t2dkp-footer,
+.skinkp-footer,
+.cdkp-footer,
+.v2fkp-footer,
+.a2fkp-footer,
+.t1dkp-footer,
+.mskkp-footer,
+.lungkp-footer,
+.alskp-footer,
+.nephkp-footer,
+.ndkpkp-footer,
+.nagekp-footer {
+    text-align: center;
+    padding-top: 15px;
+    color: #fff;
+    font-weight: 300;
+    font-size: 14px;
+}
+
+.agingkp-body,
+.kidneykp-body,
+.autoimmunekp-body,
+.ocularkp-body,
+.reproductivekp-body,
+.mdkp-body,
+.cvdkp-body,
+.sleekp-body,
+.t2dkp-body,
+.skinkp-body,
+.cdkp-body,
+.v2fkp-body,
+.a2fkp-body,
+.t1dkp-body,
+.mskkp-body,
+.lungkp-body,
+.alskp-body,
+.nephkp-body,
+.ndkpkp-body,
+.nagekp-body {
+    background-color: #eee;
+    min-height: 400px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.agingkp-card,
+.kidneykp-card,
+.autoimmunekp-card,
+.ocularkp-card,
+.reproductivekp-card,
+.mdkp-card,
+.cvdkp-card,
+.sleepkp-card,
+.t2dkp-card,
+.skinkp-card,
+.cdkp-card,
+.v2fkp-card,
+.a2fkp-card,
+.t1dkp-card,
+.mskkp-card,
+.lungkp-card,
+.alskp-card,
+.nephkp-card,
+.ndkpkp-card,
+.nagekp-card {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    min-width: 1024px !important;
+}
+
+.card.gem-wrapper {
+    box-shadow: inset 0 0 5px #00000050;
+    border: solid 1px #9cf;
+}
+
+.portal-front-tabs {
+    margin-top: 50px;
+}
+
+.portal-front-tabs .nav-tabs .nav-link,
+.portal-front-tabs .nav-tabs .nav-link.active,
+.portal-front-tabs .nav-tabs .nav-item.show .nav-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-size: 25px;
+    background: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    border-radius: 0;
+    border-top: none;
+    margin-right: -1px;
+}
+
+.portal-front-tabs .nav-tabs .nav-link.active {
+    color: rgba(255, 255, 255, 1) !important;
+    background-image: linear-gradient(rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0.5));
+}
+
+.portal-front-tabs .tab-content {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.portal-front-tabs .tab-content .v-select {
+    width: 50%;
+    margin: auto;
+}
+
+.portal-front-tabs .tab-content .vs__clear {
+    width: 20px;
+}
+
+.portal-front-tabs .tab-content .vs__open-indicator {
+    height: 10px;
+}
+
+.portal-front-tabs .tab-content .vs__dropdown-toggle {
+    background-color: rgba(255, 255, 255, 0.75);
+    border-color: #fff;
+    height: 50px;
+}
+
+.portal-front-tabs .tab-content .disease-group-select {
+    width: 50%;
+    margin: auto;
+}
+
+.portal-front-tabs .tab-content .disease-group-select select {
+    height: 50px;
+    width: 100%;
+    font-size: 16px;
+    background-color: rgba(255, 255, 255, 0.75);
+    border-color: #fff;
+}
+
+/* front page datasets info graphs */
+
+.front-datasets-graph,
+.front-phenotypes-graph {
+    width: 50%;
+    padding: 0px 10px 20px 10px;
+    display: inline-block;
+    position: relative;
+}
+
+.front-datasets-graph .each-item,
+.front-phenotypes-graph .each-item {
+    font-size: 16px;
+    position: relative;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 3px;
+}
+
+.front-datasets-graph .percent-bg,
+.front-phenotypes-graph .percent-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #ccc;
+    border-radius: 30px;
+    width: 0%;
+    transition: width 2s;
+    height: 30px;
+}
+
+.front-datasets-graph .percent-bg {
+    background-color: rgba(0, 185, 242, 0.5);
+}
+
+.front-phenotypes-graph .percent-bg {
+    background-color: rgba(128, 194, 66, 0.5);
+}
+
+.front-datasets-graph .info-label,
+.front-phenotypes-graph .info-label {
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    font-size: 14px;
+}
+
+.header-disease-group-select-wrapper {
+    display: inline-block;
+    border-left: solid 1px #ddd;
+    margin-left: 10px;
+    padding-left: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.header-disease-group-select-wrapper select {
+    color: #fff;
+    background: none;
+    border: none;
+}
+
+.gene-page-header .card-body {
+    padding: 0px 15px !important;
+}
+
+.gene-page-header-title {
+    font-size: 12px;
+    padding: 2px 0 2px 5px;
+    border-bottom: solid 1px #eee;
+    border-left: solid 1px #eee;
+}
+
+a.edit-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #ddd;
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 5px;
+    z-index: 15;
+}
+
+a.edit-btn:hover {
+    cursor: pointer;
+}
+
+.gene-page-header-search-holder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /*height: 65px;*/
+    width: 100%;
+    background-color: #fff;
+    font-size: 16px;
+    z-index: 10;
+}
+
+.shorten-when-full {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gene-page-header-body {
+    /*height: 65px;*/
+    font-size: 25px;
+    padding: 12px 0 12px 5px;
+    border-left: solid 1px #eee;
+}
+
+.gene-page-header-search-holder {}
+
+div.filtering-tools {
+    border: solid 1px #ddd;
+    border-radius: 5px;
+    background-color: #efefef;
+    text-align: center;
+    margin-bottom: 40px;
+    padding-top: 8px;
+}
+
+div.filtering-tools table td,
+div.filtering-tools table th {
+    padding-right: 10px;
+    padding-left: 10px;
+    border-right: solid 1px #fff;
+}
+
+.table-filter label {
+    display: block;
+    max-width: 100%;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.phenotype-btn {
+    position: relative;
+}
+
+.phenotype-btn.mr-1 {
+    margin-right: 10px !important;
+}
+
+.phenotype-btn>span.remove {
+    font-family: "Roboto";
+    font-size: 1.2em;
+    position: absolute;
+    background-color: #ccc;
+    color: #000;
+    font-size: 12px;
+    font-weight: 800;
+    width: 18px;
+    height: 18px;
+    border-radius: 10px;
+    padding: 2px;
+    padding-top: 1px;
+    top: -5px;
+    right: -5px;
+    text-align: center;
+}
+
+.phenotype-btn:hover>span.remove {
+    background-color: #000;
+    color: #fff;
+}
+
+#phenotypeSearchHolder input.form-control,
+#datasetSearchHolder input.form-control {
+    border-radius: 0;
+    border: solid 1px #ddd;
+    height: 65px;
+    width: 100%;
+    font-size: 20px;
+    background-image: url("/images/searchicon.png");
+    background-position: 10px 20px;
+    background-repeat: no-repeat;
+    padding-left: 40px;
+}
+
+.search-header {
+    margin-top: -10px;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    background-color: #bbbbbb !important;
+    font-size: 14px !important;
+    padding: 1px !important;
+    color: #333333;
+    font-weight: 300 !important;
+    border: none !important;
+    position: relative;
+    z-index: 10;
+}
+
+.search-header.fixed-header {
+    position: fixed;
+    top: 8px;
+    width: calc(100% - 30px);
+    background-color: #bbbbbb;
+    left: 15px;
+}
+
+.search-header .row {
+    padding: 0 1.25rem;
+}
+
+.search-header div[class^="col-md-"] {
+    padding: 0;
+}
+
+.search-header .input-wrapper input[type="text"] {
+    border: none;
+    border-radius: 0;
+    border-right: solid 1px #ddd;
+    display: inline-block;
+}
+
+.reset-page-parameters {
+    position: relative;
+    display: block;
+    width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: -25px;
+    padding: 5px 15px;
+    background-color: #bbbbbb;
+    border-bottom-left-radius: 5px !important;
+    border-bottom-right-radius: 5px !important;
+    font-weight: 400;
+}
+
+.reset-page-parameters:hover {
+    cursor: pointer;
+}
+
+#regionSearchHolder .region-search {
+    height: 100%;
+}
+
+.region-search>.input-wrapper {
+    display: inline-block !important;
+}
+
+.region-search-examples {
+    text-align: center;
+    color: #fff;
+    margin-top: 10px;
+}
+
+.region-search-examples a {
+    color: #fff !important;
+}
+
+#regionSearchHolder .input-wrapper {
+    display: inline-block;
+    min-height: 100%;
+    position: relative;
+    padding: 0;
+    margin: 0;
+}
+
+#regionSearchHolder .input-wrapper span.gene-search-or {
+    position: absolute;
+    display: block;
+    background-color: #ccc;
+    width: 30px;
+    height: 30px;
+    color: #fff;
+    border-radius: 20px;
+    padding-top: 3px;
+    margin: auto;
+    position: absolute;
+    text-align: center;
+    top: 25%;
+}
+
+#regionSearchHolder .input-default,
+#variantSearchHolder .input-default,
+#regionSearchHolder .input-group,
+#variantSearchHolder .input-group,
+#regionSearchHolder input.form-control,
+#variantSearchHolder input.form-control {
+    height: 100%;
+    width: 100%;
+    border: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-left: solid 1px #ddd;
+    border-radius: 0;
+    font-size: 20px;
+}
+
+#regionSearchHolder .vbt-autcomplete-list,
+#variantSearchHolder .vbt-autcomplete-list {
+    top: 95% !important;
+    height: auto !important;
+}
+
+#variantSearchHolder div {
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#variantSearchHolder div.search-example,
+div.search-example {
+    font-size: 14px;
+    padding-top: 8px;
+}
+
+#regionSearchHolder #regionSearchGo,
+#variantSearchHolder #variantSearchGo {
+    position: absolute;
+    padding: 0;
+    top: 13px;
+    right: calc(50% - 20px);
+    height: 40px;
+    width: 40px;
+    border-radius: 30px;
+    background-color: #0097d6;
+    border: solid 1px #0097d6;
+    text-align: center;
+}
+
+.front-gene-search-wrapper,
+.front-dataset-search-wrapper,
+.front-phenotype-search-wrapper {
+    width: 50%;
+    margin: auto;
+}
+
+.front-gene-search-wrapper .input-wrapper {
+    display: inline-block;
+    padding: 0;
+}
+
+.front-gene-search-wrapper .input-wrapper .input-default,
+.front-phenotype-search-wrapper input {
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.75);
+    border-color: #fff;
+    width: 100%;
+}
+
+.front-gene-search-wrapper #regionSearchGo {
+    padding: 0;
+    height: 50px;
+    width: 50px;
+    border-radius: 30px;
+    background-color: rgba(255, 255, 255, 0.75);
+    border: solid 1px rgba(255, 255, 255, 1);
+    text-align: center;
+    color: #666;
+    margin-left: 10px;
+}
+
+.gene-with-signal {
+    display: inline-block;
+    margin: 0px 10px 10px 0;
+    padding: 2px 20px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    font-size: 13px;
+    color: #007bff;
+}
+
+.gene-with-signal>a {
+    text-decoration: none;
+}
+
+.gene-with-signal.protein_coding {
+    cursor: pointer;
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+}
+
+.gene-with-signal.antisense {
+    cursor: pointer;
+    background-color: #b7eab7;
+    border: solid 1px #72ce49;
+}
+
+.gene-with-signal.none {
+    background-color: #eee;
+    border: solid 1px #ccc;
+}
+
+.phenotype-with-signal.high {
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+}
+
+.phenotype-with-signal.moderate {
+    /*background-color: #d0efff;
+    border: solid 1px #30b7f6;*/
+    background-color: #ffffb3;
+    border: solid 1px #ffcc44;
+}
+
+.phenotype-with-signal.none {
+    background-color: #eee;
+    border: solid 1px #ccc;
+}
+
+.phenotype-with-signal.none.hidden {
+    display: none;
+}
+
+.variant-table-row.high {
+    background-color: #d0efff;
+}
+
+.variant-table-cell.high {
+    background-color: #d0efff;
+}
+
+.c3 .c3-axis-x path,
+.c3 .c3-axis-x line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 0.5px;
+}
+
+.c3 .c3-axis-x .c3-axis-x-label,
+.c3 .c3-axis-y .c3-axis-y-label {
+    font-size: 12px;
+}
+
+.c3 .c3-axis-y path,
+.c3 .c3-axis-y line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 0.5px;
+}
+
+.static-content-section {
+    padding-top: 50px;
+}
+
+.under-datasets-section-wrapper {
+    margin-top: 40px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.under-datasets-section-wrapper h4.header {
+    font-weight: 400;
+    font-size: 35px;
+    font-family: "Oswald";
+    margin: 2px 0 0 10px;
+    padding: 0px 5px 2px 5px;
+    border: solid 1px #ddd;
+    border-right: none;
+    border-left: none;
+}
+
+.under-datasets-section-wrapper ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.under-datasets-section-wrapper ul li {
+    display: block;
+    clear: both;
+    font-family: Oswald;
+    font-size: 30px;
+    line-height: 25px;
+    margin-bottom: 30px;
+}
+
+.under-datasets-section-wrapper ul li img {
+    display: block;
+    float: left;
+    margin-right: 15px;
+    width: 80px;
+    height: 80px;
+    margin-top: -15px;
+}
+
+.under-datasets-section-wrapper ul li a {
+    font-size: 20px;
+    font-family: "Roboto", Arial, sans-serif;
+    font-weight: 500;
+}
+
+#news-feed {
+    position: relative;
+    height: 140px;
+    margin-bottom: 30px;
+}
+
+#news-feed ul.news-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#news-feed ul.news-items li {
+    padding: 0;
+    margin: 0;
+    display: none;
+}
+
+#news-feed ul.news-items li:first-child {
+    display: block;
+}
+
+#news-feed ul.news-items li span p {
+    display: contents;
+}
+
+#news-feed .news-items-ui {
+    position: absolute;
+    top: 10px;
+    right: 0;
+}
+
+#news-feed .news-items-ui a {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background-color: #aaa;
+    color: #fff !important;
+    font-size: 10px;
+    margin-left: 7px;
+    font-size: 12px;
+    text-align: center;
+}
+
+#news-feed .news-items-ui a.on-view {
+    background-color: #0097d6;
+}
+
+path.slice {
+    stroke-width: 2px;
+}
+
+polyline {
+    opacity: 0.3;
+    stroke: black;
+    stroke-width: 2px;
+    fill: none;
+}
+
+.slice-value {
+    font-family: "Oswald";
+    font-size: 30px;
+}
+
+.slice-label {
+    font-size: 12px;
+}
+
+.p-bellow-section-header {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.popped-out {
+    position: fixed;
+    z-index: 100;
+    top: 2%;
+    width: 96%;
+    left: 2%;
+    height: 96% !important;
+    max-height: 96% !important;
+}
+
+.pop-out-icon {
+    display: block;
+    background-image: url(pop_out.svg);
+    width: 20px;
+    height: 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    float: right;
+    margin-top: -10px;
+    margin-right: -10px;
+}
+
+.pop-out-icon:hover {
+    background-image: url(pop_out_over.svg);
+}
+
+.hidden,
+.row.hidden {
+    display: none;
+}
+
+.front-page-body {
+    background-color: #fff !important;
+}
+
+.pagination.b-pagination {
+    border: solid 1px #dddddd;
+    border-radius: 25px;
+    padding: 3px 10px;
+    font-size: 15px;
+    /* width: fit-content;*/
+    margin: auto;
+    width: intrinsic;
+    /* Safari/WebKit uses a non-standard name */
+    width: -moz-max-content;
+    /* Firefox/Gecko */
+    width: -webkit-max-content;
+    /* Chrome */
+}
+
+.pagination.b-pagination .page-item {
+    display: inline-block;
+}
+
+.pagination.b-pagination .page-link {
+    border: solid 1px #fff !important;
+    border-radius: 20px;
+    min-width: 31px;
+    height: 31px;
+}
+
+.pagination.b-pagination .page-item:last-child .page-link,
+.pagination.b-pagination .page-item:first-child .page-link {
+    border-radius: 20px;
+}
+
+.alternative-names span::after {
+    content: ", ";
+}
+
+.alternative-names span:last-child::after {
+    content: "";
+}
+
+.dataset-page-header .card-body h2 {
+    margin: 0 !important;
+}
+
+/* Filtering UI */
+div.filtering-ui-wrapper {
+    border: solid 1px #ddd;
+    border-radius: 5px;
+    background-color: #efefef;
+    text-align: center;
+    margin-bottom: 10px;
+    padding: 3px 0;
+    position: relative;
+}
+
+div.filtering-ui-wrapper.add-content {
+    background-color: #ddefff;
+    border: 1px solid #bbdfff;
+}
+
+div.filtering-ui-wrapper .filter-by-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+div.filtering-ui-wrapper .list-group {
+    text-align: left;
+}
+
+div.selected-filters-ui-wrapper {
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 400;
+    min-height: 1px;
+}
+
+div.selected-filters-ui-wrapper .badge-pill {
+    font-size: 12px;
+    font-weight: 400;
+    margin: 0 3px;
+}
+
+div.filtering-ui-content {
+    width: auto !important;
+    display: block;
+}
+
+div.filtering-ui-content .divider.col {
+    width: 1px !important;
+    height: 61px;
+    padding: 0 1px 0 0;
+    background-color: #aaa;
+    margin-bottom: -17px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+div.filtering-ui-content .divider.col .or-text {
+    display: block;
+    position: absolute;
+    left: -8px;
+    top: 35%;
+    font-size: 10px;
+    background-color: #aaa;
+    color: #fff;
+    padding: 2px 2px 1px 2px;
+    border-radius: 14px;
+}
+
+#pageSearchParameters .divider.col {
+    width: 1px !important;
+    height: 61px;
+    padding: 0 1px 0 0;
+    background-color: #fff;
+    margin-bottom: -17px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+#pageSearchParameters .divider.col .or-text {
+    display: block;
+    position: absolute;
+    left: -6px;
+    top: 35%;
+    font-size: 10px;
+    background-color: #666;
+    color: #fff;
+    padding: 2px 2px 1px 2px;
+    border-radius: 14px;
+    width: 18px;
+    font-weight: 500;
+    height: 18px;
+}
+
+#pageSearchParameters .btn.go {
+    border: 1px solid #ced4da;
+    border-radius: 0.25em;
+    height: 30px;
+    margin-top: -2px !important;
+}
+
+div.filtering-ui-content div.col {
+    display: inline-block !important;
+    width: auto !important;
+    font-size: 14px;
+    padding: 5px 7px;
+}
+
+div.filtering-ui-content div.col.hidden-search {
+    display: none !important;
+}
+
+div.filtering-ui-content div.col .label {
+    font-weight: 600;
+}
+
+span div.label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+div.filtering-ui-content div.col .form-control,
+div.filtering-ui-content div.col select,
+div.filtering-ui-content div.col input {
+    height: 30px;
+    width: 175px;
+    font-size: 14px;
+}
+
+div.filtering-ui-content div.col input.or-half-gt,
+div.filtering-ui-content div.col input.or-half-lt {
+    width: 70px;
+}
+
+div.filtering-ui-content div.col.filter-col-md .form-control,
+div.filtering-ui-content div.col.filter-col-md select,
+div.filtering-ui-content div.col.filter-col-md input {
+    width: 220px;
+    display: inline-block;
+}
+
+div.filtering-ui-content div.col.filter-col-lg .form-control,
+div.filtering-ui-content div.col.filter-col-lg select,
+div.filtering-ui-content div.col.filter-col-lg input {
+    width: 300px !important;
+    display: inline-block;
+}
+
+div.filtering-ui-content div.filter-col-sm .form-control,
+div.filtering-ui-content div.col.filter-col-sm select,
+div.filtering-ui-content div.col.filter-col-sm input {
+    width: 110px !important;
+    display: inline-block;
+}
+
+.help-content.filter-wrapper-help {
+    display: block !important;
+    position: absolute;
+    top: 2px;
+    left: 5px;
+}
+
+.help-content.filter-wrapper-help .help-content-caller.hover {
+    padding: 0.075em 0.525em 0.075em 0.525em !important;
+}
+
+.btn.btn-sm.btn-2-vptz {
+    height: 30px;
+    font-size: 12px;
+    margin-top: -1px;
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+    color: #0087c6 !important;
+}
+
+.btn.btn-sm.btn-2-vptz:hover {
+    background-color: #30b7f6;
+    border: solid 1px #30b7f6;
+    color: #fff !important;
+}
+
+/* IGV */
+.igv-zooms-wrapper {
+    position: relative;
+    z-index: 1000000;
+    float: right;
+    margin-right: 50px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.igv-zoom {
+    width: 28px;
+    height: 28px;
+    background-color: #30b7f6;
+    border: solid 1px #0087d6;
+    border-radius: 15px;
+    color: #fff;
+}
+
+/* style for new features page */
+.news-content-wrapper,
+.resource-content-wrapper {
+    background-color: #eee;
+    padding: 15px;
+    border: solid 1px #ccc;
+    border-radius: 0.25em;
+}
+
+.new-feature-item-wrapper,
+.resource-item-wrapper {
+    margin: 15px 0;
+    padding-bottom: 10px;
+    border-bottom: solid 1px #ddd;
+}
+
+.new-feature-item-wrapper h3,
+.resource-item-wrapper h3 {
+    font-size: 22px;
+}
+
+.resources-iframe-wrapper {
+    width: 560px;
+    height: 315px;
+    margin: 0 auto;
+}
+
+.egl-research-method-wrapper {
+    display: block;
+    border-bottom: solid 1px #ccc;
+    padding-bottom: 35px;
+    padding: 35px 35px 0 35px !important;
+}
+
+.egl-research-trait-bubbles {
+    list-style: none;
+}
+
+.egl-research-trait-bubbles li {
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 7px;
+}
+
+.egl-research-trait-bubbles-multi li {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.egl-research-trait-bubbles li a,
+.egl-research-trait-bubbles-multi li a {
+    display: block;
+    background-color: #0097d6;
+    color: #fff !important;
+    padding: 5px 10px;
+    height: 34px;
+    border-radius: 5px;
+    display: inline-block;
+    font-size: 16px;
+}
+
+.egl-research-trait-bubbles li a:hover,
+.egl-research-trait-bubbles-multi li a:hover {
+    background-color: #0097d675;
+}
+
+.egl-research-trait-bubbles li a::after,
+.egl-research-trait-bubbles-multi li a::after {
+    content: "";
+}
+
+.egl-research-trait-bubbles li a:hover::after,
+.egl-research-trait-bubbles-multi li a:hover::after {
+    content: "  GO >";
+    font-size: 0.75em;
+}
+
+.egl-table-ss {
+    width: 350px;
+    border: solid 1px #ccc;
+    float: right;
+}
+
+.viewing-region {
+    float: left;
+    margin-right: 20px;
+}
+
+.expand-region-select {
+    background-color: #66bbff !important;
+    border: solid 1px #3399ff !important;
+    color: #fff;
+    font-size: 20px;
+    border-radius: 5px;
+    padding: 5px;
+    float: left;
+}
+
+.expand-region-select:hover {
+    background-color: #66bbff75 !important;
+}
+
+.temporary-card {
+    background-color: #66bbff30 !important;
+    border: solid 1px #3399ff30 !important;
+    padding-bottom: 0.25em !important;
+}
+
+a.to-previous-page {
+    color: #fff !important;
+    font-size: 14px;
+    background-color: #00aaff75;
+    border: solid 1px #00aaff95;
+    padding: 1px 10px;
+}
+
+a.to-previous-page:hover {
+    background-color: #00aaff95;
+}
+
+.dev-flag {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 20000;
+    width: 50px;
+    height: 50px;
+}
+
+.img .alert,
+.no-access .alert {
+    border-style: dashed;
+    border-width: 1px;
+    text-align: center;
+}
+
+.img .alert-warning,
+.no-access .alert-warning {
+    border-color: darkorange;
+}
+
+.img .alert-danger,
+.no-access .alert-danger {
+    border-color: darkred;
+}
+
+/* pheWAS dataset association table */
+#phewas-datasets {
+    border-right: none;
+    margin-top: 1rem;
+}
+
+#phewas-datasets div {
+    border-left: none;
+    border-right: none;
+}
+
+#phewas-datasets .top-level-value-item:first-child {
+    text-align: left;
+}
+
+#phewas-datasets .top-level-header,
+#phewas-datasets .top-level-value {
+    font-size: 1rem;
+}
+
+#phewas-datasets .top-level-value:hover {
+    background-color: #efefef;
+}
+
+#phewas-datasets .list {
+    margin-bottom: 1rem;
+}
+
+#phewas-datasets .feature-content-wrapper {
+    border-left: 4px solid #6c757d78;
+}
+
+#phewas-datasets .feature-header-item {
+    background-color: #d2d2d2;
+}
+
+.phenotype-gene-association {
+    position: relative;
+}
+
+.phenotype-gene-association>.options-4-actions {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color: #fff;
+    font-weight: 400;
+    padding: 10px;
+    border-radius: 5px;
+    left: -12px;
+    top: 10px;
+    z-index: 20;
+    white-space: nowrap;
+    line-height: 1.5em;
+}
+
+.phenotype-gene-association>.options-4-actions {
+    left: 80%;
+    top: -30%;
+}
+
+.phenotype-gene-association:hover>.options-4-actions {
+    display: block;
+}
+
+.phenotype-gene-association:hover>.options-4-actions a {
+    color: #ffffff !important;
+}
+
+.phenotype-gene-association:hover>.options-4-actions a:hover {
+    color: #aaaaff !important;
+}
+
+/* for vue-bootstrap-typeahead */
+[type="search"] {
+    background: #fff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.75rem center/8px 10px;
+}
+
+[class*="filter-pill-"] {
+    margin-right: 2px;
+    margin-left: 2px;
+}
+
+/* !important is required to override the default pill styling from Bootstrap */
+.filter-pill-pValue {
+    background-color: #dc3545 !important;
+}
+
+.filter-pill-fold {
+    background-color: #dc3545 !important;
+}
+
+.filter-pill-beta {
+    background-color: #007bff !important;
+}
+
+.filter-pill-nearest {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-phenotype {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-condition {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-secondaryPhenotype {
+    background-color: #007bff !important;
+}
+
+.filter-pill-primaryphenotype {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-secondaryphenotype {
+    background-color: #007bff !important;
+}
+
+.filter-pill-nearest {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-gene {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-geneHuge {
+    background-color: #52a866 !important;
+}
+
+.filter-pill-phenotypeHuge {
+    background-color: #b2c060 !important;
+}
+
+.filter-pill-consequence {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-annotation {
+    background-color: hsl(211deg 100% 50% / 80%) !important;
+}
+
+.filter-pill-source {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-moleculeType {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-tech {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-method {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-tissue {
+    background-color: rgb(231 31 175 / 74%) !important;
+}
+
+.filter-pill-ancestry {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-collection {
+    margin: 10px 0 10px 0;
+}
+
+.filter-pill-collection.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* HuGe Calculator specific */
+#huge .filter-pill-gene {
+    background-color: #ff8c00 !important;
+}
+
+#huge .filter-pill-phenotype {
+    background-color: #9de21c !important;
+}
+
+/* GAIT specific */
+#gait .accordion .card.mb-1 {
+    overflow: unset;
+}
+
+#gait .accordion .btn-block {
+    text-align: left;
+    position: relative;
+}
+
+#gait .accordion .btn-block.btn-outline-primary {
+    border-color: transparent;
+}
+
+#gait .accordion .criteria {
+    position: absolute;
+    right: 0.75rem;
+    top: unset;
+}
+
+#gait .criteria {
+    display: inline;
+    overflow: visible;
+}
+
+#gait .accordion .alert,
+#variant-search .alert {
+    text-align: center;
+}
+
+#gait .reference>span {
+    color: white;
+}
+
+#gait .function {
+    text-align: center;
+    margin: 20px auto;
+}
+
+#gait .filter-tests.card {
+    border-style: dashed;
+}
+
+#gait .filter-tests>.card-header {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+#gait .filter-pill-dataset {
+    background-color: #8a2be2 !important;
+}
+
+#gait .filter-pill-gene,
+#gait .filter-pill-geneORregion {
+    background-color: #ff8c00 !important;
+}
+
+#gait .filter-pill-test {
+    background-color: #dc3545 !important;
+}
+
+#gait .filter-pill-transcript {
+    background-color: #3e78ff !important;
+}
+
+#gait .form-group {
+    margin-bottom: auto;
+}
+
+#gait .alert-info,
+#variant-search .alert-info,
+#dataset_inspector .alert-info {
+    padding: 0.1rem 1.25rem;
+}
+
+#gait .b-table-details {
+    background-color: unset;
+}
+
+#gait .b-table-details td {
+    padding: 0;
+}
+
+#gait .variants {
+    margin-top: 2rem;
+}
+
+button.btn.btn-mini {
+    padding: 0.1rem 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+}
+
+#gait .forest-plot-simple {
+    position: relative;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    overflow-x: hidden;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    line-height: 2rem;
+    border-left: 4px solid #ddd;
+    color: #aaa;
+    margin-left: 15px;
+}
+
+#gait .forest-plot-html-row {
+    margin-top: 10px auto;
+}
+
+#gait .forest-plot-html-row:hover {
+    background-color: unset;
+}
+
+#gait .beta-box {
+    background-color: #55aaee;
+}
+
+#gait .plot {
+    overflow: hidden;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 1s;
+}
+
+.fade-enter,
+.fade-leave-to
+
+/* .fade-leave-active below version 2.1.8 */
+    {
+    opacity: 0;
+}
+
+/* for volcano plot. Move it to it's own CSS when there's too much */
+#volcanoPlot {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.volcano-plot-label {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.volcano-plot-legend {
+    text-align: center;
+    font-size: 14px;
+}
+
+span.volcano-score-0,
+span.volcano-score-1,
+span.volcano-score-2 {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    background-color: #00000050;
+    border-radius: 6px;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+span.volcano-score-1 {
+    background-color: #09910980;
+}
+
+span.volcano-score-2 {
+    background-color: #ff003780;
+}
+
+#clicked_dot_value,
+#ld_clicked_dot_value,
+#clicked_cell_value {
+    position: absolute;
+    background-color: #fff;
+    border: solid 1px #aaa;
+    box-shadow: 0 0 5px #00000075;
+    font-size: 12px;
+    padding: 0px 10px 5px 10px;
+    max-width: 300px;
+    border-radius: 5px;
+    z-index: 10;
+    width: auto;
+}
+
+.gene-on-clicked-dot {
+    /*
+    background-color: #ddd;
+    border: solid 1px #aaa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    */
+
+    display: inline-block;
+    margin-right: 10px;
+    margin-top: 3px;
+}
+
+.top-associations-section-phenotype-filter {
+    margin-bottom: 35px;
+    display: block;
+}
+
+.top-associations-section-phenotype-filter>div {
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
+    border-radius: 5px;
+    height: 58px;
+}
+
+.top-associations-section-phenotype-filter div.filtering-ui-wrapper {
+    border: none !important;
+    background: none !important;
+    width: 50% !important;
+    display: inline-block;
+    text-align: left;
+    padding-left: 30px;
+    padding-bottom: 20px;
+    padding-top: 10px;
+}
+
+.top-associations-section-phenotype-filter span.filter-pill-collection {
+    border: none !important;
+    background: none !important;
+    width: 50% !important;
+    display: inline-block;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.top-associations-section-phenotype-filter div.filter-col-md>div {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.kp-lab-icon {
+    width: 75px;
+    float: left;
+    margin-right: 10px;
+}
+
+.svg-wrapper,
+.tab-content-wrapper,
+.plot-tab-content-wrapper {
+    visibility: visible;
+    height: auto;
+}
+
+.svg-wrapper.hidden-svg,
+.tab-content-wrapper.hidden-content,
+.plot-tab-content-wrapper.hidden-content,
+.tab-content-wrapper.hidden-content .plot-tab-content-wrapper {
+    visibility: hidden;
+    height: 25px;
+}
+
+.hidden-svg .plot-tab-content-wrapper {
+    visibility: hidden;
+    height: 1;
+}
+
+.kp-tabs-wrapper {
+    margin-bottom: -1px;
+    padding-left: 20px;
+}
+
+.kp-tabs {
+    z-index: 1;
+    margin: 0 !important;
+    padding: 0 !important;
+    white-space: nowrap;
+    margin-left: 40px;
+}
+
+.kp-tabs li {
+    display: inline-block;
+    background-color: #eee;
+    border: solid 1px #ddd;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.kp-tabs li.active {
+    border-bottom: solid 1px #fff;
+    background-color: #fff;
+}
+
+.kp-tabs li>a {
+    display: block;
+    padding: 10px 15px 5px 15px;
+    cursor: pointer;
+}
+
+.kp-tabs-contents {
+    /*margin: auto;*/
+    background-color: #fff;
+    padding: 1.25em;
+    border-radius: 5px;
+    border: solid 1px #ddd;
+}
+
+.kp-tabs-contents.not-active {
+    background: none;
+    padding: 1.25em;
+    border: none;
+}
+
+.kp-tab-content {
+    visibility: hidden;
+    height: 0px !important;
+    margin: 0 !important;
+}
+
+.kp-tab-content .svg-wrapper {
+    visibility: hidden;
+    height: 0px !important;
+    margin: 0 !important;
+}
+
+.kp-tab-content.active {
+    visibility: visible;
+    height: auto !important;
+}
+
+.kp-tab-content.active .svg-wrapper {
+    visibility: visible !important;
+    height: auto !important;
+}
+
+.kp-tab-content.active .svg-wrapper.hidden-svg {
+    visibility: hidden !important;
+    height: 25px !important;
+}
+
+span[class^="spacer-"],
+span[class^=" spacer-"] {
+    display: inline-block;
+}
+
+span.spacer-1 {
+    width: 1em;
+}
+
+span.spacer-2 {
+    width: 2em;
+}
+
+span.spacer-3 {
+    width: 3em;
+}
+
+span.spacer-4 {
+    width: 4em;
+}
+
+span.spacer-5 {
+    width: 5em;
+}
+
+.reference-area {
+    border-left: solid 1px #ddd;
+    height: 100%;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+/* for tool tip UI. */
+
+.tip-wrapper {
+    vertical-align: -13px;
+    margin-left: 5px;
+    position: relative;
+}
+
+.tip-wrapper>.tip-content {
+    display: none;
+    position: absolute;
+    width: auto;
+    z-index: 10;
+    top: 0;
+    left: 18px;
+    min-width: 300px;
+    background-color: #000000;
+    color: #ffffff;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.tip-wrapper:hover>.tip-content {
+    display: block;
+}
+
+.tip-bigger {
+    font-size: 1.25em;
+}
+
+.warning {
+    color: #ff0000;
+}
+
+.all_biosamples {
+    font-weight: bold;
+}
+
+.download-images-setting {
+    position: absolute;
+    top: -10px;
+    right: 5px;
+}
+
+.download-images-setting .options-gear {
+    color: #333333;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    margin-right: 10px;
+    border: solid 1px #dddddd;
+}
+
+.download-images-setting .options-gear>svg {
+    font-size: 12px !important;
+}
+
+.download-images-setting:hover .options-gear {
+    color: #000000;
+}
+
+.download-images-setting ul.options {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    padding: 15px;
+    border: solid 1px #dddddd;
+    border-radius: 5px;
+    z-index: 10;
+    list-style: none;
+    right: 0;
+    box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%)
+}
+
+.download-images-setting ul.options li {
+    white-space: nowrap;
+}
+
+.download-images-setting ul.options li label {
+    padding-left: 5px;
+}
+
+.download-images-setting:hover ul.options {
+    display: block;
+}
+
+.greater-less-filter select {
+    /* This can't be done at component level due to scope concerns.*/
+    display: inline;
+    width: inherit;
+    margin-right: -5px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    height: 30px;
+}
+
+.greater-less-filter input {
+    height: 30px;
+    margin-left: -5px;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.greater-less-filter .label {
+    margin-left: -30px !important;
+}
+
+/* single search on gene, region, phenotype, variant pages */
+
+.search-header-content .byor-single-search {
+    width: 400px !important;
+}
+
+.search-header-content .byor-single-search-wrapper .reset-search {
+    top: 24px !important;
+}
+
+/* BYOR stuff */
+
+/* Associations table color coding - can't do scoped because it is within table template*/
+.assoc-table-bottom-line td.meta {
+    width: 10px;
+}
+
+.assoc-table-bottom-line td.bottom-line-only {
+    background-color: #6dcff6;
+}
+
+.assoc-table-bottom-line td.bottom-line-min-p {
+    background-color: #8781bd;
+}
+
+.assoc-table-bottom-line td.all-meta-types {
+    background-color: #b6aaa7;
+}
+
+.alert-pop-up {
+    position: fixed;
+    z-index: 200;
+    width: 400px;
+    top: 50%;
+    left: calc(50% - 200px);
+    background-color: #ffefef;
+    padding: 15px 30px;
+    border: solid 1px #ff8888;
+    border-radius: 5px;
+    font-size: 1.15em;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
