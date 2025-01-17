@@ -24,6 +24,13 @@ let pages = {
         title: "Mouse Gene",
         chunks: ["chunk-vendors", "chunk-common", "gene"],
     },
+    tissue: {
+        entry: "src/portals/MousePortal/views/Tissue/main.js",
+        template: "src/portals/MousePortal/index.html",
+        filename: "tissue.html",
+        title: "Mouse Tissue",
+        chunks: ["chunk-vendors", "chunk-common", "tissue"],
+    }
 };
 
 module.exports = {

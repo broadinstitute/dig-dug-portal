@@ -28,7 +28,7 @@ new Vue({
             location.href = `/gene.html?gene=${gene}`;
         },
         goToTissue(tissue){
-            console.log("coming soon");
+            location.href = `/tissue.html?tissue=${tissue}`;
         }
     },
     computed: {
