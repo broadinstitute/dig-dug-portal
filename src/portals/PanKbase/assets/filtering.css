@@ -1,0 +1,192 @@
+/* Filtering UI - copied from main portal*/
+div.filtering-ui-wrapper {
+  border: solid 1px #ddd;
+  border-radius: 5px;
+  background-color: #efefef;
+  text-align: center;
+  margin-bottom: 10px;
+  padding: 3px 0;
+  position: relative;
+}
+
+div.filtering-ui-wrapper.add-content {
+  background-color: #ddefff;
+  border: 1px solid #bbdfff;
+}
+
+div.filtering-ui-wrapper .filter-by-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+div.filtering-ui-wrapper .list-group {
+  text-align: left;
+}
+
+div.selected-filters-ui-wrapper {
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  min-height: 1px;
+}
+
+div.selected-filters-ui-wrapper .badge-pill {
+  font-size: 12px;
+  font-weight: 400;
+  margin: 0 3px;
+}
+
+div.filtering-ui-content {
+  width: auto !important;
+  display: block;
+}
+
+div.filtering-ui-content .divider.col {
+  width: 1px !important;
+  height: 61px;
+  padding: 0 1px 0 0;
+  background-color: #aaa;
+  margin-bottom: -17px;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+div.filtering-ui-content .divider.col .or-text {
+  display: block;
+  position: absolute;
+  left: -8px;
+  top: 35%;
+  font-size: 10px;
+  background-color: #aaa;
+  color: #fff;
+  padding: 2px 2px 1px 2px;
+  border-radius: 14px;
+}
+
+#pageSearchParameters .divider.col {
+  width: 1px !important;
+  height: 61px;
+  padding: 0 1px 0 0;
+  background-color: #fff;
+  margin-bottom: -17px;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+#pageSearchParameters .divider.col .or-text {
+  display: block;
+  position: absolute;
+  left: -6px;
+  top: 35%;
+  font-size: 10px;
+  background-color: #666;
+  color: #fff;
+  padding: 2px 2px 1px 2px;
+  border-radius: 14px;
+  width: 18px;
+  font-weight: 500;
+  height: 18px;
+}
+
+#pageSearchParameters .btn.go {
+  border: 1px solid #ced4da;
+  border-radius: 0.25em;
+  height: 30px;
+  margin-top: -2px !important;
+}
+
+div.filtering-ui-content div.col {
+  display: inline-block !important;
+  width: auto !important;
+  font-size: 14px;
+  padding: 5px 7px;
+}
+
+div.filtering-ui-content div.col.hidden-search {
+  display: none !important;
+}
+
+div.filtering-ui-content div.col .label {
+  font-weight: 600;
+}
+
+span div.label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+div.filtering-ui-content div.col .form-control,
+div.filtering-ui-content div.col select,
+div.filtering-ui-content div.col input {
+  height: 30px;
+  width: 175px;
+  font-size: 14px;
+}
+
+div.filtering-ui-content div.col input.or-half-gt,
+div.filtering-ui-content div.col input.or-half-lt {
+  width: 70px;
+}
+
+div.filtering-ui-content div.col.filter-col-md .form-control,
+div.filtering-ui-content div.col.filter-col-md select,
+div.filtering-ui-content div.col.filter-col-md input {
+  width: 220px;
+  display: inline-block;
+}
+
+div.filtering-ui-content div.col.filter-col-lg .form-control,
+div.filtering-ui-content div.col.filter-col-lg select,
+div.filtering-ui-content div.col.filter-col-lg input {
+  width: 300px !important;
+  display: inline-block;
+}
+
+div.filtering-ui-content div.filter-col-sm .form-control,
+div.filtering-ui-content div.col.filter-col-sm select,
+div.filtering-ui-content div.col.filter-col-sm input {
+  width: 110px !important;
+  display: inline-block;
+}
+
+.help-content.filter-wrapper-help {
+  display: block !important;
+  position: absolute;
+  top: 2px;
+  left: 5px;
+}
+
+.help-content.filter-wrapper-help .help-content-caller.hover {
+  padding: 0.075em 0.525em 0.075em 0.525em !important;
+}
+
+.btn.btn-sm.btn-2-vptz {
+  height: 30px;
+  font-size: 12px;
+  margin-top: -1px;
+  background-color: #a0d7ff;
+  border: solid 1px #30b7f6;
+  color: #0087c6 !important;
+}
+
+.btn.btn-sm.btn-2-vptz:hover {
+  background-color: #30b7f6;
+  border: solid 1px #30b7f6;
+  color: #fff !important;
+}
+
+[class*="filter-pill-"] {
+  margin-right: 2px;
+  margin-left: 2px;
+}
+
+.filter-pill-collection {
+  margin: 10px 0 10px 0;
+}
+
+.filter-pill-collection.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

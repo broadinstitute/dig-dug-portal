@@ -1038,7 +1038,7 @@
                 const datasetInfo = this.data.find(x => x.datasetId === this.datasetId);
 
                 //make sure dataset exists in the metadata
-                if(!datasetInfo){
+                /*if(!datasetInfo){
                     console.log('dataset', this.datasetId, 'not in collection');
                     this.datasetId = null;
                     return;
