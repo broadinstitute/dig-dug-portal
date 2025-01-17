@@ -1,13 +1,41 @@
 <template>
-    <div style="height:-webkit-fill-available; display:flex">
-        <!-- if selector is dropdown-->
+    <div style="height:100%; display:flex">
+        <!-- if layout is list-->
+         <div v-if="layout==='list'" class="list-container" :class="[listDirection, listAlignment]">
+            <div class="list-option" v-for="label of listData" :key="label">
+                <div class="colorize-option" :class="labelIsolated(coloredOption, label)" @click="colorLabel($event, label)" v-b-tooltip:hover.left.window="'isolate label'">
+                    <svg width="1em" viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="colors ? colors[selectedOption][label] : label === selectedOption ? '#434343' : '#ccc'"/></svg>
+                </div>
+                <div class="option-label" :title="label" @mouseover="emitHover(label)" @mouseout="emitHover('')">{{ label }}</div>
+            </div>
+         </div>
+
+         <!-- if layout is dropdown-->
         <div v-if="layout==='dropdown'" class="dropdown-container">
+            <div class="dropdown-group">
+                <template v-if="showColor">
+                    <div class="colorize-option on" @click="colorOption($event, selectedOption)" v-b-tooltip:hover.left="'color all labels'">
+                        <svg width="1em" viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
+                    </div>
+                </template>
+                <select style="width: 100%;" @change="selectOption($event)" v-model="selectedOption">
+                    <option value="">--Select--</option>
+                    <option v-for="(value, key) of data" :value="key">
+                        {{ key }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- if layout is dropdown-list-->
+        <div v-if="layout==='dropdown-list'" class="dropdown-container">
             <div class="dropdown-group">
                 <div class="colorize-option on" @click="colorOption($event, selectedOption)" v-b-tooltip:hover.left="'color all labels'">
                     <svg width="1em" viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" fill="#434343"/></svg>
                 </div>
                 <template v-if="showSelect">
                     <select style="width: 100%;" @change="selectOption($event)" v-model="selectedOption">
+                        <option value="">--Select--</option>
                         <option v-for="(value, key) of data" :value="key">
                             {{ key }}
                         </option>
@@ -18,8 +46,8 @@
                 </template>
             </div>
             <div class="dropdown-content">
-                <div class="dropdown-option" v-for="label of data[selectedOption]" :key="label">
-                    <div class="colorize-option" :class="labelIsolated(coloredOption, label)" @click="colorLabel($event, label)" v-b-tooltip:hover.left.window="'isolate label'">
+                <div class="dropdown-option" v-for="label of data[selectedOption]" :key="label" @click="colorLabel($event, label)">
+                    <div class="colorize-option" :class="labelIsolated(coloredOption, label)" v-b-tooltip:hover.left.window="'isolate label'">
                         <svg width="1em" viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="colors ? colors[selectedOption][label] : '#434343'"/></svg>
                     </div>
                     <div class="option-label" :title="label" @mouseover="emitHover(label)" @mouseout="emitHover('')">{{ label }}</div>
@@ -27,7 +55,7 @@
             </div>
         </div>
 
-        <!-- if selector is accordion-->
+        <!-- if layout is accordion-->
         <div v-if="layout==='accordion'" class="accordion-container">
             <template v-for="(value, key) of data">
                 <div class="accordion-group"
@@ -77,8 +105,6 @@ data: {
     ...
 }
 
-layout: "dropdown", "accordion"
-
 colors: {
     "field1": {
         "label1": "#xxxxxx",
@@ -88,51 +114,66 @@ colors: {
     ...
 }
 
-defaultLabel: "cell_type"
+selectedField: "cell_type"
 */
 
 export default Vue.component('research-single-cell-selector', {
     props: {
         data: {                           
-            type: (Object, null),
+            type: (Object, Array, null),
             required: true,
+        },
+        selectedField: {
+            type: String,
+            required: false,
+            default: ''
         },
         layout: {
             type: String,
             required: false,
-            default: 'dropdown'
+            default: 'dropdown' //'list', 'dropdown', 'dropdown-list', 'accordion'
+        },
+        listDirection: {
+            type: String,
+            required: false,
+            default: 'vertical' //'vertical' or 'horizontal'
+        },
+        listAlignment: {
+            type: String,
+            required: false,
+            default: 'start' //'start', 'center', 'end'
+        },
+        listSelection: {
+            type: String,
+            required: false,
+            default: 'inclusive' //'exclusive' or 'inclusive'
         },
         showSelect:{
             type: Boolean,
             required: false,
             default: true,
         },
+        showColor:{
+            type:Boolean,
+            required:false,
+            default:true,
+        },
         colors: {
             type: Object,
             required: false
-        },
-        defaultLabel: {
-            type: String,
-            required: false,
-            default: ''
         }
     },
     data() {
         return {
             selectedOption: '',
             coloredOption: '',
-            coloredLabels: []
+            coloredLabels: [],
+            listData: null
         }
     },
     watch: {
-        selectedOption(){
-            this.emitUpdate();
-        },
-        coloredOption(){
-            this.emitUpdate();
-        },
-        coloredLabels(){
-            this.emitUpdate();
+        selectedField(){
+            this.init();
         }
     },
     mounted() {
@@ -143,33 +184,54 @@ export default Vue.component('research-single-cell-selector', {
     },
     methods: {
         init(){
-            this.selectOption(null, this.defaultLabel)
-            if(this.layout === "accordion"){
-                this.colorOption(null, this.defaultLabel);
+            if(!this.selectedField) {
+                this.listData = null;
+                return;
+            }
+            const isArray = Array.isArray(this.data);
+            if(isArray || this.layout==='list'){
+                this.selectedOption = this.selectedOption === this.selectedField ? '' : this.selectedField;
+                this.coloredOption = this.selectedField;
+                this.coloredLabels[0] = this.coloredOption;
+                this.listData = isArray ? this.data : this.data[this.selectedOption];
+                this.layout = 'list';
+            }else{
+                this.selectOption(null, this.selectedField)
+                if(this.layout === "accordion"){
+                    this.colorOption(null, this.selectedField);
+                }
             }
         },
         selectOption(e, key){
+            console.log('selectOption', e, key);
             const option = key ? key : e.target.value;
             this.coloredLabels = [];
-            if(this.layout === 'dropdown') {
+            if(this.layout === 'dropdown-list' || this.layout === 'dropdown') {
                 this.selectedOption = option;
                 this.coloredOption = option;
             }else{
                 this.selectedOption = this.selectedOption === option ? '' : option;
             }
+            this.emitUpdate();
         },
         colorOption(e, option){
             this.coloredOption = option;
             this.coloredLabels = [];
+            this.emitUpdate();
         },
         colorLabel(e, label){
             const el = e.target;
-            if(this.coloredLabels.includes(label)){
-                this.coloredLabels.splice(this.coloredLabels.indexOf(label), 1);
-                el.classList.remove('on')
+            if(this.listSelection==='inclusive'){
+                if(this.coloredLabels.includes(label)){
+                    this.coloredLabels.splice(this.coloredLabels.indexOf(label), 1);
+                    el.classList.remove('on')
+                }else{
+                    this.coloredLabels.push(label);
+                }
             }else{
-                this.coloredLabels.push(label);
+                this.coloredLabels[0] = label;
             }
+            this.emitUpdate();
         },
         labelIsolated(key, label){
             if(key === this.coloredOption){
@@ -178,17 +240,17 @@ export default Vue.component('research-single-cell-selector', {
                 }
             }
             return '';
-            
         },
         emitUpdate(){
-            this.$emit('on-update', {
+            const emitObj = {
                 selectedField: this.selectedOption, 
                 coloredField: this.coloredOption, 
                 coloredLabels: this.coloredLabels
-            });
+            }
+            console.log('emitUpdate', emitObj);
+            this.$emit('on-update', emitObj);
         },
         emitHover(label){
-            if(this.selectedOption !== this.coloredOption) return;
             this.$emit('on-hover', {
                 hoveredLabel: label
             });
@@ -202,6 +264,35 @@ select {
     background: white;
     font-size: 14px;
 }
+.list-container{
+    display: flex; 
+    flex-wrap: wrap; 
+    /*justify-content: flex-end;*/
+    column-gap: 5px;
+    /*margin: 0 15px 0 35px;*/
+    width: -webkit-fill-available;
+}
+.list-container.vertical{
+    flex-direction: column;
+    flex-wrap: unset;
+    gap: 0px;
+}
+.list-container.start{
+    justify-content: flex-start;
+}
+.list-container.center{
+    justify-content: center;
+}
+.list-container.end{
+    justify-content: flex-end;
+}
+.list-option{
+    display:flex; 
+    gap:2px; 
+    align-items: center; 
+    flex-wrap: nowrap;
+}
+
 .dropdown-container{
     display: flex;
     flex-direction: column;
@@ -222,6 +313,7 @@ select {
 .dropdown-option{
     display: flex;
     gap: 5px;
+    cursor: pointer;
 }
 
 .accordion-container {
