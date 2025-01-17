@@ -43,7 +43,6 @@
 					}}<span class="search-word-group"><a class="search-gene-link" @click="searchGene(gene)"
 							href="javascript:;">{{ "Search gene"
 							}}<span class="gene-link-tip">Alias names are converted to gene symbols</span></a>
-						|
 						</span>
 				</div>
 
@@ -379,7 +378,7 @@ export default Vue.component("mouse-single-search", {
 		},
 
 		async lookupGenes(input) {
-			let matches = await match("gene", input, { limit: 10 });
+			let matches = await match("diff-exp-summary-gene", input, { limit: 10 });
 			this.singleSearchResult.genes = matches;
 		},
 	},
