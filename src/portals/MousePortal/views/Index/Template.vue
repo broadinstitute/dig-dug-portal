@@ -35,12 +35,16 @@
 
                         <div class="row front-search-section">
                             <div class="col-md-8 offset-md-2" align="center">
-                                <div class="single-search-wrapper">
-                                    <h4 style="color: #fff">
-                                        Search by gene or tissue
-                                    </h4>
-                                    <input />
+                                <div>
+                                    <div class="filtering-ui-content row">
+                                        <h4 style="color: #fff">
+                                            Search by gene or tissue
+                                        </h4>
+                                    <mouse-gene-select></mouse-gene-select>
+                                    <mouse-tissue-select></mouse-tissue-select>
+                                    </div>
                                 </div>
+                                
                             </div>
                         </div>
                         <div class="about">
@@ -58,7 +62,7 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
-<style>
+<style scoped>
 p[id="home.example"] {
     white-space: break-spaces;
 }
@@ -76,10 +80,6 @@ p[id="home.example"] {
     font-size: 28px;
     font-weight: 100;
     color: #fff;
-}
-
-.front-search-section {
-    margin-top: 50px;
 }
 
 .front-search-section .tab-pane {
@@ -196,7 +196,7 @@ p[id="home.example"] {
     max-width: 70px;
 }
 .front-logo-img {
-    max-height: 300px !important;
+    max-height: 250px !important;
     width: auto !important;
 }
 .about {

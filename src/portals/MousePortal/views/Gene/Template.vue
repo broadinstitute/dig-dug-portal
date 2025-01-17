@@ -22,14 +22,13 @@
                 </search-header-wrapper>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4>Mouse Differential Expression Browser</h4>
+                        <h4>Mouse Differential Expression by Gene</h4>
                         <documentation
                             name="mouse.diff-exp-browser.subheader"
                             :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
                         <criterion-function-group>
                             <mouse-tissue-select> </mouse-tissue-select>
-                            <mouse-gene-select> </mouse-gene-select>
                             <button
                                 class="btn btn-primary btn-sm"
                                 @click="$parent.searchDiffExp()"

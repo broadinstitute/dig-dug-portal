@@ -5,12 +5,18 @@ import store from "./store.js";
 import "../../assets/layout.css";
 import "../../assets/mouseportal.css";
 import "../../assets/mdkp_copy.css";
+
+import MouseTissueSelect from "../../../../components/MouseTissueSelect.vue";
+import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
+
 import { mouseMixin } from "@/portals/MousePortal/mixins/mouseMixin.js";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
     components: {
+        MouseGeneSelect,
+        MouseTissueSelect
     },
     mixins: [mouseMixin],
     data() {
