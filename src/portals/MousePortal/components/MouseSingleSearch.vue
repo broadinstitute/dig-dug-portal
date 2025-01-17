@@ -168,39 +168,16 @@ export default Vue.component("mouse-single-search", {
 			})
 		},
 		async getTissues() {
-
-			let tissues1 = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/gene-expression-tissue/1`)
+			let tissues = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/diff-exp/2?columns=tissue`)
 				.then(resp => resp.json())
 				.then(json => {
 					if (json.count == 0) {
 						return null;
 					}
-
-					let tissues = json.keys.map(key => key[0].replaceAll("_", " "))
-
-					return tissues;
+					return json.keys.map(key => key[0])
 				});
-
-			let tissues2 = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/partitioned-heritability-top-tissue/2`)
-				.then(resp => resp.json())
-				.then(json => {
-					if (json.count == 0) {
-						return null;
-					}
-
-					let tissues = json.keys.map(key => key[0].replaceAll("_", " "))
-
-					return tissues;
-				});
-
-			
-
-			//return tissues;
-			if (!!tissues1 && tissues2) {
-				let tissues = tissues1.concat(tissues2);
 
 				let uniqueList = [...new Set(tissues)];
-
 				let tissuesList = [];
 				uniqueList.map(tissue => {
 					let labelString = tissue.charAt(0).toUpperCase() + tissue.slice(1);
@@ -208,9 +185,7 @@ export default Vue.component("mouse-single-search", {
 
 					tissuesList.push(tempObj)
 				});
-
 				this.customList["tissues"] = tissuesList;
-			}
 		},
 		anyResults() {
 			let parameters = Object.keys(this.singleSearchResult)
