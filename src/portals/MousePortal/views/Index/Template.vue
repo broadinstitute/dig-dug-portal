@@ -1,3 +1,5 @@
 <template>
-  Hello Mouse World!
+  <div>
+    Hello Mouse World!
+  </div>
 </template>
