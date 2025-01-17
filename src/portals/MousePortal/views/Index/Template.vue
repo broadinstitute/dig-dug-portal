@@ -1,5 +1,7 @@
 <template>
   <div>
-    Hello Mouse World!
+    <mouse-header>
+    </mouse-header>
+    Search by gene or tissue
   </div>
 </template>
