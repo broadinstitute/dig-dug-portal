@@ -13,11 +13,10 @@
                 <search-header-wrapper>
                     <div class="region-search col filter-col-md">
                         <div class="label">Begin new search</div>
-                        <research-single-search
-                            :single-search-config="null"
-                            :phenotypes="$parent.phenotypesInSession"
+                        <mouse-single-search
+                            :singleSearchConfig="null"
                             :utils="$parent.utilsBox"
-                        ></research-single-search>
+                        ></mouse-single-search>
                     </div>
                 </search-header-wrapper>
                 <div class="card mdkp-card">

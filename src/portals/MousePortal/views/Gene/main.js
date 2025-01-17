@@ -20,6 +20,7 @@ import HugeScoresTable from "../../../../components/HugeScoresTable.vue";
 import UnauthorizedMessage from "../../../../components/UnauthorizedMessage";
 import GeneAssociationsTable from "../../../../components/GeneAssociationsTable";
 import GeneAssociationsMasks from "../../../../components/GeneAssociationsMasks";
+import MouseSingleSearch from "../../components/MouseSingleSearch.vue";
 
 import uiUtils from "../../../../utils/uiUtils";
 import plotUtils from "../../../../utils/plotUtils";
@@ -57,6 +58,7 @@ new Vue({
         UnauthorizedMessage,
         GeneAssociationsMasks,
         GeneAssociationsTable,
+        MouseSingleSearch,
     },
     mixins: [pageMixin],
     data() {

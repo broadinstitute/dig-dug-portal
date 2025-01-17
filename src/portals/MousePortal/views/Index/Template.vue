@@ -44,17 +44,6 @@
                                             :singleSearchConfig="null"
                                             :utils="$parent.utilsBox"
                                         ></mouse-single-search>
-                                        <!-- <research-single-search
-                                            :single-search-config="$parent.searchConfig"
-                                            :phenotypes="[]"
-                                            :utils="$parent.utilsBox">
-                                        </research-single-search> -->
-                                    <!-- <mouse-gene-select
-                                        @onGeneChange="gene => $parent.goToGene(gene)">
-                                    </mouse-gene-select>
-                                    <mouse-tissue-select
-                                        @onTissueChange="tissue => $parent.goToTissue(tissue)">
-                                    </mouse-tissue-select> -->
                                     </div>
                                 </div>
                                 
