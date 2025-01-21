@@ -200,7 +200,9 @@
 									:plotLegend="getSectionPlotLegend(sectionID + groupIndex + '_' + plotIndex)" :sectionId="sectionID + groupIndex  + '_' + plotIndex"
 									:utils="utils" :dataComparisonConfig="dataComparisonConfig"
 									:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
-									:regionViewArea="regionViewArea" :region="regionParam" :starItems="starItems"
+									:regionViewArea="regionViewArea" :region="regionParam" 
+									:bigRegion="bigRegionParam"
+									:starItems="starItems"
 									@on-star="starColumn">
 								</research-section-visualizers>
 							</div>
@@ -223,7 +225,8 @@
 								:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
 								:utils="utils" :dataComparisonConfig="dataComparisonConfig"
 								:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
-								:regionViewArea="regionViewArea" :region="regionParam" :starItems="starItems"
+								:regionViewArea="regionViewArea" :region="regionParam" 
+								:bigRegion="bigRegionParam" :starItems="starItems"
 								@on-star="starColumn">
 							</research-section-visualizers>
 						</div>
@@ -235,6 +238,7 @@
 						:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
 						:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
 						:regionZoom="regionZoom" :regionViewArea="regionViewArea" :region="regionParam"
+						:bigRegion="bigRegionParam"
 						:starItems="starItems" @on-star="starColumn">
 					</research-section-visualizers>
 					<template v-if="!!tableFormat && !tableFormat['display type']">
@@ -352,6 +356,7 @@ export default Vue.component("research-section", {
 			searched: [],
 			loadingDataFlag: "down",
 			regionParam: null,
+			bigRegionParam: null,
 			sectionHidden: false,
 			openInfoCard: null,
 			customList: {},
@@ -553,6 +558,7 @@ export default Vue.component("research-section", {
 				this.$emit('on-sectionData', { id: this.sectionID, config: this.sectionConfig, data: DATA });
 			}
 			this.getRegion();
+			this.getBigRegion();
 		},
 		originalData(DATA) {
 			if (this.loadingDataFlag == "down") {
@@ -691,6 +697,17 @@ export default Vue.component("research-section", {
 			}
 
 			this.regionParam = region;
+		},
+		getBigRegion() {
+			let region = !!this.dataPoint['big region'] ? this.utils.keyParams[this.dataPoint['big region']] : this.utils.keyParams['bigRegion'];
+			let targetPlotConfig = !!this.visualizer ? !!this.visualizer["genes track"] ?
+				this.visualizer["genes track"] : this.visualizer : null;
+
+			if (!!region) {
+				region = region.split(",").pop();
+			}
+
+			this.bigRegionParam = region;
 		},
 		resetAll() {
 			this.sectionData = null,

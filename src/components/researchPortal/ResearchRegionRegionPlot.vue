@@ -1,6 +1,7 @@
 <template>
 	<div :id="'region_region_wrapper' + sectionId" class="region-region-wrapper">
-		
+		{{ region }}
+		{{ bigRegion }}
 		<canvas v-if="!!renderConfig" :id="'region_region_' + sectionId" class="region-region-plot"
 			width="" height="">
 		</canvas>
@@ -17,16 +18,15 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("region-region-plot", {
 	props: [
-		"plotData",
 		"renderConfig",
 		"plotMargin",
 		"pkgData",
 		"isSectionPage",
 		"sectionId",
 		"utils",
-		"starItems",
 		"colors",
-		"region"
+		"region",
+		"bigRegion"
 	],
 	data() {
 		return {
@@ -76,6 +76,7 @@ export default Vue.component("region-region-plot", {
 		},
 		wideRegion(REGION) {
 			this.renderPlot();
+			this.getGenesInRegion(REGION);
 		},
 		region(REGION) {
 			console.log("called");
@@ -86,22 +87,22 @@ export default Vue.component("region-region-plot", {
 	},
 	methods: {
 		setWideRegion() {
-			let param = this.utils.keyParams[this.renderConfig["wider region"]];
+			let param = this.bigRegion;//this.utils.keyParams[this.renderConfig["big region"]];
 			if (!!param) {
 				let regionArr = param.split(":");
 
-				let region = {
+				let bigRegion = {
 					chr: regionArr[0],
 					start: regionArr[1].split("-")[0],
 					end: regionArr[1].split("-")[1]
 				}
-				this.wideRegion = region;
+				this.wideRegion = bigRegion;
 			} else {
 				this.wideRegion = null;
 			}
 		},
 		setViewingRegion() {
-			let param = this.utils.keyParams[this.renderConfig["viewing region"]];
+			let param = this.region//this.utils.keyParams[this.renderConfig["region"]];
 			if (!!param) {
 				let regionArr = param.split(":");
 
@@ -113,6 +114,66 @@ export default Vue.component("region-region-plot", {
 				this.viewingRegion = region
 			} else {
 				this.viewingRegion = null;
+			}
+		},
+		async getGenesInRegion(region) {
+
+			let fetchUrl;
+			let searchPoint = (!!!!this.plotConfig && !!this.plotConfig["genes track"])? this.plotConfig["genes track"]["search point"]: null;
+
+			if (!!searchPoint) {
+				fetchUrl = searchPoint + "/api/bio/query/genes?q=" + region;
+			} else {
+				fetchUrl = this.utils.uiUtils.biDomain() + "/api/bio/query/genes?q=" + this.bigRegion;
+			}
+
+			let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+			if (genes.error == null) {
+
+				
+				let genesInRegion = JSON.parse(genes);
+
+				let codingGenes = "";
+
+				if (!!genesInRegion["data"] && genesInRegion["data"].length > 1) {
+					genesInRegion["data"].map((gene) => {
+						if ((gene.type = "protein_coding")) {
+							codingGenes += "'" + gene.name + "',";
+						}
+					});
+
+					codingGenes = codingGenes.slice(0, -1);
+					
+					if (codingGenes.length > 1) {
+						console.log("codingGenes", codingGenes);
+						this.getGenesData(codingGenes);
+					}
+				}
+			}
+		},
+		async getGenesData(GENES) {
+			
+			let fetchUrl;
+			if (!!this.plotConfig && !!this.plotConfig["genome reference"] && this.plotConfig["genome reference"] == "GRCh38") {
+				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 1 and gene_name in " + GENES;
+			} else if (!this.plotConfig || !this.plotConfig["genome reference"] ||
+				(!!this.plotConfig["genome reference"] && 
+				(this.plotConfig["genome reference"] == "GRCh37" || this.plotConfig["genome reference"] == "hg19"))) {
+				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
+			}
+
+			let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+
+			if (genesData.error == null) {
+
+				this.localGenesData = JSON.parse(genesData).data;
+
+				this.localGeneTypes = [...new Set(this.localGenesData.filter(g => g.gene_type == "protein_coding"))]
+
+				console.log("this.localGeneTypes", this.localGeneTypes);
+
+				//this.renderTrack(this.localGenesData);
 			}
 		},
 		renderPlot() {

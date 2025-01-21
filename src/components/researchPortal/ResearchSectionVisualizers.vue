@@ -90,8 +90,7 @@
 		></research-m-qq-plot>
 		<!-- region_plot -->
 		 <research-region-region-plot
-		 	v-if="plotConfig != null && plotConfig['type'] == 'region in region plot'"
-			:plotData="plotData"
+		 	v-if="plotConfig != null && plotConfig['type'] == 'region in region plot' && !!region && !!bigRegion"
 			:renderConfig="plotConfig"
 			:plotMargin="plotMargin"
 			:isSectionPage="true"
@@ -100,6 +99,7 @@
 			:starItems="starItems"
 			:colors="colors"
 			:region="region"
+			:bigRegion="bigRegion"
 		 	>
 
 		 </research-region-region-plot>
@@ -217,7 +217,7 @@ import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBro
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
-		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region"],
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region","bigRegion"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
