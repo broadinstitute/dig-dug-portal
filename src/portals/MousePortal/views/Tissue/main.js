@@ -311,6 +311,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
+        this.$store.dispatch("queryDiffExp");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
