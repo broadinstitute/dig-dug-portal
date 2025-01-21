@@ -1,11 +1,11 @@
 <template>
     <div class="front-page-body">
         <!-- Header -->
-        <page-header
+        <!-- <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
             page="front"
-        ></page-header>
+        ></page-header> -->
         <!-- Body -->
         <div v-if="$parent.diseaseGroup">
             <div class="fluid">
