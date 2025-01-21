@@ -1,6 +1,7 @@
 <template>
 	<div class="col-md-12">
 		<div
+			v-if="!!plotData"
 			class="plot-legend"
 			v-html="plotLegend"
 		></div>
@@ -181,6 +182,13 @@
 			:starItems="starItems"
 			:utils="utils"
 		></research-scatter-plot>
+		<research-single-cell-browser
+			v-if="plotConfig && plotConfig['type'] == 'cell browser'"
+			:sectionId="sectionId"
+			:renderConfig="plotConfig"
+			:utils="utils"
+			:data="plotData"
+		></research-single-cell-browser>
 		
 	</div>
 </template>
@@ -205,6 +213,7 @@ import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 import ResearchRegionRegionPlot from "@/components/researchPortal/ResearchRegionRegionPlot.vue";
+import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
@@ -225,7 +234,8 @@ export default Vue.component("research-section-visualizers", {
 		ResearchBoxPlot,
 		ResearchRegionTrack,
 		ResearchRegionDotsTrack,
-		ResearchRegionRegionPlot
+		ResearchRegionRegionPlot,
+		ResearchSingleCellBrowser
     },
 	data() {
 		return {

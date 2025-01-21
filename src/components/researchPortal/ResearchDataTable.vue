@@ -1,6 +1,6 @@
 <template>
 	<div class="research-data-table-wrapper" :class="(!!tableFormat.display && tableFormat.display == 'false') ? 'hidden' : ''">
-		<div v-html="tableLegend" class="data-table-legend"></div>
+		<div v-if="!!dataset" v-html="tableLegend" class="data-table-legend"></div>
 		<div
 			v-if="
 				!!searchParameters &&
@@ -72,6 +72,12 @@
 										@click="convertJson2Csv(filteredData, pageID + sectionId + '_filtered')"
 									>
 										CSV
+									</div>
+									<div
+										class="convert-2-csv btn-sm"
+										@click="convertJson2Tsv(filteredData, pageID + sectionId + '_filtered')"
+									>
+										TSV
 									</div>
 									<div
 										class="convert-2-csv btn-sm"
@@ -148,21 +154,21 @@
 						<b-icon
 							:icon="!!stared ? 'star-fill' : 'star'"
 							style="color: #ffcc00; cursor: pointer"
-							
-							
 						>
+						</b-icon>
+						<span class="star-items-options">
+							<ul>
+								<li><a href="javascript:;" @click="showHideStared()">Show stard only</a></li>
+								<li><a href="javascript:;" @click="starAll()">Star / unstar all</a></li>
+							</ul>
+						</span>
+					</th>
+					<th v-if="!!tableFormat['select column']" class="select-items-control">
 						
-					</b-icon>
-					<span class="star-items-options">
-								<ul>
-									<li><a href="javascript:;" @click="showHideStared()">Show stard only</a></li>
-									<li><a href="javascript:;" @click="starAll()">Star / unstar all</a></li>
-								</ul>
-							</span>
 					</th>
 					<template v-for="(value, index) in topRows">
 						<th
-							v-if="getIfChecked(value) == true"
+							v-if="getIfChecked(value) == true && value !== tableFormat['select column']"
 							:key="index"
 							@click="!!multiSectionPage?callFilter(value):applySorting(value)"
 							class="byor-tooltip"
@@ -212,11 +218,15 @@
 								></b-icon
 							></span>
 						</td>
+						<td v-if="!!tableFormat['select column']">
+							<button @click="selectRow(value)" :disabled="isSelected(value)">Select</button>
+						</td>
 						<template
 							v-for="(tdValue, tdKey) in value"
 							v-if="
 								topRows.includes(tdKey) &&
-								getIfChecked(tdKey) == true
+								getIfChecked(tdKey) == true &&
+								tdKey !== tableFormat['select column']
 							"
 						>
 							<td
@@ -231,7 +241,7 @@
 											v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter, section.compare)" ></button>
 									</span>
 								</span>
-								<!-- working part-->
+								
 								<span v-else-if="!!ifSubsectionColumn(tdKey)"
 										class="dynamic-subsection-options">
 										<span class="btns-wrapper">
@@ -249,6 +259,12 @@
 								</span>
 								
 								<span v-else v-html="formatValue(tdValue, tdKey)"></span>
+
+								<!-- column formatting contains copy to clipboard -->
+								<b-btn  class="copy-to-clipboard"
+								 v-if="!!tableFormat['column formatting'] && tableFormat['column formatting'][tdKey] && 
+									tableFormat['column formatting'][tdKey].type.includes('copy to clipboard')"
+									@click="utils.uiUtils.copy2Clipboard(tdValue)">Copy</b-btn>
 							</td>
 							<td
 								v-if="
@@ -289,6 +305,14 @@
 						</template>
 						<td v-if="tableFormat['features'] != undefined">
 							<span
+								v-if="!tableFormat['features required column']"
+								href="javascript:;"
+								@click="showHideFeature('feature_' + sectionId + index)"
+								class="show-evidence-btn btn"
+								>View</span
+							>
+							<span
+								v-else-if="checkFeatureExist(value,tableFormat['features required column'])"
 								href="javascript:;"
 								@click="showHideFeature('feature_' + sectionId + index)"
 								class="show-evidence-btn btn"
@@ -314,7 +338,7 @@
 					<!-- testing dynamic sub table-->
 					<template v-if="!!tableFormat['column formatting']"
 					v-for="(itemValue, itemKey) in tableFormat['column formatting']">
-					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(itemKey+value[itemKey]+index)" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index)" :key="value[itemKey]"
+					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(itemKey+value[itemKey]+index)" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(itemKey + value[itemKey] + index)" :key="value[itemKey]"
 					>
 					<td :colspan="topRowNumber">
 						<research-sub-section
@@ -355,6 +379,7 @@
 
 <script>
 import Vue from "vue";
+import EventBus from "@/utils/eventBus";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
@@ -390,7 +415,9 @@ export default Vue.component("research-data-table", {
 			compareGroups: [],
 			stared: false,
 			staredAll: false,
+			selected: null,
 			subSectionData:[],
+			subSectionHidden:[],
 			subSectionLoading:[]
 		};
 	},
@@ -716,8 +743,30 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
+		checkFeatureExist(DATA,PATH) {
+			let ifExist = true;
+
+			let value = DATA;
+			PATH.map(step => {
+				value = value[step];
+
+				if(!value) {
+					ifExist = false
+				} else if (value=="" || value == undefined) {
+					ifExist = false
+				}
+			})
+
+			return ifExist;
+		},
 		getRowID(TEXT) {
 			return TEXT.replace(/[^a-zA-Z0-9]/g, '_');
+		},
+		
+		ifHidden(TEXT) {
+			let id = this.getRowID(TEXT);
+
+			return (this.subSectionHidden.includes(id))? 'hidden' : '';
 		},
 		setParameter(VALUE,KEY,SECTION,PARAMETERS,COMPARE){
 
@@ -853,16 +902,17 @@ export default Vue.component("research-data-table", {
 			if(ifLoadedBefore != true) {
 				let paramsString = VALUE;
 
-				////console.log("paramsString", paramsString)
 				switch (queryType) {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
 						this.queryBioindex(paramsString, paramsType, params, dataPoint, tableFormat,INDEX, KEY);
 						break;
-					/*case "api":
-						this.queryApi(paramsString, paramsType, params);
+					case "api":
+
+					console.log(paramsString, paramsType, params, dataPoint, tableFormat,KEY)
+						this.queryApi(paramsString, paramsType, params, dataPoint, tableFormat,INDEX, KEY);
 						break;
-					case "file":
+					/*case "file":
 						let parameter = this.dataPoint["parameter"]
 						this.queryFile(parameter);
 						break;*/
@@ -870,6 +920,14 @@ export default Vue.component("research-data-table", {
 			} else {
 				let fKEY = this.getRowID(KEY + VALUE + INDEX)
 				this.utils.uiUtils.showHideElement(fKEY);
+
+				let elementClassList = document.getElementsByClassName(fKEY)[0].classList;
+
+				if(!!elementClassList.contains("hidden")) {
+					this.subSectionHidden.push(fKEY);
+				} else {
+					this.subSectionHidden = this.subSectionHidden.filter(s => s != fKEY);
+				}
 			}
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
@@ -930,6 +988,115 @@ export default Vue.component("research-data-table", {
 
 			let data = CONTENT.data;
 
+
+			// if loaded data is processed
+			let tableFormat = TABLE_FORMAT;
+
+			if (!!tableFormat && !!tableFormat["data convert"]) {
+				let convertConfig = tableFormat["data convert"];
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+			}
+
+			// Apply pre-filters
+
+			if(!!tableFormat["pre filters"]) {
+
+				let tempArr = [...new Set(data)];
+
+				tableFormat["pre filters"].map(filter =>{
+
+					switch (filter.type) {
+						case 'filter out':
+							filter.values.map(v => {
+								tempArr = tempArr.filter(f => f[filter.field] != v);
+							})
+							
+							break;
+					}
+				})
+
+				data = tempArr;
+			}
+
+			//
+
+			let tempObj = {
+				key: this.getRowID(KEY+QUERY+INDEX),
+				data: data
+			}
+
+			this.subSectionData.push(tempObj);
+
+			if (!!CONTENT.continuation) {
+				this.queryBiContinue(CONTENT.continuation, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+			}
+			/* implement pre filters later */
+				//data = this.checkPreFilters(data)			
+		},
+
+		async queryApi(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
+
+			console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+
+			let dataUrl = DATA_POINT.url;
+			let fKEY = this.getRowID(KEY + QUERY + INDEX);
+
+			if (TYPE == "replace") {
+				PARAMS.map((param, pIndex) => {
+					if (!!QUERY.split(",")[pIndex]) {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					} else {
+						dataUrl = dataUrl.replace("$" + param + ",", '');
+						dataUrl = dataUrl.replace(",$" + param, '');
+						dataUrl = dataUrl.replace("$" + param, '');
+					}
+				})
+
+			}
+
+			this.subSectionLoading.push(fKEY); //start loading
+			try {
+
+				let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+				this.subSectionLoading.splice(this.subSectionLoading.indexOf(fKEY), 1); //finish loading
+
+				if (contentJson) {
+					
+					let data = {}
+					if(!!DATA_POINT["data wrapper"]) {
+
+					let dataEntity = contentJson;
+
+						DATA_POINT["data wrapper"].map(w => {
+
+							dataEntity = dataEntity[w];
+						})
+
+						if (!Array.isArray(dataEntity)) {
+							dataEntity = [dataEntity];
+						}
+
+						data["data"] = dataEntity;
+
+					} else {
+						data["data"] = CONTENT
+					}
+
+					this.processLoadedApi(data, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+				}
+
+			} catch (error) {
+				console.log(error);
+			}
+		
+		},
+
+		processLoadedApi(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
+
+			let data = CONTENT.data;
+
+			console.log("data",data);
 
 			// if loaded data is processed
 			let tableFormat = TABLE_FORMAT;
@@ -1173,6 +1340,19 @@ export default Vue.component("research-data-table", {
 				this.stared = false;
 			}
 		},
+		selectRow(ITEM){
+			let value = ITEM[this.tableFormat["select column"]];
+			this.selected = value;
+			EventBus.$emit('on-select', {id: this.sectionId, value});
+		},
+		isSelected(ITEM){
+			let value = ITEM[this.tableFormat["select column"]];
+			if(this.selected===value){
+				return true;
+			}else{
+				return false;
+			}
+		},
 		getColorIndex(SKEY) {
 			let colorIndex = "";
 			let compareGroups = this.compareGroups;
@@ -1207,6 +1387,9 @@ export default Vue.component("research-data-table", {
 
 			//next convert json to csv
 			this.utils.uiUtils.saveByorCsv(jsonData, FILENAME);
+		},
+		convertJson2Tsv(DATA, FILENAME) {
+			this.utils.uiUtils.saveByorTsv(DATA, FILENAME);
 		},
 		saveJson(DATA, FILENAME) {
 			this.utils.uiUtils.saveJson(DATA, FILENAME);
@@ -1599,16 +1782,32 @@ table.research-data-table {
 	cursor: pointer;
 }
 
+
 .research-data-table td {
 	border: none !important;
 	border-left: solid 1px #eee !important;
 	border-bottom: solid 1px #ddd !important;
 	height: 27px;
 	vertical-align: middle;
+	position: relative;
 }
 
 .research-data-table td.multi-value-td {
 	padding: 0 !important;
+}
+
+.research-data-table td .copy-to-clipboard {
+	font-size: 10px;
+    padding: 0 2px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+	opacity: 0.3;
+	border-radius: 0;
+}
+
+.research-data-table td:hover .copy-to-clipboard {
+	opacity: 1;
 }
 
 .research-data-table td.multi-value-td > span {

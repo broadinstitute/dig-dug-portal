@@ -15,6 +15,7 @@ import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
+import pigeanUtils from "@/utils/pigeanUtils.js";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
@@ -68,7 +69,7 @@ new Vue({
                     parameter: "gene",
                     "data point": {
                         type: "api",
-                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene/3?columns=gene`,
+                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene/4?columns=gene`,
                         "data type": "json",
                         "data wrapper": ["keys"],
                     },
@@ -81,7 +82,7 @@ new Vue({
                     parameter: "geneset",
                     "data point": {
                         type: "api",
-                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene-set/3?columns=gene_set`,
+                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene-set/4?columns=gene_set`,
                         "data type": "json",
                         "data wrapper": ["keys"],
                     },
@@ -103,6 +104,44 @@ new Vue({
                 //         url: "/pigean/phenotype.html?",
                 //     },
                 // },
+                {
+                    parameter: "phenotype",
+                    values: "kp phenotypes",
+                    "target page": {
+                        label: "Search Phenotype",
+                        url: "/pigean/phenotype.html?",
+                    },
+                },
+            ],
+        },
+        altConfig: {
+            "search instruction": "Search gene, geneset or phenotype",
+            "search examples": [
+                {
+                    parameter: "gene",
+                    value: "PLAU",
+                },
+                {
+                    parameter: "gene",
+                    value: "MLX",
+                },
+            ],
+            "search parameters": [
+                {
+                    parameter: "gene",
+                    values: "kp genes",
+                    "target page": {
+                        label: "Search Gene",
+                        url: "/pigean/gene.html?",
+                    },
+                },
+                {
+                    parameter: "geneset",
+                    "target page": {
+                        label: "Search Geneset",
+                        url: "/pigean/geneset.html?",
+                    },
+                },
                 {
                     parameter: "phenotype",
                     values: "kp phenotypes",
@@ -369,12 +408,14 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.getStats();
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.formatAllPhenotypes();
     },
 
     methods: {
@@ -392,9 +433,7 @@ new Vue({
                 let data = dataConvert.csv2Json(
                     contJson[0]["field_data_points"]
                 );
-                console.log(data);
                 this.stats = data;
-                console.log(this.stats);
             }
         },
         capitalize(str) {
@@ -402,6 +441,14 @@ new Vue({
                 return char.toUpperCase();
             });
         },
+        formatAllPhenotypes(){
+            let newPhenotypes = this.$store.state.pigeanAllPhenotypes.data;
+            let output = [];
+            for (let i = 0; i < newPhenotypes.length; i++){
+                output.push(pigeanUtils.toOldStyle(newPhenotypes[i]));
+            }
+            this.$store.dispatch("phenotypesInSession", output);
+        }
     },
 
     render(createElement, context) {
