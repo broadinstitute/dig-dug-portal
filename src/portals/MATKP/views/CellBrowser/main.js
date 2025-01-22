@@ -6,7 +6,7 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-import "../assets/matkp-styles.css"
+import "../../assets/matkp-styles.css"
 
 import matkpNav from "../components/matkp-nav.vue";
 import matkpFooter from "../components/matkp-footer.vue";
@@ -18,7 +18,7 @@ import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
 //import formatters from "@/utils/formatters";
 
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"; 
+//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = 'https://bioindex-dev.hugeamp.org';
 
 //const colors = ["#587c76","#f8d9fa","#8b6b8c","#82c2ff","#ffaa92","#00acdd","#ffb8f5","#01d7ee","#bdb0ff","#2b8647","#01d9bd","#bd4b8e","#aff590","#6f7e00","#0195fa","#af4fb1","#d43d4b","#02ffc3","#ae9800","#ff8efd","#ffae3e","#567bff","#ff5544","#e67500","#d71ba0","#9f6cff","#ff00ac","#b652ff","#82e900","#e600e3"];
@@ -92,7 +92,7 @@ new Vue({
     mounted() {
         //inject pako gzip library
         //this.injectScript('https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.3/pako.min.js');
-        
+
         //inject ttest lib
         this.injectScript('https://cdn.jsdelivr.net/gh/stdlib-js/stats-ttest2@umd/browser.js');
 
@@ -167,7 +167,7 @@ new Vue({
             }else{
                 return response.json();
             }
-            
+
             /*
             // handle fetch without Content-Encoding: gzip
             // using pako library
@@ -204,18 +204,18 @@ new Vue({
             const lines = tsvString.split('\n');
             const headers = lines.shift().split('\t');
             const jsonArray = [];
-    
+
             lines.forEach(line => {
                 const values = line.split('\t');
                 const obj = {};
-                
+
                 headers.forEach((header, index) => {
                     obj[header] = values[index];
                 });
-    
+
                 jsonArray.push(obj);
             });
-    
+
             return jsonArray;
         },
 
@@ -323,7 +323,7 @@ new Vue({
 
             this.isLoading = false;
 
-            
+
         },
 
         selectDataset(e){
@@ -402,7 +402,7 @@ new Vue({
             parts.forEach(async (gene) => {
                 await this.getGeneExpression(gene.toUpperCase());
             })
-            
+
         },
         setActiveGene(e){
             const gene = e.target.value;
@@ -483,7 +483,7 @@ new Vue({
 
                 this.pointBoundsCalculated = true;
             }
-            
+
             const boundsCenter = {
                 x: (this.center.x ),
                 y: (this.center.y )
@@ -560,7 +560,7 @@ new Vue({
             this.center.y += 0.5;
             this.scaleFactor = this.calculatedScaleFactor ? this.calculatedScaleFactor : 1;
             this.scale = 1;
-            this.zoom = this.scale * this.scaleFactor;  
+            this.zoom = this.scale * this.scaleFactor;
         },
 
         calcFieldColors(){
@@ -601,7 +601,7 @@ new Vue({
                         counts[key][labelName].count++;
                     }
                 }
-                
+
             });
             Object.keys(counts).forEach(key => {
                 const totalCounts = {};
@@ -648,7 +648,7 @@ new Vue({
             });
 
             Vue.set(this.datasetsObj[this.activeDataset]["genes"][gene], "processed", expression);
-            
+
             console.log('parsed expression', expression);
 
             this.compareGene = gene;
@@ -719,7 +719,7 @@ new Vue({
                     field.meanNorm = 1 - (field.mean / 3);
                     field.pct = (field.exp / field.count);
                     field.color = this.colorScalePlasma(field.meanNorm);
-                    
+
                 });
             });
 
@@ -812,7 +812,7 @@ new Vue({
                                 effectSizes.push(compareSet[key][v].effectSize);
                             }
                         })
-                        
+
                     }
                 }
             }
@@ -830,7 +830,7 @@ new Vue({
 
         getUniqueKeysAtDepth(obj, depth) {
             const keys = new Set();
-            
+
             // Function to recursively traverse the object
             function traverse(obj, currentDepth) {
                 if (currentDepth === depth) {
@@ -847,29 +847,29 @@ new Vue({
                 });
                 }
             }
-            
+
             // Start traversal from the top-level object
             traverse(obj, 1);
-            
+
             // Return an array of unique keys
             return Array.from(keys);
         },
 
         generateUniqueCombinationsObject(arr) {
             const combinations = {};
-            
+
             // Loop through each element in the array
             for (let i = 0; i < arr.length; i++) {
                 // Initialize the array for the current key
                 combinations[arr[i]] = [];
-            
+
                 // Loop through the subsequent elements
                 for (let j = i + 1; j < arr.length; j++) {
                     // Add the subsequent element to the array for the current key
                     combinations[arr[i]].push(arr[j]);
                 }
             }
-            
+
             return combinations;
         },
 
@@ -885,10 +885,10 @@ new Vue({
         formatXstring(string) {
             // Split the input string into individual ranges
             const ranges = string.split(' x ');
-            
+
             // Join the ranges with <br> tags
             const formattedString = ranges.join('<br>');
-            
+
             return formattedString;
         },
 
@@ -904,12 +904,12 @@ new Vue({
             const minScale = 0.1; // Minimum scale when p-value is high
             const maxPValue = 0.05; // Maximum p-value for intermediate scaling
             const scaleFactor = 1 / (1 + Math.exp(10 * (pValue - maxPValue))); // Exponential scaling function
-          
+
             // Calculate the scaled value within the range [minScale, baseScale]
             const scaledValue = minScale + (baseScale - minScale) * scaleFactor;
 
             return scaledValue;
-          
+
             // Apply the scaled value to the element's scale transformation
             element.style.transform = `scale(${scaledValue})`;
         },
@@ -947,7 +947,7 @@ new Vue({
             const bGene = e.target.dataset.bGene;
             const bDiff = e.target.dataset.bDiff;
             this.dimmedElements = [];
-            //console.log(aField, bField, bGene, bDiff); 
+            //console.log(aField, bField, bGene, bDiff);
             //dim static elements
             document.querySelectorAll(`.data-table .dim-hover`).forEach(el => {
                 el.classList.add('dim-table-item');
@@ -959,12 +959,12 @@ new Vue({
                     this.dimmedElements.push(el);
                     el.classList.add('dim-table-item');
                 });
-                //have A and its not this A, doesnt have B 
+                //have A and its not this A, doesnt have B
                 document.querySelectorAll(`.data-table [data-a-field]:not([data-a-field="${aField}"]):not([data-b-field])`).forEach(el => {
                     this.dimmedElements.push(el);
                     el.classList.add('dim-table-item');
                 });
-                //have B and its not this B, doesnt have A 
+                //have B and its not this B, doesnt have A
                 document.querySelectorAll(`.data-table [data-b-field]:not([data-b-field="${bField}"]):not([data-a-field])`).forEach(el => {
                     this.dimmedElements.push(el);
                     el.classList.add('dim-table-item');
@@ -1058,7 +1058,7 @@ new Vue({
                             }
                         }
                     }
-                    
+
                 }else if(bField){
                     if(!bGene){
                         if(!bDiff){
@@ -1075,7 +1075,7 @@ new Vue({
                             this.highlightClusterInUmap(null, bField);
                         }
                     }
-                    
+
                 }
                 this.hoverInfo = hoverInfo;
             }
@@ -1091,7 +1091,7 @@ new Vue({
                     el.classList.remove('dim-table-item');
                 })
             }
-            document.querySelectorAll('.data-table .outline-table-item').forEach(el => { 
+            document.querySelectorAll('.data-table .outline-table-item').forEach(el => {
                 el.classList.remove('outline-table-item');
             });
             this.hoverInfo = null;
@@ -1142,7 +1142,7 @@ new Vue({
                 bodyRowCount: 0,
                 rows: []
               };
-            
+
               // Analyze the table head
             const headRows = Array.from(table.querySelectorAll('thead tr'));
             tableInfo.headRowCount = headRows.length;
@@ -1218,6 +1218,6 @@ new Vue({
         handleScroll(){
             this.fixedSidebar = window.scrollY>this.scrollThreshhold;
         },
-        
+
     },
 }).$mount("#app");
