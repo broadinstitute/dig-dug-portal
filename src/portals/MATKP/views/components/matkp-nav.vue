@@ -3,7 +3,7 @@
         class="mat-header f-row spread-out align-v-center"
         :class="glass ? 'glass' : ''"
     >
-        <a class="logo f-row align-v-center" href="/matkp/">
+        <a class="logo f-row align-v-center" href="/">
             <img
                 src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png"
             />
