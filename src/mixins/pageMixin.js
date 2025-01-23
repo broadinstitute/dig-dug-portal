@@ -45,4 +45,10 @@ export const pageMixin = {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
     },
+    methods: {
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+    },
 };
