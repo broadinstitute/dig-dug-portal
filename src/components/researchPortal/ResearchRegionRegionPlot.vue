@@ -1,7 +1,5 @@
 <template>
 	<div :id="'region_region_wrapper' + sectionId" class="region-region-wrapper">
-		{{ region }}
-		{{ bigRegion }}
 		<canvas v-if="!!renderConfig" :id="'region_region_' + sectionId" class="region-region-plot"
 			width="" height="">
 		</canvas>
@@ -25,12 +23,12 @@ export default Vue.component("region-region-plot", {
 		"sectionId",
 		"utils",
 		"colors",
-		"region",
-		"bigRegion"
+		"region"
 	],
 	data() {
 		return {
 			wideRegion: null,
+			bigRegion: null,
 			viewingRegion: null
 		};
 	},
@@ -53,8 +51,8 @@ export default Vue.component("region-region-plot", {
 			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
 
 			let plotMargin = !!customPlotMargin ? {
-				left: customPlotMargin.left,
-				right: customPlotMargin.right,
+				left: 50,
+				right: 50,
 				top: customPlotMargin.top,
 				bottom: customPlotMargin.bottom,
 				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
@@ -87,19 +85,17 @@ export default Vue.component("region-region-plot", {
 	},
 	methods: {
 		setWideRegion() {
-			let param = this.bigRegion;//this.utils.keyParams[this.renderConfig["big region"]];
-			if (!!param) {
-				let regionArr = param.split(":");
+			
+			let regionArr = this.region.split(":");
+			let range = this.renderConfig['region explorer']['expand region by'] / 2;
 
-				let bigRegion = {
-					chr: regionArr[0],
-					start: regionArr[1].split("-")[0],
-					end: regionArr[1].split("-")[1]
-				}
-				this.wideRegion = bigRegion;
-			} else {
-				this.wideRegion = null;
+			this.wideRegion = {
+				chr: regionArr[0],
+				start: Number(regionArr[1].split("-")[0]) - range,
+				end: Number(regionArr[1].split("-")[1]) + range
 			}
+
+			this.bigRegion = this.wideRegion.chr + ":" + this.wideRegion.start + "-" + this.wideRegion.end;
 		},
 		setViewingRegion() {
 			let param = this.region//this.utils.keyParams[this.renderConfig["region"]];
@@ -464,7 +460,7 @@ $(function () { });
 	padding: 0 !important;
 }
 .region-region-plot {
-	border: solid 1px #ff0000;
+	
 }
 </style>
 
