@@ -867,40 +867,44 @@
                 if(markersUrl){
                     const url = markersUrl.url;//.replace('.json', '.top.json')
                     this.markers = await scUtils.fetchMarkers(url, this.datasetId);
-                    if(this.markers && Array.isArray(this.markers)){
-                        const markersByGene = this.markers.reduce((acc, item) => {
-                            if(!acc[item.gene]) acc[item.gene] = [];
-                            acc[item.gene].push(item);
-                            return acc;
-                        }, {});
-                        const markersByCellType = this.markers.reduce((acc, item) => {
-                            if(!acc[item.cell_type]) acc[item.cell_type] = [];
-                            acc[item.cell_type].push(item);
-                            return acc;
-                        }, {});
-                        const top5Matrix = [];
-                        for(const [cellType, genes] of Object.entries(markersByCellType)){
-                            const topNgenes = genes.sort((a, b) => b.z_score - a.z_score).slice(0, 5);
-                            for(const gene of topNgenes){
-                                top5Matrix.push(...markersByGene[gene.gene]);
+                    if(this.markers){
+                        if(Array.isArray(this.markers)){
+                            const markersByGene = this.markers.reduce((acc, item) => {
+                                if(!acc[item.gene]) acc[item.gene] = [];
+                                acc[item.gene].push(item);
+                                return acc;
+                            }, {});
+                            const markersByCellType = this.markers.reduce((acc, item) => {
+                                if(!acc[item.cell_type]) acc[item.cell_type] = [];
+                                acc[item.cell_type].push(item);
+                                return acc;
+                            }, {});
+                            const top5Matrix = [];
+                            for(const [cellType, genes] of Object.entries(markersByCellType)){
+                                const topNgenes = genes.sort((a, b) => b.z_score - a.z_score).slice(0, 5);
+                                for(const gene of topNgenes){
+                                    top5Matrix.push(...markersByGene[gene.gene]);
+                                }
                             }
+                            const dotPlot = top5Matrix.map(item => ({
+                                gene: item.gene,
+                                cellType: item.cell_type,
+                                color: null,
+                                mean: item.mean_expression,
+                                pctExpr: item.pct_nz_group * 100
+                            }))
+                            this.markersList = [...new Set(dotPlot.map(x=>x.gene.toUpperCase()))];
+                            this.geneNames = this.markersList;
+                            this.markerGenes = dotPlot;
+                            this.markerGenesMaxMean = d3.max(this.markerGenes.map(d => d.mean)).toFixed(1);
+                            console.log('markers', {markersByGene, markersByCellType, transformedData:this.markerGenes, markersList:this.markersList});
+                        }else{
+                            const markersList = Object.values(this.markers).flat();
+                            this.markersList = markersList;
+                            console.log({markersList});
                         }
-                        const dotPlot = top5Matrix.map(item => ({
-                            gene: item.gene,
-                            cellType: item.cell_type,
-                            color: null,
-                            mean: item.mean_expression,
-                            pctExpr: item.pct_nz_group * 100
-                        }))
-                        this.markersList = [...new Set(dotPlot.map(x=>x.gene.toUpperCase()))];
-                        this.geneNames = this.markersList;
-                        this.markerGenes = dotPlot;
-                        this.markerGenesMaxMean = d3.max(this.markerGenes.map(d => d.mean)).toFixed(1);
-                        console.log('markers', {markersByGene, markersByCellType, transformedData:this.markerGenes, markersList:this.markersList});
                     }else{
-                        const markersList = Object.values(this.markers).flat();
-                        this.markersList = markersList;
-                        console.log({markersList});
+                        console.log('no markers returned');
                     }
                 }
 
