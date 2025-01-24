@@ -6,12 +6,6 @@ import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert
-} from "@/components/Alert";
 
 new Vue({
     store,
@@ -20,14 +14,6 @@ new Vue({
         PortalDatasetsListTable,
     },
     mixins: [pageMixin],
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert
-    },
 
     computed: {
         diseaseGroup() {
