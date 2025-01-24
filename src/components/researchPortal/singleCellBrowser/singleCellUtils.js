@@ -39,13 +39,23 @@ export async function fetchCoordinates(url, datasetId) {
 }
 export async function fetchMarkers(url, datasetId) {
     const replacedUrl = url.replace('$datasetId', datasetId);
-    console.log('getting fields', replacedUrl);
+    console.log('getting markers', replacedUrl);
     try {
         const response = await fetch(replacedUrl);
-        const fields = await response.json();
-        return fields;
+        //likely temporary, but currently the marker_genes api
+        //may send a json object or line-json
+        //here we catch that and return a json object either way
+        const text = await response.text();
+        let markers;
+        try{
+            markers = JSON.parse(text);
+        }catch{
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            markers = lines.map(line => JSON.parse(line));
+        }
+        return markers;
     } catch (error) {
-        console.error('Error fetching fields:', error);
+        console.error('Error fetching markers:', error);
         return null;
     }
 }
