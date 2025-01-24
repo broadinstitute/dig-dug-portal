@@ -40,19 +40,12 @@
                     <!--left tab group-->
                     <div class="tabs-group">
                         <div class="tabs-wrapper">
-                            <div class="tab" 
-                                :class="`${isSelectedTab('a','1')?'selected':''}`"
-                                @click="selectTab('a','1')">
+                            <div class="tab" >
                                 Cell Composition
-                            </div>
-                            <div v-if="false" class="tab" 
-                                :class="`${isSelectedTab('a','2')?'selected':''}`"
-                                @click="selectTab('a','2')">
-                                Gene Expression
                             </div>
                         </div>
                         <div class="tabs-section-wrapper">
-                            <div class="tab-section" v-if="isSelectedTab('a','1')" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
+                            <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
                                 <div class="" style="display:flex; gap:20px;">
                                     <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
                                         <div style="display:flex; justify-content: space-between; align-items: baseline;">
@@ -63,9 +56,9 @@
                                             :labels="fields"
                                             :colors="labelColors"
                                             :cellTypeField="cellTypeField"
-                                            :colorByField="cellCompositionVars['a'].colorByField"
-                                            :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                            :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                            :colorByField="cellCompositionVars.colorByField"
+                                            :highlightLabel="cellCompositionVars.highlightLabel"
+                                            :highlightLabels="cellCompositionVars.highlightLabels"
                                             :width="400"
                                             :height="400"
                                         />
@@ -77,10 +70,10 @@
                                             :fields="fields"
                                             :fieldColors="labelColors"
                                             :cellTypeField="cellTypeField"
-                                            :colorByField="cellCompositionVars['a'].colorByField"
+                                            :colorByField="cellCompositionVars.colorByField"
                                             :hoverFields="['cell_label', 'Donor']"
-                                            :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                            :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                            :highlightLabel="cellCompositionVars.highlightLabel"
+                                            :highlightLabels="cellCompositionVars.highlightLabels"
                                             :width="400"
                                             :labelSizePx="28"
                                         />
@@ -90,16 +83,16 @@
                                         <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
                                         <research-single-cell-selector 
                                             :data="fields['metadata_labels']"
-                                            :selectedField="cellCompositionVars['a'].colorByField"
+                                            :selectedField="cellCompositionVars.colorByField"
                                             layout="dropdown-list"
                                             :colors="labelColors"
-                                            @on-update="handleSelectorUpdate($event, 'a', '1')"
-                                            @on-hover="handleSelectorHover($event, 'a', '1')"
+                                            @on-update="handleSelectorUpdate($event)"
+                                            @on-hover="handleSelectorHover($event)"
                                         />
                                     </div>
                                 </div>
                                 <div style="display:flex; flex-direction: column; width: min-content; gap:10px; width:620px">
-                                    <div style="font-size: 16px;"><span style="font-weight: bold">Cell Proportion</span> <span style="font-style: italic;">{{ cellCompositionVars['a'].segmentByLabel }}</span> per <span style="font-style: italic;">{{ cellCompositionVars['a'].displayByLabel }}</span></div>
+                                    <div style="font-size: 16px;"><span style="font-weight: bold">Cell Proportion</span> <span style="font-style: italic;">{{ cellCompositionVars.segmentByLabel }}</span> per <span style="font-style: italic;">{{ cellCompositionVars.displayByLabel }}</span></div>
                                     <div style="display:flex; gap:20px;">
                                         <div style="flex-grow: 1;">
                                             <div>Display</div>
@@ -107,8 +100,8 @@
                                                 :data="fields['metadata_labels']"
                                                 layout="dropdown"
                                                 :showColor="false"
-                                                :selectedField="cellCompositionVars['a'].displayByLabel"
-                                                @on-update="selectSegmentBy($event.selectedField, cellCompositionVars['a'].segmentByLabel, 'a')"
+                                                :selectedField="cellCompositionVars.displayByLabel"
+                                                @on-update="selectSegmentBy($event.selectedField, cellCompositionVars.segmentByLabel)"
                                             />
                                         </div>
                                         <div style="flex-grow: 1;">
@@ -118,7 +111,7 @@
                                                 layout="dropdown"
                                                 :showColor="false"
                                                 selectedField=""
-                                                @on-update="selectSegmentBy(cellCompositionVars['a'].displayByLabel, $event.selectedField, 'a')"
+                                                @on-update="selectSegmentBy(cellCompositionVars.displayByLabel, $event.selectedField)"
                                             />
                                         </div>
                                     </div>
@@ -129,242 +122,46 @@
                                         listDirection="horizontal"
                                         listAlignment="end"
                                         :colors="labelColors"
-                                        :selectedField="cellCompositionVars['a'].segmentByLabel"
-                                        @on-update="handleSelectorUpdate($event, 'a', '1')"
-                                        @on-hover="handleSelectorHover($event, 'a', '1')"
+                                        :selectedField="cellCompositionVars.segmentByLabel"
+                                        @on-update="handleSelectorUpdate($event)"
+                                        @on-hover="handleSelectorHover($event)"
                                     />
 
                                     <research-stacked-bar-plot
-                                        :data="cellCompositionVars['a'].segmentByCounts2"
-                                        :primaryKey="cellCompositionVars['a'].displayByLabel"
-                                        :subsetKey="cellCompositionVars['a'].segmentByLabel"
-                                        :xAxisLabel="cellCompositionVars['a'].displayByLabel"
+                                        :data="cellCompositionVars.segmentByCounts2"
+                                        :primaryKey="cellCompositionVars.displayByLabel"
+                                        :subsetKey="cellCompositionVars.segmentByLabel"
+                                        :xAxisLabel="cellCompositionVars.displayByLabel"
                                         yAxisLabel="Count"
-                                        :highlightKey="cellCompositionVars['a'].highlightLabel"
+                                        :highlightKey="cellCompositionVars.highlightLabel"
                                     />
                                 </div>
                             </div>
-                            <div class="tab-section" v-if="isSelectedTab('a','2')" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:620px;">
-                                <div class="" style="display:flex; gap:20px">
-                                    <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
-                                        <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                            <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars['a'].selectedGene ? `${geneExpressionVars['a'].selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
-                                        </div>
-                                        <research-umap-plot
-                                            :sectionId="sectionId"
-                                            title=""
-                                            :points="coordinates"
-                                            :fields="fields"
-                                            :cellTypeField="cellTypeField"
-                                            :colorByField="cellCompositionVars['b'].colorByField"
-                                            :hoverFields="['cell_label', 'Donor']"
-                                            :expression="expressionData[geneExpressionVars['a'].selectedGene]"
-                                            :expressionGene="geneExpressionVars['a'].selectedGene"
-                                            :highlightLabel="cellCompositionVars['b'].highlightLabel"
-                                            :highlightLabels="cellCompositionVars['b'].highlightLabels"
-                                            :width="400"
-                                            :labelSizePx="28"
-                                        />
-                                    </div>
-                                    <div style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
-                                        <strong style="font-size: 16px; margin: 0 0 5px;">Gene Search</strong>
-
-                                        <div style="display:flex; flex-direction: column; height: 400px; gap:5px">
-                                            <div style="display:flex; gap:5px;">
-                                                <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:100%; position:relative;"/>
-                                                <button @click="searchGene(geneToSearch)">
-                                                    <svg :style="`display:${!geneLoading?'block':'none'}`" style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
-                                                    <div :style="`display:${geneLoading?'block':'none'}`" class="geneLoader"></div>
-                                                </button>
-                                            </div>
-
-                                            <div v-if="genesNotFound.length>0" style="display:flex; flex-direction:column; gap:1px; flex: 0 0 auto; max-height:100%; overflow-y: auto;">
-                                                <div v-for="gene in genesNotFound" style="display:flex; gap:5px; width:100%; background:#ff4500; color:white">
-                                                    <div style="display:flex; flex:1; align-items:center; padding:0 5px; font-size:12px;">{{gene}} not found.</div>
-                                                    <div @click="clearGeneNotFound(gene)" style="width:28px; height: 28px; display:flex; align-items:center; justify-content: center; font-size:18px; line-height:18px; cursor:pointer">×</div>
-                                                </div>
-                                            </div>
-
-                                            <research-single-cell-selector style="margin-top:4px; flex-grow:1; overflow-x: hidden; overflow-y: auto;"
-                                                :data="geneNames"
-                                                layout="list"
-                                                listSelection="exclusive"
-                                                :colors="null"
-                                                :selectedField="geneExpressionVars['a'].selectedGene"
-                                                @on-update="geneClick($event.coloredLabels[0], 'a')" 
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div v-if="geneExpressionVars['a'].expressionStats.length>0" style="display:flex; flex-direction: column; gap:10px">
-                                        <div style="display:flex; flex-direction: column; gap:10px">
-                                            <span style="font-size: 16px;"><span style="font-weight: bold;">Gene Expression</span> <span style="font-style: italic;">{{ geneExpressionVars['a'].selectedGene ? `${geneExpressionVars['a'].selectedGene}` : '' }}</span></span>
-                                            <div style="display:flex; gap:20px">
-                                                <div style="display:flex; flex-direction: column; align-items: baseline; flex: 1">
-                                                    <div>Display</div>
-                                                    <div style="width:100%">
-                                                        <select @change="selectExpressionBy($event, 'a')" v-model="geneExpressionVars['a'].selectedLabel" style="width: 100%;">
-                                                            <option value="">-- Select --</option>
-                                                            <option v-for="option of fieldsDisplayList" :value="option['raw field']">
-                                                                {{ option['field label'] }}
-                                                            </option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div style="display:flex; flex-direction: column; align-items: baseline; flex: 1">
-                                                    <div>Subset by</div>
-                                                    <div style="width:100%">
-                                                        <select @change="selectExpressionBy($event, 'a')" v-model="geneExpressionVars['a'].subsetLabel" style="width: 100%;">
-                                                            <option value="">-- Select --</option>
-                                                            <option v-for="option of fieldsDisplayList" :value="option['raw field']">
-                                                                {{ option['field label'] }}
-                                                            </option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-
-                                        <research-single-cell-selector 
-                                            :data="fields['metadata_labels']"
-                                            layout="list"
-                                            listDirection="horizontal"
-                                            listAlignment="end"
-                                            :colors="labelColors"
-                                            :selectedField="geneExpressionVars['a'].subsetLabel"
-                                            @on-update="handleSelectorUpdate($event, 'b', '1')"
-                                            @on-hover="handleSelectorHover($event, 'b', '1')"
-                                        />
-
-                                        <research-violin-plot 
-                                            :data="geneExpressionVars['a'].expressionStats"
-                                            :primaryKey="geneExpressionVars['a'].selectedLabel"
-                                            :subsetKey="geneExpressionVars['a'].subsetLabel"
-                                            :highlightKey="cellCompositionVars['b'].highlightLabel"
-                                            :height="300"
-                                            xAxisLabel="Log-Normalized Expression"
-                                            :yAxisLabel="`${geneExpressionVars['a'].selectedLabel} ${geneExpressionVars['a'].subsetLabel!=''?' x '+geneExpressionVars['a'].subsetLabel:''}`"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            
                         </div>
                     </div>
                     <!--<div style="padding: 8px 0 0 0; font-size:16px;">vs</div>-->
                     <!--right tab group-->
                     <div class="tabs-group">
                         <div class="tabs-wrapper">
-                            <div  v-if="false" class="tab" 
-                                :class="`${isSelectedTab('b','1')?'selected':''}`"
-                                @click="selectTab('b','1')">
-                                Cell Composition
-                            </div>
-                            <div class="tab" 
-                                :class="`${isSelectedTab('b','2')?'selected':''}`"
-                                @click="selectTab('b','2')">
+                            <div class="tab">
                                 Gene Expression
                             </div>
                         </div>
                         <div class="tabs-section-wrapper">
-                            <div class="tab-section" v-if="isSelectedTab('b','1')" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
-                                <div class="" style="display:flex; gap:20px;">
-                                    <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
-                                        <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                            <strong style="font-size: 16px; margin: 0 0 5px;">UMAP</strong> {{ coordinates.length.toLocaleString() }} cells
-                                        </div>
-                                        <research-umap-plot
-                                            :sectionId="sectionId"
-                                            title=""
-                                            :points="coordinates"
-                                            :fields="fields"
-                                            :fieldColors="labelColors"
-                                            :cellTypeField="cellTypeField"
-                                            :colorByField="cellCompositionVars['b'].colorByField"
-                                            :hoverFields="['cell_label', 'Donor']"
-                                            :highlightLabel="cellCompositionVars['b'].highlightLabel"
-                                            :highlightLabels="cellCompositionVars['b'].highlightLabels"
-                                            :width="400"
-                                            :labelSizePx="28"
-                                        />
-                                    </div>
-                                    <div v-if="fieldsDisplayList" style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
-                                        <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
-                                        <research-single-cell-selector 
-                                            :data="fields['metadata_labels']"
-                                            layout="dropdown-list"
-                                            :colors="labelColors"
-                                            :selectedField="cellCompositionVars['b'].colorByField"
-                                            @on-update="handleSelectorUpdate($event, 'b', '1')"
-                                            @on-hover="handleSelectorHover($event, 'b', '1')"
-                                        />
-                                    </div>
-                                </div>
-                                <div style="display:flex; flex-direction: column; width: min-content; gap:10px; width:620px">
-                                    <div style="font-size: 16px;"><span style="font-weight: bold">Cell Proportion</span> <span style="font-style: italic;">{{ cellCompositionVars['b'].segmentByLabel }}</span> per <span style="font-style: italic;">{{ cellCompositionVars['b'].displayByLabel }}</span></div>
-                                    <div style="display:flex; gap:20px;">
-                                        <div style="flex-grow: 1;">
-                                            <div>Display</div>
-                                            <div>
-                                                <select @change="selectSegmentBy($event, cellCompositionVars['b'].segmentByLabel, 'b')" v-model="cellCompositionVars['b'].displayByLabel" style="width: 100%;">
-                                                    <option value="">-- Select --</option>
-                                                    <option v-for="option of fieldsDisplayList" :value="option['raw field']">
-                                                        {{ option['field label'] }}
-                                                    </option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div style="flex-grow: 1;">
-                                            <div>Subset By</div>
-                                            <div>
-                                                <select @change="selectSegmentBy(cellCompositionVars['b'].displayByLabel, $event, 'b')" v-model="cellCompositionVars['b'].segmentByLabel" style="width: 100%;">
-                                                    <option value="">-- Select --</option>
-                                                    <option v-for="option of fieldsDisplayList" :value="option['raw field']">
-                                                        {{ option['field label'] }}
-                                                    </option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-                                    <research-single-cell-selector 
-                                        :data="fields['metadata_labels']"
-                                        layout="list"
-                                        listDirection="horizontal"
-                                        listAlignment="end"
-                                        :colors="labelColors"
-                                        :selectedField="cellCompositionVars['b'].segmentByLabel"
-                                        @on-update="handleSelectorUpdate($event, 'b', '1')"
-                                        @on-hover="handleSelectorHover($event, 'b', '1')"
-                                    />
-
-                                    <research-stacked-bar-plot
-                                        :data="cellCompositionVars['b'].segmentByCounts2"
-                                        :primaryKey="cellCompositionVars['b'].displayByLabel"
-                                        :subsetKey="cellCompositionVars['b'].segmentByLabel"
-                                        :xAxisLabel="cellCompositionVars['b'].displayByLabel"
-                                        yAxisLabel="Count"
-                                        :highlightKey="cellCompositionVars['b'].highlightLabel"
-                                    />
-                                </div>
-                            </div>
-                            <div class="tab-section" v-if="isSelectedTab('b','2')" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
+                            <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
                                 <div class="" style="display:flex; gap:20px">
                                     <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
                                         <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                            <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars['b'].selectedGene ? `${geneExpressionVars['b'].selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
+                                            <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
                                         </div>
                                         <research-umap-plot-gl 
                                             :points="coordinates"
                                             :labels="fields"
                                             :colors="labelColors"
-                                            :expression="expressionData[geneExpressionVars['b'].selectedGene]"
+                                            :expression="expressionData[geneExpressionVars.selectedGene]"
                                             :cellTypeField="cellTypeField"
-                                            :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                            :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                            :highlightLabel="cellCompositionVars.highlightLabel"
+                                            :highlightLabels="cellCompositionVars.highlightLabels"
                                             :width="400"
                                             :height="400"
                                         />
@@ -375,12 +172,12 @@
                                             :points="coordinates"
                                             :fields="fields"
                                             :cellTypeField="cellTypeField"
-                                            :colorByField="cellCompositionVars['a'].colorByField"
+                                            :colorByField="cellCompositionVars.colorByField"
                                             :hoverFields="['cell_label', 'Donor']"
-                                            :expression="expressionData[geneExpressionVars['b'].selectedGene]"
-                                            :expressionGene="geneExpressionVars['b'].selectedGene"
-                                            :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                            :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                            :expression="expressionData[geneExpressionVars.selectedGene]"
+                                            :expressionGene="geneExpressionVars.selectedGene"
+                                            :highlightLabel="cellCompositionVars.highlightLabel"
+                                            :highlightLabels="cellCompositionVars.highlightLabels"
                                             :width="400"
                                             :labelSizePx="28"
                                         />
@@ -410,16 +207,17 @@
                                                 layout="list"
                                                 listSelection="exclusive"
                                                 :colors="null"
-                                                :selectedField="geneExpressionVars['b'].selectedGene"
-                                                @on-update="geneClick($event.coloredLabels[0], 'b')"
+                                                :selectedField="geneExpressionVars.selectedGene"
+                                                @on-update="geneClick($event.coloredLabels[0])"
                                             />
+                                         
                                         </div>
                                     </div>
                                 </div>
                                 <div>
-                                    <div v-if="geneExpressionVars['b'].expressionStats.length>0" style="display:flex; flex-direction: column; gap:10px; width:620px">
+                                    <div v-if="geneExpressionVars.expressionStats.length>0" style="display:flex; flex-direction: column; gap:10px; width:620px">
                                         <div style="display:flex; flex-direction: column; gap:10px">
-                                            <span style="font-size: 16px;"><span style="font-weight: bold;">Gene Expression</span> <span style="font-style: italic;">{{ geneExpressionVars['b'].selectedGene ? `${geneExpressionVars['b'].selectedGene}` : '' }}</span></span>
+                                            <span style="font-size: 16px;"><span style="font-weight: bold;">Gene Expression</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span>
                                             <div style="display:flex; gap:20px;">
                                                 <div style="flex-grow: 1;">
                                                     <div>Display</div>
@@ -427,8 +225,8 @@
                                                         :data="fields['metadata_labels']"
                                                         layout="dropdown"
                                                         :showColor="false"
-                                                        :selectedField="geneExpressionVars['b'].selectedLabel"
-                                                        @on-update="selectExpressionBy($event.selectedField, geneExpressionVars['b'].subsetLabel, 'b')"
+                                                        :selectedField="geneExpressionVars.selectedLabel"
+                                                        @on-update="selectExpressionBy($event.selectedField, geneExpressionVars.subsetLabel)"
                                                     />
                                                 </div>
                                                 <div style="flex-grow: 1;">
@@ -438,7 +236,7 @@
                                                         layout="dropdown"
                                                         :showColor="false"
                                                         selectedField=""
-                                                        @on-update="selectExpressionBy(geneExpressionVars['b'].selectedLabel, $event.selectedField, 'b')"
+                                                        @on-update="selectExpressionBy(geneExpressionVars.selectedLabel, $event.selectedField)"
                                                     />
                                                 </div>
                                             </div>
@@ -450,19 +248,19 @@
                                             listDirection="horizontal"
                                             listAlignment="end"
                                             :colors="labelColors"
-                                            :selectedField="geneExpressionVars['b'].subsetLabel"
-                                            @on-update="handleSelectorUpdate($event, 'a', '1')"
-                                            @on-hover="handleSelectorHover($event, 'a', '1')"
+                                            :selectedField="geneExpressionVars.subsetLabel"
+                                            @on-update="handleSelectorUpdate($event)"
+                                            @on-hover="handleSelectorHover($event)"
                                         />
 
                                         <research-violin-plot
-                                            :data="geneExpressionVars['b'].expressionStats"
-                                            :primaryKey="geneExpressionVars['b'].selectedLabel"
-                                            :subsetKey="geneExpressionVars['b'].subsetLabel"
-                                            :highlightKey="cellCompositionVars['a'].highlightLabel"
+                                            :data="geneExpressionVars.expressionStats"
+                                            :primaryKey="geneExpressionVars.selectedLabel"
+                                            :subsetKey="geneExpressionVars.subsetLabel"
+                                            :highlightKey="cellCompositionVars.highlightLabel"
                                             :height="300"
                                             xAxisLabel="Log-Normalized Expression"
-                                            :yAxisLabel="`${geneExpressionVars['b'].selectedLabel} ${geneExpressionVars['b'].subsetLabel!=''?' x '+geneExpressionVars['b'].subsetLabel:''}`"
+                                            :yAxisLabel="`${geneExpressionVars.selectedLabel} ${geneExpressionVars.subsetLabel!=''?' x '+geneExpressionVars.subsetLabel:''}`"
                                         />
                                     </div>
                                 </div>
@@ -473,7 +271,7 @@
 
                 <div style="display:flex; gap:25px">
                     <!-- marker genes-->
-                    <div v-if="showMarkerGenes && expressionStatsAll.length>0" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
+                    <div v-if="showMarkerGenes && (markerGenes || expressionStatsAll.length>0)" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
                         <div style="display:flex; flex-direction: column; gap:20px;">
                             <div style="display:flex; justify-content: space-between;">
                                 <strong style="font-size: 16px; margin: 0 0 5px;">Marker Genes</strong>
@@ -481,7 +279,7 @@
                                     <div style="display:flex; flex-direction: column;" class="legend">
                                         <div class="label">Expression</div>
                                         <div class="gradient" :style="`background: linear-gradient(to left, ${colorScalePlasmaColorsArray});`"></div>
-                                        <div style="display:flex" class="marks"><div>0.0</div><div>3.0</div></div>
+                                        <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
                                     </div>
                                     <div style="display:flex; flex-direction: column;" class="legend">
                                         <div class="label">% Cells Expressing</div>
@@ -496,15 +294,15 @@
                                     </div>
                                 </div>
                             </div>
-                        
+                            <!--geneKey="cellType"-->
                             <research-dot-plot
                                 style="display:flex; align-self: center"
-                                :data="expressionStatsAll"
-                                :geneKey="this.cellTypeField"
+                                :data="markerGenes || expressionStatsAll"
+                                :geneKey="expressionStatsAll.length>0 ? cellTypeField : 'cellType'"
                                 primaryKey="gene"
                                 orientation="horizontal"
-                                :width="620"
-                                :fitToSize="false"
+                                :width="1300"
+                                :fitToSize="true"
                                 :cellWidth="30"
                                 :showYLabels="true"
                                 :showXLabels="true"
@@ -531,24 +329,24 @@
                         layout="dropdown-list"
                         :showSelect="false"
                         :colors="labelColors"
-                        :selectedField="cellCompositionVars['a'].colorByField"
-                        @on-update="handleSelectorUpdate($event, 'a', '1')"
-                        @on-hover="handleSelectorHover($event, 'a', '1')"
+                        :selectedField="cellCompositionVars.colorByField"
+                        @on-update="handleSelectorUpdate($event)"
+                        @on-hover="handleSelectorHover($event)"
                     />
                     <div class="" style="display:flex; gap:20px">
                         <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
                             <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars['b'].selectedGene ? `${geneExpressionVars['b'].selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
+                                <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
                             </div>
                             <div style="display:flex; position: relative">
                                 <research-umap-plot-gl 
                                     :points="coordinates"
                                     :labels="fields"
                                     :colors="labelColors"
-                                    :expression="expressionData[geneExpressionVars['b'].selectedGene]"
+                                    :expression="expressionData[geneExpressionVars.selectedGene]"
                                     :cellTypeField="cellTypeField"
-                                    :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                    :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                    :highlightLabel="cellCompositionVars.highlightLabel"
+                                    :highlightLabels="cellCompositionVars.highlightLabels"
                                     :width="400"
                                     :height="400"
                                 />
@@ -559,12 +357,12 @@
                                     :points="coordinates"
                                     :fields="fields"
                                     :cellTypeField="cellTypeField"
-                                    :colorByField="cellCompositionVars['a'].colorByField"
+                                    :colorByField="cellCompositionVars.colorByField"
                                     :hoverFields="['cell_label']"
-                                    :expression="expressionData[geneExpressionVars['b'].selectedGene]"
-                                    :expressionGene="geneExpressionVars['b'].selectedGene"
-                                    :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                    :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                    :expression="expressionData[geneExpressionVars.selectedGene]"
+                                    :expressionGene="geneExpressionVars.selectedGene"
+                                    :highlightLabel="cellCompositionVars.highlightLabel"
+                                    :highlightLabels="cellCompositionVars.highlightLabels"
                                     :width="400"
                                     :labelSizePx="28"
                                 />
@@ -577,18 +375,18 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="geneExpressionVars['b'].expressionStats.length>0" style="display:flex; flex-direction: column; flex: 1">
+                    <div v-if="geneExpressionVars.expressionStats.length>0" style="display:flex; flex-direction: column; flex: 1">
                         <div style="display:flex; flex-direction: column; gap:5px">
-                            <span style="font-size: 16px;"><span style="font-weight: bold;">Gene Expression</span> <span style="font-style: italic;">{{ geneExpressionVars['b'].selectedGene ? `${geneExpressionVars['b'].selectedGene}` : '' }}</span></span>
+                            <span style="font-size: 16px;"><span style="font-weight: bold;">Gene Expression</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span>
                         </div>
                         <research-violin-plot 
-                            :data="geneExpressionVars['b'].expressionStats"
-                            :primaryKey="geneExpressionVars['b'].selectedLabel"
-                            :subsetKey="geneExpressionVars['b'].subsetLabel"
-                            :highlightKey="cellCompositionVars['a'].highlightLabel"
+                            :data="geneExpressionVars.expressionStats"
+                            :primaryKey="geneExpressionVars.selectedLabel"
+                            :subsetKey="geneExpressionVars.subsetLabel"
+                            :highlightKey="cellCompositionVars.highlightLabel"
                             :height="400"
                             xAxisLabel="Log-Normalized Expression"
-                            :yAxisLabel="geneExpressionVars['b'].selectedLabel"
+                            :yAxisLabel="geneExpressionVars.selectedLabel"
                         />
                     </div>
                 </div>
@@ -606,18 +404,18 @@
                                 :data="fields['metadata_labels']"
                                 layout="dropdown-list"
                                 :colors="labelColors"
-                                :selectedField="cellCompositionVars['a'].colorByField"
-                                @on-update="handleSelectorUpdate($event, 'a', '1')"
-                                @on-hover="handleSelectorHover($event, 'a', '1')"
+                                :selectedField="cellCompositionVars.colorByField"
+                                @on-update="handleSelectorUpdate($event)"
+                                @on-hover="handleSelectorHover($event)"
                             />
                             <research-umap-plot-gl 
                                 :points="coordinates"
                                 :labels="fields"
                                 :colors="labelColors"
                                 :cellTypeField="cellTypeField"
-                                :colorByField="cellCompositionVars['a'].colorByField"
-                                :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                :colorByField="cellCompositionVars.colorByField"
+                                :highlightLabel="cellCompositionVars.highlightLabel"
+                                :highlightLabels="cellCompositionVars.highlightLabels"
                                 :width="400"
                                 :height="400"
                             />
@@ -629,10 +427,10 @@
                                 :fields="fields"
                                 :fieldColors="labelColors"
                                 :cellTypeField="cellTypeField"
-                                :colorByField="cellCompositionVars['a'].colorByField"
+                                :colorByField="cellCompositionVars.colorByField"
                                 :hoverFields="['cell_label', 'Donor']"
-                                :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                :highlightLabel="cellCompositionVars.highlightLabel"
+                                :highlightLabels="cellCompositionVars.highlightLabels"
                                 :width="400"
                                 :labelSizePx="28"
                             />
@@ -641,7 +439,7 @@
                     </div>
                     
                     <div style="display:flex; flex-direction: column; gap:10px; flex:1">
-                        <div style="font-size: 16px;"><span style="font-weight: bold">Cell Proportion</span> <span style="font-style: italic;">{{ cellCompositionVars['a'].segmentByLabel }}</span> per <span style="font-style: italic;">{{ cellCompositionVars['a'].displayByLabel }}</span></div>
+                        <div style="font-size: 16px;"><span style="font-weight: bold">Cell Proportion</span> <span style="font-style: italic;">{{ cellCompositionVars.segmentByLabel }}</span> per <span style="font-style: italic;">{{ cellCompositionVars.displayByLabel }}</span></div>
                         <div style="display:flex; gap:20px;">
                             <div style="flex-grow: 1;">
                                 <div>Display</div>
@@ -649,8 +447,8 @@
                                     :data="fields['metadata_labels']"
                                     layout="dropdown"
                                     :showColor="false"
-                                    :selectedField="cellCompositionVars['a'].colorByField"
-                                    @on-update="selectSegmentBy($event.selectedField, cellCompositionVars['a'].segmentByLabel, 'a')"
+                                    :selectedField="cellCompositionVars.colorByField"
+                                    @on-update="selectSegmentBy($event.selectedField, cellCompositionVars.segmentByLabel)"
                                 />
                             </div>
                             <div style="flex-grow: 1;">
@@ -660,18 +458,18 @@
                                     layout="dropdown"
                                     :showColor="false"
                                     selectedField=""
-                                    @on-update="selectSegmentBy(cellCompositionVars['a'].displayByLabel, $event.selectedField, 'a')"
+                                    @on-update="selectSegmentBy(cellCompositionVars.displayByLabel, $event.selectedField)"
                                 />
                             </div>
                         </div>
 
                         <research-stacked-bar-plot
-                            :data="cellCompositionVars['a'].segmentByCounts2"
-                            :primaryKey="cellCompositionVars['a'].displayByLabel"
-                            :subsetKey="cellCompositionVars['a'].segmentByLabel"
-                            :xAxisLabel="cellCompositionVars['a'].displayByLabel"
+                            :data="cellCompositionVars.segmentByCounts2"
+                            :primaryKey="cellCompositionVars.displayByLabel"
+                            :subsetKey="cellCompositionVars.segmentByLabel"
+                            :xAxisLabel="cellCompositionVars.displayByLabel"
                             yAxisLabel="Count"
-                            :highlightKey="cellCompositionVars['a'].highlightLabel"
+                            :highlightKey="cellCompositionVars.highlightLabel"
                             :height="300"
                         />
 
@@ -681,15 +479,15 @@
                             listDirection="horizontal"
                             listAlignment="center"
                             :colors="labelColors"
-                            :selectedField="cellCompositionVars['a'].segmentByLabel"
-                            @on-update="handleSelectorUpdate($event, 'a', '1')"
-                            @on-hover="handleSelectorHover($event, 'a', '1')"
+                            :selectedField="cellCompositionVars.segmentByLabel"
+                            @on-update="handleSelectorUpdate($event)"
+                            @on-hover="handleSelectorHover($event)"
                         />
                     </div>
                 </div>
                 <div style="display:flex; gap:20px; background: white; padding: 20px;">
                     <div style="display:flex; flex-direction: column; gap:10px; flex: 1">
-                        <div style="font-size: 16px;"><span style="font-weight: bold">Gene Expression</span> <em>{{geneExpressionVars['b'].selectedGene}}</em></div>
+                        <div style="font-size: 16px;"><span style="font-weight: bold">Gene Expression</span> <em>{{geneExpressionVars.selectedGene}}</em></div>
                         <div style="display:flex; gap:20px;">
 
                             <div style="display:flex; flex-direction: column; height: 400px">
@@ -705,8 +503,8 @@
                                     layout="list"
                                     listSelection="exclusive"
                                     :colors="null"
-                                    :selectedField="geneExpressionVars['b'].selectedGene"
-                                    @on-update="geneClick($event.coloredLabels[0], 'b')"
+                                    :selectedField="geneExpressionVars.selectedGene"
+                                    @on-update="geneClick($event.coloredLabels[0])"
                                 />
                             </div>
                             
@@ -714,10 +512,10 @@
                                 :points="coordinates"
                                 :labels="fields"
                                 :colors="labelColors"
-                                :expression="expressionData[geneExpressionVars['b'].selectedGene]"
+                                :expression="expressionData[geneExpressionVars.selectedGene]"
                                 :cellTypeField="cellTypeField"
-                                :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                :highlightLabel="cellCompositionVars.highlightLabel"
+                                :highlightLabels="cellCompositionVars.highlightLabels"
                                 :width="400"
                                 :height="400"
                             />
@@ -728,17 +526,17 @@
                                 :points="coordinates"
                                 :fields="fields"
                                 :cellTypeField="cellTypeField"
-                                :colorByField="cellCompositionVars['a'].colorByField"
+                                :colorByField="cellCompositionVars.colorByField"
                                 :hoverFields="['cell_label', 'Donor']"
-                                :expression="expressionData[geneExpressionVars['b'].selectedGene]"
-                                :expressionGene="geneExpressionVars['b'].selectedGene"
-                                :highlightLabel="cellCompositionVars['a'].highlightLabel"
-                                :highlightLabels="cellCompositionVars['a'].highlightLabels"
+                                :expression="expressionData[geneExpressionVars.selectedGene]"
+                                :expressionGene="geneExpressionVars.selectedGene"
+                                :highlightLabel="cellCompositionVars.highlightLabel"
+                                :highlightLabels="cellCompositionVars.highlightLabels"
                                 :width="400"
                                 :labelSizePx="28"
                             />
                             -->
-                            <div v-if="expressionData[geneExpressionVars['b'].selectedGene]" 
+                            <div v-if="expressionData[geneExpressionVars.selectedGene]" 
                                 style="display:flex; flex-direction: column; gap:10px; flex:1;">
                                 <div style="display:flex; gap:20px;">
                                     <div style="flex-grow: 1;">
@@ -747,8 +545,8 @@
                                             :data="fields['metadata_labels']"
                                             layout="dropdown"
                                             :showColor="false"
-                                            :selectedField="geneExpressionVars['b'].selectedLabel"
-                                            @on-update="selectExpressionBy($event.selectedField, geneExpressionVars['b'].subsetLabel, 'b')"
+                                            :selectedField="geneExpressionVars.selectedLabel"
+                                            @on-update="selectExpressionBy($event.selectedField, geneExpressionVars.subsetLabel)"
                                         />
                                     </div>
                                     <div style="flex-grow: 1;">
@@ -758,19 +556,19 @@
                                             layout="dropdown"
                                             :showColor="false"
                                             selectedField=""
-                                            @on-update="selectExpressionBy(geneExpressionVars['b'].selectedLabel, $event.selectedField, 'b')"
+                                            @on-update="selectExpressionBy(geneExpressionVars.selectedLabel, $event.selectedField)"
                                         />
                                     </div>
                                 </div>
 
                                 <research-violin-plot
-                                    :data="geneExpressionVars['b'].expressionStats"
-                                    :primaryKey="geneExpressionVars['b'].selectedLabel"
-                                    :subsetKey="geneExpressionVars['b'].subsetLabel"
-                                    :highlightKey="cellCompositionVars['a'].highlightLabel"
+                                    :data="geneExpressionVars.expressionStats"
+                                    :primaryKey="geneExpressionVars.selectedLabel"
+                                    :subsetKey="geneExpressionVars.subsetLabel"
+                                    :highlightKey="cellCompositionVars.highlightLabel"
                                     :height="300"
                                     xAxisLabel="Log-Normalized Expression"
-                                    :yAxisLabel="`${geneExpressionVars['b'].selectedLabel} ${geneExpressionVars['b'].subsetLabel!=''?' x '+geneExpressionVars['b'].subsetLabel:''}`"
+                                    :yAxisLabel="`${geneExpressionVars.selectedLabel} ${geneExpressionVars.subsetLabel!=''?' x '+geneExpressionVars.subsetLabel:''}`"
                                 />
 
                                 <research-single-cell-selector
@@ -779,9 +577,9 @@
                                     listDirection="horizontal"
                                     listAlignment="center"
                                     :colors="labelColors"
-                                    :selectedField="geneExpressionVars['b'].subsetLabel"
-                                    @on-update="handleSelectorUpdate($event, 'a', '1')"
-                                    @on-hover="handleSelectorHover($event, 'a', '1')"
+                                    :selectedField="geneExpressionVars.subsetLabel"
+                                    @on-update="handleSelectorUpdate($event)"
+                                    @on-hover="handleSelectorHover($event)"
                                 />
 
                             </div>
@@ -789,7 +587,7 @@
                     </div>
                     
                 </div>
-                <div v-if="showMarkerGenes && expressionStatsAll.length>0" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
+                <div v-if="showMarkerGenes && (markerGenes || expressionStatsAll.length>0)" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
                     <div style="display:flex; flex-direction: column; gap:20px;">
                         <div style="display:flex; justify-content: space-between;">
                             <strong style="font-size: 16px; margin: 0 0 5px;">Marker Genes</strong>
@@ -812,11 +610,13 @@
                                 </div>
                             </div>
                         </div>
-                    
+                        
+                        <!--:data="expressionStatsAll"-->
+                        <!--:geneKey="cellTypeField"-->
                         <research-dot-plot
                             style="display:flex; align-self: center"
-                            :data="expressionStatsAll"
-                            :geneKey="this.cellTypeField"
+                            :data="markerGenes || expressionStatsAll"
+                            :geneKey="expressionStatsAll.length>0 ? cellTypeField : 'cellType'"
                             primaryKey="gene"
                             orientation="horizontal"
                             :width="620"
@@ -919,13 +719,20 @@
                 geneLoading: null,
                 genesNotFound: [],
 
+                markersList: null,
+                markerGenes: null,
+                markerGenesMaxMean: 3.0,
+
+                geneLists: {
+                    ["searched genes"]: [],
+                    ["marker genes"]: []
+                },
+
                 dataLoaded: false,
                 preloadItem: '',
                 dataReady: false,
 
                 highlightHoverTimeout: null,
-
-                selectedTabs: {"a":"1", "b":"2"},
 
                 layout: -1,
 
@@ -934,21 +741,19 @@
             }
         },
         watch: {
-            datasetId: function(newVal, oldVal){
-                /*
-                if(oldVal && oldVal != newVal){
-                    keyParams.set({[this.renderConfig["parameters"].gene] : ""});
-                }
-                */
-            },
             expressionData(){
                 const expressionStats = [];
                 Object.keys(this.expressionData).forEach(gene => {
-                    //expressionStats.push(...this.calcExpressionStats(gene, this.cellTypeField, null, true));
                     expressionStats.push(...scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true))
                 })
                 this.expressionStatsAll = expressionStats;
                 console.log('updated expression stats', this.expressionStatsAll);
+            },
+            geneNames(){
+                this.geneLists["searched genes"] = this.geneNames;
+            },
+            markersList(){
+                this.geneLists["marker genes"] = this.markersList;
             }
         },
         mounted() {
@@ -968,39 +773,22 @@
                 this.dataReady = false;
                 this.expressionData = {};
                 this.geneNames = [];
+                this.markersList = [];
                 this.expressionStatsAll = [];
                 this.genesNotFound = [];
                 this.cellCompositionVars = {
-                    "a": {
-                        colorByField: null,
-                        highlightLabel: '',
-                        highlightLabels: [],
-                        segmentByCounts2: null,
-                        displayByLabel: null,
-                        subsetLabel: "",
-                    },
-                    "b": {
-                        colorByField: null,
-                        highlightLabel: '',
-                        highlightLabels: [],
-                        segmentByCounts2: null,
-                        displayByLabel: null,
-                        subsetLabel: "",
-                    }
+                    colorByField: null,
+                    highlightLabel: '',
+                    highlightLabels: [],
+                    segmentByCounts2: null,
+                    displayByLabel: null,
+                    subsetLabel: "",
                 },
                 this.geneExpressionVars = {
-                    "a": {
-                        selectedGene: null,
-                        expressionStats: [],
-                        selectedLabel: null,
-                        subsetLabel: "",
-                    },
-                    "b": {
-                        selectedGene: null,
-                        expressionStats: [],
-                        selectedLabel: null,
-                        subsetLabel: "",
-                    }
+                    selectedGene: null,
+                    expressionStats: [],
+                    selectedLabel: null,
+                    subsetLabel: "",
                 }
             },
             async init(){
@@ -1034,23 +822,13 @@
                 }
 
                 console.log(`requested dataset: ${this.datasetId}`);
-                /*
-                const datasetInfo = this.data.find(x => x.datasetId === this.datasetId);
-
-                //make sure dataset exists in the metadata
-                /*if(!datasetInfo){
-                    console.log('dataset', this.datasetId, 'not in collection');
-                    this.datasetId = null;
-                    return;
-                }
-
-                console.log('   dataset info', datasetInfo);
-                */
 
                 //clear existing data
                 this.clean();
                 
                 //fetch base data
+
+                //metadata
                 this.dataLoaded = false;
                 this.preloadItem = 'metadata';
                 const metadataUrl = this.renderConfig["data points"].find(x => x.role === "metadata");
@@ -1058,26 +836,76 @@
                 console.log('addMetadata', this.allMetadata);
                 this.metadata = this.allMetadata.find(x => x.datasetId === this.datasetId);
                 console.log('metadata', this.metadata);
-                //this.metadata = await this.fetchMetadata();
 
+                //fields
                 this.preloadItem = 'fields';
                 const fieldsUrl = this.renderConfig["data points"].find(x => x.role === "fields");
                 this.fields = await scUtils.fetchFields(fieldsUrl.url, this.datasetId);
                 console.log('fields', this.fields);
-                //this.fields = await this.fetchFields();
 
+                //coordinates
                 this.preloadItem = 'coordinates';
                 const coordinatesUrl = this.renderConfig["data points"].find(x => x.role === "coordinates");
                 this.coordinates = await scUtils.fetchCoordinates(coordinatesUrl.url, this.datasetId);
                 console.log('coordinates', this.coordinates);
-                //this.coordinates = await this.fetchCoordinates();
 
-                this.preloadItem = 'markers list';
+                //markers
+
+                /*TODO:
+                -add list of marker genes to gene search history
+                    -"searched genes", "marker genes"
+
+                -dotpot
+                    -view as table
+                    -save dot plot 
+                    -include other stats in hover (p-value, z-score, etc)
+                    -add ability to click on genes from dot plot
+                    -hovering cell type in dot plot should highlight umap, bar and violin
+                */
+                this.preloadItem = 'markers';
                 const markersUrl = this.renderConfig["data points"].find(x => x.role === "markers");
                 if(markersUrl){
-                    this.markers = await scUtils.fetchMarkers(markersUrl.url, this.datasetId);
-                    const markersList = this.markers ? Object.values(this.markers).flat() : null;
-                    console.log('markers', {markers:this.markers, markersList});
+                    const url = markersUrl.url;//.replace('.json', '.top.json')
+                    this.markers = await scUtils.fetchMarkers(url, this.datasetId);
+                    if(this.markers){
+                        if(Array.isArray(this.markers)){
+                            const markersByGene = this.markers.reduce((acc, item) => {
+                                if(!acc[item.gene]) acc[item.gene] = [];
+                                acc[item.gene].push(item);
+                                return acc;
+                            }, {});
+                            const markersByCellType = this.markers.reduce((acc, item) => {
+                                if(!acc[item.cell_type]) acc[item.cell_type] = [];
+                                acc[item.cell_type].push(item);
+                                return acc;
+                            }, {});
+                            const top5Matrix = [];
+                            for(const [cellType, genes] of Object.entries(markersByCellType)){
+                                const topNgenes = genes.sort((a, b) => b.z_score - a.z_score).slice(0, 5);
+                                for(const gene of topNgenes){
+                                    top5Matrix.push(...markersByGene[gene.gene]);
+                                }
+                            }
+                            const dotPlot = top5Matrix.map(item => ({
+                                gene: item.gene,
+                                cellType: item.cell_type,
+                                color: null,
+                                mean: item.mean_expression,
+                                pctExpr: item.pct_nz_group * 100
+                            }))
+                            this.markersList = [...new Set(dotPlot.map(x=>x.gene.toUpperCase()))];
+                            this.geneNames = this.markersList;
+                            this.markerGenes = dotPlot;
+                            this.markerGenesMaxMean = d3.max(this.markerGenes.map(d => d.mean)).toFixed(1);
+                            console.log('markers', {markersByGene, markersByCellType, transformedData:this.markerGenes, markersList:this.markersList});
+                        }else{
+                            const markersList = Object.values(this.markers).flat();
+                            this.markersList = markersList;
+                            console.log({markersList});
+                        }
+                    }else{
+                        console.log('no markers returned');
+                    }
                 }
 
                 this.preloadItem = '';
@@ -1087,12 +915,10 @@
 
                 //pre-calculate colors for labels in each field
                 this.labelColors = scUtils.calcLabelColors(this.fields, colors);
-                //this.labelColors = this.calcLabelColors(this.fields);
                 
                 this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ');
                 
                 this.fieldsDisplayList = scUtils.calcFieldsDisplayList(this.fields);
-                //this.fieldsDisplayList = this.calcFieldsDisplayList();
 
                 //which field designates cell types or fallback as first field
                 const givenCellTypeLabel = this.presetsConfig?.["cell type label"];
@@ -1102,22 +928,18 @@
                 }else{
                     this.cellTypeField = givenCellTypeLabel;
                 }
-                //this.cellTypeField = this.presetsConfig?.["cell type label"] || Object.keys(this.fields["metadata_labels"])[0];
-                //this.cellTypeField = "Cell.Type";
 
                 console.log("cellTypeField", this.cellTypeField);
                 
                 //preset base visualizers to display by cell type
-                this.cellCompositionVars['a'].colorByField = this.cellTypeField;
+                this.cellCompositionVars.colorByField = this.cellTypeField;
 
-                this.selectColorBy(this.cellTypeField, 'a');
-                //this.selectColorBy(this.cellTypeField, 'b');
+                this.selectColorBy(this.cellTypeField);
 
-                this.selectSegmentBy(this.cellTypeField, "", 'a');
-                //this.selectSegmentBy(this.cellTypeField, "", 'b');
+                this.selectSegmentBy(this.cellTypeField, "");
 
                 //this.geneExpressionVars['a'].selectedLabel = this.cellTypeField;
-                this.geneExpressionVars['b'].selectedLabel = this.cellTypeField;
+                this.geneExpressionVars.selectedLabel = this.cellTypeField;
 
                 this.dataReady = true;
 
@@ -1127,14 +949,15 @@
 
                 //return;
                 
-                if(this.markers){
+                if(this.markerGenes){
+                    await this.getGeneExpression(this.markerGenes[0].gene.toUpperCase(), false);
+                    //this.geneClick(this.markerGenes[0].gene.toUpperCase());
+                }else if(this.markersList){
                     //load gene data markers api
                     console.log('loading marker genes');
-                    for(const [key, val] of Object.entries(this.markers)){
-                        for(const gene of val){
-                            await this.getGeneExpression(gene.toUpperCase(), false);
-                            await Vue.nextTick();
-                        }
+                    for(const gene of this.markersList){
+                        await this.getGeneExpression(gene.toUpperCase(), false);
+                        await Vue.nextTick();
                     }
                 }
                 //
@@ -1152,17 +975,20 @@
                         //load genes from config
                         console.log('loading config genes');
                         for (const gene of this.presetsConfig["genes"]) {
-                                await this.getGeneExpression(gene.toUpperCase(), false);
-                                await Vue.nextTick();
-                            }
+                            await this.getGeneExpression(gene.toUpperCase(), false);
+                            await Vue.nextTick();
+                        }
                     }
                 }
             },
             async getGeneExpression(gene, addToKeyParams = true, setAsSelected = false){
                 if(this.geneNames.includes(gene)) {
-                    console.log(`${gene} already loaded`);
-                    if(setAsSelected) this.geneClick(gene, 'b');
-                    return;
+                    console.log(`${gene} already listed`);
+                    if(this.expressionData[gene]){
+                        console.log(`${gene} already loaded`);
+                        if(setAsSelected) this.geneClick(gene);
+                        return;
+                    }
                 }
 
                 this.geneLoading = "gene";
@@ -1171,7 +997,9 @@
                 this.geneLoading = null;
 
                 if(expressionResult){
-                    this.geneNames.push(gene);
+                    if((this.markerGenes && !this.markersList.includes(gene)) || !this.markerGenes) {
+                        this.geneNames.push(gene);
+                    }
                     Vue.set(this.expressionData, gene, expressionResult);
 
                     console.log('getGeneExpression', gene);
@@ -1183,7 +1011,7 @@
                         if(paramGenes){
                             const paramGenesArray = paramGenes==='undefined' ? [] : paramGenes.toLowerCase().split(',');
                             console.log(`try adding: ${gene} to ${paramGenesArray}`)
-                            if(!paramGenesArray.includes(gene.toLowerCase())){
+                            if(!paramGenesArray.includes(gene.toLowerCase()) && !this.markersList.includes(gene)){
                                 paramGenesArray.push(gene);
                                 console.log(`not in list, adding: ${gene} to ${paramGenesArray}`)
                                 keyParams.set({[this.renderConfig["parameters"].gene] : paramGenesArray.toString()});
@@ -1193,11 +1021,8 @@
 
                     await Vue.nextTick();
 
-                    /*if(!this.geneExpressionVars['a'].selectedGene || setAsSelected){
-                        this.geneClick(gene, 'a');
-                    }*/
-                    if(!this.geneExpressionVars['b'].selectedGene || setAsSelected){
-                        this.geneClick(gene, 'b');
+                    if(!this.geneExpressionVars.selectedGene || setAsSelected){
+                        this.geneClick(gene);
                     }
                 }else{
                     if(!this.genesNotFound.includes(gene)){
@@ -1231,38 +1056,22 @@
                     this.init();
                 }
             },
-            selectColorBy(e, group){
-                const val = typeof e === 'object' ? e.target.value : e;
-                const g = this.cellCompositionVars[group];
-                console.log('color by:', val);
-                g.colorByField = val;
+            selectColorBy(field){
+                console.log('color by:', field);
+                this.cellCompositionVars.colorByField = field;
             },
-            selectSegmentBy(display, segment, group){
-                const displayVal = typeof display === 'object' ? display.target.value : display;
-                const segmentVal = typeof segment === 'object' ? segment.target.value : segment;
-                const g = this.cellCompositionVars[group];
-                console.log('segment by:', {displayVal, segmentVal, group});
-                g.displayByLabel = displayVal
-                g.segmentByLabel = segmentVal;
-                //g.segmentByCounts2 = this.calcCellCounts(g.displayByLabel, g.segmentByLabel);
+            selectSegmentBy(display, segment){
+                const g = this.cellCompositionVars;
+                console.log('segment by:', {display, segment});
+                g.displayByLabel = display
+                g.segmentByLabel = segment;
                 g.segmentByCounts2 = scUtils.calcCellCounts(this.fields, this.labelColors, g.displayByLabel, g.segmentByLabel);
-                console.log('segmentByCounts2', g.segmentByCounts2);
             },
-            selectExpressionBy(display, segment, group){
-                const displayVal = typeof display === 'object' ? display.target.value : display;
-                const segmentVal = typeof segment === 'object' ? segment.target.value : segment;
-                const g = this.geneExpressionVars[group];
-                console.log('expression by:', {displayVal, segmentVal, group});
-                g.selectedLabel = displayVal;
-                g.subsetLabel = segmentVal;
-                //g.expressionStats = this.calcExpressionStats(g.selectedGene, g.selectedLabel, g.subsetLabel);
-                g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[g.selectedGene], g.selectedGene, g.selectedLabel, g.subsetLabel);
-            },
-            selectExpressionBy2(e, group){
-                const val = typeof e === 'object' ? e.target.value : e;
-                const g = this.geneExpressionVars[group];
-                console.log('expression by:', val, group, g);
-                //g.expressionStats = this.calcExpressionStats(g.selectedGene, g.selectedLabel, g.subsetLabel);
+            selectExpressionBy(display, segment){
+                const g = this.geneExpressionVars;
+                console.log('expression by:', {display, segment});
+                g.selectedLabel = display;
+                g.subsetLabel = segment;
                 g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[g.selectedGene], g.selectedGene, g.selectedLabel, g.subsetLabel);
             },
             searchGene(e){
@@ -1273,58 +1082,30 @@
                     await Vue.nextTick();
                 })
             },
-            labelClick(e, group){
-                const label = e;//e.target.dataset.label;
-                const g = this.cellCompositionVars[group];
-                const labelIdx = g.highlightLabels.indexOf(label);
-                if(labelIdx>-1){
-                    g.highlightLabels.splice(labelIdx, 1);
-                }else{
-                    g.highlightLabels.push(label);
+            geneListClick(e){
+                console.log('geneListClick', e)
+            },
+            geneClick(gene){
+                console.log('geneClick', gene);
+                if(!this.expressionData[gene]){
+                    this.getGeneExpression(gene, false, true);
+                    return;
                 }
-                console.log('highlightLabels', g.highlightLabels);
-            },
-            resetLabels(group){
-                const g = this.cellCompositionVars[group];
-                g.highlightLabels = [];
-                console.log('resetLabels', g.highlightLabels);
-            },
-
-            geneClick(e, group){
-                console.log('geneClick', e, group)
-                const gene = e;
-                const g = this.geneExpressionVars[group];
-                //g.expressionStats = this.calcExpressionStats(gene, g.selectedLabel, g.subsetLabel);
+                const g = this.geneExpressionVars;
                 g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, g.selectedLabel, g.subsetLabel);
                 g.selectedGene = gene;
             },
             clearGeneNotFound(e){
                 this.genesNotFound.splice(this.genesNotFound.indexOf(e), 1);
             },
-
-            selectTab(group, id){
-                if(!this.selectedTabs[group]){
-                    this.selectedTabs[group] = id;
-                }else if(this.selectedTabs[group] != id){
-                    this.selectedTabs[group] = id;
-                }
+            handleSelectorUpdate(e){
+                console.log('selector updated', e);
+                this.cellCompositionVars.highlightLabels = e.coloredLabels;
+                this.selectColorBy(e.coloredField);
             },
-            isSelectedTab(group, id){
-                if(this.selectedTabs[group] && this.selectedTabs[group] === id){
-                    return true;
-                }
-                return false;
-            },
-
-            handleSelectorUpdate(e, group, id){
-                console.log('selector updated', group, id, e);
-                this.cellCompositionVars[group].highlightLabels = e.coloredLabels;
-                this.selectColorBy(e.coloredField, group);
-            },
-
-            handleSelectorHover(e, group, id){
-                console.log('selector hovered', group, id, e);
-                this.cellCompositionVars[group].highlightLabel = e.hoveredLabel;
+            handleSelectorHover(e){
+                console.log('selector hovered', e);
+                this.cellCompositionVars.highlightLabel = e.hoveredLabel;
             },
         },
     });
