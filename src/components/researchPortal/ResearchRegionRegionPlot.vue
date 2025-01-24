@@ -51,8 +51,8 @@ export default Vue.component("region-region-plot", {
 			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
 
 			let plotMargin = !!customPlotMargin ? {
-				left: 50,
-				right: 50,
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
 				top: customPlotMargin.top,
 				bottom: customPlotMargin.bottom,
 				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
@@ -74,7 +74,7 @@ export default Vue.component("region-region-plot", {
 		},
 		wideRegion(REGION) {
 			this.renderPlot();
-			this.getGenesInRegion(REGION);
+			//this.getGenesInRegion(REGION);
 		},
 		region(REGION) {
 			console.log("called");
@@ -98,9 +98,14 @@ export default Vue.component("region-region-plot", {
 			this.bigRegion = this.wideRegion.chr + ":" + this.wideRegion.start + "-" + this.wideRegion.end;
 		},
 		setViewingRegion() {
-			let param = this.region//this.utils.keyParams[this.renderConfig["region"]];
-			if (!!param) {
-				let regionArr = param.split(":");
+			//let param = this.region//this.utils.keyParams[this.renderConfig["region"]];
+
+			let param = (!!this.renderConfig['region explorer']['viewing region'])? this.renderConfig['region explorer']['viewing region']:null;
+
+			let vRegion = (!!param)? this.utils.keyParams[param]:this.region;
+
+			if (!!vRegion) {
+				let regionArr = vRegion.split(":");
 
 				let region = {
 					chr: regionArr[0],

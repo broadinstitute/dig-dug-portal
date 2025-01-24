@@ -241,8 +241,11 @@
 						:bigRegion="bigRegionParam"
 						:starItems="starItems" @on-star="starColumn">
 					</research-section-visualizers>
+					
 					<template v-if="!!tableFormat && !tableFormat['display type']">
-						<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
+						<research-data-table 
+							v-if="!!tableFormat && !tableFormat['rows as info cards'] && tableFormat['display'] != false" 
+							:pageID="sectionIndex"
 							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 							:tableFormat="tableFormat"
 							:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
@@ -253,6 +256,7 @@
 							:regionViewArea="regionViewArea" 
 							:colors="colors" :plotMargin="plotMargin"
 							@on-star="starColumn" @on-filtering="updateData">
+							
 						</research-data-table>
 						
 						<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
