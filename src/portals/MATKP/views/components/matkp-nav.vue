@@ -14,7 +14,7 @@
         </a>
         <div class="f-row menu">
             <a href="/datasets.html">Datasets</a>
-            <a href="/cellbrowser2.html">Cell Browser</a>
+            <a href="/cellbrowser.html">Cell Browser</a>
             <a href="/#">Help</a>
             <a href="/#">Collaborate</a>
         </div>

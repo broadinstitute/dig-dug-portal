@@ -18,11 +18,18 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "index"],
     },
     cellbrowser: {
-        entry: "src/portals/MATKP/views/CellBrowser/main.js",
+        entry: "src/portals/MATKP/views/SingleCellBrowser/main.js",
         template: "public/index.html",
         filename: "cellbrowser.html",
         title: "MATKP | Cell Browser",
         chunks: ["chunk-vendors", "chunk-common", "cellbrowser"],
+    },
+    cellbrowser1: {
+        entry: "src/portals/MATKP/views/CellBrowser/main.js",
+        template: "public/index.html",
+        filename: "cellbrowser1.html",
+        title: "MATKP | Cell Browser",
+        chunks: ["chunk-vendors", "chunk-common", "cellbrowser1"],
     },
     cellbrowser2: {
         entry: "src/portals/MATKP/views/CellBrowser2/main.js",
