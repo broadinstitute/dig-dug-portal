@@ -253,7 +253,7 @@ export default Vue.component("matkp-hero", {
 <style scoped>
 .hero-wrap {
     height: 100vh;
-    max-height: 95vh;
+    max-height: 70vh;
     background: rgb(183, 183, 183);
     position: relative;
     overflow: hidden;

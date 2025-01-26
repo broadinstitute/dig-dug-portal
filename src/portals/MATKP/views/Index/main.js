@@ -55,14 +55,14 @@ new Vue({
             ],
 
             anatomyWidth: 250,
-            selectedSpecies: "human",
+            selectedSpecies: "Homo sapiens",
             anatomyImages: {
-                human: {
+                ["Homo sapiens"]: {
                     male: "https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.male_.svg",
                     female: "https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.female.svg",
                     scale: 2.35, //svg display size / svg intrinsic size (TODO: calculate on the fly) 106
                 },
-                mouse: {
+                ["Mus musculus"]: {
                     male: "https://hugeampkpncms.org/sites/default/files/users/user32/matkp/mus_musculus.male_.svg",
                     female: "https://hugeampkpncms.org/sites/default/files/users/user32/matkp/mus_musculus.female.svg",
                     scale: 3.05, //svg display size / svg intrinsic size (TODO: calculate on the fly) 81
@@ -78,7 +78,7 @@ new Vue({
             depotDescription: "",
 
             depots: {
-                human: [
+                ["Homo sapiens"]: [
                     {
                         name: "craniofacial",
                         ontology: "h1",
@@ -341,7 +341,7 @@ new Vue({
                         ],
                     },
                 ],
-                mouse: [
+                ["Mus musculus"]: [
                     {
                         name: "craniofacial",
                         ontology: "m1",
@@ -641,9 +641,9 @@ new Vue({
             //this.depots['mouse'].forEach(depot=>mouseDepots.push(depot.name));
             //console.log("mouseDepots", mouseDepots)
 
-            const speciesCap =
-                species.charAt(0).toUpperCase() + species.slice(1);
+            const speciesCap = species.charAt(0).toUpperCase() + species.slice(1);
             const speciesDepots = Object.keys(available[speciesCap]);
+            console.log({species}, this.depots)
             this.depots[species].forEach((depot) => {
                 depot.count = 0;
                 speciesDepots.forEach((dbDepot) => {
@@ -671,7 +671,7 @@ new Vue({
 
         goToDatasets(e, depot) {
             if (depot.count > 0)
-                window.location.href = `/matkp/datasets.html?species=${this.selectedSpecies}&depot__ontology_label=${depot.name}`;
+                window.location.href = `/datasets.html?species=${this.selectedSpecies}&depot2=${depot.name}`;
         },
         highlightDepot(e, depot) {
             const btns = document.querySelectorAll(".depot-item");

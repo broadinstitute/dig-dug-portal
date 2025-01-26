@@ -26,8 +26,8 @@
                                     <div class="f-col" style="gap:20px">
                                         <div :style="`width:${$parent.anatomyWidth}px`">
                                             <select @change="$parent.selectSpecies">
-                                                <option value="human" selected>Human</option>
-                                                <option value="mouse">Mouse</option>
+                                                <option value="Homo sapien" selected>Human</option>
+                                                <option value="Mus musculus">Mouse</option>
                                             </select>
                                         </div>
                                         <div class="f-col anatomy" style="gap:10px">
@@ -58,7 +58,7 @@
                                                         <div class="depot-category" style="font-weight:bold; text-transform: capitalize; padding:5px 0" @mouseover="$parent.highlightDepotCategory(category)">
                                                             {{ category }}
                                                         </div>
-                                                        <div class="depot-item f-row spread-out" v-for="depot in depots" @mouseover="$parent.highlightDepot($event, depot)" @click="$parent.goToDatasets($event, depot)">
+                                                        <div class="depot-item f-row spread-out" v-for="depot in depots" @mouseover="$parent.highlightDepot($event, depot)" @click="$parent.goToDatasets($event, depot)" :style="`cursor:${depot.count && depot.count > 0 ? 'pointer':'default'}`">
                                                             <div>{{ depot.name }}</div>
                                                             <div v-if="depot.count>0">({{ depot.count }})</div>
                                                         </div>
@@ -119,7 +119,6 @@
     background: white;
     padding: 3px 10px;
     border-radius: 5px 0 0 5px;
-    cursor: pointer;
     font-size: 14px;
     text-transform: capitalize;
 }
