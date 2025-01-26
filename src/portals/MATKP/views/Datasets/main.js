@@ -26,6 +26,7 @@ new Vue({
         return {
             config: null,
             datasets: null,
+            datasetsFlat: null,
             filter: null,
             selectedFilters: {},
             searchedItems: [],
@@ -78,20 +79,23 @@ new Vue({
         filterOptions() {
             const filterOptions = {};
 
-            if (!this.datasets || !this.config) return filterOptions;
+            if (!this.datasetsFlat || !this.config) return filterOptions;
 
             const fieldKeys = this.config.datasetsFilters;
 
-            this.datasets.forEach((item) => {
+            console.log({fieldKeys})
+
+            this.datasetsFlat.forEach((item) => {
                 fieldKeys.forEach((key) => {
-                    //console.log('  ',key);
+                    //console.log('  ',key, item[key]);
                     if (!filterOptions[key]) {
                         filterOptions[key] = new Set();
                     }
-                    const itemKeyArr =
-                        typeof item[key] === "string"
+                    const itemKeyArr = item[key]
+                        ? typeof item[key] === "string"
                             ? [item[key]]
-                            : [...item[key]];
+                            : [...item[key]]
+                        : [""]
                     itemKeyArr.forEach((value) => {
                         if (value.trim() !== "") filterOptions[key].add(value);
                         //console.log('      ',value);
@@ -109,7 +113,7 @@ new Vue({
             return filterOptions;
         },
         mainFields() {
-            if (!this.datasets || !this.config) return null;
+            if (!this.datasetsFlat || !this.config) return null;
             let fields = [];
             this.config.datasetsColumns.forEach((column) => {
                 fields.push({
@@ -130,7 +134,7 @@ new Vue({
             return fields;
         },
         subFields() {
-            if (!this.datasets || !this.config) return null;
+            if (!this.datasetsFlat || !this.config) return null;
             const fields = [];
             this.config.datasetsExtraColumns.forEach((column) => {
                 fields.push({
@@ -143,8 +147,8 @@ new Vue({
             return fields;
         },
         filteredItems() {
-            if (!this.datasets) return [];
-            return this.datasets.filter((item) => {
+            if (!this.datasetsFlat) return [];
+            const items = this.datasetsFlat.filter((item) => {
                 return Object.keys(this.selectedFilters).every((key) => {
                     if (this.selectedFilters[key].length === 0) return true;
                     return this.selectedFilters[key].some((filterValue) =>
@@ -152,13 +156,15 @@ new Vue({
                     );
                 });
             });
+            console.log({items})
+            return items;
         },
         rows() {
-            if (!this.datasets) return 0;
+            if (!this.datasetsFlat) return 0;
             if (this.filter) {
                 if (
                     this.searchedItems.length > 0 ||
-                    this.filteredItems.length < this.datasets.length
+                    this.filteredItems.length < this.datasetsFlat.length
                 ) {
                     if (
                         this.searchedItems.length > 0 &&
@@ -169,9 +175,9 @@ new Vue({
                 }
                 return 0;
             }
-            if (this.filteredItems.length < this.datasets.length)
+            if (this.filteredItems.length < this.datasetsFlat.length)
                 return this.filteredItems.length;
-            return this.datasets.length;
+            return this.datasetsFlat.length;
         },
     },
 
@@ -197,7 +203,15 @@ new Vue({
                 object._showDetails = false;
             });
             this.datasets = jsonObjects;
-            console.log("datasets", this.datasets);
+            this.datasetsFlat = this.datasets.map(obj => {
+                const { required_sample_properties, custom_sample_properties, ...rest } = obj;
+                return {
+                    ...rest,
+                    ...required_sample_properties,
+                    ...custom_sample_properties
+                };
+            });
+            console.log("datasets", this.datasets, this.datasetsFlat);
         },
         updateQueryStringFromPage(selectedFilters) {
             console.log("updateFromPage");
