@@ -26,8 +26,8 @@
                                     <div class="f-col" style="gap:20px">
                                         <div :style="`width:${$parent.anatomyWidth}px`">
                                             <select @change="$parent.selectSpecies">
-                                                <option value="Homo sapien" selected>Human</option>
-                                                <option value="Mus musculus">Mouse</option>
+                                                <option value="Homo sapiens" selected>Homo sapiens</option>
+                                                <option value="Mus musculus">Mus musculus</option>
                                             </select>
                                         </div>
                                         <div class="f-col anatomy" style="gap:10px">
