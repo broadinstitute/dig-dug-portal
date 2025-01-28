@@ -42,6 +42,11 @@ export function rawUrl(path, query_params, query_private=false) {
     if(path.includes("/log/")){
         rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`
     }
+    if(path.includes("gene-variants")){
+        //console.log("gene-variants call");
+        rawURL = "https://radiant.hugeampkpnbi.org/api/bio/query/gene-variants"+`${qs ? "?" + qs : ""}`
+        //console.log(rawURL);
+    }
     console.log("rawUrl function:"+rawURL+"|"+query_private+"|"+Date.now());
     return rawURL;
 }
