@@ -2,7 +2,7 @@
     <div style="height:100%; display:flex">
         <!-- if layout is list-->
          <div v-if="layout==='list'" class="list-container" :class="[listDirection, listAlignment]">
-            <div class="list-option" v-for="label of listData" :key="label">
+            <div class="list-option" v-for="label of listData" :key="label" :data-label="label">
                 <div class="colorize-option" :class="labelIsolated(coloredOption, label)" @click="colorLabel($event, label)" v-b-tooltip:hover.left.window="'isolate label'">
                     <svg width="1em" viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="colors ? colors[selectedOption][label] : label === selectedOption ? '#434343' : '#ccc'"/></svg>
                 </div>
@@ -174,6 +174,11 @@ export default Vue.component('research-single-cell-selector', {
     watch: {
         selectedField(){
             this.init();
+        },
+        coloredOption(){
+            if(this.layout==='list'){
+                this.scrollToOption(this.coloredOption)
+            }
         }
     },
     mounted() {
@@ -240,6 +245,13 @@ export default Vue.component('research-single-cell-selector', {
                 }
             }
             return '';
+        },
+        scrollToOption(label){
+            const el = document.querySelector(`.list-container .list-option[data-label="${label}"]`);
+            el?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest', // scroll only within the container
+            });
         },
         emitUpdate(){
             const emitObj = {
