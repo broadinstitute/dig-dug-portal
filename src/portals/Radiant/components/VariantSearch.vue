@@ -173,13 +173,13 @@
                                 Acids</span
                             ></b-th
                         >
-                        <b-th colspan="4" class="text-center" variant="primary"
-                            >NephKP Allele</b-th
+                        <b-th colspan="2" class="text-center" variant="primary"
+                            >RADIANT Allele</b-th
                         >
 
                         <b-th
                             v-b-tooltip.hover
-                            colspan="3"
+                            colspan="1"
                             class="text-center"
                             variant="secondary"
                             style="border-left: 1px solid #dee2e6"
@@ -191,28 +191,29 @@
                         >
                     </b-tr>
                 </template>
-                <template #cell(varid)="data">
-                    <a :href="`/variant.html?variant=${data.item.varid}`">{{
-                        data.item.varid
+                <template #cell(varId)="data">
+                    <a :href="`/variant.html?variant=${data.item.varId}`">{{
+                        data.item.varId
                     }}</a> </template
-                ><template #cell(dbSNP)="data">
+                >
+                <template #cell(dbSNP)="data">
                     <a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
                         data.item.dbSNP
                     }}</a>
                 </template>
-                <template #cell(allelecount)="data">
-                    <div align="right">{{ data.item.allelecount }}</div>
+                <template #cell(alleleCount)="data">
+                    <div align="left">{{ data.item.alleleCount }}</div>
                 </template>
-                <template #cell(allelnumber)="data">
-                    <div align="right">{{ data.item.allelnumber }}</div>
+                <template #cell(allelNumber)="data">
+                    <div align="left">{{ data.item.allelNumber }}</div>
                 </template>
-                <template #cell(allelefrequency)="data">
-                    <div align="right">
-                        {{ formatAlleleFrequency(data.item.allelefrequency) }}
+                <template #cell(alleleFrequency)="data">
+                    <div align="left">
+                        {{ formatAlleleFrequency(data.item.alleleFrequency) }}
                     </div>
                 </template>
-                <template #cell(homozygouscount)="data">
-                    <div align="right">{{ data.item.homozygouscount }}</div>
+                <template #cell(homozygousCount)="data">
+                    <div align="left">{{ data.item.homozygousCount}}</div>
                 </template>
                 <template #cell(gnomAD_exomes_AC)="row">
                     <div align="right">
@@ -225,7 +226,7 @@
                     </div>
                 </template>
                 <template #cell(gnomAD_exomes_AF)="row">
-                    <div align="right">
+                    <div align="left">
                         {{ format_freq(row.item.gnomAD_exomes_AF) }}
                     </div>
                 </template>
@@ -261,7 +262,7 @@
                         Phenotypes</b-btn
                     >
                     <b-btn
-                        v-if="data.item.veprecords.length === 0"
+                        v-if="data.item.vepRecords.length === 0"
                         disabled
                         size="sm"
                         class="btn-mini"
@@ -277,7 +278,7 @@
                             //showVariantData(data.item.varid);
                             toToggle(data, 2)
                         "
-                        ><span v-if="!!loadingData[data.item.varid]"
+                        ><span v-if="!!loadingData[data.item.varId]"
                             ><b-spinner small></b-spinner>
                             <span class="sr-only">Loading...</span></span
                         ><span v-else>
@@ -301,28 +302,28 @@
                                 :per-page="perPagephenotype"
                                 :tbody-tr-class="rowPickClass"
                             >
-                                <template #cell(allelecount)="row">
-                                    <div align="right">
-                                        {{ row.item.allelecount }}
+                                <template #cell(alleleCountCases)="row">
+                                    <div align="left">
+                                        {{ row.item.alleleCountCases }}
                                     </div>
                                 </template>
-                                <template #cell(allelnumber)="row">
+                                <template #cell(alleleNumber)="row">
                                     <div align="right">
-                                        {{ row.item.allelnumber }}
+                                        {{ row.item.alleleNumber }}
                                     </div>
                                 </template>
-                                <template #cell(allelefrequency)="row">
+                                <template #cell(alleleFrequency)="row">
                                     <div align="right">
                                         {{
                                             formatAlleleFrequency(
-                                                row.item.allelefrequency
+                                                row.item.alleleFrequency
                                             )
                                         }}
                                     </div>
                                 </template>
-                                <template #cell(n_hom_var_case)="row">
+                                <template #cell(homozygousCases)="row">
                                     <div align="right">
-                                        {{ row.item.n_hom_var_case }}
+                                        {{ row.item.homozygousCases }}
                                     </div>
                                 </template>
                             </b-table>
@@ -330,15 +331,15 @@
 
                         <div v-if="row.item.showButton === 2" class="row">
                             <b-table
-                                v-if="row.item.veprecords.length > 0"
-                                :items="row.item.veprecords"
+                                v-if="row.item.vepRecords.length > 0"
+                                :items="row.item.vepRecords"
                                 :fields="subFields"
                                 :per-page="perPage"
                                 :tbody-tr-class="rowPickClass"
-                                ><template #cell(varID)="data">
+                                ><template #cell(varId)="data">
                                     <a
-                                        :href="`/variant.html?variant=${data.item.varID}`"
-                                        >{{ data.item.varID }}</a
+                                        :href="`/variant.html?variant=${data.item.varId}`"
+                                        >{{ data.item.varId }}</a
                                     >
                                 </template>
                                 <template #head(Feature)="data">
@@ -346,13 +347,13 @@
                                         >Feature
                                     </span>
                                 </template>
-                                <template #cell(Feature)="data">
+                                <template #cell(transcriptId)="data">
                                     <a
-                                        v-if="data.item.Feature"
-                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.Feature}`"
+                                        v-if="data.item.transcriptId"
+                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
                                         target="_blank"
                                         rel="noopener noreferrer nofollow"
-                                        >{{ data.item.Feature }}</a
+                                        >{{ data.item.transcriptId }}</a
                                     >
                                 </template>
                                 <template #cell(position)="data">
@@ -363,25 +364,25 @@
                                             : data.item.proteinStart
                                     }}
                                 </template>
-                                <template #cell(max_consequence)="data">
+                                <template #cell(consequence)="data">
                                     <div
                                         class="border-color"
-                                        :class="data.item.IMPACT"
+                                        :class="data.item.impact"
                                     >
                                         <span>{{
                                             consequenceFormatter(
-                                                data.item.Consequence
+                                                data.item.consequence
                                             )
                                         }}</span>
                                     </div></template
                                 >
-                                <template #cell(HGVSc)="data">
+                                <template #cell(hgvsc)="data">
                                     {{
-                                        format_hgvsc(data.item.HGVSc)
+                                        format_hgvsc(data.item.hgvsc)
                                     }}</template
                                 >
-                                <template #cell(HGVSp)="data">
-                                    {{ format_hgvsp(data.item.HGVSp) }}
+                                <template #cell(hgvsp)="data">
+                                    {{ format_hgvsp(data.item.hgvsp) }}
                                 </template>
                                 <template #cell(siftPrediction)="data">
                                     {{
@@ -481,7 +482,7 @@ export default Vue.component("VariantSearch", {
             // currentSortDir: "desc",
             fields: [
                 {
-                    key: "varid",
+                    key: "varId",
                     label: "Variant",
                 },
                 {
@@ -498,51 +499,51 @@ export default Vue.component("VariantSearch", {
                     label: "HGVSp",
                 },
                 {
-                    key: "c_allelecount",
+                    key: "alleleCount",
                     label: "Count",
                     sortable: true,
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
                 },
-                {
-                    key: "c_allelnumber",
+                /*{
+                    key: "alleleNumber",
                     label: "Number",
                     sortable: true,
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
-                },
+                },*/
 
                 {
-                    key: "allelefrequency",
+                    key: "alleleFrequency",
                     label: "Frequency",
                     sortable: true,
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
                     formatter: "formatAlleleFrequency",
                 },
-                {
-                    key: "homozygouscount",
+                /*{
+                    key: "homozygousCount",
                     label: " Homozygotes",
                     sortable: true,
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
-                },
-                {
-                    key: "gnomAD_exomes_AC",
+                },*/
+                /*{
+                    key: "gnomadGenomesPopmaxAc",
                     label: "Count",
                     sortable: true,
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
                 },
                 {
-                    key: "gnomAD_exomes_AN",
+                    key: "gnomadGenomesPopmaxAn",
                     label: "Number",
                     sortable: true,
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
-                },
+                },*/
                 {
-                    key: "gnomAD_exomes_AF",
+                    key: "gnomadGenomesPopmaxAf",
                     label: "Frequency",
                     sortable: true,
                     tdClass: "text-right pr-3",
@@ -558,11 +559,11 @@ export default Vue.component("VariantSearch", {
             ],
             subFields: [
                 {
-                    key: "Feature",
+                    key: "transcriptId",
                     label: "Feature",
                 },
                 {
-                    key: "max_consequence",
+                    key: "consequence",
                     label: "Consequence",
                     tdClass: "border-color",
                 },
@@ -577,38 +578,38 @@ export default Vue.component("VariantSearch", {
             ],
             hprecordFields: [
                 {
-                    key: "HP",
+                    key: "phenotype",
                     label: "Phenotype",
                 },
                 {
-                    key: "allelecount",
+                    key: "alleleCountCases",
                     label: "Allele Count",
                     sortable: true,
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
                 },
-                {
-                    key: "allelnumber",
+                /*{
+                    key: "alleleNumber",
                     label: "Allele Number",
                     sortable: true,
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
                 },
                 {
-                    key: "n_hom_var_case",
+                    key: "homozygousCases",
                     label: "Homozygotes",
                     sortable: true,
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
                 },
                 {
-                    key: "allelefrequency",
+                    key: "alleleFrequency",
                     label: "Allele Frequency",
                     sortable: true,
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
                     formatter: "formatAlleleFrequency",
-                },
+                },*/
             ],
             variantData: null,
             loadingData: {},
@@ -669,37 +670,28 @@ export default Vue.component("VariantSearch", {
         async searchVariants() {
             this.currentPage = 1; //reset on new search
 
-            this.variants = await query("variants", this.gene, {query_private:true}, true);
+            this.variants = await query("gene-variants", this.gene, {query_private:true}, true);
 
             if (this.variants && this.variants.length) {
-                this.variantData = structuredClone(this.variants); //copy data
-
-                //add showButton property to each variant
-                this.variantData.map((variant) => {
-                    variant.showButton = 0;
-                });
-
+                console.log("Variant Search:"+this.variants.length);
+                
+                
                 for (let i = 0; i < this.variants.length; i++) {
+                    //console.log(this.variants[i].varId);
                     //get data from HP record AllSamples
-                    let AllSamples = this.variants[i].hprecords.find(
+                    /*let AllSamples = this.variants[i].hprecords.find(
                         (x) => x.HP === "AllSamples"
                     );
                     //copy all properties from AllSamples to variants[i]
                     for (let prop in AllSamples) {
                         this.variants[i][prop] = AllSamples[prop];
-                    }
+                    } */
 
-                    this.variants[i].allelecount =
-                        2 * parseInt(AllSamples.n_hom_var_case) +
-                        parseInt(AllSamples.n_het_case);
-                    this.variants[i].allelnumber =
-                        2 *
-                        (parseInt(AllSamples.n_hom_ref_case) +
-                            parseInt(AllSamples.n_het_case) +
-                            parseInt(AllSamples.n_hom_var_case));
+                    //this.variants[i].allelecount =this.variants[i].alleleCount;
+                    //this.variants[i].allelnumber = this.variants[i].alleleNumber;
                     //this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
                     //this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
-                    if (this.variants[i].gnomAD_info) {
+                    /*if (this.variants[i].gnomAD_info) {
                         this.variants[i].gnomAD_exomes_AC =
                             this.variants[i].gnomAD_info.gnomADg_AC;
                         this.variants[i].gnomAD_exomes_AN =
@@ -707,30 +699,18 @@ export default Vue.component("VariantSearch", {
                         this.variants[i].gnomAD_exomes_AF =
                             this.variants[i].gnomAD_info.gnomADg_AF;
                         //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
-                    }
+                    }*/
 
-                    for (
-                        let m = 0;
-                        m < this.variants[i].hprecords.length;
-                        m++
-                    ) {
+                    /*for (let m = 0;m < this.variants[i].hprecords.length; m++) {
                         let hp = this.variants[i].hprecords[m];
                         if (hp.HP == "AllSamples") {
-                            this.variants[i].c_allelecount =
-                                2 * parseInt(hp.n_hom_var_case) +
-                                parseInt(hp.n_het_case);
+                            this.variants[i].c_allelecount = hp.alleleCount;
                             this.variants[i].allelecount +=
                                 this.variants[i].c_allelecount;
-                            this.variants[i].c_allelnumber =
-                                2 *
-                                (parseInt(hp.n_hom_ref_case) +
-                                    parseInt(hp.n_het_case) +
-                                    parseInt(hp.n_hom_var_case));
+                            this.variants[i].c_allelnumber = hp.alleleNumber;
                             this.variants[i].allelnumber +=
                                 this.variants[i].c_allelnumber;
-                            this.variants[i].allelefrequency =
-                                this.variants[i].c_allelecount /
-                                this.variants[i].c_allelnumber;
+                            this.variants[i].allelefrequency = hp.alleleFrequency;
                             // this.variants[i].allelefrequency =
                             //     this.variants[i].allelefrequency.toExponential(
                             //         2
@@ -739,75 +719,67 @@ export default Vue.component("VariantSearch", {
                             //this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
                             //this.variants[i].c_TWO_ALT_GENO_CTS =hp.n_hom_var_case;
                             this.variants[i].homozygouscount = parseInt(
-                                hp.n_hom_var_case
+                                hp.heterozygousCount
                                 //this.variants[i].n_hom_var_case
                             );
-                        }
-                    }
+                        } 
+                    }*/
                     //do we need vep count?
                     //this.variants[i].vep = this.variants[i].veprecords.length;
-                    if (this.variants[i].veprecords.length > 0) {
-                        let varrecords = this.variants[i].veprecords;
+                    if (this.variants[i].vepRecords.length > 0) {
+                        console.log("vepRecords:"+this.variants[i].vepRecords.length);
+                        let varrecords = this.variants[i].vepRecords;
 
                         for (let j = 0; j < varrecords.length; j++) {
-                            if (varrecords[j].PICK === true) {
+                            this.variants[i].vepRecords[j].consequence = varrecords[j].consequenceTerms.toString();
+                            if (varrecords[j].pick == "1") {
+                                console.log(this.variants[i].varId);
                                 this.variants[i].Gene_Symbol =
                                     varrecords[j].Gene_Symbol;
                                 this.variants[i].Max_Impact =
-                                    varrecords[j].IMPACT;
+                                    varrecords[j].impact;
                                 if (this.variants[i].Max_Impact == "LOWEST") {
                                     this.variants[i].Max_Impact = "MODIFIER";
                                 }
 
                                 this.variants[i].max_consequence =
-                                    varrecords[j].Consequence;
+                                    varrecords[j].consequenceTerms.toString();
                                 this.variants[i].Protein_Position =
-                                    varrecords[j].Protein_position;
+                                    varrecords[j].proteinStart;
                                 this.variants[i].Amino_Acids =
-                                    varrecords[j].Amino_acids;
+                                    varrecords[j].aminoAcids;
 
                                 this.disablebtn[
                                     this.variants[i].Max_Impact
                                 ] = false;
 
-                                this.variants[i].HGVSc = varrecords[j].HGVSc;
-                                this.variants[i].HGVSp = varrecords[j].HGVSp;
+                                this.variants[i].HGVSc = varrecords[j].hgvsc;
+                                this.variants[i].HGVSp = varrecords[j].hgvsp;
+                                this.variants[i].gnomadGenomesPopmaxAf = varrecords[j].gnomadGenomesPopmaxAf;
                             }
                         }
                         //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
-                    }
-
+                    } 
+                    
                     if (this.variants[i].hprecords.length > 0) {
                         let hpdisplay = [];
                         let j = 0;
 
-                        for (
-                            let k = 0;
-                            k < this.variants[i].hprecords.length;
-                            k++
-                        ) {
+                        for (let k = 0;k < this.variants[i].hprecords.length;k++) {
                             let hp = this.variants[i].hprecords[k];
                             //if (hp.HP != "AllControl") {
                             hpdisplay[j] = {};
                             //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
-                            hpdisplay[j].hp = hp.HP;
-                            hpdisplay[j].HP = Formatters.snakeFormatter(
-                                this.HPOTerms[hp.HP]
-                            );
-                            hpdisplay[j].allelecount =
-                                2 * hp.n_hom_var_case + hp.n_het_case;
-                            hpdisplay[j].allelnumber =
-                                2 *
-                                (hp.n_hom_ref_case +
-                                    hp.n_het_case +
-                                    hp.n_hom_var_case);
-                            hpdisplay[j].allelefrequency =
-                                this.calculateAlleleFrequency(
-                                    hpdisplay[j].allelecount,
-                                    hpdisplay[j].allelnumber
-                                );
+                            hpdisplay[j].hp = hp.phenotype;
+                            hpdisplay[j].phenotype = hp.phenotype;
+                            //hpdisplay[j].phenotype = Formatters.snakeFormatter(
+                            //    this.HPOTerms[hp.phenotype]
+                            //);
+                            hpdisplay[j].alleleCountCases = hp.alleleCountCases;
+                            hpdisplay[j].alleleNumber =hp.alleleNumber;
+                            hpdisplay[j].alleleFrequency =hp.alleleFrequency;
 
-                            hpdisplay[j].n_hom_var_case = hp.n_hom_var_case;
+                            hpdisplay[j].homozygousCases = hp.homozygousCases;
                             j++;
                             //}
                         }
@@ -835,24 +807,31 @@ export default Vue.component("VariantSearch", {
                             "Healthy",
                             "AllNephroticSyndCases",
                         ];
-                        hpdisplay = hpdisplay.sort(function (a, b) {
+                        /*hpdisplay = hpdisplay.sort(function (a, b) {
                             return (
                                 sortOrder.indexOf(a.hp) -
                                 sortOrder.indexOf(b.hp)
                             );
-                        });
+                        });*/
                         this.variants[i].hpdisplay2 = hpdisplay;
                         this.variants[i].hpdisplay = hpdisplay;
-                    }
+                    } 
+                    console.log(this.variants[i]);
                 }
-
+                console.log("Variant Search done");
                 //if default filters are set, filter the variants
-                if (
+                /*if (
                     this.filters.impacts.length > 0 ||
                     this.filters.phenotypes.length > 0
                 ) {
                     this.addfilter();
-                }
+                }*/
+                this.variantData = structuredClone(this.variants); //copy data
+
+                //add showButton property to each variant
+                this.variantData.map((variant) => {
+                    variant.showButton = 0;
+                });
             }
         },
         async getTranscriptConsequences(varid) {
