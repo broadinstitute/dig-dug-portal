@@ -11,15 +11,19 @@
             </div>
         </div>
         <div ref="chart"></div>
-        <div ref="tooltip" class="tooltip"></div>
+        <research-mouse-tooltip ref="tooltip" />
     </div>
   </template>
   
   <script>
   import * as d3 from 'd3';
   import Vue from 'vue';
+  import ResearchMouseTooltip from '@/components/researchPortal/singleCellBrowser/ResearchMouseTooltip.vue';
   
   export default Vue.component('research-stacked-bar-plot', {
+    components:{
+      ResearchMouseTooltip
+    },
     props: {
       data: {                           //tabular data as array
         type: (Array, null),
@@ -381,21 +385,18 @@
             });
         },
         mouseOverHandler(entry){
-            this.tooltip.innerHTML = `<div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.primaryKey}:</div> ${entry[this.primaryKey]}</div>
+            const tooltipContent = `<div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.primaryKey}:</div> ${entry[this.primaryKey]}</div>
                                 <div style="display:${entry[this.subsetKey]?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.subsetKey}:</div> ${entry[this.subsetKey]}</div>
                                 <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Count:</div> ${entry.count.toLocaleString()}</div>
                                 <div style="display:${entry.pct?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Pct.:</div> ${entry.pct}</div>
                                 `;
-            this.tooltip.classList.add('show')
+            this.tooltip.showTooltip(tooltipContent);
         },
         mouseMoveHandler(e){
-            this.tooltip.style.top = (e.clientY - 10) + "px";
-            this.tooltip.style.left = (e.clientX + 10) + "px";
+
         },
         mouseOutHandler(e){
-            this.tooltip.classList.remove('show');
-            this.tooltip.style.top = -1000 + "px";
-            this.tooltip.style.left = -1000 + "px";
+            this.tooltip.hideTooltip();
         },
         doHighlight(label){
             const plot = this.$refs.chart.querySelector(`.plot`);
@@ -431,15 +432,6 @@
   ::v-deep .chart-label{
     font-size:12px;
     opacity:0.5;
-  }
-  .tooltip{
-    position:fixed;
-    background: white;
-    padding: 5px 10px;
-    box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
-  }
-  .tooltip.show{
-    opacity: 1;
   }
   ::v-deep .plot.highlighting .bar{
     opacity: 0.2;

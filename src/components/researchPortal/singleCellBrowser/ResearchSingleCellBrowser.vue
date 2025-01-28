@@ -57,6 +57,7 @@
                                             :colors="labelColors"
                                             :cellTypeField="cellTypeField"
                                             :colorByField="cellCompositionVars.colorByField"
+                                            :hoverFields="[]"
                                             :highlightLabel="cellCompositionVars.highlightLabel"
                                             :highlightLabels="cellCompositionVars.highlightLabels"
                                             :width="400"
@@ -160,6 +161,7 @@
                                             :colors="labelColors"
                                             :expression="expressionData[geneExpressionVars.selectedGene]"
                                             :cellTypeField="cellTypeField"
+                                            :hoverFields="[]"
                                             :highlightLabel="cellCompositionVars.highlightLabel"
                                             :highlightLabels="cellCompositionVars.highlightLabels"
                                             :width="400"
@@ -203,7 +205,7 @@
                                             </div>
 
                                             <research-single-cell-selector style="margin-top:4px; flex-grow:1; overflow-x: hidden; overflow-y: auto;"
-                                                :data="geneNames"
+                                                :data="sortedGeneNames"
                                                 layout="list"
                                                 listSelection="exclusive"
                                                 :colors="null"
@@ -345,6 +347,7 @@
                                     :colors="labelColors"
                                     :expression="expressionData[geneExpressionVars.selectedGene]"
                                     :cellTypeField="cellTypeField"
+                                    :hoverFields="[]"
                                     :highlightLabel="cellCompositionVars.highlightLabel"
                                     :highlightLabels="cellCompositionVars.highlightLabels"
                                     :width="400"
@@ -413,6 +416,7 @@
                                 :labels="fields"
                                 :colors="labelColors"
                                 :cellTypeField="cellTypeField"
+                                :hoverFields="[]"
                                 :colorByField="cellCompositionVars.colorByField"
                                 :highlightLabel="cellCompositionVars.highlightLabel"
                                 :highlightLabels="cellCompositionVars.highlightLabels"
@@ -446,7 +450,6 @@
                                 <research-single-cell-selector 
                                     :data="fields['metadata_labels']"
                                     layout="dropdown"
-                                    :showColor="false"
                                     :selectedField="cellCompositionVars.colorByField"
                                     @on-update="selectSegmentBy($event.selectedField, cellCompositionVars.segmentByLabel)"
                                 />
@@ -456,7 +459,6 @@
                                 <research-single-cell-selector 
                                     :data="fields['metadata_labels']"
                                     layout="dropdown"
-                                    :showColor="false"
                                     selectedField=""
                                     @on-update="selectSegmentBy(cellCompositionVars.displayByLabel, $event.selectedField)"
                                 />
@@ -514,6 +516,7 @@
                                 :colors="labelColors"
                                 :expression="expressionData[geneExpressionVars.selectedGene]"
                                 :cellTypeField="cellTypeField"
+                                :hoverFields="[]"
                                 :highlightLabel="cellCompositionVars.highlightLabel"
                                 :highlightLabels="cellCompositionVars.highlightLabels"
                                 :width="400"
@@ -713,6 +716,7 @@
                 fieldsDisplayList: null,
 
                 geneNames: [], //list of loaded gene names
+                sortedGeneNames: [],
                 expressionData: {}, //obj, keys are gene names, values are arrays of raw expression per cell
                 expressionStatsAll: [], //array of objects, each obj is gene, mean expr., pct. expressing
                 geneToSearch: "",
@@ -747,9 +751,10 @@
                     expressionStats.push(...scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true))
                 })
                 this.expressionStatsAll = expressionStats;
-                console.log('updated expression stats', this.expressionStatsAll);
+                //console.log('updated expression stats', this.expressionStatsAll);
             },
             geneNames(){
+                this.sortedGeneNames = [...this.geneNames].sort();
                 this.geneLists["searched genes"] = this.geneNames;
             },
             markersList(){
@@ -865,10 +870,12 @@
                 this.preloadItem = 'markers';
                 const markersUrl = this.renderConfig["data points"].find(x => x.role === "markers");
                 if(markersUrl){
-                    const url = markersUrl.url;//.replace('.json', '.top.json')
+                    const url = markersUrl.url;
                     this.markers = await scUtils.fetchMarkers(url, this.datasetId);
                     if(this.markers){
                         if(Array.isArray(this.markers)){
+                            //latest markers includes gene stats
+                            this.markersList = [...new Set(this.markers.map(x=>x.gene.toUpperCase()))];
                             const markersByGene = this.markers.reduce((acc, item) => {
                                 if(!acc[item.gene]) acc[item.gene] = [];
                                 acc[item.gene].push(item);
@@ -893,12 +900,12 @@
                                 mean: item.mean_expression,
                                 pctExpr: item.pct_nz_group * 100
                             }))
-                            this.markersList = [...new Set(dotPlot.map(x=>x.gene.toUpperCase()))];
                             this.geneNames = this.markersList;
                             this.markerGenes = dotPlot;
                             this.markerGenesMaxMean = d3.max(this.markerGenes.map(d => d.mean)).toFixed(1);
                             console.log('markers', {markersByGene, markersByCellType, transformedData:this.markerGenes, markersList:this.markersList});
                         }else{
+                            //fallback to just having a list of genes per cell type
                             const markersList = Object.values(this.markers).flat();
                             this.markersList = markersList;
                             console.log({markersList});

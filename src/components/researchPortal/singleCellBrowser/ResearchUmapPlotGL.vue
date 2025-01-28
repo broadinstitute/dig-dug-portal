@@ -35,37 +35,45 @@
         :style="`display:${showLabels?'block':'none'}`"
       ></canvas>
   
-      <div ref="umapTooltip" class="scb-tooltip"></div>
+      <research-mouse-tooltip ref="umapTooltip" />
     </div>
   </template>
   
-  <script>
+  <script> 
   // We'll import the color scales from d3
   import * as d3 from 'd3';
   import Vue from 'vue';
   import EventBus from "@/utils/eventBus";
+  import ResearchMouseTooltip from '@/components/researchPortal/singleCellBrowser/ResearchMouseTooltip.vue';
   
   export default Vue.component('research-umap-plot-gl', {
+    components:{
+      ResearchMouseTooltip
+    },
     props: {
-      points: {
+      points: {             //umap coordinates
         type: Array,
         required: true,
       },
-      labels: {
+      labels: {             //fields object
         type: Object,
         required: true,
       },
-      colors: {
+      colors: {             //object of label colors
         type: Object,
         required: true,
       },
-      cellTypeField: {
+      cellTypeField: {      //key name of field which contains the cell cluster labels
         type: String,
         required: false,
       },
-      colorByField: {
+      colorByField: {       //key name of field by which to color the clusters
         type:String,
         required: false,
+      },
+      hoverFields: {        //array of field key names to show on hover. none specified will show all
+        type:Array,
+        required: false
       },
       width: {
         type: Number,
@@ -75,15 +83,15 @@
         type: Number,
         default: 800,
       },
-      highlightLabel: {
+      highlightLabel: {       //label name of cluster points to highlight
         type: String,
         default: null,
       },
-      highlightLabels: {
+      highlightLabels: {      //array of label names of clusters to highlights
         type: Array,
         default: () => [],
       },
-      expression: {
+      expression: {           //if expression is given, clusters will be colored by expression
         type: Array,
         default: null,
       },
@@ -433,7 +441,7 @@
       },
   
       renderPoints() {
-        console.log("   renderPoints");
+        //console.log("   renderPoints");
         const gl = this.gl;
         if (!gl) return;
   
@@ -560,22 +568,26 @@
                 hoverHTML += `<div style="font-weight:bold">Cell ID</div><div>${this.labels.NAME[nearestPtIdx]}</div>`;
                 if(this.expression) hoverHTML += `<div style="font-weight:bold">Expression</div><div>${this.expression[nearestPtIdx]} ${this.expressionGene?'('+this.expressionGene+')':''}</div>`;
                 Object.keys(this.labels.metadata_labels).forEach(field => {
+                    if(!this.isHoverField(field)) return;
                     const value = this.labels.metadata_labels[field][this.labels.metadata[field][nearestPtIdx]];
                     if(value && value !== ""){
                         hoverHTML += `<div style="font-weight:bold;">${field}</div><div>${value}</div>`
                     }
                 })
                 hoverHTML += '</div>'
-                umapTooltipEl.innerHTML = hoverHTML;
-                umapTooltipEl.style.top = (e.clientY - 10) + "px";
-                umapTooltipEl.style.left = (e.clientX + 10) + "px";
-                umapTooltipEl.classList.add('show');
+                
+                
+                umapTooltipEl.showTooltip(hoverHTML);
             }else{
-                umapTooltipEl.classList.remove('show');
-                umapTooltipEl.style.top = -1000 + "px";
-                umapTooltipEl.style.left = -1000 + "px";
+                umapTooltipEl.hideTooltip();
             }
         }
+      },
+
+      isHoverField(field){
+        if(!this.hoverFields || this.hoverFields.length===0) return true;
+        if(this.hoverFields.includes(field)) return true;
+        return false;
       },
 
       onMouseOver(e) {
@@ -584,6 +596,8 @@
 
       onMouseOut(e){
         this.isHovering = false;
+        const umapTooltipEl = this.$refs.umapTooltip;
+        umapTooltipEl.hideTooltip();
       },
   
       onMouseUp() {
@@ -676,19 +690,6 @@
   .umap-canvas:active {
     /*cursor: grabbing;*/
   }
-  
-  .scb-tooltip{
-    position:fixed;
-    top:-1000px;
-    left:-1000px;
-    background: white;
-    padding: 5px 10px;
-    box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
-    z-index: 5000;
-}
-.scb-tooltip.show{
-    opacity: 1;
-}
 ::v-deep .twoColGrid{
     display:grid;
     grid-template-columns: max-content 1fr;
