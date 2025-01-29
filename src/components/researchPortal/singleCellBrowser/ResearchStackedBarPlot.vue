@@ -11,19 +11,15 @@
             </div>
         </div>
         <div ref="chart"></div>
-        <research-mouse-tooltip ref="tooltip" />
     </div>
   </template>
   
   <script>
   import * as d3 from 'd3';
   import Vue from 'vue';
-  import ResearchMouseTooltip from '@/components/researchPortal/singleCellBrowser/ResearchMouseTooltip.vue';
+  import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
   
   export default Vue.component('research-stacked-bar-plot', {
-    components:{
-      ResearchMouseTooltip
-    },
     props: {
       data: {                           //tabular data as array
         type: (Array, null),
@@ -68,7 +64,6 @@
             isNormalized: false,
             isStacked: false,
             eventElements: [],
-            tooltip: null,
         }
     },
     watch: {
@@ -125,7 +120,6 @@
 
             console.log('settings',{isStacked:this.isStacked, isNormalized:this.isNormalized})
             
-            this.tooltip = this.$refs.tooltip;
             const primaryKey = this.primaryKey;
             const subsetKey = this.subsetKey;
             const hasSubsetKey = subsetKey && subsetKey!='';
@@ -361,19 +355,16 @@
         },
         addListener(el, entry){
             const mouseOver = this.mouseOverHandler.bind(this, entry);
-            const mouseMove = this.mouseMoveHandler.bind(this);
             const mouseOut = this.mouseOutHandler.bind(this);
-            el._listeners = { mouseOver, mouseMove, mouseOut };
+            el._listeners = { mouseOver, mouseOut };
             this.eventElements.push(el);
             // Tooltip mouseover
             el.addEventListener('mouseover', mouseOver);
-            el.addEventListener('mousemove', mouseMove);
             el.addEventListener('mouseout', mouseOut);
         },
         removeListener(el){
             if(el._listeners){
                 el.addEventListener('mouseover', el._listeners.mouseOver);
-                el.addEventListener('mousemove', el._listeners.mouseMove);
                 el.addEventListener('mouseout', el._listeners.mouseOut);
                 delete el._listeners;
             }
@@ -390,13 +381,13 @@
                                 <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Count:</div> ${entry.count.toLocaleString()}</div>
                                 <div style="display:${entry.pct?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Pct.:</div> ${entry.pct}</div>
                                 `;
-            this.tooltip.showTooltip(tooltipContent);
+            mouseTooltip.show(tooltipContent);
         },
         mouseMoveHandler(e){
 
         },
         mouseOutHandler(e){
-            this.tooltip.hideTooltip();
+            mouseTooltip.hide();
         },
         doHighlight(label){
             const plot = this.$refs.chart.querySelector(`.plot`);

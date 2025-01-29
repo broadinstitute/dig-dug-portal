@@ -1,19 +1,15 @@
 <template>
     <div style="width:min-content">
         <div ref="plot"></div>
-        <research-mouse-tooltip ref="tooltip" />
     </div>
   </template>
   
   <script>
   import * as d3 from 'd3';
   import Vue from 'vue';
-  import ResearchMouseTooltip from '@/components/researchPortal/singleCellBrowser/ResearchMouseTooltip.vue';
+  import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
   
   export default Vue.component('research-dot-plot', {
-    components:{
-      ResearchMouseTooltip
-    },
     props: {
         data: {
             type: Array,
@@ -125,8 +121,6 @@
             const keys = Array.from(new Set(this.data.map(d => d[geneKey])));
             const labels = Array.from(new Set(this.data.map(d => d[primaryKey])));
             const allMeans = this.data.map(d => d.mean);
-
-            const tooltip = this.$refs.tooltip;
 
             //console.log('   genes', keys); 
             //console.log('   labels', labels);
@@ -356,11 +350,11 @@
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">${primaryKey}</div>${d[primaryKey]}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">Expr.</div>${d.mean.toFixed(4)}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">% Expr.</div>${d.pctExpr.toFixed(4)}</div>`;
-                            tooltip.showTooltip(tooltipContent);
+                            mouseTooltip.show(tooltipContent);
                         })
                         // Tooltip mouseout to hide it
                         outerCircle.addEventListener('mouseout', function(e){
-                            tooltip.hideTooltip();
+                            mouseTooltip.hide();
                         });
 
                     cells.append('circle')

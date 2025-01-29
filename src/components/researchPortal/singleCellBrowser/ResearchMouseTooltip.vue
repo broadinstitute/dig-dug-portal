@@ -6,18 +6,19 @@
 import Vue from 'vue';
 
 /*
-adds a tooltip attached to mouse cursor
-tooltip will always stay within bounds of viewport
-and will follow cursor until hidden.
+usage: mouseTooltip.js
+dont import this component directly, use the mouseTooltip.js service instead
 
-usage: import component and add to template
-<research-mouse-tooltip ref="tooltip" />
+simply
+import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
 
-call showTooltip on your component ref and pass it some content
-this.tooltip.showTooltip("some content <div> can be html </div>");
+to show tooltip call
+mouseTooltip.show(your_content_string_html);
 
-call hideTooltip to hide the tooltip
-this.tooltip.hideTooltip();
+to hide tooltip call
+mouseTooltip.hide();
+
+the tooltip will keep following mouse until hide() is called
 */
 
 export default Vue.component('research-mouse-tooltip', {
@@ -38,12 +39,8 @@ export default Vue.component('research-mouse-tooltip', {
         this.tt = this.$refs.tooltip;
     },
     created() {
-        //TODO: store mouse position in vuex 
-        //so multiple components can access it and not have each create its own listener
-        window.addEventListener("mousemove", this.updateMousePosition);
     },
     beforeDestroy(){
-        window.removeEventListener("mousemove", this.updateMousePosition);
     },
     methods: {
         showTooltip(content){
@@ -89,8 +86,8 @@ export default Vue.component('research-mouse-tooltip', {
             this.tt.style.left = -10000 + "px";
             this.showing = false;
         },
-        updateMousePosition(e){
-            this.mousePos = {x: e.clientX, y: e.clientY}
+        updateMousePosition(x, y){
+            this.mousePos = {x: x, y: y}
             if(this.showing){
                 this.positionToolip();
             }
@@ -108,6 +105,7 @@ export default Vue.component('research-mouse-tooltip', {
     padding: 5px 10px;
     box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
     z-index: 5000;
+    opacity:0;
 }
 .mouse-tooltip.show{
     opacity: 1;

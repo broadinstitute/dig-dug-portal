@@ -34,8 +34,6 @@
         class="umap-label-canvas"
         :style="`display:${showLabels?'block':'none'}`"
       ></canvas>
-  
-      <research-mouse-tooltip ref="umapTooltip" />
     </div>
   </template>
   
@@ -44,12 +42,9 @@
   import * as d3 from 'd3';
   import Vue from 'vue';
   import EventBus from "@/utils/eventBus";
-  import ResearchMouseTooltip from '@/components/researchPortal/singleCellBrowser/ResearchMouseTooltip.vue';
+  import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
   
   export default Vue.component('research-umap-plot-gl', {
-    components:{
-      ResearchMouseTooltip
-    },
     props: {
       points: {             //umap coordinates
         type: Array,
@@ -102,9 +97,6 @@
         program: null,
         buffers: {},
         showLabels: true,
-        showTooltip: false,
-        tooltipContent: '',
-        tooltipStyle: {},
         scale: 1.0,
         translate: { x: 0.0, y: 0.0 },
         resetScale: 1.0,
@@ -547,7 +539,6 @@
             this.renderUMAP();
         }
         if(this.isHovering){
-            const umapTooltipEl = this.$refs.umapTooltip;
             // Convert to data coords
             const rect = this.$refs.umapCanvas.getBoundingClientRect();
             const canvasWidth = this.$refs.umapCanvas.width;
@@ -564,7 +555,7 @@
             const nearestPtIdx = this.points.indexOf(nearestPt);
 
             if (nearestPt) {
-                let hoverHTML = '<div class="twoColGrid">';
+                let hoverHTML = '<div style="display:grid; grid-template-columns: max-content 1fr; grid-column-gap: 5px; font-size: 12px;">';
                 hoverHTML += `<div style="font-weight:bold">Cell ID</div><div>${this.labels.NAME[nearestPtIdx]}</div>`;
                 if(this.expression) hoverHTML += `<div style="font-weight:bold">Expression</div><div>${this.expression[nearestPtIdx]} ${this.expressionGene?'('+this.expressionGene+')':''}</div>`;
                 Object.keys(this.labels.metadata_labels).forEach(field => {
@@ -577,9 +568,9 @@
                 hoverHTML += '</div>'
                 
                 
-                umapTooltipEl.showTooltip(hoverHTML);
+                mouseTooltip.show(hoverHTML);
             }else{
-                umapTooltipEl.hideTooltip();
+                mouseTooltip.hide();
             }
         }
       },
@@ -596,8 +587,7 @@
 
       onMouseOut(e){
         this.isHovering = false;
-        const umapTooltipEl = this.$refs.umapTooltip;
-        umapTooltipEl.hideTooltip();
+        mouseTooltip.hide();
       },
   
       onMouseUp() {
@@ -690,12 +680,6 @@
   .umap-canvas:active {
     /*cursor: grabbing;*/
   }
-::v-deep .twoColGrid{
-    display:grid;
-    grid-template-columns: max-content 1fr;
-    grid-column-gap: 5px;
-    font-size: 12px;
-}
 
 button {
     border: 1px solid rgba(0, 0, 0, .25);
