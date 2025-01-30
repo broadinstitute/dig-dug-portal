@@ -52,6 +52,7 @@
                                             <strong style="font-size: 16px; margin: 0 0 5px;">UMAP</strong> {{ coordinates.length.toLocaleString() }} cells
                                         </div>
                                         <research-umap-plot-gl 
+                                            :group="datasetId"
                                             :points="coordinates"
                                             :labels="fields"
                                             :colors="labelColors"
@@ -156,6 +157,7 @@
                                             <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
                                         </div>
                                         <research-umap-plot-gl 
+                                            :group="datasetId"
                                             :points="coordinates"
                                             :labels="fields"
                                             :colors="labelColors"
@@ -342,6 +344,7 @@
                             </div>
                             <div style="display:flex; position: relative">
                                 <research-umap-plot-gl 
+                                    :group="datasetId"
                                     :points="coordinates"
                                     :labels="fields"
                                     :colors="labelColors"
@@ -412,6 +415,7 @@
                                 @on-hover="handleSelectorHover($event)"
                             />
                             <research-umap-plot-gl 
+                                :group="datasetId"
                                 :points="coordinates"
                                 :labels="fields"
                                 :colors="labelColors"
@@ -511,6 +515,7 @@
                             </div>
                             
                             <research-umap-plot-gl 
+                                :group="datasetId"
                                 :points="coordinates"
                                 :labels="fields"
                                 :colors="labelColors"

@@ -266,9 +266,10 @@ export default Vue.component('research-single-cell-selector', {
         },
         scrollToOption(label){
             const el = document.querySelector(`.list-container .list-option[data-label="${label}"]`);
-            el?.scrollIntoView({
+            const parentEl = el?.closest('.list-container').parentNode;
+            parentEl?.scrollTo({
+                top: el.offsetTop - parentEl.offsetTop + parentEl.scrollTop,
                 behavior: 'smooth',
-                block: 'nearest', // scroll only within the container
             });
         },
         emitUpdate(){
