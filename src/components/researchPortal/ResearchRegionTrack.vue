@@ -295,9 +295,10 @@ export default Vue.component("research-region-track", {
 
                         let blockStart = blockRegion[0];
                         let blockEnd = blockRegion[1];
+                        let xPosStart, xPosEnd, xPosWidth;
 
                         if (blockStart <= region.end && blockEnd >= region.start) {
-                            let xPosStart =
+                            xPosStart =
                                 (blockStart - region.start) * xPerPixel +
                                 this.adjPlotMargin.left;
 
@@ -305,7 +306,21 @@ export default Vue.component("research-region-track", {
                                 xPosStart <= this.adjPlotMargin.left
                                     ? this.adjPlotMargin.left
                                     : xPosStart;
-                            let xPosEnd =
+                            xPosEnd =
+                                (blockEnd - region.start) * xPerPixel +
+                                this.adjPlotMargin.left;
+
+                            xPosEnd =
+                                xPosEnd >
+                                    this.adjPlotMargin.left + plotWidth
+                                    ? this.adjPlotMargin.left + plotWidth
+                                    : xPosEnd;
+                            
+                        } else if(blockStart <= region.start && blockEnd >= region.start) {
+
+                            xPosStart = this.adjPlotMargin.left - this.adjPlotMargin.bump;
+
+                            xPosEnd =
                                 (blockEnd - region.start) * xPerPixel +
                                 this.adjPlotMargin.left;
 
@@ -315,13 +330,36 @@ export default Vue.component("research-region-track", {
                                     ? this.adjPlotMargin.left + plotWidth
                                     : xPosEnd;
 
-                            //let xPosWidth = xPosEnd - xPosStart;
-                            let xPosWidth =
-                                xPosEnd - xPosStart < 2
-                                    ? 2
-                                    : xPosEnd - xPosStart;
+                        } else if(blockStart <= region.end && blockEnd >= region.end) {
 
-                            let colorIndex = !!this.plotConfig["color by"] ? (this.colorGroups.indexOf(block[this.plotConfig["color by"]]) % 16) : null;
+                            xPosStart =
+                                (blockStart - region.start) * xPerPixel +
+                                this.adjPlotMargin.left;
+
+                            xPosStart =
+                                xPosStart <= this.adjPlotMargin.left
+                                    ? this.adjPlotMargin.left
+                                    : xPosStart;
+
+                            xPosEnd = this.adjPlotMargin.left + plotWidth + this.adjPlotMargin.bump;
+
+                        } else if(blockEnd <= region.start) {
+
+                            xPosStart = this.adjPlotMargin.left - this.adjPlotMargin.bump - 15;
+
+                            xPosEnd = this.adjPlotMargin.left - this.adjPlotMargin.bump - 5;
+
+                        } else if(blockStart >= region.end) {
+
+                            xPosStart = this.adjPlotMargin.left + plotWidth + this.adjPlotMargin.bump + 5;
+
+                            xPosEnd = this.adjPlotMargin.left + plotWidth + this.adjPlotMargin.bump + 15;
+
+                        }
+
+                        xPosWidth = xPosEnd - xPosStart < 2? 2 : xPosEnd - xPosStart;
+
+                        let colorIndex = !!this.plotConfig["color by"] ? (this.colorGroups.indexOf(block[this.plotConfig["color by"]]) % 16) : null;
                             let highlightKey = (!!cKey && block[this.plotConfig["color by"]] == cKey) ? true : null;
 
                             if (!!highlightKey) {
@@ -348,7 +386,6 @@ export default Vue.component("research-region-track", {
                             }
 
                             this.posData[Math.round(trackTop / 2)]['regions'].push({ start: Math.round(xPosStart / 2), end: Math.round((xPosStart + xPosWidth) / 2), data: block });
-                        }
                     })
                     
                 })
