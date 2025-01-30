@@ -366,7 +366,7 @@
         if(!this.buffers.color){
           console.log("      colors")
     
-          const colors = new Float32Array(this.points.length * 4);
+          const colors = new Uint8Array(this.points.length * 4);
     
           for (let i = 0; i < this.points.length; i++) {
             let r, g, b, a;
@@ -376,20 +376,20 @@
               // clamp or assume 0..3
               const colorStr = this.expressionScale(val);
               const rgb = d3.color(colorStr).rgb();
-              r = rgb.r / 255;
-              g = rgb.g / 255;
-              b = rgb.b / 255;
-              a = 1;
+              r = rgb.r;
+              g = rgb.g;
+              b = rgb.b;
+              a = 255;
             } else {
               // 2) Fallback: color by label
               const labelIndex = metadata[i];
               const label = metadataLabels[labelIndex];
               const color = this.colors[labelField][label] || '#000000';
               const rgb = d3.color(color).rgb();
-              r = rgb.r / 255;
-              g = rgb.g / 255;
-              b = rgb.b / 255;
-              a = 1;
+              r = rgb.r;
+              g = rgb.g;
+              b = rgb.b;
+              a = 255;
             }
             const idx = i * 4;
             colors[idx] = r;
@@ -397,7 +397,6 @@
             colors[idx + 2] = b;
             colors[idx + 3] = a;
           }
-        
         
   
           const colorBuffer = gl.createBuffer();
@@ -462,7 +461,7 @@
         const colorLoc = gl.getAttribLocation(this.program, 'a_color');
         gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.color);
         gl.enableVertexAttribArray(colorLoc);
-        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(colorLoc, 4, gl.UNSIGNED_BYTE, true, 0, 0);
   
         // Highlight attribute
         const highlightLoc = gl.getAttribLocation(this.program, 'a_isHighlight');
