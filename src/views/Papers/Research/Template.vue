@@ -630,7 +630,7 @@
 						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
 
 							<!--  To test canvas collection -->
-							<div id="canvas_collect" v-if="!!$parent.sectionConfigs['visualizer collection']">
+							<div  class="col-md-12" id="canvas_collect" v-if="!!$parent.sectionConfigs['visualizer collection']">
 								<template v-for="section in $parent.sectionConfigs['visualizer collection']">
 									<h6 v-html="section.label"></h6>
 									<template  v-for="sId in section.sections">
