@@ -225,7 +225,7 @@ export default Vue.component("region-region-plot", {
 				return context.measureText(text).width;
 			}
 
-			let trackTop = this.adjPlotMargin.top;
+			let handleY = plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump/2);
 
 			let xPosStart = ((vRegion.start - wRegion.start) * xPerPixel) + this.adjPlotMargin.left;
 
@@ -233,14 +233,12 @@ export default Vue.component("region-region-plot", {
 
 			let xPosWidth = xPosEnd - xPosStart
 
-			
-
 			ctx.fillStyle = "#FF0000"
 			ctx.fillRect(
 				xPosStart - 2,
-				trackTop - 2,
+				handleY,
 				xPosWidth + 4,
-				20
+				10
 			);
 			
 /*

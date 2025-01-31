@@ -629,6 +629,18 @@
 						<!-- multi section -->
 						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
 
+							<!--  To test canvas collection -->
+							<div id="canvas_collect" v-if="!!$parent.sectionConfigs['visualizer collection']">
+								<template v-for="section in $parent.sectionConfigs['visualizer collection']">
+									<h6 v-html="section.label"></h6>
+									<template  v-for="sId in section.sections">
+										<div :id="sId + '_wrapper'"></div>
+									</template>
+									
+							  </template>
+							</div>
+							<!-- canvas collection end -->
+
 							<research-multi-sections-search 
 							v-if="!!$parent.multiSectionsSearchParameters"
 								:searchParameters="$parent.multiSectionsSearchParameters"

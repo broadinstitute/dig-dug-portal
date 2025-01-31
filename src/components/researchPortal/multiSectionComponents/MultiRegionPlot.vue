@@ -1122,6 +1122,15 @@ export default Vue.component("multi-region-plot", {
 					p
 				);
 
+				let duplicateImageTitle = (this.renderConfig.label)? this.renderConfig.label : this.sectionId;
+
+				this.utils.uiUtils.copyCanvasToDiv({id:"asso_plot_" + p.replaceAll(" ", "_") + this.sectionId, 
+					width:assoCanvasWidth/2,
+					height:canvasHeight/2}, 
+					this.sectionId,
+					duplicateImageTitle
+				);
+
 				// second LD plot
 				c = document.getElementById(
 					"ld_plot_" + p.replaceAll(" ", "_") + this.sectionId
