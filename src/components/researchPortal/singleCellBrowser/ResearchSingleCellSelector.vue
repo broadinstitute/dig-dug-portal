@@ -268,7 +268,7 @@ export default Vue.component('research-single-cell-selector', {
             const el = document.querySelector(`.list-container .list-option[data-label="${label}"]`);
             const parentEl = el?.closest('.list-container').parentNode;
             parentEl?.scrollTo({
-                top: el.offsetTop - parentEl.offsetTop + parentEl.scrollTop,
+                top: el.offsetTop - parentEl.offsetTop,
                 behavior: 'smooth',
             });
         },

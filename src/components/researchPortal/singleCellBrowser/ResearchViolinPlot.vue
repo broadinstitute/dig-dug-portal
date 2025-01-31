@@ -243,7 +243,9 @@
 
                 // kde
                 const bandwidth = 1;
-                const thresholds = d3.range(d3.min(entry.exprValues), d3.max(entry.exprValues), 0.1);
+                //const thresholds = d3.range(d3.min(entry.exprValues), d3.max(entry.exprValues), 0.1);
+                const [minVal, maxVal] = d3.extent(entry.exprValues);
+                const thresholds = d3.ticks(minVal, maxVal, 50);
                 const density = this.kde(this.epanechnikovKernel(bandwidth), thresholds, entry.exprValues);
 
                 // normalize kde
@@ -342,8 +344,8 @@
         },
         removeListener(el){
             if(el._listeners){
-                el.addEventListener('mouseover', el._listeners.mouseOver);
-                el.addEventListener('mouseout', el._listeners.mouseOut);
+                el.removeEventListener('mouseover', el._listeners.mouseOver);
+                el.removeEventListener('mouseout', el._listeners.mouseOut);
                 delete el._listeners;
             }
         },

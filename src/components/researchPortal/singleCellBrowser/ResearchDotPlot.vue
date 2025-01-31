@@ -226,8 +226,12 @@
                 .nice();
     
             // Create the color scale
-            const color = d3.scaleSequential(d3.interpolatePlasma)
-                .domain([d3.max(allMeans), 0]);
+            //const color = d3.scaleSequential(d3.interpolatePlasma)
+            //    .domain([d3.max(allMeans), 0]);
+
+            const color = d3.scaleLinear()
+                .domain([0, d3.max(allMeans)])
+                .range(["lightgrey", "blue"]);
                 
             const svg = d3.select(this.$refs.plot)
                 .append('svg')

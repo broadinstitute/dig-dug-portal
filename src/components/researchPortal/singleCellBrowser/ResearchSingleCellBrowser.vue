@@ -282,7 +282,7 @@
                                 <div style="display:flex; gap:5px" class="legends">
                                     <div style="display:flex; flex-direction: column;" class="legend">
                                         <div class="label">Expression</div>
-                                        <div class="gradient" :style="`background: linear-gradient(to left, ${colorScalePlasmaColorsArray});`"></div>
+                                        <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray});`"></div>
                                         <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
                                     </div>
                                     <div style="display:flex; flex-direction: column;" class="legend">
@@ -375,7 +375,7 @@
                                 -->
                                 <div style="display:flex; flex-direction: column; position:absolute; top:4px; left:5px;" class="legend">
                                     <div class="label">Expression</div>
-                                    <div class="gradient" :style="`background: linear-gradient(to left, ${colorScalePlasmaColorsArray}); height:5px;`"></div>
+                                    <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray}); height:5px;`"></div>
                                     <div style="display:flex" class="marks"><div>0.0</div><div>3.0</div></div>
                                 </div>
                             </div>
@@ -602,7 +602,7 @@
                             <div style="display:flex; gap:5px" class="legends">
                                 <div style="display:flex; flex-direction: column;" class="legend">
                                     <div class="label">Expression</div>
-                                    <div class="gradient" :style="`background: linear-gradient(to left, ${colorScalePlasmaColorsArray});`"></div>
+                                    <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray});`"></div>
                                     <div style="display:flex" class="marks"><div>0.0</div><div>3.0</div></div>
                                 </div>
                                 <div style="display:flex; flex-direction: column;" class="legend">
@@ -714,8 +714,10 @@
 
                 //colorIndex: 0,
                 //colorScaleIndex: d3.scaleOrdinal(colors),
+                colorscaleGreyBlue: d3.scaleLinear().domain([0, 1]).range(["lightgrey", "blue"]),
                 colorScalePlasma: d3.scaleSequential(d3.interpolatePlasma),
                 colorScalePlasmaColorsArray: [],
+                colorScaleGreyBlueColorsArray: [],
 
                 labelColors: null,
                 fieldsDisplayList: null,
@@ -891,14 +893,23 @@
                                 acc[item.cell_type].push(item);
                                 return acc;
                             }, {});
-                            const top5Matrix = [];
+
+                            const topN = 5;
+                            const topNStats = [];
                             for(const [cellType, genes] of Object.entries(markersByCellType)){
-                                const topNgenes = genes.sort((a, b) => b.z_score - a.z_score).slice(0, 5);
+                                let topNgenes;
+                                if (genes.every(gene => gene.z_score != null)) { 
+                                    topNgenes = genes.sort((a, b) => b.z_score - a.z_score).slice(0, 5);
+                                }else{
+                                    topNgenes = genes.sort((a, b) => b.mean_expression - a.mean_expression).slice(0, 5);
+                                }
+                                
                                 for(const gene of topNgenes){
-                                    top5Matrix.push(...markersByGene[gene.gene]);
+                                    topNStats.push(...markersByGene[gene.gene]);
                                 }
                             }
-                            const dotPlot = top5Matrix.map(item => ({
+                            
+                            const dotPlot = topNStats.map(item => ({
                                 gene: item.gene,
                                 cellType: item.cell_type,
                                 color: null,
@@ -928,7 +939,8 @@
                 //pre-calculate colors for labels in each field
                 this.labelColors = scUtils.calcLabelColors(this.fields, colors);
                 
-                this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ');
+                //this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ');
+                this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorscaleGreyBlue(t)).join(', ');
                 
                 this.fieldsDisplayList = scUtils.calcFieldsDisplayList(this.fields);
 
