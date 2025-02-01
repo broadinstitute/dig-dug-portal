@@ -629,6 +629,16 @@
 						<!-- multi section -->
 						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
 
+							<research-multi-sections-search 
+							v-if="!!$parent.multiSectionsSearchParameters"
+								:searchParameters="$parent.multiSectionsSearchParameters"
+								:phenotypesInUse="$parent.phenotypesInSession"
+								:sections="$parent.sectionConfigs.sections"
+								:utils="$parent.utilsBox"
+								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
+								>
+							</research-multi-sections-search>
+
 							<!--  To test canvas collection -->
 							<div  class="col-md-12" id="canvas_collect" v-if="!!$parent.sectionConfigs['visualizer collection']">
 								<template v-for="section in $parent.sectionConfigs['visualizer collection']">
@@ -640,16 +650,6 @@
 							  </template>
 							</div>
 							<!-- canvas collection end -->
-
-							<research-multi-sections-search 
-							v-if="!!$parent.multiSectionsSearchParameters"
-								:searchParameters="$parent.multiSectionsSearchParameters"
-								:phenotypesInUse="$parent.phenotypesInSession"
-								:sections="$parent.sectionConfigs.sections"
-								:utils="$parent.utilsBox"
-								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
-								>
-							</research-multi-sections-search>
 							
 								<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"

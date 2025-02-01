@@ -138,15 +138,15 @@
 								-100, -80, -60, -40, -20, 0, 20, 40, 60,
 								80, 100,
 							]" type="radio" name="regionViewArea" :value="value" @click="setZoom('regionViewArea',
-	regionZoom != 0
-		? value
-		: '')
-	" :class="regionViewArea == value
-		? 'zoom-radio checked'
-		: value == 0
-			? 'zoom-radio center'
-			: 'zoom-radio'
-		" :key="value" />
+							regionZoom != 0
+								? value
+								: '')
+							" :class="regionViewArea == value
+								? 'zoom-radio checked'
+								: value == 0
+									? 'zoom-radio center'
+									: 'zoom-radio'
+								" :key="value" />
 							<span class="zoom-radio-number" @click="setZoom('regionViewArea',
 								regionViewArea +=
 								regionViewArea != 100 &&
@@ -157,6 +157,7 @@
 						</form>
 					</div>
 					<!-- viz tabs-->
+					 <div class="viz-wrapper">
 					<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
 						<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
 							<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
@@ -241,6 +242,8 @@
 						:bigRegion="bigRegionParam"
 						:starItems="starItems" @on-star="starColumn">
 					</research-section-visualizers>
+
+					</div>
 					
 					<template v-if="!!tableFormat && !tableFormat['display type']">
 						<research-data-table 
@@ -1932,6 +1935,10 @@ button.red-background {
 }
 
 .byor-shortened-string:hover .raw-string {
+	display: block;
+}
+
+.viz-wrapper {
 	display: block;
 }
 </style>
