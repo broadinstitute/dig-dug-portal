@@ -21,6 +21,7 @@ import UnauthorizedMessage from "../../../../components/UnauthorizedMessage";
 import GeneAssociationsTable from "../../../../components/GeneAssociationsTable";
 import GeneAssociationsMasks from "../../../../components/GeneAssociationsMasks";
 import MouseSingleSearch from "../../components/MouseSingleSearch.vue";
+import PigeanPlot from "../../../../components/PigeanPlot.vue";
 
 import uiUtils from "../../../../utils/uiUtils";
 import plotUtils from "../../../../utils/plotUtils";
@@ -57,6 +58,7 @@ new Vue({
         GeneAssociationsMasks,
         GeneAssociationsTable,
         MouseSingleSearch,
+        PigeanPlot,
     },
     mixins: [pageMixin],
     data() {

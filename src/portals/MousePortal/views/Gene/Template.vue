@@ -211,6 +211,30 @@
                                     </span>
                                     <b-tabs>
                                         <b-tab
+                                            title="PIGEAN"
+                                            @click="
+                                                $parent.renderPhewas(
+                                                    'pigeanPlot'
+                                                )
+                                            "
+                                        >
+                                            <pigean-plot :ref="'pigeanPlot'"
+                                                v-if="$parent.plotReady"
+                                                :pigeanData="$store.state.pigeanPhenotype.data"
+                                                :config="$parent.genePigeanPlotConfig"
+                                                :phenotypeMap="$parent.pigeanMap"
+                                                :filter="filter"
+                                            >
+                                            </pigean-plot>
+                                            <pigean-table
+                                                v-if="$parent.plotReady"
+                                                :pigeanData="$store.state.pigeanPhenotype.data"
+                                                :config="$parent.tableConfig"
+                                                :filter="filter"
+                                            >
+                                            </pigean-table>
+                                        </b-tab>
+                                        <b-tab
                                             title="HuGE Scores"
                                             @click="
                                                 $parent.renderPhewas(
