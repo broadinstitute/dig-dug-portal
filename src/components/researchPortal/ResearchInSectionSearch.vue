@@ -16,8 +16,7 @@
 						<span v-html="parameter.label"></span>
 					</div>
 
-					<select v-if="parameter.type == 'api list' &&
-						parameterOptions[paramIndex].length <= 10"
+					<select v-if="parameter.type == 'api list'"
 							:id="'section_search_param_' + parameter.parameter"  class="custom-select custom-select-search"
 							@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
 
@@ -27,11 +26,11 @@
 									v-html="param.label.trim()"></option>
 					</select>
 
-					<template v-if="parameter.type == 'api list' && parameterOptions[paramIndex].length > 10">
+					<!--<template v-if="parameter.type == 'api list' && parameterOptions[paramIndex].length > 10">
 						<input v-model="paramSearch[paramIndex]" class="form-control"
 							@keyup="getListOptions($event, parameter)" :id="'section_search_param_' + parameter.parameter" />
 
-						<!--<div :id="'listOptions' + parameter.parameter" class="custom-select custom-select-search long-list"
+						<div :id="'listOptions' + parameter.parameter" class="custom-select custom-select-search long-list"
 							:size="!!listOptions[parameter.parameter] && listOptions[parameter.parameter].length >= 5 ? 5 : 'auto'"
 							:style="!listOptions[parameter.parameter] || listOptions[parameter.parameter].length == 0
 								? 'display:none !important;'
@@ -46,8 +45,8 @@
 								)
 									" class="custom-select-a-option"></a>
 							</template>
-						</div>-->
-					</template>
+						</div>
+					</template>-->
 						
 					<select
 						v-if="parameter.type == 'list' &&
