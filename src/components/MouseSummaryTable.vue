@@ -13,7 +13,7 @@
       small
       :items="filteredData"
       :fields="fields"
-      :sort-by="!isGenePage ? 'gene' : 'tissue'"
+      sort-by="P_adj_strain"
       :per-page="perPage"
       :current-page="currentPage"
       :sort-compare="sortRows"
