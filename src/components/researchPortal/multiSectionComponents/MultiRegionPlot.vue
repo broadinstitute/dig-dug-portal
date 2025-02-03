@@ -1122,14 +1122,20 @@ export default Vue.component("multi-region-plot", {
 					p
 				);
 
-				let duplicateImageTitle = (this.renderConfig.label)? this.renderConfig.label : this.sectionId;
+				const duplicateWrapper = document.getElementById(this.sectionId + '_wrapper');
 
-				this.utils.uiUtils.copyCanvasToDiv({id:"asso_plot_" + p.replaceAll(" ", "_") + this.sectionId, 
-					width:assoCanvasWidth/2,
-					height:canvasHeight/2}, 
-					this.sectionId,
-					duplicateImageTitle
-				);
+				if(!!duplicateWrapper) {
+
+					let duplicateImageTitle = (this.renderConfig.label)? this.renderConfig.label : this.sectionId;
+
+					this.utils.uiUtils.copyCanvasToDiv({id:"asso_plot_" + p.replaceAll(" ", "_") + this.sectionId, 
+						width:assoCanvasWidth/2,
+						height:canvasHeight/2}, 
+						this.sectionId,
+						duplicateImageTitle,
+						this.assoPos[p]
+					);
+				}
 
 				// second LD plot
 				c = document.getElementById(
@@ -1421,6 +1427,10 @@ export default Vue.component("multi-region-plot", {
 						linesObj
 					);
 				}
+
+				this.$root.globalPosData['assoPos'+GROUP] = this.assoPos[GROUP];
+
+				console.log("this.$root.globalPosData",this.$root.globalPosData);
 			}
 
 			if (TYPE == "LD") {

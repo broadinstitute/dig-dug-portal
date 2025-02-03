@@ -759,8 +759,6 @@ let copy2Clipboard = function (CONTENT) {
 
 let copyCanvasToDiv = function (CANVAS, divId, title) {
 
-    //canvas = {id,width,height,posdata}
-
     // Get the canvas element
     const canvasId = CANVAS.id;
     const canvas = document.getElementById(canvasId);
@@ -774,42 +772,50 @@ let copyCanvasToDiv = function (CANVAS, divId, title) {
     if (!div) {
         console.error("Div element with ID '" + divId + "' not found.");
         return;
+    } else {
+        //Create a wrapper div to hold the image
+        const wrapperId = canvasId + "_wrapper"
+        let imgWrapper = document.getElementById(wrapperId);
+        if (!imgWrapper) {
+            imgWrapper = document.createElement('div');
+            imgWrapper.setAttribute("id", wrapperId);
+        }
+        imgWrapper.innerHTML = "";
+
+        /*
+        const titleWrapper = document.createElement('div');
+        titleWrapper.innerHTML = "<h6>" + title + "</h6>"
+
+        imgWrapper.appendChild(titleWrapper)
+
+        */
+
+        // Create a temporary canvas to hold the image data. This is important to avoid issues with modifying the original canvas.
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(canvas, 0, 0);
+
+        // Convert the canvas content to a data URL (PNG by default)
+        const dataURL = tempCanvas.toDataURL(); // Or toDataURL('image/jpeg', 0.9); for JPEG with quality 0.9
+
+        // Create an image element
+        const img = document.createElement('img');
+        img.setAttribute("width", CANVAS.width);
+        img.setAttribute("height", CANVAS.height);
+        img.src = dataURL;
+        img.alt = "Canvas Image"; // Set an alt attribute for accessibility
+
+        // Clear the wrapper's content and append the image.  This removes any existing content in the div.
+
+        imgWrapper.appendChild(img);
+
+        div.innerHTML = "";
+
+        div.appendChild(imgWrapper);
     }
-    //Create a wrapper div to hold the image
-    const wrapperId = canvasId + "_wrapper"
-    let imgWrapper = document.getElementById(wrapperId);
-    if (!imgWrapper) {
-        imgWrapper = document.createElement('div');
-        imgWrapper.setAttribute("id", wrapperId);
-    }
-    imgWrapper.innerHTML = "";
 
-    const titleWrapper = document.createElement('div');
-    titleWrapper.innerHTML = "<h6>" + title + "</h6>"
-
-    imgWrapper.appendChild(titleWrapper)
-
-    // Create a temporary canvas to hold the image data. This is important to avoid issues with modifying the original canvas.
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.drawImage(canvas, 0, 0);
-
-    // Convert the canvas content to a data URL (PNG by default)
-    const dataURL = tempCanvas.toDataURL(); // Or toDataURL('image/jpeg', 0.9); for JPEG with quality 0.9
-
-    // Create an image element
-    const img = document.createElement('img');
-    img.setAttribute("width", CANVAS.width);
-    img.setAttribute("height", CANVAS.height);
-    img.src = dataURL;
-    img.alt = "Canvas Image"; // Set an alt attribute for accessibility
-
-    // Clear the wrapper's content and append the image.  This removes any existing content in the div.
-
-    imgWrapper.appendChild(img);
-    div.appendChild(imgWrapper);
 
 }
 

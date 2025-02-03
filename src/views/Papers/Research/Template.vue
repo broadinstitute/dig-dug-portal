@@ -644,7 +644,9 @@
 								<template v-for="section in $parent.sectionConfigs['visualizer collection']">
 									<h6 v-html="section.label"></h6>
 									<template  v-for="sId in section.sections">
-										<div :id="sId + '_wrapper'"></div>
+										<div :id="sId + '_wrapper'" 
+											@mousemove="$parent.checkPosition($event,'hover')" >
+										</div>
 									</template>
 									
 							  </template>
