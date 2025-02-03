@@ -28,11 +28,11 @@
                     {{data.item.datasetId === $parent.selectedDataset ? 'Selected' : 'Select'}}
                   </button>
               </template>
-              <template #cell(downloadData)="data">
-                <a :href="`${$parent.downloadLinks[data.item.datasetId]}`" 
+              <template #cell(download)="data">
+                <a :href="data.item.download" 
                   target="_blank" 
                 >
-                  Download
+                  Download 
                 </a>
               </template>
           </b-table>

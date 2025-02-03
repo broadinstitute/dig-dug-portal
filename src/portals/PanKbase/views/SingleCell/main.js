@@ -31,12 +31,7 @@ new Vue({
                 dataConvert: dataConvert
             },
             allMetadata: null,
-            tableColumns: [{ key: 'viewDataset', label: 'View' }, "datasetName", "tissue", "method", "totalCells", { key: 'downloadData', label: 'Download' }],
-            downloadLinks: {
-              "islet_of_Langerhans_scRNA":"https://pankbase-data-v1.s3.us-west-2.amazonaws.com/analysis_resources/single_cell_objects/min.cells0.01pct_min.features5pct_rmDoublets_harmony_data.Rds",
-              "islet_of_Langerhans_snATAC":"https://pankbase-data-v1.s3.us-west-2.amazonaws.com/analysis_resources/single_cell_objects/hpap_atac.h5ad",
-              "HPAP":"https://islet-hpap.s3.us-west-2.amazonaws.com/hpap_islet_scRNAseq.rds",
-            },
+            tableColumns: [{ key: 'viewDataset', label: 'View' }, "datasetName", "tissue", "method", "totalCells", { key: 'download', label: 'Download' }],
             selectedDataset: null,
             scbConfig: {
                 "type": "cell browser",
@@ -78,7 +73,7 @@ new Vue({
                   }
                 },
                 "presets": {
-                  "datasetId": "islet_of_Langerhans_snATAC",
+                  "datasetId": "islet_of_Langerhans_snATAC_v1",
                   "cell type label": "Cell Type"
                 }
             },
@@ -95,6 +90,9 @@ new Vue({
           this.selectedDataset = keyParams[this.scbConfig["parameters"].datasetId];
         }else{
           this.selectedDataset = this.scbConfig["presets"]["datasetId"];
+          if(this.selectedDataset) {
+            keyParams.set({[this.scbConfig["parameters"].datasetId] : this.selectedDataset});
+          }
         }
         this.allMetadata = await this.fetchMetadata(this.scbConfig["data points"].find(x => x.role === "metadata").url);
         
