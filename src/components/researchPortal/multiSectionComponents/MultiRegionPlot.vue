@@ -1122,7 +1122,7 @@ export default Vue.component("multi-region-plot", {
 					p
 				);
 
-				const duplicateWrapper = document.getElementById(this.sectionId + '_wrapper');
+				/*const duplicateWrapper = document.getElementById(this.sectionId + '_wrapper');
 
 				if(!!duplicateWrapper) {
 
@@ -1135,7 +1135,9 @@ export default Vue.component("multi-region-plot", {
 						duplicateImageTitle,
 						this.assoPos[p]
 					);
-				}
+				}*/
+
+				this.utils.uiUtils.moveCanvas("rp_region_plot","assoPlotsWrapperdefaultassociations", "associations_wrapper");
 
 				// second LD plot
 				c = document.getElementById(
@@ -1431,6 +1433,7 @@ export default Vue.component("multi-region-plot", {
 				this.$root.globalPosData['assoPos'+GROUP] = this.assoPos[GROUP];
 
 				console.log("this.$root.globalPosData",this.$root.globalPosData);
+				console.log("this.$root.sectionsData",this.$root.sectionsData);
 			}
 
 			if (TYPE == "LD") {

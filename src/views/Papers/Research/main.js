@@ -1299,7 +1299,7 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
-        checkPosition(e, action) {
+        checkPosition(e, ID) {
             let rect = e.target.getBoundingClientRect();
             let x = Math.floor(e.clientX - rect.left);
             let y = Math.floor(e.clientY - rect.top);

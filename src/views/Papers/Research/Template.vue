@@ -645,7 +645,7 @@
 									<h6 v-html="section.label"></h6>
 									<template  v-for="sId in section.sections">
 										<div :id="sId + '_wrapper'" 
-											@mousemove="$parent.checkPosition($event,'hover')" >
+											>
 										</div>
 									</template>
 									

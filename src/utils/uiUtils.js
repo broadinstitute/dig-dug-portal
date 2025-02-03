@@ -816,6 +816,43 @@ let copyCanvasToDiv = function (CANVAS, divId, title) {
         div.appendChild(imgWrapper);
     }
 
+}
+
+let moveCanvas = function (canvasId, sourceDivId, destinationDivId) {
+    // Get the canvas element
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error("Canvas element with ID '" + canvasId + "' not found.");
+        return;
+    }
+
+    // Get the source and destination divs
+    //const sourceDiv = document.getElementById(sourceDivId);
+    const destinationDiv = document.getElementById(destinationDivId);
+
+    /* if (!sourceDiv || !destinationDiv) {
+         console.error("Source or destination div not found.");
+         return;
+     }*/
+
+    // Check if the canvas is already a child of the destination div
+    if (canvas.parentNode === destinationDiv) {
+        console.warn("Canvas is already in the destination div.");
+        return; // Or you could optionally move it back to the source
+    }
+
+    // Remove the canvas from its current parent (if it has one)
+    if (canvas.parentNode) {
+        canvas.parentNode.removeChild(canvas);
+    }
+
+    // Append the canvas to the destination div
+    destinationDiv.appendChild(canvas);
+
+    //Optional: Adjust canvas position if needed
+    canvas.style.position = "relative"; // or "absolute" depending on your layout
+    canvas.style.left = "0";
+    canvas.style.top = "0";
 
 }
 
@@ -851,5 +888,6 @@ export default {
     downloadImg,
     downloadChart,
     copy2Clipboard,
-    copyCanvasToDiv
+    copyCanvasToDiv,
+    moveCanvas
 };
