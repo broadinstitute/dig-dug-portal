@@ -1,26 +1,17 @@
 import Vue from "vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import Template from "./Template.vue";
 
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import "../../assets/matkp-styles.css";
 
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-Vue.config.productionTip = false;
-
-import matkpNav from "../components/matkp-nav.vue";
-import matkpFooter from "../components/matkp-footer.vue";
+import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 
 new Vue({
     components: {
-        matkpNav,
-        matkpFooter,
     },
+    mixins: [matkpMixin],
 
     data() {
         return {

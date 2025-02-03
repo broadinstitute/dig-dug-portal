@@ -24,20 +24,6 @@ let pages = {
         title: "MATKP | Cell Browser",
         chunks: ["chunk-vendors", "chunk-common", "cellbrowser"],
     },
-    cellbrowser1: {
-        entry: "src/portals/MATKP/views/CellBrowser/main.js",
-        template: "public/index.html",
-        filename: "cellbrowser1.html",
-        title: "MATKP | Cell Browser",
-        chunks: ["chunk-vendors", "chunk-common", "cellbrowser1"],
-    },
-    cellbrowser2: {
-        entry: "src/portals/MATKP/views/CellBrowser2/main.js",
-        template: "public/index.html",
-        filename: "cellbrowser2.html",
-        title: "MATKP | Cell Browser",
-        chunks: ["chunk-vendors", "chunk-common", "cellbrowser2"],
-    },
     datasets: {
         entry: "src/portals/MATKP/views/Datasets/main.js",
         template: "public/index.html",
