@@ -27,9 +27,7 @@
         </div>
         <div class="f-col hero-info no-events" style="z-index: 1; gap: 20px">
             <div class="tagline">
-                A resource for the exploration of genes, traits and cell types
-                in the function of adipose tissue across species, depots and
-                conditions.
+                An open community portal for adipose biology across multiple mammalian species
             </div>
             <a
                 class="matkp-input"
