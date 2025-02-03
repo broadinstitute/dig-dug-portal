@@ -59,7 +59,7 @@
 							<input v-model="paramSearch[paramIndex]" class="form-control" @keyup="getGenes($event)"
 								:id="'search_param_' + parameter.parameter" />
 
-							<div class="custom-select custom-select-search" :size="kpGenes.length >= 5 ? 5 : 'auto'" :style="kpGenes.length == 0
+							<div class="custom-select custom-select-search" :size="kpGenes.length >= 5 ? 5 : 'auto'" :style="kpGenes.length == 0 || checkFocus('search_param_' + parameter.parameter) == false
 								? 'display:none !important;'
 								: ''
 								">
@@ -202,6 +202,13 @@ export default Vue.component("research-multi-sections-search", {
 		
 	},
 	methods: {
+		checkFocus(ID) {
+			if (!document.getElementById(ID).matches(':focus')) {
+				return false;
+			} else {
+				return true;
+			}
+		},
 		async getList(apiPoint, INDEX) {
 			
 			let searchPoint = apiPoint.url;

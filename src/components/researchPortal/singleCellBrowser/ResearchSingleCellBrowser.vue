@@ -52,11 +52,13 @@
                                             <strong style="font-size: 16px; margin: 0 0 5px;">UMAP</strong> {{ coordinates.length.toLocaleString() }} cells
                                         </div>
                                         <research-umap-plot-gl 
+                                            :group="datasetId"
                                             :points="coordinates"
                                             :labels="fields"
                                             :colors="labelColors"
                                             :cellTypeField="cellTypeField"
                                             :colorByField="cellCompositionVars.colorByField"
+                                            :hoverFields="[]"
                                             :highlightLabel="cellCompositionVars.highlightLabel"
                                             :highlightLabels="cellCompositionVars.highlightLabels"
                                             :width="400"
@@ -155,11 +157,13 @@
                                             <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
                                         </div>
                                         <research-umap-plot-gl 
+                                            :group="datasetId"
                                             :points="coordinates"
                                             :labels="fields"
                                             :colors="labelColors"
                                             :expression="expressionData[geneExpressionVars.selectedGene]"
                                             :cellTypeField="cellTypeField"
+                                            :hoverFields="[]"
                                             :highlightLabel="cellCompositionVars.highlightLabel"
                                             :highlightLabels="cellCompositionVars.highlightLabels"
                                             :width="400"
@@ -203,7 +207,7 @@
                                             </div>
 
                                             <research-single-cell-selector style="margin-top:4px; flex-grow:1; overflow-x: hidden; overflow-y: auto;"
-                                                :data="geneNames"
+                                                :data="sortedGeneNames"
                                                 layout="list"
                                                 listSelection="exclusive"
                                                 :colors="null"
@@ -278,7 +282,7 @@
                                 <div style="display:flex; gap:5px" class="legends">
                                     <div style="display:flex; flex-direction: column;" class="legend">
                                         <div class="label">Expression</div>
-                                        <div class="gradient" :style="`background: linear-gradient(to left, ${colorScalePlasmaColorsArray});`"></div>
+                                        <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray});`"></div>
                                         <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
                                     </div>
                                     <div style="display:flex; flex-direction: column;" class="legend">
@@ -340,11 +344,13 @@
                             </div>
                             <div style="display:flex; position: relative">
                                 <research-umap-plot-gl 
+                                    :group="datasetId"
                                     :points="coordinates"
                                     :labels="fields"
                                     :colors="labelColors"
                                     :expression="expressionData[geneExpressionVars.selectedGene]"
                                     :cellTypeField="cellTypeField"
+                                    :hoverFields="[]"
                                     :highlightLabel="cellCompositionVars.highlightLabel"
                                     :highlightLabels="cellCompositionVars.highlightLabels"
                                     :width="400"
@@ -369,7 +375,7 @@
                                 -->
                                 <div style="display:flex; flex-direction: column; position:absolute; top:4px; left:5px;" class="legend">
                                     <div class="label">Expression</div>
-                                    <div class="gradient" :style="`background: linear-gradient(to left, ${colorScalePlasmaColorsArray}); height:5px;`"></div>
+                                    <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray}); height:5px;`"></div>
                                     <div style="display:flex" class="marks"><div>0.0</div><div>3.0</div></div>
                                 </div>
                             </div>
@@ -409,10 +415,12 @@
                                 @on-hover="handleSelectorHover($event)"
                             />
                             <research-umap-plot-gl 
+                                :group="datasetId"
                                 :points="coordinates"
                                 :labels="fields"
                                 :colors="labelColors"
                                 :cellTypeField="cellTypeField"
+                                :hoverFields="[]"
                                 :colorByField="cellCompositionVars.colorByField"
                                 :highlightLabel="cellCompositionVars.highlightLabel"
                                 :highlightLabels="cellCompositionVars.highlightLabels"
@@ -446,7 +454,6 @@
                                 <research-single-cell-selector 
                                     :data="fields['metadata_labels']"
                                     layout="dropdown"
-                                    :showColor="false"
                                     :selectedField="cellCompositionVars.colorByField"
                                     @on-update="selectSegmentBy($event.selectedField, cellCompositionVars.segmentByLabel)"
                                 />
@@ -456,7 +463,6 @@
                                 <research-single-cell-selector 
                                     :data="fields['metadata_labels']"
                                     layout="dropdown"
-                                    :showColor="false"
                                     selectedField=""
                                     @on-update="selectSegmentBy(cellCompositionVars.displayByLabel, $event.selectedField)"
                                 />
@@ -509,11 +515,13 @@
                             </div>
                             
                             <research-umap-plot-gl 
+                                :group="datasetId"
                                 :points="coordinates"
                                 :labels="fields"
                                 :colors="labelColors"
                                 :expression="expressionData[geneExpressionVars.selectedGene]"
                                 :cellTypeField="cellTypeField"
+                                :hoverFields="[]"
                                 :highlightLabel="cellCompositionVars.highlightLabel"
                                 :highlightLabels="cellCompositionVars.highlightLabels"
                                 :width="400"
@@ -594,7 +602,7 @@
                             <div style="display:flex; gap:5px" class="legends">
                                 <div style="display:flex; flex-direction: column;" class="legend">
                                     <div class="label">Expression</div>
-                                    <div class="gradient" :style="`background: linear-gradient(to left, ${colorScalePlasmaColorsArray});`"></div>
+                                    <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray});`"></div>
                                     <div style="display:flex" class="marks"><div>0.0</div><div>3.0</div></div>
                                 </div>
                                 <div style="display:flex; flex-direction: column;" class="legend">
@@ -706,13 +714,16 @@
 
                 //colorIndex: 0,
                 //colorScaleIndex: d3.scaleOrdinal(colors),
+                colorscaleGreyBlue: d3.scaleLinear().domain([0, 1]).range(["lightgrey", "blue"]),
                 colorScalePlasma: d3.scaleSequential(d3.interpolatePlasma),
                 colorScalePlasmaColorsArray: [],
+                colorScaleGreyBlueColorsArray: [],
 
                 labelColors: null,
                 fieldsDisplayList: null,
 
                 geneNames: [], //list of loaded gene names
+                sortedGeneNames: [],
                 expressionData: {}, //obj, keys are gene names, values are arrays of raw expression per cell
                 expressionStatsAll: [], //array of objects, each obj is gene, mean expr., pct. expressing
                 geneToSearch: "",
@@ -747,9 +758,10 @@
                     expressionStats.push(...scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true))
                 })
                 this.expressionStatsAll = expressionStats;
-                console.log('updated expression stats', this.expressionStatsAll);
+                //console.log('updated expression stats', this.expressionStatsAll);
             },
             geneNames(){
+                this.sortedGeneNames = [...this.geneNames].sort();
                 this.geneLists["searched genes"] = this.geneNames;
             },
             markersList(){
@@ -865,10 +877,12 @@
                 this.preloadItem = 'markers';
                 const markersUrl = this.renderConfig["data points"].find(x => x.role === "markers");
                 if(markersUrl){
-                    const url = markersUrl.url;//.replace('.json', '.top.json')
+                    const url = markersUrl.url;
                     this.markers = await scUtils.fetchMarkers(url, this.datasetId);
                     if(this.markers){
                         if(Array.isArray(this.markers)){
+                            //latest markers includes gene stats
+                            this.markersList = [...new Set(this.markers.map(x=>x.gene.toUpperCase()))];
                             const markersByGene = this.markers.reduce((acc, item) => {
                                 if(!acc[item.gene]) acc[item.gene] = [];
                                 acc[item.gene].push(item);
@@ -879,26 +893,35 @@
                                 acc[item.cell_type].push(item);
                                 return acc;
                             }, {});
-                            const top5Matrix = [];
+
+                            const topN = 5;
+                            const topNStats = [];
                             for(const [cellType, genes] of Object.entries(markersByCellType)){
-                                const topNgenes = genes.sort((a, b) => b.z_score - a.z_score).slice(0, 5);
+                                let topNgenes;
+                                if (genes.every(gene => gene.z_score != null)) { 
+                                    topNgenes = genes.sort((a, b) => b.z_score - a.z_score).slice(0, 5);
+                                }else{
+                                    topNgenes = genes.sort((a, b) => b.mean_expression - a.mean_expression).slice(0, 5);
+                                }
+                                
                                 for(const gene of topNgenes){
-                                    top5Matrix.push(...markersByGene[gene.gene]);
+                                    topNStats.push(...markersByGene[gene.gene]);
                                 }
                             }
-                            const dotPlot = top5Matrix.map(item => ({
+                            
+                            const dotPlot = topNStats.map(item => ({
                                 gene: item.gene,
                                 cellType: item.cell_type,
                                 color: null,
                                 mean: item.mean_expression,
                                 pctExpr: item.pct_nz_group * 100
                             }))
-                            this.markersList = [...new Set(dotPlot.map(x=>x.gene.toUpperCase()))];
                             this.geneNames = this.markersList;
                             this.markerGenes = dotPlot;
                             this.markerGenesMaxMean = d3.max(this.markerGenes.map(d => d.mean)).toFixed(1);
                             console.log('markers', {markersByGene, markersByCellType, transformedData:this.markerGenes, markersList:this.markersList});
                         }else{
+                            //fallback to just having a list of genes per cell type
                             const markersList = Object.values(this.markers).flat();
                             this.markersList = markersList;
                             console.log({markersList});
@@ -916,7 +939,8 @@
                 //pre-calculate colors for labels in each field
                 this.labelColors = scUtils.calcLabelColors(this.fields, colors);
                 
-                this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ');
+                //this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorScalePlasma(t)).join(', ');
+                this.colorScalePlasmaColorsArray = d3.range(0, 1.01, 0.1).map(t => this.colorscaleGreyBlue(t)).join(', ');
                 
                 this.fieldsDisplayList = scUtils.calcFieldsDisplayList(this.fields);
 
