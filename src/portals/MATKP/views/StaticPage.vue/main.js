@@ -7,9 +7,12 @@ import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 import matkpHero from "@/portals/MATKP/components/matkp-hero.vue";
 import matkpAnatomogram from "@/portals/MATKP/components/matkp-anatomogram.vue";
+import { getMatkpContent } from "@/portals/MATKP/utils/content";
+import keyParams from "../../../../utils/keyParams";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
+// Use keyparams to do this
 
 new Vue({
     components: {
@@ -51,9 +54,18 @@ new Vue({
         };
     },
 
-    watch: {},
+    watch: {
+      keyParamsPage(newPage) {
+        if (this.pageId === null) {
+            this.pageId = newPage;
+        }
+    },
+    },
 
     computed: {
+      keyParamsPage(){
+        return keyParams.page;
+      }
     },
 
     mounted() {
