@@ -246,8 +246,6 @@ export default Vue.component("multi-region-plot", {
 				renderByField = this.renderConfig["render by"],
 				yAxField = this.renderConfig["y axis field"];
 
-			//console.log("1", variantField, renderByField, "this.refProperties", this.refProperties)
-
 			if (
 				!this.refProperties.region ||
 				this.refProperties.region != this.region
@@ -262,13 +260,10 @@ export default Vue.component("multi-region-plot", {
 
 			if (this.plotData != null) {
 
-				//console.log("this.plotData", this.plotData)
 
 				let plotDataLocal = this.plotData;
 
 				let plotsKeys = [];
-
-				//console.log("2", "this.dataComparisonConfig", this.dataComparisonConfig)
 
 				if (this.dataComparisonConfig != null) {
 					let field =
@@ -292,9 +287,6 @@ export default Vue.component("multi-region-plot", {
 					plotsKeys.push("default");
 				}
 
-				/*if (!!newRegion) {
-				}*/
-
 				this.assoData = {}; // reset assoData
 				this.ldData = {}; // reset ldData
 				this.recombData = ""; // reset recombData
@@ -315,8 +307,6 @@ export default Vue.component("multi-region-plot", {
 						data: {},
 						variantData: {},
 					};
-
-					//console.log("!!this.ldData[group]", !!this.ldData[group])
 
 					if (!!this.ldData[group]) {
 						
@@ -373,8 +363,6 @@ export default Vue.component("multi-region-plot", {
 									}
 
 									// set initial refVarint
-
-									//console.log("this.refProperties", this.refProperties)
 
 									if (
 										!this.refProperties.refVariants[group]
@@ -618,7 +606,7 @@ export default Vue.component("multi-region-plot", {
 	},
 	methods: {
 		downloadImage(ID, NAME, TYPE, SVG, DATA, ref) {
-			//console.log("ID: ",ID, "NAME: ", NAME, "TYPE: ", TYPE, "SVG: ", SVG)
+
 			if (TYPE == 'svg') {
 				let refName = ref;
 				this.$refs[refName].renderPlot(DATA);
@@ -686,7 +674,6 @@ export default Vue.component("multi-region-plot", {
 			if (!!this.isSectionPage) {
 				let stard = [...new Set(this.starItems)]
 
-				//console.log("started",stard)
 				let tempObj = {
 					type: this.renderConfig["star key"],
 					id: ITEM,
@@ -983,7 +970,6 @@ export default Vue.component("multi-region-plot", {
 						"&limit=100000";
 				}
 
-				//console.log("ldURL", ldURL);
 
 				let ldJson = await fetch(ldURL).then((resp) => resp.json());
 
@@ -1024,7 +1010,7 @@ export default Vue.component("multi-region-plot", {
 
 				this.renderPlots();
 			}
-			//console.log("this.ldData",this.sectionId, this.ldData)
+			
 			this.$forceUpdate();
 		},
 		renderPlots(event) {
@@ -1415,10 +1401,6 @@ export default Vue.component("multi-region-plot", {
 					);
 				}
 
-				this.$root.globalPosData['assoPos'+GROUP] = this.assoPos[GROUP];
-
-				console.log("this.$root.globalPosData",this.$root.globalPosData);
-				console.log("this.$root.sectionsData",this.$root.sectionsData);
 			}
 
 			if (TYPE == "LD") {

@@ -84,7 +84,6 @@ new Vue({
             dataFiles: [],
             dataTableFormat: null,
             context: null,
-            globalPosData: {},
             colors: {
                 mild: [
                     "#007bff25",
@@ -981,9 +980,6 @@ new Vue({
     },
 
     watch: {
-        globalPosData(DATA) {
-            console.log("globalPosData", DATA);
-        },
         sectionsData(DATA) {
             //console.log("sectionsData", DATA);
         },
@@ -1288,7 +1284,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
-        console.log("this.pageID", this.pageID);
+
         if (this.pageID) {
             this.$store.dispatch("hugeampkpncms/getResearchMode", {
                 pageID: this.pageID,
