@@ -1122,22 +1122,7 @@ export default Vue.component("multi-region-plot", {
 					p
 				);
 
-				/*const duplicateWrapper = document.getElementById(this.sectionId + '_wrapper');
-
-				if(!!duplicateWrapper) {
-
-					let duplicateImageTitle = (this.renderConfig.label)? this.renderConfig.label : this.sectionId;
-
-					this.utils.uiUtils.copyCanvasToDiv({id:"asso_plot_" + p.replaceAll(" ", "_") + this.sectionId, 
-						width:assoCanvasWidth/2,
-						height:canvasHeight/2}, 
-						this.sectionId,
-						duplicateImageTitle,
-						this.assoPos[p]
-					);
-				}*/
-
-				this.utils.uiUtils.moveCanvas("rp_region_plot","assoPlotsWrapperdefaultassociations", "associations_wrapper");
+				//this.utils.uiUtils.moveCanvas("rp_region_plot_"+this.sectionId, this.sectionId+"_wrapper");
 
 				// second LD plot
 				c = document.getElementById(

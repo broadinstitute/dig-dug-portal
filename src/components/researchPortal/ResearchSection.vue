@@ -102,6 +102,8 @@
 						:unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils" :dataComparisonConfig="null"
 						@on-filtering="updateData" @clicked-sort="sortData"></research-section-filters>
 
+					<span :id="sectionID+'_plots_holder'">
+						<span :id="sectionID+'_viz_wrapper'">
 					<div class="zoom-ui-wrapper"
 						v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0">
 						<span>Zoom</span>
@@ -244,6 +246,7 @@
 					</research-section-visualizers>
 
 					</div>
+				</span></span>
 					
 					<template v-if="!!tableFormat && !tableFormat['display type']">
 						<research-data-table 

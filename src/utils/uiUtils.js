@@ -818,41 +818,30 @@ let copyCanvasToDiv = function (CANVAS, divId, title) {
 
 }
 
-let moveCanvas = function (canvasId, sourceDivId, destinationDivId) {
-    // Get the canvas element
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) {
-        console.error("Canvas element with ID '" + canvasId + "' not found.");
+let moveElement = function (element, destinationDivId) {
+    // Get the element
+    const ELEMENT = document.getElementById(element);
+    if (!ELEMENT) {
+        console.error("Element with ID '" + element + "' not found.");
         return;
     }
-
     // Get the source and destination divs
     //const sourceDiv = document.getElementById(sourceDivId);
     const destinationDiv = document.getElementById(destinationDivId);
 
-    /* if (!sourceDiv || !destinationDiv) {
-         console.error("Source or destination div not found.");
-         return;
-     }*/
-
-    // Check if the canvas is already a child of the destination div
-    if (canvas.parentNode === destinationDiv) {
-        console.warn("Canvas is already in the destination div.");
+    // Check if the element is already a child of the destination div
+    if (ELEMENT.parentNode === destinationDiv) {
+        console.warn("Element is already in the destination div.");
         return; // Or you could optionally move it back to the source
     }
 
-    // Remove the canvas from its current parent (if it has one)
-    if (canvas.parentNode) {
-        canvas.parentNode.removeChild(canvas);
+    // Remove the element from its current parent (if it has one)
+    if (ELEMENT.parentNode) {
+        ELEMENT.parentNode.removeChild(ELEMENT);
     }
 
-    // Append the canvas to the destination div
-    destinationDiv.appendChild(canvas);
-
-    //Optional: Adjust canvas position if needed
-    canvas.style.position = "relative"; // or "absolute" depending on your layout
-    canvas.style.left = "0";
-    canvas.style.top = "0";
+    // Append the element to the destination div
+    destinationDiv.appendChild(ELEMENT);
 
 }
 
@@ -889,5 +878,5 @@ export default {
     downloadChart,
     copy2Clipboard,
     copyCanvasToDiv,
-    moveCanvas
+    moveElement
 };

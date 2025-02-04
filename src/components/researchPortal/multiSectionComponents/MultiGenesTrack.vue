@@ -463,20 +463,7 @@ export default Vue.component("multi-genes-track", {
 					})
 				}
 
-			}
-
-			//const duplicateWrapper = document.getElementById("genesTrack" + this.sectionId + '_wrapper');
-
-			//if(!!duplicateWrapper) {
-				this.utils.uiUtils.copyCanvasToDiv({id:"genesTrack" + this.sectionId, 
-					width:canvasRenderWidth/2,
-					height:canvasRenderHeight/2}, 
-					"genes_track",
-					""
-				);
-			//}
-
-			
+			}			
 			
 		},
 		async getGenesInRegion(region) {

@@ -425,20 +425,6 @@ export default Vue.component("research-region-track", {
                     xPos += getWidth(group, 24, "Arial") + this.adjPlotMargin.bump;
                 })
             }
-
-            const duplicateWrapper = document.getElementById(this.sectionId + '_wrapper');
-
-			if(!!duplicateWrapper) {
-
-            let duplicateImageTitle = (this.plotConfig.label)? this.plotConfig.label : this.sectionId;
-
-            this.utils.uiUtils.copyCanvasToDiv({id:'track_' + this.sectionId, 
-                width:canvasWidth/2,
-                height:canvasHeight/2}, 
-                this.sectionId,
-                duplicateImageTitle
-            );
-            }
         },
         renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, plotMargin) {
             CTX.beginPath();

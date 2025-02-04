@@ -1299,11 +1299,16 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
-        checkPosition(e, ID) {
-            let rect = e.target.getBoundingClientRect();
-            let x = Math.floor(e.clientX - rect.left);
-            let y = Math.floor(e.clientY - rect.top);
-            console.log("pos", x, y)
+
+        copyOverPlots(DIRECTION) {
+            console.log(this.sectionConfigs["visualizer collection"]);
+            let sections = [];
+            this.sectionConfigs["visualizer collection"].map(s => {
+                s['sections'].map(sItem => {
+                    (DIRECTION == 'from') ? uiUtils.moveElement(sItem + "_viz_wrapper", sItem + "_wrapper") :
+                        uiUtils.moveElement(sItem + "_viz_wrapper", sItem + "_plots_holder");
+                })
+            })
         },
         updateParams() {
             console.log("updateParams() called");
