@@ -60,7 +60,7 @@ export default Vue.component("research-region-track", {
         "plotConfig",
         "plotData",
         "dataComparisonConfig",
-        "region",
+        "regionParam",
         "regionZoom",
         "regionViewArea",
         "colors",
@@ -90,6 +90,30 @@ export default Vue.component("research-region-track", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        region() {
+
+            let region = this.regionParam;
+
+            if(!!this.plotConfig['expand region by']) {
+
+                let regionArr = region.split(":");
+                    let chr = regionArr[0];
+                    let posRegion = regionArr[1].split("-");
+                    let posStart = Number(posRegion[0]);
+                    let posEnd = Number(posRegion[1]);
+
+                    posStart -= this.plotConfig['expand region by']/2
+                    posStart = (posStart <= 0)? 0:posStart;
+
+                    posEnd += this.plotConfig['expand region by']/2
+                    
+                    region = chr +":"+posStart+"-"+posEnd;
+
+            }
+
+            return region;
+
+        },
         adjPlotMargin() {
 
             let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
@@ -425,6 +449,29 @@ export default Vue.component("research-region-track", {
                     xPos += getWidth(group, 24, "Arial") + this.adjPlotMargin.bump;
                 })
             }
+
+            // if the region is expanded
+
+            if(!!this.plotConfig['expand region by']) {
+
+                let smallRegion = this.regionParam.split(":")[1].split("-");
+
+                let yPos = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump/2);
+                let xPosStart = xStart + (smallRegion[0] - region.start) * xPerPixel;
+                let xPosEnd = xStart + (smallRegion[1] - region.start) * xPerPixel;
+                let xWidth = xPosEnd - xPosStart;
+
+                ctx.fillStyle = "#FF0000";
+
+                ctx.fillRect(
+                    xPosStart,
+                    yPos,
+                    xWidth,
+                    10
+                );
+    
+            }
+            ///
         },
         renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, plotMargin) {
             CTX.beginPath();
@@ -488,12 +535,21 @@ export default Vue.component("research-region-track", {
                 );
             }
         },
-        checkPosition(e,action) {
 
-            if(this.infoBoxFrozen == false) {
-                let rect = e.target.getBoundingClientRect();
+        checkPosition(e,action) {
+            let rect = e.target.getBoundingClientRect();
                 let x = Math.floor(e.clientX - rect.left);
                 let y = Math.floor(e.clientY - rect.top);
+
+            this.renderPosition(x,y,action);
+        },
+
+        renderPosition(x,y,action) {
+
+            if(this.infoBoxFrozen == false) {
+                /*let rect = e.target.getBoundingClientRect();
+                let x = Math.floor(e.clientX - rect.left);
+                let y = Math.floor(e.clientY - rect.top);*/
 
                 let wrapper = document.getElementById("block_data_" + this.sectionId);
                 let contentWrapper = document.getElementById("block_data_content_" + this.sectionId);

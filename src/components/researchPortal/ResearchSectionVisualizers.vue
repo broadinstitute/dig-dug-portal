@@ -90,18 +90,6 @@
 				:sectionId="sectionId"
 			></research-m-qq-plot>
 			<!-- region_plot -->
-			<research-region-region-plot
-				v-if="plotConfig['type'] == 'region in region plot' && !!region && !!bigRegion"
-				:renderConfig="plotConfig"
-				:plotMargin="plotMargin"
-				:isSectionPage="true"
-				:sectionId="sectionId"
-				:utils="utils"
-				:starItems="starItems"
-				:colors="colors"
-				:region="region"
-				:bigRegion="bigRegion"
-				></research-region-region-plot>
 
 			<multi-region-plot
 				v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!region"
@@ -131,7 +119,7 @@
 				:plotConfig="plotConfig"
 				:plotData="plotData"
 				:dataComparisonConfig="dataComparisonConfig"
-				:region="region"
+				:regionParam="region"
 				:regionZoom="regionZoom"
 				:regionViewArea="regionViewArea"
 				:colors="colors"
@@ -168,21 +156,6 @@
 				:sectionId="sectionId"
 				:starItems="starItems"
 			></multi-genes-track>
-
-			<!-- region-region explorer-->
-			<research-region-region-plot
-				v-if="!!plotConfig['region explorer'] && !!region"
-				:renderConfig="plotConfig"
-				:plotMargin="plotMargin"
-				:isSectionPage="true"
-				:sectionId="sectionId"
-				:utils="utils"
-				:starItems="starItems"
-				:colors="colors"
-				:region="region"
-				>
-
-			</research-region-region-plot>
 
 			<!-- scatter plot -->
 			<research-scatter-plot
@@ -230,7 +203,6 @@ import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
 import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
-import ResearchRegionRegionPlot from "@/components/researchPortal/ResearchRegionRegionPlot.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
 
 export default Vue.component("research-section-visualizers", {
@@ -252,7 +224,6 @@ export default Vue.component("research-section-visualizers", {
 		ResearchBoxPlot,
 		ResearchRegionTrack,
 		ResearchRegionDotsTrack,
-		ResearchRegionRegionPlot,
 		ResearchSingleCellBrowser
     },
 	data() {

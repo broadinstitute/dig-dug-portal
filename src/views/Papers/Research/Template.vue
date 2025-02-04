@@ -640,7 +640,7 @@
 							</research-multi-sections-search>
 
 							<!--  To test canvas collection -->
-							<div  class="col-md-12" id="canvas_collect" v-if="!!$parent.sectionConfigs['visualizer collection']">
+							<div  class="" id="canvas_collect" v-if="!!$parent.sectionConfigs['visualizer collection']">
 								<a href="javascript:;" @click="$parent.copyOverPlots('from')">image copy test</a>
 								<a href="javascript:;" @click="$parent.copyOverPlots('to')">copy back test</a>
 								<template v-for="section in $parent.sectionConfigs['visualizer collection']">

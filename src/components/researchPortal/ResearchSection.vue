@@ -102,7 +102,6 @@
 						:unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils" :dataComparisonConfig="null"
 						@on-filtering="updateData" @clicked-sort="sortData"></research-section-filters>
 
-						{{ regionParam }}
 					<span :id="sectionID+'_plots_holder'">
 						<span :id="sectionID+'_viz_wrapper'">
 							<div class="zoom-ui-wrapper"
@@ -700,23 +699,6 @@ export default Vue.component("research-section", {
 
 				region = chr + ":" + posStart + "-" + posEnd;
 			}
-
-			/*if(!!this.dataPoint['expand region by']) {
-
-				console.log("region",region)
-				let regionArr = region.split(":");
-				let chr = regionArr[0];
-				let posRegion = regionArr[1].split("-");
-				let posStart = Number(posRegion[0]);
-				let posEnd = Number(posRegion[1]);
-
-				posStart -= this.dataPoint['expand region by']/2
-				posStart = (posStart <= 0)? 0:posStart;
-
-				posEnd += this.dataPoint['expand region by']/2
-				
-				region = chr +":"+posStart+"-"+posEnd;
-			}*/
 
 			this.regionParam = region;
 		},
