@@ -109,6 +109,7 @@
 				:utils="utils"
 				:starItems="starItems"
 				:colors="colors"
+				
 				@on-star="starColumn"
 			></multi-region-plot>
 			
@@ -125,6 +126,7 @@
 				:colors="colors"
 				:utils="utils"
 				:plotMargin="plotMargin"
+				
 				:starItems="starItems"
 			></research-region-track>
 			<!-- general dots track -->
@@ -141,6 +143,7 @@
 				:utils="utils"
 				:plotMargin="plotMargin"
 				:starItems="starItems"
+				
 			></research-region-dots-track>
 			<!-- genes track -->
 			<multi-genes-track
@@ -155,6 +158,7 @@
 				:utils="utils"
 				:sectionId="sectionId"
 				:starItems="starItems"
+				
 			></multi-genes-track>
 
 			<!-- scatter plot -->

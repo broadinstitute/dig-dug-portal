@@ -734,9 +734,11 @@
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
 													:pageParams="$parent.pageParams"
+													
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
-													@on-zoom="$parent.setZoom">
+													@on-zoom="$parent.setZoom"
+													@on-checkPosition="$parent.setHoverPos">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
@@ -753,8 +755,10 @@
 													:regionZoom="$parent.regionZoom"
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
+													
 													@on-star="$parent.starColumn"
-													@on-zoom="$parent.setZoom">
+													@on-zoom="$parent.setZoom"
+													@on-checkPosition="$parent.setHoverPos">
 												</research-sections-summary>
 										</div>
 										</template>
@@ -782,9 +786,11 @@
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
 									:pageParams="$parent.pageParams"
+									
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
-									@on-zoom="$parent.setZoom">
+									@on-zoom="$parent.setZoom"
+									@on-checkPosition="$parent.setHoverPos">
 								</research-section>	
 								<research-sections-summary
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
@@ -800,8 +806,10 @@
 									:starItems="$parent.starItems"
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
+									
 									@on-star="$parent.starColumn"
 									@on-zoom="$parent.setZoom"
+									@on-checkPosition="$parent.setHoverPos"
 									>
 								</research-sections-summary>
 							</template>

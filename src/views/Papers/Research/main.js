@@ -75,6 +75,7 @@ new Vue({
         return {
             starItems: [],
             sectionsData: [],
+            hoverPos: { x: null, y: null, status: null },
             sectionDescriptions: null,
             regionZoom: 0,
             regionViewArea: 0,
@@ -1413,6 +1414,10 @@ new Vue({
             if (!sectionExist) {
                 this.sectionsData.push(SECTION);
             }
+        },
+
+        setHoverPos(posInfo) {
+            this.hoverPos = posInfo;
         },
         isInTabGroups(SECTION) {
             let sectionInGroup = false;

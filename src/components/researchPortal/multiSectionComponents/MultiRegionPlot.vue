@@ -62,6 +62,7 @@
 					</div>
 				</div>
 			</div>
+
 			<div v-if="!!renderConfig.legend" class="mbm-plot-legend" v-html="renderConfig.legend"></div>
 			<div class="region-plot-default-legend">
 				<span class="plot-legend-dot" style="background-color: #824099cc"></span>
@@ -92,6 +93,7 @@
 			<template v-for="(item, itemIndex) in plotsList">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId" class="asso-plots-wrapper">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
+					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">*</span>
 					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
@@ -157,7 +159,8 @@ export default Vue.component("multi-region-plot", {
 		"sectionId",
 		"utils",
 		"starItems",
-		"colors"
+		"colors",
+		"hoverPos"
 	],
 	data() {
 		return {
@@ -774,18 +777,41 @@ export default Vue.component("multi-region-plot", {
 
 			return dotsList;
 		},
-		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
+		checkPosition(e,GROUP, TYPE, action) {
+            let rect = e.target.getBoundingClientRect();
+                let X = Math.floor(e.clientX - rect.left);
+                let Y = Math.floor(e.clientY - rect.top);
+
+            let wrapperRect = document.getElementById("assoPlotsWrapper"+GROUP+this.sectionId).getBoundingClientRect()
+
+            this.getPosInfo(X,Y,GROUP, TYPE, action);
+            if(action == "move") {
+                let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = (X)+"px";
+                xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
+                xPosMarker.style.height = (rect.height)+"px";
+
+            }
+
+            if(action == "click") {
+                console.log("rect",rect);
+                this.$root.hoverPos = {x:X,y:Y,status:action};
+            }
+            
+        },
+
+		getPosInfo(x,y, GROUP, TYPE, EVENT_TYPE) {
 
 			if(EVENT_TYPE == 'click') {
 				//console.log(event, GROUP, TYPE, EVENT_TYPE);
 			}
 			
 
-			let e = event;
+			/*let e = event;
 			let rect = e.target.getBoundingClientRect();
 			let x = Math.floor(e.clientX - rect.left);
 			let y = Math.floor(e.clientY - rect.top);
-			let rawX = e.clientX;
+			let rawX = e.clientX;*/
 
 			let dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];
@@ -1965,6 +1991,7 @@ $(function () { });
 	height: auto !important;
 	padding-bottom: 0 !important;
 	width: 100%;
+	position: relative;
 }
 
 .asso-plots-wrapper.hidden,
@@ -2074,6 +2101,19 @@ $(function () { });
 .content-on-clicked-dot-values {
 	padding-left: 10px;
 }
+
+canvas {
+	position:relative
+}
+
+.x-pos-marker {
+    position:absolute;
+    top:0;
+    left:0;
+    color: #ff0000;
+    border-left:solid 1px #ff0000;
+}
+
 </style>
 
 

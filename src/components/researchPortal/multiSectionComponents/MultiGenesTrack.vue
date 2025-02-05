@@ -1,5 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
+		{{ $root.hoverPos }}
 		<div class="col-md-12">
 			<div class="genes-track-setting" v-if="!!localGeneTypes" >
 				<span class="btn btn-default options-gear" >Genes <b-icon icon="gear-fill"></b-icon></span>
@@ -88,7 +89,8 @@ export default Vue.component("multi-genes-track", {
 		"regionViewArea",
 		"utils",
 		"sectionId",
-		"starItems"
+		"starItems",
+		"hoverPos"
 	],
 	data() {
 		return {

@@ -1,6 +1,6 @@
 <template>
     <div :id="'region_track_wrapper'+sectionId" class="region-track-wrapper">
-            
+            {{ $root.hoverPos }}
         <div :id="'block_data_' + sectionId" class="block-data hidden">
             <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
                 <b-icon icon="x-circle-fill"></b-icon>
@@ -12,10 +12,12 @@
                 <span class="box" :style="'background-color:' + colors.bold[index % 16]"></span><span class="label" v-html="cKey"></span>
             </span>
         </div>
+        <span :id="sectionId+'_xPosMarker'" class="x-pos-marker"></span>
         <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
             @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
             width="" height="">
         </canvas>
+        
         <div class="download-images-setting">
             <span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
             <ul class="options" >
@@ -235,7 +237,6 @@ export default Vue.component("research-region-track", {
             c.setAttribute("height", canvasHeight);
             c.setAttribute(
                 "style",
-                "background-color: #ffffff;"+
                 "width: " +
 						canvasWidth / 2 +
                 "px;height:" +
@@ -538,13 +539,28 @@ export default Vue.component("research-region-track", {
 
         checkPosition(e,action) {
             let rect = e.target.getBoundingClientRect();
-                let x = Math.floor(e.clientX - rect.left);
-                let y = Math.floor(e.clientY - rect.top);
+                let X = Math.floor(e.clientX - rect.left);
+                let Y = Math.floor(e.clientY - rect.top);
 
-            this.renderPosition(x,y,action);
+            let wrapperRect = document.getElementById("region_track_wrapper"+this.sectionId).getBoundingClientRect()
+
+            this.getPosInfo(X,Y,action);
+            if(action == "hover") {
+                let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = (X)+"px";
+                xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
+                xPosMarker.style.height = (rect.height)+"px";
+
+            }
+
+            if(action == "click") {
+                console.log("rect",rect);
+                this.$root.hoverPos = {x:X,y:Y,status:action};
+            }
+            
         },
 
-        renderPosition(x,y,action) {
+        getPosInfo(x,y,action) {
 
             if(this.infoBoxFrozen == false) {
                 /*let rect = e.target.getBoundingClientRect();
@@ -693,11 +709,18 @@ $(function () { });
 }
 
 .region-track-wrapper {
+    position:relative;
     padding: 0 !important;
 }
+
+.region-track {
+    position: relative;
+}
+
 .region-track.hover {
     cursor: pointer;
 }
+
 
 .gene-on-clicked-dot-mplot,
 .content-on-clicked-dot {
@@ -738,6 +761,14 @@ $(function () { });
     height: 280px;
     overflow: auto;
     width: 389px;
+}
+
+.x-pos-marker {
+    position:absolute;
+    top:0;
+    left:0;
+    color: #ff0000;
+    border-left:solid 1px #ff0000;
 }
 
 </style>

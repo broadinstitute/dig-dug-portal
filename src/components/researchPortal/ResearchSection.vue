@@ -242,7 +242,8 @@
 								:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
 								:regionZoom="regionZoom" :regionViewArea="regionViewArea" :region="regionParam"
 								:bigRegion="bigRegionParam"
-								:starItems="starItems" @on-star="starColumn">
+								:starItems="starItems"
+								@on-star="starColumn">
 							</research-section-visualizers>
 
 							</div>
