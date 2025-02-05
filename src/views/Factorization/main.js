@@ -182,12 +182,19 @@ new Vue({
                 lookup[item.gene_set] = item.p_value
             );
             return lookup;
+        },
+        networkGraph(){
+            return this.$store.state.networkGraph;
         }
     },
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        networkGraph(newData){
+            console.log(JSON.stringify(newData.edges));
+            console.log(JSON.stringify(newData.nodes));
+        }
     },
 
     created() {
