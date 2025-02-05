@@ -55,7 +55,7 @@ import Vue from "vue";
 import { BIO_INDEX_HOST, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import { Network, DataSet } from "vis-network";
 
-export default Vue.component("NetworkGraph", {
+export default Vue.component("FactorizationNetworkGraph", {
     props: {
         factorGraphData: {
             type: Object,
