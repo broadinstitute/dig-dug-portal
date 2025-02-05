@@ -103,7 +103,8 @@ export default Vue.component("NetworkGraph", {
             // Can we get away with this, or too computationally expensive?
             handler(newVal, oldVal) {
                 if (newVal !== oldVal){
-                    this.setupGraphData(newVal);
+                    //this.setupGraphData(newVal);
+                    this.refreshGraph(newVal);
                 }
             },
             deep: true,
@@ -125,7 +126,7 @@ export default Vue.component("NetworkGraph", {
         document.removeEventListener("fullscreenchange", () => {});
     },
     methods: {
-        async setupGraphData(newVal) {
+        /* async setupGraphData(newVal) {
             this.loading = true;
             this.error = null;
 
@@ -169,8 +170,8 @@ export default Vue.component("NetworkGraph", {
             }
 
             this.loading = false;
-            this.refreshGraph();
-        }
+            // REFRESH??
+        } */
 
         // Pre-process data before adding to network
         preprocessData(rawData) {
@@ -221,7 +222,7 @@ export default Vue.component("NetworkGraph", {
             // Process nodes with unique IDs
             const uniqueNodes = Array.from(
                 new Map(
-                    data.data[0].nodes.map((node) => [
+                    data.nodes.map((node) => [
                         String(node.id),
                         { ...node, id: String(node.id) },
                     ])
@@ -229,7 +230,7 @@ export default Vue.component("NetworkGraph", {
             );
 
             // Process edges
-            const validEdges = data.data[0].edges.map((edge) => ({
+            const validEdges = data.edges.map((edge) => ({
                 ...edge,
                 from: String(edge.from),
                 to: String(edge.to),
@@ -247,40 +248,29 @@ export default Vue.component("NetworkGraph", {
             this.edges = new DataSet({ queue: true });
         },
 
-        async refreshGraph() {
-            try {
-                this.error = null;
-                this.loading = true;
-                this.stabilizing = true;
-                this.stabilizationProgress = 0;
+        async refreshGraph(graphData) {
+            this.error = null;
+            this.loading = true;
+            this.stabilizing = true;
+            this.stabilizationProgress = 0;
 
-                await this.resetNetworkState();
+            await this.resetNetworkState();
 
-                const response = await fetch(
-                    `${BIO_INDEX_HOST}/api/bio/query/pigean-graph?q=${this.phenotypeName},${DEFAULT_SIGMA},${this.genesetSize}`
-                );
-                const data = await response.json();
-
-                if (!data.data?.[0]?.nodes?.length) {
-                    this.error = "No data available";
-                    return;
-                }
-
-                const { uniqueNodes, validEdges } = this.processGraphData(data);
-
-                await this.nodes.add(uniqueNodes);
-                await this.nodes.flush();
-                await this.edges.add(validEdges);
-                await this.edges.flush();
-
-                await this.$nextTick();
-                await this.initNetwork();
-            } catch (error) {
-                console.error("Refresh error:", error);
-                this.error = error.message;
-            } finally {
-                this.loading = false;
+            if (graphData.nodes.length === 0) {
+                this.error = "No data available";
+                return;
             }
+
+            const { uniqueNodes, validEdges } = this.processGraphData(graphData);
+
+            await this.nodes.add(uniqueNodes);
+            await this.nodes.flush();
+            await this.edges.add(validEdges);
+            await this.edges.flush();
+
+            await this.$nextTick();
+            await this.initNetwork();
+            this.loading = false;
         },
 
         async initNetwork() {
