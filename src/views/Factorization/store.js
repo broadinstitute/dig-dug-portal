@@ -22,7 +22,7 @@ export default new Vuex.Store({
         roundTripInputGenes: [],
         genesetOptions: [],
         genesetPValues: [],
-        networkGraph: []
+        networkGraph: {nodes:[], edges:[]}
     },
 
     mutations: {
