@@ -25,28 +25,29 @@ new Vue({
         return {
             config: null,
             pageContent: {},
+            fallbackId: "matkp_help",
             pages: {
-              matkp_news: { 
+              news: { 
                 title: "News", 
                 page_id: "matkp_news", 
                 node: 682
               },
-              matkp_help: {
+              help: {
                 title: "Help",
                 page_id: "matkp_help",
                 node: 683
               },
-              matkp_collaborate: {
+              collaborate: {
                 title: "Collaborate with MATKP",
                 page_id: "matkp_collaborate",
                 node: 684
               },
-              matkp_aboutproject: {
+              about: {
                 title: "About MATKP",
                 page_id: "matkp_aboutproject",
                 node: 685
               },
-              matkp_aboutadipose: {
+              adipose: {
                 title: "About Adipose Tissue",
                 page_id: "matkp_aboutadipose",
                 node: 688
@@ -85,8 +86,9 @@ new Vue({
             const json = JSON.parse(result[0]["field_data_points"]);
             this.config = json;
         },
-        async getContent(pageId){
-          let allContent = await getTextContent(pageId);
+        async getContent(pageLabel){
+          let byorPageId = this.pages[pageLabel]?.page_id || this.fallbackId;
+          let allContent = await getTextContent(byorPageId);
           this.pageContent = allContent;
         }
     },

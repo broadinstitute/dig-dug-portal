@@ -15,8 +15,11 @@
         <div class="f-row menu">
             <a href="/datasets.html">Datasets</a>
             <a href="/cellbrowser.html">Cell Browser</a>
-            <a href="/info.html?page=matkp_help">Help</a>
-            <a href="/info.html?page=matkp_collaborate">Collaborate</a>
+            <a href="/info.html?page=help">Help</a>
+            <a href="/info.html?page=collaborate">Collaborate</a>
+            <a href="/info.html?page=news">MATKP News</a>
+            <a href="/info.html?page=about">About MATKP</a>
+            <a href="/info.html?page=adipose">About Adipose Tissue</a>
         </div>
     </div>
 </template>
