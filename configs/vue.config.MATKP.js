@@ -31,6 +31,13 @@ let pages = {
         title: "MATKP | Datasets",
         chunks: ["chunk-vendors", "chunk-common", "datasets"],
     },
+    info: {
+        entry: "src/portals/MATKP/views/StaticPage/main.js",
+        template: "public.index.html",
+        filename: "info.html",
+        title: "MATKP | Information",
+        chunks: ["chunk-vendors", "chunk-common", "info"],
+    }
 };
 
 module.exports = {
