@@ -10,7 +10,8 @@
           >
               <template>
               <!-- CONTENT -->
-               This is Only a Test. {{ JSON.stringify($parent.pageContent) }}
+               <h2>{{ $parent.pageContent.title }}</h2>
+               <div v-html="$parent.pageContent.body"></div>
               </template>
           </div>
           <!-- FOOTER -->

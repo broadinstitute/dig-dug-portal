@@ -24,6 +24,7 @@ new Vue({
     data() {
         return {
             config: null,
+            pageContent: {},
             pages: {
               matkp_news: { 
                 title: "News", 
@@ -65,7 +66,7 @@ new Vue({
     computed: {
       keyParamsPage(){
         return keyParams.page;
-      }
+      },
     },
 
     mounted() {
@@ -85,9 +86,8 @@ new Vue({
             this.config = json;
         },
         async getContent(pageId){
-          console.log("Getting content");
           let allContent = await getTextContent(pageId);
-          console.log(JSON.stringify(allContent));
+          this.pageContent = allContent;
         }
     },
 
