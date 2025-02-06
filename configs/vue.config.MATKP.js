@@ -31,6 +31,13 @@ let pages = {
         title: "MATKP | Datasets",
         chunks: ["chunk-vendors", "chunk-common", "datasets"],
     },
+    bulkbrowser: {
+        entry: "src/portals/MATKP/views/BulkBrowser/main.js",
+        template: "public/index.html",
+        filename: "bulkbrowser.html",
+        title: "MATKP | Bulk Browser",
+        chunks: ["chunk-vendors", "chunk-common", "bulkbrowser"],
+    },
     info: {
         entry: "src/portals/MATKP/views/StaticPage/main.js",
         template: "public.index.html",
