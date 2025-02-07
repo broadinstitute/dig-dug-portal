@@ -16,7 +16,7 @@ export default new Vuex.Store({
         singleBulkZNorm: bioIndex("single-cell-bulk-z-norm"),
     },
     state: {
-      singleBulkZNormData: null,
+      singleBulkZNormData: [],
       selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
       selectedComparison: 'insulin sensitive vs. insulin resistant',
     },
@@ -36,7 +36,6 @@ export default new Vuex.Store({
           await context.dispatch("singleBulkZNorm/query", 
             {q: `${context.state.selectedDataset},${context.state.selectedComparison}`});
           context.commit("setSingleBulkZNormData", context.state.singleBulkZNorm.data);
-          console.log("Z Norm Data", JSON.stringify(context.state.singleBulkZNormData));
         }
         
     },

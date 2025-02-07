@@ -12,7 +12,6 @@
                 :utils="$parent.utils"
                 sectionId="test"
                 /> -->
-                COMING SOON!!!
             </div>
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>

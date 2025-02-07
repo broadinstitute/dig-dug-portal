@@ -22,18 +22,12 @@ new Vue({
     props: [],
     data() {
         return {
-            bulkKeysBI: "https://bioindex-dev.hugeamp.org/api/bio/keys/single-cell-bulk-z-norm/2",
-            bulkFieldsBI: "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_bulk/$datasetId/fields.json.gz",
-                        //"https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_bulk/bulkRNA_Emont2022_Humans_SAT/fields.json.gz"
-            bulkQueryBI: "https://bioindex-dev.hugeamp.org/api/bio/query/single-cell-bulk-z-norm",
-                       //"https://bioindex-dev.hugeamp.org/api/bio/query/single-cell-bulk-z-norm?q=bulkRNA_Emont2022_Humans_SAT,insulin%20sensitive%20vs.%20insulin%20resistant&limit=20"
             selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
             selectedKey: 'insulin sensitive vs. insulin resistant',
             limit: 20,
             utils: {
                 uiUtils: uiUtils
             },
-
             heatmapData: null,
             heatmapConfig: {
                 type: "heat map",
@@ -63,55 +57,28 @@ new Vue({
             },
         };
     },
-    computed: {},
+    computed: {
+        zNormData(){
+            return this.$store.state.singleBulkZNormData;
+        },
+    },
     mounted() {
     },
     created() {
-       //this.init();
        this.$store.dispatch("queryBulk");
     },
     methods: {
-        async init(){
-            const bulkNames = await this.doFetch(this.bulkFieldsBI, this.selectedDataset);
-            console.log({bulkNames});
-            const queryURL = this.bulkQueryBI+`?q=${this.selectedDataset},${this.selectedKey}&limit=${this.limit}`
-            const bulkData = await this.doFetch(queryURL);
-            console.log({bulkData});
-            const bulkHeatmapData = [];
-            bulkData.data.forEach(item => {
-                item.expression.forEach((expr, idx) => {
-                    bulkHeatmapData.push({
-                        gene: item.gene,
-                        sample_id: bulkNames.sample_id[idx],
-                        expression: expr,
-                        logFoldChange: item.logFoldChange
-                    })
-                })
+        processLogs(data){
+            data.forEach(item => {
+                item.absLogFoldChange = Math.abs(item.logFoldChange);
             })
-            const [minExpr, maxExpr] = d3.extent(bulkHeatmapData, d => d.expression);
-            const [minFC, maxFC] = d3.extent(bulkHeatmapData, d => d.logFoldChange);
-            console.log({bulkHeatmapData, minExpr, maxExpr, minFC, maxFC});
-            this.heatmapData = bulkHeatmapData;
-        },
-        async doFetch(url, datasetId) {
-            const replacedUrl = url.replace('$datasetId', datasetId);
-            console.log('fetching', replacedUrl);
-            try {
-                const response = await fetch(replacedUrl);
-                const text = await response.text();
-                let markers;
-                try{
-                    markers = JSON.parse(text);
-                }catch{
-                    const lines = text.split('\n').filter(line => line.trim() !== '');
-                    markers = lines.map(line => JSON.parse(line));
-                }
-                return markers;
-            } catch (error) {
-                console.error('Error fetching markers:', error);
-                return null;
-            }
-        },
+            return data;
+        }
+    },
+    watch:{
+        zNormData(newData){
+            console.log("Z Norm Data received", JSON.stringify(newData));
+        }
     },
 
     render(createElement, context) {
