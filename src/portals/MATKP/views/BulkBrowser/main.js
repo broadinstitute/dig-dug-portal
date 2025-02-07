@@ -78,6 +78,24 @@ new Vue({
             console.log(genesRows);
             let samplesColumns = await this.getSampleIds();
             console.log(samplesColumns);
+
+            // Build X scales and axis:
+            let x = d3.scaleBand()
+                .range([ 0, width ])
+                .domain(samplesColumns)
+                .padding(0.01);
+            this.svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x)) //Need to rotate axis labels!!
+
+            // Build Y scales and axis:
+            var y = d3.scaleBand()
+                .range([ height, 0 ])
+                .domain(genesRows)
+                .padding(0.01);
+            this.svg.append("g")
+                .call(d3.axisLeft(y));
+            
         },
         async getSampleIds(){
             let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
