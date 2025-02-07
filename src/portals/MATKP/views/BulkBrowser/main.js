@@ -64,7 +64,7 @@ new Vue({
             processedData = processedData.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
             return processedData;
         },
-        drawHeatMap(){
+        async drawHeatMap(){
             let width = 450 - this.margin.left - this.margin.right;
             let height = 450 - this.margin.top - this.margin.bottom;
             this.svg = d3.select("#bulk_heatmap")
@@ -76,7 +76,8 @@ new Vue({
 
             let genesRows = this.heatmapDataReady.map(d => d.gene);
             console.log(genesRows);
-            let samplesColumns = this.getSampleIds();
+            let samplesColumns = await this.getSampleIds();
+            console.log(samplesColumns);
         },
         async getSampleIds(){
             let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
@@ -84,7 +85,8 @@ new Vue({
             try {
                 const response = await fetch(queryUrl);
                 const data = await(response.json());
-                console.log(data.sample_id);
+                //console.log(data.sample_id);
+                return data.sample_id;
             }
             catch(error) {
                 console.error("Error: ", error);
