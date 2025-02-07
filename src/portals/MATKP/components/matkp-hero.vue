@@ -1,53 +1,5 @@
 <template>
-    <div class="hero-wrap f-row align-h-center align-v-center">
-        <div class="hero-interact fill-width fill-height"></div>
-        <div class="hero-label f-col align-v-center no-events">
-            <div class="logo f-row align-v-center">
-                <!--<div style="width:100px; height: 100px; background: dimgray;"></div>-->
-                <img
-                    src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png"
-                />
-                <div
-                    style="
-                        font-size: 22px;
-                        line-height: 22px;
-                        font-weight: bold;
-                    "
-                >
-                    Mammalian<br />Adipose<br />Tissue<br /><span
-                        style="
-                            font-size: 15px;
-                            display: block;
-                            font-weight: normal;
-                        "
-                        >Knowledge Portal</span
-                    >
-                </div>
-            </div>
-        </div>
-        <div class="f-col hero-info no-events" style="z-index: 1; gap: 20px">
-            <div class="tagline">
-                An open community portal for adipose biology across multiple mammalian species
-            </div>
-            <a
-                class="matkp-input"
-                style="pointer-events: all"
-                href="/datasets.html"
-                >Browse all Datasets</a
-            >
-            <div style="width: 100%; margin: -10px 0; text-align: center">
-                or
-            </div>
-            <b-input-group size="sm" style="pointer-events: none; opacity: 0.7">
-                <input
-                    type="text"
-                    placeholder="Search gene, cell type or trait"
-                /><b-button class="button-lock-right" @click=""
-                    >Search</b-button
-                >
-            </b-input-group>
-        </div>
-    </div>
+    <div class="hero-interact fill-width fill-height"></div>
 </template>
 
 <script>
@@ -96,7 +48,7 @@ export default Vue.component("matkp-hero", {
             canvas.height = height;
             container.appendChild(canvas);
 
-            const n = 100;
+            const n = 200;
             const particles = Array.from({ length: n }, () => [
                 Math.random() * width,
                 Math.random() * height,
@@ -241,7 +193,6 @@ export default Vue.component("matkp-hero", {
 
                 update();
             };
-
             update();
         },
     },
@@ -249,53 +200,11 @@ export default Vue.component("matkp-hero", {
 </script>
 
 <style scoped>
-.hero-wrap {
-    height: 100vh;
-    max-height: 70vh;
-    background: rgb(183, 183, 183);
-    position: relative;
-    overflow: hidden;
-}
-.hero-label {
-    z-index: 1;
-    background: #ffffff50;
-    backdrop-filter: blur(5px);
-    padding: 50px;
-    aspect-ratio: 1;
-    box-shadow: 0 0 10px 0 #42424220;
-}
-.logo {
-    color: #424242;
-    gap: 20px;
-}
-.logo img {
-    height: 100px;
-}
-.hero-info {
-    margin: 0 0 0 30px;
-    padding: 0 0 0 20px;
-}
-.tagline {
-    z-index: 1;
-    width: 500px;
-    line-height: normal;
-    font-size: 18px;
-    font-weight: bold;
-    color: #424242;
-}
 .hero-interact {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     background: #ffea4e;
     background: linear-gradient(to top, #ffb254, #ffea4e);
-}
-.button-lock-right {
-    position: absolute;
-    top: 0;
-    right: 0;
-    height: 100%;
-    z-index: 1;
-    border-radius: 0;
 }
 </style>

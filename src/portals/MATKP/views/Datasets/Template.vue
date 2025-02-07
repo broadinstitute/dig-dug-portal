@@ -12,7 +12,7 @@
           <!-- CONTENT -->
           <div
             class="f-row"
-            style="margin: 80px 20px 20px; justify-content: space-between"
+            style="margin:0 0 20px; justify-content: space-between"
           >
             <div class="f-col">
               <div style="font-size: 20px; font-weight: bold">Datasets</div>
@@ -369,7 +369,6 @@
 
 <style scoped>
 .content-wrap {
-  padding: 20px 20px 150px;
   gap: 15px;
 }
 .b-table th {

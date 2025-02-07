@@ -1,5 +1,5 @@
 <template>
-    <div class="mat-footer f-row align-h-center" style="font-size: 14px;">
+    <div class="mat-footer f-row align-h-center" style="font-size: 14px; z-index:100">
         matkp development build
     </div>
 </template>
