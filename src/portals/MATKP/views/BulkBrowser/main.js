@@ -75,9 +75,7 @@ new Vue({
                     .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
 
             let genesRows = this.heatmapDataReady.map(d => d.gene);
-            console.log(genesRows);
             let samplesColumns = await this.getSampleIds();
-            console.log(samplesColumns);
 
             // Build X scales and axis:
             let x = d3.scaleBand()
@@ -103,7 +101,7 @@ new Vue({
             // Build color scale
             var colorScale = d3.scaleLinear()
                 .range(["white", "#007bff"])
-                .domain([1,100])
+                .domain([-2,7])
             
             // Building the heatmap
             let collatedData = this.collateData(samplesColumns);
@@ -115,7 +113,7 @@ new Vue({
                     .attr("y", function(d) { return y(d.gene) })
                     .attr("width", x.bandwidth() )
                     .attr("height", y.bandwidth() )
-                    .style("fill", function(d) { return colorScale(d.value)} )
+                    .style("fill", function(d) { return colorScale(d.expression)} )
         },
         async getSampleIds(){
             let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
@@ -134,8 +132,17 @@ new Vue({
         collateData(samples){
             let rawData = this.heatmapDataReady;
             let outputData = [];
+            let minExp = rawData[0].expression[0];
+            let maxExp = rawData[0].expression[0];
             rawData.forEach(item => {
                 for (let i = 0; i < item.expression.length; i++){
+                    let currentExp = item.expression[i];
+                    if (currentExp < minExp){
+                        minExp = currentExp;
+                    }
+                    if (currentExp > maxExp){
+                        maxExp = currentExp;
+                    }
                     let expressionEntry = {
                         gene: item.gene,
                         sample: samples[i],
@@ -144,6 +151,8 @@ new Vue({
                     outputData.push(expressionEntry);
                 }
             })
+            console.log("min expression: ", minExp);
+            console.log("max expression: ", maxExp);
             return outputData;
         }
     },
@@ -157,7 +166,6 @@ new Vue({
             deep: true
         },
         heatmapDataReady(newData){
-            console.log("Heatmap data ready!", newData);
             this.drawHeatMap();
         },
     },
