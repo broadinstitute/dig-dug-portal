@@ -294,6 +294,7 @@ export default Vue.component('research-umap-plot-gl', {
   
           uniform vec2 u_resolution;
           uniform float u_scale;
+          uniform float u_scale_base;
           uniform vec2 u_translate;
   
           varying vec4 v_color;
@@ -304,10 +305,11 @@ export default Vue.component('research-umap-plot-gl', {
             vec2 zeroToOne = scaledPos / u_resolution;
             vec2 clipSpace = (zeroToOne * 2.0 - 1.0) * vec2(1, 1);
   
-            float baseSize = 3.0;
-            float extraSize = 5.0;
+            float baseSize = 1.0;
+            float extraSize = 1.0;
             gl_Position = vec4(clipSpace, 0, 1);
-            gl_PointSize = baseSize + (extraSize * a_isHighlight);
+            float scalar = u_scale > u_scale_base ? 0.5 : 1.0;
+            gl_PointSize = (baseSize + (extraSize * a_isHighlight)) * ((u_scale / u_scale_base) * scalar);
   
             v_color = a_color;
             v_isHighlight = a_isHighlight;
@@ -436,6 +438,9 @@ export default Vue.component('research-umap-plot-gl', {
 
             const scaleLoc = gl.getUniformLocation(this.program, 'u_scale');
             gl.uniform1f(scaleLoc, this.scale);
+
+            const scaleLocBase = gl.getUniformLocation(this.program, 'u_scale_base');
+            gl.uniform1f(scaleLocBase, this.resetScale);
 
             const translateLoc = gl.getUniformLocation(this.program, 'u_translate');
             gl.uniform2f(translateLoc, this.translate.x, this.translate.y);
