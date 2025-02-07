@@ -81,11 +81,6 @@ export default function (index, extend) {
                 context.commit("clearData");
             },
             async query(context, { q, limit, limitWhile, append }) {
-                let query_private = false;
-                if (typeof(extend) != "undefined" && typeof(extend.query_private) != "undefined"){
-                    query_private = extend.query_private;
-                }
-                
                 if (!append) {
                     context.commit("clearData");
                 }
@@ -129,7 +124,7 @@ export default function (index, extend) {
                             postAlertError(error.detail);
                             context.commit('setError', error.detail);
                         },
-                    }, query_private).finally(() => closeAlert(alertID))
+                    }).finally(() => closeAlert(alertID))
 
                     // data is loaded
                     context.commit("setResponse", { data, profile });

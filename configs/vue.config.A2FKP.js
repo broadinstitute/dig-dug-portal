@@ -4,7 +4,7 @@
 
 let pages = {
     index: {
-        entry: "src/portals/Radiant/views/Index/main.js",
+        entry: "src/views/A2fIndex/main.js",
         template: "public/index.html",
         filename: "index.html",
         title: "Home",
@@ -32,14 +32,14 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "region"],
     },
     variant: {
-        entry: "src/portals/Radiant/views/Variant/main.js",
+        entry: "src/views/Variant/main.js",
         template: "public/index.html",
         filename: "variant.html",
         title: "Variant Info",
         chunks: ["chunk-vendors", "chunk-common", "variant"],
     },
     gene: {
-        entry: "src/portals/Radiant/views/Gene/main.js",
+        entry: "src/views/Gene/main.js",
         template: "public/index.html",
         filename: "gene.html",
         title: "Gene Info",
@@ -311,7 +311,7 @@ module.exports = {
             config.devtool = "cheap-module-source-map";
         }
     },
-    outputDir: "portals/Radiant/dist",
+    outputDir: "portals/A2FKP/dist",
     productionSourceMap: false,
     pages,
 };
