@@ -96,6 +96,8 @@ new Vue({
             this.svg.append("g")
                 .call(d3.axisLeft(y));
             
+            let collatedData = this.collateData(samplesColumns);
+            
         },
         async getSampleIds(){
             let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
@@ -103,13 +105,28 @@ new Vue({
             try {
                 const response = await fetch(queryUrl);
                 const data = await(response.json());
-                //console.log(data.sample_id);
+
                 return data.sample_id;
             }
             catch(error) {
                 console.error("Error: ", error);
                 return [];
             }
+        },
+        collateData(samples){
+            let rawData = this.heatmapDataReady;
+            let outputData = [];
+            rawData.forEach(item => {
+                for (let i = 0; i < item.expression.length; i++){
+                    let expressionEntry = {
+                        gene: item.gene,
+                        sample: samples[i],
+                        expression: item.expression[i]
+                    };
+                    outputData.push(expressionEntry);
+                }
+            })
+            return outputData;
         }
     },
     watch:{
