@@ -5,13 +5,7 @@
             <matkp-nav></matkp-nav>
             <!-- BODY -->
             <div class="mat-body">
-                <!-- <research-heatmap 
-                v-if="$parent.heatmapData"
-                :heatmapData="$parent.heatmapData"
-                :renderConfig="$parent.heatmapConfig"
-                :utils="$parent.utils"
-                sectionId="test"
-                /> -->
+                <h2>{{ $parent.selectedDataset }}</h2>
                 <div id="bulk_heatmap">
                     <div v-if="$parent.loading">Loading...</div>
                 </div>
