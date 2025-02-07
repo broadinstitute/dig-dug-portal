@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import store from "./store.js";
 
 import "../../assets/matkp-styles.css";
 
@@ -12,6 +13,7 @@ import * as d3 from 'd3';
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 
 new Vue({
+    store,
     components: {
         ResearchHeatmap,
         uiUtils
@@ -65,7 +67,8 @@ new Vue({
     mounted() {
     },
     created() {
-       this.init();
+       //this.init();
+       this.$store.dispatch("queryBulk");
     },
     methods: {
         async init(){

@@ -5,13 +5,14 @@
             <matkp-nav></matkp-nav>
             <!-- BODY -->
             <div class="mat-body">
-                <research-heatmap 
+                <!-- <research-heatmap 
                 v-if="$parent.heatmapData"
                 :heatmapData="$parent.heatmapData"
                 :renderConfig="$parent.heatmapConfig"
                 :utils="$parent.utils"
                 sectionId="test"
-                />
+                /> -->
+                COMING SOON!!!
             </div>
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>
