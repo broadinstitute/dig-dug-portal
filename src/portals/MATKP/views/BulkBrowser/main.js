@@ -23,6 +23,7 @@ new Vue({
     data() {
         return {
             loading: true,
+            heatmapColor: "#ffd10c",
             selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
             selectedKey: 'insulin sensitive vs. insulin resistant',
             limit: 20,
@@ -101,8 +102,8 @@ new Vue({
             
             // Build color scale
             var colorScale = d3.scaleLinear()
-                .range(["white", "#007bff"])
-                .domain([-2,7])
+                .range(["white", this.heatmapColor])
+                .domain([-2,7]); //MAKE RESPONSIVE TO OTHER DATASETS
             
             // Building the heatmap
             let collatedData = this.collateData(samplesColumns);
