@@ -61,6 +61,9 @@ new Vue({
         zNormData(){
             return this.$store.state.singleBulkZNormData;
         },
+        heatmapDataReady(){
+            return this.heatmapData;
+        }
     },
     mounted() {
     },
@@ -69,16 +72,30 @@ new Vue({
     },
     methods: {
         processLogs(data){
+            // log10FDR in the data is ALREADY minuslog so no need to adjust it
             data.forEach(item => {
                 item.absLogFoldChange = Math.abs(item.logFoldChange);
             })
             return data;
+        },
+        getTop20(data){
+            let processedData = this.processLogs(data);
+            processedData = processedData.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
+            return processedData;
         }
     },
     watch:{
-        zNormData(newData){
-            console.log("Z Norm Data received", JSON.stringify(newData));
-        }
+        zNormData:{
+            handler(newData, oldData){
+                if(newData !== oldData){
+                    this.heatmapData = this.getTop20(newData);
+                }
+            },
+            deep: true
+        },
+        heatmapDataReady(newData){
+            console.log("Heatmap data ready!", newData);
+        },
     },
 
     render(createElement, context) {
