@@ -450,6 +450,12 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
                 break;
 
+            case "map name":
+
+                cellValue = columnKeyObj["map"][cellValue];
+
+                break;
+
             case "as link":
 
                 cellValue = "<a href='" + cellValue + "'>" + cellValue + "</a>"
@@ -655,8 +661,8 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         <div>${item.authors} <i>${item.publication}</i></div>
                         <div class="citation-links">
                             <div>DOI: <a href="https://doi.org/${item.doi}" target="_blank">${item.doi}</a></div>
-                            <div style="display:${item.pmid===""?'none':'block'}">PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}" target="_blank">${item.pmid}</a></div>
-                            <div style="display:${item.pmcid===""?'none':'block'}">PMCID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmcid}" target="_blank">${item.pmcid}</a></div>
+                            <div style="display:${item.pmid === "" ? 'none' : 'block'}">PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}" target="_blank">${item.pmid}</a></div>
+                            <div style="display:${item.pmcid === "" ? 'none' : 'block'}">PMCID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmcid}" target="_blank">${item.pmcid}</a></div>
                         </div>
                         <div class="citation-notes">${item.description}</div>
                     </div>
