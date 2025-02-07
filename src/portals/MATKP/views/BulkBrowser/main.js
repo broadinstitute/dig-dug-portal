@@ -29,32 +29,13 @@ new Vue({
                 uiUtils: uiUtils
             },
             heatmapData: null,
-            heatmapConfig: {
-                type: "heat map",
-                label: "Top 20 DEGs across all samples (z-score normalized)",
-                main: {
-                    field: "expression",
-                    label: "Expression",
-                    type: "scale",
-                    direction: "positive",
-                    low: -1.936,
-                    middle: 0,
-                    high: 5.501,
-                },
-                sub: {
-                    field: "logFoldChange",
-                    label: "log Fold Change",
-                    type: "steps",
-                    direction: "negative",
-                    valueRange: [0, 4],
-                    "value range": [0.811, 3.649],
-                },
-                "column field": "sample_id",
-                "column label": "Sample",
-                "row field": "gene",
-                "row label": "Gene",
-                "font size": 12,
+            margin: {
+                top: 30,
+                bottom: 30,
+                left: 30,
+                right: 30
             },
+            svg: null,
         };
     },
     computed: {
@@ -82,7 +63,21 @@ new Vue({
             let processedData = this.processLogs(data);
             processedData = processedData.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
             return processedData;
-        }
+        },
+        drawHeatMap(){
+            let width = 450 - this.margin.left - this.margin.right;
+            let height = 450 - this.margin.top - this.margin.bottom;
+            this.svg = d3.select("#bulk_heatmap")
+                .append("svg")
+                    .attr("width", width + this.margin.left + this.margin.right)
+                    .attr("height", height + this.margin.top + this.margin.bottom)
+                .append("g")
+                    .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
+
+            let genesRows = this.heatmapDataReady.map(d => d.gene);
+            console.log(genesRows);
+            let samplesColumns = []
+        },
     },
     watch:{
         zNormData:{
@@ -95,6 +90,7 @@ new Vue({
         },
         heatmapDataReady(newData){
             console.log("Heatmap data ready!", newData);
+            this.drawHeatMap();
         },
     },
 

@@ -12,6 +12,7 @@
                 :utils="$parent.utils"
                 sectionId="test"
                 /> -->
+                <div id="bulk_heatmap"></div>
             </div>
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>
