@@ -38,6 +38,13 @@ let pages = {
         title: "MATKP | Bulk Browser",
         chunks: ["chunk-vendors", "chunk-common", "bulkbrowser"],
     },
+    info: {
+        entry: "src/portals/MATKP/views/StaticPage/main.js",
+        template: "public.index.html",
+        filename: "info.html",
+        title: "MATKP | Information",
+        chunks: ["chunk-vendors", "chunk-common", "info"],
+    }
 };
 
 module.exports = {
