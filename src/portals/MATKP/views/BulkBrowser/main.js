@@ -65,7 +65,7 @@ new Vue({
             return processedData;
         },
         async drawHeatMap(){
-            let width = 450 - this.margin.left - this.margin.right;
+            let width = 900 - this.margin.left - this.margin.right;
             let height = 450 - this.margin.top - this.margin.bottom;
             this.svg = d3.select("#bulk_heatmap")
                 .append("svg")
@@ -87,6 +87,10 @@ new Vue({
             this.svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x)) //Need to rotate axis labels!!
+                .selectAll("text")
+                        .style("text-anchor", "end")
+                        .attr('font-size', '12px')
+                        .attr("transform", "rotate(-35) translate(-5, 0)");
 
             // Build Y scales and axis:
             var y = d3.scaleBand()
@@ -96,8 +100,22 @@ new Vue({
             this.svg.append("g")
                 .call(d3.axisLeft(y));
             
-            let collatedData = this.collateData(samplesColumns);
+            // Build color scale
+            var colorScale = d3.scaleLinear()
+                .range(["white", "#007bff"])
+                .domain([1,100])
             
+            // Building the heatmap
+            let collatedData = this.collateData(samplesColumns);
+            this.svg.selectAll()
+                .data(collatedData, function(d) {return d.sample+':'+d.expression;})
+                .enter()
+                .append("rect")
+                    .attr("x", function(d) { return x(d.sample) })
+                    .attr("y", function(d) { return y(d.gene) })
+                    .attr("width", x.bandwidth() )
+                    .attr("height", y.bandwidth() )
+                    .style("fill", function(d) { return colorScale(d.value)} )
         },
         async getSampleIds(){
             let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
