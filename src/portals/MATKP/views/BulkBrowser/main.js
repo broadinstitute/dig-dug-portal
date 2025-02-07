@@ -22,6 +22,7 @@ new Vue({
     props: [],
     data() {
         return {
+            loading: true,
             selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
             selectedKey: 'insulin sensitive vs. insulin resistant',
             limit: 20,
@@ -31,8 +32,8 @@ new Vue({
             heatmapData: null,
             margin: {
                 top: 30,
-                bottom: 30,
-                left: 30,
+                bottom: 90,
+                left: 90,
                 right: 30
             },
             svg: null,
@@ -114,6 +115,7 @@ new Vue({
                     .attr("width", x.bandwidth() )
                     .attr("height", y.bandwidth() )
                     .style("fill", function(d) { return colorScale(d.expression)} )
+            this.loading = false;
         },
         async getSampleIds(){
             let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${

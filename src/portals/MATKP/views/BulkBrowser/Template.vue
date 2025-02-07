@@ -12,7 +12,9 @@
                 :utils="$parent.utils"
                 sectionId="test"
                 /> -->
-                <div id="bulk_heatmap"></div>
+                <div id="bulk_heatmap">
+                    <div v-if="$parent.loading">Loading...</div>
+                </div>
             </div>
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>
