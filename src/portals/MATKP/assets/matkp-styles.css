@@ -53,6 +53,7 @@ body.kp-default{
         overflow-x: clip;
         font-size: 14px;
         /*background: #fff7d0;*/
+        padding: 50px 40px;
     }
     .table-wrap {
         width: stretch;

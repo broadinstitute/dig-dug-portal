@@ -11,7 +11,6 @@
                 <template>
                 <!-- CONTENT -->
                 <research-single-cell-browser 
-                    style="margin:40px 0;"
                     sectionId="matkp"
                     :renderConfig="$parent.scbConfig"
                     :utils="$parent.utils"

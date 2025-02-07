@@ -1,7 +1,8 @@
 <template>
-    <div class="f-col" style="gap:10px">
+    <div class="f-col" style="width:800px; gap:10px">
         <div class="f-row" style="gap:50px">
             <div class="f-col" style="gap:20px">
+                <div style="font-size: 18px;font-weight: bold;">Species</div>
                 <div :style="`width:${anatomyWidth}px`">
                     <select @change="selectSpecies">
                         <option value="Homo sapiens" selected>Homo sapiens</option>
@@ -28,11 +29,11 @@
                 <div :style="`width:${anatomyWidth}px`" style="text-align: center; font-size: 12px; height:40px">{{ depotDescription }}</div>
             </div>
             <div class="f-col" style="gap:15px">
-                <div style="font-size: 18px;line-height: 40px;font-weight: bold;">Where is adipose tissue found?</div>
+                <div style="font-size: 18px;font-weight: bold;">Depots</div>
                 <div class="depot-items" style="max-height:400px">
-                    <div class="f-row" style="gap:15px;">
+                    <div class="f-row" style="gap:20px;">
                         <template v-for="(depots, category) in depotsByCategory">
-                            <div class="f-col" style="gap:5px;">
+                            <div class="f-col" style="gap:5px; width:150px;">
                                 <div class="depot-category" style="font-weight:bold; text-transform: capitalize; padding:5px 0" @mouseover="highlightDepotCategory(category)">
                                     {{ category }}
                                 </div>
@@ -64,18 +65,18 @@ export default Vue.component("matkp-anatomogram", {
         return {
             datasetsAPI: "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_metadata/dataset_metadata.json.gz",
             datasets: null,
-            anatomyWidth: 250,
+            anatomyWidth: 220,
             selectedSpecies: "Homo sapiens",
             anatomyImages: {
                 ["Homo sapiens"]: {
                     male: "https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.male_.svg",
                     female: "https://hugeampkpncms.org/sites/default/files/users/user32/matkp/homo_sapiens.female.svg",
-                    scale: 2.35, //svg display size / svg intrinsic size (TODO: calculate on the fly) 106
+                    scale: 2.07, //svg display size / svg intrinsic size (TODO: calculate on the fly) 106
                 },
                 ["Mus musculus"]: {
                     male: "https://hugeampkpncms.org/sites/default/files/users/user32/matkp/mus_musculus.male_.svg",
                     female: "https://hugeampkpncms.org/sites/default/files/users/user32/matkp/mus_musculus.female.svg",
-                    scale: 3.05, //svg display size / svg intrinsic size (TODO: calculate on the fly) 81
+                    scale: 2.71, //svg display size / svg intrinsic size (TODO: calculate on the fly) 81
                 },
             },
             depotsBySpecies: null,
@@ -330,7 +331,7 @@ export default Vue.component("matkp-anatomogram", {
                         pos: [[66.004, 153.853]],
                     },
                     {
-                        name: "subq",
+                        name: "subcutaneous",
                         ontology: "h34",
                         category: "subcutaneous",
                         description: "Fat under the skin throughout the body",
@@ -366,7 +367,7 @@ export default Vue.component("matkp-anatomogram", {
                         pos: [[30.009, 16.86]],
                     },
                     {
-                        name: "subq",
+                        name: "subcutaneous",
                         ontology: "m3",
                         category: "subcutaneous",
                         description: "Fat under the skin throughout the body",
@@ -553,12 +554,12 @@ export default Vue.component("matkp-anatomogram", {
             this.datasets.forEach((dataset) => {
                 const species = dataset.species;
                 const depot1 = dataset.depot.includes("subcutaneous")
-                    ? "subq"
+                    ? "subcutaneous"
                     : dataset.depot;
                 const depot2 = dataset.depot2.includes("subcutaneous")
-                    ? "subq"
+                    ? "subcutaneous"
                     : dataset.depot2;
-                const depots = [depot1, depot2];
+                const depots = [depot2];
                 if (!speciesDepotsMap[species]) {
                     speciesDepotsMap[species] = {};
                 }

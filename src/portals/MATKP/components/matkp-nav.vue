@@ -1,25 +1,17 @@
 <template>
-    <div
-        class="mat-header f-row spread-out align-v-center"
-        :class="glass ? 'glass' : ''"
-    >
+    <div class="mat-header f-row spread-out align-v-center" :class="glass ? 'glass' : ''">
         <a class="logo f-row align-v-center" href="/">
-            <img
-                src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png"
-            />
-            <span style="font-weight: 600"
-                >MAT<span style="font-weight: 300">KP</span
-                ><span class="tagline">The place for fat.</span></span
-            >
+            <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png"/>
+            <span style="font-weight: 600">MAT<span style="font-weight: 300">KP</span><span class="tagline">The place for fat.</span></span>
         </a>
         <div class="f-row menu">
+            <a href="/info.html?page=about">About</a>
             <a href="/datasets.html">Datasets</a>
             <a href="/cellbrowser.html">Cell Browser</a>
-            <a href="/info.html?page=help">Help</a>
+            <a href="/info.html?page=adipose">Adipose Tissue</a>
             <a href="/info.html?page=collaborate">Collaborate</a>
-            <a href="/info.html?page=news">MATKP News</a>
-            <a href="/info.html?page=about">About MATKP</a>
-            <a href="/info.html?page=adipose">About Adipose Tissue</a>
+            <a href="/info.html?page=news">News</a>
+            <a href="/info.html?page=help">Help</a>
         </div>
     </div>
 </template>
@@ -82,11 +74,11 @@ export default Vue.component("matkp-nav", {
     text-decoration: none;
 }
 .mat-header.glass {
-    background: #ffffff20;
+    background: #ffffff50;
     backdrop-filter: blur(10px);
-    position: absolute;
+    position: fixed;
     width: 100vw;
-    z-index: 1;
+    z-index: 100;
     box-shadow: 0 0 10px 0 #42424220;
 }
 .mat-header.glass a,

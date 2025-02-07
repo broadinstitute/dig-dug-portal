@@ -21,6 +21,17 @@ new Vue({
     data() {
         return {
             config: null,
+            content:{
+                collaborate: "MATKP is a growing resource that strives to create an inclusive community for adipose biology. As we develop MATKP, we welcome collaborations in areas including data collection and curation, method development, tool creation, and data visualization. We value input from data providers, experts, and multidisciplinary users to ensure the utility and relevance of our resource. To collaborate, please contact us at <a href='mailto:help@matkp.org'>help@matkp.org</a>.",
+
+                news: {
+                    feedUrl:
+                        "https://hugeampkpncms.org/rest/news_list?project=matkp",
+                    newsUrl: "/news.html",
+                    newsItemUrl: "/news.html?id=",
+                },
+            },
+            newsFeed: null,
         };
     },
 
@@ -34,6 +45,7 @@ new Vue({
 
     async created() {
         await this.getConfig();
+        await this.getNews();
     },
 
     methods: {
@@ -44,6 +56,26 @@ new Vue({
             const json = JSON.parse(result[0]["field_data_points"]);
             this.config = json;
             console.log("config", json);
+        },
+        async getNews() {
+            const newsFeedUrl = this.content.news.feedUrl;
+            const newsFeed = await fetch(newsFeedUrl).then((resp) => {
+                return resp.json();
+            });
+            console.log({newsFeed});
+            //trim feed to 5 items
+            if (newsFeed.length > 5) newsFeed.length = 5;
+            newsFeed.forEach((item) => {
+                //extract only the img element frforom thumbnail, wysiwyg html can be polluted sometimes
+                item.field_thumbnail_image =
+                    new DOMParser()
+                        .parseFromString(
+                            item.field_thumbnail_image,
+                            "text/html"
+                        )
+                        .querySelector("img")?.outerHTML || "";
+            });
+            this.newsFeed = newsFeed;
         },
     },
 
