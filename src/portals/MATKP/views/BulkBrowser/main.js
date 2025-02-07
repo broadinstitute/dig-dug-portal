@@ -76,8 +76,21 @@ new Vue({
 
             let genesRows = this.heatmapDataReady.map(d => d.gene);
             console.log(genesRows);
-            let samplesColumns = []
+            let samplesColumns = this.getSampleIds();
         },
+        async getSampleIds(){
+            let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
+                this.selectedDataset}/fields.json.gz`;
+            try {
+                const response = await fetch(queryUrl);
+                const data = await(response.json());
+                console.log(data.sample_id);
+            }
+            catch(error) {
+                console.error("Error: ", error);
+                return [];
+            }
+        }
     },
     watch:{
         zNormData:{
