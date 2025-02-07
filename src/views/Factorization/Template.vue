@@ -69,6 +69,10 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Factors</h4>
+                    <factorization-network-graph
+                        :factorGraphData="$parent.networkGraph"
+                        :isEmbed="true">
+                    </factorization-network-graph>
                     <pigean-bayes-table
                         :pigeanData="$parent.pigeanFactor"
                         :geneData="$parent.geneFactor"

@@ -26,35 +26,26 @@ export function apiUrl(path, query_private = false) {
     }
 
     if (query_private) {
-        //console.log("query_private:", query_private, path);
+        console.log("query_private:", query_private, path);
         return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
     } else {
-        //console.log("query_private is false:", query_private, path);
+        console.log("query_private is false:", query_private, path);
         return `${BIO_INDEX_HOST}/${path}`;
     }
 }
 
 /* Useful for /api/raw end-points with query parameters.
  */
-export function rawUrl(path, query_params, query_private=false) {
+export function rawUrl(path, query_params) {
     let qs = querystring.stringify(query_params, { skipNull: true });
-    let rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`
-    if(path.includes("/log/")){
-        rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`
-    }
-    if(path.includes("gene-variants")){
-        //console.log("gene-variants call");
-        rawURL = "https://radiant.hugeampkpnbi.org/api/bio/query/gene-variants"+`${qs ? "?" + qs : ""}`
-        //console.log(rawURL);
-    }
-    console.log("rawUrl function:"+rawURL+"|"+query_private+"|"+Date.now());
-    return rawURL;
+
+    return `${apiUrl(path)}${qs ? "?" + qs : ""}`;
 }
 
 /* Build a generic request to a BioIndex end-point.
  */
-export async function request(path, query_params, query_private=false) {
-    return fetch(rawUrl(path, query_params, query_private), {
+export async function request(path, query_params) {
+    return fetch(rawUrl(path, query_params), {
         headers: {
             "x-bioindex-access-token": session_cookie,
         },
@@ -63,25 +54,21 @@ export async function request(path, query_params, query_private=false) {
 
 /* Perform a BioIndex query.
  */
-export async function query(index, q, opts = {}, query_private=false) {
-    //console.log("query function: query_private="+query_private);
+export async function query(index, q, opts = {}) {
     let { limit, onResolve, onError, onLoad, limitWhile } = opts;
-    let req = request(`/api/bio/query/${index}`, { q, limit }, query_private);
-    //add log to bioindex
-    if (query_private == true){
-        request(`/api/bio/log/${index}`, { q, limit }, query_private);
-    }
-    return await processRequest(req, onResolve, onError, onLoad, limitWhile, query_private);
+    let req = request(`/api/bio/query/${index}`, { q, limit });
+
+    return await processRequest(req, onResolve, onError, onLoad, limitWhile);
 }
 
 /* Perform a BioIndex match.
  */
-export async function match(index, q, opts = {},query_private=false) {
+export async function match(index, q, opts = {}) {
     let { limit, onLoad, onResolve, onError } = opts;
-    let req = request(`/api/bio/match/${index}`, { q, limit }, query_private);
+    let req = request(`/api/bio/match/${index}`, { q, limit });
 
     // perform the fetch, make sure it succeeds
-    return await processRequest(req, onResolve, onError, onLoad, query_private);
+    return await processRequest(req, onResolve, onError, onLoad);
 }
 
 /* Alters the json to filter results and stop continuing.
@@ -103,7 +90,7 @@ function limitRecordsWhile(json, limitWhile) {
 
 /* Follow continuations and continue reading all data.
  */
-async function processRequest(req, onResolve, onError, onLoad, limitWhile, query_private=false) {
+async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
     let resp = await req;
     let json = await resp.json();
     let data = [];
@@ -123,7 +110,7 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile, query
 
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
-            let req = request(`/api/bio/cont`, { token: json.continuation }, query_private);
+            let req = request(`/api/bio/cont`, { token: json.continuation });
 
             // follow the continuation
             resp = await req;

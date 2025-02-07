@@ -14,6 +14,7 @@ import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanBayesTable from "@/components/PigeanBayesTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
+import FactorizationNetworkGraph from "@/components/FactorizationNetworkGraph.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -42,6 +43,7 @@ new Vue({
         PigeanTable,
         PigeanBayesTable,
         PigeanPlot,
+        FactorizationNetworkGraph,
         ResearchPheWAS,
         GenesetSelectPicker,
         GenesetSizeSelectPicker,
@@ -182,12 +184,19 @@ new Vue({
                 lookup[item.gene_set] = item.p_value
             );
             return lookup;
+        },
+        networkGraph(){
+            return this.$store.state.networkGraph;
         }
     },
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        networkGraph(newData){
+            console.log(JSON.stringify(newData.edges));
+            console.log(JSON.stringify(newData.nodes));
+        }
     },
 
     created() {

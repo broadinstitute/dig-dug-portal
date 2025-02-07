@@ -1,13 +1,13 @@
 <template>
     <div style="width:min-content">
         <div ref="plot"></div>
-        <div ref="tooltip" class="tooltip"></div>
     </div>
   </template>
   
   <script>
   import * as d3 from 'd3';
   import Vue from 'vue';
+  import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
   
   export default Vue.component('research-dot-plot', {
     props: {
@@ -122,8 +122,6 @@
             const labels = Array.from(new Set(this.data.map(d => d[primaryKey])));
             const allMeans = this.data.map(d => d.mean);
 
-            const tooltip = this.$refs.tooltip;
-
             //console.log('   genes', keys); 
             //console.log('   labels', labels);
 
@@ -228,8 +226,12 @@
                 .nice();
     
             // Create the color scale
-            const color = d3.scaleSequential(d3.interpolatePlasma)
-                .domain([d3.max(allMeans), 0]);
+            //const color = d3.scaleSequential(d3.interpolatePlasma)
+            //    .domain([d3.max(allMeans), 0]);
+
+            const color = d3.scaleLinear()
+                .domain([0, d3.max(allMeans)])
+                .range(["lightgrey", "blue"]);
                 
             const svg = d3.select(this.$refs.plot)
                 .append('svg')
@@ -348,23 +350,15 @@
 
                         // Tooltip mouseover
                         outerCircle.addEventListener('mouseover', function(e){
-                            tooltip.innerHTML = `<div style="display:flex"><div style="width:70px; font-weight:bold">${geneKey}</div>${d[geneKey]}</div>
+                            const tooltipContent = `<div style="display:flex"><div style="width:70px; font-weight:bold">${geneKey}</div>${d[geneKey]}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">${primaryKey}</div>${d[primaryKey]}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">Expr.</div>${d.mean.toFixed(4)}</div>
                                                  <div style="display:flex"><div style="width:70px; font-weight:bold">% Expr.</div>${d.pctExpr.toFixed(4)}</div>`;
-                            tooltip.classList.add('show')
-                        })
-                        // Tooltip mousemove to follow the cursor
-                        outerCircle.addEventListener('mousemove', function(e){
-                            //console.log(d);
-                            tooltip.style.top = (e.clientY - 10) + "px";
-                            tooltip.style.left = (e.clientX + 10) + "px";
+                            mouseTooltip.show(tooltipContent);
                         })
                         // Tooltip mouseout to hide it
                         outerCircle.addEventListener('mouseout', function(e){
-                            tooltip.classList.remove('show');
-                            tooltip.style.top = -1000 + "px";
-                            tooltip.style.left = -1000 + "px";
+                            mouseTooltip.hide();
                         });
 
                     cells.append('circle')
@@ -408,19 +402,5 @@
 <style scoped>
     svg {
         font-family: sans-serif;
-    }
-    .tooltip{
-        position:fixed;
-        background: white;
-        padding: 5px 10px;
-        box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
-    }
-    .tooltip.show{
-        opacity: 1;
-    }
-    .tooltip .tooltip-grid-item{
-        display:grid;
-        grid-template-columns: 1fr 1fr;
-        grid-column-gap: 5px;
     }
 </style>
