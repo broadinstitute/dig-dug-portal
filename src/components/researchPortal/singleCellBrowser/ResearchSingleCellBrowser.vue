@@ -49,7 +49,7 @@
                                 <div class="" style="display:flex; gap:20px;">
                                     <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
                                         <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                            <strong style="font-size: 16px; margin: 0 0 5px;">UMAP</strong> {{ coordinates.length.toLocaleString() }} cells
+                                            <strong style="font-size: 16px; margin: 0 0 5px;">UMAP</strong> {{ metadata.totalCells.toLocaleString() }} cells
                                         </div>
                                         <research-umap-plot-gl 
                                             :group="datasetId"
@@ -154,7 +154,7 @@
                                 <div class="" style="display:flex; gap:20px">
                                     <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
                                         <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                            <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
+                                            <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ metadata.totalCells.toLocaleString() }} cells
                                         </div>
                                         <research-umap-plot-gl 
                                             :group="datasetId"
@@ -340,7 +340,7 @@
                     <div class="" style="display:flex; gap:20px">
                         <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
                             <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ coordinates.length.toLocaleString() }} cells
+                                <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ metadata.totalCells.toLocaleString() }} cells
                             </div>
                             <div style="display:flex; position: relative">
                                 <research-umap-plot-gl 
