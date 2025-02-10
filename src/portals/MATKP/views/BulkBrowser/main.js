@@ -67,11 +67,6 @@ new Vue({
             return this.$store.state.singleBulkZNormData;
         },
         heatmapDataReady(){
-            if (this.heatmapData !== null){
-                this.heatmapData.forEach(item => {
-                    console.log(`${item.logFoldChange}, ${item.log10FDR}`);
-                });
-            }
             return this.heatmapData;
         },
         collateData(){
@@ -95,9 +90,7 @@ new Vue({
                     };
                     outputData.push(expressionEntry);
                 }
-            })
-            console.log("min expression: ", minExp);
-            console.log("max expression: ", maxExp);
+            });
             return outputData;
         }
     },
