@@ -452,7 +452,13 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
 
             case "map name":
 
+                let tempValue = cellValue;
+
                 cellValue = columnKeyObj["map"][cellValue];
+
+                if (!!columnKeyObj["link to"]) {
+                    cellValue = "<a href='" + tempValue + "'>" + cellValue + "</a>"
+                }
 
                 break;
 
