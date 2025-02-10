@@ -13,14 +13,14 @@
                     <div class="col-md-6">
                         <div v-if="$parent.loading">Loading...</div>
                         <div v-else>
-                            <research-volcano-plot-vector
+                            <bulk-volcano-plot
                                 :renderData="$parent.zNormData"
                                 :renderConfig="$parent.volcanoConfig"
                                 :margin="$parent.margin"
                                 sectionId="_bulk"
                                 :renderOnMount="true">
 
-                            </research-volcano-plot-vector>
+                            </bulk-volcano-plot>
                         </div>
                     </div>
                 </div>

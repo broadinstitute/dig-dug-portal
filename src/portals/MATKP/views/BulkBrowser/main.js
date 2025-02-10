@@ -7,6 +7,7 @@ import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import ResearchVolcanoPlotVector 
     from "../../../../components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
+import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from 'd3';
 
@@ -17,6 +18,7 @@ new Vue({
     store,
     components: {
         ResearchVolcanoPlotVector,
+        BulkVolcanoPlot,
         uiUtils
     },
     mixins: [matkpMixin],
