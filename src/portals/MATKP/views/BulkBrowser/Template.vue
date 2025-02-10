@@ -5,13 +5,25 @@
             <matkp-nav></matkp-nav>
             <!-- BODY -->
             <div class="mat-body">
-                <research-heatmap 
-                v-if="$parent.heatmapData"
-                :heatmapData="$parent.heatmapData"
-                :renderConfig="$parent.heatmapConfig"
-                :utils="$parent.utils"
-                sectionId="test"
-                />
+                <h2>{{ $parent.selectedDataset }}</h2>
+                <div class="row">
+                    <div id="bulk_heatmap" class="col-md-6">
+                        <div v-if="$parent.loading">Loading...</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div v-if="$parent.loading">Loading...</div>
+                        <div v-else>
+                            <bulk-volcano-plot
+                                :renderData="$parent.zNormData"
+                                :renderConfig="$parent.volcanoConfig"
+                                :margin="$parent.margin"
+                                sectionId="_bulk"
+                                :renderOnMount="true">
+
+                            </bulk-volcano-plot>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>

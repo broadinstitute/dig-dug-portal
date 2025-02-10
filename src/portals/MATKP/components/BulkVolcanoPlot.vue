@@ -15,17 +15,16 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-volcano-plot-vector", {
+export default Vue.component("bulk-volcano-plot", {
 	props: [
 		"renderData",
 		"renderConfig",
 		"margin",
 		"sectionId",
-		"utils",
-		"renderOnMount"
 	],
 	data() {
 		return {
+      tooltip: null,
 		};
 	},
 	modules: {
@@ -35,8 +34,7 @@ export default Vue.component("research-volcano-plot-vector", {
 		
 	},
 	mounted: function () {
-		//this.renderVolcanoPlot()
-		if (this.renderOnMount) {this.renderPlot()};
+		this.renderPlot();
 	},
 	beforeDestroy() {
 	},
@@ -88,6 +86,17 @@ export default Vue.component("research-volcano-plot-vector", {
 			
 			let width = this.renderConfig['width'],
 				height = this.renderConfig['height'];
+
+      this.tooltip = d3
+        .select(wrapperClass)
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "white")
+        .style("border", "2px solid gray")
+        .style("padding", "5px")
+        .style("border-radius", "5px")
+        .style("font-size", "smaller");
 
 			let svg = d3.select(wrapperClass)
 				.append("svg")
@@ -320,14 +329,14 @@ export default Vue.component("research-volcano-plot-vector", {
 						fillColor = "#00000050";
 						break;
 					case 1:
-						fillColor = "#09910980";
+						fillColor = renderConfig["dot label score"] > 1 ? "#00000050" :"#09910980";
 						break;
 					case 2:
 						fillColor = "#ff003780";
 						break;
 				}
 
-				if(fillScore >= 2){
+				/* if(fillScore >= 2){
 					svg.select("#axisGroup")
 						.append("text")
 						.attr("x", x(d.value.x))
@@ -336,18 +345,30 @@ export default Vue.component("research-volcano-plot-vector", {
 						.style("font-family", "Arial").style("font-size", 11)
 						.style("fill", "#000000")
 						.text(d.key);
-				}
+				} */
 
 				svg.select("#axisGroup")
 					.append('circle')
 					.attr('cx', x(d.value.x))
 					.attr('cy', y(d.value.y))
 					.attr('r', 4)
-					.style('fill', fillColor);
-				
-			})
+					.style('fill', fillColor)
+          .attr("id", (d.key));
+			});
+      svg.selectAll("circle")
+        .on("mouseover", g => this.hoverDot(g));
 					
 		},
+    hoverDot(dot){
+      let gene = d3.event.target.id;
+      let xcoord = `${d3.event.layerX + 35}px`;
+      let ycoord = `${d3.event.layerY}px`;
+      this.tooltip
+        .style("opacity", 1)
+        .html(gene)
+        .style("left", xcoord)
+        .style("top", ycoord);
+    },
 	},
 });
 

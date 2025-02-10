@@ -1,10 +1,13 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import store from "./store.js";
 
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap.vue";
+import ResearchVolcanoPlotVector 
+    from "../../../../components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
+import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from 'd3';
 
@@ -12,102 +15,181 @@ import * as d3 from 'd3';
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 
 new Vue({
+    store,
     components: {
-        ResearchHeatmap,
+        ResearchVolcanoPlotVector,
+        BulkVolcanoPlot,
         uiUtils
     },
     mixins: [matkpMixin],
     props: [],
     data() {
         return {
-            bulkKeysBI: "https://bioindex-dev.hugeamp.org/api/bio/keys/single-cell-bulk-z-norm/2",
-            bulkFieldsBI: "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_bulk/$datasetId/fields.json.gz",
-                        //"https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_bulk/bulkRNA_Emont2022_Humans_SAT/fields.json.gz"
-            bulkQueryBI: "https://bioindex-dev.hugeamp.org/api/bio/query/single-cell-bulk-z-norm",
-                       //"https://bioindex-dev.hugeamp.org/api/bio/query/single-cell-bulk-z-norm?q=bulkRNA_Emont2022_Humans_SAT,insulin%20sensitive%20vs.%20insulin%20resistant&limit=20"
+            loading: true,
+            samplesColumns: [],
+            heatmapColor: "#ffd10c",
             selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
             selectedKey: 'insulin sensitive vs. insulin resistant',
             limit: 20,
             utils: {
                 uiUtils: uiUtils
             },
-
             heatmapData: null,
-            heatmapConfig: {
-                type: "heat map",
-                label: "Top 20 DEGs across all samples (z-score normalized)",
-                main: {
-                    field: "expression",
-                    label: "Expression",
-                    type: "scale",
-                    direction: "positive",
-                    low: -1.936,
-                    middle: 0,
-                    high: 5.501,
-                },
-                sub: {
-                    field: "logFoldChange",
-                    label: "log Fold Change",
-                    type: "steps",
-                    direction: "negative",
-                    valueRange: [0, 4],
-                    "value range": [0.811, 3.649],
-                },
-                "column field": "sample_id",
-                "column label": "Sample",
-                "row field": "gene",
-                "row label": "Gene",
-                "font size": 12,
+            margin: {
+                top: 30,
+                bottom: 90,
+                left: 90,
+                right: 30,
+                bump: 10,
             },
+            svg: null,
+            volcanoConfig: {
+                "type":"volcano plot",
+                "label": "This is a Test",
+                "legend": "This is a Test",
+                "render by": "gene",
+                "x axis field": "logFoldChange",
+                "x axis label": "log2 Fold Change",
+                "y axis field": "log10FDR",
+                "y axis label": "-log10(FDR adjusted for p)",
+                "width": 600,
+                "height": 450,
+                "x condition": {"combination":"or","greater than":1,"lower than":-1}, //combination for condition can be "greater than", "lower than", "or" and "and."
+                "y condition": {"combination":"greater than","greater than":1},
+                "dot label score": 2 //number of conditions that the value of each dot to meet to have labeled
+            }
+                
+                
         };
     },
-    computed: {},
+    computed: {
+        zNormData(){
+            return this.$store.state.singleBulkZNormData;
+        },
+        heatmapDataReady(){
+            return this.heatmapData;
+        },
+        collateData(){
+            let rawData = this.heatmapDataReady;
+            let outputData = [];
+            let minExp = rawData[0].expression[0];
+            let maxExp = rawData[0].expression[0];
+            rawData.forEach(item => {
+                for (let i = 0; i < item.expression.length; i++){
+                    let currentExp = item.expression[i];
+                    if (currentExp < minExp){
+                        minExp = currentExp;
+                    }
+                    if (currentExp > maxExp){
+                        maxExp = currentExp;
+                    }
+                    let expressionEntry = {
+                        gene: item.gene,
+                        sample: this.samplesColumns[i],
+                        expression: item.expression[i]
+                    };
+                    outputData.push(expressionEntry);
+                }
+            });
+            return outputData;
+        }
+    },
     mounted() {
     },
     created() {
-       this.init();
+       this.$store.dispatch("queryBulk");
     },
     methods: {
-        async init(){
-            const bulkNames = await this.doFetch(this.bulkFieldsBI, this.selectedDataset);
-            console.log({bulkNames});
-            const queryURL = this.bulkQueryBI+`?q=${this.selectedDataset},${this.selectedKey}&limit=${this.limit}`
-            const bulkData = await this.doFetch(queryURL);
-            console.log({bulkData});
-            const bulkHeatmapData = [];
-            bulkData.data.forEach(item => {
-                item.expression.forEach((expr, idx) => {
-                    bulkHeatmapData.push({
-                        gene: item.gene,
-                        sample_id: bulkNames.sample_id[idx],
-                        expression: expr,
-                        logFoldChange: item.logFoldChange
-                    })
-                })
+        processLogs(data){
+            // log10FDR in the data is ALREADY minuslog so no need to adjust it
+            data.forEach(item => {
+                item.absLogFoldChange = Math.abs(item.logFoldChange);
             })
-            const [minExpr, maxExpr] = d3.extent(bulkHeatmapData, d => d.expression);
-            const [minFC, maxFC] = d3.extent(bulkHeatmapData, d => d.logFoldChange);
-            console.log({bulkHeatmapData, minExpr, maxExpr, minFC, maxFC});
-            this.heatmapData = bulkHeatmapData;
+            return data;
         },
-        async doFetch(url, datasetId) {
-            const replacedUrl = url.replace('$datasetId', datasetId);
-            console.log('fetching', replacedUrl);
+        getTop20(data){
+            let processedData = this.processLogs(data);
+            processedData = processedData.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
+            return processedData;
+        },
+        async drawHeatMap(){
+            this.samplesColumns = await this.getSampleIds();
+            let width = 750 - this.margin.left - this.margin.right;
+            let height = 450 - this.margin.top - this.margin.bottom;
+            this.svg = d3.select("#bulk_heatmap")
+                .append("svg")
+                    .attr("width", width + this.margin.left + this.margin.right)
+                    .attr("height", height + this.margin.top + this.margin.bottom)
+                .append("g")
+                    .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
+
+            let genesRows = this.heatmapDataReady.map(d => d.gene);
+            
+            // Build X scales and axis:
+            let x = d3.scaleBand()
+                .range([ 0, width ])
+                .domain(this.samplesColumns)
+                .padding(0.01);
+            this.svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x)) //Need to rotate axis labels!!
+                .selectAll("text")
+                        .style("text-anchor", "end")
+                        .attr('font-size', '12px')
+                        .attr("transform", "rotate(-35) translate(-5, 0)");
+
+            // Build Y scales and axis:
+            var y = d3.scaleBand()
+                .range([ height, 0 ])
+                .domain(genesRows)
+                .padding(0.01);
+            this.svg.append("g")
+                .call(d3.axisLeft(y));
+            
+            // Build color scale
+            var colorScale = d3.scaleLinear()
+                .range(["white", this.heatmapColor])
+                .domain([-2,7]); //MAKE RESPONSIVE TO OTHER DATASETS
+            
+            // Building the heatmap
+            this.svg.selectAll()
+                .data(this.collateData, function(d) {return d.sample+':'+d.expression;})
+                .enter()
+                .append("rect")
+                    .attr("x", function(d) { return x(d.sample) })
+                    .attr("y", function(d) { return y(d.gene) })
+                    .attr("width", x.bandwidth() )
+                    .attr("height", y.bandwidth() )
+                    .style("fill", function(d) { return colorScale(d.expression)} )
+            this.loading = false;
+        },
+        async getSampleIds(){
+            let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
+                this.selectedDataset}/fields.json.gz`;
             try {
-                const response = await fetch(replacedUrl);
-                const text = await response.text();
-                let markers;
-                try{
-                    markers = JSON.parse(text);
-                }catch{
-                    const lines = text.split('\n').filter(line => line.trim() !== '');
-                    markers = lines.map(line => JSON.parse(line));
-                }
-                return markers;
-            } catch (error) {
-                console.error('Error fetching markers:', error);
-                return null;
+                const response = await fetch(queryUrl);
+                const data = await(response.json());
+
+                return data.sample_id;
             }
+            catch(error) {
+                console.error("Error: ", error);
+                return [];
+            }
+        },
+        
+    },
+    watch:{
+        zNormData:{
+            handler(newData, oldData){
+                if(newData !== oldData){
+                    this.heatmapData = this.getTop20(newData);
+                }
+            },
+            deep: true
+        },
+        heatmapDataReady(newData){
+            this.drawHeatMap();
         },
     },
 
