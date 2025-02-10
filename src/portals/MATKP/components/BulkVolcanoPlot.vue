@@ -324,7 +324,7 @@ export default Vue.component("bulk-volcano-plot", {
 						break;
 				}
 
-				if(fillScore >= 2){
+				/* if(fillScore >= 2){
 					svg.select("#axisGroup")
 						.append("text")
 						.attr("x", x(d.value.x))
@@ -333,18 +333,24 @@ export default Vue.component("bulk-volcano-plot", {
 						.style("font-family", "Arial").style("font-size", 11)
 						.style("fill", "#000000")
 						.text(d.key);
-				}
+				} */
 
 				svg.select("#axisGroup")
 					.append('circle')
 					.attr('cx', x(d.value.x))
 					.attr('cy', y(d.value.y))
 					.attr('r', 4)
-					.style('fill', fillColor);
-				
-			})
+					.style('fill', fillColor)
+          .attr("class", (d.key));
+			});
+      svg.selectAll("circle")
+        .on("mouseover", g => this.hoverDot(g));
 					
 		},
+    hoverDot(dot){
+      console.log("Should be hovering dot");
+      console.log(dot);
+    }
 	},
 });
 
