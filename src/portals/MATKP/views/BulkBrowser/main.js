@@ -5,7 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap.vue";
+import ResearchVolcanoPlot from "../../../../components/researchPortal/ResearchVolcanoPlot.vue";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from 'd3';
 
@@ -15,7 +15,7 @@ const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 new Vue({
     store,
     components: {
-        ResearchHeatmap,
+        ResearchVolcanoPlot,
         uiUtils
     },
     mixins: [matkpMixin],
@@ -23,6 +23,7 @@ new Vue({
     data() {
         return {
             loading: true,
+            samplesColumns: [],
             heatmapColor: "#ffd10c",
             selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
             selectedKey: 'insulin sensitive vs. insulin resistant',
@@ -46,6 +47,32 @@ new Vue({
         },
         heatmapDataReady(){
             return this.heatmapData;
+        },
+        collateData(){
+            let rawData = this.heatmapDataReady;
+            let outputData = [];
+            let minExp = rawData[0].expression[0];
+            let maxExp = rawData[0].expression[0];
+            rawData.forEach(item => {
+                for (let i = 0; i < item.expression.length; i++){
+                    let currentExp = item.expression[i];
+                    if (currentExp < minExp){
+                        minExp = currentExp;
+                    }
+                    if (currentExp > maxExp){
+                        maxExp = currentExp;
+                    }
+                    let expressionEntry = {
+                        gene: item.gene,
+                        sample: this.samplesColumns[i],
+                        expression: item.expression[i]
+                    };
+                    outputData.push(expressionEntry);
+                }
+            })
+            console.log("min expression: ", minExp);
+            console.log("max expression: ", maxExp);
+            return outputData;
         }
     },
     mounted() {
@@ -67,6 +94,7 @@ new Vue({
             return processedData;
         },
         async drawHeatMap(){
+            this.samplesColumns = await this.getSampleIds();
             let width = 900 - this.margin.left - this.margin.right;
             let height = 450 - this.margin.top - this.margin.bottom;
             this.svg = d3.select("#bulk_heatmap")
@@ -77,12 +105,11 @@ new Vue({
                     .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
 
             let genesRows = this.heatmapDataReady.map(d => d.gene);
-            let samplesColumns = await this.getSampleIds();
-
+            
             // Build X scales and axis:
             let x = d3.scaleBand()
                 .range([ 0, width ])
-                .domain(samplesColumns)
+                .domain(this.samplesColumns)
                 .padding(0.01);
             this.svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
@@ -106,9 +133,9 @@ new Vue({
                 .domain([-2,7]); //MAKE RESPONSIVE TO OTHER DATASETS
             
             // Building the heatmap
-            let collatedData = this.collateData(samplesColumns);
+            //let collatedData = this.collateData;
             this.svg.selectAll()
-                .data(collatedData, function(d) {return d.sample+':'+d.expression;})
+                .data(this.collateData, function(d) {return d.sample+':'+d.expression;})
                 .enter()
                 .append("rect")
                     .attr("x", function(d) { return x(d.sample) })
@@ -132,32 +159,7 @@ new Vue({
                 return [];
             }
         },
-        collateData(samples){
-            let rawData = this.heatmapDataReady;
-            let outputData = [];
-            let minExp = rawData[0].expression[0];
-            let maxExp = rawData[0].expression[0];
-            rawData.forEach(item => {
-                for (let i = 0; i < item.expression.length; i++){
-                    let currentExp = item.expression[i];
-                    if (currentExp < minExp){
-                        minExp = currentExp;
-                    }
-                    if (currentExp > maxExp){
-                        maxExp = currentExp;
-                    }
-                    let expressionEntry = {
-                        gene: item.gene,
-                        sample: samples[i],
-                        expression: item.expression[i]
-                    };
-                    outputData.push(expressionEntry);
-                }
-            })
-            console.log("min expression: ", minExp);
-            console.log("max expression: ", maxExp);
-            return outputData;
-        }
+        
     },
     watch:{
         zNormData:{

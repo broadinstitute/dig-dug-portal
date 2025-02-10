@@ -9,6 +9,12 @@
                 <div id="bulk_heatmap">
                     <div v-if="$parent.loading">Loading...</div>
                 </div>
+                <div id="bulk_volcano">
+                    <div v-if="$parent.loading">Loading</div>
+                    <div v-else>
+                        volcano coming soon
+                    </div>
+                </div>
             </div>
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>
