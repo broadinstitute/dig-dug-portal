@@ -37,7 +37,8 @@ new Vue({
                 top: 30,
                 bottom: 90,
                 left: 90,
-                right: 30
+                right: 30,
+                bump: 10,
             },
             svg: null,
             volcanoConfig: {
@@ -65,7 +66,9 @@ new Vue({
         },
         heatmapDataReady(){
             if (this.heatmapData !== null){
-                console.log(JSON.stringify(this.heatmapData[0]));
+                this.heatmapData.forEach(item => {
+                    console.log(`${item.logFoldChange}, ${item.log10FDR}`);
+                });
             }
             return this.heatmapData;
         },
