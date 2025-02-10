@@ -5,7 +5,8 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import ResearchVolcanoPlot from "../../../../components/researchPortal/ResearchVolcanoPlot.vue";
+import ResearchVolcanoPlotVector 
+    from "../../../../components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from 'd3';
 
@@ -15,7 +16,7 @@ const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 new Vue({
     store,
     components: {
-        ResearchVolcanoPlot,
+        ResearchVolcanoPlotVector,
         uiUtils
     },
     mixins: [matkpMixin],
@@ -39,6 +40,23 @@ new Vue({
                 right: 30
             },
             svg: null,
+            volcanoConfig: {
+                "type":"volcano plot",
+                "label": "This is a Test",
+                "legend": "This is a Test",
+                "render by": "gene",
+                "x axis field": "logFoldChange",
+                "x axis label": "log2 Fold Change",
+                "y axis field": "log10FDR",
+                "y axis label": "-log10(FDR adjusted for p)",
+                "width": 600,
+                "height": 450,
+                "x condition": {"combination":"or","greater than":1,"lower than":-1}, //combination for condition can be "greater than", "lower than", "or" and "and."
+                "y condition": {"combination":"greater than","greater than":1},
+                "dot label score": 2 //number of conditions that the value of each dot to meet to have labeled
+            }
+                
+                
         };
     },
     computed: {
@@ -46,6 +64,9 @@ new Vue({
             return this.$store.state.singleBulkZNormData;
         },
         heatmapDataReady(){
+            if (this.heatmapData !== null){
+                console.log(JSON.stringify(this.heatmapData[0]));
+            }
             return this.heatmapData;
         },
         collateData(){
@@ -133,7 +154,6 @@ new Vue({
                 .domain([-2,7]); //MAKE RESPONSIVE TO OTHER DATASETS
             
             // Building the heatmap
-            //let collatedData = this.collateData;
             this.svg.selectAll()
                 .data(this.collateData, function(d) {return d.sample+':'+d.expression;})
                 .enter()

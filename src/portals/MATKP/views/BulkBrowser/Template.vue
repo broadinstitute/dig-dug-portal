@@ -9,10 +9,16 @@
                 <div id="bulk_heatmap">
                     <div v-if="$parent.loading">Loading...</div>
                 </div>
-                <div id="bulk_volcano">
-                    <div v-if="$parent.loading">Loading</div>
+                <div>
+                    <div v-if="$parent.loading">Loading...</div>
                     <div v-else>
-                        volcano coming soon
+                        <research-volcano-plot-vector
+                            :plotData="$parent.heatmapDataReady"
+                            :renderConfig="$parent.volcanoConfig"
+                            :margin="$parent.margin"
+                            sectionId="_bulk">
+
+                        </research-volcano-plot-vector>
                     </div>
                 </div>
             </div>
