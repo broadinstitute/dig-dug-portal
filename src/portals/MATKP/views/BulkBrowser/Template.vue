@@ -6,20 +6,22 @@
             <!-- BODY -->
             <div class="mat-body">
                 <h2>{{ $parent.selectedDataset }}</h2>
-                <div id="bulk_heatmap">
-                    <div v-if="$parent.loading">Loading...</div>
-                </div>
-                <div>
-                    <div v-if="$parent.loading">Loading...</div>
-                    <div v-else>
-                        <research-volcano-plot-vector
-                            :renderData="$parent.zNormData"
-                            :renderConfig="$parent.volcanoConfig"
-                            :margin="$parent.margin"
-                            sectionId="_bulk"
-                            :renderOnMount="true">
+                <div class="row">
+                    <div id="bulk_heatmap" class="col-md-6">
+                        <div v-if="$parent.loading">Loading...</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div v-if="$parent.loading">Loading...</div>
+                        <div v-else>
+                            <research-volcano-plot-vector
+                                :renderData="$parent.zNormData"
+                                :renderConfig="$parent.volcanoConfig"
+                                :margin="$parent.margin"
+                                sectionId="_bulk"
+                                :renderOnMount="true">
 
-                        </research-volcano-plot-vector>
+                            </research-volcano-plot-vector>
+                        </div>
                     </div>
                 </div>
             </div>

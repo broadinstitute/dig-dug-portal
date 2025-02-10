@@ -119,7 +119,7 @@ new Vue({
         },
         async drawHeatMap(){
             this.samplesColumns = await this.getSampleIds();
-            let width = 900 - this.margin.left - this.margin.right;
+            let width = 750 - this.margin.left - this.margin.right;
             let height = 450 - this.margin.top - this.margin.bottom;
             this.svg = d3.select("#bulk_heatmap")
                 .append("svg")
