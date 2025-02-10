@@ -348,8 +348,7 @@ export default Vue.component("bulk-volcano-plot", {
 					
 		},
     hoverDot(dot){
-      console.log("Should be hovering dot");
-      console.log(dot);
+      console.log(d3.event.target.classList);
     }
 	},
 });
