@@ -24,6 +24,7 @@ export default Vue.component("bulk-volcano-plot", {
 	],
 	data() {
 		return {
+      tooltip: null,
 		};
 	},
 	modules: {
@@ -85,6 +86,17 @@ export default Vue.component("bulk-volcano-plot", {
 			
 			let width = this.renderConfig['width'],
 				height = this.renderConfig['height'];
+
+      this.tooltip = d3
+        .select(wrapperClass)
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "white")
+        .style("border", "2px solid gray")
+        .style("padding", "5px")
+        .style("border-radius", "5px")
+        .style("font-size", "smaller");
 
 			let svg = d3.select(wrapperClass)
 				.append("svg")
@@ -348,8 +360,15 @@ export default Vue.component("bulk-volcano-plot", {
 					
 		},
     hoverDot(dot){
-      console.log(d3.event.target.id);
-    }
+      let gene = d3.event.target.id;
+      let xcoord = `${d3.event.layerX + 35}px`;
+      let ycoord = `${d3.event.layerY}px`;
+      this.tooltip
+        .style("opacity", 1)
+        .html(gene)
+        .style("left", xcoord)
+        .style("top", ycoord);
+    },
 	},
 });
 
