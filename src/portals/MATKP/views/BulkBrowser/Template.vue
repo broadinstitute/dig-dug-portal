@@ -13,7 +13,7 @@
                     <div v-if="$parent.loading">Loading...</div>
                     <div v-else>
                         <research-volcano-plot-vector
-                            :plotData="$parent.heatmapDataReady"
+                            :renderData="$parent.heatmapDataReady"
                             :renderConfig="$parent.volcanoConfig"
                             :margin="$parent.margin"
                             sectionId="_bulk">

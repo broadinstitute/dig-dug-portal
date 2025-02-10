@@ -35,6 +35,7 @@ export default Vue.component("research-volcano-plot-vector", {
 	},
 	mounted: function () {
 		//this.renderVolcanoPlot()
+		this.renderPlot();
 	},
 	beforeDestroy() {
 	},
