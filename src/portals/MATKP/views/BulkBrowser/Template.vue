@@ -16,7 +16,8 @@
                             :renderData="$parent.zNormData"
                             :renderConfig="$parent.volcanoConfig"
                             :margin="$parent.margin"
-                            sectionId="_bulk">
+                            sectionId="_bulk"
+                            :renderOnMount="true">
 
                         </research-volcano-plot-vector>
                     </div>

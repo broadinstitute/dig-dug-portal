@@ -21,7 +21,8 @@ export default Vue.component("research-volcano-plot-vector", {
 		"renderConfig",
 		"margin",
 		"sectionId",
-		"utils"
+		"utils",
+		"renderOnMount"
 	],
 	data() {
 		return {
@@ -35,7 +36,7 @@ export default Vue.component("research-volcano-plot-vector", {
 	},
 	mounted: function () {
 		//this.renderVolcanoPlot()
-		this.renderPlot();
+		if (this.renderOnMount) {this.renderPlot()};
 	},
 	beforeDestroy() {
 	},
