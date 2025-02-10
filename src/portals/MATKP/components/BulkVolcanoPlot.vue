@@ -341,14 +341,14 @@ export default Vue.component("bulk-volcano-plot", {
 					.attr('cy', y(d.value.y))
 					.attr('r', 4)
 					.style('fill', fillColor)
-          .attr("class", (d.key));
+          .attr("id", (d.key));
 			});
       svg.selectAll("circle")
         .on("mouseover", g => this.hoverDot(g));
 					
 		},
     hoverDot(dot){
-      console.log(d3.event.target.classList);
+      console.log(d3.event.target.id);
     }
 	},
 });
