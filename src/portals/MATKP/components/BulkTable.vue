@@ -136,7 +136,6 @@ import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import BulkTable from "./BulkTable.vue";
-import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -159,7 +158,6 @@ export default Vue.component("bulk-table", {
             currentPage: 1,
             subtableData: {},
             subtable2Data: {},
-            geneData: {},
             plotColors: plotUtils.plotColors(),
         };
     },
@@ -228,9 +226,12 @@ export default Vue.component("bulk-table", {
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(row, whichSubtable) {
+          console.log("GETTING SUBTABLE " + whichSubtable);
             let queryKey = this.subtableKey(row.item);
+            console.log(queryKey);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
+                console.log(JSON.stringify(data));
                 Vue.set(this.subtableData, queryKey, data);
             }
             if (
@@ -275,7 +276,7 @@ export default Vue.component("bulk-table", {
             }
         },
         subtableKey(item) {
-            return `${this.dataset},${item[this.config.queryParam]}`;
+            return `${item.dataset},${item[this.config.queryParam]}`;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
