@@ -330,6 +330,8 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		updateSearch(KEY,TARGET_SECTIONS) {
 
+			this.$root.hoverPos = [];
+
 			let paramsObj = {}
 
 			if(!KEY) {
@@ -377,6 +379,9 @@ export default Vue.component("research-multi-sections-search", {
 				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
 			};
+
+			this.$root.hoverPos = [];
+
 			this.searchParameters.map(s => {
 				paramsObj[s.parameter] = "";
 				document.getElementById("search_param_" + s.parameter).value = "";

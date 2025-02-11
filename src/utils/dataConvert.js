@@ -238,7 +238,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "raw":
-                    // let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
 
                     if (!!rawValue) {
                         tempObj[c["field name"]] = rawValue;
@@ -248,16 +247,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "map name":
-
-                    /*let tempValue = cellValue;
-
-                    cellValue = columnKeyObj["map"][cellValue];
-
-                    if (!!columnKeyObj["link to"]) {
-                        cellValue = "<a href='" + tempValue + "'>" + cellValue + "</a>"
-                    }*/
-
-                    /*let value = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;*/
 
                     tempObj[c["field name"]] = c["map"][rawValue];
 

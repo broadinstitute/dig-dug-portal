@@ -1,6 +1,5 @@
 <template>
     <div :id="'region_track_wrapper'+sectionId" class="region-track-wrapper">
-            {{ $root.hoverPos }}
         <div :id="'block_data_' + sectionId" class="block-data hidden">
             <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
                 <b-icon icon="x-circle-fill"></b-icon>
@@ -14,7 +13,8 @@
         </div>
         <span :id="sectionId+'_xPosMarker'" class="x-pos-marker"></span>
         <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-            @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
+            @mouseenter="renderPlot( null,'enter')"
+            @mouseleave="hidePanel('block_data_' + sectionId); renderPlot()" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
             width="" height="">
         </canvas>
         
@@ -92,6 +92,9 @@ export default Vue.component("research-region-track", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        hoverPos() {
+            return this.$root.hoverPos;
+        },
         region() {
 
             let region = this.regionParam;
@@ -198,6 +201,10 @@ export default Vue.component("research-region-track", {
         },
     },
     watch: {
+        hoverPos(POS_ARR) {
+            
+            this.renderPlot(null,"enter");
+        },
         viewingRegion(REGION){
             this.renderPlot();
         },
@@ -219,7 +226,7 @@ export default Vue.component("research-region-track", {
             }
 
         },
-        renderPlot(cKey) {
+        renderPlot(cKey,action) {
             
             this.posData = {};
 
@@ -263,6 +270,23 @@ export default Vue.component("research-region-track", {
                 Number(region.start),
                 this.adjPlotMargin.top,
                 this.adjPlotMargin);
+
+            // render marker band
+            if(!!action) {
+                switch(action) {
+                    case "enter":
+                        ctx.fillStyle = "#ff000025";
+
+                        ctx.fillRect(
+                            this.adjPlotMargin.left,
+                            plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 3),
+                            plotWidth,
+                            perTrack
+                        );
+                        break;
+                }
+            }
+            //
 
             let canvas = document.createElement('canvas'),
                 context = canvas.getContext('2d');
@@ -451,6 +475,19 @@ export default Vue.component("research-region-track", {
                 })
             }
 
+            /// if there are markers
+            if(this.hoverPos.length > 0) {
+
+                
+                this.hoverPos.map(h => {
+                    let yPos1 = this.adjPlotMargin.top - this.adjPlotMargin.bump;
+                    let yPos2 = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump*3);
+
+                    let xPos = xStart + (h - region.start) * xPerPixel;
+                    this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 1, "#ff0000", [6, 2]);
+                })
+            }
+
             // if the region is expanded
 
             if(!!this.plotConfig['expand region by']) {
@@ -545,19 +582,54 @@ export default Vue.component("research-region-track", {
             let wrapperRect = document.getElementById("region_track_wrapper"+this.sectionId).getBoundingClientRect()
 
             this.getPosInfo(X,Y,action);
-            if(action == "hover") {
+
+            if(action == "hover" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
+
                 let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
                 xPosMarker.style.left = (X)+"px";
                 xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
-                xPosMarker.style.height = (rect.height)+"px";
+                xPosMarker.style.height = (rect.height - this.adjPlotMargin.bottom/2)+"px";
 
             }
 
-            if(action == "click") {
-                console.log("rect",rect);
-                this.$root.hoverPos = {x:X,y:Y,status:action};
+            if(action == "click" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
+
+                const tempWidth = rect.width - (this.adjPlotMargin.left/2 + this.adjPlotMargin.right/2)
+                const tempXPos = X-this.adjPlotMargin.left/2;
+                let xPos = this.convertXPos(tempXPos, tempWidth);
+
+                let itThere = false;
+                let tempArr = [];
+
+                if(this.hoverPos.length > 0) {
+                    let perPixel = (this.viewingRegion.end - this.viewingRegion.start)/tempWidth;
+
+                    this.hoverPos.map(h =>{
+
+                        if( h == Math.floor(xPos)) {
+                            itThere = true;
+                        } else {
+                            tempArr.push(h);
+                        }
+                    })
+
+                    this.$root.hoverPos = tempArr;
+                }
+                
+                if(!itThere) {
+                    this.$root.hoverPos.push(Math.floor(xPos));
+                }
+                
             }
             
+        },
+
+        convertXPos(X,WIDTH) {
+
+            let perPixel = ((this.viewingRegion.end - this.viewingRegion.start)/WIDTH);
+            let xPos = (X * perPixel) + this.viewingRegion.start;
+
+            return xPos;
         },
 
         getPosInfo(x,y,action) {

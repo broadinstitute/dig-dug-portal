@@ -93,10 +93,12 @@
 			<template v-for="(item, itemIndex) in plotsList">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId" class="asso-plots-wrapper">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
-					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">*</span>
+					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
 					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
+						@mouseenter="renderPlots('enter')"
+						@mouseleave="renderPlots()"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
 
 					<div class="download-images-setting">
@@ -159,8 +161,7 @@ export default Vue.component("multi-region-plot", {
 		"sectionId",
 		"utils",
 		"starItems",
-		"colors",
-		"hoverPos"
+		"colors"
 	],
 	data() {
 		return {
@@ -205,6 +206,9 @@ export default Vue.component("multi-region-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		hoverPos() {
+			return this.$root.hoverPos;
+		},
 		adjPlotMargin() {
 
 			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
@@ -599,6 +603,9 @@ export default Vue.component("multi-region-plot", {
 		},
 	},
 	watch: {
+		hoverPos(POS){
+			this.renderPlots();
+		},
 		staredVariants(CONTENT) {
 			this.renderPlots();
 		},
@@ -785,19 +792,54 @@ export default Vue.component("multi-region-plot", {
             let wrapperRect = document.getElementById("assoPlotsWrapper"+GROUP+this.sectionId).getBoundingClientRect()
 
             this.getPosInfo(X,Y,GROUP, TYPE, action);
-            if(action == "move") {
+
+            if(action == "move" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2)) {
+
                 let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
                 xPosMarker.style.left = (X)+"px";
                 xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
-                xPosMarker.style.height = (rect.height)+"px";
+                xPosMarker.style.height = (rect.height - this.adjPlotMargin.bottom/2)+"px";
 
             }
 
-            if(action == "click") {
-                console.log("rect",rect);
-                this.$root.hoverPos = {x:X,y:Y,status:action};
+            if(action == "click" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
+
+                const tempWidth = rect.width - (this.adjPlotMargin.left/2 + this.adjPlotMargin.right/2)
+                const tempXPos = X-this.adjPlotMargin.left/2;
+                let xPos = this.convertXPos(tempXPos, tempWidth);
+
+                let itThere = false;
+                let tempArr = [];
+
+                if(this.hoverPos.length > 0) {
+                    let perPixel = (this.searchingRegion.end - this.searchingRegion.start)/tempWidth;
+
+                    this.hoverPos.map(h =>{
+
+                        if( h == Math.floor(xPos)) {
+                            itThere = true;
+                        } else {
+                            tempArr.push(h);
+                        }
+                    })
+
+                    this.$root.hoverPos = tempArr;
+                }
+                
+                if(!itThere) {
+                    this.$root.hoverPos.push(Math.floor(xPos));
+                }
+                
             }
             
+        },
+
+		convertXPos(X,WIDTH) {
+
+            let perPixel = ((this.searchingRegion.end - this.searchingRegion.start)/WIDTH);
+            let xPos = (X * perPixel) + this.searchingRegion.start;
+
+            return xPos;
         },
 
 		getPosInfo(x,y, GROUP, TYPE, EVENT_TYPE) {
@@ -1112,6 +1154,39 @@ export default Vue.component("multi-region-plot", {
 					"asso",
 					p
 				);
+
+				///render marker band
+
+				if(!!event) {
+                switch(event) {
+						case "enter":
+							ctx.fillStyle = "#ff000025";
+
+							ctx.fillRect(
+								this.adjPlotMargin.left,
+								plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 2),
+								assoPlotWidth,
+								24
+							);
+							break;
+					}
+				}
+				//
+				/// if there are markers
+
+				let xPerPixel = assoPlotWidth / (regionEnd - regionStart);
+
+				if(this.hoverPos.length > 0) {
+
+					
+					this.hoverPos.map(h => {
+						let yPos1 = this.adjPlotMargin.top - this.adjPlotMargin.bump;
+						let yPos2 = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump*3);
+
+						let xPos = this.adjPlotMargin.left + (h - regionStart) * xPerPixel;
+						this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 1, "#ff0000", [6, 2]);
+					})
+				}
 
 				this.renderRecombLine(
 					ctx,

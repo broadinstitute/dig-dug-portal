@@ -75,7 +75,7 @@ new Vue({
         return {
             starItems: [],
             sectionsData: [],
-            hoverPos: { x: null, y: null, status: null },
+            hoverPos: [],
             sectionDescriptions: null,
             regionZoom: 0,
             regionViewArea: 0,
