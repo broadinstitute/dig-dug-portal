@@ -24,6 +24,13 @@
                         </div>
                     </div>
                 </div>
+                <div>
+                    <bulk-table
+                        :bulkData="$parent.zNormData"
+                        :config="$parent.tableConfig">
+
+                    </bulk-table>
+                </div>
             </div>
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>

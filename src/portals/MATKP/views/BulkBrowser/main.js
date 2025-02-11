@@ -5,9 +5,8 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import ResearchVolcanoPlotVector 
-    from "../../../../components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
+import BulkTable from "../../components/BulkTable.vue";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from 'd3';
 
@@ -17,8 +16,8 @@ const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 new Vue({
     store,
     components: {
-        ResearchVolcanoPlotVector,
         BulkVolcanoPlot,
+        BulkTable,
         uiUtils
     },
     mixins: [matkpMixin],
@@ -57,7 +56,29 @@ new Vue({
                 "x condition": {"combination":"or","greater than":1,"lower than":-1}, //combination for condition can be "greater than", "lower than", "or" and "and."
                 "y condition": {"combination":"greater than","greater than":1},
                 "dot label score": 2 //number of conditions that the value of each dot to meet to have labeled
-            }
+            },
+            tableConfig: {
+                fields: [
+                    { key: "gene", label: "Gene", sortable: true },
+                    {
+                        key: "logFoldChange",
+                        label: "log2 Fold Change",
+                        sortable: true,
+                    },
+                    {
+                        key: "log10FDR",
+                        label: "-log10(FDR adj. p)",
+                        sortable: true,
+                    },
+                    { key: "expand", label: "Gene query" },
+                ],
+                queryParam: "gene",
+                subtableEndpoint: "single-cell-bulk-melted",
+                subtableFields: [
+                    { key: "gene_set", label: "Gene set", sortable: true },
+                    { key: "beta", label: "Effect (joint)", sortable: true },
+                ],
+            },
                 
                 
         };
@@ -100,16 +121,8 @@ new Vue({
        this.$store.dispatch("queryBulk");
     },
     methods: {
-        processLogs(data){
-            // log10FDR in the data is ALREADY minuslog so no need to adjust it
-            data.forEach(item => {
-                item.absLogFoldChange = Math.abs(item.logFoldChange);
-            })
-            return data;
-        },
         getTop20(data){
-            let processedData = this.processLogs(data);
-            processedData = processedData.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
+            let processedData = data.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
             return processedData;
         },
         async drawHeatMap(){
@@ -182,6 +195,7 @@ new Vue({
     watch:{
         zNormData:{
             handler(newData, oldData){
+                console.log(JSON.stringify(newData[0]));
                 if(newData !== oldData){
                     this.heatmapData = this.getTop20(newData);
                 }
