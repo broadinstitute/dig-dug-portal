@@ -353,7 +353,8 @@ export default Vue.component("bulk-volcano-plot", {
 					.attr('cy', y(d.value.y))
 					.attr('r', 4)
 					.style('fill', fillColor)
-          .attr("id", (d.key));
+          .attr("id", (d.key))
+          .attr("class", this.dataToClass(d.value));
 			});
       svg.selectAll("circle")
         .on("mouseover", g => this.hoverDot(g));
@@ -361,14 +362,32 @@ export default Vue.component("bulk-volcano-plot", {
 		},
     hoverDot(dot){
       let gene = d3.event.target.id;
+      let data = this.classToData(d3.event.target.classList);
+      let hover = `<p><strong>${gene}</strong></p>`;
+      hover = hover.concat(`<p>${this.renderConfig['x axis label']}: ${data[0]}</p>`);
+      hover = hover.concat(`<p>${this.renderConfig['y axis label']}: ${data[1]}</p>`);
       let xcoord = `${d3.event.layerX + 35}px`;
       let ycoord = `${d3.event.layerY}px`;
       this.tooltip
         .style("opacity", 1)
-        .html(gene)
+        .html(hover)
         .style("left", xcoord)
         .style("top", ycoord);
     },
+    dataToClass(value){
+      let valX = `valX_${value.x}`.replaceAll(".","dot");
+      let valY = `valY_${value.y}`.replaceAll(".", "dot");
+      return `${valX} ${valY}`;
+    },
+    classToData(classList){
+      let xVal = classList[0];
+      let yVal = classList[1];
+      let valueFlag = new RegExp(/val[XY]_/);
+      xVal = xVal.replace(valueFlag, "").replace("dot", ".");
+      yVal = yVal.replace(valueFlag, "").replace("dot", ".");
+      return [xVal, yVal];
+
+    }
 	},
 });
 
