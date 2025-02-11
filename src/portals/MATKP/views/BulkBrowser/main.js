@@ -73,7 +73,7 @@ new Vue({
                     { key: "expand", label: "Gene query" },
                 ],
                 queryParam: "gene",
-                subtableEndpoint: "pigean-joined-gene",
+                subtableEndpoint: "single-cell-bulk-melted",
                 subtableFields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },
@@ -121,16 +121,8 @@ new Vue({
        this.$store.dispatch("queryBulk");
     },
     methods: {
-        processLogs(data){
-            // log10FDR in the data is ALREADY minuslog so no need to adjust it
-            data.forEach(item => {
-                item.absLogFoldChange = Math.abs(item.logFoldChange);
-            })
-            return data;
-        },
         getTop20(data){
-            let processedData = this.processLogs(data);
-            processedData = processedData.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
+            let processedData = data.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
             return processedData;
         },
         async drawHeatMap(){
@@ -203,6 +195,7 @@ new Vue({
     watch:{
         zNormData:{
             handler(newData, oldData){
+                console.log(JSON.stringify(newData[0]));
                 if(newData !== oldData){
                     this.heatmapData = this.getTop20(newData);
                 }

@@ -19,44 +19,11 @@
               :sort-by="sortBy"
               :sort-desc="true"
           >
-              <template #cell(label)="r">
-                  <span v-if="!!r.item.label">
-                      {{
-                          r.item.label.length > 50
-                              ? `${r.item.label.slice(0, 50)}...`
-                              : r.item.label
-                      }}
-                  </span>
-              </template>
               <template #cell(gene)="r">
-                  <a :href="`/pigean/gene.html?gene=${r.item.gene}${suffix}`">
+                  <!-- Link to where? -->
+                  <a>
                       {{ r.item.gene }}
                   </a>
-              </template>
-              <template #cell(phenotype)="r">
-                  <a
-                      v-if="!!phenotypeMap[r.item.phenotype]"
-                      :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
-                  >
-                      {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
-                  </a>
-                  <span v-else>{{ r.item.phenotype }}</span>
-              </template>
-              <template #cell(gene_set)="r">
-                  <a
-                      :href="`/pigean/geneset.html?geneset=${r.item.gene_set}${suffix}`"
-                  >
-                      {{ r.item.gene_set }}
-                  </a>
-              </template>
-              <template #cell(phewasPlot)="row">
-                  <b-button
-                      variant="outline-primary"
-                      size="sm"
-                      @click="phewasPlotShow(row)"
-                  >
-                      {{ row.item.phewasActive ? "Hide" : "Show" }}
-                  </b-button>
               </template>
               <template #cell(expand)="row">
                   <b-button
@@ -133,7 +100,7 @@
                       :config="{ fields: config.subtable2Fields }"
                       :isSubtable="true"
                   >
-                  </bulk-table>
+                  </bulk-table>-->
                   <bulk-table
                       v-if="
                           row.item.subtableActive === 1 &&
@@ -144,7 +111,7 @@
                       :config="{ fields: config.subtableFields }"
                       :isSubtable="true"
                   >
-                  </bulk-table> -->
+                  </bulk-table>
               </template>
           </b-table>
           <b-pagination
@@ -169,7 +136,6 @@ import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import BulkTable from "./BulkTable.vue";
-import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
@@ -183,11 +149,9 @@ export default Vue.component("bulk-table", {
     },
     props: [
         "bulkData",
-        "phenotypeMap",
         "config",
         "isSubtable",
         "filter",
-        "phewasRenderConfig",
     ],
     data() {
         return {
@@ -195,7 +159,7 @@ export default Vue.component("bulk-table", {
             currentPage: 1,
             subtableData: {},
             subtable2Data: {},
-            phewasData: {},
+            geneData: {},
             plotColors: plotUtils.plotColors(),
         };
     },
@@ -236,10 +200,9 @@ export default Vue.component("bulk-table", {
         },
         tableData() {
             let data = this.probData;
-            //add subtableActive and phewasActive to each row
+            //add subtableActive to each row
             data.forEach((row) => {
                 row.subtableActive = 0;
-                row.phewasActive = false;
             });
             if (this.filter) {
                 data = data.filter(this.filter);
@@ -264,10 +227,6 @@ export default Vue.component("bulk-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        phewasPlotShow(row) {
-            this.getPhewas(row);
-            this.toggleTable(row, "phewas");
-        },
         async getSubtable(row, whichSubtable) {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
@@ -286,37 +245,23 @@ export default Vue.component("bulk-table", {
                 Vue.set(this.subtable2Data, queryKey, data2);
             }
         },
-        async getPhewas(row) {
-            let queryKey = this.phewasKey(row.item);
-            if (!this.phewasData[queryKey]) {
-                let data = await query("pigean-phewas", queryKey);
-                Vue.set(this.phewasData, queryKey, data);
-            }
-        },
         showDetails(row, tableNum) {
             this.toggleTable(row, tableNum);
             this.getSubtable(row, tableNum);
         },
         toggleTable(row, subtable) {
             let show = false;
-            if (subtable === "phewas") {
-                show = !row.item.phewasActive;
-            } else if (subtable === row.item.subtableActive) {
+            if (subtable === row.item.subtableActive) {
                 show = false;
             } else {
                 show = true;
             }
             // Toggle active table
-            if (subtable === "phewas") {
-                row.item.phewasActive = !row.item.phewasActive;
-            } else {
-                row.item.subtableActive = !show ? 0 : subtable;
-            }
+            row.item.subtableActive = !show ? 0 : subtable;
             // Hide details if it's currently showing and no tables should be active
             if (
                 !show &&
                 row.detailsShowing &&
-                !row.item.phewasActive &&
                 row.item.subtableActive === 0
             ) {
                 row.toggleDetails();
@@ -324,21 +269,13 @@ export default Vue.component("bulk-table", {
             // Show details if it's currently not showing but it should be
             if (
                 show &&
-                !row.detailsShowing &&
-                (row.item.phewasActive || row.item.subtableActive !== 0)
+                !row.detailsShowing && row.item.subtableActive !== 0
             ) {
                 row.toggleDetails();
             }
         },
-        phewasKey(item) {
-            return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
-        },
         subtableKey(item) {
-            if (this.config.queryParam === "cluster") {
-                return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
-            }
-            return `${item.phenotype},${item[this.config.queryParam]},${
-                DEFAULT_SIGMA},${this.genesetSize}`;
+            return `${this.dataset},${item[this.config.queryParam]}`;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
