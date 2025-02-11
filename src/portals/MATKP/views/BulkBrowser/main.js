@@ -5,9 +5,8 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import ResearchVolcanoPlotVector 
-    from "../../../../components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
+import BulkTable from "../../components/BulkTable.vue";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from 'd3';
 
@@ -17,8 +16,8 @@ const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 new Vue({
     store,
     components: {
-        ResearchVolcanoPlotVector,
         BulkVolcanoPlot,
+        BulkTable,
         uiUtils
     },
     mixins: [matkpMixin],
@@ -57,7 +56,29 @@ new Vue({
                 "x condition": {"combination":"or","greater than":1,"lower than":-1}, //combination for condition can be "greater than", "lower than", "or" and "and."
                 "y condition": {"combination":"greater than","greater than":1},
                 "dot label score": 2 //number of conditions that the value of each dot to meet to have labeled
-            }
+            },
+            tableConfig: {
+                fields: [
+                    { key: "gene", label: "Gene", sortable: true },
+                    {
+                        key: "logFoldChange",
+                        label: "log2 Fold Change",
+                        sortable: true,
+                    },
+                    {
+                        key: "log10FDR",
+                        label: "-log10(FDR adj. p)",
+                        sortable: true,
+                    },
+                    { key: "expand", label: "Gene query" },
+                ],
+                queryParam: "gene",
+                subtableEndpoint: "pigean-joined-gene",
+                subtableFields: [
+                    { key: "gene_set", label: "Gene set", sortable: true },
+                    { key: "beta", label: "Effect (joint)", sortable: true },
+                ],
+            },
                 
                 
         };
