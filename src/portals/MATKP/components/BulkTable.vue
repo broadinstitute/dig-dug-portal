@@ -89,18 +89,6 @@
                   </b-dropdown>
               </template>
               <template #row-details="row">
-                  <div>Violin plot coming soon!</div>
-                  <!-- <bulk-table
-                      v-if="
-                          row.item.subtableActive === 2 &&
-                          subtable2Data[subtableKey(row.item)] &&
-                          subtable2Data[subtableKey(row.item)].length > 0
-                      "
-                      :bulkData="subtable2Data[subtableKey(row.item)]"
-                      :config="{ fields: config.subtable2Fields }"
-                      :isSubtable="true"
-                  >
-                  </bulk-table>-->
                   <bulk-table
                       v-if="
                           row.item.subtableActive === 1 &&
@@ -108,7 +96,8 @@
                           subtableData[subtableKey(row.item)].length > 0
                       "
                       :bulkData="subtableData[subtableKey(row.item)]"
-                      :config="{ fields: config.subtableFields }"
+                      :config="{ 
+                        fields: Object.keys(subtableData[subtableKey(row.item)][0]) }"
                       :isSubtable="true"
                   >
                   </bulk-table>
@@ -226,12 +215,9 @@ export default Vue.component("bulk-table", {
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(row, whichSubtable) {
-          console.log("GETTING SUBTABLE " + whichSubtable);
             let queryKey = this.subtableKey(row.item);
-            console.log(queryKey);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
-                console.log(JSON.stringify(data));
                 Vue.set(this.subtableData, queryKey, data);
             }
             if (
