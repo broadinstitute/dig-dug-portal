@@ -89,23 +89,25 @@
                   </b-dropdown>
               </template>
               <template #row-details="row">
-                  <!-- <scatterplot
-                    :plotData="geneTableData(row)"
-                    :config="$parent.scatterplotConfig">
-
-                  </scatterplot> -->
-                  <bulk-table
-                      v-if="
+                <div v-if="
                           row.item.subtableActive === 1 &&
-                          geneTableData(row.item) &&
-                          geneTableData(row.item).length > 0
-                      "
-                      :bulkData="geneTableData(row.item)"
+                          subtableData[subtableKey(row.item)]?.length > 0"
+                  >
+                  <scatterplot
+                    :plotData="subtableData[subtableKey(row.item)]"
+                    :config="scatterConfig"
+                    :plotId="`bulk_${row.item.gene}`">
+
+                  </scatterplot>
+                  <bulk-table              
+                      :bulkData="subtableData[subtableKey(row.item)]"
                       :config="{ 
-                        fields: Object.keys(geneTableData(row.item)[0]) }"
+                        fields: Object.keys(subtableData[subtableKey(row.item)][0]) }"
                       :isSubtable="true"
                   >
                   </bulk-table>
+                </div>
+                  
               </template>
           </b-table>
           <b-pagination
@@ -145,6 +147,7 @@ export default Vue.component("bulk-table", {
         "config",
         "isSubtable",
         "filter",
+        "scatterConfig"
     ],
     data() {
         return {
@@ -237,9 +240,9 @@ export default Vue.component("bulk-table", {
                 Vue.set(this.subtable2Data, queryKey, data2);
             }
         },
-        showDetails(row, tableNum) {
+        async showDetails(row, tableNum) {
             this.toggleTable(row, tableNum);
-            this.getSubtable(row, tableNum);
+            await this.getSubtable(row, tableNum);
         },
         toggleTable(row, subtable) {
             let show = false;
@@ -308,7 +311,9 @@ export default Vue.component("bulk-table", {
             return allFields;
         },
         geneTableData(item){
-          return this.subtableData[this.subtableKey(item)];
+          let geneData = this.subtableData[this.subtableKey(item)];
+          console.log(JSON.stringify(geneData));
+          return geneData;
         },
     },
 });
