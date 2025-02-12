@@ -805,18 +805,22 @@ export default Vue.component("multi-region-plot", {
             if(action == "click" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
 
                 const tempWidth = rect.width - (this.adjPlotMargin.left/2 + this.adjPlotMargin.right/2)
-                const tempXPos = X-this.adjPlotMargin.left/2;
+                const tempXPos = X - (this.adjPlotMargin.left/2);
+
                 let xPos = this.convertXPos(tempXPos, tempWidth);
 
                 let itThere = false;
                 let tempArr = [];
 
                 if(this.hoverPos.length > 0) {
-                    let perPixel = (this.searchingRegion.end - this.searchingRegion.start)/tempWidth;
 
                     this.hoverPos.map(h =>{
 
-                        if( h == Math.floor(xPos)) {
+						let xMargin = Math.floor((this.searchingRegion.end - this.searchingRegion.start)/tempWidth)*2;
+
+						console.log("xMargin", xMargin);
+
+                        if( h >= xPos - xMargin && h <= xPos + xMargin) {
                             itThere = true;
                         } else {
                             tempArr.push(h);
@@ -827,7 +831,7 @@ export default Vue.component("multi-region-plot", {
                 }
                 
                 if(!itThere) {
-                    this.$root.hoverPos.push(Math.floor(xPos));
+                    this.$root.hoverPos.push(xPos);
                 }
                 
             }
@@ -839,7 +843,7 @@ export default Vue.component("multi-region-plot", {
             let perPixel = ((this.searchingRegion.end - this.searchingRegion.start)/WIDTH);
             let xPos = (X * perPixel) + this.searchingRegion.start;
 
-            return xPos;
+            return Math.floor(xPos);
         },
 
 		getPosInfo(x,y, GROUP, TYPE, EVENT_TYPE) {
@@ -1099,7 +1103,7 @@ export default Vue.component("multi-region-plot", {
 				this.adjPlotMargin.bottom;
 
 			let assoPlotWidth =
-				assoCanvasWidth - this.adjPlotMargin.left * 2;
+				assoCanvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
 			let ldPlotWidth =
 				ldCanvasWidth -
 				this.adjPlotMargin.left -
