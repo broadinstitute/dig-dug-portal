@@ -5,6 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
+import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import BulkTable from "../../components/BulkTable.vue";
 import uiUtils from "@/utils/uiUtils";
@@ -16,6 +17,7 @@ const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 new Vue({
     store,
     components: {
+        Scatterplot,
         BulkVolcanoPlot,
         BulkTable,
         uiUtils
@@ -77,6 +79,20 @@ new Vue({
                 subtableFields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },
+                ],
+            },
+            scatterplotConfig: {
+                xField: "cont__bmi",
+                xAxisLabel: "BMI",
+                yField: "lognorm_counts",
+                yAxisLabel: "lognorm counts",
+                dotKey: "sample_id",
+                hoverBoxPosition: "both",
+                plotHeight: 300,
+                hoverFields: [
+                    {key: "sample_id", label: "Sample"},
+                    {key: "cont__bmi", label: "BMI"},
+                    {key: "lognorm_counts", label: "Lognorm"}
                 ],
             },
                 

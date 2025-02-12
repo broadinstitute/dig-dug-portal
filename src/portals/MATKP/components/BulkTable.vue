@@ -89,18 +89,25 @@
                   </b-dropdown>
               </template>
               <template #row-details="row">
-                  <bulk-table
-                      v-if="
+                <div v-if="
                           row.item.subtableActive === 1 &&
-                          subtableData[subtableKey(row.item)] &&
-                          subtableData[subtableKey(row.item)].length > 0
-                      "
+                          subtableData[subtableKey(row.item)]?.length > 0"
+                  >
+                  <scatterplot
+                    :plotData="subtableData[subtableKey(row.item)]"
+                    :config="scatterConfig"
+                    :plotId="`bulk_${row.item.gene}`">
+
+                  </scatterplot>
+                  <bulk-table              
                       :bulkData="subtableData[subtableKey(row.item)]"
                       :config="{ 
                         fields: Object.keys(subtableData[subtableKey(row.item)][0]) }"
                       :isSubtable="true"
                   >
                   </bulk-table>
+                </div>
+                  
               </template>
           </b-table>
           <b-pagination
@@ -130,6 +137,7 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "lodash";
 export default Vue.component("bulk-table", {
     components: {
         DataDownload,
@@ -140,6 +148,7 @@ export default Vue.component("bulk-table", {
         "config",
         "isSubtable",
         "filter",
+        "scatterConfig"
     ],
     data() {
         return {
@@ -218,7 +227,7 @@ export default Vue.component("bulk-table", {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
-                Vue.set(this.subtableData, queryKey, data);
+                Vue.set(this.subtableData, queryKey, this.toNumeric(data));
             }
             if (
                 !!this.config.subtable2Endpoint &&
@@ -232,9 +241,9 @@ export default Vue.component("bulk-table", {
                 Vue.set(this.subtable2Data, queryKey, data2);
             }
         },
-        showDetails(row, tableNum) {
+        async showDetails(row, tableNum) {
             this.toggleTable(row, tableNum);
-            this.getSubtable(row, tableNum);
+            await this.getSubtable(row, tableNum);
         },
         toggleTable(row, subtable) {
             let show = false;
@@ -302,6 +311,18 @@ export default Vue.component("bulk-table", {
             });
             return allFields;
         },
+        toNumeric(geneData){
+          let fieldsToConvert = ["lognorm_counts", "cont__bmi"];
+          let outputData = structuredClone(geneData);
+          for (let i = 0; i < fieldsToConvert.length; i++){
+            let field = fieldsToConvert[i];
+            outputData = outputData.map(item => {
+              item[field] = parseFloat(item[field]);
+              return item;
+            })
+          }
+          return outputData;
+        }
     },
 });
 </script>
