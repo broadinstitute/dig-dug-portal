@@ -89,15 +89,20 @@
                   </b-dropdown>
               </template>
               <template #row-details="row">
+                  <!-- <scatterplot
+                    :plotData="geneTableData(row)"
+                    :config="$parent.scatterplotConfig">
+
+                  </scatterplot> -->
                   <bulk-table
                       v-if="
                           row.item.subtableActive === 1 &&
-                          subtableData[subtableKey(row.item)] &&
-                          subtableData[subtableKey(row.item)].length > 0
+                          geneTableData(row.item) &&
+                          geneTableData(row.item).length > 0
                       "
-                      :bulkData="subtableData[subtableKey(row.item)]"
+                      :bulkData="geneTableData(row.item)"
                       :config="{ 
-                        fields: Object.keys(subtableData[subtableKey(row.item)][0]) }"
+                        fields: Object.keys(geneTableData(row.item)[0]) }"
                       :isSubtable="true"
                   >
                   </bulk-table>
@@ -301,6 +306,9 @@ export default Vue.component("bulk-table", {
                 allFields.push(field);
             });
             return allFields;
+        },
+        geneTableData(item){
+          return this.subtableData[this.subtableKey(item)];
         },
     },
 });
