@@ -89,7 +89,11 @@ new Vue({
                 dotKey: "sample_id",
                 hoverBoxPosition: "both",
                 plotHeight: 300,
-                hoverFields: [],
+                hoverFields: [
+                    {key: "sample_id", label: "Sample"},
+                    {key: "cont__bmi", label: "BMI"},
+                    {key: "lognorm_counts", label: "Lognorm"}
+                ],
             },
                 
                 

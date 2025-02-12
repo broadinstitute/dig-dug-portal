@@ -137,6 +137,7 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "lodash";
 export default Vue.component("bulk-table", {
     components: {
         DataDownload,
@@ -226,7 +227,7 @@ export default Vue.component("bulk-table", {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
-                Vue.set(this.subtableData, queryKey, data);
+                Vue.set(this.subtableData, queryKey, this.toNumeric(data));
             }
             if (
                 !!this.config.subtable2Endpoint &&
@@ -310,11 +311,18 @@ export default Vue.component("bulk-table", {
             });
             return allFields;
         },
-        geneTableData(item){
-          let geneData = this.subtableData[this.subtableKey(item)];
-          console.log(JSON.stringify(geneData));
-          return geneData;
-        },
+        toNumeric(geneData){
+          let fieldsToConvert = ["lognorm_counts", "cont__bmi"];
+          let outputData = structuredClone(geneData);
+          for (let i = 0; i < fieldsToConvert.length; i++){
+            let field = fieldsToConvert[i];
+            outputData = outputData.map(item => {
+              item[field] = parseFloat(item[field]);
+              return item;
+            })
+          }
+          return outputData;
+        }
     },
 });
 </script>
