@@ -2,6 +2,10 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
+
 import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
 import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
@@ -40,6 +44,9 @@ import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
 import { pageMixin } from "@/mixins/pageMixin.js";
+
+Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
@@ -1298,8 +1305,13 @@ new Vue({
         ...sessionUtils,
 
         copyOverPlots(DIRECTION) {
-            console.log(this.sectionConfigs["visualizer collection"]);
-            let sections = [];
+
+            if (DIRECTION == 'from') {
+                document.getElementById("canvas_collect").setAttribute("style", "height: auto;")
+            } else if (DIRECTION == 'to') {
+                document.getElementById("canvas_collect").setAttribute("style", "height: 1px; overflow: hidden;")
+            }
+
             this.sectionConfigs["visualizer collection"].map(s => {
                 s['sections'].map(sItem => {
                     (DIRECTION == 'from') ? uiUtils.moveElement(sItem + "_viz_wrapper", sItem + "_wrapper") :

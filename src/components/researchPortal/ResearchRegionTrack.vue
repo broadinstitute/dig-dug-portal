@@ -11,12 +11,13 @@
                 <span class="box" :style="'background-color:' + colors.bold[index % 16]"></span><span class="label" v-html="cKey"></span>
             </span>
         </div>
-        <span :id="sectionId+'_xPosMarker'" class="x-pos-marker"></span>
+        
         <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-            @mouseenter="renderPlot( null,'enter')"
-            @mouseleave="hidePanel('block_data_' + sectionId); renderPlot()" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
+            @mouseleave="hidePanel('block_data_' + sectionId);resetPosMarker()" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
             width="" height="">
         </canvas>
+
+        <span :id="sectionId+'_xPosMarker'" class="x-pos-marker"></span>
         
         <div class="download-images-setting">
             <span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
@@ -263,6 +264,19 @@ export default Vue.component("research-region-track", {
             //let region = regionArr[1].split("-");
             
 
+            // render marker band
+            
+            ctx.fillStyle = "#ff880025";
+
+            ctx.fillRect(
+                this.adjPlotMargin.left,
+                plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 2)+12,
+                plotWidth,
+                12
+            );
+                
+            //
+
             this.renderAxis(ctx,
                 plotWidth,
                 plotHeight,
@@ -270,23 +284,6 @@ export default Vue.component("research-region-track", {
                 Number(region.start),
                 this.adjPlotMargin.top,
                 this.adjPlotMargin);
-
-            // render marker band
-            if(!!action) {
-                switch(action) {
-                    case "enter":
-                        ctx.fillStyle = "#ff000025";
-
-                        ctx.fillRect(
-                            this.adjPlotMargin.left,
-                            plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 3),
-                            plotWidth,
-                            perTrack
-                        );
-                        break;
-                }
-            }
-            //
 
             let canvas = document.createElement('canvas'),
                 context = canvas.getContext('2d');
@@ -573,6 +570,12 @@ export default Vue.component("research-region-track", {
                 );
             }
         },
+        resetPosMarker() {
+				let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = "0px";
+                xPosMarker.style.top = "0px";
+                xPosMarker.style.height = "1px";
+		},
 
         checkPosition(e,action) {
             let rect = e.target.getBoundingClientRect();
@@ -590,7 +593,9 @@ export default Vue.component("research-region-track", {
                 xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
                 xPosMarker.style.height = (rect.height - this.adjPlotMargin.bottom/2)+"px";
 
-            }
+            } else {
+				this.resetPosMarker();
+			}
 
             if(action == "click" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
 
@@ -602,11 +607,13 @@ export default Vue.component("research-region-track", {
                 let tempArr = [];
 
                 if(this.hoverPos.length > 0) {
-                    let perPixel = (this.viewingRegion.end - this.viewingRegion.start)/tempWidth;
+                    
 
                     this.hoverPos.map(h =>{
 
-                        if( h == Math.floor(xPos)) {
+                    let xMargin = Math.floor((this.viewingRegion.end - this.viewingRegion.start)/tempWidth)*2;
+
+                        if( h >= xPos - xMargin && h <= xPos + xMargin) {
                             itThere = true;
                         } else {
                             tempArr.push(h);

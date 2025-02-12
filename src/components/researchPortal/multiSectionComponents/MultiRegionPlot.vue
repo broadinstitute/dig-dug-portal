@@ -93,13 +93,14 @@
 			<template v-for="(item, itemIndex) in plotsList">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId" class="asso-plots-wrapper">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
-					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
+					
 					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
-						@mouseenter="renderPlots('enter')"
-						@mouseleave="renderPlots()"
+						@mouseleave="resetPosMarker()"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
+					
+					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
 
 					<div class="download-images-setting">
 						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
@@ -784,23 +785,32 @@ export default Vue.component("multi-region-plot", {
 
 			return dotsList;
 		},
+		resetPosMarker() {
+				let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = "0px";
+                xPosMarker.style.top = "0px";
+                xPosMarker.style.height = "1px";
+		},
+
 		checkPosition(e,GROUP, TYPE, action) {
-            let rect = e.target.getBoundingClientRect();
+            const rect = e.target.getBoundingClientRect();
                 let X = Math.floor(e.clientX - rect.left);
                 let Y = Math.floor(e.clientY - rect.top);
 
-            let wrapperRect = document.getElementById("assoPlotsWrapper"+GROUP+this.sectionId).getBoundingClientRect()
+            const wrapperRect = document.getElementById("assoPlotsWrapper"+GROUP+this.sectionId).getBoundingClientRect()
 
             this.getPosInfo(X,Y,GROUP, TYPE, action);
 
             if(action == "move" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2)) {
 
-                let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                const xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
                 xPosMarker.style.left = (X)+"px";
                 xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
                 xPosMarker.style.height = (rect.height - this.adjPlotMargin.bottom/2)+"px";
 
-            }
+            } else {
+				this.resetPosMarker();
+			}
 
             if(action == "click" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
 
@@ -817,8 +827,6 @@ export default Vue.component("multi-region-plot", {
                     this.hoverPos.map(h =>{
 
 						let xMargin = Math.floor((this.searchingRegion.end - this.searchingRegion.start)/tempWidth)*2;
-
-						console.log("xMargin", xMargin);
 
                         if( h >= xPos - xMargin && h <= xPos + xMargin) {
                             itThere = true;
@@ -1161,20 +1169,16 @@ export default Vue.component("multi-region-plot", {
 
 				///render marker band
 
-				if(!!event) {
-                switch(event) {
-						case "enter":
-							ctx.fillStyle = "#ff000025";
+				
+				ctx.fillStyle = "#ff880025";
 
-							ctx.fillRect(
-								this.adjPlotMargin.left,
-								plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 2),
-								assoPlotWidth,
-								24
-							);
-							break;
-					}
-				}
+				ctx.fillRect(
+					this.adjPlotMargin.left,
+					plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 2)+12,
+					assoPlotWidth,
+					12
+				);
+					
 				//
 				/// if there are markers
 
@@ -1979,7 +1983,7 @@ export default Vue.component("multi-region-plot", {
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT + bump * 4
+					this.adjPlotMargin.top + HEIGHT + (bump * 4.5)
 				);
 			}
 

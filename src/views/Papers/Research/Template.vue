@@ -640,9 +640,11 @@
 							</research-multi-sections-search>
 
 							<!--  To test canvas collection -->
+							<div v-if="!!$parent.sectionConfigs['visualizer collection']">
+								<a href="javascript:;" @click="$parent.copyOverPlots('from')"><b-icon icon="images"></b-icon> Collect plots</a>
+								<a href="javascript:;" @click="$parent.copyOverPlots('to')"><b-icon icon="box-arrow-in-down"></b-icon> </a>
+							</div>
 							<div  class="" id="canvas_collect" v-if="!!$parent.sectionConfigs['visualizer collection']">
-								<a href="javascript:;" @click="$parent.copyOverPlots('from')">image copy test</a>
-								<a href="javascript:;" @click="$parent.copyOverPlots('to')">copy back test</a>
 								<template v-for="section in $parent.sectionConfigs['visualizer collection']">
 									<h6 v-html="section.label"></h6>
 									<template  v-for="sId in section.sections">
@@ -885,6 +887,7 @@ html, body, #app {
     min-height: 100vh;
     position: relative;
 }
+
 #app {
     display:flex;
 	flex-direction: column;
@@ -905,6 +908,12 @@ html, body, #app {
 	overflow-y: hidden;
 }
 
+/* canvas collect */
+
+#canvas_collect {
+	overflow:hidden;
+	height: 1px;
+}
 
 label {
 	margin: 0 !important;
