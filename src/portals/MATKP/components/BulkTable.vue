@@ -93,12 +93,21 @@
                           row.item.subtableActive === 1 &&
                           subtableData[subtableKey(row.item)]?.length > 0"
                   >
-                  <scatterplot
-                    :plotData="subtableData[subtableKey(row.item)]"
-                    :config="scatterConfig"
-                    :plotId="`bulk_${row.item.gene}`">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <bulk-violin-plot 
+                            :data="subtableData[subtableKey(row.item)]"
+                        />
+                    </div>
+                    <div class="col-md-6">
+                      <scatterplot
+                        :plotData="subtableData[subtableKey(row.item)]"
+                        :config="scatterConfig"
+                        :plotId="`bulk_${row.item.gene}`">
 
-                  </scatterplot>
+                      </scatterplot>
+                    </div>
+                  </div>
                   <bulk-table              
                       :bulkData="subtableData[subtableKey(row.item)]"
                       :config="{ 
@@ -312,7 +321,10 @@ export default Vue.component("bulk-table", {
             return allFields;
         },
         toNumeric(geneData){
-          let fieldsToConvert = ["lognorm_counts", "cont__bmi"];
+          let fieldsToConvert = ["lognorm_counts", "cont__bmi", "cont__custom__age",
+              "cont__custom__hdl", "cont__custom__homa-ir", "cont__custom__ldl",
+              "cont__custom__tg"
+          ];
           let outputData = structuredClone(geneData);
           for (let i = 0; i < fieldsToConvert.length; i++){
             let field = fieldsToConvert[i];
