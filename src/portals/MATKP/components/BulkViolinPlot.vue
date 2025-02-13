@@ -76,8 +76,8 @@ import { min } from 'lodash';
             let maxVal = d3.max(this.data.map(d => d[yField]));
             console.log("minmax", minVal, maxVal);
             let y = d3.scaleLinear()
-                .domain(minVal, maxVal)
-                .range(height, 0);
+                .domain([minVal, maxVal])
+                .range([height, 0]);
             this.svg.append("g").call(d3.axisLeft(y));
 
             let categories = new Set(this.data.map(d => d[xField]));
@@ -90,6 +90,7 @@ import { min } from 'lodash';
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x));
             
+            console.log("ticks", y.ticks(10));
             let histogram = d3.histogram()
                 .domain(y.domain())
                 .thresholds(y.ticks(10))
