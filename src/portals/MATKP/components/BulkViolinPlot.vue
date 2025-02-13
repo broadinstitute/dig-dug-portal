@@ -7,6 +7,7 @@
   import * as d3 from 'd3';
   import Vue from 'vue';
   import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
+import { min } from 'lodash';
   
   export default Vue.component('bulk-violin-plot', {
     props: {
@@ -56,8 +57,9 @@
             this.drawChart();
         },
         drawChart(){
-            console.log("data", this.data);
             if(!this.data) return;
+            let xField = this.xField;
+            let yField = this.yField;
 
             let width = 460 - this.margin.left - this.margin.right;
             let height = 400 - this.margin.top - this.margin.bottom;
@@ -70,16 +72,18 @@
                     .attr("transform", 
                         `translate(${this.margin.left},${this.margin.top})`);
             
-            let minVal = d3.min(this.data.map(d => d[this.yField]));
-            let maxVal = d3.max(this.data.map(d => d[this.yField]));
+            let minVal = d3.min(this.data.map(d => d[yField]));
+            let maxVal = d3.max(this.data.map(d => d[yField]));
+            console.log("minmax", minVal, maxVal);
             let y = d3.scaleLinear()
                 .domain(minVal, maxVal)
                 .range(height, 0);
             this.svg.append("g").call(d3.axisLeft(y));
 
-            let categories = new Set(this.data.map(d => d[this.xField]));
+            let categories = new Set(this.data.map(d => d[xField]));
+
             let x = d3.scaleBand()
-                .range([height,0])
+                .range([0,width])
                 .domain(categories)
                 .padding(0.05);
             this.svg.append("g")
@@ -88,13 +92,20 @@
             
             let histogram = d3.histogram()
                 .domain(y.domain())
-                .thresholds(y.ticks(20))
+                .thresholds(y.ticks(10))
                 .value(d => d);
 
+            let statData = structuredClone(this.data);
             let sumstat = d3.nest()
-                .key(d => d[this.xField])
-                .rollup(d => histogram(d.map(g => g[this.yField])))
-                .entries(this.data);
+                .key(d => d[xField])
+                .rollup(function(d){
+                    let input = d.map(g => g[yField]);
+                    console.log(JSON.stringify(input));
+                    let bins = histogram(input);
+                    console.log(JSON.stringify(bins));
+                    return bins;
+                })
+                .entries(statData);
             
             console.log(JSON.stringify(sumstat));
             
