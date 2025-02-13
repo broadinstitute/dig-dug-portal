@@ -97,8 +97,7 @@
                     <div class="col-md-6">
                       <research-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
-                            primaryKey="cat__bmi_group"
-                            subsetKey="sample_id"
+                            primaryKey="cat__bmi__group"
                             highlightKey="sample_id"
                             :height="400"
                             yAxisLabel="Cat. BMI Group"
