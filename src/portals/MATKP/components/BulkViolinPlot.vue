@@ -1,6 +1,5 @@
 <template>
-    <div ref="chartWrapper">
-        <div ref="chart"></div>
+    <div id="violinChart">
     </div>
   </template>
   
@@ -15,42 +14,19 @@
         type: (Array, null),
         required: true,
       },
-      primaryKey: {                   
-        type: String,
-        required: true,
-      },
-      subsetKey: {                   
-        type: String,
-        required: false,
-        default: null
-      },
-      width: {                          //unused, chart will take size of its parent container
-        type: Number,
-        requred: false,
-        default: 600
-      },
-      height: {                         
-        type: Number,
-        requred: false,
-        default: 300
-      },
-      highlightKey: {                   //key of label to highlight
-        type: String,
-        required: false,
-      },
-      yAxisLabel: {
-        type: String,
-        required: false,
-      },
-      xAxisLabel: {
-        type: String,
-        required: false,
-      }
     },
     data() {
         return {
             eventElements: [],
-            plotField: "lognorm_counts"
+            yField: "lognorm_counts",
+            xField: "cat__bmi__group",
+            margin: {
+                top: 10,
+                right: 30,
+                bottom: 30,
+                left: 40
+            },
+            svg: null
         }
     },
     watch: {
@@ -80,320 +56,76 @@
             this.drawChart();
         },
         drawChart(){
-            console.log("---Violin Plot");
-            console.log("   data", this.data);
-
+            console.log("data", this.data);
             if(!this.data) return;
 
-            //clear previous event listeners
-            if(this.eventElements.length>0) {
-                this.removeAllListeners(this.eventElements);
-                this.eventElements = [];
-            }
-            const primaryKey = this.primaryKey;
-            const subsetKey = this.subsetKey;
-            const hasSubsetKey = subsetKey;
-            const keys = Array.from(new Set(this.data.map((d) => d[primaryKey])));
+            let width = 460 - this.margin.left - this.margin.right;
+            let height = 400 - this.margin.top - this.margin.bottom;
 
+            this.svg = d3.select("#violinChart")
+                .append("svg")
+                    .attr("width", width + this.margin.left + this.margin.right)
+                    .attr("height", height + this.margin.top + this.margin.bottom)
+                .append("g")
+                    .attr("transform", 
+                        `translate(${this.margin.left},${this.margin.top})`);
+            
+            let minVal = d3.min(this.data.map(d => d[this.yField]));
+            let maxVal = d3.max(this.data.map(d => d[this.yField]));
+            let y = d3.scaleLinear()
+                .domain(minVal, maxVal)
+                .range(height, 0);
+            this.svg.append("g").call(d3.axisLeft(y));
 
-            //pre-render x-axis labels to get the their max height
-            //this way we can ensure long labels dont get cut off at the bottom
-            const tempsvg = d3.select(this.$refs.chart)
-                .append('svg')
-            const templabels = tempsvg.append("g")
-                .selectAll("text")
-                .data(keys).enter()
-                .append("text").text(d => d)
-                .style("text-anchor", "end")
-                .attr('font-size', '12px')
-                .attr("transform", "rotate(-55)");
-            const bbox = templabels.node().parentNode.getBBox();
-            const labelsHeight = bbox.height;     
+            let categories = new Set(this.data.map(d => d[this.xField]));
+            let x = d3.scaleBand()
+                .range([height,0])
+                .domain(categories)
+                .padding(0.05);
+            this.svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+            
+            let histogram = d3.histogram()
+                .domain(y.domain())
+                .thresholds(y.ticks(20))
+                .value(d => d);
 
-            //clear rendering
-            d3.select(this.$refs.chart).html('')
-
-            //calculate sizes and margins
-            const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
-            console.log("parentWidth", parentWidth);
-
-            const labels = { xAxis: this.xAxisLabel?20:0, yAxis: this.yAxisLabel?20:0 }
-            const margin = { top: 10, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
-            let width = parentWidth;
-            let height = this.height;
-            if(margin.bottom > (height/2)){
-                height = margin.bottom * 2;
-            }
-            let plotWidth = width - margin.left - margin.right - labels.xAxis;
-            let plotHeight = height - margin.top - margin.bottom - labels.yAxis;
-
-            /*
-            //update plot width so each violin has min size
-            //warn: this will cause violin plot to be wider than requested
-            //if there are many items
-            let itemWidth = plotWidth / this.data.length;
-            itemWidth = itemWidth < 10 ? 10 : itemWidth;
-            plotWidth = itemWidth * this.data.length;
-            width = plotWidth + margin.left + margin.right; 
-            */
-
-            //get absolute min/max values
-            const min = d3.min(this.data, (d) => d[this.plotField]);
-            const max = d3.max(this.data, (d) => d[this.plotField]);
-            console.log("minmax: ", min, max)
-
-            const svg = d3.select(this.$refs.chart)
-                .append('svg')
-                .attr('width', width)
-                .attr('height', height)
-
-            //rednder axis labels
-            if(this.xAxisLabel){
-                const label = svg.append('g')
-                    .append('text')
-                    .attr('class', 'chart-label')
-                    .text(this.xAxisLabel)
-                    const bbox = label.node().getBBox();
-                    const xAxisLabelTopPosition = (margin.top + plotHeight / 2) + (bbox.width / 2);
-                    label.attr('transform', `rotate(-90) translate( -${(xAxisLabelTopPosition)}, 15)`);
-            }
-            if(this.yAxisLabel){
-                const label = svg.append('g')
-                    .append('text')
-                    .attr('class', 'chart-label')
-                    .text(this.yAxisLabel)
-                    const bbox = label.node().getBBox();
-                    const yAxisLabelLeftPosition = width - (plotWidth/2) - (bbox.width / 2);
-                    label.attr('transform', `translate(${yAxisLabelLeftPosition},${height - 15})`)
-            }
-
-            const plot = svg.append("g")
-                .attr("transform", `translate(${margin.left+labels.xAxis},${margin.top})`)
-                .attr("class", 'plot');
-
-            const entryKey = (entry) => {
-                if(hasSubsetKey){
-                    return entry[primaryKey] + ' - ' + entry[subsetKey];
-                }else{
-                    return entry[primaryKey];
+            let sumstat = d3.nest()
+                .key(d => d[this.xField])
+                .rollup(d => histogram(d.map(g => g[this.yField])))
+                .entries(this.data);
+            
+            console.log(JSON.stringify(sumstat));
+            
+            let maxNum = 0;
+            for (let i = 0; i < sumstat.length; i++){
+                let allBins = sumstat[i].value;
+                let lengths = allBins.map(a => a.length);
+                let longest = d3.max(lengths);
+                if (longest > maxNum){
+                    maxNum = longest;
                 }
             }
+            let xNum = d3.scaleLinear()
+                .range(0, x.bandwidth())
+                .domain(-maxNum, maxNum);
             
-            const domain = hasSubsetKey ? this.data.map((d) => d[primaryKey] +' - '+d[subsetKey]) : keys;
-
-            // x scale
-            const x = d3.scaleBand()
-                .domain(domain)
-                .range([5, plotWidth])
-                .padding(0);
-
-
-            let x2;
-            if(hasSubsetKey){
-                x2 = d3.scaleBand()
-                    .domain(keys)
-                    .range([5, plotWidth])
-                    .padding(0);
-            }
-
-            // y scale
-            const y = d3.scaleLinear()
-                .domain([min, max])
-                .range([plotHeight, 0])
-                .nice();
-
-            //x-axis ticks
-            plot.append("g")
-                .attr("transform", `translate(0,${plotHeight})`)
-                .call(d3.axisBottom( hasSubsetKey ? x2 : x))
-                .selectAll("text")
-                .style("text-anchor", "end")
-                .attr('font-size', '12px')
-                .attr("transform", "rotate(-55) translate(-5, 0)");
-
-            //y-axis ticks
-            plot.append("g")
-                .call(d3.axisLeft(y));
-
-            const boxWidth = x.bandwidth() * 0.6;
-
-            //add background boxes to separate primaryKey sections
-            //when they have subsetKey items
-            if(hasSubsetKey){
-                keys.forEach((key, i) => {
-                    plot.append('rect')
-                        .attr("width", x2.bandwidth())    
-                        .attr('height', plotHeight)
-                        .attr('x', x2(key))
-                        .attr('class', 'violin-bg')
-                        .attr('fill', i % 2 ? '#fff' : '#eee')
-                })
-            }
-            console.log("is this the problem?");
-            //draw the violins
-            this.data.forEach((entry) => {
-                const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
-
-                const box = plot.append('g')
-                    .attr("width", boxWidth)
-                    .attr('class', 'bar')
-                    .attr('data-label', `${entry[primaryKey]},${hasSubsetKey ? entry[subsetKey] : ''}`)
-                    /*.attr("class", "violin-group")
-                    .attr("data-key", entryKey(entry));*/
-
-                const boxNode = box.node();
-                this.addListener(boxNode, entry);
-
-                // kde
-                const bandwidth = 1;
-                const [minVal, maxVal] = d3.extent(entry[this.plotField]);
-                const thresholds = d3.ticks(minVal, maxVal, 50);
-                const density = this.kde(this.epanechnikovKernel(bandwidth), thresholds, entry[this.plotField]);
-
-                // normalize kde
-                const violinWidth = boxWidth / 2;
-                const maxDensity = d3.max(density, d => d[1]);
-                const xViolinScale = d3.scaleLinear()
-                    .domain([-maxDensity, maxDensity])
-                    .range([-violinWidth, violinWidth]);
-
-                const violinPath = d3.line()
-                    .x(d => xViolinScale(d[1]) + xCenter) // Scale density for width
-                    .y(d => y(d[0])); // Map y-values to data range
-
-                const mirroredDensity = density.map(d => [d[0], -d[1]]).reverse();
-
-                box.append('path')
-                    .datum(density.concat(mirroredDensity)) // Combine for full violin
-                    .attr('d', violinPath)
-                    .attr('fill', entry.color)
-                    .attr('stroke', 'none');
-
-                // Draw box
-                box.append("rect")
-                    .attr("x", xCenter - 5 / 2)
-                    .attr("y", y(entry.q3))
-                    .attr("width", 5)
-                    .attr("height", Math.max(0, y(entry.q1) - y(entry.q3))) // Avoid negative heights
-                    .attr("fill", "transparent")
-                    .attr("stroke", "black")
-
-                // Median line
-                box.append("line")
-                    .attr("x1", xCenter - boxWidth / 2)
-                    .attr("x2", xCenter + boxWidth / 2)
-                    .attr("y1", y(entry.median))
-                    .attr("y2", y(entry.median))
-                    .attr("stroke", "black");
-
-                // Whiskers
-                box.append("line")
-                    .attr("x1", xCenter)
-                    .attr("x2", xCenter)
-                    .attr("y1", y(entry.min))
-                    .attr("y2", y(entry.q1))
-                    .attr("stroke", "black");
-
-                box.append("line")
-                    .attr("x1", xCenter)
-                    .attr("x2", xCenter)
-                    .attr("y1", y(entry.q3))
-                    .attr("y2", y(entry.max))
-                    .attr("stroke", "black");
-
-                // Add whisker caps
-                box.append("line")
-                    .attr("x1", xCenter - boxWidth / 4)
-                    .attr("x2", xCenter + boxWidth / 4)
-                    .attr("y1", y(entry.min))
-                    .attr("y2", y(entry.min))
-                    .attr("stroke", "black");
-
-                box.append("line")
-                    .attr("x1", xCenter - boxWidth / 4)
-                    .attr("x2", xCenter + boxWidth / 4)
-                    .attr("y1", y(entry.max))
-                    .attr("y2", y(entry.max))
-                    .attr("stroke", "black");
-
-                console.log("Made it this far!");
-                //event listener layer
-                box.append("rect")
-                    .attr("x", xCenter - boxWidth / 2)
-                    .attr("y", y(entry.max))
-                    .attr("width", boxWidth)
-                    .attr("height", y(entry.min) - y(entry.max))
-                    .attr("fill", "transparent")
-                    .style("pointer-events", "all");
-            });
-        },
-        kde(kernel, thresholds, data) {
-            return thresholds.map(t => [t, data.reduce((sum, d) => sum + kernel(t - d), 0)]);
-        },
-        epanechnikovKernel(bandwidth) {
-            return function (u) {
-                u = u / bandwidth;
-                return Math.abs(u) <= 1 ? 0.75 * (1 - u * u) / bandwidth : 0;
-            };
-        },
-        addListener(el, entry){
-            const mouseOver = this.mouseOverHandler.bind(this, entry);
-            const mouseOut = this.mouseOutHandler.bind(this);
-            el._listeners = { mouseOver, mouseOut };
-            this.eventElements.push(el);
-            // Tooltip mouseover
-            el.addEventListener('mouseover', mouseOver);
-            el.addEventListener('mouseout', mouseOut);
-        },
-        removeListener(el){
-            if(el._listeners){
-                el.removeEventListener('mouseover', el._listeners.mouseOver);
-                el.removeEventListener('mouseout', el._listeners.mouseOut);
-                delete el._listeners;
-            }
-        },
-        removeAllListeners(elsArr){
-            console.log(`removing event listeners for ${elsArr.length} elements`);
-            elsArr.forEach(el=>{
-                this.removeListener(el);
-            });
-        },
-        mouseOverHandler(entry){
-            const tooltipContent = `<div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.primaryKey}:</div> ${entry[this.primaryKey]}</div>
-                                        <div style="display:${entry[this.subsetKey]?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.subsetKey}:</div> ${entry[this.subsetKey]}</div>
-                                        <div style="display:${entry.gene?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Gene:</div> ${entry.gene}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Max:</div> ${entry.max}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q3:</div> ${entry.q3}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Median:</div> ${entry.median.toFixed(4)}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q1:</div> ${entry.q1}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Min:</div> ${entry.min}</div>
-                                `;
-            mouseTooltip.show(tooltipContent);
-        },
-        mouseOutHandler(e){
-            mouseTooltip.hide();
-        },
-        doHighlight(label){
-            const plot = this.$refs.chart.querySelector(`.plot`);
-            if(!plot) return;
-            plot.classList.remove('highlighting');
-            const matchingEls = this.$refs.chart.querySelectorAll(`.plot .bar`);
-            matchingEls.forEach(el => {
-                el.classList.remove('on');
-            })
-            if(label && label != ''){
-                const matchingEls = this.$refs.chart.querySelectorAll(`.bar[data-label*="${label}"]`);
-                let hasHighlight = false;
-                matchingEls.forEach(el => {
-                    const elLabels = el.dataset.label.split(',');
-                    if(elLabels.includes(label)){
-                        el.classList.add('on');
-                        hasHighlight=true;
-                    }
-                })
-                if(hasHighlight) plot.classList.add('highlighting');
-            }
-        }
+            this.svg.selectAll("myViolin")
+                .data(sumstat)
+                .enter()
+                .append("g")
+                    .attr("transform", d => `translate(${x(d.key)} ,0)`)
+                .append("path")
+                    .datum(d => d.value)
+                    .style("stroke", "none")
+                    .style("fill", "#69b3a2")
+                    .attr("d", d3.area()
+                        .x0(d => xNum(-d.length))
+                        .x1(d => xNum(d.length))
+                        .y(d => y(d.x0))
+                        .curve(d3.curveCatmullRom))
+        },        
     },
   });
   </script>

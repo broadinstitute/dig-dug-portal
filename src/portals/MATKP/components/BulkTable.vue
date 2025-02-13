@@ -97,11 +97,6 @@
                     <div class="col-md-6">
                       <bulk-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
-                            primaryKey="cat__bmi__group"
-                            highlightKey="sample_id"
-                            :height="400"
-                            yAxisLabel="Cat. BMI Group"
-                            xAxisLabel="Lognorm"
                         />
                     </div>
                     <div class="col-md-6">
