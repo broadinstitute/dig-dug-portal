@@ -50,6 +50,7 @@
     data() {
         return {
             eventElements: [],
+            plotField: "lognorm_counts"
         }
     },
     watch: {
@@ -137,8 +138,9 @@
             */
 
             //get absolute min/max values
-            const min = d3.min(this.data, (d) => d.min);
-            const max = d3.max(this.data, (d) => d.max);
+            const min = d3.min(this.data, (d) => d[this.plotField]);
+            const max = d3.max(this.data, (d) => d[this.plotField]);
+            console.log("minmax: ", min, max)
 
             const svg = d3.select(this.$refs.chart)
                 .append('svg')
@@ -208,7 +210,7 @@
                 .style("text-anchor", "end")
                 .attr('font-size', '12px')
                 .attr("transform", "rotate(-55) translate(-5, 0)");
-            console.log("Made it this far!");
+
             //y-axis ticks
             plot.append("g")
                 .call(d3.axisLeft(y));
@@ -227,7 +229,7 @@
                         .attr('fill', i % 2 ? '#fff' : '#eee')
                 })
             }
-
+            console.log("is this the problem?");
             //draw the violins
             this.data.forEach((entry) => {
                 const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
@@ -244,10 +246,9 @@
 
                 // kde
                 const bandwidth = 1;
-                //const thresholds = d3.range(d3.min(entry.exprValues), d3.max(entry.exprValues), 0.1);
-                const [minVal, maxVal] = d3.extent(entry.exprValues);
+                const [minVal, maxVal] = d3.extent(entry[this.plotField]);
                 const thresholds = d3.ticks(minVal, maxVal, 50);
-                const density = this.kde(this.epanechnikovKernel(bandwidth), thresholds, entry.exprValues);
+                const density = this.kde(this.epanechnikovKernel(bandwidth), thresholds, entry[this.plotField]);
 
                 // normalize kde
                 const violinWidth = boxWidth / 2;
@@ -315,6 +316,7 @@
                     .attr("y2", y(entry.max))
                     .attr("stroke", "black");
 
+                console.log("Made it this far!");
                 //event listener layer
                 box.append("rect")
                     .attr("x", xCenter - boxWidth / 2)

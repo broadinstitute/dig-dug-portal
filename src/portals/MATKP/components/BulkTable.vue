@@ -95,7 +95,7 @@
                   >
                   <div class="row">
                     <div class="col-md-6">
-                      <research-violin-plot 
+                      <bulk-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
                             primaryKey="cat__bmi__group"
                             highlightKey="sample_id"
