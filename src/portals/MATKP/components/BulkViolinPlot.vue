@@ -41,8 +41,6 @@ import { min } from 'lodash';
     mounted() {
         if(this.data){
             this.drawChart();
-        }else{
-            console.log('no data');
         }
         //window.addEventListener('resize', this.handleResize);
     },
@@ -74,13 +72,12 @@ import { min } from 'lodash';
             
             let minVal = d3.min(this.data.map(d => d[yField]));
             let maxVal = d3.max(this.data.map(d => d[yField]));
-            console.log("minmax", minVal, maxVal);
             let y = d3.scaleLinear()
                 .domain([minVal, maxVal])
                 .range([height, 0]);
             this.svg.append("g").call(d3.axisLeft(y));
 
-            let categories = new Set(this.data.map(d => d[xField]));
+            let categories = Array.from(new Set(this.data.map(d => d[xField])));
 
             let x = d3.scaleBand()
                 .range([0,width])
@@ -90,10 +87,9 @@ import { min } from 'lodash';
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x));
             
-            console.log("ticks", y.ticks(10));
             let histogram = d3.histogram()
                 .domain(y.domain())
-                .thresholds(y.ticks(10))
+                .thresholds(y.ticks(20))
                 .value(d => d);
 
             let statData = structuredClone(this.data);
@@ -101,15 +97,11 @@ import { min } from 'lodash';
                 .key(d => d[xField])
                 .rollup(function(d){
                     let input = d.map(g => g[yField]);
-                    console.log(JSON.stringify(input));
                     let bins = histogram(input);
-                    console.log(JSON.stringify(bins));
                     return bins;
                 })
                 .entries(statData);
-            
-            console.log(JSON.stringify(sumstat));
-            
+                        
             let maxNum = 0;
             for (let i = 0; i < sumstat.length; i++){
                 let allBins = sumstat[i].value;
@@ -120,8 +112,8 @@ import { min } from 'lodash';
                 }
             }
             let xNum = d3.scaleLinear()
-                .range(0, x.bandwidth())
-                .domain(-maxNum, maxNum);
+                .range([0, x.bandwidth()])
+                .domain([-maxNum, maxNum]);
             
             this.svg.selectAll("myViolin")
                 .data(sumstat)
