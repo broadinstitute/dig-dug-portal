@@ -8,6 +8,8 @@ import { matkpMixin } from "../../mixins/matkpMixin.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import BulkTable from "../../components/BulkTable.vue";
+import ResearchViolinPlot from 
+    "../../../../components/researchPortal/singleCellBrowser/ResearchViolinPlot.vue";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from 'd3';
 
@@ -20,6 +22,7 @@ new Vue({
         Scatterplot,
         BulkVolcanoPlot,
         BulkTable,
+        ResearchViolinPlot,
         uiUtils
     },
     mixins: [matkpMixin],
