@@ -117,8 +117,8 @@ new Vue({
         collateData(){
             let rawData = this.heatmapDataReady;
             let outputData = [];
-            let minExp = rawData[0].expression[0];
-            let maxExp = rawData[0].expression[0];
+            let minExp = rawData[0]?.expression[0] || null;
+            let maxExp = rawData[0]?.expression[0] || null;
             rawData.forEach(item => {
                 for (let i = 0; i < item.expression.length; i++){
                     let currentExp = item.expression[i];
@@ -203,6 +203,9 @@ new Vue({
             this.loading = false;
         },
         async getSampleIds(){
+            if (this.selectedDataset === ""){
+                return [];
+            }
             let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
                 this.selectedDataset}/fields.json.gz`;
             try {
@@ -233,7 +236,6 @@ new Vue({
     watch:{
         zNormData:{
             handler(newData, oldData){
-                console.log(JSON.stringify(newData[0]));
                 if(newData !== oldData){
                     this.heatmapData = this.getTop20(newData);
                 }

@@ -34,6 +34,9 @@
 
                             </bulk-volcano-plot>
                         </div>
+                        <div v-else-if="!$store.state.selectedDataset">
+                            Select a dataset to view the volcano plot.
+                        </div>
                         <div v-else>Loading...</div>
                     </div>
                 </div>
