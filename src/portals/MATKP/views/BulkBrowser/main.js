@@ -29,6 +29,7 @@ new Vue({
     data() {
         return {
             loading: true,
+            plotId: "bulk_heatmap",
             samplesColumns: [],
             datasets: [],
             comparisons: [],
@@ -37,7 +38,6 @@ new Vue({
             utils: {
                 uiUtils: uiUtils
             },
-            heatmapData: null,
             margin: {
                 top: 30,
                 bottom: 90,
@@ -105,17 +105,17 @@ new Vue({
         selectedDataset(){
             return this.$store.state.selectedDataset;
         },
+        selectedComparison(){
+            return this.$store.state.selectedComparison;
+        },
         zNormData(){
             return this.$store.state.singleBulkZNormData;
         },
         bulkData19K(){
             return this.$store.state.bulkData19K.filter(item => item.gene !== undefined);
         },
-        heatmapDataReady(){
-            return this.heatmapData;
-        },
         collateData(){
-            let rawData = this.heatmapDataReady;
+            let rawData = this.zNormData;
             let outputData = [];
             let minExp = rawData[0]?.expression[0] || null;
             let maxExp = rawData[0]?.expression[0] || null;
@@ -152,17 +152,25 @@ new Vue({
             return processedData;
         },
         async drawHeatMap(){
+            let plotId = `#${this.plotId}`;
+            // Clear existing
+            d3.select(plotId)
+                .selectAll("svg")
+                .remove();
+            d3.select(plotId)
+                .selectAll("g")
+                .remove();
             this.samplesColumns = await this.getSampleIds();
             let width = 750 - this.margin.left - this.margin.right;
             let height = 450 - this.margin.top - this.margin.bottom;
-            this.svg = d3.select("#bulk_heatmap")
+            this.svg = d3.select(plotId)
                 .append("svg")
                     .attr("width", width + this.margin.left + this.margin.right)
                     .attr("height", height + this.margin.top + this.margin.bottom)
                 .append("g")
                     .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
 
-            let genesRows = this.heatmapDataReady.map(d => d.gene);
+            let genesRows = this.zNormData.map(d => d.gene);
             
             // Build X scales and axis:
             let x = d3.scaleBand()
@@ -237,7 +245,7 @@ new Vue({
         zNormData:{
             handler(newData, oldData){
                 if(newData !== oldData){
-                    this.heatmapData = this.getTop20(newData);
+                    this.drawHeatMap();
                 }
             },
             deep: true
@@ -248,8 +256,10 @@ new Vue({
                 this.$store.dispatch("queryBulk");
             }
         },
-        heatmapDataReady(newData){
-            this.drawHeatMap();
+        selectedComparison(newData, oldData){
+            if (newData !== oldData){
+                this.$store.dispatch("queryBulk");
+            }
         },
     },
 

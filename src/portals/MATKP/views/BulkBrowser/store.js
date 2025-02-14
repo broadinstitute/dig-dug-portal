@@ -44,8 +44,7 @@ export default new Vuex.Store({
           await context.dispatch("singleBulkZNorm/query", 
             {q: `${context.state.selectedDataset},${context.state.selectedComparison}`,
               limit: context.state.limit});
-          context.commit("setSingleBulkZNormData", context.state.singleBulkZNorm.data);
-          
+          context.commit("setSingleBulkZNormData", context.state.singleBulkZNorm.data);          
         },
         async queryBulkFile(context){
           let bulkDataObject = [];
