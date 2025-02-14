@@ -2195,6 +2195,7 @@ canvas {
     left:0;
     color: #ff0000;
     border-left:solid 1px #ff0000;
+	height: 0;
 }
 
 </style>

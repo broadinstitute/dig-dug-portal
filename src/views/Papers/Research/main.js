@@ -1308,8 +1308,13 @@ new Vue({
 
             if (DIRECTION == 'from') {
                 document.getElementById("canvas_collect").setAttribute("style", "height: auto;")
+                document.getElementById("viz_collect_btn").setAttribute("class", "hidden-btn")
+                document.getElementById("viz_return_btn").setAttribute("class", "btn btn-success btn-sm")
+
             } else if (DIRECTION == 'to') {
                 document.getElementById("canvas_collect").setAttribute("style", "height: 1px; overflow: hidden;")
+                document.getElementById("viz_return_btn").setAttribute("class", "hidden-btn")
+                document.getElementById("viz_collect_btn").setAttribute("class", "btn btn-primary btn-sm")
             }
 
             this.sectionConfigs["visualizer collection"].map(s => {

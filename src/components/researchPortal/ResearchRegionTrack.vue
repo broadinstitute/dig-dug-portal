@@ -4,7 +4,36 @@
             <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
                 <b-icon icon="x-circle-fill"></b-icon>
             </div>
-            <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
+            <div :id="'block_data_content_' + sectionId" class="block-data-content">
+                <template v-for="item, itemIndex in infoBoxContent.data">
+                    <span v-if="infoBoxContent.action == 'hover' && itemIndex < 5">
+                        <strong>{{ item.title }}</strong>
+                        <template v-for="iValue, iKey in item">
+                            <span v-if="iKey != 'title'"><br />{{ iKey +": "+iValue }}</span>
+                        </template>
+                        <template v-if="!!plotConfig['set region parameter by']
+                         && !!item[plotConfig['set region parameter by']['field']]">
+                            <br /><span style="color: #5fa331;">Click to set region.</span>
+                        </template>
+                    </span>
+                    <span v-if="infoBoxContent.action == 'click'">
+                        <strong>{{ item.title }}</strong>
+                        <template v-for="iValue, iKey in item">
+                            <span v-if="iKey != 'title'"><br />{{ iKey +": "+iValue }}</span>
+                        </template>
+                        <template v-if="!!plotConfig['set region parameter by']
+                         && !!item[plotConfig['set region parameter by']['field']]">
+                            <br /><button class="btn btn-primary btn-sm" @click="setRegion(item[plotConfig['set region parameter by']['field']],plotConfig['set region parameter by']['parameter'],plotConfig['set region parameter by']['max region'] )">
+                                Set region
+                            </button>
+                            <br />Max length: {{ plotConfig['set region parameter by']['max region'] }}
+                        </template>
+                    </span>
+                    <template v-if="infoBoxContent.data.lenght > 1">
+                        <br /><br />
+                    </template>
+                </template>
+            </div>
         </div>
         <div class="col-md-11">
             <span v-for="cKey,index in colorGroups" :key="cKey" class="color-groups" @mouseover="renderPlot(cKey)" @mouseleave="renderPlot()">
@@ -78,6 +107,7 @@ export default Vue.component("research-region-track", {
             colorGroups:[],
             infoBoxFrozen: false,
             starGroups: [],
+            infoBoxContent:{action:null,data:[]}
         };
     },
     modules: {
@@ -218,6 +248,35 @@ export default Vue.component("research-region-track", {
         }
     },
     methods: {
+        setRegion(REGION,PARAM,MAX) {
+            //first calculate the new region;
+
+            const regionArr = REGION.split(":");
+            const region = regionArr[1].split("-");
+            const centerPos = Math.floor(Number(region[0]) + (region[1] - region[0])/2);
+            const rStart = ((centerPos - (MAX/2))<= 0)? 0 : Math.floor(centerPos - (MAX/2))
+            const rEnd = Math.floor(centerPos + (MAX/2));
+
+            const newRegion = regionArr[0]+":"+rStart+"-"+rEnd;
+
+            const currentUrlArr = window.location.href.split("?");
+            const currentParamsArr = currentUrlArr[1].split("&");
+            const paramsObj = {}
+
+            let hrefString = "?";
+
+            currentParamsArr.map((param,pIndex) => {
+                const paramPair = param.split("=")
+
+                hrefString += (paramPair[0] == PARAM)? paramPair[0]+"="+newRegion: paramPair[0]+"="+paramPair[1];
+                hrefString += (pIndex < (currentParamsArr.length - 1))? "&":"";
+
+                
+            })
+
+            window.location.href = currentUrlArr[0] + hrefString;
+
+        },
         downloadImage(ID, NAME, TYPE) {
             if (TYPE == 'svg') {
                 this.$refs[this.sectionId + '_regionTrack'].renderPlot();
@@ -504,6 +563,16 @@ export default Vue.component("research-region-track", {
                     xWidth,
                     10
                 );
+
+                ctx.font = "24px Arial";
+                ctx.fillStyle = "#ff0000";
+                ctx.textAlign = "center"
+
+                ctx.fillText(
+                    'Viewing region',
+                    xPosStart + (xWidth/2),
+                    yPos + (this.adjPlotMargin.bump*3)
+                );
     
             }
             ///
@@ -679,34 +748,64 @@ export default Vue.component("research-region-track", {
                     }
 
                     let hoverContent = ""
+                    let tempArr = [];
 
                     let blockIndex = 0;
                     blockData.map(b => {
-                        if (action == "hover" && blockIndex < 5) {
+                        let tempObj = {}
+                        /*if (action == "hover") {
                             hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
                             this.plotConfig["hover content"].map(h => {
                                 hoverContent += "<strong>" + h + "</strong>: <span>" + this.utils.Formatters.getHoverValue(b[h]) + "</span><br />";
                             })
                             hoverContent += "<br />";
+
+                            
+
                         } else if (action == "click") {
                             hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
                             this.plotConfig["hover content"].map(h => {
                                 hoverContent += "<strong>" + h + "</strong>: <span>" + this.utils.Formatters.getHoverValue(b[h]) + "</span><br />";
                             })
                             hoverContent += "<br />";
-                        }
 
-                        blockIndex++;
+                            if(!!this.plotConfig["set region parameter by"]){
+                                let rFieldArr = b[this.plotConfig["set region parameter by"]["field"]].split(":");
+                                let chr = rFieldArr[0];
+                                let regionArr = rFieldArr[1].split("-");
+                                let rParam = this.plotConfig["set region parameter by"]["parameter"];
+
+                                let passingParams = chr+","+regionArr[0]+","+regionArr[1]+","+rParam;
+                                let chrStartEnd = chr+","+regionArr[0]+","+regionArr[1];
+
+                                hoverContent += "<button id='btn_12345' data='"+passingParams+"' onClick='setRegionFunction("+chrStartEnd+")'>Set region</button><br />"      
+                            }
+                            
+                        }*/
+
+                        tempObj["title"] = b[this.plotConfig["render by"]];
+
+                        this.plotConfig["hover content"].map(h => {
+                            tempObj[h] = this.utils.Formatters.getHoverValue(b[h]);
+                        })
+
+                        tempArr.push(tempObj)
+
+                        //blockIndex++;
                     })
 
-                    if (action == "hover" && blockData.length > 5) {
+                    this.infoBoxContent.action = action;
+                    this.infoBoxContent.data = (tempArr.length > 0)? tempArr:
+                        [{"title": rowLabel}];
+
+                    /*if (action == "hover" && blockData.length > 5) {
                         hoverContent +=
                             '<strong style="color: #36c;">Viewing 5 of ' +
                             blockData.length +
                             " items. Click to view full list.</strong>";
                     }
 
-                    contentWrapper.innerHTML = (blockData.length > 0)? hoverContent : rowLabel;
+                    contentWrapper.innerHTML = (blockData.length > 0)? hoverContent : rowLabel;*/
 
                     if (action == "hover") {
                         wrapper.classList.remove("hidden");
@@ -742,6 +841,7 @@ export default Vue.component("research-region-track", {
 });
 
 $(function () { });
+
 </script>
 
 <style>

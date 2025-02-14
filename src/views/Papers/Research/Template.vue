@@ -640,11 +640,11 @@
 							</research-multi-sections-search>
 
 							<!--  To test canvas collection -->
-							<div v-if="!!$parent.sectionConfigs['visualizer collection']">
-								<a href="javascript:;" @click="$parent.copyOverPlots('from')"><b-icon icon="images"></b-icon> Collect plots</a>
-								<a href="javascript:;" @click="$parent.copyOverPlots('to')"><b-icon icon="box-arrow-in-down"></b-icon> </a>
+							<div v-if="!!$parent.sectionConfigs['visualizer collection']" class="viz-collect-btns-wrapper">
+								<button id="viz_collect_btn" class="btn btn-sm btn-primary btn-collect" @click="$parent.copyOverPlots('from')">Collect visualizers</button>
+								<button id="viz_return_btn" class="btn btn-sm btn-success btn-return hidden-btn" @click="$parent.copyOverPlots('to')">Return visualizers</button>
 							</div>
-							<div  class="" id="canvas_collect" v-if="!!$parent.sectionConfigs['visualizer collection']">
+							<div  class="" id="canvas_collect" style="overflow:hidden" v-if="!!$parent.sectionConfigs['visualizer collection']">
 								<template v-for="section in $parent.sectionConfigs['visualizer collection']">
 									<h6 v-html="section.label"></h6>
 									<template  v-for="sId in section.sections">
@@ -911,8 +911,15 @@ html, body, #app {
 /* canvas collect */
 
 #canvas_collect {
-	overflow:hidden;
 	height: 1px;
+}
+
+.viz-collect-btns-wrapper {
+	text-align: right;
+}
+
+.hidden-btn {
+	display: none !important;
 }
 
 label {
