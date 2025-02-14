@@ -48,11 +48,14 @@ export default new Vuex.Store({
           
         },
         async queryBulkFile(context){
-          let datasetFile = `${context.state.bulkFileUrl
-            }${context.state.selectedDataset}/dea.tsv.gz`;
-          const response = await fetch(datasetFile);
-          const bulkDataText = await response.text();
-          const bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+          let bulkDataObject = [];
+          if (context.state.selectedDataset !== ""){
+            let datasetFile = `${context.state.bulkFileUrl
+              }${context.state.selectedDataset}/dea.tsv.gz`;
+            const response = await fetch(datasetFile);
+            const bulkDataText = await response.text();
+            bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+          }
           context.commit("setBulkData19K", bulkDataObject);
         }
         
