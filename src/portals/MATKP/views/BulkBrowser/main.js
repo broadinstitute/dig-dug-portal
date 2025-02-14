@@ -30,10 +30,10 @@ new Vue({
         return {
             loading: true,
             samplesColumns: [],
+            datasets: [],
+            comparisons: [],
             heatmapColor: "#ffd10c",
-            selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
-            selectedKey: 'insulin sensitive vs. insulin resistant',
-            limit: 20,
+            endpoint: "single-cell-bulk-z-norm",
             utils: {
                 uiUtils: uiUtils
             },
@@ -102,6 +102,9 @@ new Vue({
         };
     },
     computed: {
+        selectedDataset(){
+            return this.$store.state.selectedDataset;
+        },
         zNormData(){
             return this.$store.state.singleBulkZNormData;
         },
@@ -141,6 +144,7 @@ new Vue({
     created() {
         this.$store.dispatch("queryBulkFile");
         this.$store.dispatch("queryBulk");
+        this.getParams();
     },
     methods: {
         getTop20(data){
@@ -212,6 +216,18 @@ new Vue({
                 return [];
             }
         },
+        async getParams () {
+            let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
+            try {
+                const response = await fetch(url);
+                const data = await(response.json());
+                let allKeys = data.keys;
+                this.datasets = allKeys.map(item => item[0]);
+                this.comparisons = allKeys.map(item => item[1])
+            } catch (error){
+                console.error("Error: ", error);
+            }
+        },
         
     },
     watch:{
@@ -224,8 +240,11 @@ new Vue({
             },
             deep: true
         },
-        bulkData19K(newData){
-            console.log("new bulk data", newData);
+        selectedDataset(newData, oldData){
+            if (newData !== oldData){
+                this.$store.dispatch("queryBulkFile");
+                this.$store.dispatch("queryBulk");
+            }
         },
         heatmapDataReady(newData){
             this.drawHeatMap();

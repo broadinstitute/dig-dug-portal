@@ -5,7 +5,21 @@
             <matkp-nav></matkp-nav>
             <!-- BODY -->
             <div class="mat-body">
-                <h2>{{ $parent.selectedDataset }}</h2>
+                <select v-model="$store.state.selectedDataset">
+                    <option value="">Select a dataset</option>
+                    <option v-for="dataset in $parent.datasets"
+                        :value="dataset">
+                        {{ dataset }}
+                    </option>
+                </select>
+                <select v-model="$store.state.selectedComparison">
+                    <option value="">Select a comparison</option>
+                    <option v-for="comparison in $parent.comparisons"
+                        :value="comparison">
+                        {{ comparison }}
+                    </option>
+                </select>
+                <h4>{{ $parent.selectedDataset }}</h4>
                 <div class="row">
                     <div id="bulk_heatmap" class="col-md-6">
                         <div v-if="$parent.loading">Loading...</div>
