@@ -5,7 +5,7 @@
 let pages = {
     index: {
         entry: "src/portals/SysBio/views/Index/main.js",
-        template: "src/portals/SysBio/index.html",
+        template: "src/portals/SysBio/views/index.html",
         filename: "index.html",
         title: "Home",
         chunks: ["chunk-vendors", "chunk-common", "index"],
