@@ -50,7 +50,6 @@ export default Vue.component("bulk-volcano-plot", {
 	},
 	methods: {
 		renderPlot() {
-			console.log(JSON.stringify(this.renderData[0]));
 
 			let renderConfig = this.renderConfig;
 
@@ -119,9 +118,7 @@ export default Vue.component("bulk-volcano-plot", {
 					tempObj.value['y'] = v[yAxisField];
 
 					sumstat.push(tempObj);
-				});
-			console.log(sumstat[0]);
-			
+				})
 			
 			//render axis labels
 
@@ -349,8 +346,7 @@ export default Vue.component("bulk-volcano-plot", {
 						.style("fill", "#000000")
 						.text(d.key);
 				} */
-				console.log("made it this far!");
-				return;
+
 				svg.select("#axisGroup")
 					.append('circle')
 					.attr('cx', x(d.value.x))

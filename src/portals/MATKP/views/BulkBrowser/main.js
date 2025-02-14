@@ -106,7 +106,7 @@ new Vue({
             return this.$store.state.singleBulkZNormData;
         },
         bulkData19K(){
-            return this.$store.state.bulkData19K;
+            return this.$store.state.bulkData19K.filter(item => item.gene !== undefined);
         },
         heatmapDataReady(){
             return this.heatmapData;
