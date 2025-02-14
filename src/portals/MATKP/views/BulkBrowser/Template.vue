@@ -11,17 +11,16 @@
                         <div v-if="$parent.loading">Loading...</div>
                     </div>
                     <div class="col-md-6">
-                        <div v-if="$parent.loading">Loading...</div>
-                        <div v-else>
+                        <div v-if="$parent.bulkData19K.length> 0">
                             <bulk-volcano-plot
-                                :renderData="$parent.zNormData"
+                                :renderData="$parent.bulkData19K"
                                 :renderConfig="$parent.volcanoConfig"
                                 :margin="$parent.margin"
-                                sectionId="_bulk"
-                                :renderOnMount="true">
+                                sectionId="_bulk">
 
                             </bulk-volcano-plot>
                         </div>
+                        <div v-else>Loading...</div>
                     </div>
                 </div>
                 <div>
