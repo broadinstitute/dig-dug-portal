@@ -53,7 +53,7 @@ new Vue({
                 "render by": "gene",
                 "x axis field": "logFoldChange",
                 "x axis label": "log2 Fold Change",
-                "y axis field": "log10FDR",
+                "y axis field": "-log10P",
                 "y axis label": "-log10(FDR adjusted for p)",
                 "width": 600,
                 "height": 450,
@@ -105,6 +105,9 @@ new Vue({
         zNormData(){
             return this.$store.state.singleBulkZNormData;
         },
+        bulkData19K(){
+            return this.$store.state.bulkData19K;
+        },
         heatmapDataReady(){
             return this.heatmapData;
         },
@@ -136,7 +139,7 @@ new Vue({
     mounted() {
     },
     created() {
-       this.$store.dispatch("queryBulkFile");
+       this.$store.dispatch("queryBulk");
     },
     methods: {
         getTop20(data){
@@ -219,6 +222,9 @@ new Vue({
                 }
             },
             deep: true
+        },
+        bulkData19K(newData){
+            console.log("new bulk data", newData);
         },
         heatmapDataReady(newData){
             this.drawHeatMap();
