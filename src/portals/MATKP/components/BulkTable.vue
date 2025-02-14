@@ -166,6 +166,33 @@ export default Vue.component("bulk-table", {
             subtableData: {},
             subtable2Data: {},
             plotColors: plotUtils.plotColors(),
+            contFields: [
+              {
+                key: "cont__custom__age",
+                label: "Age",
+                sortable: true,
+              },
+              {
+                key: "cont__custom__hdl",
+                label: "HDL",
+                sortable: true,
+              },
+              {
+                key: "cont__custom__homa-ir",
+                label: "HOMA-IR",
+                sortable: true
+              },
+              {
+                key: "cont__custom__ldl",
+                label: "LDL",
+                sortable: true
+              },
+              {
+                key: "cont__custom__tg",
+                label: "Triglycerides",
+                sortable: true
+              }
+            ]
         };
     },
     computed: {
@@ -321,10 +348,8 @@ export default Vue.component("bulk-table", {
             return allFields;
         },
         toNumeric(geneData){
-          let fieldsToConvert = ["lognorm_counts", "cont__bmi", "cont__custom__age",
-              "cont__custom__hdl", "cont__custom__homa-ir", "cont__custom__ldl",
-              "cont__custom__tg"
-          ];
+          let fieldsToConvert = this.contFields.map(i => i.key);
+          fieldsToConvert.push("lognorm_counts");
           let outputData = structuredClone(geneData);
           for (let i = 0; i < fieldsToConvert.length; i++){
             let field = fieldsToConvert[i];
