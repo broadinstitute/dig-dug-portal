@@ -41,7 +41,6 @@ export default new Vuex.Store({
 
     actions: {
         async queryBulk(context){
-          await context.dispatch("queryBulkFile");
           await context.dispatch("singleBulkZNorm/query", 
             {q: `${context.state.selectedDataset},${context.state.selectedComparison}`,
               limit: context.state.limit});

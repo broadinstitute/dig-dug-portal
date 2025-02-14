@@ -139,7 +139,8 @@ new Vue({
     mounted() {
     },
     created() {
-       this.$store.dispatch("queryBulk");
+        this.$store.dispatch("queryBulkFile");
+        this.$store.dispatch("queryBulk");
     },
     methods: {
         getTop20(data){
