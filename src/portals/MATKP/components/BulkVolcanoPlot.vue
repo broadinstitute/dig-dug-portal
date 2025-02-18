@@ -25,6 +25,8 @@ export default Vue.component("bulk-volcano-plot", {
 	data() {
 		return {
       tooltip: null,
+			chart: null,
+			chartWidth: 0,
 		};
 	},
 	modules: {
@@ -34,6 +36,12 @@ export default Vue.component("bulk-volcano-plot", {
 		
 	},
 	mounted: function () {
+		this.chart = document.getElementById(`vector_wrapper_${this.sectionId}`);
+		this.chartWidth = this.chart.clientWidth;
+		addEventListener("resize", (event) => {
+				this.chartWidth = this.chart.clientWidth;
+				this.renderPlot();
+		});
 		this.renderPlot();
 	},
 	beforeDestroy() {
@@ -50,6 +58,19 @@ export default Vue.component("bulk-volcano-plot", {
 	},
 	methods: {
 		renderPlot() {
+			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
+			let wrapperId = `vector_wrapper_${this.sectionId}`;
+
+			//Clear existing
+			d3.select(wrapperClass)
+				.selectAll("svg")
+				.remove();
+			d3.select(wrapperClass)
+				.selectAll("g")
+				.remove();
+			d3.select(wrapperClass)
+				.selectAll("div")
+				.remove();
 
 			let renderConfig = this.renderConfig;
 
@@ -79,13 +100,10 @@ export default Vue.component("bulk-volcano-plot", {
 				}
 			})
 
-			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
-			let wrapperId = `vector_wrapper_${this.sectionId}`;
-
 			let margin = this.margin;
 			
-			let width = this.renderConfig['width'],
-				height = this.renderConfig['height'];
+			let width = this.chartWidth - margin.left - margin.right - margin.middleSpacing;
+			let height = this.renderConfig['height'];
 
       this.tooltip = d3
         .select(wrapperClass)
@@ -133,13 +151,13 @@ export default Vue.component("bulk-volcano-plot", {
 			svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", (margin.left + (width / 2)))
-				.attr("y", (height + margin.top + margin.bottom - 20))
+				.attr("y", (height + margin.top + margin.bottom - margin.legendSpacing))
 				.text(this.renderConfig['x axis label']);
 
 			svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("transform", function (d) {
-					return "translate("+(margin.bump+20)+"," + (margin.top+(height/2)) + ")rotate(-90)";
+					return "translate("+(margin.bump + margin.legendSpacing)+"," + (margin.top+(height/2)) + ")rotate(-90)";
 				})
 				.attr("x", 0)
 				.attr("y", 0)

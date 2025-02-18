@@ -22,12 +22,19 @@
                 <h4>{{ $parent.selectedDataset }}</h4>
                 <div class="row">
                     <div class="col-md-6">
-                        <div v-if="$parent.loading">Loading...</div>
-                        <div v-if="$parent.zNormData.length > 0" :id="$parent.plotId">
+                        <div v-if="$parent.zNormData.length > 0">
+                            <bulk-heatmap
+                                :zNormData="$parent.zNormData"
+                                :samplesColumns="$parent.samplesColumns"
+                                :margin="$parent.margin"
+                                :plotHeight="$parent.plotHeight"
+                            >
+                            </bulk-heatmap>
                         </div>
-                        <div v-else>
-                            Select a dataset and comparison to view the heatmap.
+                        <div v-else-if="!$store.state.selectedDataset">
+                            Select a dataset and a comparison to view the heatmap.
                         </div>
+                        <div v-else>Loading...</div>
                     </div>
                     <div class="col-md-6">
                         <div v-if="$parent.bulkData19K.length> 0">
