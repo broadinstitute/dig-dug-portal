@@ -95,8 +95,16 @@
                   >
                   <div class="row">
                     <div class="col-md-6">
-                      <bulk-violin-plot 
+                        <select v-model="catField">
+                            <option v-for="field in catFields"
+                                :value="field">
+                                {{ field.label }}
+                            </option>
+                        </select>
+                        <bulk-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
+                            :xField="catField?.key || catFields[0].key"
+                            :xLabel="catField?.label || catFields[0].label"
                         />
                     </div>
                     <div class="col-md-6">
@@ -198,7 +206,25 @@ export default Vue.component("bulk-table", {
                 sortable: true
               }
             ],
-            contField: null
+            contField: null,
+            catFields: [
+                {
+                    key: "cat__bmi__group",
+                    label: "BMI Group",
+                    sortable: true
+                },
+                {
+                    key: "cat__custom__cell__type",
+                    label: "Cell type",
+                    sortable: true
+                },
+                {
+                    key: "cat__custom__surgery",
+                    label: "Surgery",
+                    sortable: true
+                }
+            ],
+            catField: null
         };
     },
     computed: {

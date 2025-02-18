@@ -15,12 +15,19 @@ import { min } from 'lodash';
         type: (Array, null),
         required: true,
       },
+      xField: {
+        type: (String, null),
+        required: true
+      },
+      xLabel: {
+        type: (String, null),
+        required: true
+      }
     },
     data() {
         return {
             eventElements: [],
             yField: "lognorm_counts",
-            xField: "cat__bmi__group",
             margin: {
                 top: 10,
                 right: 30,
@@ -32,6 +39,9 @@ import { min } from 'lodash';
     },
     watch: {
         data() {
+            this.drawChart();
+        },
+        xField(){
             this.drawChart();
         },
         highlightKey(key) {
@@ -56,13 +66,24 @@ import { min } from 'lodash';
         },
         drawChart(){
             if(!this.data) return;
+            let plotId = "#violinChart";
+
+            //Clear existing
+
+            d3.select(plotId)
+                .selectAll("svg")
+                .remove();
+            d3.select(plotId)
+                .selectAll("g")
+                .remove();
+
             let xField = this.xField;
             let yField = this.yField;
 
             let width = 460 - this.margin.left - this.margin.right;
             let height = 400 - this.margin.top - this.margin.bottom;
 
-            this.svg = d3.select("#violinChart")
+            this.svg = d3.select(plotId)
                 .append("svg")
                     .attr("width", width + this.margin.left + this.margin.right)
                     .attr("height", height + this.margin.top + this.margin.bottom)
