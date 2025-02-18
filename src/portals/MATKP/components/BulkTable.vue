@@ -157,7 +157,6 @@ export default Vue.component("bulk-table", {
         "config",
         "isSubtable",
         "filter",
-        "scatterConfig"
     ],
     data() {
         return {
@@ -192,7 +191,8 @@ export default Vue.component("bulk-table", {
                 label: "Triglycerides",
                 sortable: true
               }
-            ]
+            ],
+            contField: null
         };
     },
     computed: {
@@ -207,6 +207,26 @@ export default Vue.component("bulk-table", {
                 plotUtils: plotUtils,
             };
             return utils;
+        },
+        scatterConfig(){
+            if (this.contField === null){
+                this.contField = this.contFields[0];
+            }
+            let config = {
+                xField: this.contField.key,
+                xAxisLabel: this.contField.label,
+                yField: "lognorm_counts",
+                yAxisLabel: "Lognorm counts",
+                dotKey: "sample_id",
+                hoverBoxPosition: "both",
+                plotHeight: 300,
+                hoverFields: [
+                    {key: "sample_id", label: "Sample"},
+                    {key: this.contField.key, label: this.contField.label},
+                    {key: "lognorm_counts", label: "Lognorm"}
+                ],
+            };
+            return config;
         },
         probFields() {
             return this.collateFields();

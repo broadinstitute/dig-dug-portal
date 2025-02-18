@@ -83,22 +83,6 @@ new Vue({
                     { key: "beta", label: "Effect (joint)", sortable: true },
                 ],
             },
-            scatterplotConfig: {
-                xField: "cont__bmi",
-                xAxisLabel: "BMI",
-                yField: "lognorm_counts",
-                yAxisLabel: "lognorm counts",
-                dotKey: "sample_id",
-                hoverBoxPosition: "both",
-                plotHeight: 300,
-                hoverFields: [
-                    {key: "sample_id", label: "Sample"},
-                    {key: "cont__bmi", label: "BMI"},
-                    {key: "lognorm_counts", label: "Lognorm"}
-                ],
-            },
-                
-                
         };
     },
     computed: {
