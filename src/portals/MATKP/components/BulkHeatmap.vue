@@ -21,7 +21,8 @@ export default Vue.component("bulk-heatmap", {
           plotId: "bulk_heatmap",
           chart: null,
           chartWidth: 0,
-          heatmapColor: "#ffd10c",
+          color1: "blue",
+          color2: "red"
         };
     },
     computed: {},
@@ -70,7 +71,7 @@ export default Vue.component("bulk-heatmap", {
           
           // Build color scale
           var colorScale = d3.scaleLinear()
-              .range(["white", this.heatmapColor])
+              .range([this.color1, this.color2])
               .domain([-2,7]); //MAKE RESPONSIVE TO OTHER DATASETS
           
           // Building the heatmap
