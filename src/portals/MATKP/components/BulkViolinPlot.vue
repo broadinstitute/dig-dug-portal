@@ -15,12 +15,22 @@ import { min } from 'lodash';
         type: (Array, null),
         required: true,
       },
+      xField: {
+        type: (String, null),
+        required: true
+      },
+      xLabel: {
+        type: (String, null),
+        required: true
+      }
     },
     data() {
         return {
+            plotId: "violinChart",
+            chart: null,
+            chartWidth: 0,
             eventElements: [],
             yField: "lognorm_counts",
-            xField: "cat__bmi__group",
             margin: {
                 top: 10,
                 right: 30,
@@ -34,12 +44,21 @@ import { min } from 'lodash';
         data() {
             this.drawChart();
         },
+        xField(){
+            this.drawChart();
+        },
         highlightKey(key) {
             this.doHighlight(key);
         }
     },
     mounted() {
         if(this.data){
+            this.chart = document.getElementById(this.plotId);
+            this.chartWidth = this.chart.clientWidth;
+            addEventListener("resize", (event) => {
+                this.chartWidth = this.chart.clientWidth;
+                this.drawChart();
+            });
             this.drawChart();
         }
         //window.addEventListener('resize', this.handleResize);
@@ -56,13 +75,24 @@ import { min } from 'lodash';
         },
         drawChart(){
             if(!this.data) return;
+            let plotId = `#${this.plotId}`;
+
+            //Clear existing
+
+            d3.select(plotId)
+                .selectAll("svg")
+                .remove();
+            d3.select(plotId)
+                .selectAll("g")
+                .remove();
+
             let xField = this.xField;
             let yField = this.yField;
 
-            let width = 460 - this.margin.left - this.margin.right;
+            let width = this.chartWidth - this.margin.left - this.margin.right;
             let height = 400 - this.margin.top - this.margin.bottom;
 
-            this.svg = d3.select("#violinChart")
+            this.svg = d3.select(plotId)
                 .append("svg")
                     .attr("width", width + this.margin.left + this.margin.right)
                     .attr("height", height + this.margin.top + this.margin.bottom)

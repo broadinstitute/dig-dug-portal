@@ -95,11 +95,25 @@
                   >
                   <div class="row">
                     <div class="col-md-6">
-                      <bulk-violin-plot 
+                        <select v-model="catField">
+                            <option v-for="field in catFields"
+                                :value="field">
+                                {{ field.label }}
+                            </option>
+                        </select>
+                        <bulk-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
+                            :xField="catField?.key || catFields[0].key"
+                            :xLabel="catField?.label || catFields[0].label"
                         />
                     </div>
                     <div class="col-md-6">
+                        <select v-model="contField">
+                            <option v-for="field in contFields"
+                                :value="field">
+                                {{ field.label }}
+                            </option>
+                        </select>
                       <scatterplot
                         :plotData="subtableData[subtableKey(row.item)]"
                         :config="scatterConfig"
@@ -157,7 +171,6 @@ export default Vue.component("bulk-table", {
         "config",
         "isSubtable",
         "filter",
-        "scatterConfig"
     ],
     data() {
         return {
@@ -192,7 +205,26 @@ export default Vue.component("bulk-table", {
                 label: "Triglycerides",
                 sortable: true
               }
-            ]
+            ],
+            contField: null,
+            catFields: [
+                {
+                    key: "cat__bmi__group",
+                    label: "BMI Group",
+                    sortable: true
+                },
+                {
+                    key: "cat__custom__cell__type",
+                    label: "Cell type",
+                    sortable: true
+                },
+                {
+                    key: "cat__custom__surgery",
+                    label: "Surgery",
+                    sortable: true
+                }
+            ],
+            catField: null
         };
     },
     computed: {
@@ -207,6 +239,26 @@ export default Vue.component("bulk-table", {
                 plotUtils: plotUtils,
             };
             return utils;
+        },
+        scatterConfig(){
+            if (this.contField === null){
+                this.contField = this.contFields[0];
+            }
+            let config = {
+                xField: this.contField.key,
+                xAxisLabel: this.contField.label,
+                yField: "lognorm_counts",
+                yAxisLabel: "Lognorm counts",
+                dotKey: "sample_id",
+                hoverBoxPosition: "both",
+                plotHeight: 300,
+                hoverFields: [
+                    {key: "sample_id", label: "Sample"},
+                    {key: this.contField.key, label: this.contField.label},
+                    {key: "lognorm_counts", label: "Lognorm"}
+                ],
+            };
+            return config;
         },
         probFields() {
             return this.collateFields();
@@ -361,6 +413,9 @@ export default Vue.component("bulk-table", {
           return outputData;
         }
     },
+    mounted(){
+        this.catField = this.catFields[0];
+    }
 });
 </script>
 <style scoped>
