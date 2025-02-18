@@ -1,13 +1,11 @@
 <template>
     <div id="violinChart">
     </div>
-  </template>
+</template>
   
-  <script>
+<script>
   import * as d3 from 'd3';
   import Vue from 'vue';
-  import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
-import { min } from 'lodash';
   
   export default Vue.component('bulk-violin-plot', {
     props: {
