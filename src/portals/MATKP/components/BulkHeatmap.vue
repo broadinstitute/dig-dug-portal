@@ -36,7 +36,7 @@ export default Vue.component("bulk-heatmap", {
           d3.select(plotId)
               .selectAll("g")
               .remove();
-          let width = this.chartWidth - this.margin.left - this.margin.right;
+          let width = this.chartWidth - this.margin.left - this.margin.right - this.margin.middleSpacing;
           let height = this.plotHeight;// - this.margin.top - this.margin.bottom;
           this.svg = d3.select(plotId)
               .append("svg")

@@ -102,7 +102,7 @@ export default Vue.component("bulk-volcano-plot", {
 
 			let margin = this.margin;
 			
-			let width = this.chartWidth;
+			let width = this.chartWidth - margin.left - margin.right - margin.middleSpacing;
 			let height = this.renderConfig['height'];
 
       this.tooltip = d3
@@ -151,13 +151,13 @@ export default Vue.component("bulk-volcano-plot", {
 			svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", (margin.left + (width / 2)))
-				.attr("y", (height + margin.top + margin.bottom - 20))
+				.attr("y", (height + margin.top + margin.bottom - margin.legendSpacing))
 				.text(this.renderConfig['x axis label']);
 
 			svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("transform", function (d) {
-					return "translate("+(margin.bump+20)+"," + (margin.top+(height/2)) + ")rotate(-90)";
+					return "translate("+(margin.bump + margin.legendSpacing)+"," + (margin.top+(height/2)) + ")rotate(-90)";
 				})
 				.attr("x", 0)
 				.attr("y", 0)

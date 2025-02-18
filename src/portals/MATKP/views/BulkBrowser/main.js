@@ -43,11 +43,13 @@ new Vue({
                 uiUtils: uiUtils
             },
             margin: {
-                top: 30,
+                top: 20,
                 bottom: 90,
-                left: 90,
+                left: 80,
                 right: 30,
                 bump: 0,
+                middleSpacing: 50,
+                legendSpacing: 35
             },
             svg: null,
             tableConfig: {
