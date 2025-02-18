@@ -100,6 +100,12 @@
                         />
                     </div>
                     <div class="col-md-6">
+                        <select v-model="contField">
+                            <option v-for="field in contFields"
+                                :value="field">
+                                {{ field.label }}
+                            </option>
+                        </select>
                       <scatterplot
                         :plotData="subtableData[subtableKey(row.item)]"
                         :config="scatterConfig"
