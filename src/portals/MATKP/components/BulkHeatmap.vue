@@ -28,7 +28,6 @@ export default Vue.component("bulk-heatmap", {
     computed: {},
     methods: {
       async drawHeatMap(){
-        console.log("drawing heat map");
           let plotId = `#${this.plotId}`;
           // Clear existing
           d3.select(plotId)
@@ -91,7 +90,6 @@ export default Vue.component("bulk-heatmap", {
           this.loading = false;
       },
       async getSampleIds(dataset){
-        console.log("getting sample IDs");
         let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
             dataset}/fields.json.gz`;
         try {

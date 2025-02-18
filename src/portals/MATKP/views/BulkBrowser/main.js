@@ -35,7 +35,6 @@ new Vue({
             plotHeight: 400,
             chart: null,
             chartWidth: 0,
-            samplesColumns: [],
             datasets: [],
             comparisons: [],
             endpoint: "single-cell-bulk-z-norm",
@@ -148,9 +147,6 @@ new Vue({
                 this.$store.dispatch("queryBulk");
             }
         },
-        samplesColumns(newdata){
-            console.log(JSON.stringify(newdata));
-        }
     },
 
     render(createElement, context) {
