@@ -26,6 +26,9 @@ import { min } from 'lodash';
     },
     data() {
         return {
+            plotId: "violinChart",
+            chart: null,
+            chartWidth: 0,
             eventElements: [],
             yField: "lognorm_counts",
             margin: {
@@ -50,6 +53,12 @@ import { min } from 'lodash';
     },
     mounted() {
         if(this.data){
+            this.chart = document.getElementById(this.plotId);
+            this.chartWidth = this.chart.clientWidth;
+            addEventListener("resize", (event) => {
+                this.chartWidth = this.chart.clientWidth;
+                this.drawChart();
+            });
             this.drawChart();
         }
         //window.addEventListener('resize', this.handleResize);
@@ -66,7 +75,7 @@ import { min } from 'lodash';
         },
         drawChart(){
             if(!this.data) return;
-            let plotId = "#violinChart";
+            let plotId = `#${this.plotId}`;
 
             //Clear existing
 
@@ -80,7 +89,7 @@ import { min } from 'lodash';
             let xField = this.xField;
             let yField = this.yField;
 
-            let width = 460 - this.margin.left - this.margin.right;
+            let width = this.chartWidth - this.margin.left - this.margin.right;
             let height = 400 - this.margin.top - this.margin.bottom;
 
             this.svg = d3.select(plotId)

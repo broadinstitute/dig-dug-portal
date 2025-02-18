@@ -413,6 +413,9 @@ export default Vue.component("bulk-table", {
           return outputData;
         }
     },
+    mounted(){
+        this.catField = this.catFields[0];
+    }
 });
 </script>
 <style scoped>
