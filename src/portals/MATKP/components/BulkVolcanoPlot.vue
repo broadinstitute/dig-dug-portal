@@ -25,6 +25,8 @@ export default Vue.component("bulk-volcano-plot", {
 	data() {
 		return {
       tooltip: null,
+			chart: null,
+			chartWidth: 0,
 		};
 	},
 	modules: {
@@ -34,6 +36,12 @@ export default Vue.component("bulk-volcano-plot", {
 		
 	},
 	mounted: function () {
+		this.chart = document.getElementById(`vector_wrapper_${this.sectionId}`);
+		this.chartWidth = this.chart.clientWidth;
+		addEventListener("resize", (event) => {
+				this.chartWidth = this.chart.clientWidth;
+				this.renderPlot();
+		});
 		this.renderPlot();
 	},
 	beforeDestroy() {
@@ -50,6 +58,19 @@ export default Vue.component("bulk-volcano-plot", {
 	},
 	methods: {
 		renderPlot() {
+			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
+			let wrapperId = `vector_wrapper_${this.sectionId}`;
+
+			//Clear existing
+			d3.select(wrapperClass)
+				.selectAll("svg")
+				.remove();
+			d3.select(wrapperClass)
+				.selectAll("g")
+				.remove();
+			d3.select(wrapperClass)
+				.selectAll("div")
+				.remove();
 
 			let renderConfig = this.renderConfig;
 
@@ -79,13 +100,10 @@ export default Vue.component("bulk-volcano-plot", {
 				}
 			})
 
-			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
-			let wrapperId = `vector_wrapper_${this.sectionId}`;
-
 			let margin = this.margin;
 			
-			let width = this.renderConfig['width'],
-				height = this.renderConfig['height'];
+			let width = this.chartWidth;
+			let height = this.renderConfig['height'];
 
       this.tooltip = d3
         .select(wrapperClass)
