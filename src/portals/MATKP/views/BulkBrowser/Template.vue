@@ -26,7 +26,8 @@
                             <bulk-heatmap
                                 :zNormData="$parent.zNormData"
                                 :samplesColumns="$parent.samplesColumns"
-                                :margin="$parent.margin">
+                                :margin="$parent.margin"
+                                :plotHeight="$parent.plotHeight">
                             </bulk-heatmap>
                         </div>
                         <div v-else-if="!$store.state.selectedDataset">

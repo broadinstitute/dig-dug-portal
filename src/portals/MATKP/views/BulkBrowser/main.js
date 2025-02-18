@@ -32,6 +32,7 @@ new Vue({
         return {
             loading: true,
             plotId: "bulk_heatmap",
+            plotHeight: 400,
             chart: null,
             chartWidth: 0,
             samplesColumns: [],
@@ -49,21 +50,6 @@ new Vue({
                 bump: 0,
             },
             svg: null,
-            volcanoConfig: {
-                "type":"volcano plot",
-                "label": "This is a Test",
-                "legend": "This is a Test",
-                "render by": "gene",
-                "x axis field": "logFoldChange",
-                "x axis label": "log2 Fold Change",
-                "y axis field": "-log10P",
-                "y axis label": "-log10(FDR adjusted for p)",
-                "width": 600,
-                "height": 450,
-                "x condition": {"combination":"or","greater than":1,"lower than":-1}, //combination for condition can be "greater than", "lower than", "or" and "and."
-                "y condition": {"combination":"greater than","greater than":1},
-                "dot label score": 2 //number of conditions that the value of each dot to meet to have labeled
-            },
             tableConfig: {
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
@@ -101,6 +87,26 @@ new Vue({
         bulkData19K(){
             return this.$store.state.bulkData19K.filter(item => item.gene !== undefined);
         },
+        volcanoConfig(){
+            let config = {
+                "type":"volcano plot",
+                "label": "This is a Test",
+                "legend": "This is a Test",
+                "render by": "gene",
+                "x axis field": "logFoldChange",
+                "x axis label": "log2 Fold Change",
+                "y axis field": "-log10P",
+                "y axis label": "-log10(FDR adjusted for p)",
+                "width": 600,
+                "height": this.plotHeight,
+                "x condition": {"combination":"or","greater than":1,"lower than":-1}, 
+                    //combination for condition can be "greater than", "lower than", "or" and "and."
+                "y condition": {"combination":"greater than","greater than":1},
+                "dot label score": 2 
+                    //number of conditions that the value of each dot to meet to have labeled
+            };
+            return config;
+        }
     },
     async mounted() {
         let newSamples = await this.getSampleIds();

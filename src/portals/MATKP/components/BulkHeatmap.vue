@@ -13,7 +13,8 @@ export default Vue.component("bulk-heatmap", {
     props: [
         "zNormData",
         "samplesColumns",
-        "margin"
+        "margin",
+        "plotHeight"
     ],
     data() {
         return {
@@ -26,6 +27,7 @@ export default Vue.component("bulk-heatmap", {
     computed: {},
     methods: {
       async drawHeatMap(){
+        console.log("drawing heat map");
           let plotId = `#${this.plotId}`;
           // Clear existing
           d3.select(plotId)
@@ -35,7 +37,7 @@ export default Vue.component("bulk-heatmap", {
               .selectAll("g")
               .remove();
           let width = this.chartWidth - this.margin.left - this.margin.right;
-          let height = 450 - this.margin.top - this.margin.bottom;
+          let height = this.plotHeight;// - this.margin.top - this.margin.bottom;
           this.svg = d3.select(plotId)
               .append("svg")
                   .attr("width", width + this.margin.left + this.margin.right)
@@ -110,6 +112,14 @@ export default Vue.component("bulk-heatmap", {
     },
     watch: {
       zNormData:{
+            handler(newData, oldData){
+                if(newData !== oldData){
+                    this.drawHeatMap();
+                }
+            },
+            deep: true
+        },
+      samplesColumns:{
             handler(newData, oldData){
                 if(newData !== oldData){
                     this.drawHeatMap();
