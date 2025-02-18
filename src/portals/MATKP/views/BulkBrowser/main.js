@@ -29,15 +29,15 @@ new Vue({
     data() {
         return {
             loading: true,
+            plotId: "bulk_heatmap",
             samplesColumns: [],
+            datasets: [],
+            comparisons: [],
             heatmapColor: "#ffd10c",
-            selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
-            selectedKey: 'insulin sensitive vs. insulin resistant',
-            limit: 20,
+            endpoint: "single-cell-bulk-z-norm",
             utils: {
                 uiUtils: uiUtils
             },
-            heatmapData: null,
             margin: {
                 top: 30,
                 bottom: 90,
@@ -102,20 +102,23 @@ new Vue({
         };
     },
     computed: {
+        selectedDataset(){
+            return this.$store.state.selectedDataset;
+        },
+        selectedComparison(){
+            return this.$store.state.selectedComparison;
+        },
         zNormData(){
             return this.$store.state.singleBulkZNormData;
         },
         bulkData19K(){
             return this.$store.state.bulkData19K.filter(item => item.gene !== undefined);
         },
-        heatmapDataReady(){
-            return this.heatmapData;
-        },
         collateData(){
-            let rawData = this.heatmapDataReady;
+            let rawData = this.zNormData;
             let outputData = [];
-            let minExp = rawData[0].expression[0];
-            let maxExp = rawData[0].expression[0];
+            let minExp = rawData[0]?.expression[0] || null;
+            let maxExp = rawData[0]?.expression[0] || null;
             rawData.forEach(item => {
                 for (let i = 0; i < item.expression.length; i++){
                     let currentExp = item.expression[i];
@@ -141,6 +144,7 @@ new Vue({
     created() {
         this.$store.dispatch("queryBulkFile");
         this.$store.dispatch("queryBulk");
+        this.getParams();
     },
     methods: {
         getTop20(data){
@@ -148,17 +152,25 @@ new Vue({
             return processedData;
         },
         async drawHeatMap(){
+            let plotId = `#${this.plotId}`;
+            // Clear existing
+            d3.select(plotId)
+                .selectAll("svg")
+                .remove();
+            d3.select(plotId)
+                .selectAll("g")
+                .remove();
             this.samplesColumns = await this.getSampleIds();
             let width = 750 - this.margin.left - this.margin.right;
             let height = 450 - this.margin.top - this.margin.bottom;
-            this.svg = d3.select("#bulk_heatmap")
+            this.svg = d3.select(plotId)
                 .append("svg")
                     .attr("width", width + this.margin.left + this.margin.right)
                     .attr("height", height + this.margin.top + this.margin.bottom)
                 .append("g")
                     .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
 
-            let genesRows = this.heatmapDataReady.map(d => d.gene);
+            let genesRows = this.zNormData.map(d => d.gene);
             
             // Build X scales and axis:
             let x = d3.scaleBand()
@@ -199,6 +211,9 @@ new Vue({
             this.loading = false;
         },
         async getSampleIds(){
+            if (this.selectedDataset === ""){
+                return [];
+            }
             let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
                 this.selectedDataset}/fields.json.gz`;
             try {
@@ -212,23 +227,39 @@ new Vue({
                 return [];
             }
         },
+        async getParams () {
+            let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
+            try {
+                const response = await fetch(url);
+                const data = await(response.json());
+                let allKeys = data.keys;
+                this.datasets = allKeys.map(item => item[0]);
+                this.comparisons = allKeys.map(item => item[1])
+            } catch (error){
+                console.error("Error: ", error);
+            }
+        },
         
     },
     watch:{
         zNormData:{
             handler(newData, oldData){
-                console.log(JSON.stringify(newData[0]));
                 if(newData !== oldData){
-                    this.heatmapData = this.getTop20(newData);
+                    this.drawHeatMap();
                 }
             },
             deep: true
         },
-        bulkData19K(newData){
-            console.log("new bulk data", newData);
+        selectedDataset(newData, oldData){
+            if (newData !== oldData){
+                this.$store.dispatch("queryBulkFile");
+                this.$store.dispatch("queryBulk");
+            }
         },
-        heatmapDataReady(newData){
-            this.drawHeatMap();
+        selectedComparison(newData, oldData){
+            if (newData !== oldData){
+                this.$store.dispatch("queryBulk");
+            }
         },
     },
 

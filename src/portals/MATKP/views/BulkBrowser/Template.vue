@@ -5,10 +5,29 @@
             <matkp-nav></matkp-nav>
             <!-- BODY -->
             <div class="mat-body">
-                <h2>{{ $parent.selectedDataset }}</h2>
+                <select v-model="$store.state.selectedDataset">
+                    <option value="">Select a dataset</option>
+                    <option v-for="dataset in $parent.datasets"
+                        :value="dataset">
+                        {{ dataset }}
+                    </option>
+                </select>
+                <select v-model="$store.state.selectedComparison">
+                    <option value="">Select a comparison</option>
+                    <option v-for="comparison in $parent.comparisons"
+                        :value="comparison">
+                        {{ comparison }}
+                    </option>
+                </select>
+                <h4>{{ $parent.selectedDataset }}</h4>
                 <div class="row">
-                    <div id="bulk_heatmap" class="col-md-6">
+                    <div class="col-md-6">
                         <div v-if="$parent.loading">Loading...</div>
+                        <div v-if="$parent.zNormData.length > 0" :id="$parent.plotId">
+                        </div>
+                        <div v-else>
+                            Select a dataset and comparison to view the heatmap.
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <div v-if="$parent.bulkData19K.length> 0">
@@ -19,6 +38,9 @@
                                 sectionId="_bulk">
 
                             </bulk-volcano-plot>
+                        </div>
+                        <div v-else-if="!$store.state.selectedDataset">
+                            Select a dataset to view the volcano plot.
                         </div>
                         <div v-else>Loading...</div>
                     </div>
