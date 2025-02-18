@@ -111,8 +111,6 @@ new Vue({
         }
     },
     async mounted() {
-        let newSamples = await this.getSampleIds();
-        this.samplesColumns = newSamples;
     },
     created() {
         this.$store.dispatch("queryBulkFile");
@@ -123,24 +121,6 @@ new Vue({
         getTop20(data){
             let processedData = data.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
             return processedData;
-        },
-        async getSampleIds(){
-            console.log("getting sample IDs");
-            if (this.selectedDataset === ""){
-                return [];
-            }
-            let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
-                this.selectedDataset}/fields.json.gz`;
-            try {
-                const response = await fetch(queryUrl);
-                const data = await(response.json());
-
-                return data.sample_id;
-            }
-            catch(error) {
-                console.error("Error: ", error);
-                return [];
-            }
         },
         async getParams () {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
@@ -159,8 +139,6 @@ new Vue({
     watch:{
         async selectedDataset(newData, oldData){
             if (newData !== oldData){
-                let newSamples = await this.getSampleIds();
-                this.samplesColumns = newSamples;
                 this.$store.dispatch("queryBulkFile");
                 this.$store.dispatch("queryBulk");
             }

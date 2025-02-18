@@ -7,12 +7,12 @@
 <script>
 import Vue from "vue";
 import * as d3 from 'd3';
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 export default Vue.component("bulk-heatmap", {
     components: {
     },
     props: [
         "zNormData",
-        "samplesColumns",
         "margin",
         "plotHeight"
     ],
@@ -48,10 +48,13 @@ export default Vue.component("bulk-heatmap", {
 
           let genesRows = this.zNormData.map(d => d.gene);
           
+          let dataset = this.zNormData[0].dataset;
+          let samplesColumns = await this.getSampleIds(dataset);
+
           // Build X scales and axis:
           let x = d3.scaleBand()
               .range([ 0, width ])
-              .domain(this.samplesColumns)
+              .domain(samplesColumns)
               .padding(0.01);
           this.svg.append("g")
               .attr("transform", "translate(0," + height + ")")
@@ -76,7 +79,8 @@ export default Vue.component("bulk-heatmap", {
           
           // Building the heatmap
           this.svg.selectAll()
-              .data(this.collateData(this.zNormData), function(d) {return d.sample+':'+d.expression;})
+              .data(this.collateData(this.zNormData, samplesColumns), 
+                function(d) {return d.sample+':'+d.expression;})
               .enter()
               .append("rect")
                   .attr("x", function(d) { return x(d.sample) })
@@ -86,8 +90,22 @@ export default Vue.component("bulk-heatmap", {
                   .style("fill", function(d) { return colorScale(d.expression)} )
           this.loading = false;
       },
+      async getSampleIds(dataset){
+        console.log("getting sample IDs");
+        let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
+            dataset}/fields.json.gz`;
+        try {
+            const response = await fetch(queryUrl);
+            const data = await(response.json());
 
-      collateData(rawData){
+            return data.sample_id;
+        }
+        catch(error) {
+            console.error("Error: ", error);
+            return [];
+        }
+        },
+      collateData(rawData, samplesColumns){
             let outputData = [];
             let minExp = rawData[0]?.expression[0] || null;
             let maxExp = rawData[0]?.expression[0] || null;
@@ -102,7 +120,7 @@ export default Vue.component("bulk-heatmap", {
                     }
                     let expressionEntry = {
                         gene: item.gene,
-                        sample: this.samplesColumns[i],
+                        sample: samplesColumns[i],
                         expression: item.expression[i]
                     };
                     outputData.push(expressionEntry);
@@ -113,14 +131,6 @@ export default Vue.component("bulk-heatmap", {
     },
     watch: {
       zNormData:{
-            handler(newData, oldData){
-                if(newData !== oldData){
-                    this.drawHeatMap();
-                }
-            },
-            deep: true
-        },
-      samplesColumns:{
             handler(newData, oldData){
                 if(newData !== oldData){
                     this.drawHeatMap();
