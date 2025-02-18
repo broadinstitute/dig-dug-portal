@@ -638,6 +638,24 @@
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								>
 							</research-multi-sections-search>
+
+							<!--  To test canvas collection -->
+							<div v-if="!!$parent.sectionConfigs['visualizer collection']" class="viz-collect-btns-wrapper">
+								<button id="viz_collect_btn" class="btn btn-sm btn-primary btn-collect" @click="$parent.copyOverPlots('from')">Collect visualizers</button>
+								<button id="viz_return_btn" class="btn btn-sm btn-success btn-return hidden-btn" @click="$parent.copyOverPlots('to')">Return visualizers</button>
+							</div>
+							<div  class="" id="canvas_collect" style="overflow:hidden" v-if="!!$parent.sectionConfigs['visualizer collection']">
+								<template v-for="section in $parent.sectionConfigs['visualizer collection']">
+									<h6 v-html="section.label"></h6>
+									<template  v-for="sId in section.sections">
+										<div :id="sId + '_wrapper'" 
+											>
+										</div>
+									</template>
+									
+							  </template>
+							</div>
+							<!-- canvas collection end -->
 							
 								<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
@@ -718,9 +736,11 @@
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
 													:pageParams="$parent.pageParams"
+													
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
-													@on-zoom="$parent.setZoom">
+													@on-zoom="$parent.setZoom"
+													@on-checkPosition="$parent.setHoverPos">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
@@ -737,8 +757,10 @@
 													:regionZoom="$parent.regionZoom"
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
+													
 													@on-star="$parent.starColumn"
-													@on-zoom="$parent.setZoom">
+													@on-zoom="$parent.setZoom"
+													@on-checkPosition="$parent.setHoverPos">
 												</research-sections-summary>
 										</div>
 										</template>
@@ -766,9 +788,11 @@
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
 									:pageParams="$parent.pageParams"
+									
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
-									@on-zoom="$parent.setZoom">
+									@on-zoom="$parent.setZoom"
+									@on-checkPosition="$parent.setHoverPos">
 								</research-section>	
 								<research-sections-summary
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
@@ -784,8 +808,10 @@
 									:starItems="$parent.starItems"
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
+									
 									@on-star="$parent.starColumn"
 									@on-zoom="$parent.setZoom"
+									@on-checkPosition="$parent.setHoverPos"
 									>
 								</research-sections-summary>
 							</template>
@@ -861,6 +887,7 @@ html, body, #app {
     min-height: 100vh;
     position: relative;
 }
+
 #app {
     display:flex;
 	flex-direction: column;
@@ -881,6 +908,19 @@ html, body, #app {
 	overflow-y: hidden;
 }
 
+/* canvas collect */
+
+#canvas_collect {
+	height: 1px;
+}
+
+.viz-collect-btns-wrapper {
+	text-align: right;
+}
+
+.hidden-btn {
+	display: none !important;
+}
 
 label {
 	margin: 0 !important;
