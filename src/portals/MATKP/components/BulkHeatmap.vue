@@ -27,6 +27,8 @@ export default Vue.component("bulk-heatmap", {
           color1: "blue",
           color2: "red",
           fontSize: "13px",
+          minExp: null,
+          maxExp: null
         };
     },
     computed: {},
@@ -53,6 +55,7 @@ export default Vue.component("bulk-heatmap", {
           
           let dataset = this.zNormData[0].dataset;
           let samplesColumns = await this.getSampleIds(dataset);
+          let collatedData = this.collateData(this.zNormData, samplesColumns)
 
           // Build X scales and axis:
           let x = d3.scaleBand()
@@ -80,12 +83,11 @@ export default Vue.component("bulk-heatmap", {
           // Build color scale
           var colorScale = d3.scaleLinear()
               .range([this.color1, this.color2])
-              .domain([-2,7]); //MAKE RESPONSIVE TO OTHER DATASETS
+              .domain([this.minExp,this.maxExp]); //MAKE RESPONSIVE TO OTHER DATASETS
           
           // Building the heatmap
           this.svg.selectAll()
-              .data(this.collateData(this.zNormData, samplesColumns), 
-                function(d) {return d.sample+':'+d.expression;})
+              .data(collatedData, function(d) {return d.sample+':'+d.expression;})
               .enter()
               .append("rect")
                   .attr("id", d => d.gene)
@@ -134,6 +136,8 @@ export default Vue.component("bulk-heatmap", {
                     outputData.push(expressionEntry);
                 }
             });
+            this.minExp = minExp;
+            this.maxExp = maxExp;
             return outputData;
         },
       showTooltip(event){
