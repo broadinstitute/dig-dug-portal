@@ -118,7 +118,8 @@
                       <scatterplot
                         :plotData="subtableData[subtableKey(row.item)]"
                         :config="scatterConfig"
-                        :plotId="`bulk_${row.item.gene}`">
+                        :plotId="`bulk_${row.item.gene}`"
+                        :hideDownload="true">
 
                       </scatterplot>
                     </div>

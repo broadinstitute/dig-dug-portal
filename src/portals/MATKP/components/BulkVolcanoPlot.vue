@@ -156,7 +156,7 @@ export default Vue.component("bulk-volcano-plot", {
 			svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", (margin.left + (width / 2)))
-				.attr("y", (height + margin.top + margin.bottom - margin.legendSpacing))
+				.attr("y", (height + margin.bottom - margin.legendSpacing))
 				.text(this.renderConfig['x axis label']);
 
 			svg.select("#axisLabelsGroup")

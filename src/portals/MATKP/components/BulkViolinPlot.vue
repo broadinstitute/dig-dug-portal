@@ -24,7 +24,7 @@
       gene: {
         type: (String, null),
         required: true
-      }
+      },
     },
     data() {
         return {
@@ -40,7 +40,8 @@
                 left: 40
             },
             svg: null,
-            fontSize: "13px"
+            fontSize: "13px",
+            plotHeight: 300
         }
     },
     watch: {
@@ -94,7 +95,7 @@
             let yField = this.yField;
 
             let width = this.chartWidth - this.margin.left - this.margin.right;
-            let height = 400 - this.margin.top - this.margin.bottom;
+            let height = this.plotHeight - this.margin.top - this.margin.bottom;
 
             this.svg = d3.select(plotId)
                 .append("svg")

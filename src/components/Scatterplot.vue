@@ -2,6 +2,7 @@
   <div class="mbm-plot-content row">
 		<div class="col-md-12">
       <download-chart
+        :hidden="hideDownload"
 				:filename="!plotName ? 'scatterplot' : plotName"
 				:chartId="`chart-${plotId}`"
 				>
@@ -21,7 +22,8 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("scatterplot", {
   components: {
   },
-  props: ["plotData", "config", "filter", "plotName", "logScale", "translucentDots"],
+  props: ["plotData", "config", "filter", "plotName", "logScale", "translucentDots",
+    "hideDownload"],
   data() {
       return {
         plotId: `scatterplot-${Math.floor(Math.random() * 10e9)}`,
