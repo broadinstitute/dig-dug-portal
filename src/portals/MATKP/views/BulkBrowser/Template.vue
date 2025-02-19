@@ -68,7 +68,7 @@
                 </div>
                 <div>
                     <bulk-table
-                        :bulkData="$parent.zNormData"
+                        :bulkData="$parent.bulkData19K"
                         :config="$parent.tableConfig"
                         :scatterConfig="$parent.scatterplotConfig">
 
