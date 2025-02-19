@@ -171,6 +171,7 @@ export default Vue.component("bulk-table", {
         "config",
         "isSubtable",
         "filter",
+        "dataset"
     ],
     data() {
         return {
@@ -359,7 +360,9 @@ export default Vue.component("bulk-table", {
             }
         },
         subtableKey(item) {
-            return `${item.dataset},${item[this.config.queryParam]}`;
+            let mySubtableKey = `${this.dataset},${item[this.config.queryParam]}`;
+            console.log(mySubtableKey);
+            return mySubtableKey;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");

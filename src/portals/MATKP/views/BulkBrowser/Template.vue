@@ -69,6 +69,7 @@
                 <div>
                     <bulk-table
                         :bulkData="$parent.bulkData19K"
+                        :dataset="$store.state.selectedDataset"
                         :config="$parent.tableConfig"
                         :scatterConfig="$parent.scatterplotConfig">
 
