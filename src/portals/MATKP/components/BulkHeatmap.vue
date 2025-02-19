@@ -112,8 +112,8 @@ export default Vue.component("bulk-heatmap", {
 			this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
-				.attr("y", (height + this.margin.bottom))
-				.text(this.xLabel);
+				.attr("y", (height + this.margin.bottom - 5))
+				.text("Sample ID");
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")

@@ -180,14 +180,13 @@ import { truncate } from 'lodash';
 				.append("text")
 				.attr("x", ((width / 2)))
 				.attr("y", (height + this.margin.bottom - 10))
-				.text("Sample ID");
+				.text(this.xLabel);
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")
-				.attr("transform", 
-					`translate(${-this.margin.left + 15},${height/2})rotate(-90)`)
-				.attr("x", 0)
-				.attr("y", 0)
+				.attr("transform", "rotate(-90)")
+                .attr("y", -this.margin.left + 15)
+                .attr("x", - height / 2 - this.margin.top)
 				.text("Lognorm counts");
         },
         truncateLabel(label){
