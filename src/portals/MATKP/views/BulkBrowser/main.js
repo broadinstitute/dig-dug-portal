@@ -45,7 +45,7 @@ new Vue({
             margin: {
                 top: 20,
                 bottom: 100,
-                left: 80,
+                left: 100,
                 right: 0,
                 bump: 0,
                 middleSpacing: 0,

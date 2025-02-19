@@ -42,6 +42,9 @@ export default Vue.component("bulk-heatmap", {
           d3.select(plotId)
               .selectAll("g")
               .remove();
+        d3.select(plotId)
+              .selectAll("text")
+              .remove();
           let width = this.chartWidth - this.margin.left - this.margin.right - this.margin.middleSpacing;
           let height = this.plotHeight;// - this.margin.top - this.margin.bottom;
           this.svg = d3.select(plotId)
@@ -111,6 +114,15 @@ export default Vue.component("bulk-heatmap", {
 				.attr("x", ((width / 2)))
 				.attr("y", (height + this.margin.bottom - 5))
 				.text("Sample ID");
+
+            this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("transform", 
+					`translate(${- 2.5 * this.margin.legendSpacing
+                        },${height/2})rotate(-90)`)
+				.attr("x", 0)
+				.attr("y", 0)
+				.text("Gene");
 
         this.loading = false;
       },
