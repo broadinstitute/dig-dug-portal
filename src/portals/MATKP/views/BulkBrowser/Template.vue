@@ -5,20 +5,36 @@
             <matkp-nav></matkp-nav>
             <!-- BODY -->
             <div class="mat-body">
-                <select v-model="$store.state.selectedDataset">
-                    <option value="">Select a dataset</option>
-                    <option v-for="dataset in $parent.datasets"
-                        :value="dataset">
-                        {{ dataset }}
-                    </option>
-                </select>
-                <select v-model="$store.state.selectedComparison">
-                    <option value="">Select a comparison</option>
-                    <option v-for="comparison in $parent.comparisons"
-                        :value="comparison">
-                        {{ comparison }}
-                    </option>
-                </select>
+                <div class="row top-selectors">
+                    <div class="col-md-3"></div>
+                    <div class="f-col col-md-3">
+                        <div class="label">Select a dataset</div>
+                            <select v-model="$store.state.selectedDataset">
+                                <option value="">Select a dataset</option>
+                                <option v-for="dataset in $parent.datasets"
+                                    :value="dataset">
+                                    {{ dataset }}
+                                </option>
+                            </select>
+                        
+                    </div>
+                    <div class="f-col col-md-3">
+                        <div class="label">Select a comparison</div>
+                        <select v-model="$store.state.selectedComparison">
+                            <option value="">Select a comparison</option>
+                            <option v-for="comparison in $parent.comparisons"
+                                :value="comparison">
+                                {{ comparison }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-3"></div>
+                </div>
+                <div class="f-col">
+                    
+                
+                </div>
+                
                 <h4>{{ $parent.selectedDataset }}</h4>
                 <div class="row">
                     <div class="col-md-6">
@@ -66,3 +82,8 @@
         </div>
     </div>
 </template>
+<style scoped>
+    .top-selectors{
+        margin-bottom: 50px;
+    }
+</style>
