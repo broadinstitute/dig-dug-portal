@@ -1,5 +1,5 @@
 <template>
-    <div id="violinChart">
+    <div :id="`violinChart_${gene}`">
     </div>
 </template>
   
@@ -20,11 +20,15 @@
       xLabel: {
         type: (String, null),
         required: true
+      },
+      gene: {
+        type: (String, null),
+        required: true
       }
     },
     data() {
         return {
-            plotId: "violinChart",
+            plotId: "",
             chart: null,
             chartWidth: 0,
             eventElements: [],
@@ -50,6 +54,7 @@
         }
     },
     mounted() {
+        this.plotId = `violinChart_${this.gene}`;
         if(this.data){
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;

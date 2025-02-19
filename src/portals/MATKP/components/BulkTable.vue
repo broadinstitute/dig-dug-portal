@@ -103,6 +103,7 @@
                         </select>
                         <bulk-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
+                            :gene="row.item.gene"
                             :xField="catField?.key || catFields[0].key"
                             :xLabel="catField?.label || catFields[0].label"
                         />
