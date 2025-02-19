@@ -26,7 +26,9 @@ export default Vue.component("bulk-heatmap", {
           chartWidth: 0,
           color1: "blue",
           color2: "red",
-          fontSize: "12px",
+          fontSize: "13px",
+          minExp: null,
+          maxExp: null
         };
     },
     computed: {},
@@ -39,6 +41,9 @@ export default Vue.component("bulk-heatmap", {
               .remove();
           d3.select(plotId)
               .selectAll("g")
+              .remove();
+        d3.select(plotId)
+              .selectAll("text")
               .remove();
           let width = this.chartWidth - this.margin.left - this.margin.right - this.margin.middleSpacing;
           let height = this.plotHeight;// - this.margin.top - this.margin.bottom;
@@ -53,6 +58,7 @@ export default Vue.component("bulk-heatmap", {
           
           let dataset = this.zNormData[0].dataset;
           let samplesColumns = await this.getSampleIds(dataset);
+          let collatedData = this.collateData(this.zNormData, samplesColumns)
 
           // Build X scales and axis:
           let x = d3.scaleBand()
@@ -80,12 +86,11 @@ export default Vue.component("bulk-heatmap", {
           // Build color scale
           var colorScale = d3.scaleLinear()
               .range([this.color1, this.color2])
-              .domain([-2,7]); //MAKE RESPONSIVE TO OTHER DATASETS
+              .domain([this.minExp,this.maxExp]);
           
           // Building the heatmap
           this.svg.selectAll()
-              .data(this.collateData(this.zNormData, samplesColumns), 
-                function(d) {return d.sample+':'+d.expression;})
+              .data(collatedData, function(d) {return d.sample+':'+d.expression;})
               .enter()
               .append("rect")
                   .attr("id", d => d.gene)
@@ -97,7 +102,29 @@ export default Vue.component("bulk-heatmap", {
                   .style("fill", function(d) { return colorScale(d.expression)} )
                   .on("mouseover", d => this.showTooltip(d))
                   .on("mouseleave", d=> mouseTooltip.hide());
-          this.loading = false;
+
+            this.svg.append("g")
+				.attr("id", "axisLabelsGroup")
+				.attr("transform", "translate(0,0)")
+                .style("text-anchor", "end");
+
+
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("x", ((width / 2)))
+				.attr("y", (height + this.margin.bottom - 5))
+				.text("Sample ID");
+
+            this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("transform", 
+					`translate(${- 2.5 * this.margin.legendSpacing
+                        },${height/2})rotate(-90)`)
+				.attr("x", 0)
+				.attr("y", 0)
+				.text("Gene");
+
+        this.loading = false;
       },
       async getSampleIds(dataset){
         let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
@@ -134,6 +161,8 @@ export default Vue.component("bulk-heatmap", {
                     outputData.push(expressionEntry);
                 }
             });
+            this.minExp = minExp;
+            this.maxExp = maxExp;
             return outputData;
         },
       showTooltip(event){

@@ -1,5 +1,5 @@
 <template>
-    <div id="violinChart">
+    <div :id="`violinChart_${gene}`">
     </div>
 </template>
   
@@ -20,11 +20,15 @@
       xLabel: {
         type: (String, null),
         required: true
-      }
+      },
+      gene: {
+        type: (String, null),
+        required: true
+      },
     },
     data() {
         return {
-            plotId: "violinChart",
+            plotId: "",
             chart: null,
             chartWidth: 0,
             eventElements: [],
@@ -35,7 +39,9 @@
                 bottom: 30,
                 left: 40
             },
-            svg: null
+            svg: null,
+            fontSize: "13px",
+            plotHeight: 300
         }
     },
     watch: {
@@ -50,6 +56,7 @@
         }
     },
     mounted() {
+        this.plotId = `violinChart_${this.gene}`;
         if(this.data){
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;
@@ -88,7 +95,7 @@
             let yField = this.yField;
 
             let width = this.chartWidth - this.margin.left - this.margin.right;
-            let height = 400 - this.margin.top - this.margin.bottom;
+            let height = this.plotHeight - this.margin.top - this.margin.bottom;
 
             this.svg = d3.select(plotId)
                 .append("svg")
@@ -103,7 +110,9 @@
             let y = d3.scaleLinear()
                 .domain([minVal, maxVal])
                 .range([height, 0]);
-            this.svg.append("g").call(d3.axisLeft(y));
+            this.svg.append("g").call(d3.axisLeft(y))
+                .selectAll("text")
+                .style("font-size", this.fontSize);
 
             let categories = Array.from(new Set(this.data.map(d => d[xField])));
 
@@ -113,7 +122,9 @@
                 .padding(0.05);
             this.svg.append("g")
                 .attr("transform", `translate(0,${height})`)
-                .call(d3.axisBottom(x));
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+				.style("font-size", this.fontSize);
             
             let histogram = d3.histogram()
                 .domain(y.domain())

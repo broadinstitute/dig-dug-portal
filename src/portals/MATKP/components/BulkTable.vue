@@ -103,6 +103,7 @@
                         </select>
                         <bulk-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
+                            :gene="row.item.gene"
                             :xField="catField?.key || catFields[0].key"
                             :xLabel="catField?.label || catFields[0].label"
                         />
@@ -117,7 +118,8 @@
                       <scatterplot
                         :plotData="subtableData[subtableKey(row.item)]"
                         :config="scatterConfig"
-                        :plotId="`bulk_${row.item.gene}`">
+                        :plotId="`bulk_${row.item.gene}`"
+                        :hideDownload="true">
 
                       </scatterplot>
                     </div>
@@ -443,9 +445,9 @@ label {
     margin: 10px;
 }
 .pigean-subtable {
-    font-size: smaller;
     margin-left: 15px;
-    background-color: #efefef;
+    padding-left: 30px;
+    background-color: #dedede;
 }
 .pigean-subtable .row .col-12 {
     padding: 0 0 0 5px !important;
@@ -453,4 +455,9 @@ label {
 ul.top-list {
     font-size: 0.8rem;
 }
+button {
+    padding-bottom: 0px !important;
+    padding-top: 0px !important;
+}
+
 </style>
