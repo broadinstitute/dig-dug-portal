@@ -16,8 +16,8 @@
               :fields="probFields"
               :per-page="perPage"
               :current-page="currentPage"
-              sort-by="-log10P"
-              :sort-desc="true"
+              :sort-by="isSubtable? 'sample_id' : '-log10P'"
+              :sort-desc="!isSubtable"
           >
               <template #cell(gene)="r">
                   <!-- Link to where? -->
@@ -124,8 +124,7 @@
                   </div>
                   <bulk-table              
                       :bulkData="subtableData[subtableKey(row.item)]"
-                      :config="{ 
-                        fields: Object.keys(subtableData[subtableKey(row.item)][0]) }"
+                      :config="subtableFields"
                       :isSubtable="true"
                   >
                   </bulk-table>
@@ -215,7 +214,7 @@ export default Vue.component("bulk-table", {
                     sortable: true
                 },
                 {
-                    key: "cat__custom__cell__type",
+                    key: "cat__custom__cell_type",
                     label: "Cell type",
                     sortable: true
                 },
@@ -229,6 +228,23 @@ export default Vue.component("bulk-table", {
         };
     },
     computed: {
+        subtableFields(){
+            let fields = [
+                {
+                    key: "sample_id",
+                    label: "Sample",
+                    sortable: true,
+                },
+                {
+                    key: "lognorm_counts",
+                    label: "Lognorm counts",
+                    sortable: true,
+                },
+            ];
+            fields = fields.concat(this.catFields);
+            fields = fields.concat(this.contFields);
+            return { "fields": fields}
+        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -361,7 +377,6 @@ export default Vue.component("bulk-table", {
         },
         subtableKey(item) {
             let mySubtableKey = `${this.dataset},${item[this.config.queryParam]}`;
-            console.log(mySubtableKey);
             return mySubtableKey;
         },
         generateId(label) {
