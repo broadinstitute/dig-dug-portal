@@ -445,9 +445,9 @@ label {
     margin: 10px;
 }
 .pigean-subtable {
-    font-size: smaller;
     margin-left: 15px;
-    background-color: #efefef;
+    padding-left: 30px;
+    background-color: #dedede;
 }
 .pigean-subtable .row .col-12 {
     padding: 0 0 0 5px !important;
