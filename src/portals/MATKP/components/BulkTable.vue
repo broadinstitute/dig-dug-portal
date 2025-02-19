@@ -455,4 +455,9 @@ label {
 ul.top-list {
     font-size: 0.8rem;
 }
+button {
+    padding-bottom: 0px !important;
+    padding-top: 0px !important;
+}
+
 </style>
