@@ -13,6 +13,8 @@ import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import Formatters from "@/utils/formatters";
+import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -58,6 +60,7 @@ export default Vue.component("bulk-volcano-plot", {
 		}
 	},
 	methods: {
+		tpmFormatter: Formatters.tpmFormatter,
 		renderPlot() {
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
@@ -376,22 +379,19 @@ export default Vue.component("bulk-volcano-plot", {
           .attr("class", this.dataToClass(d.value));
 			});
       svg.selectAll("circle")
-        .on("mouseover", g => this.hoverDot(g));
+        .on("mouseover", g => this.hoverDot(g))
+				.on("mouseleave", g =>  mouseTooltip.hide());
 					
 		},
     hoverDot(dot){
       let gene = d3.event.target.id;
       let data = this.classToData(d3.event.target.classList);
-      let hover = `<p><strong>${gene}</strong></p>`;
-      hover = hover.concat(`<p>${this.renderConfig['x axis label']}: ${data[0]}</p>`);
-      hover = hover.concat(`<p>${this.renderConfig['y axis label']}: ${data[1]}</p>`);
-      let xcoord = `${d3.event.layerX + 35}px`;
-      let ycoord = `${d3.event.layerY}px`;
-      this.tooltip
-        .style("opacity", 1)
-        .html(hover)
-        .style("left", xcoord)
-        .style("top", ycoord);
+			let xData = this.tpmFormatter(parseFloat(data[0]));
+			let yData = this.tpmFormatter(parseFloat(data[1]));
+      let hover = `<strong>${gene}</strong>`;
+      hover = hover.concat(`<div>${this.renderConfig['x axis label']}: ${xData}</div>`);
+      hover = hover.concat(`<div>${this.renderConfig['y axis label']}: ${yData}</div>`);
+      mouseTooltip.show(hover);
     },
     dataToClass(value){
       let valX = `valX_${value.x}`.replaceAll(".","dot");
