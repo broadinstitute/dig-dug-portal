@@ -83,7 +83,7 @@ export default Vue.component("bulk-heatmap", {
           // Build color scale
           var colorScale = d3.scaleLinear()
               .range([this.color1, this.color2])
-              .domain([this.minExp,this.maxExp]); //MAKE RESPONSIVE TO OTHER DATASETS
+              .domain([this.minExp,this.maxExp]);
           
           // Building the heatmap
           this.svg.selectAll()
@@ -99,7 +99,20 @@ export default Vue.component("bulk-heatmap", {
                   .style("fill", function(d) { return colorScale(d.expression)} )
                   .on("mouseover", d => this.showTooltip(d))
                   .on("mouseleave", d=> mouseTooltip.hide());
-          this.loading = false;
+
+            this.svg.append("g")
+				.attr("id", "axisLabelsGroup")
+				.attr("transform", "translate(0,0)")
+                .style("text-anchor", "end");
+
+
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("x", ((width / 2)))
+				.attr("y", (height + this.margin.bottom - 5))
+				.text("Sample ID");
+
+        this.loading = false;
       },
       async getSampleIds(dataset){
         let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
