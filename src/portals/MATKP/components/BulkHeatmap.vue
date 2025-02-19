@@ -87,11 +87,14 @@ export default Vue.component("bulk-heatmap", {
                 function(d) {return d.sample+':'+d.expression;})
               .enter()
               .append("rect")
+                  .attr("id", d => d.gene)
+                  .attr("class", d => this.dataToClass(d))
                   .attr("x", function(d) { return x(d.sample) })
                   .attr("y", function(d) { return y(d.gene) })
                   .attr("width", x.bandwidth() )
                   .attr("height", y.bandwidth() )
                   .style("fill", function(d) { return colorScale(d.expression)} )
+                  .on("mouseover", d => this.showTooltip(d));
           this.loading = false;
       },
       async getSampleIds(dataset){
@@ -131,6 +134,15 @@ export default Vue.component("bulk-heatmap", {
             });
             return outputData;
         },
+      showTooltip(event){
+        let gene = d3.event.target.id;
+        let classes = d3.event.target.classList;
+        console.log(gene, JSON.stringify(classes));
+      },
+      dataToClass(value){
+        let expr = `expr_${value.expression}`.replaceAll(".", "dot");
+        return `${value.sample} ${expr}`;
+    },
     },
     watch: {
       zNormData:{
