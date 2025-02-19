@@ -10,6 +10,7 @@ import Vue from "vue";
 import * as d3 from 'd3';
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import "../assets/matkp-styles.css";
+import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip";"@/components/researchPortal/singleCellBrowser/mouseTooltip.js";
 export default Vue.component("bulk-heatmap", {
     components: {
     },
@@ -94,7 +95,8 @@ export default Vue.component("bulk-heatmap", {
                   .attr("width", x.bandwidth() )
                   .attr("height", y.bandwidth() )
                   .style("fill", function(d) { return colorScale(d.expression)} )
-                  .on("mouseover", d => this.showTooltip(d));
+                  .on("mouseover", d => this.showTooltip(d))
+                  .on("mouseleave", d=> mouseTooltip.hide());
           this.loading = false;
       },
       async getSampleIds(dataset){
@@ -136,8 +138,15 @@ export default Vue.component("bulk-heatmap", {
         },
       showTooltip(event){
         let gene = d3.event.target.id;
+        let tooltipHtml = `<strong>${gene}</strong>`;
         let classes = d3.event.target.classList;
-        console.log(gene, JSON.stringify(classes));
+        tooltipHtml = tooltipHtml.concat(
+          `<div>Sample: ${classes[0]}</div>`)
+        let expression = classes[1].replace("expr_", "");
+        expression = expression.replace("dot", ".");
+        tooltipHtml = tooltipHtml.concat(
+          `<div>Expression: ${expression}</div>`)
+        mouseTooltip.show(tooltipHtml);
       },
       dataToClass(value){
         let expr = `expr_${value.expression}`.replaceAll(".", "dot");
