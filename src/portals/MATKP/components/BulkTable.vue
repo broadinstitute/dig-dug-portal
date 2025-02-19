@@ -16,7 +16,7 @@
               :fields="probFields"
               :per-page="perPage"
               :current-page="currentPage"
-              :sort-by="sortBy"
+              sort-by="-log10P"
               :sort-desc="true"
           >
               <template #cell(gene)="r">
@@ -171,10 +171,11 @@ export default Vue.component("bulk-table", {
         "config",
         "isSubtable",
         "filter",
+        "dataset"
     ],
     data() {
         return {
-            perPage: 10,
+            perPage: 20,
             currentPage: 1,
             subtableData: {},
             subtable2Data: {},
@@ -359,7 +360,9 @@ export default Vue.component("bulk-table", {
             }
         },
         subtableKey(item) {
-            return `${item.dataset},${item[this.config.queryParam]}`;
+            let mySubtableKey = `${this.dataset},${item[this.config.queryParam]}`;
+            console.log(mySubtableKey);
+            return mySubtableKey;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");

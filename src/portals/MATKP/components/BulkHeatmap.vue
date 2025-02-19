@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h5>Top 20 Differentially Expressed Genes</h5>
     <div :id="plotId">
     </div>
   </div>
@@ -8,6 +9,8 @@
 import Vue from "vue";
 import * as d3 from 'd3';
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import "../assets/matkp-styles.css";
+import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 export default Vue.component("bulk-heatmap", {
     components: {
     },
@@ -22,7 +25,8 @@ export default Vue.component("bulk-heatmap", {
           chart: null,
           chartWidth: 0,
           color1: "blue",
-          color2: "red"
+          color2: "red",
+          fontSize: "12px",
         };
     },
     computed: {},
@@ -60,7 +64,7 @@ export default Vue.component("bulk-heatmap", {
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
                       .style("text-anchor", "end")
-                      .attr('font-size', '12px')
+                      .attr('font-size', this.fontSize)
                       .attr("transform", "rotate(-35) translate(-5, 0)");
 
           // Build Y scales and axis:
@@ -69,7 +73,9 @@ export default Vue.component("bulk-heatmap", {
               .domain(genesRows)
               .padding(0.01);
           this.svg.append("g")
-              .call(d3.axisLeft(y));
+              .call(d3.axisLeft(y))
+                .selectAll("text")
+                  .attr('font-size', this.fontSize);
           
           // Build color scale
           var colorScale = d3.scaleLinear()
@@ -82,11 +88,15 @@ export default Vue.component("bulk-heatmap", {
                 function(d) {return d.sample+':'+d.expression;})
               .enter()
               .append("rect")
+                  .attr("id", d => d.gene)
+                  .attr("class", d => this.dataToClass(d))
                   .attr("x", function(d) { return x(d.sample) })
                   .attr("y", function(d) { return y(d.gene) })
                   .attr("width", x.bandwidth() )
                   .attr("height", y.bandwidth() )
                   .style("fill", function(d) { return colorScale(d.expression)} )
+                  .on("mouseover", d => this.showTooltip(d))
+                  .on("mouseleave", d=> mouseTooltip.hide());
           this.loading = false;
       },
       async getSampleIds(dataset){
@@ -126,6 +136,22 @@ export default Vue.component("bulk-heatmap", {
             });
             return outputData;
         },
+      showTooltip(event){
+        let gene = d3.event.target.id;
+        let tooltipHtml = `<strong>${gene}</strong>`;
+        let classes = d3.event.target.classList;
+        tooltipHtml = tooltipHtml.concat(
+          `<div>Sample: ${classes[0]}</div>`)
+        let expression = classes[1].replace("expr_", "");
+        expression = expression.replace("dot", ".");
+        tooltipHtml = tooltipHtml.concat(
+          `<div>Expression: ${expression}</div>`)
+        mouseTooltip.show(tooltipHtml);
+      },
+      dataToClass(value){
+        let expr = `expr_${value.expression}`.replaceAll(".", "dot");
+        return `${value.sample} ${expr}`;
+    },
     },
     watch: {
       zNormData:{

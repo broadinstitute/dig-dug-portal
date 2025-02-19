@@ -10,6 +10,7 @@ import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import BulkTable from "../../components/BulkTable.vue";
 import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
+import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from 'd3';
 
@@ -58,11 +59,13 @@ new Vue({
                         key: "logFoldChange",
                         label: "log2 Fold Change",
                         sortable: true,
+                        formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "log10FDR",
+                        key: "-log10P",
                         label: "-log10(FDR adj. p)",
                         sortable: true,
+                        formatter: Formatters.tpmFormatter,
                     },
                     { key: "expand", label: "Gene query" },
                 ],
@@ -97,7 +100,7 @@ new Vue({
                 "x axis field": "logFoldChange",
                 "x axis label": "log2 Fold Change",
                 "y axis field": "-log10P",
-                "y axis label": "-log10(FDR adjusted for p)",
+                "y axis label": "-log10(FDR adj. p)",
                 "width": 600,
                 "height": this.plotHeight,
                 "x condition": {"combination":"or","greater than":1,"lower than":-1}, 
