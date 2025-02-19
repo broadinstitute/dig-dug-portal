@@ -26,7 +26,7 @@ export default Vue.component("bulk-heatmap", {
           chartWidth: 0,
           color1: "blue",
           color2: "red",
-          fontSize: "12px",
+          fontSize: "13px",
         };
     },
     computed: {},

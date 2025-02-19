@@ -39,7 +39,8 @@
                 bottom: 30,
                 left: 40
             },
-            svg: null
+            svg: null,
+            fontSize: "13px"
         }
     },
     watch: {
@@ -108,7 +109,9 @@
             let y = d3.scaleLinear()
                 .domain([minVal, maxVal])
                 .range([height, 0]);
-            this.svg.append("g").call(d3.axisLeft(y));
+            this.svg.append("g").call(d3.axisLeft(y))
+                .selectAll("text")
+                .style("font-size", this.fontSize);
 
             let categories = Array.from(new Set(this.data.map(d => d[xField])));
 
@@ -118,7 +121,9 @@
                 .padding(0.05);
             this.svg.append("g")
                 .attr("transform", `translate(0,${height})`)
-                .call(d3.axisBottom(x));
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+				.style("font-size", this.fontSize);
             
             let histogram = d3.histogram()
                 .domain(y.domain())

@@ -30,6 +30,7 @@ export default Vue.component("bulk-volcano-plot", {
       tooltip: null,
 			chart: null,
 			chartWidth: 0,
+			fontSize: "13px",
 		};
 	},
 	modules: {
@@ -195,14 +196,18 @@ export default Vue.component("bulk-volcano-plot", {
 				.attr("transform", function (d) {
 					return "translate(" + (margin.left - margin.bump) + "," + "0" + ")";
 				})
-				.call(d3.axisLeft(y));
+				.call(d3.axisLeft(y))
+				.selectAll("text")
+				.style("font-size", this.fontSize);
 			
 			svg.select("#axisGroup")
 				.append("g")
 				.attr("transform", function (d) {
 					return "translate(" + "0" + "," + (height+margin.top+margin.bump) + ")";
 				})
-				.call(d3.axisBottom(x));
+				.call(d3.axisBottom(x))
+				.selectAll("text")
+				.style("font-size", this.fontSize);
 
 			if (!!renderConfig["x condition"]) {
 				if(!!renderConfig["x condition"]["greater than"]) {
