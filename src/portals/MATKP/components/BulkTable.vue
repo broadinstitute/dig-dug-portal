@@ -16,7 +16,7 @@
               :fields="probFields"
               :per-page="perPage"
               :current-page="currentPage"
-              :sort-by="sortBy"
+              sort-by="-log10P"
               :sort-desc="true"
           >
               <template #cell(gene)="r">
