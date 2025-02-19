@@ -5,6 +5,7 @@
   
 <script>
   import * as d3 from 'd3';
+import { truncate } from 'lodash';
   import Vue from 'vue';
   
   export default Vue.component('bulk-violin-plot', {
@@ -36,8 +37,8 @@
             margin: {
                 top: 10,
                 right: 30,
-                bottom: 30,
-                left: 40
+                bottom: 50,
+                left: 50
             },
             svg: null,
             fontSize: "13px",
@@ -124,7 +125,8 @@
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x))
                 .selectAll("text")
-				.style("font-size", this.fontSize);
+				.style("font-size", this.fontSize)
+                .text(d => this.truncateLabel(d));
             
             let histogram = d3.histogram()
                 .domain(y.domain())
@@ -167,8 +169,35 @@
                         .x0(d => xNum(-d.length))
                         .x1(d => xNum(d.length))
                         .y(d => y(d.x0))
-                        .curve(d3.curveCatmullRom))
-        },        
+                        .curve(d3.curveCatmullRom));
+
+            this.svg.append("g")
+				.attr("id", "axisLabelsGroup")
+				.attr("transform", "translate(0,0)")
+                .style("text-anchor", "middle");
+
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("x", ((width / 2)))
+				.attr("y", (height + this.margin.bottom - 10))
+				.text(this.xLabel);
+
+            this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("transform", "rotate(-90)")
+                .attr("y", -this.margin.left + 15)
+                .attr("x", - height / 2 - this.margin.top)
+				.text("Lognorm counts");
+        },
+        truncateLabel(label){
+            if (!this.xField === "cat__custom__surgery"){
+                return label;
+            }
+            if (label.indexOf(" ") !== -1){
+                return label.replaceAll(" ", "");
+            }
+            return label.length < 8 ? label : `${label.slice(0,7)}.`;
+        } 
     },
   });
   </script>

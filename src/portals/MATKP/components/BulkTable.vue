@@ -93,14 +93,32 @@
                           row.item.subtableActive === 1 &&
                           subtableData[subtableKey(row.item)]?.length > 0"
                   >
-                  <div class="row">
-                    <div class="col-md-6">
+                  <div class="row subtable-selectors">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-4">
+                        <div class="label">View data by categorical field.</div>
                         <select v-model="catField">
                             <option v-for="field in catFields"
                                 :value="field">
                                 {{ field.label }}
                             </option>
                         </select>
+                    </div>
+                    <div class="col-md-2"></div>
+                    <div class="col-md-4">
+                        
+                        <div class="label">View data by continuous field.</div>
+                        <select v-model="contField">
+                            <option v-for="field in contFields"
+                                :value="field">
+                                {{ field.label }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-1"></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
                         <bulk-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
                             :gene="row.item.gene"
@@ -109,17 +127,12 @@
                         />
                     </div>
                     <div class="col-md-6">
-                        <select v-model="contField">
-                            <option v-for="field in contFields"
-                                :value="field">
-                                {{ field.label }}
-                            </option>
-                        </select>
                       <scatterplot
                         :plotData="subtableData[subtableKey(row.item)]"
                         :config="scatterConfig"
                         :plotId="`bulk_${row.item.gene}`"
-                        :hideDownload="true">
+                        :hideDownload="true"
+                        :tightenLeft="true">
 
                       </scatterplot>
                     </div>
@@ -459,5 +472,7 @@ button {
     padding-bottom: 0px !important;
     padding-top: 0px !important;
 }
-
+.subtable-selectors{
+    margin-bottom: 20px;
+}
 </style>

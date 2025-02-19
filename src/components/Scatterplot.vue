@@ -23,7 +23,7 @@ export default Vue.component("scatterplot", {
   components: {
   },
   props: ["plotData", "config", "filter", "plotName", "logScale", "translucentDots",
-    "hideDownload"],
+    "hideDownload", "tightenLeft"],
   data() {
       return {
         plotId: `scatterplot-${Math.floor(Math.random() * 10e9)}`,
@@ -72,7 +72,7 @@ export default Vue.component("scatterplot", {
         top: 10,
         right: 30,
         bottom: 60,
-        left: 90
+        left: !this.tightenLeft ? 90 : 55
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
