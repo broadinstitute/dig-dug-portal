@@ -262,11 +262,11 @@ export default Vue.component("bulk-volcano-plot", {
 			// render circle or triangle
 			sumstat.map(d=>{
 				let fillScore = 0;
-
+				let xFieldVal;
 				if (!!renderConfig["x condition"]) {
 					let xCondiCombi =
 						renderConfig["x condition"].combination;
-					let xFieldVal = d.value.x;
+					xFieldVal = d.value.x;
 
 					if (
 						xCondiCombi == "greater than" &&
@@ -354,20 +354,9 @@ export default Vue.component("bulk-volcano-plot", {
 						fillColor = renderConfig["dot label score"] > 1 ? "#00000050" :"#09910980";
 						break;
 					case 2:
-						fillColor = "#ff003780";
+						fillColor = xFieldVal > 0 ? "blue" : "red";
 						break;
 				}
-
-				/* if(fillScore >= 2){
-					svg.select("#axisGroup")
-						.append("text")
-						.attr("x", x(d.value.x))
-						.attr("y", y(d.value.y) - (margin.bump *2))
-						.style("text-anchor", "middle")
-						.style("font-family", "Arial").style("font-size", 11)
-						.style("fill", "#000000")
-						.text(d.key);
-				} */
 
 				svg.select("#axisGroup")
 					.append('circle')
