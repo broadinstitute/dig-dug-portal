@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h5>Top 20 Differentially Expressed Genes</h5>
     <div :id="plotId">
     </div>
   </div>
@@ -23,7 +24,8 @@ export default Vue.component("bulk-heatmap", {
           chart: null,
           chartWidth: 0,
           color1: "blue",
-          color2: "red"
+          color2: "red",
+          fontSize: "12px",
         };
     },
     computed: {},
@@ -61,7 +63,7 @@ export default Vue.component("bulk-heatmap", {
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
                       .style("text-anchor", "end")
-                      .attr('font-size', '12px')
+                      .attr('font-size', this.fontSize)
                       .attr("transform", "rotate(-35) translate(-5, 0)");
 
           // Build Y scales and axis:
@@ -70,7 +72,9 @@ export default Vue.component("bulk-heatmap", {
               .domain(genesRows)
               .padding(0.01);
           this.svg.append("g")
-              .call(d3.axisLeft(y));
+              .call(d3.axisLeft(y))
+                .selectAll("text")
+                  .attr('font-size', this.fontSize);
           
           // Build color scale
           var colorScale = d3.scaleLinear()

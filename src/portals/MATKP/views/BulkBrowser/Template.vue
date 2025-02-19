@@ -34,8 +34,6 @@
                     
                 
                 </div>
-                
-                <h4>{{ $parent.selectedDataset }}</h4>
                 <div class="row">
                     <div class="col-md-6">
                         <div v-if="$parent.zNormData.length > 0">

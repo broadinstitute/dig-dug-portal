@@ -1,5 +1,6 @@
 <template>
 	<div>
+		<h5>Differentially Expressed Genes</h5>
 		<div :id="'vector_wrapper_'+sectionId" :class="'vector-wrapper-'+ canvasId">
 
 		</div>
