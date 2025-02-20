@@ -206,7 +206,6 @@
                             <b-col class="feature-header-item"
                                 >Standard Error</b-col
                             >
-                            <b-col class="feature-header-item">Z Score</b-col>
                             <b-col cols="2" class="feature-header-item"
                                 >Consequence</b-col
                             >
@@ -262,12 +261,6 @@
                                     :id="`${index}_${item.phenotype.name}_var${
                                         i - 1
                                     }_stdErr`"
-                                    class="feature-content-item"
-                                ></b-col>
-                                <b-col
-                                    :id="`${index}_${item.phenotype.name}_var${
-                                        i - 1
-                                    }_zScore`"
                                     class="feature-content-item"
                                 ></b-col>
                                 <b-col
@@ -441,7 +434,6 @@ export default Vue.component("PhewasDatasets", {
                 "pValue",
                 "maf",
                 "stdErr",
-                "zScore",
                 "consequence",
             ];
             for (let i = 0; i < 25; i++) {
@@ -451,8 +443,6 @@ export default Vue.component("PhewasDatasets", {
                 );
                 if (item) {
                     itemRow.classList.remove("hidden");
-                    let zScoreNumber = Number(item.zScore);
-                    item.zScore = zScoreNumber.toPrecision(5);
                     item.pValue = this.pValueFormatter(item.pValue);
                     dataFields.forEach((dataField) => {
                         let tableCellId = `${index}_${phenotype}_var${i}_${dataField}`;

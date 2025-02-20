@@ -1,5 +1,14 @@
 <template>
   <div>
+    <div v-if="tableData.length > 0">
+      <div
+          v-html="'Total rows: ' + tableData.length"
+          class="table-total-rows"
+      ></div>
+      <div class="text-right mb-2">
+        <data-download :data="tissueData" :filename="`tissue_expression_${tissue}`"></data-download>
+      </div>
+    </div>
     <b-table
       v-if="tableData.length > 0"
       v-model="currentTable"
@@ -45,7 +54,7 @@
     </b-pagination>
   </div>
 </template>
-<style>
+<style scoped>
 @import url("/css/table.css");
 </style>
 <script>
@@ -53,7 +62,11 @@
   import { query } from "@/utils/bioIndexUtils";
   import Formatters from "@/utils/formatters";
   import TissueExpressionSubtable from "@/components/TissueExpressionSubtable.vue";
+  import DataDownload from "@/components/DataDownload.vue";
   export default Vue.component("TissueExpressionTable", {
+      components: {
+          DataDownload,
+      },
       props: ["tissueData", "tissue", "filter"],
       data() {
           return {

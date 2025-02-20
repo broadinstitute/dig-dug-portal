@@ -14,11 +14,13 @@ import Vue from "vue";
 import $ from "jquery";
 
 import cfdeEcoSystem from "@/components/researchPortal/customComponents/cfdeEcoSystem.vue";
+import cfdeLanding from "@/components/researchPortal/customComponents/cfdeLanding.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
 	components: {
-		cfdeEcoSystem
+		cfdeEcoSystem,
+		cfdeLanding
 	},
 	data() {
 		return {
@@ -32,6 +34,9 @@ export default Vue.component("research-section-components", {
 		switch(this.component) {
 			case 'cfdeEcoSystem':
 				this.currentComponent = cfdeEcoSystem;
+				break;
+			case 'cfdeLanding':
+				this.currentComponent = cfdeLanding;
 				break;
 		}
 	},

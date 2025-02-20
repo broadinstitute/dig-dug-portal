@@ -1,25 +1,33 @@
 <template>
-	<div class="container-fluid mdkp-body flex-body front-page">
+	<div class="container-fluid mdkp-body flex-body front-page" :class="(!!sectionConfigs['content']['search enabled'])? 'with-single-search':''">
         <div class="fp-top" 
             :style="{ background: `linear-gradient( ${this.sectionConfigs['content']['color secondary']} 0%, ${this.sectionConfigs['content']['color primary']} 100% )`}">
             <div class="fp-intro-section">
                 <div class="fp-intro-logo">
                     <img style="width:400px;" 
-                        :src="getLogo(this.sectionConfigs['content']['logo large'])"/>
+                        :src="getLogo(sectionConfigs['content']['logo large'])"/>
                 </div>
                 <div class="fp-intro-divider"></div>
                 <div class="fp-intro-blurb">
-                    <div class="fp-intro-blurb-text">{{ this.sectionConfigs["content"]["tagline"] }}</div>
+                    <div class="fp-intro-blurb-text">{{ sectionConfigs["content"]["tagline"] }}</div>
                 </div>
             </div>
-            <div v-if="this.sectionConfigs['content']['search enabled']"
+            <div v-if="sectionConfigs['content']['search enabled']"
                 class="row fp-search-section">
                 <div class="fp-search">
                     <research-single-search
+                    v-if="!sectionConfigs['content']['single search version']"
                         :single-search-config="sectionConfigs['content']"
                         :phenotypes="phenotypesInUse"
                         :utils="utilsBox"
-                    ></research-single-search>                    
+                    ></research-single-search>
+                    <!-- single search version 2.0-->
+                    <research-single-search-v2
+    				v-if="!!sectionConfigs['content']['single search version'] && sectionConfigs['content']['single search version'] == '2.0'"
+    				:single-search-config="sectionConfigs['content']"
+    				:phenotypes="phenotypesInUse"
+    				:utils="utilsBox"
+    			></research-single-search-v2>                    
                 </div>
                 <div v-if="!!sectionConfigs['content']['search examples']" class="fp-search-examples">
                     <span v-html="'examples: '"></span>
@@ -31,9 +39,9 @@
         </div>
         <div class="fp-bottom">
             <div class="fp-bottom-container">
-                <research-page-description v-if="this.pageDescription"
-                    :content="this.pageDescription"
-                    :utils="this.utilsBox"
+                <research-page-description v-if="pageDescription"
+                    :content="pageDescription"
+                    :utils="utilsBox"
                 ></research-page-description>
             </div>
         </div>
@@ -43,11 +51,15 @@
 <script>
 import Vue from "vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
 
 export default Vue.component("research-front-page", {
 	props: ["sectionConfigs","pageDescription", "utilsBox","phenotypeMap","phenotypesInUse"],
     
-	components: {},
+	components: {
+        ResearchSingleSearch,
+        ResearchSingleSearchV2
+    },
 
 	data() {
 		return {
@@ -115,7 +127,11 @@ export default Vue.component("research-front-page", {
     padding-top: 0;
     padding-left: 0;
     padding-right: 0;
-    }
+}
+
+.mdkp-body.front-page.with-single-search {
+    min-height: 800px;
+}
 .fp-top{
     flex: 0 1 auto;
     padding:0 0 20px;

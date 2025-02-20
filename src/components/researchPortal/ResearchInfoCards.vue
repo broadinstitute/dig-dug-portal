@@ -80,7 +80,7 @@
 						:class="['info-card-more', openCard && openCard == value[tableFormat['rows as info cards']['key']] ? 'hidden' : '']">
 
 						<a href="javascript:;" @click="showHideFeature(sectionId + index + featureKey, value[tableFormat['rows as info cards']['key']])">
-							&plus; More
+							More ❯
 						</a>
 					
 					</div>

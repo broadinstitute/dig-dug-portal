@@ -1,16 +1,12 @@
 import Vue from "vue";
 import * as d3 from "d3";
-
 import Template from "./Template.vue";
 import store from "./store.js";
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalBarChart from "@/components/PhenotypeSignalBarChart";
 import PhenotypeSignalInGroup from "@/components/PhenotypeSignalInGroup";
-import Documentation from "@/components/Documentation";
 
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
@@ -37,8 +33,6 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 
 import ClumpedVariantsTable from "@/components/ClumpedVariantsTable";
-import { BButton, BootstrapVueIcons } from "bootstrap-vue";
-
 import filterHelpers from "@/utils/filterHelpers";
 
 import uiUtils from "@/utils/uiUtils";
@@ -50,25 +44,11 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 import regionUtils from "@/utils/regionUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert,
-} from "@/components/Alert";
-
-Vue.config.productionTip = false;
-Vue.component("b-button", BButton);
-Vue.use(BootstrapVueIcons);
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
-        Documentation,
         LunarisLink,
         LocusZoom,
         LocusZoomAssociationsPanel,
@@ -95,19 +75,7 @@ new Vue({
         ClumpedVariantsTable,
         ExpandRegion,
     },
-
-    async created() {
-        // get the disease group and set of phenotypes available
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("queryRegion");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-    },
-
-    render(createElement) {
-        return createElement(Template);
-    },
+    mixins: [pageMixin],
 
     data() {
         return {
@@ -142,142 +110,6 @@ new Vue({
                 "#d4d4d4",
             ],
         };
-    },
-    mounted() {
-        this.localRegion = this.regionString;
-    },
-    methods: {
-        ...uiUtils,
-        ...sessionUtils,
-        ...Formatters,
-        ...filterHelpers,
-        ancestryFormatter: Formatters.ancestryFormatter,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        requestCredibleSets(eventData) {
-            const { start, end } = eventData;
-            if (!!start && !!end) {
-                if (this.selectedPhenotypes.length > 0) {
-                    this.$store.dispatch("credibleSets/clear");
-                    this.selectedPhenotypes.forEach((p) => {
-                        const queryString = `${p.name},${
-                            this.$store.state.chr
-                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
-                        this.$store.dispatch("credibleSets/query", {
-                            q: queryString,
-                            append: true,
-                        });
-                    });
-                }
-            }
-        },
-        updateLocalRegion(eventData) {
-            const { start, end } = eventData;
-            if (!!start && !!end) {
-                this.localRegion = `${this.$store.state.chr}:${Number.parseInt(
-                    start
-                )}-${Number.parseInt(end)}`;
-            }
-        },
-        /*
-                exploreExpanded() {
-                    this.$store.commit("setLocus", {
-                        chr: this.$store.state.chr,
-                        //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
-                        start: parseInt(this.$store.state.start) - 50000,
-                        end: parseInt(this.$store.state.end) + 50000
-                    });
-                    this.$store.dispatch("queryRegion");
-                },
-                */
-
-        updatePageAssociations({ phenotype, data }) {
-            this.pageAssociationsMap[phenotype] = data;
-            this.pageAssociations = Object.entries(
-                this.pageAssociationsMap
-            ).flatMap((pam) => pam[1]);
-        },
-
-        // LocusZoom has "Panels"
-        addAssociationsPanel(event) {
-            const { phenotype } = event;
-            let onLoad = this.updateAssociationsTable;
-            const newAssociationsPanelId =
-                this.$children[0].$refs.locuszoom.addAssociationsPanel(
-                    phenotype,
-                    onLoad
-                );
-            return newAssociationsPanelId;
-        },
-        addCredibleVariantsPanel(event) {
-            const { phenotype, credibleSetId } = event;
-            if (credibleSetId !== "computed") {
-                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(
-                    phenotype,
-                    credibleSetId
-                );
-            } else if (credibleSetId === "computed") {
-                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
-                if (keyParams.phenotype) {
-                    //get phenotype list from url
-                    this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
-                        keyParams.phenotype.split(",")[0]
-                    );
-                } else if (this.$store.state.phenotypeParam) {
-                    //get phenotype list from state if url is empty
-                    this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
-                        this.$store.state.phenotypeParam.split(",")[0]
-                    );
-                } else {
-                    console.error(
-                        "Error: Cannot display computed credible set. There's no phenotype selected."
-                    );
-                }
-            }
-        },
-        addAnnotationIntervalsPanel(r) {
-            this.$children[0].$refs.locuszoom.addIntervalsPanel(
-                "annotated-regions",
-                r.annotation,
-                "tissue",
-                this.enrichmentScoring,
-                Formatters.snakeFormatter(r.annotation)
-            );
-        },
-        addTissueIntervalsPanel(r) {
-            this.$children[0].$refs.locuszoom.addIntervalsPanel(
-                "tissue-regions",
-                r.tissue,
-                "annotation",
-                this.enrichmentScoring,
-                Formatters.snakeFormatter(r.tissue)
-            );
-        },
-        addTissueCoaccessibilityPanel(r) {
-            this.$children[0].$refs.locuszoom.addCoaccessibilityPanel(
-                r.tissue,
-                Formatters.snakeFormatter(r.tissue)
-            );
-        },
-        topPhenotype(topAssocData) {
-            return topAssocData[0];
-        },
-        setCriterionPhenotypes(phenotypeNames) {
-            this.regionPageSearchCriterion.splice(0);
-            phenotypeNames.forEach(this.pushCriterionPhenotype);
-        },
-        pushCriterionPhenotype(phenotypeName) {
-            this.regionPageSearchCriterion.push({
-                field: "phenotype",
-                threshold: phenotypeName,
-            });
-        },
-        isSifterAncestry() {
-            let sifterAncestry = ["AA", "EA", "EU", "HS", "SA"];
-            return sifterAncestry.includes(this.$store.state.ancestry);
-        },
     },
 
     computed: {
@@ -447,6 +279,19 @@ new Vue({
                 .map((criterion) => phenotypeMap[criterion.threshold]);
         },
     },
+
+    async created() {
+        // get the disease group and set of phenotypes available
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("queryRegion");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+
+        if (keyParams.gene) {
+            this.redirectWithRegion(keyParams.gene);
+        }
+    },
     watch: {
         "$store.state.bioPortal.phenotypeMap"(phenotypeMap) {
             /*let phenotypes = keyParams.phenotype;
@@ -537,5 +382,162 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+    },
+    mounted() {
+        this.localRegion = this.regionString;
+    },
+    methods: {
+        ...uiUtils,
+        ...sessionUtils,
+        ...Formatters,
+        ...filterHelpers,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        async redirectWithRegion(GENE) {
+            let region = await this.utilsBox.regionUtils.parseRegion(
+                GENE,
+                true,
+                50000
+            );
+
+            if (region) {
+                let regionPageUrl;
+                console.log("region", region);
+                regionPageUrl =
+                    "/region.html?chr=" +
+                    region.chr +
+                    "&end=" +
+                    region.end +
+                    "&start=" +
+                    region.start;
+
+                location.href = regionPageUrl;
+            }
+        },
+        requestCredibleSets(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                if (this.selectedPhenotypes.length > 0) {
+                    this.$store.dispatch("credibleSets/clear");
+                    this.selectedPhenotypes.forEach((p) => {
+                        const queryString = `${p.name},${
+                            this.$store.state.chr
+                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                        this.$store.dispatch("credibleSets/query", {
+                            q: queryString,
+                            append: true,
+                        });
+                    });
+                }
+            }
+        },
+        updateLocalRegion(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                this.localRegion = `${this.$store.state.chr}:${Number.parseInt(
+                    start
+                )}-${Number.parseInt(end)}`;
+            }
+        },
+        /*
+                exploreExpanded() {
+                    this.$store.commit("setLocus", {
+                        chr: this.$store.state.chr,
+                        //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
+                        start: parseInt(this.$store.state.start) - 50000,
+                        end: parseInt(this.$store.state.end) + 50000
+                    });
+                    this.$store.dispatch("queryRegion");
+                },
+                */
+
+        updatePageAssociations({ phenotype, data }) {
+            this.pageAssociationsMap[phenotype] = data;
+            this.pageAssociations = Object.entries(
+                this.pageAssociationsMap
+            ).flatMap((pam) => pam[1]);
+        },
+
+        // LocusZoom has "Panels"
+        addAssociationsPanel(event) {
+            const { phenotype } = event;
+            let onLoad = this.updateAssociationsTable;
+            const newAssociationsPanelId =
+                this.$children[0].$refs.locuszoom.addAssociationsPanel(
+                    phenotype,
+                    onLoad
+                );
+            return newAssociationsPanelId;
+        },
+        addCredibleVariantsPanel(event) {
+            const { phenotype, credibleSetId } = event;
+            if (credibleSetId !== "computed") {
+                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(
+                    phenotype,
+                    credibleSetId
+                );
+            } else if (credibleSetId === "computed") {
+                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
+                if (keyParams.phenotype) {
+                    //get phenotype list from url
+                    this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
+                        keyParams.phenotype.split(",")[0]
+                    );
+                } else if (this.$store.state.phenotypeParam) {
+                    //get phenotype list from state if url is empty
+                    this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
+                        this.$store.state.phenotypeParam.split(",")[0]
+                    );
+                } else {
+                    console.error(
+                        "Error: Cannot display computed credible set. There's no phenotype selected."
+                    );
+                }
+            }
+        },
+        addAnnotationIntervalsPanel(r) {
+            this.$children[0].$refs.locuszoom.addIntervalsPanel(
+                "annotated-regions",
+                r.annotation,
+                "tissue",
+                this.enrichmentScoring,
+                Formatters.snakeFormatter(r.annotation)
+            );
+        },
+        addTissueIntervalsPanel(r) {
+            this.$children[0].$refs.locuszoom.addIntervalsPanel(
+                "tissue-regions",
+                r.tissue,
+                "annotation",
+                this.enrichmentScoring,
+                Formatters.snakeFormatter(r.tissue)
+            );
+        },
+        addTissueCoaccessibilityPanel(r) {
+            this.$children[0].$refs.locuszoom.addCoaccessibilityPanel(
+                r.tissue,
+                Formatters.snakeFormatter(r.tissue)
+            );
+        },
+        topPhenotype(topAssocData) {
+            return topAssocData[0];
+        },
+        setCriterionPhenotypes(phenotypeNames) {
+            this.regionPageSearchCriterion.splice(0);
+            phenotypeNames.forEach(this.pushCriterionPhenotype);
+        },
+        pushCriterionPhenotype(phenotypeName) {
+            this.regionPageSearchCriterion.push({
+                field: "phenotype",
+                threshold: phenotypeName,
+            });
+        },
+        isSifterAncestry() {
+            let sifterAncestry = ["AA", "EA", "EU", "HS", "SA"];
+            return sifterAncestry.includes(this.$store.state.ancestry);
+        },
+    },
+
+    render(createElement) {
+        return createElement(Template);
     },
 }).$mount("#app");
