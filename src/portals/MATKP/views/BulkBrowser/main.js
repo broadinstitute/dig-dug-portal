@@ -33,7 +33,7 @@ new Vue({
         return {
             loading: true,
             plotId: "bulk_heatmap",
-            plotHeight: 300,
+            plotDimensions: [300, 600],
             chart: null,
             chartWidth: 0,
             datasets: [],

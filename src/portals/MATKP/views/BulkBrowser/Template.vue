@@ -41,7 +41,7 @@
                                 :zNormData="$parent.zNormData"
                                 :samplesColumns="$parent.samplesColumns"
                                 :margin="$parent.margin"
-                                :plotHeight="$parent.plotHeight"
+                                :plotDimensions="$parent.plotDimensions"
                             >
                             </bulk-heatmap>
                         </div>

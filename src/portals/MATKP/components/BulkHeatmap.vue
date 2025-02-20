@@ -17,7 +17,7 @@ export default Vue.component("bulk-heatmap", {
     props: [
         "zNormData",
         "margin",
-        "plotHeight"
+        "plotDimensions",
     ],
     data() {
         return {
@@ -45,8 +45,10 @@ export default Vue.component("bulk-heatmap", {
         d3.select(plotId)
               .selectAll("text")
               .remove();
+
+        this.chartWidth = this.plotDimensions[1];
           let width = this.chartWidth - this.margin.left - this.margin.right - this.margin.middleSpacing;
-          let height = this.plotHeight;// - this.margin.top - this.margin.bottom;
+          let height = this.plotDimensions[0];// - this.margin.top - this.margin.bottom;
           this.svg = d3.select(plotId)
               .append("svg")
                   .attr("width", width + this.margin.left + this.margin.right)
