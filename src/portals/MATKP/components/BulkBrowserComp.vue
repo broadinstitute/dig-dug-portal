@@ -38,19 +38,8 @@
                                           :hoverFields="[]"
                                           :highlightLabel="cellCompositionVars.highlightLabel"
                                           :highlightLabels="cellCompositionVars.highlightLabels"
-                                          :width="400"
+                                          :width="600"
                                           :height="400"
-                                      />
-                                  </div>
-                                  <div v-if="fieldsDisplayList" style="display:flex; flex-direction: column; align-self: flex-start; width:200px; height:400px">
-                                      <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
-                                      <research-single-cell-selector 
-                                          :data="fields['metadata_labels']"
-                                          :selectedField="cellCompositionVars.colorByField"
-                                          layout="dropdown-list"
-                                          :colors="labelColors"
-                                          @on-update="handleSelectorUpdate($event)"
-                                          @on-hover="handleSelectorHover($event)"
                                       />
                                   </div>
                               </div>
@@ -80,41 +69,11 @@
                                           :hoverFields="[]"
                                           :highlightLabel="cellCompositionVars.highlightLabel"
                                           :highlightLabels="cellCompositionVars.highlightLabels"
-                                          :width="400"
+                                          :width="600"
                                           :height="400"
                                       />
                                   </div>
-
-
-                                  <div style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
-                                      <strong style="font-size: 16px; margin: 0 0 5px;">Gene Search</strong>
-                                      <div style="display:flex; flex-direction: column; height: 400px; gap:5px">
-                                          <div style="display:flex; gap:5px;">
-                                              <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:100%; position:relative;"/>
-                                              <button @click="searchGene(geneToSearch)">
-                                                  <svg :style="`display:${!geneLoading?'block':'none'}`" style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
-                                                  <div :style="`display:${geneLoading?'block':'none'}`" class="geneLoader"></div>
-                                              </button>
-                                          </div>
-                                          <div v-if="genesNotFound.length>0" style="display:flex; flex-direction:column; gap:1px; flex: 0 0 auto; max-height:100%; overflow-y: auto;">
-                                              <div v-for="gene in genesNotFound" style="display:flex; gap:5px; width:100%; background:#ff4500; color:white">
-                                                  <div style="display:flex; flex:1; align-items:center; padding:0 5px; font-size:12px;">{{gene}} not found.</div>
-                                                  <div @click="clearGeneNotFound(gene)" style="width:28px; height: 28px; display:flex; align-items:center; justify-content: center; font-size:18px; line-height:18px; cursor:pointer">×</div>
-                                              </div>
-                                          </div>
-
-                                          <research-single-cell-selector style="margin-top:4px; flex-grow:1; overflow-x: hidden; overflow-y: auto;"
-                                              :data="sortedGeneNames"
-                                              layout="list"
-                                              listSelection="exclusive"
-                                              :colors="null"
-                                              :selectedField="geneExpressionVars.selectedGene"
-                                              @on-update="geneClick($event.coloredLabels[0])"
-                                          />
-                                       
-                                      </div>
-                                  </div>
-                              </div>
+                                </div>
                           </div>
                       </div>
                   </div>
