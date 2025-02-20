@@ -1,20 +1,5 @@
 <template>
   <div style="display:flex; flex-direction: column; gap:10px; ">
-      <template v-if="false">
-          <b-table v-if="allMetadata"
-              :items="allMetadata"
-              :fields="tableColumns"
-              striped
-              hover
-              responsive="sm"
-              head-variant="light"
-          >
-              <template #cell(datasetId)="data">
-                  <button v-if="data.item.datasetId !== datasetId" @click="selectDataset(data.item.datasetId)">Select</button>
-                  <div v-else>Selected</div>
-              </template>
-          </b-table>
-      </template>
       <div v-if="!datasetId" style="color:red; margin:0 auto">
           Please Select a Dataset
       </div>
