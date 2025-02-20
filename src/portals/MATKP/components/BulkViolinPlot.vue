@@ -41,7 +41,7 @@ import { truncate } from 'lodash';
                 left: 50
             },
             svg: null,
-            fontSize: "13px",
+            fontSize: "12px",
             plotHeight: 300
         }
     },

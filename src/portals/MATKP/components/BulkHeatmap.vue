@@ -26,7 +26,7 @@ export default Vue.component("bulk-heatmap", {
           chartWidth: 0,
           color1: "blue",
           color2: "red",
-          fontSize: "13px",
+          fontSize: "12px",
           minExp: null,
           maxExp: null
         };
@@ -47,7 +47,7 @@ export default Vue.component("bulk-heatmap", {
               .remove();
 
         this.chartWidth = this.plotDimensions[1];
-          let width = this.chartWidth - this.margin.left - this.margin.right - this.margin.middleSpacing;
+        let width = this.plotDimensions[1];; //- this.margin.left - this.margin.right - this.margin.middleSpacing;
           let height = this.plotDimensions[0];// - this.margin.top - this.margin.bottom;
           this.svg = d3.select(plotId)
               .append("svg")

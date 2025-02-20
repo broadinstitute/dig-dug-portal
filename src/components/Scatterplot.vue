@@ -124,7 +124,7 @@ export default Vue.component("scatterplot", {
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale))
           .selectAll("text")
-            .style("font-size", "13px");
+            .style("font-size", "12px");
       this.svg.append("text")
         .attr("text-anchor", "middle")
         .attr("y", height + margin.top + 40)
@@ -138,7 +138,7 @@ export default Vue.component("scatterplot", {
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale))
           .selectAll("text")
-            .style("font-size", "13px");;
+            .style("font-size", "12px");;
       this.svg.append("text")
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")

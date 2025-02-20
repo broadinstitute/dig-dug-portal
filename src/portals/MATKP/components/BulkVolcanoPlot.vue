@@ -30,7 +30,7 @@ export default Vue.component("bulk-volcano-plot", {
       tooltip: null,
 			chart: null,
 			chartWidth: 0,
-			fontSize: "13px",
+			fontSize: "12px",
 		};
 	},
 	modules: {
