@@ -17,32 +17,17 @@
                   <!--left tab group-->
                   <div class="tabs-group">
                       <div class="tabs-wrapper">
-                          <div class="tab" >
-                              Cell Composition
+                          <div class="tab">
+                              Gene Expression
                           </div>
                       </div>
                       <div class="tabs-section-wrapper">
                           <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
-                              <div class="" style="display:flex; gap:20px;">
-                                  <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
-                                      <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                          <strong style="font-size: 16px; margin: 0 0 5px;">UMAP</strong> {{ metadata.totalCells.toLocaleString() }} cells
-                                      </div>
-                                      <research-umap-plot-gl 
-                                          :group="datasetId"
-                                          :points="coordinates"
-                                          :labels="fields"
-                                          :colors="labelColors"
-                                          :cellTypeField="cellTypeField"
-                                          :colorByField="cellCompositionVars.colorByField"
-                                          :hoverFields="[]"
-                                          :highlightLabel="cellCompositionVars.highlightLabel"
-                                          :highlightLabels="cellCompositionVars.highlightLabels"
-                                          :width="600"
-                                          :height="400"
-                                      />
+                              <div class="" style="display:flex; gap:20px">
+                                  <div v-if="coordinates" style="display:flex; flex-direction: column; min-width: 600px;">
+                                      
                                   </div>
-                              </div>
+                                </div>
                           </div>
                       </div>
                   </div>
@@ -55,23 +40,8 @@
                       <div class="tabs-section-wrapper">
                           <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
                               <div class="" style="display:flex; gap:20px">
-                                  <div v-if="coordinates" style="display:flex; flex-direction: column; width: min-content;">
-                                      <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                          <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">UMAP</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ metadata.totalCells.toLocaleString() }} cells
-                                      </div>
-                                      <research-umap-plot-gl 
-                                          :group="datasetId"
-                                          :points="coordinates"
-                                          :labels="fields"
-                                          :colors="labelColors"
-                                          :expression="expressionData[geneExpressionVars.selectedGene]"
-                                          :cellTypeField="cellTypeField"
-                                          :hoverFields="[]"
-                                          :highlightLabel="cellCompositionVars.highlightLabel"
-                                          :highlightLabels="cellCompositionVars.highlightLabels"
-                                          :width="600"
-                                          :height="400"
-                                      />
+                                  <div v-if="coordinates" style="display:flex; flex-direction: column; min-width: 600px;">
+                                      
                                   </div>
                                 </div>
                           </div>
@@ -89,24 +59,14 @@
   import keyParams from "@/utils/keyParams";
   import EventBus from "@/utils/eventBus"
   import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
-  import ResearchUmapPlot from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlot.vue";
   import ResearchUmapPlotGL from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
-  import ResearchStackedBarPlot from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot.vue";
-  import ResearchDotPlot from "@/components/researchPortal/singleCellBrowser/ResearchDotPlot.vue";
-  import ResearchViolinPlot from "@/components/researchPortal/singleCellBrowser/ResearchViolinPlot.vue";
-  import ResearchSingleCellSelector from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellSelector.vue";
   import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 
   const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"]
 
   export default Vue.component('bulk-browser-comp', {
       components: {
-          ResearchUmapPlot,
           ResearchUmapPlotGL,
-          ResearchStackedBarPlot,
-          ResearchDotPlot,
-          ResearchViolinPlot,
-          ResearchSingleCellSelector,
           ResearchSingleCellInfo
       },
       props: {
