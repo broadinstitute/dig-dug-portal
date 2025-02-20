@@ -250,6 +250,14 @@ let pages = {
         title: "Help",
         chunks: ["chunk-vendors", "chunk-common", "help"],
     },
+    pigean_gene: {
+        entry: "src/views/PIGEAN/Gene/main.js",
+        template: "public/index.html",
+        filename: "pigean/gene.html",
+        title: "PIGEAN Gene Info",
+        chunks: ["chunk-vendors", "chunk-common", "pigean_gene"],
+    },
+    
 };
 
 // remove the debug page in production
