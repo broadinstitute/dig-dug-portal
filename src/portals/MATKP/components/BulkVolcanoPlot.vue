@@ -42,10 +42,10 @@ export default Vue.component("bulk-volcano-plot", {
 	mounted: function () {
 		this.chart = document.getElementById(`vector_wrapper_${this.sectionId}`);
 		this.chartWidth = this.chart.clientWidth;
-		addEventListener("resize", (event) => {
+		/* addEventListener("resize", (event) => {
 				this.chartWidth = this.chart.clientWidth;
 				this.renderPlot();
-		});
+		}); */
 		this.renderPlot();
 	},
 	beforeDestroy() {

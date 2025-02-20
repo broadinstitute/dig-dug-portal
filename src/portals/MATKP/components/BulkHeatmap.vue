@@ -47,8 +47,8 @@ export default Vue.component("bulk-heatmap", {
               .remove();
 
         this.chartWidth = this.plotDimensions[1];
-        let width = this.plotDimensions[1];; //- this.margin.left - this.margin.right - this.margin.middleSpacing;
-          let height = this.plotDimensions[0];// - this.margin.top - this.margin.bottom;
+        let width = this.plotDimensions[1];
+          let height = this.plotDimensions[0];
           this.svg = d3.select(plotId)
               .append("svg")
                   .attr("width", width + this.margin.left + this.margin.right)
@@ -198,10 +198,10 @@ export default Vue.component("bulk-heatmap", {
 
       this.chart = document.getElementById(this.plotId);
         this.chartWidth = this.chart.clientWidth;
-        addEventListener("resize", (event) => {
+        /* addEventListener("resize", (event) => {
             this.chartWidth = this.chart.clientWidth;
             this.drawHeatMap();
-        });
+        }); */
         this.drawHeatMap();
     }
 });
