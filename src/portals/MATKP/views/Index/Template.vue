@@ -8,36 +8,54 @@
             <!-- BODY -->
             <div class="mat-body f-col align-h-center">
                 
-                <div class="f-row align-v-bottom" style="padding: 50px 0 10px; background:none">
-                    <div class="hero-label f-col align-v-center no-events">
-                        <div class="logo f-row align-v-center">
-                            <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png"/>
-                            <div style="font-size: 22px;line-height: 22px;font-weight: bold;">
-                                Mammalian<br />
-                                Adipose<br />
-                                Tissue<br />
-                                <span style="font-size: 15px;display: block;font-weight: normal;">
-                                    Knowledge Portal
-                                </span>
+                <div class="f-col" style="gap:30px">
+                    <div class="f-row align-v-bottom" style="padding: 50px 0 10px; background:none">
+                        <div class="hero-label f-col align-v-center no-events">
+                            <div class="logo f-row align-v-center">
+                                <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png"/>
+                                <div style="font-size: 22px;line-height: 22px;font-weight: bold;">
+                                    Mammalian<br />
+                                    Adipose<br />
+                                    Tissue<br />
+                                    <span style="font-size: 15px;display: block;font-weight: normal;">
+                                        Knowledge Portal
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="f-col hero-info no-events" style="z-index: 1; gap: 20px; flex: 1">
-                        <div class="tagline">
-                            An open community portal for adipose biology across multiple mammalian species
+                        <div class="f-col hero-info no-events" style="z-index: 1; gap: 20px;">
+                            <div class="tagline">
+                                An open community portal for adipose biology across multiple mammalian species
+                            </div>
+                            <!--
+                            <b-input-group size="sm" style="pointer-events: none; opacity: 0.7">
+                                <input type="text" placeholder="Search gene, cell type or trait"/>
+                                <b-button class="button-lock-right" @click="">
+                                    Search
+                                </b-button>
+                            </b-input-group>
+                            -->
+                            <a class="matkp-input" style="pointer-events: all" href="/datasets.html">
+                                Browse all Datasets
+                            </a>
+                            
                         </div>
-                        <!--
-                        <b-input-group size="sm" style="pointer-events: none; opacity: 0.7">
-                            <input type="text" placeholder="Search gene, cell type or trait"/>
-                            <b-button class="button-lock-right" @click="">
-                                Search
-                            </b-button>
-                        </b-input-group>
-                        -->
-                        <a class="matkp-input" style="pointer-events: all" href="/datasets.html">
-                            Browse all Datasets
-                        </a>
-                        
+                    </div>
+
+                    <div class="section" v-if="$parent.newsFeed" style="width: auto; background: #ffffff60; backdrop-filter: blur(5px);">
+                        <div class="news-items">
+                            <div class="news-item f-row">
+                                <div class="news-thumbnail contain"
+                                    v-html="$parent.newsFeed[0].field_thumbnail_image"
+                                ></div>
+                                <div class="f-col">
+                                    <a :href="`${$parent.content.news.newsItemUrl}${$parent.newsFeed[0].nid}`">
+                                        <div class="">{{ $parent.newsFeed[0].title }}</div>
+                                    </a>
+                                    <div class="" v-html="$parent.newsFeed[0].body"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -151,14 +169,6 @@
     max-width: 1400px;
     border-radius: 20px;
 }
-.logline {
-    font-size: 20px;
-    line-height: 26px;
-    font-weight: bold;
-    text-align: center;
-    width: 650px;
-    margin: 10px auto 40px;
-}
 .highlight-text{
     background: gold;
     padding: 0 3px;
@@ -189,9 +199,9 @@
 }
 .tagline {
     z-index: 1;
-    width: 500px;
+    width: 400px;
     line-height: normal;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     color: #424242;
 }
