@@ -8,56 +8,77 @@
             <!-- BODY -->
             <div class="mat-body f-col align-h-center">
                 
-                <div class="f-col" style="gap:30px">
-                    <div class="f-row align-v-bottom" style="padding: 50px 0 10px; background:none">
-                        <div class="hero-label f-col align-v-center no-events">
+                <div class="f-col" style="gap:30px;">
+                    <div class="f-row align-v-bottom" style="padding: 50px 0 10px; background:none; gap:50px">
+                        <div class="hero-label f-row align-v-center align-h-center no-events">
                             <div class="logo f-row align-v-center">
                                 <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png"/>
                                 <div style="font-size: 22px;line-height: 22px;font-weight: bold;">
                                     Mammalian<br />
                                     Adipose<br />
                                     Tissue<br />
-                                    <span style="font-size: 15px;display: block;font-weight: normal;">
+                                    <span style="font-size: 14px;display: block;font-weight: normal;">
                                         Knowledge Portal
                                     </span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="f-col hero-info no-events" style="z-index: 1; gap: 20px;">
                             <div class="tagline">
                                 An open community portal for adipose biology across multiple mammalian species
                             </div>
-                            <!--
+                        </div>
+
+                        <!--
+                        <div class="f-col align-v-center no-events" style="z-index: 1; gap: 20px; height:100%">
                             <b-input-group size="sm" style="pointer-events: none; opacity: 0.7">
                                 <input type="text" placeholder="Search gene, cell type or trait"/>
                                 <b-button class="button-lock-right" @click="">
                                     Search
                                 </b-button>
                             </b-input-group>
-                            -->
+                            
                             <a class="matkp-input" style="pointer-events: all" href="/datasets.html">
                                 Browse all Datasets
                             </a>
-                            
+                        </div>
+                        -->
+                    </div>
+                </div>
+
+                <div class="f-row align-v-center" style="gap:50px;">
+                    <div class="f-row fill-width grow-children" style="gap:20px; width:400px">
+                        <div class="f-col" style="gap:5px">
+                            <div style="font-size:16px; font-weight:bold">Browse Datasets</div>
+                            <a class="yes-events" href="/datasets.html?data_type=single_cell">Single cell RNA-seq</a>
+                            <a class="yes-events" href="/datasets.html?data_type=bulk_rna">Bulk RNA-seq</a>
+                        </div>
+                        <div class="f-col" style="gap:5px">
+                            <div style="font-size:16px; font-weight:bold">Explore Data</div>
+                            <div class="f-row" style="gap:5px">
+                                <a class="yes-events" href="/cellbrowser.html?dataset=SingleCell_Emont2022_Humans_SCP1376_SN_SAT">Single cell </a> Emont, M. (2022)
+                            </div>
+                            <div class="f-row" style="gap:5px">
+                                <a class="yes-events" href="/bulkbrowser.html?dataset=bulkRNA_Emont2022_Humans_SAT">Bulk</a> Emont, M. (2022)
+                            </div>
                         </div>
                     </div>
 
-                    <div class="section" v-if="$parent.newsFeed" style="width: auto; background: #ffffff60; backdrop-filter: blur(5px);">
+                    <div v-if="$parent.newsFeed && $parent.newsFeed.length>0" style="width: 350px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
                         <div class="news-items">
                             <div class="news-item f-row">
-                                <div class="news-thumbnail contain"
+                                <div class="news-thumbnail contain" style="height:70px; min-width:100px"
                                     v-html="$parent.newsFeed[0].field_thumbnail_image"
                                 ></div>
-                                <div class="f-col">
-                                    <a :href="`${$parent.content.news.newsItemUrl}${$parent.newsFeed[0].nid}`">
-                                        <div class="">{{ $parent.newsFeed[0].title }}</div>
+                                <div class="f-col align-v-bottom" style="width:200px">
+                                    <div class="bold">{{ $parent.newsFeed[0].title }}</div>
+                                    <a class="yes-events" :href="`${$parent.content.news.newsItemUrl}${$parent.newsFeed[0].nid}`">
+                                        Read more
                                     </a>
-                                    <div class="" v-html="$parent.newsFeed[0].body"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                
 
                 <!-- CONTENT -->
                 <div class="section f-row" style="gap:50px;">
@@ -167,7 +188,6 @@
     padding: 40px;
     width:90vw;
     max-width: 1400px;
-    border-radius: 20px;
 }
 .highlight-text{
     background: gold;
@@ -182,20 +202,18 @@
     z-index: 1;
     background: #ffffff50;
     backdrop-filter: blur(5px);
-    padding: 40px;
-    aspect-ratio: 1;
+    padding: 80px;
+    width: 90vw;
+    gap:100px;
     box-shadow: 0 0 10px 0 #42424220;
+    
 }
 .logo {
     color: #424242;
     gap: 20px;
 }
 .logo img {
-    height: 100px;
-}
-.hero-info {
-    margin: 0 0 0 30px;
-    padding: 0 0 0 20px;
+    height: 120px;
 }
 .tagline {
     z-index: 1;
@@ -212,5 +230,35 @@
     height: 100%;
     z-index: 1;
     border-radius: 0;
+}
+
+.news-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.news-item {
+    gap: 10px;
+}
+.news-thumbnail {
+    min-width: 200px;
+    height: 100px;
+    background: #fbfbfb;
+    border: 1px solid #eee;
+}
+.news-thumbnail img {
+    mix-blend-mode: darken;
+}
+::v-deep .contain img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 7%;
+}
+
+::v-deep .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 </style>

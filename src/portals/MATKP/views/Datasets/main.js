@@ -183,7 +183,7 @@ new Vue({
         },
         async getDatasets() {
             const fetchPath =
-                "/api/raw/file/single_cell_metadata/dataset_metadata.json.gz";
+                "/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
             const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
             const dataText = await response.text();
             const lines = dataText

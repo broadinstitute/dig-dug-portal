@@ -1,3 +1,13 @@
+:root {
+    --matkp-yellow: #ffe514;
+    --matkp-yellow-b: #ffd10c;
+    --matkp-orange: #ff6c02;
+    --matkp-orange-b: #ffaa01;
+    --matkp-magenta: #ff04a7;
+    --matkp-violet: #e101ff;
+    --matkp-glass: #ffffff50;
+}
+
 body, 
 body.kp-default{
     margin: 0;
@@ -39,6 +49,15 @@ body.kp-default{
     }
     .gold-txt{
         color: #ffd10c;
+    }
+
+    a, a:visited{
+        color:#ff6c02 !important;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    a:hover{
+        text-decoration: underline;
     }
     
     .mat-header, .mat-footer{
@@ -163,6 +182,9 @@ body.kp-default{
     /* LAYOUT STYLES */
     .no-events{
         pointer-events: none;
+    }
+    .yes-events{
+        pointer-events: all;
     }
     .f-col{
         display: flex;
