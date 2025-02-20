@@ -23,11 +23,17 @@
                     ></research-single-search>
                     <!-- single search version 2.0-->
                     <research-single-search-v2
-    				v-if="!!sectionConfigs['content']['single search version'] && sectionConfigs['content']['single search version'] == '2.0'"
-    				:single-search-config="sectionConfigs['content']"
-    				:phenotypes="phenotypesInUse"
-    				:utils="utilsBox"
-    			></research-single-search-v2>                    
+                        v-if="!!sectionConfigs['content']['single search version'] && sectionConfigs['content']['single search version'] == '2.0'"
+                        :single-search-config="sectionConfigs['content']"
+                        :phenotypes="phenotypesInUse"
+                        :utils="utilsBox"
+                    ></research-single-search-v2>
+                    <research-single-search-cfde
+                        v-if="!!sectionConfigs['content']['single search version'] && sectionConfigs['content']['single search version'] == 'cfde'"
+                        :single-search-config="sectionConfigs['content']['single search']"
+                        :phenotypes="phenotypesInUse"
+                        :utils="utilsBox"
+                    ></research-single-search-cfde>                      
                 </div>
                 <div v-if="!!sectionConfigs['content']['search examples']" class="fp-search-examples">
                     <span v-html="'examples: '"></span>
@@ -52,13 +58,15 @@
 import Vue from "vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
+import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 
 export default Vue.component("research-front-page", {
 	props: ["sectionConfigs","pageDescription", "utilsBox","phenotypeMap","phenotypesInUse"],
     
 	components: {
         ResearchSingleSearch,
-        ResearchSingleSearchV2
+        ResearchSingleSearchV2,
+        ResearchSingleSearchCFDE
     },
 
 	data() {
