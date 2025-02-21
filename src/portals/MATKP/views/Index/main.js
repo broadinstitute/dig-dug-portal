@@ -28,7 +28,7 @@ new Vue({
                     feedUrl:
                         "https://hugeampkpncms.org/rest/news_list?project=matkp",
                     newsUrl: "/news.html",
-                    newsItemUrl: "/news.html?id=",
+                    newsItemUrl: "info.html?page=news&id=",
                 },
             },
             newsFeed: null,
