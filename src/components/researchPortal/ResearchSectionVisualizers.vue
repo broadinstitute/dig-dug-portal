@@ -54,12 +54,8 @@
 			<research-bar-in-cell-plot
 				v-if="plotConfig['type'] == 'bar in cell plot'"
 				:plotData="plotData"
-				:phenotypeMap="phenotypeMap"
-				:colors="colors.extraBold"
 				:plotMargin="plotMargin"
 				:plotConfig="plotConfig"
-				:pkgData="null"
-				:pkgDataSelected="null"
 				:canvasId="sectionId"
 				:utils="utils"
 			></research-bar-in-cell-plot>
