@@ -109,6 +109,60 @@ import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPl
 
 Vue.use(BootstrapVueIcons);
 
+/* Example config:
+{
+  "is multi section": "true",
+  "sections": [
+    {
+      "section id": "plotTest",
+      "header": "Bar in cell plot test",
+      "data point": {
+        "type": "api",
+        "url": "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue",
+        "data type": "csv",
+        "data wrapper": [
+          0,
+          "field_data_points"
+        ]
+      },
+      "visualizer": {
+        "type": "bar in cell plot",
+        "label": "Plot name",
+        "x axis field": "Tissue Type",
+        "y axis field": "Program",
+        "bars in cell": [
+          {
+            "field": "Number of Control",
+            "color": "#ff0000",
+            "value type": "number"
+          },
+          {
+            "field": "Number of Treatment",
+            "color": "#0000ff",
+            "value type": "number"
+          },
+          {
+            "field": "Assay Type",
+            "color": "#666666",
+            "value type": "string"
+          }
+        ],
+        "bar width": 100,
+        "bar height": 20,
+        "plot margin": {
+          "left": 270,
+          "right": 30,
+          "top": 50,
+          "bottom": 40,
+          "bump": 10
+        }
+      }
+    }
+  ]
+}
+
+*/
+
 export default Vue.component("research-bar-in-cell-plot", {
 	props: [
 		"canvasId",
