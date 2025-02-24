@@ -1,5 +1,6 @@
 <template>
     <div :id="'region_track_wrapper'+sectionId" class="region-track-wrapper">
+        
         <div :id="'block_data_' + sectionId" class="block-data hidden">
             <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
                 <b-icon icon="x-circle-fill"></b-icon>
@@ -15,6 +16,7 @@
                          && !!item[plotConfig['set region parameter by']['field']]">
                             <br /><span style="color: #5fa331;">Click to set region.</span>
                         </template>
+                        <br />
                     </span>
                     <span v-if="infoBoxContent.action == 'click'">
                         <strong>{{ item.title }}</strong>
@@ -28,9 +30,10 @@
                             </button>
                             <br />Max length: {{ plotConfig['set region parameter by']['max region'] }}
                         </template>
+                        <br />
                     </span>
-                    <template v-if="infoBoxContent.data.lenght > 1">
-                        <br /><br />
+                    <template v-if="infoBoxContent.data.length > 1">
+                        <br />
                     </template>
                 </template>
             </div>
