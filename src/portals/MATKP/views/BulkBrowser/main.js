@@ -170,6 +170,9 @@ new Vue({
             if (newData !== oldData){
                 this.$store.dispatch("queryBulkFile");
                 this.$store.dispatch("queryBulk");
+                if (newData !== ""){
+                    this.getBulkMetadata();
+                }
             }
         },
         selectedComparison(newData, oldData){

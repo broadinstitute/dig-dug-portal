@@ -15,9 +15,9 @@
                     <div v-else-if="!$parent.dataLoaded" style="margin: 0 auto">
                         Loading...
                     </div>
-                    <div v-else style="display:flex; flex-direction: column; gap:20px; width: 100%;">
+                    <div style="display:flex; flex-direction: column; gap:20px; width: 100%;">
                         <div style="display:flex; flex-direction:column; gap:20px; align-self:center; background:#f8f8f8; padding:20px;">
-                            <research-single-cell-info 
+                            <research-single-cell-info v-if="!!$store.state.selectedDataset"
                                 :data="$parent.bulkMetadata"
                             />
 
@@ -89,7 +89,7 @@
                                                         >
                                                         </bulk-heatmap>
                                                     </div>
-                                                    <div v-else-if="!$store.state.selectedDataset">
+                                                    <div v-else>
                                                         Select a dataset and a comparison to view the heatmap.
                                                     </div>
                                                 </div>
