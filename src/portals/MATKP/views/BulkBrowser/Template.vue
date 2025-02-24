@@ -15,7 +15,7 @@
                   :renderConfig="$parent.scbConfig"
                   :utils="$parent.utils"
                   :data="$parent.data"
-                  :bulkDataset="$store.state.selectedDataset"
+                  :datasetId="$store.state.selectedDataset"
               ></bulk-browser-comp>
               </template>
           </div>

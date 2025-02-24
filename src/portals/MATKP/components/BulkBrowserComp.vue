@@ -85,10 +85,10 @@
               type: Array,
               required: true
           },
-          bulkDataset: {
+          datasetId: {
             type: String,
             required: true
-          }
+          },
       },
       data() {
           return {
@@ -96,13 +96,8 @@
               bulkMetadata: null,
               fields: null,   //raw fields
               coordinates: null,  //raw coordinates
-              markers: null, //raw marker genes
 
               datasetId: null,
-              cellTypeField: null,
-
-              labelColors: null,
-              fieldsDisplayList: null,
 
               dataLoaded: false,
               preloadItem: '',
@@ -121,93 +116,22 @@
       },
       computed: {},
       methods: {
-          clean(){
-              this.dataLoaded = false;
-              this.dataReady = false;
-              this.expressionData = {};
-              this.geneNames = [];
-              this.markersList = [];
-              this.expressionStatsAll = [];
-              this.genesNotFound = [];
-              this.cellCompositionVars = {
-                  colorByField: null,
-                  highlightLabel: '',
-                  highlightLabels: [],
-                  segmentByCounts2: null,
-                  displayByLabel: null,
-                  subsetLabel: "",
-              },
-              this.geneExpressionVars = {
-                  selectedGene: null,
-                  expressionStats: [],
-                  selectedLabel: null,
-                  subsetLabel: "",
-              }
-          },
           async init(){
               await this.getBulkMetadata();
               //check which components to enable based on config options
               //all are enabled by default if not set
-              this.componentsConfig = this.renderConfig["components"];
-              this.presetsConfig = this.renderConfig["presets"];
-
-              this.layout = this.presetsConfig?.["layout"] || 0;
-
-              //check for requested datasetId
-              /* it can come from multiple places
-                  1. 'on-select' event from byor
-                  2. query string param
-                  3. config preset
-              */
-              if(!this.datasetId || this.datasetId === ''){
-                  if(keyParams[this.renderConfig["parameters"]?.datasetId]){
-                      this.datasetId = keyParams[this.renderConfig["parameters"].datasetId];
-                  }else if(this.presetsConfig?.datasetId){
-                      this.datasetId = this.presetsConfig.datasetId
-                  }else{
-                      return;
-                  }
-              }
-
-              //clear existing data
-              this.clean();
-              
-              //fetch base data
-
-              //metadata
-              this.dataLoaded = false;
-              this.preloadItem = 'metadata';
-              const metadataUrl = this.renderConfig["data points"].find(x => x.role === "metadata");
-              this.allMetadata = await scUtils.fetchMetadata(metadataUrl.url);
-              this.metadata = this.allMetadata.find(x => x.datasetId === this.datasetId);
-
-              //fields
-              this.preloadItem = 'fields';
-              const fieldsUrl = this.renderConfig["data points"].find(x => x.role === "fields");
-              this.fields = await scUtils.fetchFields(fieldsUrl.url, this.datasetId);
 
               //coordinates
               this.preloadItem = 'coordinates';
               const coordinatesUrl = this.renderConfig["data points"].find(x => x.role === "coordinates");
-              this.coordinates = await scUtils.fetchCoordinates(coordinatesUrl.url, this.datasetId);
+              this.coordinates = await scUtils.fetchCoordinates(coordinatesUrl.url, this.bulkDataset);
 
 
               this.preloadItem = '';
               this.dataLoaded = true;
 
               await Vue.nextTick();
-
-              //which field designates cell types or fallback as first field
-              const givenCellTypeLabel = this.presetsConfig?.["cell type label"];
-              const fieldsList = Object.keys(this.fields.metadata_labels);
               
-              this.cellTypeField = givenCellTypeLabel;
-              
-              
-              //preset base visualizers to display by cell type
-              this.cellCompositionVars.colorByField = this.cellTypeField;
-
-              this.geneExpressionVars.selectedLabel = this.cellTypeField;
 
               this.dataReady = true;
 
