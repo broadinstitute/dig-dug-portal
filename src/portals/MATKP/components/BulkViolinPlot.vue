@@ -36,9 +36,9 @@ import { truncate } from 'lodash';
             yField: "lognorm_counts",
             margin: {
                 top: 10,
-                right: 30,
-                bottom: 50,
-                left: 50
+                right: 10,
+                bottom: 60,
+                left: 70
             },
             svg: null,
             fontSize: "13px",
@@ -185,8 +185,8 @@ import { truncate } from 'lodash';
             this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("transform", "rotate(-90)")
-                .attr("y", -this.margin.left + 15)
-                .attr("x", - height / 2 - this.margin.top)
+                .attr("y", -35)
+                .attr("x", - height / 2)
 				.text("Lognorm counts");
         },
         truncateLabel(label){

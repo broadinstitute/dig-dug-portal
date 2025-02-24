@@ -143,7 +143,7 @@ export default Vue.component("scatterplot", {
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
         .attr("y", -margin.left + 20)
-        .attr("x", - height / 2 - margin.top)
+        .attr("x", - height / 2)
         .text(this.config.yAxisLabel || this.config.yField);
 
       // add dots
