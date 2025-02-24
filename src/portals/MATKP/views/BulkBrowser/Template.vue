@@ -9,55 +9,103 @@
               style="max-width: 1400px; margin: 0 auto; width: -webkit-fill-available"
           >
               <div style="display:flex; flex-direction: column; gap:10px; ">
-      <div v-if="!$store.state.selectedDataset" style="color:red; margin:0 auto">
-          Please Select a Dataset
-      </div>
-      <div v-else-if="!$parent.dataLoaded" style="margin: 0 auto">
-          Loading...
-      </div>
-      <div v-else style="display:flex; flex-direction: column; gap:20px; width: 100%;">
-          <div style="display:flex; flex-direction:column; gap:20px; align-self:center; background:#f8f8f8; padding:20px;">
-              <research-single-cell-info 
-                  :data="$parent.bulkMetadata"
-              />
-              <div v-if="$parent.dataReady" class="" style="display:flex; gap:20px">
-                  <!--left tab group-->
-                  <div class="tabs-group">
-                      <div class="tabs-wrapper">
-                          <div class="tab">
-                              Gene Expression
-                          </div>
-                      </div>
-                      <div class="tabs-section-wrapper">
-                          <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
-                              <div class="" style="display:flex; gap:20px">
-                                  <div style="display:flex; flex-direction: column; min-width: 600px;">
-                                      
-                                  </div>
+                    <div v-if="!$store.state.selectedDataset" style="color:red; margin:0 auto">
+                        Please Select a Dataset
+                    </div>
+                    <div v-else-if="!$parent.dataLoaded" style="margin: 0 auto">
+                        Loading...
+                    </div>
+                    <div v-else style="display:flex; flex-direction: column; gap:20px; width: 100%;">
+                        <div style="display:flex; flex-direction:column; gap:20px; align-self:center; background:#f8f8f8; padding:20px;">
+                            <research-single-cell-info 
+                                :data="$parent.bulkMetadata"
+                            />
+
+                            <div v-if="$parent.dataReady" class="" style="display:flex; gap:20px">
+                                <!--left tab group-->
+                                <div class="tabs-group">
+                                    <div class="tabs-wrapper">
+                                        <div class="tab">
+                                            Select a dataset
+                                        </div>
+                                    </div>
+                                    <div class="tabs-section-wrapper">
+                                        <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
+                                            <div class="" style="display:flex; gap:20px">
+                                                <div style="display:flex; flex-direction: column; min-width: 600px;">
+                                                    <select v-model="$store.state.selectedDataset">
+                                                        <option value="">Select a dataset</option>
+                                                        <option v-for="dataset in $parent.datasets"
+                                                            :value="dataset">
+                                                            {{ dataset }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                </div>
+                                        </div>
+                                    </div>
                                 </div>
-                          </div>
-                      </div>
-                  </div>
-                  <div class="tabs-group">
-                      <div class="tabs-wrapper">
-                          <div class="tab">
-                              Gene Expression
-                          </div>
-                      </div>
-                      <div class="tabs-section-wrapper">
-                          <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
-                              <div class="" style="display:flex; gap:20px">
-                                  <div style="display:flex; flex-direction: column; min-width: 600px;">
-                                      
-                                  </div>
+                                <div class="tabs-group">
+                                    <div class="tabs-wrapper">
+                                        <div class="tab">
+                                            Select a comparison
+                                        </div>
+                                    </div>
+                                    <div class="tabs-section-wrapper">
+                                        <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
+                                            <div class="" style="display:flex; gap:20px">
+                                                <div style="display:flex; flex-direction: column; min-width: 600px;">
+                                                    <select v-model="$store.state.selectedComparison">
+                                                        <option value="">Select a comparison</option>
+                                                        <option v-for="comparison in $parent.comparisons"
+                                                            :value="comparison">
+                                                            {{ comparison }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-            </div>
-      </div>
-  </div>
+                            </div>
+                            <div v-if="$parent.dataReady" class="" style="display:flex; gap:20px">
+                                <!--left tab group-->
+                                <div class="tabs-group">
+                                    <div class="tabs-wrapper">
+                                        <div class="tab">
+                                            Gene Expression
+                                        </div>
+                                    </div>
+                                    <div class="tabs-section-wrapper">
+                                        <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
+                                            <div class="" style="display:flex; gap:20px">
+                                                <div style="display:flex; flex-direction: column; min-width: 600px;">
+                                                    
+                                                </div>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tabs-group">
+                                    <div class="tabs-wrapper">
+                                        <div class="tab">
+                                            Gene Expression
+                                        </div>
+                                    </div>
+                                    <div class="tabs-section-wrapper">
+                                        <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
+                                            <div class="" style="display:flex; gap:20px">
+                                                <div style="display:flex; flex-direction: column; min-width: 600px;">
+                                                    
+                                                </div>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
           </div>
           <!-- FOOTER -->
           <matkp-footer></matkp-footer>
