@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h5>Top 20 Differentially Expressed Genes</h5>
+    <!-- <h5>Top 20 Differentially Expressed Genes</h5> -->
     <div :id="plotId">
     </div>
   </div>
@@ -132,7 +132,6 @@ export default Vue.component("bulk-heatmap", {
         try {
             const response = await fetch(queryUrl);
             const data = await(response.json());
-
             return data.sample_id;
         }
         catch(error) {
