@@ -24,7 +24,7 @@
                       <div class="tabs-section-wrapper">
                           <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
                               <div class="" style="display:flex; gap:20px">
-                                  <div v-if="coordinates" style="display:flex; flex-direction: column; min-width: 600px;">
+                                  <div style="display:flex; flex-direction: column; min-width: 600px;">
                                       
                                   </div>
                                 </div>
@@ -40,7 +40,7 @@
                       <div class="tabs-section-wrapper">
                           <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
                               <div class="" style="display:flex; gap:20px">
-                                  <div v-if="coordinates" style="display:flex; flex-direction: column; min-width: 600px;">
+                                  <div style="display:flex; flex-direction: column; min-width: 600px;">
                                       
                                   </div>
                                 </div>
@@ -90,10 +90,6 @@
           return {
               allMetadata: null, //raw metadata for all datasets
               bulkMetadata: null,
-              fields: null,   //raw fields
-              coordinates: null,  //raw coordinates
-              coordinatesUrl: "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz",
-
               dataLoaded: false,
               preloadItem: '',
               dataReady: false,
@@ -113,20 +109,8 @@
       methods: {
           async init(){
               await this.getBulkMetadata();
-              //check which components to enable based on config options
-              //all are enabled by default if not set
-
-              //coordinates
-              this.coordinates = await scUtils.fetchCoordinates(this.coordinatesUrl, this.bulkDataset);
-
               this.dataLoaded = true;
-
-              await Vue.nextTick();
-              
-
               this.dataReady = true;
-
-              await Vue.nextTick();
 
           },
           async getBulkMetadata(){
