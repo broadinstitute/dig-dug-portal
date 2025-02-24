@@ -125,6 +125,18 @@
                                     </div>
                                 </div>
                             </div>
+                        
+                            <div v-if="$parent.dataReady" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
+                                <div style="display:flex; flex-direction: column; gap:20px;">
+                                    <bulk-table
+                                        :bulkData="$parent.bulkData19K"
+                                        :dataset="$store.state.selectedDataset"
+                                        :config="$parent.tableConfig"
+                                        :scatterConfig="$parent.scatterplotConfig">
+
+                                    </bulk-table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
