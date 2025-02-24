@@ -132,7 +132,6 @@ export default Vue.component("bulk-heatmap", {
         try {
             const response = await fetch(queryUrl);
             const data = await(response.json());
-
             return data.sample_id;
         }
         catch(error) {
