@@ -13,7 +13,8 @@ import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
-import BulkBrowserComp from "../../components/BulkBrowserComp.vue";
+import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
+import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import * as d3 from 'd3';
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
@@ -28,6 +29,7 @@ new Vue({
         BulkTable,
         BulkViolinPlot,
         ResearchSingleCellBrowser,
+        ResearchSingleCellInfo,
         uiUtils
     },
     mixins: [matkpMixin],
@@ -35,6 +37,10 @@ new Vue({
     data() {
         return {
             loading: true,
+            dataLoaded: false,
+            dataReady: false,
+            allMetadata: null,
+            bulkMetadata: null,
             plotId: "bulk_heatmap",
             plotHeight: 300,
             chart: null,
@@ -116,13 +122,31 @@ new Vue({
         }
     },
     async mounted() {
+        this.init();
     },
     created() {
-        this.$store.dispatch("queryBulkFile");
-        this.$store.dispatch("queryBulk");
-        this.getParams();
     },
     methods: {
+        async init(){
+            this.$store.dispatch("queryBulkFile");
+            this.$store.dispatch("queryBulk");
+            this.getParams();
+
+            await this.getBulkMetadata();
+            this.dataLoaded = true;
+            this.dataReady = true;
+
+        },
+        async getBulkMetadata(){
+          if (!this.allMetadata){
+            let metadataUrl = "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
+            let myMetadata = await scUtils.fetchMetadata(metadataUrl);
+            this.allMetadata = myMetadata;
+          }
+        
+         this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+         console.log(this.allMetadata);
+      },
         getTop20(data){
             let processedData = data.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
             return processedData;
