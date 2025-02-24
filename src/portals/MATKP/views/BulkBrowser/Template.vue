@@ -12,7 +12,6 @@
               <!-- CONTENT -->
               <bulk-browser-comp 
                   sectionId="matkp"
-                  :renderConfig="$parent.scbConfig"
                   :utils="$parent.utils"
                   :data="$parent.data"
                   :datasetId="$store.state.selectedDataset"

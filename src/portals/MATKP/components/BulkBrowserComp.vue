@@ -73,10 +73,6 @@
               type: String,
               required: false,
           },
-          renderConfig: {
-              type: Object,
-              required: true,
-          },
           utils: {
               type: Object,
               required: true
@@ -96,8 +92,7 @@
               bulkMetadata: null,
               fields: null,   //raw fields
               coordinates: null,  //raw coordinates
-
-              datasetId: null,
+              coordinatesUrl: "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz",
 
               dataLoaded: false,
               preloadItem: '',
@@ -122,12 +117,8 @@
               //all are enabled by default if not set
 
               //coordinates
-              this.preloadItem = 'coordinates';
-              const coordinatesUrl = this.renderConfig["data points"].find(x => x.role === "coordinates");
-              this.coordinates = await scUtils.fetchCoordinates(coordinatesUrl.url, this.bulkDataset);
+              this.coordinates = await scUtils.fetchCoordinates(this.coordinatesUrl, this.bulkDataset);
 
-
-              this.preloadItem = '';
               this.dataLoaded = true;
 
               await Vue.nextTick();
