@@ -1002,20 +1002,17 @@ export default Vue.component("research-data-table", {
 			if(!!tableFormat["pre filters"]) {
 
 				let tempArr = [...new Set(data)];
+				
+				let filters = tableFormat["pre filters"];
+				let filterValues = {}
 
-				tableFormat["pre filters"].map(filter =>{
-
-					switch (filter.type) {
-						case 'filter out':
-							filter.values.map(v => {
-								tempArr = tempArr.filter(f => f[filter.field] != v);
-							})
-							
-							break;
-					}
+				filters.map(filter => {
+					filterValues[filter.parameter] = this.utils.keyParams[filter.parameter];
 				})
 
-				data = tempArr;
+				let returnData = this.utils.filterUtils.applyFilters(filters, tempArr, filterValues);
+
+				data = returnData;
 			}
 
 			//
