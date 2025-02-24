@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h5>Top 20 Differentially Expressed Genes</h5>
+    <!-- <h5>Top 20 Differentially Expressed Genes</h5> -->
     <div :id="plotId">
     </div>
   </div>

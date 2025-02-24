@@ -73,14 +73,25 @@
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
-                                            Gene Expression
+                                            Top 20 Differentially Expressed Genes
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
                                             <div class="" style="display:flex; gap:20px">
                                                 <div style="display:flex; flex-direction: column; min-width: 600px;">
-                                                    
+                                                    <div v-if="$parent.zNormData.length > 0">
+                                                        <bulk-heatmap
+                                                            :zNormData="$parent.zNormData"
+                                                            :samplesColumns="$parent.samplesColumns"
+                                                            :margin="$parent.margin"
+                                                            :plotHeight="$parent.plotHeight"
+                                                        >
+                                                        </bulk-heatmap>
+                                                    </div>
+                                                    <div v-else-if="!$store.state.selectedDataset">
+                                                        Select a dataset and a comparison to view the heatmap.
+                                                    </div>
                                                 </div>
                                                 </div>
                                         </div>
@@ -89,14 +100,25 @@
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
-                                            Gene Expression
+                                            Differentially Expressed Genes
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
                                             <div class="" style="display:flex; gap:20px">
                                                 <div style="display:flex; flex-direction: column; min-width: 600px;">
-                                                    
+                                                    <div v-if="$parent.bulkData19K.length> 0">
+                                                        <bulk-volcano-plot
+                                                            :renderData="$parent.bulkData19K"
+                                                            :renderConfig="$parent.volcanoConfig"
+                                                            :margin="$parent.margin"
+                                                            sectionId="_bulk">
+
+                                                        </bulk-volcano-plot>
+                                                    </div>
+                                                    <div v-else-if="!$store.state.selectedDataset">
+                                                        Select a dataset to view the volcano plot.
+                                                    </div>
                                                 </div>
                                                 </div>
                                         </div>
