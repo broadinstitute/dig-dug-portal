@@ -3,7 +3,7 @@
       <div v-if="tableData.length > 0">
           <div v-if="!isSubtable" class="text-right mb-2">
               <data-download
-                  :data="probData"
+                  :data="bulkData"
                   filename="pigean_gene"
               ></data-download>
           </div>
@@ -13,7 +13,7 @@
               small
               responsive="sm"
               :items="tableData"
-              :fields="probFields"
+              :fields="config.fields"
               :per-page="perPage"
               :current-page="currentPage"
               :sort-by="isSubtable? 'sample_id' : '-log10P'"
@@ -239,17 +239,11 @@ export default Vue.component("bulk-table", {
             };
             return config;
         },
-        probFields() {
-            return this.collateFields();
-        },
-        probData() {
-            return this.computeProbabilities();
-        },
         rows() {
             return this.bulkData.length || 0;
         },
         tableData() {
-            let data = this.probData;
+            let data = structuredClone(this.bulkData);
             //add subtableActive to each row
             data.forEach((row) => {
                 row.subtableActive = 0;
@@ -323,41 +317,6 @@ export default Vue.component("bulk-table", {
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
-        },
-        probability(val, prior = 0.05) {
-            let a = Math.exp(Math.log(prior) + val);
-            return a / (1 + a);
-        },
-        computeProbabilities() {
-            let data = structuredClone(this.bulkData);
-            for (let i = 0; i < this.config.fields.length; i++) {
-                let fieldConfig = this.config.fields[i];
-                if (!fieldConfig.showProbability) {
-                    continue;
-                }
-                let field = fieldConfig.key;
-                for (let j = 0; j < data.length; j++) {
-                    if (!!data[j][field]) {
-                        data[j][`${field}_probability`] = this.tpmFormatter(
-                            this.probability(data[j][field])
-                        );
-                    }
-                }
-            }
-            return data;
-        },
-        collateFields() {
-            let allFields = [];
-            this.config.fields.forEach((field) => {
-                if (field.showProbability) {
-                    allFields.push({
-                        key: `${field.key}_probability`,
-                        sortable: true,
-                    });
-                }
-                allFields.push(field);
-            });
-            return allFields;
         },
         toNumeric(geneData){
           let fieldsToConvert = this.contFields.map(i => i.key);
