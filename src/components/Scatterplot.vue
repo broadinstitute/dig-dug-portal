@@ -7,7 +7,7 @@
 				:chartId="`chart-${plotId}`"
 				>
 			</download-chart>
-      <div :id="plotId">
+      <div :id="plotId" class="plot">
         <p>Loading...</p>
       </div>
     </div>
@@ -71,7 +71,7 @@ export default Vue.component("scatterplot", {
       let margin = {
         top: 10,
         right: 30,
-        bottom: 60,
+        bottom: 110,
         left: !this.tightenLeft ? 90 : 55
       };
       let width = this.chartWidth - margin.left - margin.right;
@@ -143,7 +143,7 @@ export default Vue.component("scatterplot", {
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
         .attr("y", -margin.left + 20)
-        .attr("x", - height / 2 - margin.top)
+        .attr("x", - height / 2)
         .text(this.config.yAxisLabel || this.config.yField);
 
       // add dots
@@ -258,9 +258,14 @@ export default Vue.component("scatterplot", {
   }
 });
 </script>
-<style>
+<style scoped>
   @import url("/css/effectorGenes.css");
   .tooltip span {
       display: block;
+  }
+  .plot {
+    margin-right: 15px;
+    margin-bottom: 15px;
+    background-color: white;
   }
 </style>

@@ -18,6 +18,7 @@
               :current-page="currentPage"
               :sort-by="isSubtable? 'sample_id' : '-log10P'"
               :sort-desc="!isSubtable"
+              :sort-icon-left="true"
           >
               <template #cell(gene)="r">
                   <!-- Link to where? -->
@@ -34,62 +35,8 @@
                       {{ row.detailsShowing ? "Hide" : "Show" }}
                   </b-button>
               </template>
-              <template #cell(expand1)="row">
-                  <b-dropdown
-                      split
-                      right
-                      :text="
-                          row.detailsShowing && row.item.subtableActive === 1
-                              ? 'Hide'
-                              : 'Show'
-                      "
-                      variant="outline-primary"
-                      size="sm"
-                      @click="showDetails(row, 1)"
-                  >
-                      <b-dropdown-header id="dropdown-header-label">
-                          Top 5 Genes
-                      </b-dropdown-header>
-                      <b-dropdown-item
-                          v-for="gene in row.item.top_genes.split(';')"
-                          :key="gene"
-                          :href="`/pigean/gene.html?gene=${gene}${suffix}`"
-                      >
-                          {{ gene }}
-                      </b-dropdown-item>
-                  </b-dropdown>
-              </template>
-              <template #cell(expand2)="row">
-                  <b-dropdown
-                      split
-                      right
-                      :text="
-                          row.detailsShowing && row.item.subtableActive === 2
-                              ? 'Hide'
-                              : 'Show'
-                      "
-                      variant="outline-primary"
-                      size="sm"
-                      @click="showDetails(row, 2)"
-                  >
-                      <b-dropdown-header id="dropdown-header-label">
-                          Top 5 Gene Sets
-                      </b-dropdown-header>
-                      <b-dropdown-item
-                          v-for="geneSet in row.item.top_gene_sets.split(';')"
-                          :key="geneSet"
-                          :href="`/pigean/geneset.html?geneset=${geneSet}${suffix}`"
-                      >
-                          {{
-                              geneSet.length > 40
-                                  ? `${geneSet.slice(0, 40)}...`
-                                  : geneSet
-                          }}
-                      </b-dropdown-item>
-                  </b-dropdown>
-              </template>
               <template #row-details="row">
-                <div v-if="
+                <div class="subtable-all" v-if="
                           row.item.subtableActive === 1 &&
                           subtableData[subtableKey(row.item)]?.length > 0"
                   >
@@ -117,7 +64,7 @@
                     </div>
                     <div class="col-md-1"></div>
                   </div>
-                  <div class="row">
+                  <div class="row subtable-plots">
                     <div class="col-md-6">
                         <bulk-violin-plot 
                             :data="subtableData[subtableKey(row.item)]"
@@ -283,7 +230,7 @@ export default Vue.component("bulk-table", {
                 yAxisLabel: "Lognorm counts",
                 dotKey: "sample_id",
                 hoverBoxPosition: "both",
-                plotHeight: 300,
+                plotHeight: 350,
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},
                     {key: this.contField.key, label: this.contField.label},
@@ -460,7 +407,7 @@ label {
 .pigean-subtable {
     margin-left: 15px;
     padding-left: 30px;
-    background-color: #dedede;
+    background-color: #efefef;
 }
 .pigean-subtable .row .col-12 {
     padding: 0 0 0 5px !important;
@@ -474,5 +421,9 @@ button {
 }
 .subtable-selectors{
     margin-bottom: 20px;
+    padding-top: 20px;
+}
+.subtable-all {
+    background-color: #efefef;
 }
 </style>

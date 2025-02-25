@@ -1,5 +1,5 @@
 <template>
-    <div :id="`violinChart_${gene}`">
+    <div class="plot" :id="`violinChart_${gene}`">
     </div>
 </template>
   
@@ -36,13 +36,13 @@ import { truncate } from 'lodash';
             yField: "lognorm_counts",
             margin: {
                 top: 10,
-                right: 30,
-                bottom: 50,
-                left: 50
+                right: 10,
+                bottom: 110,
+                left: 70
             },
             svg: null,
             fontSize: "13px",
-            plotHeight: 300
+            plotHeight: 350
         }
     },
     watch: {
@@ -126,7 +126,8 @@ import { truncate } from 'lodash';
                 .call(d3.axisBottom(x))
                 .selectAll("text")
 				.style("font-size", this.fontSize)
-                .text(d => this.truncateLabel(d));
+                .style("text-anchor", "end")
+                .attr("transform", "rotate(-35) translate(-5, 0)");
             
             let histogram = d3.histogram()
                 .domain(y.domain())
@@ -185,8 +186,8 @@ import { truncate } from 'lodash';
             this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("transform", "rotate(-90)")
-                .attr("y", -this.margin.left + 15)
-                .attr("x", - height / 2 - this.margin.top)
+                .attr("y", -35)
+                .attr("x", - height / 2)
 				.text("Lognorm counts");
         },
         truncateLabel(label){
@@ -217,5 +218,10 @@ import { truncate } from 'lodash';
   ::v-deep .plot.highlighting .bar.on{
     opacity: 1;
   }
+    .plot{
+        margin-left: 15px;
+        margin-bottom: 15px;
+        background-color: white;
+    }
   </style>
   
