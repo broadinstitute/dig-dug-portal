@@ -238,7 +238,7 @@
 									{{ (!!getParameterColumnLabel(tdKey))? getParameterColumnLabel(tdKey) :tdValue }}
 									<span class="btns-wrapper">
 										<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-											v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter)" ></button>
+											v-html="section.label" @click="setParameter(tdValue, tdKey, section.section, section.parameter, section.compare)" ></button>
 									</span>
 								</span>
 								
@@ -288,7 +288,7 @@
 										{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
 										<span class="btns-wrapper">
 											<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
-												v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter)" ></button>
+												v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter, section.compare)" ></button>
 										</span>
 									</span>
 									<span v-else-if="!!ifSubsectionColumn(tdKey)"
@@ -715,7 +715,7 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		subSectionData(DATA){
-			console.log(DATA);
+			//console.log(DATA);
 		},
 		featureRowsNumber(NUMBER) {
 			this.$emit('on-feature-rows-change', NUMBER);
@@ -762,20 +762,91 @@ export default Vue.component("research-data-table", {
 		getRowID(TEXT) {
 			return TEXT.replace(/[^a-zA-Z0-9]/g, '_');
 		},
+		
 		ifHidden(TEXT) {
 			let id = this.getRowID(TEXT);
 
 			return (this.subSectionHidden.includes(id))? 'hidden' : '';
 		},
-		setParameter(VALUE,KEY,SECTION,PARAMETERS){
+		setParameter(VALUE,KEY,SECTION,PARAMETERS,COMPARE){
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
 
 			if (typeof PARAMETERS === "object") {
 				let values = VALUE.split(",");
+				let paramsCurrentValues = {}
+				let paramsNewValues = {}
 
 				PARAMETERS.map((p, pIndex) => {
-					document.getElementById("search_param_" + p).value = values[pIndex];
+					paramsCurrentValues[p] = document.getElementById("search_param_" + p).value;
+				})
+
+				PARAMETERS.map((p, pIndex) => {
+					paramsNewValues[p] = values[pIndex];
+				})
+
+				//console.log("paramsCurrentValues", paramsCurrentValues)
+
+				if(!!COMPARE) {
+					//console.log("Compare 1")
+					Object.keys(COMPARE).map( p => {
+						//console.log("Compare 1-1", COMPARE[p], COMPARE[p]["parameter type"] )
+
+						let oldVal = paramsCurrentValues[p],
+						newVal = paramsNewValues[p],
+						compareVal = paramsNewValues[COMPARE[p]["parameter to compare"]];
+
+						switch(COMPARE[p]["parameter type"]) {
+							case "region":
+								//console.log("Compare 2")
+								let newRegion = '';
+								let chr, start = [], end = [];
+
+								let regions = [oldVal,newVal,compareVal];
+
+								regions.map( r => {
+									//console.log("Compare 3")
+									if(!!r && r != "") {
+										r.split(':').map((pVal, pIndex) => {
+											//console.log("Compare 4")
+											if (pIndex == 0) {
+												chr = pVal
+											} else {
+												let locArr = pVal.split("-");
+
+												start.push(Number(locArr[0]));
+												end.push(Number(locArr[1]));
+											}
+										})
+									}
+									
+								})
+
+								//console.log("chr, start, end", chr, start, end)
+
+								switch (COMPARE[p]["compare type"]) {
+									case "set wider":
+
+									let newChr = chr, newStart = Math.min(...start), newEnd = Math.max(...end);
+
+									//console.log("newChr, start, end", newChr, newStart, newEnd)
+
+									paramsNewValues[p] = newChr+":"+ newStart+"-"+newEnd;
+
+										break;
+								}
+
+								break;
+						}
+
+						//console.log(p, paramsNewValues[p])
+					});
+				}
+
+				
+
+				PARAMETERS.map((p) => {
+					document.getElementById("search_param_" + p).value = paramsNewValues[p];
 					this.$root.$refs.multiSectionSearch.updateSearch(p, targetSections);
 				})
 
@@ -888,7 +959,7 @@ export default Vue.component("research-data-table", {
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
 				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 			} else {
-				console.log("No data is returned. Please check query parameters.");
+				//console.log("No data is returned. Please check query parameters.");
 			}
 		},
 
@@ -910,7 +981,7 @@ export default Vue.component("research-data-table", {
 				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 			} else {
 				// fetch failed
-				console.log("fetch failed");
+				//console.log("fetch failed");
 			}
 		},
 		processLoadedBI(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
@@ -931,20 +1002,17 @@ export default Vue.component("research-data-table", {
 			if(!!tableFormat["pre filters"]) {
 
 				let tempArr = [...new Set(data)];
+				
+				let filters = tableFormat["pre filters"];
+				let filterValues = {}
 
-				tableFormat["pre filters"].map(filter =>{
-
-					switch (filter.type) {
-						case 'filter out':
-							filter.values.map(v => {
-								tempArr = tempArr.filter(f => f[filter.field] != v);
-							})
-							
-							break;
-					}
+				filters.map(filter => {
+					filterValues[filter.parameter] = this.utils.keyParams[filter.parameter];
 				})
 
-				data = tempArr;
+				let returnData = this.utils.filterUtils.applyFilters(filters, tempArr, filterValues);
+
+				data = returnData;
 			}
 
 			//

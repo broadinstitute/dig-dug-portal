@@ -102,143 +102,158 @@
 						:unfilteredDataset="originalData" :sectionId="sectionID" :utils="utils" :dataComparisonConfig="null"
 						@on-filtering="updateData" @clicked-sort="sortData"></research-section-filters>
 
-					<div class="zoom-ui-wrapper"
-						v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0">
-						<span>Zoom</span>
+					<span :id="sectionID+'_plots_holder'">
+						<span :id="sectionID+'_viz_wrapper'">
+							<div class="zoom-ui-wrapper"
+								v-if="!!tableFormat && !!tableFormat['data zoom'] && !!sectionData && sectionData.length > 0">
+								<span>Zoom</span>
 
-						<form class="zoom-radio-wrapper">
-							<span class="zoom-radio-number" @click="setZoom('regionZoom',
-								regionZoom -=
-								regionZoom != 0 ? 10 : 0)
-								"><b-icon icon="zoom-out"></b-icon></span>
+								<form class="zoom-radio-wrapper">
+									<span class="zoom-radio-number" @click="setZoom('regionZoom',
+										regionZoom -=
+										regionZoom != 0 ? 10 : 0)
+										"><b-icon icon="zoom-out"></b-icon></span>
 
-							<input v-for="value in [
-								0, 10, 20, 30, 40, 50, 60, 70, 80, 90,
-							]" type="radio" name="regionZoom" :value="value" @click="setZoom('regionZoom', value)" :class="regionZoom == value
-	? 'zoom-radio checked'
-	: 'zoom-radio'
-	" :key="value" />
-
-							<span class="zoom-radio-number" @click="setZoom('regionZoom',
-								regionZoom +=
-								regionZoom != 90 ? 10 : 0)
-								"><b-icon icon="zoom-in"></b-icon></span>
-						</form>
-
-						<span>Move viewing area</span>
-						<form class="zoom-radio-wrapper">
-							<span class="zoom-radio-number" @click="setZoom('regionViewArea',
-								regionViewArea -=
-								regionViewArea != -100 &&
-									regionZoom != 0
-									? 20
-									: 0)
-								"><b-icon icon="arrow-left-circle"></b-icon></span>
-							<input v-for="value in [
-								-100, -80, -60, -40, -20, 0, 20, 40, 60,
-								80, 100,
-							]" type="radio" name="regionViewArea" :value="value" @click="setZoom('regionViewArea',
-	regionZoom != 0
-		? value
-		: '')
-	" :class="regionViewArea == value
-		? 'zoom-radio checked'
-		: value == 0
-			? 'zoom-radio center'
+									<input v-for="value in [
+										0, 10, 20, 30, 40, 50, 60, 70, 80, 90,
+									]" type="radio" name="regionZoom" :value="value" @click="setZoom('regionZoom', value)" :class="regionZoom == value
+			? 'zoom-radio checked'
 			: 'zoom-radio'
-		" :key="value" />
-							<span class="zoom-radio-number" @click="setZoom('regionViewArea',
-								regionViewArea +=
-								regionViewArea != 100 &&
+			" :key="value" />
+
+									<span class="zoom-radio-number" @click="setZoom('regionZoom',
+										regionZoom +=
+										regionZoom != 90 ? 10 : 0)
+										"><b-icon icon="zoom-in"></b-icon></span>
+								</form>
+
+								<span>Move viewing area</span>
+								<form class="zoom-radio-wrapper">
+									<span class="zoom-radio-number" @click="setZoom('regionViewArea',
+										regionViewArea -=
+										regionViewArea != -100 &&
+											regionZoom != 0
+											? 20
+											: 0)
+										"><b-icon icon="arrow-left-circle"></b-icon></span>
+									<input v-for="value in [
+										-100, -80, -60, -40, -20, 0, 20, 40, 60,
+										80, 100,
+									]" type="radio" name="regionViewArea" :value="value" @click="setZoom('regionViewArea',
 									regionZoom != 0
-									? 20
-									: 0)
-								"><b-icon icon="arrow-right-circle"></b-icon></span>
-						</form>
-					</div>
-					<!-- viz tabs-->
-					<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
-						<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
-							<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
-								class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
-									'tabUiGroup' + sectionID,
-									'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
-								{{ utils.Formatters.replaceWithParams(tab.label, pageParams) }}
+										? value
+										: '')
+									" :class="regionViewArea == value
+										? 'zoom-radio checked'
+										: value == 0
+											? 'zoom-radio center'
+											: 'zoom-radio'
+										" :key="value" />
+									<span class="zoom-radio-number" @click="setZoom('regionViewArea',
+										regionViewArea +=
+										regionViewArea != 100 &&
+											regionZoom != 0
+											? 20
+											: 0)
+										"><b-icon icon="arrow-right-circle"></b-icon></span>
+								</form>
 							</div>
-						</div>
-					</template>
+							<!-- viz tabs-->
+							<div class="viz-wrapper">
+							<template v-if="!!multiVisualizers && !!sectionData && multiVisualizersType == 'tabs'">
+								<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
+									<div v-for="tab, tabIndex in multiVisualizers" :id="'tabUi' + sectionID + tabIndex"
+										class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
+											'tabUiGroup' + sectionID,
+											'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
+										{{ utils.Formatters.replaceWithParams(tab.label, pageParams) }}
+									</div>
+								</div>
+							</template>
 
-					<!-- viz tab groups -->
-					<template v-if="!!vizGroups && !!sectionData && multiVisualizersType == 'grouped tabs'">
-						<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
-							<div v-for="tab, tabIndex in vizGroups" :id="'tabUi' + sectionID + tabIndex"
-								class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
-									'tabUiGroup' + sectionID,
-									'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
-								{{ utils.Formatters.replaceWithParams(tab.label, pageParams) }}
+							<!-- viz tab groups -->
+							<template v-if="!!vizGroups && !!sectionData && multiVisualizersType == 'grouped tabs'">
+								<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + sectionID">
+									<div v-for="tab, tabIndex in vizGroups" :id="'tabUi' + sectionID + tabIndex"
+										class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + sectionID + tabIndex,
+											'tabUiGroup' + sectionID,
+											'tabContent' + sectionID + tabIndex, 'tabContentGroup' + sectionID, true)">
+										{{ utils.Formatters.replaceWithParams(tab.label, pageParams) }}
+									</div>
+								</div>
+							</template>
+
+							<!-- viz in grouped tabs -->
+							<div v-if="!!vizGroups && !!sectionData && multiVisualizersType == 'grouped tabs'"
+								:id="multiVisualizersType == 'grouped tabs' ? 'tabContentGroup' + sectionID : ''">
+
+								<div v-for="group, groupIndex in vizGroups"
+										:id="'tabContent' + sectionID + groupIndex"
+										class="plot-tab-content-wrapper"
+										:class="(groupIndex == 0) ? '' : 'hidden-content'">
+									<!-- visualizers in group -->
+
+									<div v-for="plotConfig, plotIndex in group.visualizers"
+										class="plot-content-wrapper">
+										<h6 v-html="utils.Formatters.replaceWithParams(plotConfig.label, pageParams)"></h6>
+										<research-section-visualizers 
+											:plotConfig="plotConfig"
+											:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+											:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
+											:plotLegend="getSectionPlotLegend(sectionID + groupIndex + '_' + plotIndex)" :sectionId="sectionID + groupIndex  + '_' + plotIndex"
+											:utils="utils" :dataComparisonConfig="dataComparisonConfig"
+											:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
+											:regionViewArea="regionViewArea" :region="regionParam" 
+											:bigRegion="bigRegionParam"
+											:starItems="starItems"
+											@on-star="starColumn">
+										</research-section-visualizers>
+									</div>
+								</div>
 							</div>
-						</div>
-					</template>
 
-					<!-- viz in grouped tabs -->
-					<div v-if="!!vizGroups && !!sectionData && multiVisualizersType == 'grouped tabs'"
-						:id="multiVisualizersType == 'grouped tabs' ? 'tabContentGroup' + sectionID : ''">
 
-						<div v-for="group, groupIndex in vizGroups"
-								:id="'tabContent' + sectionID + groupIndex"
-								class="plot-tab-content-wrapper"
-								:class="(groupIndex == 0) ? '' : 'hidden-content'">
-							<!-- visualizers in group -->
+							<!-- viz as individual tabs-->
+							<div v-if="!!multiVisualizers && !!sectionData && (multiVisualizersType == 'tabs' || multiVisualizersType == 'divs')"
+								:id="multiVisualizersType == 'tabs' ? 'tabContentGroup' + sectionID : ''">
 
-							<div v-for="plotConfig, plotIndex in group.visualizers"
-								class="plot-content-wrapper">
-								<h6 v-html="utils.Formatters.replaceWithParams(plotConfig.label, pageParams)"></h6>
-								<research-section-visualizers 
-									:plotConfig="plotConfig"
-									:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-									:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
-									:plotLegend="getSectionPlotLegend(sectionID + groupIndex + '_' + plotIndex)" :sectionId="sectionID + groupIndex  + '_' + plotIndex"
-									:utils="utils" :dataComparisonConfig="dataComparisonConfig"
-									:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
-									:regionViewArea="regionViewArea" :region="regionParam" :starItems="starItems"
-									@on-star="starColumn">
-								</research-section-visualizers>
+								<div v-for="plotConfig, plotIndex in multiVisualizers"
+									:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex : ''"
+									class="plot-tab-content-wrapper"
+									:class="(multiVisualizersType == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
+									<h6 v-html="utils.Formatters.replaceWithParams(plotConfig.label, pageParams)" v-if="multiVisualizersType != 'tabs'"></h6>
+									<research-section-visualizers :plotConfig="plotConfig"
+										:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+										:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
+										:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
+										:utils="utils" :dataComparisonConfig="dataComparisonConfig"
+										:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
+										:regionViewArea="regionViewArea" :region="regionParam" 
+										:bigRegion="bigRegionParam" :starItems="starItems"
+										@on-star="starColumn">
+									</research-section-visualizers>
+								</div>
 							</div>
-						</div>
-					</div>
-
-
-					<!-- viz as individual tabs-->
-					<div v-if="!!multiVisualizers && !!sectionData && (multiVisualizersType == 'tabs' || multiVisualizersType == 'divs')"
-						:id="multiVisualizersType == 'tabs' ? 'tabContentGroup' + sectionID : ''">
-
-						<div v-for="plotConfig, plotIndex in multiVisualizers"
-							:id="multiVisualizersType == 'tabs' ? 'tabContent' + sectionID + plotIndex : ''"
-							class="plot-tab-content-wrapper"
-							:class="(multiVisualizersType == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
-							<h6 v-html="utils.Formatters.replaceWithParams(plotConfig.label, pageParams)" v-if="multiVisualizersType != 'tabs'"></h6>
-							<research-section-visualizers :plotConfig="plotConfig"
+							<research-section-visualizers v-if="!multiVisualizers && !!visualizer && !!sectionData"
+								:plotConfig="visualizer"
 								:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 								:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
-								:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
-								:utils="utils" :dataComparisonConfig="dataComparisonConfig"
-								:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
-								:regionViewArea="regionViewArea" :region="regionParam" :starItems="starItems"
+								:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
+								:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
+								:regionZoom="regionZoom" :regionViewArea="regionViewArea" :region="regionParam"
+								:bigRegion="bigRegionParam"
+								:starItems="starItems"
 								@on-star="starColumn">
 							</research-section-visualizers>
-						</div>
-					</div>
-					<research-section-visualizers v-if="!multiVisualizers && !!visualizer && !!sectionData"
-						:plotConfig="visualizer"
-						:plotData="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
-						:phenotypeMap="phenotypeMap" :colors="colors" :plotMargin="plotMargin"
-						:plotLegend="getSectionPlotLegend(sectionID)" :sectionId="sectionID" :utils="utils"
-						:dataComparisonConfig="dataComparisonConfig" :searchParameters="groupSearchParameters"
-						:regionZoom="regionZoom" :regionViewArea="regionViewArea" :region="regionParam"
-						:starItems="starItems" @on-star="starColumn">
-					</research-section-visualizers>
+
+							</div>
+						</span>
+					</span>
+					
 					<template v-if="!!tableFormat && !tableFormat['display type']">
-						<research-data-table v-if="!!tableFormat && !tableFormat['rows as info cards']" :pageID="sectionIndex"
+						<research-data-table 
+							v-if="!!tableFormat && !tableFormat['rows as info cards'] && tableFormat['display'] != false" 
+							:pageID="sectionIndex"
 							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 							:tableFormat="tableFormat"
 							:initPerPageNumber="(!!tableFormat['rows per page']) ? tableFormat['rows per page'] : 10"
@@ -249,6 +264,7 @@
 							:regionViewArea="regionViewArea" 
 							:colors="colors" :plotMargin="plotMargin"
 							@on-star="starColumn" @on-filtering="updateData">
+							
 						</research-data-table>
 						
 						<research-info-cards v-if="!!tableFormat && !!tableFormat['rows as info cards']" :pageID="sectionIndex"
@@ -352,6 +368,7 @@ export default Vue.component("research-section", {
 			searched: [],
 			loadingDataFlag: "down",
 			regionParam: null,
+			bigRegionParam: null,
 			sectionHidden: false,
 			openInfoCard: null,
 			customList: {},
@@ -500,12 +517,6 @@ export default Vue.component("research-section", {
 				return null
 			}
 		},
-		/*sectionTableLegend() {
-			let legend = (!!document.getElementById(this.sectionID + "_tableLegend")) ?
-				document.getElementById(this.sectionID + "_tableLegend").innerHTML : null;
-
-			return this.utils.Formatters.replaceWithParams(legend);
-		},*/
 		viewingRegion() {
 			if (this.regionParam == null) {
 				return null;
@@ -553,6 +564,7 @@ export default Vue.component("research-section", {
 				this.$emit('on-sectionData', { id: this.sectionID, config: this.sectionConfig, data: DATA });
 			}
 			this.getRegion();
+			this.getBigRegion();
 		},
 		originalData(DATA) {
 			if (this.loadingDataFlag == "down") {
@@ -687,10 +699,20 @@ export default Vue.component("research-section", {
 				});
 
 				region = chr + ":" + posStart + "-" + posEnd;
-
 			}
 
 			this.regionParam = region;
+		},
+		getBigRegion() {
+			let region = !!this.dataPoint['big region'] ? this.utils.keyParams[this.dataPoint['big region']] : this.utils.keyParams['bigRegion'];
+			let targetPlotConfig = !!this.visualizer ? !!this.visualizer["genes track"] ?
+				this.visualizer["genes track"] : this.visualizer : null;
+
+			if (!!region) {
+				region = region.split(",").pop();
+			}
+
+			this.bigRegionParam = region;
 		},
 		resetAll() {
 			this.sectionData = null,
@@ -914,7 +936,30 @@ export default Vue.component("research-section", {
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
 						/// !! incomplete: This part is to add multiple query functionality
-						queryParams[p] = this.utils.keyParams[p].toString().split(","); ///  work on this line
+						if(!!this.dataPoint['expand region by'] && p == this.dataPoint['region']) {
+							let region = this.utils.keyParams[p];
+							
+							let regionArr = region.split(":");
+							let chr = regionArr[0];
+							let posRegion = regionArr[1].split("-");
+							let posStart = Number(posRegion[0]);
+							let posEnd = Number(posRegion[1]);
+
+							posStart -= this.dataPoint['expand region by']/2
+							posStart = (posStart <= 0)? 0:posStart;
+
+							posEnd += this.dataPoint['expand region by']/2
+							
+							region = chr +":"+posStart+"-"+posEnd;
+
+							console.log("region",region)
+
+							queryParams[p] = region.toString().split(",");
+
+						} else {
+							queryParams[p] = this.utils.keyParams[p].toString().split(","); 
+						}
+						
 					} else {
 						queryParamsSet = null;
 					}
@@ -1911,6 +1956,10 @@ button.red-background {
 }
 
 .byor-shortened-string:hover .raw-string {
+	display: block;
+}
+
+.viz-wrapper {
 	display: block;
 }
 </style>
