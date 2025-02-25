@@ -126,7 +126,8 @@ import { truncate } from 'lodash';
                 .call(d3.axisBottom(x))
                 .selectAll("text")
 				.style("font-size", this.fontSize)
-                .text(d => this.truncateLabel(d));
+                .style("text-anchor", "end")
+                .attr("transform", "rotate(-35) translate(-5, 0)");
             
             let histogram = d3.histogram()
                 .domain(y.domain())
