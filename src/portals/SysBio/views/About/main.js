@@ -18,11 +18,11 @@ new Vue({
             pageContent: {},
             fallbackId: "sysBio_help",
             pages: {
-                contactUs: "sysbiofairplex_contact",
-                collaborateWithFAIRplex: "sysbiofairplex_collaborate",
-                meetTheTeam: "sysbiofairplex_collaborate",
+                contact: "sysbiofairplex_contact",
+                collaborate: "sysbiofairplex_collaborate",
+                team: "sysbiofairplex_people",
                 policies: "sysbiofairplex_policies",
-                aboutUs: "sysbiofairplex_aboutus"
+                about: "sysbiofairplex_aboutus"
             }
         };
     },
