@@ -17,6 +17,13 @@ let pages = {
         title: "Page Not Found",
         chunks: ["chunk-vendors", "chunk-common", "page404"],
     },
+    about: {
+        entry: "src/portals/SysBio/views/About/main.js",
+        template: "src/portals/SysBio/views/index.html",
+        filename: "about.html",
+        title: "About",
+        chunks: ["chunk-vendors", "chunk-common", "about"],
+    },
 };
 
 module.exports = {
