@@ -1,12 +1,12 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 
-import "../../assets/matkp-styles.css";
+//import "../../assets/matkp-styles.css";
 
-import { matkpMixin } from "../../mixins/matkpMixin.js";
+//import { matkpMixin } from "../../mixins/matkpMixin.js";
 
-import matkpHero from "@/portals/MATKP/components/matkp-hero.vue";
-import matkpAnatomogram from "@/portals/MATKP/components/matkp-anatomogram.vue";
+//import matkpHero from "@/portals/MATKP/components/matkp-hero.vue";
+//import matkpAnatomogram from "@/portals/MATKP/components/matkp-anatomogram.vue";
 import { getTextContent } from "@/portals/MATKP/utils/content.js";
 import keyParams from "../../../../utils/keyParams.js";
 
@@ -74,7 +74,7 @@ new Vue({
     },
 
     async created() {
-        await this.getConfig();
+        //await this.getConfig();
         await this.getContent(keyParams.page);
     },
 
