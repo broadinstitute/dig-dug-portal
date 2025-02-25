@@ -3,15 +3,14 @@ import Template from "./Template.vue";
 
 //import "../../assets/matkp-styles.css";
 
-import { sysBioMixin } from "../../mixins/sysBioMixin.js";
+import { sysBioMixin } from "@/mixins/sysBioMixin.js";
 
 import keyParams from "../../../../utils/keyParams.js";
 
 // Use keyparams to do this
 
 new Vue({
-    components: {
-    },
+
     mixins: [sysBioMixin],
 
     data() {
