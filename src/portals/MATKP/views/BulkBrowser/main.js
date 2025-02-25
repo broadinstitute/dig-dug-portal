@@ -145,7 +145,6 @@ new Vue({
           }
         
          this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-         console.log(this.allMetadata);
       },
         getTop20(data){
             let processedData = data.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);

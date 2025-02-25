@@ -198,8 +198,8 @@ export default Vue.component("bulk-table", {
                     sortable: true,
                 },
                 {
-                    key: "lognorm_counts",
-                    label: "Lognorm counts",
+                    key: "norm_counts",
+                    label: "Norm counts",
                     sortable: true,
                 },
             ];
@@ -226,15 +226,15 @@ export default Vue.component("bulk-table", {
             let config = {
                 xField: this.contField.key,
                 xAxisLabel: this.contField.label,
-                yField: "lognorm_counts",
-                yAxisLabel: "Lognorm counts",
+                yField: "norm_counts",
+                yAxisLabel: "Norm counts",
                 dotKey: "sample_id",
                 hoverBoxPosition: "both",
                 plotHeight: 350,
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},
                     {key: this.contField.key, label: this.contField.label},
-                    {key: "lognorm_counts", label: "Lognorm"}
+                    {key: "norm_counts", label: "Norm"}
                 ],
             };
             return config;
@@ -292,8 +292,10 @@ export default Vue.component("bulk-table", {
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(row, whichSubtable) {
             let queryKey = this.subtableKey(row.item);
+            console.log(queryKey);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
+                console.log(JSON.stringify(data));
                 Vue.set(this.subtableData, queryKey, this.toNumeric(data));
             }
             if (
@@ -381,7 +383,7 @@ export default Vue.component("bulk-table", {
         },
         toNumeric(geneData){
           let fieldsToConvert = this.contFields.map(i => i.key);
-          fieldsToConvert.push("lognorm_counts");
+          fieldsToConvert.push("norm_counts");
           let outputData = structuredClone(geneData);
           for (let i = 0; i < fieldsToConvert.length; i++){
             let field = fieldsToConvert[i];
