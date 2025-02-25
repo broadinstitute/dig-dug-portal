@@ -33,7 +33,7 @@ import { truncate } from 'lodash';
             chart: null,
             chartWidth: 0,
             eventElements: [],
-            yField: "lognorm_counts",
+            yField: "norm_counts",
             margin: {
                 top: 10,
                 right: 10,
@@ -143,6 +143,7 @@ import { truncate } from 'lodash';
                     return bins;
                 })
                 .entries(statData);
+            
                         
             let maxNum = 0;
             for (let i = 0; i < sumstat.length; i++){
@@ -188,7 +189,7 @@ import { truncate } from 'lodash';
 				.attr("transform", "rotate(-90)")
                 .attr("y", -35)
                 .attr("x", - height / 2)
-				.text("Lognorm counts");
+				.text("Norm counts");
         },
         truncateLabel(label){
             if (!this.xField === "cat__custom__surgery"){
