@@ -3,7 +3,7 @@
       <div v-if="tableData.length > 0">
           <div v-if="!isSubtable" class="text-right mb-2">
               <data-download
-                  :data="probData"
+                  :data="bulkData"
                   filename="pigean_gene"
               ></data-download>
           </div>
@@ -13,7 +13,7 @@
               small
               responsive="sm"
               :items="tableData"
-              :fields="probFields"
+              :fields="config.fields"
               :per-page="perPage"
               :current-page="currentPage"
               :sort-by="isSubtable? 'sample_id' : '-log10P'"
@@ -37,7 +37,6 @@
               </template>
               <template #row-details="row">
                 <div class="subtable-all" v-if="
-                          row.item.subtableActive === 1 &&
                           subtableData[subtableKey(row.item)]?.length > 0"
                   >
                   <div class="row subtable-selectors">
@@ -198,8 +197,8 @@ export default Vue.component("bulk-table", {
                     sortable: true,
                 },
                 {
-                    key: "lognorm_counts",
-                    label: "Lognorm counts",
+                    key: "norm_counts",
+                    label: "Norm counts",
                     sortable: true,
                 },
             ];
@@ -226,60 +225,28 @@ export default Vue.component("bulk-table", {
             let config = {
                 xField: this.contField.key,
                 xAxisLabel: this.contField.label,
-                yField: "lognorm_counts",
-                yAxisLabel: "Lognorm counts",
+                yField: "norm_counts",
+                yAxisLabel: "Norm counts",
                 dotKey: "sample_id",
                 hoverBoxPosition: "both",
                 plotHeight: 350,
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},
                     {key: this.contField.key, label: this.contField.label},
-                    {key: "lognorm_counts", label: "Lognorm"}
+                    {key: "norm_counts", label: "Norm"}
                 ],
             };
             return config;
         },
-        probFields() {
-            return this.collateFields();
-        },
-        probData() {
-            return this.computeProbabilities();
-        },
         rows() {
             return this.bulkData.length || 0;
         },
-        sortBy() {
-            return this.bulkData.length === 0
-                ? 0
-                : this.config.fields
-                      .map((field) => field.key)
-                      .includes("factor_value")
-                ? "factor_value"
-                : this.config.sortBy
-                ? this.config.sortBy
-                : this.bulkData[0]["combined"] !== undefined
-                ? "combined"
-                : "beta_uncorrected";
-        },
         tableData() {
-            let data = this.probData;
-            //add subtableActive to each row
-            data.forEach((row) => {
-                row.subtableActive = 0;
-            });
+            let data = structuredClone(this.bulkData);
             if (this.filter) {
                 data = data.filter(this.filter);
             }
             return data;
-        },
-        genesetSize() {
-            return keyParams.genesetSize;
-        },
-        traitGroup(){
-            return keyParams.traitGroup;
-        },
-        suffix() {
-            return `&genesetSize=${this.genesetSize}&traitGroup=${this.traitGroup}`;
         },
     },
     methods: {
@@ -290,52 +257,16 @@ export default Vue.component("bulk-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        async getSubtable(row, whichSubtable) {
+        async getSubtable(row) {
             let queryKey = this.subtableKey(row.item);
-            if (!this.subtableData[queryKey] && whichSubtable === 1) {
+            if (!this.subtableData[queryKey]) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
                 Vue.set(this.subtableData, queryKey, this.toNumeric(data));
             }
-            if (
-                !!this.config.subtable2Endpoint &&
-                !this.subtable2Data[queryKey] &&
-                whichSubtable === 2
-            ) {
-                let data2 = await query(
-                    this.config.subtable2Endpoint,
-                    queryKey
-                );
-                Vue.set(this.subtable2Data, queryKey, data2);
-            }
         },
-        async showDetails(row, tableNum) {
-            this.toggleTable(row, tableNum);
-            await this.getSubtable(row, tableNum);
-        },
-        toggleTable(row, subtable) {
-            let show = false;
-            if (subtable === row.item.subtableActive) {
-                show = false;
-            } else {
-                show = true;
-            }
-            // Toggle active table
-            row.item.subtableActive = !show ? 0 : subtable;
-            // Hide details if it's currently showing and no tables should be active
-            if (
-                !show &&
-                row.detailsShowing &&
-                row.item.subtableActive === 0
-            ) {
-                row.toggleDetails();
-            }
-            // Show details if it's currently not showing but it should be
-            if (
-                show &&
-                !row.detailsShowing && row.item.subtableActive !== 0
-            ) {
-                row.toggleDetails();
-            }
+        async showDetails(row) {
+            row.toggleDetails();
+            await this.getSubtable(row);
         },
         subtableKey(item) {
             let mySubtableKey = `${this.dataset},${item[this.config.queryParam]}`;
@@ -344,44 +275,9 @@ export default Vue.component("bulk-table", {
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
         },
-        probability(val, prior = 0.05) {
-            let a = Math.exp(Math.log(prior) + val);
-            return a / (1 + a);
-        },
-        computeProbabilities() {
-            let data = structuredClone(this.bulkData);
-            for (let i = 0; i < this.config.fields.length; i++) {
-                let fieldConfig = this.config.fields[i];
-                if (!fieldConfig.showProbability) {
-                    continue;
-                }
-                let field = fieldConfig.key;
-                for (let j = 0; j < data.length; j++) {
-                    if (!!data[j][field]) {
-                        data[j][`${field}_probability`] = this.tpmFormatter(
-                            this.probability(data[j][field])
-                        );
-                    }
-                }
-            }
-            return data;
-        },
-        collateFields() {
-            let allFields = [];
-            this.config.fields.forEach((field) => {
-                if (field.showProbability) {
-                    allFields.push({
-                        key: `${field.key}_probability`,
-                        sortable: true,
-                    });
-                }
-                allFields.push(field);
-            });
-            return allFields;
-        },
         toNumeric(geneData){
           let fieldsToConvert = this.contFields.map(i => i.key);
-          fieldsToConvert.push("lognorm_counts");
+          fieldsToConvert.push("norm_counts");
           let outputData = structuredClone(geneData);
           for (let i = 0; i < fieldsToConvert.length; i++){
             let field = fieldsToConvert[i];

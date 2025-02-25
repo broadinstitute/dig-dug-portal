@@ -16,6 +16,7 @@ import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBro
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import * as d3 from 'd3';
+import keyParams from "@/utils/keyParams";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
@@ -145,7 +146,6 @@ new Vue({
           }
         
          this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-         console.log(this.allMetadata);
       },
         getTop20(data){
             let processedData = data.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
