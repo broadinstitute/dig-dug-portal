@@ -37,7 +37,6 @@
               </template>
               <template #row-details="row">
                 <div class="subtable-all" v-if="
-                          row.item.subtableActive === 1 &&
                           subtableData[subtableKey(row.item)]?.length > 0"
                   >
                   <div class="row subtable-selectors">
@@ -244,10 +243,6 @@ export default Vue.component("bulk-table", {
         },
         tableData() {
             let data = structuredClone(this.bulkData);
-            //add subtableActive to each row
-            data.forEach((row) => {
-                row.subtableActive = 0;
-            });
             if (this.filter) {
                 data = data.filter(this.filter);
             }
@@ -269,34 +264,9 @@ export default Vue.component("bulk-table", {
                 Vue.set(this.subtableData, queryKey, this.toNumeric(data));
             }
         },
-        async showDetails(row, tableNum) {
-            this.toggleTable(row, tableNum);
+        async showDetails(row) {
+            row.toggleDetails();
             await this.getSubtable(row);
-        },
-        toggleTable(row, subtable) {
-            let show = false;
-            if (subtable === row.item.subtableActive) {
-                show = false;
-            } else {
-                show = true;
-            }
-            // Toggle active table
-            row.item.subtableActive = !show ? 0 : subtable;
-            // Hide details if it's currently showing and no tables should be active
-            if (
-                !show &&
-                row.detailsShowing &&
-                row.item.subtableActive === 0
-            ) {
-                row.toggleDetails();
-            }
-            // Show details if it's currently not showing but it should be
-            if (
-                show &&
-                !row.detailsShowing && row.item.subtableActive !== 0
-            ) {
-                row.toggleDetails();
-            }
         },
         subtableKey(item) {
             let mySubtableKey = `${this.dataset},${item[this.config.queryParam]}`;
