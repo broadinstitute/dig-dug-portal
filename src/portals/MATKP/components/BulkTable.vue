@@ -262,29 +262,16 @@ export default Vue.component("bulk-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        async getSubtable(row, whichSubtable) {
+        async getSubtable(row) {
             let queryKey = this.subtableKey(row.item);
-            console.log(queryKey);
-            if (!this.subtableData[queryKey] && whichSubtable === 1) {
+            if (!this.subtableData[queryKey]) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
-                console.log(JSON.stringify(data));
                 Vue.set(this.subtableData, queryKey, this.toNumeric(data));
-            }
-            if (
-                !!this.config.subtable2Endpoint &&
-                !this.subtable2Data[queryKey] &&
-                whichSubtable === 2
-            ) {
-                let data2 = await query(
-                    this.config.subtable2Endpoint,
-                    queryKey
-                );
-                Vue.set(this.subtable2Data, queryKey, data2);
             }
         },
         async showDetails(row, tableNum) {
             this.toggleTable(row, tableNum);
-            await this.getSubtable(row, tableNum);
+            await this.getSubtable(row);
         },
         toggleTable(row, subtable) {
             let show = false;
