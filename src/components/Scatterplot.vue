@@ -7,7 +7,7 @@
 				:chartId="`chart-${plotId}`"
 				>
 			</download-chart>
-      <div :id="plotId">
+      <div :id="plotId" class="plot">
         <p>Loading...</p>
       </div>
     </div>
@@ -258,9 +258,14 @@ export default Vue.component("scatterplot", {
   }
 });
 </script>
-<style>
+<style scoped>
   @import url("/css/effectorGenes.css");
   .tooltip span {
       display: block;
+  }
+  .plot {
+    margin-right: 15px;
+    margin-bottom: 15px;
+    background-color: white;
   }
 </style>

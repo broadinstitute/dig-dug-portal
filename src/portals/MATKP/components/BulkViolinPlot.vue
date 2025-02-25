@@ -1,5 +1,5 @@
 <template>
-    <div :id="`violinChart_${gene}`">
+    <div class="plot" :id="`violinChart_${gene}`">
     </div>
 </template>
   
@@ -217,5 +217,10 @@ import { truncate } from 'lodash';
   ::v-deep .plot.highlighting .bar.on{
     opacity: 1;
   }
+    .plot{
+        margin-left: 15px;
+        margin-bottom: 15px;
+        background-color: white;
+    }
   </style>
   
