@@ -2,7 +2,7 @@
   <div class="matkp">
       <div class="f-col fill-height">
           <!-- NAV -->
-          <matkp-nav></matkp-nav>
+         <!--<matkp-nav></matkp-nav>-->
           <!-- BODY -->
           <div
               class="mat-body f-col"
@@ -15,7 +15,7 @@
               </template>
           </div>
           <!-- FOOTER -->
-          <matkp-footer></matkp-footer>
+          <!--<matkp-footer></matkp-footer>-->
       </div>
   </div>
 </template>
