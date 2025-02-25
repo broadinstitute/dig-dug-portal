@@ -180,6 +180,11 @@ new Vue({
                 this.$store.dispatch("queryBulk");
             }
         },
+        bulkData19K(newData, oldData){
+            if(newData !== oldData){
+                console.log("HEADS UP THE VOLCANO IS ERUPTING!!!");
+            }
+        }
     },
 
     render(createElement, context) {

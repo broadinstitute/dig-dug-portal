@@ -196,10 +196,6 @@ export default Vue.component("bulk-heatmap", {
 
       this.chart = document.getElementById(this.plotId);
         this.chartWidth = this.chart.clientWidth;
-        addEventListener("resize", (event) => {
-            this.chartWidth = this.chart.clientWidth;
-            this.drawHeatMap();
-        });
         this.drawHeatMap();
     }
 });
