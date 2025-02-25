@@ -71,7 +71,7 @@ export default Vue.component("scatterplot", {
       let margin = {
         top: 10,
         right: 30,
-        bottom: 60,
+        bottom: 110,
         left: !this.tightenLeft ? 90 : 55
       };
       let width = this.chartWidth - margin.left - margin.right;

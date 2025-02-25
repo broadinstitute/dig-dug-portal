@@ -230,7 +230,7 @@ export default Vue.component("bulk-table", {
                 yAxisLabel: "Lognorm counts",
                 dotKey: "sample_id",
                 hoverBoxPosition: "both",
-                plotHeight: 300,
+                plotHeight: 350,
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},
                     {key: this.contField.key, label: this.contField.label},

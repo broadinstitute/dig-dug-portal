@@ -37,12 +37,12 @@ import { truncate } from 'lodash';
             margin: {
                 top: 10,
                 right: 10,
-                bottom: 60,
+                bottom: 110,
                 left: 70
             },
             svg: null,
             fontSize: "13px",
-            plotHeight: 300
+            plotHeight: 350
         }
     },
     watch: {
