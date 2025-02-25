@@ -16,6 +16,7 @@ import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBro
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import * as d3 from 'd3';
+import keyParams from "@/utils/keyParams";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";

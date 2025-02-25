@@ -248,19 +248,6 @@ export default Vue.component("bulk-table", {
         rows() {
             return this.bulkData.length || 0;
         },
-        sortBy() {
-            return this.bulkData.length === 0
-                ? 0
-                : this.config.fields
-                      .map((field) => field.key)
-                      .includes("factor_value")
-                ? "factor_value"
-                : this.config.sortBy
-                ? this.config.sortBy
-                : this.bulkData[0]["combined"] !== undefined
-                ? "combined"
-                : "beta_uncorrected";
-        },
         tableData() {
             let data = this.probData;
             //add subtableActive to each row
@@ -271,15 +258,6 @@ export default Vue.component("bulk-table", {
                 data = data.filter(this.filter);
             }
             return data;
-        },
-        genesetSize() {
-            return keyParams.genesetSize;
-        },
-        traitGroup(){
-            return keyParams.traitGroup;
-        },
-        suffix() {
-            return `&genesetSize=${this.genesetSize}&traitGroup=${this.traitGroup}`;
         },
     },
     methods: {
