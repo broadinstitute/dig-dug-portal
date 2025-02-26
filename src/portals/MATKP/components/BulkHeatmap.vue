@@ -58,7 +58,6 @@ export default Vue.component("bulk-heatmap", {
           
           let dataset = this.zNormData[0].dataset;
           let samplesColumns = await this.getSampleIds(dataset);
-          console.log(samplesColumns.length);
           let collatedData = this.collateData(this.zNormData, samplesColumns)
 
           // Build X scales and axis:

@@ -57,7 +57,7 @@
                                                 <div style="display:flex; flex-direction: column; min-width: 600px;">
                                                     <select v-model="$store.state.selectedComparison">
                                                         <option value="">Select a comparison</option>
-                                                        <option v-for="comparison in $store.state.currentComparisons"
+                                                        <option v-for="comparison in $parent.comparisons"
                                                             :value="comparison">
                                                             {{ comparison }}
                                                         </option>
@@ -116,8 +116,8 @@
 
                                                         </bulk-volcano-plot>
                                                     </div>
-                                                    <div v-else-if="!$store.state.selectedDataset">
-                                                        Select a dataset to view the volcano plot.
+                                                    <div v-else>
+                                                        Select a dataset and a comparison to view the volcano plot.
                                                     </div>
                                                 </div>
                                                 </div>

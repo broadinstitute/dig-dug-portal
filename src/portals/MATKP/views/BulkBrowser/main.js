@@ -17,6 +17,7 @@ import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowse
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
+import { isNull } from "lodash";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
@@ -47,7 +48,6 @@ new Vue({
             chart: null,
             chartWidth: 0,
             datasets: [],
-            comparisons: [],
             endpoint: "single-cell-bulk-z-norm",
             utils: {
                 uiUtils: uiUtils
@@ -122,6 +122,9 @@ new Vue({
                     //number of conditions that the value of each dot to meet to have labeled
             };
             return config;
+        },
+        comparisons(){
+            return this.$store.state.currentComparisons;
         }
     },
     async mounted() {
@@ -159,8 +162,7 @@ new Vue({
                 const response = await fetch(url);
                 const data = await(response.json());
                 let allKeys = data.keys;
-                this.datasets = allKeys.map(item => item[0]);
-                this.comparisons = allKeys.map(item => item[1])
+                this.datasets = Array.from(new Set(allKeys.map(item => item[0])));
             } catch (error){
                 console.error("Error: ", error);
             }
@@ -182,12 +184,12 @@ new Vue({
                 this.$store.dispatch("queryBulk");
             }
         },
-        bulkData19K(newData, oldData){
-            if(newData !== oldData){
-                console.log("HEADS UP THE VOLCANO IS ERUPTING!!!");
-                console.log(newData.length);
+        comparisons(newData){
+            if(!newData.includes(this.selectedComparison)){
+                this.$store.dispatch("clearComparison");
             }
         }
+
     },
 
     render(createElement, context) {

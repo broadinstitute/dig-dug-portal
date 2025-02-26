@@ -53,7 +53,6 @@ export default Vue.component("bulk-volcano-plot", {
 	watch: {
 		renderData(newData, oldData) {
 			if(newData !== oldData){
-				console.log("OH NO THE VOLCANO HAS ERUPTED");
 				this.renderPlot();
 			}
 		}

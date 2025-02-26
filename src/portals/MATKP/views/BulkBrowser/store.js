@@ -36,6 +36,9 @@ export default new Vuex.Store({
         },
         setCurrentComparisons(state, data){
           state.currentComparisons = data || state.currentComparisons;
+        },
+        setSelectedComparison(state, comparison){
+          state.selectedComparison = comparison;
         }
         
     },
@@ -60,9 +63,13 @@ export default new Vuex.Store({
             const bulkDataText = await response.text();
             bulkDataObject = dataConvert.tsv2Json(bulkDataText);
             comparisons = Array.from(new Set(bulkDataObject.map(i => i.comparison)));
+            comparisons = comparisons.filter(c => !!c);
           }
           context.commit("setBulkData19K", bulkDataObject);
           context.commit("setCurrentComparisons", comparisons);
+        },
+        clearComparison(context){
+          context.commit("setSelectedComparison", "");
         }
         
     },
