@@ -149,11 +149,9 @@ new Vue({
             this.getParams();
             await this.getBulkMetadata();
             if (!keyParams.comparison){
-                console.log("should be setting comparison");
                 this.$store.dispatch("resetComparison");
                 keyParams.set({comparison: this.$store.state.selectedComparison});
             }
-            console.log("Comparison is: ", this.$store.state.selectedComparison);
             await this.$store.dispatch("queryBulkFile");
             await this.$store.dispatch("queryBulk");
             this.dataReady = true;

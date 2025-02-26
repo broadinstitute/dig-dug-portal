@@ -4,21 +4,15 @@
           <!-- NAV -->
           <matkp-nav></matkp-nav>
           <!-- BODY -->
-          <div
-              class="mat-body f-col"
-              style="max-width: 1400px; margin: 0 auto; width: -webkit-fill-available"
-          >
-              <div style="display:flex; flex-direction: column; gap:10px; ">
-                    <div v-if="!$store.state.selectedDataset" style="color:red; margin:0 auto">
-                        Please Select a Dataset
-                    </div>
-                    <div style="display:flex; flex-direction: column; gap:20px; width: 100%;">
-                        <div style="display:flex; flex-direction:column; gap:20px; align-self:center; background:#f8f8f8; padding:20px;">
+          <div class="mat-body f-col">
+              <div class="flex-column flex-small-gap">
+                    <div id="center-width" class="flex-gap flex-column">
+                        <div class="flex-gap flex-column" id="center-content">
                             <research-single-cell-info v-if="!!$store.state.selectedDataset"
                                 :data="$parent.bulkMetadata"
                             />
 
-                            <div v-if="$parent.dataReady" class="" style="display:flex; gap:20px">
+                            <div v-if="$parent.dataReady" class="" class="flex-gap">
                                 <!--left tab group-->
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
@@ -27,9 +21,9 @@
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
-                                        <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
-                                            <div class="" style="display:flex; gap:20px">
-                                                <div style="display:flex; flex-direction: column; min-width: 600px;">
+                                        <div class="tab-section" >
+                                            <div class="" class="flex-gap">
+                                                <div class="top-block">
                                                     <select v-model="$store.state.selectedDataset">
                                                         <option value="">Select a dataset</option>
                                                         <option v-for="dataset in $parent.datasets"
@@ -49,9 +43,9 @@
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
-                                        <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
-                                            <div class="" style="display:flex; gap:20px">
-                                                <div style="display:flex; flex-direction: column; min-width: 600px;">
+                                        <div class="tab-section" >
+                                            <div class="" class="flex-gap">
+                                                <div class="top-block">
                                                     <select v-model="$store.state.selectedComparison">
                                                         <option value="">Select a comparison</option>
                                                         <option v-for="comp in $parent.comparisons"
@@ -65,7 +59,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="$parent.dataReady" class="" style="display:flex; gap:20px">
+                            <div v-if="$parent.dataReady" class="" class="flex-gap">
                                 <!--left tab group-->
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
@@ -74,9 +68,9 @@
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
-                                        <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
-                                            <div class="" style="display:flex; gap:20px">
-                                                <div style="display:flex; flex-direction: column; min-width: 600px;">
+                                        <div class="tab-section" >
+                                            <div class="" class="flex-gap">
+                                                <div class="top-block">
                                                     <div v-if="$parent.zNormData.length > 0">
                                                         <bulk-heatmap
                                                             :zNormData="$parent.zNormData"
@@ -101,9 +95,9 @@
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
-                                        <div class="tab-section" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px;">
-                                            <div class="" style="display:flex; gap:20px">
-                                                <div style="display:flex; flex-direction: column; min-width: 600px;">
+                                        <div class="tab-section" >
+                                            <div class="" class="flex-gap">
+                                                <div class="top-block">
                                                     <div v-if="$parent.bulkData19K.length> 0">
                                                         <bulk-volcano-plot
                                                             :renderData="$parent.bulkData19K"
@@ -123,8 +117,8 @@
                                 </div>
                             </div>
                         
-                            <div v-if="$parent.dataReady" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
-                                <div style="display:flex; flex-direction: column; gap:20px;">
+                            <div v-if="$parent.dataReady" id="table-wrapper" class="flex-gap flex-column">
+                                <div class="flex-gap flex-column">
                                     <bulk-table
                                         :bulkData="$parent.bulkData19K"
                                         :dataset="$store.state.selectedDataset"
@@ -152,7 +146,7 @@
 .tabs-wrapper {
   display: flex;
   z-index: 1;
-
+}
   .tab {
       padding: 10px 10px;
       margin: 0 -1px -1px 0;
@@ -169,5 +163,45 @@
       border-bottom: white;
       font-weight: bold;
   }
-}
+  .mat-body {
+    max-width: 1400px; 
+    margin: 0 auto; 
+    width: -webkit-fill-available;
+  }
+  .top-block {
+    display:flex;
+    flex-direction: column;
+    min-width: 600px;;
+  }
+  .flex-gap {
+    display:flex;
+    gap:20px;
+  }
+  .flex-column {
+    flex-direction: column;
+  }
+  .tab-section {
+    display:flex;
+    flex-direction: column;
+    gap:20px;
+    background:white;
+    padding:20px;
+  }
+  #center-width {
+    width: 100%;
+  }
+  #center-content {
+    align-self:center;
+    background:#f8f8f8;
+    padding:20px;
+  }
+  #table-wrapper {
+    background:white;
+    padding:20px;
+    width:100%;
+  }
+  .flex-small-gap {
+    display:flex;
+    gap:10px; 
+  }
 </style>
