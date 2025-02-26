@@ -39,7 +39,6 @@ new Vue({
     data() {
         return {
             loading: true,
-            dataLoaded: false,
             dataReady: false,
             allMetadata: null,
             bulkMetadata: null,
@@ -101,7 +100,7 @@ new Vue({
         bulkData19K(){
             return this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
-                && item.comparison === this.$store.state.selectedComparison);
+                && item.comparison_id === this.$store.state.selectedComparison);
         },
         volcanoConfig(){
             let config = {
@@ -124,7 +123,17 @@ new Vue({
             return config;
         },
         comparisons(){
-            return this.$store.state.currentComparisons;
+            let items = Object.keys(this.$store.state.currentComparisons);
+            return items;
+        },
+        kpDataset(){
+            return keyParams.dataset;
+        },
+        kpComparison(){
+            return keyParams.comparison;
+        },
+        kpGene(){
+            return keyParams.gene;
         }
     },
     async mounted() {
@@ -134,12 +143,17 @@ new Vue({
     },
     methods: {
         async init(){
-            this.$store.dispatch("queryBulkFile");
-            this.$store.dispatch("queryBulk");
+            if (!keyParams.dataset){
+                keyParams.set({dataset: this.$store.state.selectedDataset});
+            }
             this.getParams();
-
             await this.getBulkMetadata();
-            this.dataLoaded = true;
+            if (!keyParams.comparison){
+                this.$store.dispatch("resetComparison");
+                keyParams.set({comparison: this.$store.state.selectedComparison});
+            }
+            await this.$store.dispatch("queryBulkFile");
+            await this.$store.dispatch("queryBulk");
             this.dataReady = true;
 
         },
@@ -172,8 +186,9 @@ new Vue({
     watch:{
         async selectedDataset(newData, oldData){
             if (newData !== oldData){
-                this.$store.dispatch("queryBulkFile");
-                this.$store.dispatch("queryBulk");
+                keyParams.set({dataset: newData});
+                await this.$store.dispatch("queryBulkFile");
+                await this.$store.dispatch("queryBulk");
                 if (newData !== ""){
                     this.getBulkMetadata();
                 }
@@ -181,6 +196,7 @@ new Vue({
         },
         selectedComparison(newData, oldData){
             if (newData !== oldData){
+                keyParams.set({comparison: newData});
                 this.$store.dispatch("queryBulk");
             }
         },
@@ -188,8 +204,17 @@ new Vue({
             if(!newData.includes(this.selectedComparison)){
                 this.$store.dispatch("resetComparison");
             }
+        },
+        kpDataset(newData, oldData){
+            if (newData !== oldData){
+                this.$store.state.selectedDataset = newData;
+            }
+        },
+        kpComparison(newData, oldData){
+            if (newData !== oldData){
+                this.$store.state.selectedComparison = newData;
+            }
         }
-
     },
 
     render(createElement, context) {
