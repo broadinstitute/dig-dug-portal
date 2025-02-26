@@ -235,14 +235,14 @@ export default Vue.component("bulk-table", {
             let catFields = dataKeys.filter(field => field.startsWith("cat__"))
                 .map(field => { return {
                     key: field,
-                    label: field.replace("cat__", ""),
+                    label: Formatters.tissueFormatter(field.replace("cat__", "").replace("custom__", "")),
                     sortable: true,
                     isCat: true,
                 }});
             let contFields = dataKeys.filter(field => field.startsWith("cont__"))
                 .map(field => { return {
                     key: field,
-                    label: field.replace("cont__", ""),
+                    label: Formatters.tissueFormatter(field.replace("cont__", "").replace("custom__", "")),
                     sortable: true,
                     isNumerical: true
                 }});
