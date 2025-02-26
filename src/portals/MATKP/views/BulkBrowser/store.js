@@ -30,6 +30,7 @@ export default new Vuex.Store({
 
     mutations: {
         setSingleBulkZNormData(state, data){
+          console.log("Setting ", data.length);
           state.singleBulkZNormData = data || state.singleBulkZNormData;
         },
         setBulkData19K(state, data){
@@ -74,6 +75,7 @@ export default new Vuex.Store({
           context.commit("setCurrentComparisons", comparisons);
         },
         resetComparison(context){
+          console.log("Resetting to ", context.state.defaultComparison);
           context.commit("setSelectedComparison", context.state.defaultComparison);
         }
         

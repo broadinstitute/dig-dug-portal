@@ -145,16 +145,18 @@ new Vue({
     methods: {
         async init(){
             if (!keyParams.dataset){
-                keyParams.set({dataset: this.$store.state.selectedDataset});}
-
-            this.$store.dispatch("queryBulkFile");
-            this.$store.dispatch("queryBulk");
+                keyParams.set({dataset: this.$store.state.selectedDataset});
+            }
             this.getParams();
-
             await this.getBulkMetadata();
             if (!keyParams.comparison){
-                keyParams.set
+                console.log("should be setting comparison");
+                this.$store.dispatch("resetComparison");
+                keyParams.set({comparison: this.$store.state.selectedComparison});
             }
+            console.log("Comparison is: ", this.$store.state.selectedComparison);
+            await this.$store.dispatch("queryBulkFile");
+            await this.$store.dispatch("queryBulk");
             this.dataLoaded = true;
             this.dataReady = true;
 
@@ -189,8 +191,8 @@ new Vue({
         async selectedDataset(newData, oldData){
             if (newData !== oldData){
                 keyParams.set({dataset: newData});
-                this.$store.dispatch("queryBulkFile");
-                this.$store.dispatch("queryBulk");
+                await this.$store.dispatch("queryBulkFile");
+                await this.$store.dispatch("queryBulk");
                 if (newData !== ""){
                     this.getBulkMetadata();
                 }
@@ -198,6 +200,7 @@ new Vue({
         },
         selectedComparison(newData, oldData){
             if (newData !== oldData){
+                keyParams.set({comparison: newData});
                 this.$store.dispatch("queryBulk");
             }
         },
@@ -205,8 +208,17 @@ new Vue({
             if(!newData.includes(this.selectedComparison)){
                 this.$store.dispatch("resetComparison");
             }
+        },
+        kpDataset(newData, oldData){
+            if (newData !== oldData){
+                this.$store.state.selectedDataset = newData;
+            }
+        },
+        kpComparison(newData, oldData){
+            if (newData !== oldData){
+                this.$store.state.selectedComparison = newData;
+            }
         }
-
     },
 
     render(createElement, context) {
