@@ -39,7 +39,6 @@ new Vue({
     data() {
         return {
             loading: true,
-            dataLoaded: false,
             dataReady: false,
             allMetadata: null,
             bulkMetadata: null,
@@ -157,7 +156,6 @@ new Vue({
             console.log("Comparison is: ", this.$store.state.selectedComparison);
             await this.$store.dispatch("queryBulkFile");
             await this.$store.dispatch("queryBulk");
-            this.dataLoaded = true;
             this.dataReady = true;
 
         },

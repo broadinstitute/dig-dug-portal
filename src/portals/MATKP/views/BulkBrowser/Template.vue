@@ -12,9 +12,6 @@
                     <div v-if="!$store.state.selectedDataset" style="color:red; margin:0 auto">
                         Please Select a Dataset
                     </div>
-                    <div v-else-if="!$parent.dataLoaded" style="margin: 0 auto">
-                        Loading...
-                    </div>
                     <div style="display:flex; flex-direction: column; gap:20px; width: 100%;">
                         <div style="display:flex; flex-direction:column; gap:20px; align-self:center; background:#f8f8f8; padding:20px;">
                             <research-single-cell-info v-if="!!$store.state.selectedDataset"
@@ -137,6 +134,7 @@
                                     </bulk-table>
                                 </div>
                             </div>
+                            <div v-else>Loading...</div>
                         </div>
                     </div>
                 </div>
@@ -209,65 +207,6 @@ button:hover {
       opacity: 1;
   }
 }
-
-.legends {
-  gap: 20px;
-}
-.legend {
-  margin: 0 10px 0 0;
-  gap:1px;
-}
-.legend .label {
-  font-size: 11px !important;
-  line-height: 11px;
-}
-.legend .gradient {
-  height: 15px;
-  width: 100px;
-  border-radius: 20px;
-}
-.legend .gradient-tall {
-  height: 100px;
-  width: 15px;
-  border-radius: 20px;
-}
-.legend .circles {
-  height: 15px;
-  width: -webkit-fill-available;
-  justify-content: space-between;
-  padding: 0 0;
-}
-.legend .circleBorder {
-  border: 1px solid #ccc;
-  border-radius: 50%;
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.legend .circle {
-  aspect-ratio: 1;
-  background: #ccc;
-  border-radius: 50%;
-  align-self: center;
-}
-.legend .marks {
-  justify-content: space-between;
-  font-size: 11px;
-  line-height: 11px;
-}
-
-.geneLoader {
-  width: 20px;
-  height: 20px;
-  border: 3px solid black;
-  border-bottom-color: #ccc;
-  border-radius: 50%;
-  display: inline-block;
-  box-sizing: border-box;
-  animation: rotation 1s linear infinite;
-}
-
 @keyframes rotation {
   0% {
       transform: rotate(0deg);
