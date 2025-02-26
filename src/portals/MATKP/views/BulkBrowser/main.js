@@ -186,7 +186,7 @@ new Vue({
         },
         comparisons(newData){
             if(!newData.includes(this.selectedComparison)){
-                this.$store.dispatch("clearComparison");
+                this.$store.dispatch("resetComparison");
             }
         }
 

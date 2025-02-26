@@ -68,8 +68,8 @@ export default new Vuex.Store({
           context.commit("setBulkData19K", bulkDataObject);
           context.commit("setCurrentComparisons", comparisons);
         },
-        clearComparison(context){
-          context.commit("setSelectedComparison", "");
+        resetComparison(context){
+          context.commit("setSelectedComparison", context.state.currentComparisons[0]);
         }
         
     },
