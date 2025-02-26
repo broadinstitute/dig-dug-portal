@@ -23,7 +23,8 @@ export default new Vuex.Store({
       bulkData19K: [],
       selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
       selectedComparison: 'insulin sensitive vs. insulin resistant',
-      bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`
+      bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
+      currentComparisons: [],
     },
 
     mutations: {
@@ -32,6 +33,9 @@ export default new Vuex.Store({
         },
         setBulkData19K(state, data){
           state.bulkData19K = data || state.bulkData19K;
+        },
+        setCurrentComparisons(state, data){
+          state.currentComparisons = data || state.currentComparisons;
         }
         
     },
@@ -48,14 +52,17 @@ export default new Vuex.Store({
         },
         async queryBulkFile(context){
           let bulkDataObject = [];
+          let comparisons = [];
           if (context.state.selectedDataset !== ""){
             let datasetFile = `${context.state.bulkFileUrl
               }${context.state.selectedDataset}/dea.tsv.gz`;
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
             bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+            comparisons = Array.from(new Set(bulkDataObject.map(i => i.comparison)));
           }
           context.commit("setBulkData19K", bulkDataObject);
+          context.commit("setCurrentComparisons", comparisons);
         }
         
     },

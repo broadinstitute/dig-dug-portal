@@ -57,7 +57,7 @@
                                                 <div style="display:flex; flex-direction: column; min-width: 600px;">
                                                     <select v-model="$store.state.selectedComparison">
                                                         <option value="">Select a comparison</option>
-                                                        <option v-for="comparison in $parent.comparisons"
+                                                        <option v-for="comparison in $store.state.currentComparisons"
                                                             :value="comparison">
                                                             {{ comparison }}
                                                         </option>
