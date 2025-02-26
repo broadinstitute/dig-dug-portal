@@ -21,8 +21,9 @@ export default new Vuex.Store({
       limit: 20,
       singleBulkZNormData: [],
       bulkData19K: [],
-      selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
-      selectedComparison: 'insulin sensitive vs. insulin resistant',
+      selectedDataset: keyParams.dataset || 'bulkRNA_Emont2022_Humans_SAT',
+      defaultComparison: "",
+      selectedComparison: keyParams.comparison || "",
       bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
       currentComparisons: {},
     },
@@ -36,6 +37,7 @@ export default new Vuex.Store({
         },
         setCurrentComparisons(state, data){
           state.currentComparisons = data || state.currentComparisons;
+          state.defaultComparison = Object.keys(state.currentComparisons)[0];
         },
         setSelectedComparison(state, comparison){
           state.selectedComparison = comparison;
@@ -49,7 +51,6 @@ export default new Vuex.Store({
     actions: {
         async queryBulk(context){
           let compQueryParam = context.state.currentComparisons[context.state.selectedComparison];
-          console.log("querying ", compQueryParam);
           await context.dispatch("singleBulkZNorm/query",
             {q: `${context.state.selectedDataset},${compQueryParam}`,
               limit: context.state.limit});
@@ -73,8 +74,7 @@ export default new Vuex.Store({
           context.commit("setCurrentComparisons", comparisons);
         },
         resetComparison(context){
-          let defaultComparison = Object.keys(context.state.currentComparisons)[0];
-          context.commit("setSelectedComparison", defaultComparison);
+          context.commit("setSelectedComparison", context.state.defaultComparison);
         }
         
     },

@@ -125,8 +125,6 @@ new Vue({
         },
         comparisons(){
             let items = Object.keys(this.$store.state.currentComparisons);
-            console.log(items.length);
-            console.log("ITEMS: ", JSON.stringify(items));
             return items;
         },
         kpDataset(){
@@ -154,6 +152,9 @@ new Vue({
             this.getParams();
 
             await this.getBulkMetadata();
+            if (!keyParams.comparison){
+                keyParams.set
+            }
             this.dataLoaded = true;
             this.dataReady = true;
 
