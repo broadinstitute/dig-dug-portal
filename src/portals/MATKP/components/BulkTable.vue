@@ -85,7 +85,7 @@
                   </div>
                   <bulk-table              
                       :bulkData="subtableData[subtableKey(row.item)]"
-                      :config="subtableFields"
+                      :config="{fields : subtableFields[subtableKey(row.item)]}"
                       :isSubtable="true"
                   >
                   </bulk-table>
@@ -138,8 +138,7 @@ export default Vue.component("bulk-table", {
             perPage: 20,
             currentPage: 1,
             subtableData: {},
-            subtable2Data: {},
-            plotColors: plotUtils.plotColors(),
+            subtableFields: {},
             contFields: [
               {
                 key: "cont__custom__age",
@@ -189,23 +188,6 @@ export default Vue.component("bulk-table", {
         };
     },
     computed: {
-        subtableFields(){
-            let fields = [
-                {
-                    key: "sample_id",
-                    label: "Sample",
-                    sortable: true,
-                },
-                {
-                    key: "norm_counts",
-                    label: "Norm counts",
-                    sortable: true,
-                },
-            ];
-            fields = fields.concat(this.catFields);
-            fields = fields.concat(this.contFields);
-            return { "fields": fields}
-        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -261,7 +243,10 @@ export default Vue.component("bulk-table", {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey]) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
-                Vue.set(this.subtableData, queryKey, this.toNumeric(data));
+                console.log(JSON.stringify(data[0]));
+                let fields = this.getFields(data[0]);
+                Vue.set(this.subtableData, queryKey, this.toNumeric(data, fields));
+                Vue.set(this.subtableFields, queryKey, fields);
             }
         },
         async showDetails(row) {
@@ -275,8 +260,40 @@ export default Vue.component("bulk-table", {
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
         },
-        toNumeric(geneData){
-          let fieldsToConvert = this.contFields.map(i => i.key);
+        getFields(data){
+            let fields = [
+                {
+                    key: "sample_id",
+                    label: "Sample",
+                    sortable: true,
+                },
+                {
+                    key: "norm_counts",
+                    label: "Norm counts",
+                    sortable: true,
+                },
+            ];
+            let dataKeys = Object.keys(data);
+            let catFields = dataKeys.filter(field => field.startsWith("cat__"))
+                .map(field => { return {
+                    key: field,
+                    label: field.replace("cat__", ""),
+                    sortable: true
+                }});
+            let contFields = dataKeys.filter(field => field.startsWith("cont__"))
+                .map(field => { return {
+                    key: field,
+                    label: field.replace("cont__", ""),
+                    sortable: true,
+                    isNumerical: true
+                }});
+            fields = fields.concat(catFields);
+            fields = fields.concat(contFields);
+            return fields;
+        },
+        toNumeric(geneData, fields){
+          let fieldsToConvert = fields.filter(field => field.isNumerical)
+            .map(field => field.key);
           fieldsToConvert.push("norm_counts");
           let outputData = structuredClone(geneData);
           for (let i = 0; i < fieldsToConvert.length; i++){
