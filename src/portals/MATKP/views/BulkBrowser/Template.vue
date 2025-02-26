@@ -157,7 +157,6 @@
       padding: 10px 10px;
       margin: 0 -1px -1px 0;
       background: #eee;
-      cursor: pointer;
       font-size: 16px;
       flex: 1;
   }
@@ -171,48 +170,4 @@
       font-weight: bold;
   }
 }
-
-
-select {
-  background: white;
-  font-size: 14px;
-}
-button {
-  border: 1px solid rgba(0, 0, 0, .25);
-  background: white;
-  color: #4e4e4e;
-  padding: 1px 3px;
-  font-size: 14px !important;
-}
-button:hover {
-  border: 1px solid rgba(0, 0, 0, .5);
-}
-.colorize-option{
-  cursor:pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  svg{
-      width:14px;
-  }
-  path{
-      /*fill:transparent;*/
-      opacity: .25;
-      /*stroke:#434343;*/
-  }
-}
-.colorize-option.active{
-  path{
-      /*fill:#434343;*/
-      opacity: 1;
-  }
-}
-@keyframes rotation {
-  0% {
-      transform: rotate(0deg);
-  }
-  100% {
-      transform: rotate(360deg);
-}
-} 
 </style>
