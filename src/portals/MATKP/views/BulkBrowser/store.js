@@ -24,7 +24,7 @@ export default new Vuex.Store({
       selectedDataset: 'bulkRNA_Emont2022_Humans_SAT',
       selectedComparison: 'insulin sensitive vs. insulin resistant',
       bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
-      currentComparisons: [],
+      currentComparisons: {},
     },
 
     mutations: {
@@ -48,28 +48,33 @@ export default new Vuex.Store({
 
     actions: {
         async queryBulk(context){
-          await context.dispatch("singleBulkZNorm/query", 
-            {q: `${context.state.selectedDataset},${context.state.selectedComparison}`,
+          let compQueryParam = context.state.currentComparisons[context.state.selectedComparison];
+          console.log("querying ", compQueryParam);
+          await context.dispatch("singleBulkZNorm/query",
+            {q: `${context.state.selectedDataset},${compQueryParam}`,
               limit: context.state.limit});
           context.commit("setSingleBulkZNormData", context.state.singleBulkZNorm.data);          
         },
         async queryBulkFile(context){
           let bulkDataObject = [];
-          let comparisons = [];
+          let comparisons = {};
           if (context.state.selectedDataset !== ""){
             let datasetFile = `${context.state.bulkFileUrl
               }${context.state.selectedDataset}/dea.tsv.gz`;
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
             bulkDataObject = dataConvert.tsv2Json(bulkDataText);
-            comparisons = Array.from(new Set(bulkDataObject.map(i => i.comparison)));
-            comparisons = comparisons.filter(c => !!c);
+            let bulkDataComparisons = bulkDataObject
+              .filter(item => !!item.comparison)
+              .map(item => [item.comparison_id, item.comparison]);
+            comparisons = Object.fromEntries(bulkDataComparisons);
           }
           context.commit("setBulkData19K", bulkDataObject);
           context.commit("setCurrentComparisons", comparisons);
         },
         resetComparison(context){
-          context.commit("setSelectedComparison", context.state.currentComparisons[0]);
+          let defaultComparison = Object.keys(context.state.currentComparisons)[0];
+          context.commit("setSelectedComparison", defaultComparison);
         }
         
     },

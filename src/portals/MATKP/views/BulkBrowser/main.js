@@ -101,7 +101,7 @@ new Vue({
         bulkData19K(){
             return this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
-                && item.comparison === this.$store.state.selectedComparison);
+                && item.comparison_id === this.$store.state.selectedComparison);
         },
         volcanoConfig(){
             let config = {
@@ -124,7 +124,19 @@ new Vue({
             return config;
         },
         comparisons(){
-            return this.$store.state.currentComparisons;
+            let items = Object.keys(this.$store.state.currentComparisons);
+            console.log(items.length);
+            console.log("ITEMS: ", JSON.stringify(items));
+            return items;
+        },
+        kpDataset(){
+            return keyParams.dataset;
+        },
+        kpComparison(){
+            return keyParams.comparison;
+        },
+        kpGene(){
+            return keyParams.gene;
         }
     },
     async mounted() {
@@ -134,6 +146,9 @@ new Vue({
     },
     methods: {
         async init(){
+            if (!keyParams.dataset){
+                keyParams.set({dataset: this.$store.state.selectedDataset});}
+
             this.$store.dispatch("queryBulkFile");
             this.$store.dispatch("queryBulk");
             this.getParams();
@@ -172,6 +187,7 @@ new Vue({
     watch:{
         async selectedDataset(newData, oldData){
             if (newData !== oldData){
+                keyParams.set({dataset: newData});
                 this.$store.dispatch("queryBulkFile");
                 this.$store.dispatch("queryBulk");
                 if (newData !== ""){
