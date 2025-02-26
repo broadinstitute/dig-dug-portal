@@ -99,7 +99,9 @@ new Vue({
             return this.$store.state.singleBulkZNormData;
         },
         bulkData19K(){
-            return this.$store.state.bulkData19K.filter(item => item.gene !== undefined);
+            return this.$store.state.bulkData19K.filter(
+                item => item.gene !== undefined
+                && item.comparison === this.$store.state.selectedComparison);
         },
         volcanoConfig(){
             let config = {
@@ -183,6 +185,7 @@ new Vue({
         bulkData19K(newData, oldData){
             if(newData !== oldData){
                 console.log("HEADS UP THE VOLCANO IS ERUPTING!!!");
+                console.log(newData.length);
             }
         }
     },
