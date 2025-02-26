@@ -116,8 +116,8 @@
 
                                                         </bulk-volcano-plot>
                                                     </div>
-                                                    <div v-else-if="!$store.state.selectedDataset">
-                                                        Select a dataset to view the volcano plot.
+                                                    <div v-else>
+                                                        Select a dataset and a comparison to view the volcano plot.
                                                     </div>
                                                 </div>
                                                 </div>
