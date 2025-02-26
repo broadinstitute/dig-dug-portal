@@ -44,7 +44,8 @@
                     <div class="col-md-4">
                         <div class="label">View data by categorical field.</div>
                         <select v-model="catField">
-                            <option v-for="field in catFields"
+                            <option v-for="field in
+                                subtableFields[subtableKey(row.item)].filter(f => f.isCat)"
                                 :value="field">
                                 {{ field.label }}
                             </option>
@@ -55,7 +56,8 @@
                         
                         <div class="label">View data by continuous field.</div>
                         <select v-model="contField">
-                            <option v-for="field in contFields"
+                            <option v-for="field in 
+                                subtableFields[subtableKey(row.item)].filter(f => f.isNumerical)"
                                 :value="field">
                                 {{ field.label }}
                             </option>
@@ -139,51 +141,7 @@ export default Vue.component("bulk-table", {
             currentPage: 1,
             subtableData: {},
             subtableFields: {},
-            contFields: [
-              {
-                key: "cont__custom__age",
-                label: "Age",
-                sortable: true,
-              },
-              {
-                key: "cont__custom__hdl",
-                label: "HDL",
-                sortable: true,
-              },
-              {
-                key: "cont__custom__homa-ir",
-                label: "HOMA-IR",
-                sortable: true
-              },
-              {
-                key: "cont__custom__ldl",
-                label: "LDL",
-                sortable: true
-              },
-              {
-                key: "cont__custom__tg",
-                label: "Triglycerides",
-                sortable: true
-              }
-            ],
             contField: null,
-            catFields: [
-                {
-                    key: "cat__bmi__group",
-                    label: "BMI Group",
-                    sortable: true
-                },
-                {
-                    key: "cat__custom__cell_type",
-                    label: "Cell type",
-                    sortable: true
-                },
-                {
-                    key: "cat__custom__surgery",
-                    label: "Surgery",
-                    sortable: true
-                }
-            ],
             catField: null
         };
     },
@@ -278,7 +236,8 @@ export default Vue.component("bulk-table", {
                 .map(field => { return {
                     key: field,
                     label: field.replace("cat__", ""),
-                    sortable: true
+                    sortable: true,
+                    isCat: true,
                 }});
             let contFields = dataKeys.filter(field => field.startsWith("cont__"))
                 .map(field => { return {
@@ -287,6 +246,12 @@ export default Vue.component("bulk-table", {
                     sortable: true,
                     isNumerical: true
                 }});
+            if (!this.contField || !contFields.includes(this.contField)){
+                this.contField = contFields[0];
+            }
+            if (!this.catField || !catFields.includes(this.catField)){
+                this.catField = catFields[0];
+            }
             fields = fields.concat(catFields);
             fields = fields.concat(contFields);
             return fields;
@@ -306,9 +271,6 @@ export default Vue.component("bulk-table", {
           return outputData;
         }
     },
-    mounted(){
-        this.catField = this.catFields[0];
-    }
 });
 </script>
 <style scoped>
