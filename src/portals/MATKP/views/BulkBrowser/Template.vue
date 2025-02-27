@@ -105,6 +105,7 @@
                                                             :renderConfig="$parent.volcanoConfig"
                                                             :margin="$parent.margin"
                                                             sectionId="_bulk"
+                                                            :selectedGene="$parent.selectedGene"
                                                             @highlight="gene => $parent.highlight(gene)">
 
                                                         </bulk-volcano-plot>

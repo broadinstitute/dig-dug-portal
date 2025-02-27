@@ -24,6 +24,7 @@ export default Vue.component("bulk-volcano-plot", {
 		"renderConfig",
 		"margin",
 		"sectionId",
+		"selectedGene"
 	],
 	data() {
 		return {
@@ -33,7 +34,9 @@ export default Vue.component("bulk-volcano-plot", {
 			fontSize: "13px",
 			svg: null,
 			x: null,
-			y: null
+			y: null,
+			yAxisField: null,
+			xAxisField: null
 		};
 	},
 	modules: {
@@ -46,6 +49,9 @@ export default Vue.component("bulk-volcano-plot", {
 		this.chart = document.getElementById(`vector_wrapper_${this.sectionId}`);
 		this.chartWidth = this.chart.clientWidth;
 		this.renderPlot();
+		if (this.selectedGene){
+			this.highlightDot(this.selectedGene);
+		}
 	},
 	computed: {
 		canvasId() {
@@ -57,6 +63,11 @@ export default Vue.component("bulk-volcano-plot", {
 		renderData(newData, oldData) {
 			if(newData !== oldData){
 				this.renderPlot();
+			}
+		},
+		selectedGene(newData, oldData){
+			if(newData !== oldData){
+				this.highlightDot(newData);
 			}
 		}
 	},
@@ -127,9 +138,9 @@ export default Vue.component("bulk-volcano-plot", {
 				.attr("width", width + margin.left + margin.right)
 				.attr("height", height + margin.top + margin.bottom);		
 
-			let yAxisField = this.renderConfig['y axis field'],
-				xAxisField = this.renderConfig['x axis field'],
-				renderField = this.renderConfig['render by'];
+			this.yAxisField = this.renderConfig['y axis field'];
+			this.xAxisField = this.renderConfig['x axis field'];
+			let renderField = this.renderConfig['render by'];
 
 
 
@@ -137,8 +148,8 @@ export default Vue.component("bulk-volcano-plot", {
 			this.renderData.map((v) => {
 					let tempObj = { key: v[renderField], value: {} };
 
-					tempObj.value['x'] = v[xAxisField];
-					tempObj.value['y'] = v[yAxisField];
+					tempObj.value['x'] = v[this.xAxisField];
+					tempObj.value['y'] = v[this.yAxisField];
 
 					sumstat.push(tempObj);
 				})
@@ -391,14 +402,15 @@ export default Vue.component("bulk-volcano-plot", {
 		clickDot(dot){
 			let gene = d3.event.target.id;
 			this.$emit("highlight", gene);
-			this.highlightDot();
 		},
-		highlightDot(){
-			let gene = d3.event.target.id;
+		highlightDot(gene){
+			this.svg.select("#axisGroup")
+				.selectAll(".highlightCircle")
+				.remove();
 			console.log("highlighting ", gene);
-      let data = this.classToData(d3.event.target.classList);
-			let xData = this.tpmFormatter(parseFloat(data[0]));
-			let yData = this.tpmFormatter(parseFloat(data[1]));
+			let dataItem = this.renderData.find(d => d.gene === gene);
+			let xData = dataItem[this.xAxisField];
+			let yData = dataItem[this.yAxisField];
 			this.svg.select("#axisGroup")
 				.append('circle')
 					.attr('cx', this.x(xData))
@@ -406,7 +418,6 @@ export default Vue.component("bulk-volcano-plot", {
 					.attr('r', 6)
 					.style('fill', "gold")
           .attr("class", "highlightCircle");
-			
 		},
     dataToClass(value){
       let valX = `valX_${value.x}`.replaceAll(".","dot");
