@@ -64,6 +64,6 @@
     }
     
     .grow-children>*{
-        flex-grow: 1;
+        flex: 1;
     }
 }

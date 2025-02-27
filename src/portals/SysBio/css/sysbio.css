@@ -54,9 +54,10 @@ body.kp-default{
     }
 
     .sysbio-body {
+        min-width: 800px;
         max-width: 1400px;
         width: 90vw;
-        padding: 40px 0;
+        padding: 40px 0 80px;
         display: flex;
         flex-direction: column;
         align-self: center;
