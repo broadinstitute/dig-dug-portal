@@ -1,4 +1,5 @@
 :root {
+    --sysbio-black: #000000;
     --sysbio-blue: #0000C6;
     --sysbio-white-blue: #efefff;
 }
@@ -10,15 +11,7 @@ body.kp-default{
     min-height: 100vh;
     font-family: Roboto, Arial, sans-serif;
     background-color: #fafafa;
-}
-
-.sysbio-body {
-    max-width: 1400px;
-    width: 90vw;
-    padding: 40px 0;
-    display: flex;
-    flex-direction: column;
-    align-self: center;
+    font-size: 14px;
 }
 
 .sysbio{
@@ -30,6 +23,23 @@ body.kp-default{
     *{
         box-sizing: border-box;
     }
+
+    h1{
+        font-size: 1.7rem;
+    }
+    h2{
+        font-size: 1.4rem;
+    }
+    h3{
+        font-size: 1.2rem;
+    }
+    h4{
+        font-size: 1.1rem;
+    }
+    a, a:visited{
+        color: var(--sysbio-blue) !important; 
+    }
+
     .hidden{
         display: none !important;
     }
@@ -41,6 +51,14 @@ body.kp-default{
     }
     .num{
         font-family: monospace;
-        text-align: right;
+    }
+
+    .sysbio-body {
+        max-width: 1400px;
+        width: 90vw;
+        padding: 40px 0;
+        display: flex;
+        flex-direction: column;
+        align-self: center;
     }
 }
