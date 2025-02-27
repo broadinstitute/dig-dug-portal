@@ -77,6 +77,7 @@
                                                             :samplesColumns="$parent.samplesColumns"
                                                             :margin="$parent.margin"
                                                             :plotHeight="$parent.plotHeight"
+                                                            @highlight="gene => $parent.highlight(gene)"
                                                         >
                                                         </bulk-heatmap>
                                                     </div>
@@ -103,7 +104,9 @@
                                                             :renderData="$parent.bulkData19K"
                                                             :renderConfig="$parent.volcanoConfig"
                                                             :margin="$parent.margin"
-                                                            sectionId="_bulk">
+                                                            sectionId="_bulk"
+                                                            :selectedGene="$parent.selectedGene"
+                                                            @highlight="gene => $parent.highlight(gene)">
 
                                                         </bulk-volcano-plot>
                                                     </div>
@@ -123,8 +126,8 @@
                                         :bulkData="$parent.bulkData19K"
                                         :dataset="$store.state.selectedDataset"
                                         :config="$parent.tableConfig"
-                                        :scatterConfig="$parent.scatterplotConfig">
-
+                                        :scatterConfig="$parent.scatterplotConfig"
+                                        :highlightedGene="$store.state.selectedGene">
                                     </bulk-table>
                                 </div>
                             </div>

@@ -94,6 +94,9 @@ new Vue({
         selectedComparison(){
             return this.$store.state.selectedComparison;
         },
+        selectedGene(){
+            return this.$store.state.selectedGene;
+        },
         zNormData(){
             return this.$store.state.singleBulkZNormData;
         },
@@ -146,6 +149,9 @@ new Vue({
             if (!keyParams.dataset){
                 keyParams.set({dataset: this.$store.state.selectedDataset});
             }
+            if (!keyParams.gene){
+                keyParams.set({gene: this.$store.state.selectedGene});
+            }
             this.getParams();
             await this.getBulkMetadata();
             if (!keyParams.comparison){
@@ -181,6 +187,9 @@ new Vue({
                 console.error("Error: ", error);
             }
         },
+        highlight(highlightedGene){
+            this.$store.state.selectedGene = highlightedGene;
+        }
         
     },
     watch:{
@@ -200,6 +209,11 @@ new Vue({
                 this.$store.dispatch("queryBulk");
             }
         },
+        selectedGene(newData, oldData){
+            if(newData !== oldData){
+                keyParams.set({gene: newData});
+            }
+        },
         comparisons(newData){
             if(!newData.includes(this.selectedComparison)){
                 this.$store.dispatch("resetComparison");
@@ -213,6 +227,11 @@ new Vue({
         kpComparison(newData, oldData){
             if (newData !== oldData){
                 this.$store.state.selectedComparison = newData;
+            }
+        },
+        kpGene(newData, oldData){
+            if(newData !== oldData){
+                this.$store.state.selectedGene = newData;
             }
         }
     },

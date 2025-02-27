@@ -8,7 +8,7 @@
               ></data-download>
           </div>
           <div v-html="'Total rows: ' + rows" class="table-total-rows"></div>
-          <b-table
+          <b-table v-model="currentData"
               :hover="isSubtable"
               small
               responsive="sm"
@@ -19,6 +19,7 @@
               :sort-by="isSubtable? 'sample_id' : '-log10P'"
               :sort-desc="!isSubtable"
               :sort-icon-left="true"
+              :tbody-tr-class="isHighlightedGene"
           >
               <template #cell(gene)="r">
                   <!-- Link to where? -->
@@ -133,7 +134,8 @@ export default Vue.component("bulk-table", {
         "config",
         "isSubtable",
         "filter",
-        "dataset"
+        "dataset",
+        "highlightedGene"
     ],
     data() {
         return {
@@ -142,8 +144,12 @@ export default Vue.component("bulk-table", {
             subtableData: {},
             subtableFields: {},
             contField: null,
-            catField: null
+            catField: null,
+            currentData: []
         };
+    },
+    mounted(){
+        this.findGene(this.highlightedGene);
     },
     computed: {
         utilsBox() {
@@ -269,8 +275,29 @@ export default Vue.component("bulk-table", {
             })
           }
           return outputData;
+        },
+        isHighlightedGene(item, type){
+            return item.gene === this.highlightedGene ? "table-warning" : "";
+        },
+        findGene(gene){
+            let allGenes = this.tableData.map(t => t.gene);
+            let location = allGenes.indexOf(gene);
+            if (location === -1){
+                return;
+            }
+            let page = Math.ceil(location / this.perPage);
+            if (page === 0){
+                page = 1;
+            }
+            this.currentPage = page;
+
         }
     },
+    watch: {
+        highlightedGene(newGene){
+            if (!!newGene){this.findGene(newGene)};
+        }
+    }
 });
 </script>
 <style scoped>
