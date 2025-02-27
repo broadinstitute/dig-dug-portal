@@ -8,9 +8,20 @@
             </div>
             <div class="menu">
                 <div v-for="item in nav.menuItems" class="menu-item-wrapper">
-                    <a class="menu-item" :href="item.path || null">{{ item.label }}</a>
+                    <a class="menu-item" 
+                       :href="item.path || null" 
+                       :target="item.external ? '_blank' : null"
+                    >
+                        {{ item.label }}
+                    </a>
                     <div v-if="item.subMenuItems" class="submenu">
-                        <a v-for="subItem in item.subMenuItems" class="submenu-item" :href="subItem.path || null">{{ subItem.label }}</a>
+                        <a v-for="subItem in item.subMenuItems" 
+                           class="submenu-item" 
+                           :href="subItem.path || null"
+                           :target="subItem.external ? '_blank' : null"
+                        >
+                            {{ subItem.label }}
+                        </a>
                     </div>
                 </div>
             </div>

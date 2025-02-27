@@ -9,15 +9,19 @@
                 class="menu-item-wrapper"
                 :class="{ active: isActive(item.path) }"
             >
-                <a class="menu-item" :href="item.path || null">
+                <a class="menu-item" 
+                   :href="item.path || null"
+                   :target="item.external ? '_blank' : null"
+                >
                     {{ item.label}}
                 </a>
                 <div v-if="item.subMenuItems" class="submenu">
                     <a
                         v-for="subItem in item.subMenuItems"
                         class="submenu-item"
-                        :href="subItem.path || null"
                         :class="{ active: isActive(subItem.path) }"
+                        :href="subItem.path || null"
+                        :target="subItem.external ? '_blank' : null"
                     >
                         {{ subItem.label }}
                     </a>

@@ -7,11 +7,12 @@
             "subMenuItems": [
                 {
                     "label": "Workbench",
-                    "path": "https://workbench.verily.com"
+                    "path": "https://workbench.verily.com",
+                    "external": true
                 },
                 {
                     "label": "Gene Expression Browser",
-                    "path": ""
+                    "path": "#"
                 }
             ]
         },
