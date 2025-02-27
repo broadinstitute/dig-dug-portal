@@ -24,6 +24,7 @@ export default new Vuex.Store({
       selectedDataset: keyParams.dataset || 'bulkRNA_Emont2022_Humans_SAT',
       defaultComparison: "",
       selectedComparison: keyParams.comparison || "",
+      selectedGene: keyParams.gene || "DCSTAMP",
       bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
       currentComparisons: {},
     },

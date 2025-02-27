@@ -19,6 +19,7 @@
               :sort-by="isSubtable? 'sample_id' : '-log10P'"
               :sort-desc="!isSubtable"
               :sort-icon-left="true"
+              :tbody-tr-class="isHighlightedGene"
           >
               <template #cell(gene)="r">
                   <!-- Link to where? -->
@@ -133,7 +134,8 @@ export default Vue.component("bulk-table", {
         "config",
         "isSubtable",
         "filter",
-        "dataset"
+        "dataset",
+        "highlightedGene"
     ],
     data() {
         return {
@@ -269,6 +271,9 @@ export default Vue.component("bulk-table", {
             })
           }
           return outputData;
+        },
+        isHighlightedGene(item, type){
+            return item.gene === this.highlightedGene ? "table-warning" : "";
         }
     },
 });
@@ -300,5 +305,8 @@ button {
 }
 .subtable-all {
     background-color: #efefef;
+}
+tr.highlight-gene {
+    background-color: gold !important;
 }
 </style>

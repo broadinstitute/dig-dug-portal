@@ -146,6 +146,9 @@ new Vue({
             if (!keyParams.dataset){
                 keyParams.set({dataset: this.$store.state.selectedDataset});
             }
+            if (!keyParams.gene){
+                keyParams.set({gene: this.$store.state.selectedGene});
+            }
             this.getParams();
             await this.getBulkMetadata();
             if (!keyParams.comparison){
@@ -213,6 +216,11 @@ new Vue({
         kpComparison(newData, oldData){
             if (newData !== oldData){
                 this.$store.state.selectedComparison = newData;
+            }
+        },
+        kpGene(newData, oldData){
+            if(newData !== oldData){
+                this.$store.state.selectedGene = newData;
             }
         }
     },
