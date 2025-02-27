@@ -328,7 +328,4 @@ button {
 .subtable-all {
     background-color: #efefef;
 }
-tr.highlight-gene {
-    background-color: gold !important;
-}
 </style>

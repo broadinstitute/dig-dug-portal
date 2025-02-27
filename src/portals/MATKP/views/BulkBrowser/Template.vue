@@ -103,7 +103,8 @@
                                                             :renderData="$parent.bulkData19K"
                                                             :renderConfig="$parent.volcanoConfig"
                                                             :margin="$parent.margin"
-                                                            sectionId="_bulk">
+                                                            sectionId="_bulk"
+                                                            @highlight="gene => $parent.highlight(gene)">
 
                                                         </bulk-volcano-plot>
                                                     </div>
@@ -125,7 +126,6 @@
                                         :config="$parent.tableConfig"
                                         :scatterConfig="$parent.scatterplotConfig"
                                         :highlightedGene="$store.state.selectedGene">
-
                                     </bulk-table>
                                 </div>
                             </div>

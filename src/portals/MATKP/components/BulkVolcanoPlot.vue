@@ -371,7 +371,8 @@ export default Vue.component("bulk-volcano-plot", {
 			});
       svg.selectAll("circle")
         .on("mouseover", g => this.hoverDot(g))
-				.on("mouseleave", g =>  mouseTooltip.hide());
+				.on("mouseleave", g =>  mouseTooltip.hide())
+				.on("click", g => this.clickDot(g));
 					
 		},
     hoverDot(dot){
@@ -384,6 +385,10 @@ export default Vue.component("bulk-volcano-plot", {
       hover = hover.concat(`<div>${this.renderConfig['y axis label']}: ${yData}</div>`);
       mouseTooltip.show(hover);
     },
+		clickDot(dot){
+			let gene = d3.event.target.id;
+			this.$emit("highlight", gene);
+		},
     dataToClass(value){
       let valX = `valX_${value.x}`.replaceAll(".","dot");
       let valY = `valY_${value.y}`.replaceAll(".", "dot");

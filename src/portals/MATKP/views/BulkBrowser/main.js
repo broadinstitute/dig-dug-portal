@@ -94,6 +94,9 @@ new Vue({
         selectedComparison(){
             return this.$store.state.selectedComparison;
         },
+        selectedGene(){
+            return this.$store.state.selectedGene;
+        },
         zNormData(){
             return this.$store.state.singleBulkZNormData;
         },
@@ -184,6 +187,9 @@ new Vue({
                 console.error("Error: ", error);
             }
         },
+        highlight(highlightedGene){
+            this.$store.state.selectedGene = highlightedGene;
+        }
         
     },
     watch:{
@@ -201,6 +207,11 @@ new Vue({
             if (newData !== oldData){
                 keyParams.set({comparison: newData});
                 this.$store.dispatch("queryBulk");
+            }
+        },
+        selectedGene(newData, oldData){
+            if(newData !== oldData){
+                keyParams.set({gene: newData});
             }
         },
         comparisons(newData){
