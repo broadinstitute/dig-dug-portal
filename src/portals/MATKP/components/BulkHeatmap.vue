@@ -101,7 +101,8 @@ export default Vue.component("bulk-heatmap", {
                   .attr("height", y.bandwidth() )
                   .style("fill", function(d) { return colorScale(d.expression)} )
                   .on("mouseover", d => this.showTooltip(d))
-                  .on("mouseleave", d=> mouseTooltip.hide());
+                  .on("mouseleave", d=> mouseTooltip.hide())
+                  .on("click", d => this.clickSquare(d));
 
             this.svg.append("g")
 				.attr("id", "axisLabelsGroup")
@@ -175,6 +176,10 @@ export default Vue.component("bulk-heatmap", {
         tooltipHtml = tooltipHtml.concat(
           `<div>Expression: ${expression}</div>`)
         mouseTooltip.show(tooltipHtml);
+      },
+      clickSquare(event){
+        let gene = d3.event.target.id;
+        this.$emit("highlight", gene);
       },
       dataToClass(value){
         let expr = `expr_${value.expression}`.replaceAll(".", "dot");

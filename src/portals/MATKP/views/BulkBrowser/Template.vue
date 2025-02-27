@@ -77,6 +77,7 @@
                                                             :samplesColumns="$parent.samplesColumns"
                                                             :margin="$parent.margin"
                                                             :plotHeight="$parent.plotHeight"
+                                                            @highlight="gene => $parent.highlight(gene)"
                                                         >
                                                         </bulk-heatmap>
                                                     </div>
