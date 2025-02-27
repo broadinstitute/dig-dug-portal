@@ -8,7 +8,7 @@
               ></data-download>
           </div>
           <div v-html="'Total rows: ' + rows" class="table-total-rows"></div>
-          <b-table
+          <b-table v-model="currentData"
               :hover="isSubtable"
               small
               responsive="sm"
@@ -144,8 +144,12 @@ export default Vue.component("bulk-table", {
             subtableData: {},
             subtableFields: {},
             contField: null,
-            catField: null
+            catField: null,
+            currentData: []
         };
+    },
+    mounted(){
+        this.findGene(this.highlightedGene);
     },
     computed: {
         utilsBox() {
@@ -274,8 +278,26 @@ export default Vue.component("bulk-table", {
         },
         isHighlightedGene(item, type){
             return item.gene === this.highlightedGene ? "table-warning" : "";
+        },
+        findGene(gene){
+            let allGenes = this.tableData.map(t => t.gene);
+            let location = allGenes.indexOf(gene);
+            if (location === -1){
+                return;
+            }
+            let page = Math.ceil(location / this.perPage);
+            if (page === 0){
+                page = 1;
+            }
+            this.currentPage = page;
+
         }
     },
+    watch: {
+        highlightedGene(newGene){
+            if (!!newGene){this.findGene(newGene)};
+        }
+    }
 });
 </script>
 <style scoped>
