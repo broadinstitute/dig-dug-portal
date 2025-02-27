@@ -267,6 +267,42 @@ function maskFormatter(mask) {
     return { description: mask, sort: 7 };
 }
 
+function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
+
+    let content;
+
+    switch (FORMAT.type) {
+        case "link":
+            let href = FORMAT.link;
+
+            FORMAT.parameters.map(p => {
+                href = href.replace('$' + p, ROW_DATA[p]);
+            })
+            /*for (const [rKey, rValue] of Object.entries(ROW_DATA)) {
+
+                href = href.replace('$' + rKey, rValue);
+            }*/
+
+            content = "<a href='" + href + "'>" + VALUE + "</a>";
+
+            break;
+
+        case "scientific notation":
+            content = pValueFormatter(VALUE);
+
+            content = content == "-" ? 0 : content;
+            break;
+
+        case "ancestry":
+            content = ancestryFormatter(VALUE)
+            break;
+
+    }
+
+    return content;
+
+}
+
 function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES) {
 
     let cellValue = VALUE;
@@ -412,6 +448,18 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 }
 
                 cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
+                break;
+
+            case "map name":
+
+                let tempValue = cellValue;
+
+                cellValue = columnKeyObj["map"][cellValue];
+
+                if (!!columnKeyObj["link to"]) {
+                    cellValue = "<a href='" + tempValue + "'>" + cellValue + "</a>"
+                }
+
                 break;
 
             case "as link":
@@ -572,9 +620,19 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             : null;
         let cellValue;
 
+        if (formatTypes.includes("cfde-datatypes"))
+            console.log(typeof VALUE, Array.isArray(VALUE));
+
         if (typeof VALUE != "object") {
             //console.log('...not object')
-            cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+            if (formatTypes.includes("youtube")) {
+                let cellValueString = `
+                    <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${VALUE}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                `;
+                cellValue = cellValueString;
+            } else {
+                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+            }
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
             //console.log('...is array')
             if (formatTypes.includes("object to mini-card")) {
@@ -596,6 +654,31 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                     cellValueString += "</div>";
                 })
                 cellValue = cellValueString;
+
+            } else if (formatTypes.includes("custom-citation")) {
+
+                let cellValueString = '';
+
+                VALUE.forEach(item => {
+                    if (!item.title || item.title === "") return;
+                    const citation = `
+                    <div class="citation">
+                        <div><strong>${item.title}</strong></div>
+                        <div>${item.authors} <i>${item.publication}</i></div>
+                        <div class="citation-links">
+                            <div>DOI: <a href="https://doi.org/${item.doi}" target="_blank">${item.doi}</a></div>
+                            <div style="display:${item.pmid === "" ? 'none' : 'block'}">PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}" target="_blank">${item.pmid}</a></div>
+                            <div style="display:${item.pmcid === "" ? 'none' : 'block'}">PMCID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmcid}" target="_blank">${item.pmcid}</a></div>
+                        </div>
+                        <div class="citation-notes">${item.description}</div>
+                    </div>
+                    `;
+                    cellValueString += citation;
+                })
+
+                cellValue = cellValueString;
+                //console.log('make citation', VALUE);
+
             } else {
                 //console.log('...something else')
                 let cellValueString = (!!formatTypes.includes("image") && VALUE != "") ? "<div class='imgs_wrapper'>" : "";
@@ -611,6 +694,22 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             if (formatTypes.includes("custom-extra")) {
                 cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
             }
+            if (formatTypes.includes("cfde-datatypes")) {
+                console.log("data type!");
+                let cellValueString = '<div style="display:flex;flex-direction:column; gap:10px;">';
+                for (const [key, value] of Object.entries(VALUE)) {
+                    if (value.trim() != '') {
+                        const k = key.replaceAll('_', ' ');
+                        cellValueString += `<div style="${k === 'note' ? 'display:flex;gap:5px;font-style:italic;' : ''}">
+                        <div style="font-weight:bold;text-transform:capitalize">${k}</div>
+                        <div>${value}</div>
+                        </div>
+                        `
+                    }
+                }
+                cellValueString != '</div>';
+                cellValue = cellValueString;
+            }
         }
 
         return cellValue;
@@ -625,6 +724,33 @@ function getShortName(STR) {
         STR;
     return formatted;
 }
+
+function replaceWithParams(STR, PARAMS) {
+    let paramKeys = (!!PARAMS) ? Object.keys(PARAMS) : [];
+    let replacedSTR = STR;
+    if (!!replacedSTR) {
+        let url = window.location.href;
+        const queryParams = {};
+        const urlObj = new URL(url);
+        const searchParams = urlObj.searchParams;
+
+        for (const [key, value] of searchParams.entries()) {
+            queryParams[key] = value;
+        }
+
+        Object.keys(queryParams).map(key => {
+            if (paramKeys.includes(key)) {
+                let replaceTo = (!!PARAMS[key].values) ? PARAMS[key].values[queryParams[key]] : queryParams[key];
+                replacedSTR = replacedSTR.replaceAll('$' + key, replaceTo);
+            }
+        })
+
+        replacedSTR = replacedSTR.replaceAll('$', '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
+    }
+
+    return replacedSTR
+}
+
 
 export default {
     alleleFormatter,
@@ -654,4 +780,6 @@ export default {
     BYORColumnFormatter,
     getHoverValue,
     getShortName,
+    ssColumnFormat,
+    replaceWithParams
 };

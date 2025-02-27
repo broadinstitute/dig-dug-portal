@@ -1,7 +1,7 @@
 <template>
     <select v-model="size" class="form-control">
         <option value="small">Small</option>
-        <option value="medium">Medium</option>
+        <!-- <option value="medium">Medium</option> -->
         <option value="large">Large</option>
     </select>
 </template>

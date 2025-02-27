@@ -9,7 +9,11 @@
     position: relative;
 }
 
-.start-min, .end-max, .beta-0, .min-value, .max-value {
+.start-min,
+.end-max,
+.beta-0,
+.min-value,
+.max-value {
     font-size: 14px;
     position: absolute;
     top: -20px;
@@ -82,7 +86,8 @@
     margin-bottom: 7px;
 }
 
-.forest-plot-html-row .beta-box, .forest-plot-html-legend-wrapper .beta-box  {
+.forest-plot-html-row .beta-box,
+.forest-plot-html-legend-wrapper .beta-box {
     position: absolute;
     width: 12px;
     height: 12px;
@@ -90,15 +95,18 @@
     top: 4px;
 }
 
-.forest-plot-html-row .beta-box.p-significant, .forest-plot-html-legend-wrapper .beta-box.p-significant{
+.forest-plot-html-row .beta-box.p-significant,
+.forest-plot-html-legend-wrapper .beta-box.p-significant {
     background-color: #ff0000;
 }
 
-.forest-plot-html-row .beta-box.p-moderate, .forest-plot-html-legend-wrapper .beta-box.p-moderate {
+.forest-plot-html-row .beta-box.p-moderate,
+.forest-plot-html-legend-wrapper .beta-box.p-moderate {
     background-color: #ff9999;
 }
 
-.forest-plot-html-row .beta-box.p-weak, .forest-plot-html-legend-wrapper .beta-box.p-weak {
+.forest-plot-html-row .beta-box.p-weak,
+.forest-plot-html-legend-wrapper .beta-box.p-weak {
     background-color: #ffcc88;
 }
 
@@ -150,8 +158,8 @@
     top: 4px;
 }
 
-.phenotype-group-dot .phenotype-group-name{
-    display:block;
+.phenotype-group-dot .phenotype-group-name {
+    display: block;
     position: absolute;
     right: 15px;
     font-size: 13px;
@@ -159,8 +167,8 @@
     white-space: nowrap;
 }
 
-.phenotype-group-dot:hover .phenotype-group-name{
-    display:block;
+.phenotype-group-dot:hover .phenotype-group-name {
+    display: block;
 }
 
 
@@ -172,40 +180,131 @@
     z-index: 10000;*/
 }
 
-.forest-plot-html-row .phenotype-group-dot.hidden .phenotype-group-name{
+.forest-plot-html-row .phenotype-group-dot.hidden .phenotype-group-name {
     display: none;
 }
 
-.forest-plot-html-row:hover .phenotype-group-dot.hidden .phenotype-group-name{
+.forest-plot-html-row:hover .phenotype-group-dot.hidden .phenotype-group-name {
     /*display: block;*/
 }
 
-.phenotype-group-dot.ANTHROPOMETRIC, .legend-phenotype-group-dot.ANTHROPOMETRIC { background-color: #048845; }
-.phenotype-group-dot.ATRIAL.FIBRILLATION, .legend-phenotype-group-dot.ATRIAL.FIBRILLATION { background-color: #7aaa1c; }
-.phenotype-group-dot.CARDIOVASCULAR, .legend-phenotype-group-dot.CARDIOVASCULAR { background-color: #6FC7B6; }
-.phenotype-group-dot.ECG.TRAITS, .legend-phenotype-group-dot.ECG.TRAITS { background-color: #8490C8; }
-.phenotype-group-dot.GLYCEMIC, .legend-phenotype-group-dot.GLYCEMIC { background-color: #9F78AC; }
-.phenotype-group-dot.HEMORRHAGIC.STROKE, .legend-phenotype-group-dot.HEMORRHAGIC.STROKE { background-color: #BF61A5; }
-.phenotype-group-dot.HEPATIC, .legend-phenotype-group-dot.HEPATIC { background-color: #F88084; }
-.phenotype-group-dot.INFLAMMATORY.BOWEL, .legend-phenotype-group-dot.INFLAMMATORY.BOWEL { background-color: #007bff; }
-.phenotype-group-dot.ISCHEMIC.STROKE, .legend-phenotype-group-dot.ISCHEMIC.STROKE { background-color: #EE3124; }
-.phenotype-group-dot.LIPIDS, .legend-phenotype-group-dot.LIPIDS { background-color: #fAA553; }
-.phenotype-group-dot.LUNG, .legend-phenotype-group-dot.LUNG { background-color: #0000ff; }
-.phenotype-group-dot.METABOLITE, .legend-phenotype-group-dot.METABOLITE { background-color: #fcc500; }
-.phenotype-group-dot.MRI.TRAITS, .legend-phenotype-group-dot.MRI.TRAITS { background-color: #F5A4C7; }
-.phenotype-group-dot.MUSCULOSKELETAL, .legend-phenotype-group-dot.MUSCULOSKELETAL { background-color: #aec6a1; }
-.phenotype-group-dot.NEUROLOGICAL, .legend-phenotype-group-dot.NEUROLOGICAL { background-color: #33ff00; }
-.phenotype-group-dot.OCULAR, .legend-phenotype-group-dot.OCULAR { background-color: #ccc698; }
-.phenotype-group-dot.OTHER, .legend-phenotype-group-dot.OTHER { background-color: #B4B4B4; }
-.phenotype-group-dot.PSYCHIATRIC, .legend-phenotype-group-dot.PSYCHIATRIC { background-color: #5555FF; }
-.phenotype-group-dot.RENAL, .legend-phenotype-group-dot.RENAL { background-color: #ff55ff; }
-.phenotype-group-dot.SLEEP.AND.CIRCADIAN, .legend-phenotype-group-dot.SLEEP.AND.CIRCADIAN { background-color: #D5A768; }
-.phenotype-group-dot.STROKE, .legend-phenotype-group-dot.STROKE { background-color: #cccc00; }
-.phenotype-group-dot.TYPE.DIABETES, .legend-phenotype-group-dot.TYPE.DIABETES { background-color: #639bc0; }
-.phenotype-group-dot.HEMATOLOGICAL, .legend-phenotype-group-dot.HEMATOLOGICAL { background-color: #aa0000; }
+.phenotype-group-dot.ANTHROPOMETRIC,
+.legend-phenotype-group-dot.ANTHROPOMETRIC {
+    background-color: #048845;
+}
+
+.phenotype-group-dot.ATRIAL.FIBRILLATION,
+.legend-phenotype-group-dot.ATRIAL.FIBRILLATION {
+    background-color: #7aaa1c;
+}
+
+.phenotype-group-dot.CARDIOVASCULAR,
+.legend-phenotype-group-dot.CARDIOVASCULAR {
+    background-color: #6FC7B6;
+}
+
+.phenotype-group-dot.ECG.TRAITS,
+.legend-phenotype-group-dot.ECG.TRAITS {
+    background-color: #8490C8;
+}
+
+.phenotype-group-dot.GLYCEMIC,
+.legend-phenotype-group-dot.GLYCEMIC {
+    background-color: #9F78AC;
+}
+
+.phenotype-group-dot.HEMORRHAGIC.STROKE,
+.legend-phenotype-group-dot.HEMORRHAGIC.STROKE {
+    background-color: #BF61A5;
+}
+
+.phenotype-group-dot.HEPATIC,
+.legend-phenotype-group-dot.HEPATIC {
+    background-color: #F88084;
+}
+
+.phenotype-group-dot.INFLAMMATORY.BOWEL,
+.legend-phenotype-group-dot.INFLAMMATORY.BOWEL {
+    background-color: #007bff;
+}
+
+.phenotype-group-dot.ISCHEMIC.STROKE,
+.legend-phenotype-group-dot.ISCHEMIC.STROKE {
+    background-color: #EE3124;
+}
+
+.phenotype-group-dot.LIPIDS,
+.legend-phenotype-group-dot.LIPIDS {
+    background-color: #fAA553;
+}
+
+.phenotype-group-dot.LUNG,
+.legend-phenotype-group-dot.LUNG {
+    background-color: #0000ff;
+}
+
+.phenotype-group-dot.METABOLITE,
+.legend-phenotype-group-dot.METABOLITE {
+    background-color: #fcc500;
+}
+
+.phenotype-group-dot.MRI.TRAITS,
+.legend-phenotype-group-dot.MRI.TRAITS {
+    background-color: #F5A4C7;
+}
+
+.phenotype-group-dot.MUSCULOSKELETAL,
+.legend-phenotype-group-dot.MUSCULOSKELETAL {
+    background-color: #aec6a1;
+}
+
+.phenotype-group-dot.NEUROLOGICAL,
+.legend-phenotype-group-dot.NEUROLOGICAL {
+    background-color: #33ff00;
+}
+
+.phenotype-group-dot.OCULAR,
+.legend-phenotype-group-dot.OCULAR {
+    background-color: #ccc698;
+}
+
+.phenotype-group-dot.OTHER,
+.legend-phenotype-group-dot.OTHER {
+    background-color: #B4B4B4;
+}
+
+.phenotype-group-dot.PSYCHIATRIC,
+.legend-phenotype-group-dot.PSYCHIATRIC {
+    background-color: #5555FF;
+}
+
+.phenotype-group-dot.RENAL,
+.legend-phenotype-group-dot.RENAL {
+    background-color: #ff55ff;
+}
+
+.phenotype-group-dot.SLEEP.AND.CIRCADIAN,
+.legend-phenotype-group-dot.SLEEP.AND.CIRCADIAN {
+    background-color: #D5A768;
+}
+
+.phenotype-group-dot.STROKE,
+.legend-phenotype-group-dot.STROKE {
+    background-color: #cccc00;
+}
+
+.phenotype-group-dot.TYPE.DIABETES,
+.legend-phenotype-group-dot.TYPE.DIABETES {
+    background-color: #639bc0;
+}
+
+.phenotype-group-dot.HEMATOLOGICAL,
+.legend-phenotype-group-dot.HEMATOLOGICAL {
+    background-color: #aa0000;
+}
 
 .forest-plot-html-legend-wrapper {
-    font-size: 12px;
+    font-size: 14px;
     /* position: absolute;
     z-index: 10000;
     background-color: white;*/

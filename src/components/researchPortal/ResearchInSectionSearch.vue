@@ -15,6 +15,38 @@
 					<div class="label">
 						<span v-html="parameter.label"></span>
 					</div>
+
+					<select v-if="parameter.type == 'api list'"
+							:id="'section_search_param_' + parameter.parameter"  class="custom-select custom-select-search"
+							@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
+
+							<option value="">{{ 'Set ' + parameter.parameter }}</option>
+						
+							<option v-for="param in parameterOptions[paramIndex]" :key="param.value" :value="param.value"
+									v-html="param.label.trim()"></option>
+					</select>
+
+					<!--<template v-if="parameter.type == 'api list' && parameterOptions[paramIndex].length > 10">
+						<input v-model="paramSearch[paramIndex]" class="form-control"
+							@keyup="getListOptions($event, parameter)" :id="'section_search_param_' + parameter.parameter" />
+
+						<div :id="'listOptions' + parameter.parameter" class="custom-select custom-select-search long-list"
+							:size="!!listOptions[parameter.parameter] && listOptions[parameter.parameter].length >= 5 ? 5 : 'auto'"
+							:style="!listOptions[parameter.parameter] || listOptions[parameter.parameter].length == 0
+								? 'display:none !important;'
+								: ''
+								">
+							<template v-for="option in listOptions[parameter.parameter]">
+								<a href="javascript:;" v-html="option.label" :key="option.value" @click="setListValue(
+									option.value,
+									parameter.parameter,
+									paramIndex,
+									true
+								)
+									" class="custom-select-a-option"></a>
+							</template>
+						</div>
+					</template>-->
 						
 					<select
 						v-if="parameter.type == 'list' &&
@@ -159,6 +191,9 @@ export default Vue.component("research-in-section-search", {
 		return {
 			paramSearch:{1:"",2:"",3:"",4:"",5:"",6:"",7:"",8:"",9:"",10:"", 
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: "" },
+				parameterOptions: {
+				0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: []
+			},
 			searchingValues:{},
 			kpGenes:[],
 			listOptions: {},
@@ -167,7 +202,11 @@ export default Vue.component("research-in-section-search", {
 	created() {
 		this.$root.$refs.inSectionSearch = this;
 
-		
+		this.searchParameters.map((param, pIndex) => {
+			if (param.type == 'api list') {
+				this.getList(param["data point"], pIndex);
+			}
+		})
 		
 	},
 	mounted() {
@@ -209,6 +248,54 @@ export default Vue.component("research-in-section-search", {
 	watch: {
 	},
 	methods: {
+		async getList(apiPoint, INDEX) {
+
+			console.log(apiPoint, INDEX);
+
+			let searchPoint = apiPoint.url;
+			let values = [];
+
+			if (!!apiPoint["parameters type"] && apiPoint["parameters type"] == "replace") {
+
+				let PARAMS = apiPoint.parameters
+
+				PARAMS.map((param, pIndex) => {
+					searchPoint = searchPoint.replace("$" + param, this.utils.keyParams[param]);
+				})
+			}
+
+			let valuesJson = await fetch(searchPoint).then((resp) => resp.json());
+
+			if (valuesJson.error == null) {
+
+				let data = valuesJson;
+
+				if (!!apiPoint["data wrapper"]) {
+					apiPoint["data wrapper"].map(mapper => {
+						data = data[mapper];
+					})
+				}
+
+				if (data.length > 0) {
+					if (typeof data == 'string') {
+						data = JSON.parse(data);
+					}
+
+					data.map(item => {
+
+						if (typeof item == 'string' || typeof item == 'number') {
+							values.push({ "label": item, "value": item })
+						} else if (typeof item == 'object' && !!Array.isArray(item)) {
+							values.push({ "label": item[0], "value": item[0] })
+						} else if (typeof item == 'object' && !Array.isArray(item)) {
+							values.push(item);
+						}
+					})
+				}
+				this.parameterOptions[INDEX] = values;
+
+			}
+		},
 		onScroll(e) {
 			let windowTop = window.top.scrollY;
 
@@ -223,7 +310,7 @@ export default Vue.component("research-in-section-search", {
 				}
 			}
 		},
-		getListOptions(event, PARAM) {
+		getListOptionsUnused(event, PARAM) {
 
 			let options = [];
 			if (event.target.value.length >= 2) {
@@ -240,6 +327,24 @@ export default Vue.component("research-in-section-search", {
 					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
 				//}
 				this.listOptions[PARAM.parameter] = options;
+			} else {
+				this.listOptions[PARAM.parameter] = [];
+			}
+		},
+		getListOptions(event, PARAM) {
+console.log("PARAM", PARAM)
+			let options = [];
+			if (event.target.value.length >= 2) {
+				//let optionChrLength = 0;
+				PARAM.values.map(option => {
+					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
+						options.push(option);
+					}
+				})
+
+				let shorterFirst = options.sort((a, b) => a.label.length - b.label.length);
+
+				this.listOptions[PARAM.parameter] = shorterFirst;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
 			}

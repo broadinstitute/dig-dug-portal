@@ -67,10 +67,10 @@ export default {
                 "https://hugeampkpncms.org/view/rest/get_research_page_access?pageid=" + param.pageID
             ).then(resp => resp.json());
             //check for cookie if dev mode
-            if(json[0].field_page_mode==='dev'){
+            if (!!json[0].field_page_mode && json[0].field_page_mode === 'dev') {
                 const cookieCheck = Vue.$cookies.get(`KPN_${param.pageID}`);
                 //login if cookie exists
-                if(cookieCheck) context.dispatch("getResearchDevPage", {pageID: param.pageID, devID: cookieCheck.u, devPW: cookieCheck.p});
+                if (cookieCheck) context.dispatch("getResearchDevPage", { pageID: param.pageID, devID: cookieCheck.u, devPW: cookieCheck.p });
             }
             // set the data
             context.commit("setResearchMode", json);
@@ -96,9 +96,9 @@ export default {
                     "https://hugeampkpncms.org/view/rest/get_research_page_dev?pageid=" + param.pageID + "&&devid=" + param.devID + "&&devpw=" + param.devPW
                 ).then(resp => resp.json());
                 //if login successful, and user wants to be remembered
-                if(json.length>0 && param.devCK){
+                if (json.length > 0 && param.devCK) {
                     //set cookie for 14 days
-                    const cookieValues = {u: param.devID, p: param.devPW};
+                    const cookieValues = { u: param.devID, p: param.devPW };
                     Vue.$cookies.set(`KPN_${param.pageID}`, cookieValues, "14d");//14 days //30MIN
                 }
                 // set the data
