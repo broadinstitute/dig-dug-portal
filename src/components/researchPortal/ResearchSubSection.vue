@@ -1,5 +1,38 @@
 <template>
 	<div>
+		<div v-if="!!subectionConfig['visualizers'] && (subectionConfig['visualizers']['wrapper type'] == 'tabs' || subectionConfig['visualizers']['wrapper type'] == 'divs')"  class="sub-plot-wrapper">
+			<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + rowId">
+				<div v-for="tab, tabIndex in subectionConfig['visualizers']['visualizers']" :id="'tabUi' + rowId + tabIndex"
+					class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + rowId + tabIndex,
+						'tabUiGroup' + rowId,
+						'tabContent' + rowId + tabIndex, 'tabContentGroup' + rowId, true)">
+					{{ tab.label/*utils.Formatters.replaceWithParams(tab.label, pageParams)*/ }}
+				</div>
+			</div>
+
+			<div :id="subectionConfig['visualizers']['wrapper type'] == 'tabs' ? 'tabContentGroup' + rowId : ''"
+			>
+
+				<div v-for="plotConfig, plotIndex in subectionConfig['visualizers']['visualizers']"
+					:id="subectionConfig['visualizers']['wrapper type'] == 'tabs' ? 'tabContent' + rowId + plotIndex : ''"
+					class="plot-tab-content-wrapper"
+					:class="(subectionConfig['visualizers']['wrapper type'] == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
+					<h6 v-html="plotConfig.label" v-if="subectionConfig['visualizers']['wrapper type'] != 'tabs'"></h6>
+					<research-section-visualizers 
+						:plotConfig="plotConfig"
+						:plotData="subsectionData"
+						:phenotypeMap="phenotypeMap" 
+						:colors="colors" 
+						:plotMargin="plotMargin"
+						:sectionId="(rowId + plotIndex).replaceAll(',','')"
+						:utils="utils"
+						:searchParameters="rowId">
+					</research-section-visualizers>
+				</div>
+			</div>
+		
+		</div>
+			
 		<div v-if="!!subectionConfig['visualizer']" class="sub-plot-wrapper">
 			<research-section-visualizers 
 				:plotConfig="subectionConfig['visualizer']"
@@ -24,6 +57,7 @@
 			<tbody>
 				<tr v-for="row in subPageData">
 					<td  v-for="head in getTopRows()">
+						
 						<span v-html="formatValue(row[head],head)"></span>
 						<!-- column formatting contains copy to clipboard -->
 
@@ -205,6 +239,16 @@ $(function () { });
 
 .sub-plot-wrapper {
 	background-color: #ffffff !important;
+}
+
+.sub-tab-ui-wrapper {
+    border-bottom: solid 1px #ddd;
+    padding: 25px 25px 0px 25px;
+	margin :0 !important;
+}
+
+.plot-tab-content-wrapper {
+	padding-top: 25px;
 }
 
 .subsection-table tr{

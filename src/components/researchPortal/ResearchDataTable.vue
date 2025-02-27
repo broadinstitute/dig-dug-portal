@@ -248,8 +248,8 @@
 											<button class="btn btn-sm show-evidence-btn set-search-btn" 
 												:data-id="getRowID(tdKey+tdValue+index)"
 												:class="{
-													'loaded-subsection' : !!ifSubsectionData(tdKey+tdValue+index),
-													'loading-subsection' : !!ifSubsectionLoading(tdKey+tdValue+index)
+													'loaded-subsection' : !!ifSubsectionData(sanitizeKey(tdKey+tdValue+index)),
+													'loading-subsection' : !!ifSubsectionLoading(sanitizeKey(tdKey+tdValue+index))
 												}"
 												@click="getSubsectionData(tdValue, tdKey, index)" 
 											>
@@ -295,7 +295,7 @@
 											class="dynamic-subsection-options">
 											<span class="btns-wrapper">
 												<button class="btn btn-sm show-evidence-btn set-search-btn"
-													:class="!!ifSubsectionData(tdKey + tdValue + index)?'loaded-subsection':''"
+													:class="!!ifSubsectionData(sanitizeKey(tdKey + tdValue + index))?'loaded-subsection':''"
 													@click="getSubsectionData(tdValue, tdKey, index)" >
 												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
 											</span>
@@ -338,7 +338,7 @@
 					<!-- testing dynamic sub table-->
 					<template v-if="!!tableFormat['column formatting']"
 					v-for="(itemValue, itemKey) in tableFormat['column formatting']">
-					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(itemKey+value[itemKey]+index)" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(itemKey + value[itemKey] + index)" :key="value[itemKey]"
+					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
 					>
 					<td :colspan="topRowNumber">
 						<research-sub-section
@@ -346,7 +346,7 @@
 						:colors="colors"
 						:plotMargin="plotMargin"
 						:subectionConfig="itemValue['subsection']"
-						:subsectionData="collectSubsectionData(itemKey+value[itemKey]+index)"
+						:subsectionData="collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
 						:phenotypeMap="phenotypeMap"
 						:utils="utils"
 						>
@@ -715,7 +715,7 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		subSectionData(DATA){
-			//console.log(DATA);
+			console.log("cont data",DATA);
 		},
 		featureRowsNumber(NUMBER) {
 			this.$emit('on-feature-rows-change', NUMBER);
@@ -759,7 +759,9 @@ export default Vue.component("research-data-table", {
 
 			return ifExist;
 		},
-		getRowID(TEXT) {
+		getRowID(text) {
+
+			let TEXT = this.sanitizeKey(text);
 			return TEXT.replace(/[^a-zA-Z0-9]/g, '_');
 		},
 		
@@ -856,7 +858,11 @@ export default Vue.component("research-data-table", {
 			}
 			
 		},
+		sanitizeKey(key){
+			return key.split(",").filter( i => i != '*').toString();
+		},
 		ifSubsectionData(KEY){
+			
 			let fKEY = this.getRowID(KEY)
 			let ifExist = this.subSectionData.filter(subsection => subsection.key == fKEY);
 
@@ -894,13 +900,15 @@ export default Vue.component("research-data-table", {
 			let queryType = dataPoint["type"];
 			let paramsType = dataPoint["parameters type"]
 			let params = dataPoint["parameters"]
+
+			let paramValues = VALUE.split(",").filter( i => i != '*').toString();
 			
 
 			///check if this subsection is already loaded
-			let ifLoadedBefore = this.ifSubsectionData(KEY + VALUE+ INDEX);
+			let ifLoadedBefore = this.ifSubsectionData(this.sanitizeKey(KEY + paramValues+ INDEX));
 
 			if(ifLoadedBefore != true) {
-				let paramsString = VALUE;
+				let paramsString = paramValues;
 
 				switch (queryType) {
 					case "bioindex":
@@ -918,7 +926,7 @@ export default Vue.component("research-data-table", {
 						break;*/
 				}
 			} else {
-				let fKEY = this.getRowID(KEY + VALUE + INDEX)
+				let fKEY = this.getRowID(KEY + paramValues + INDEX)
 				this.utils.uiUtils.showHideElement(fKEY);
 
 				let elementClassList = document.getElementsByClassName(fKEY)[0].classList;
@@ -931,6 +939,8 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
+
+			console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl = DATA_POINT.url;
 			let fKEY = this.getRowID(KEY + QUERY + INDEX);
@@ -965,10 +975,12 @@ export default Vue.component("research-data-table", {
 
 		async queryBiContinue(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
+			console.log(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+
 			let dataUrl;
 			let PARAMS = DATA_POINT["parameters"];
 
-			if (this.dataPoint["parameters type"] == "replace") {
+			if (DATA_POINT["parameters type"] == "replace") {
 				dataUrl = DATA_POINT["continue url"];
 				dataUrl += TOKEN;
 			} else {
