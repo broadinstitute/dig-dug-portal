@@ -1,0 +1,55 @@
+{
+    "logo": "",
+    "menuItems": [
+        {
+            "label": "Resources",
+            "path": "",
+            "subMenuItems": [
+                {
+                    "label": "Workbench",
+                    "path": "https://workbench.verily.com"
+                },
+                {
+                    "label": "Gene Expression Browser",
+                    "path": ""
+                }
+            ]
+        },
+        {
+            "label": "About",
+            "path": "",
+            "subMenuItems": [
+                {
+                    "label": "About Us",
+                    "path": "/about.html?page=about"
+                },
+                {
+                    "label": "Meet the Team",
+                    "path": "/about.html?page=team"
+                },
+                {
+                    "label": "How To Access AMP Data Directly",
+                    "path": "/about.html?page=access"
+                },
+                {
+                    "label": "Policies",
+                    "path": "/about.html?page=policies"
+                }
+            ]
+        },
+        {
+            "label": "Help",
+            "path": "",
+            "subMenuItems": [
+                {
+                    "label": "Contact",
+                    "path": "/about.html?page=contact"
+                },
+                {
+                    "label": "Collaborate",
+                    "path": "/about.html?page=collaborate"
+                }
+            ]
+        }
+    ]
+}

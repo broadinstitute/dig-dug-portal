@@ -1,19 +1,15 @@
 <template>
-    <div class="sysbio-body">
+    <div class="sysbio f-layout">
         <!-- NAV -->
-        <page-nav></page-nav>
+        <sysbio-header></sysbio-header>
         <!-- BODY -->
-        <div
-            class="static-content-wrapper"
-        >
-            <!-- CONTENT -->
+        <div class="sysbio-body">
             <h2 class="static-header">{{ $parent.pageContent.title }}</h2>
             <div v-html="$parent.pageContent.body"  class="static-content"></div>
         </div>
         <!-- FOOTER -->
-        <page-footer></page-footer>
+        <sysbio-footer></sysbio-footer>
     </div>
-  
 </template>
 
 <script>

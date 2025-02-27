@@ -1,9 +1,10 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 
-//import "../../assets/matkp-styles.css";
+import "../../css/f-layout.css";
+import "../../css/sysbio.css";
 
-import { sysBioMixin } from "@/mixins/sysBioMixin.js";
+import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 
 import keyParams from "../../../../utils/keyParams.js";
 
@@ -11,7 +12,7 @@ import keyParams from "../../../../utils/keyParams.js";
 
 new Vue({
 
-    mixins: [sysBioMixin],
+    mixins: [sysbioMixin],
 
     data() {
         return {
@@ -22,7 +23,8 @@ new Vue({
                 collaborate: "sysbiofairplex_collaborate",
                 team: "sysbiofairplex_people",
                 policies: "sysbiofairplex_policies",
-                about: "sysbiofairplex_aboutus"
+                about: "sysbiofairplex_aboutus",
+                access: "sysbiofairplex_howtoaccessampdatadirectly"
             }
         };
     },
