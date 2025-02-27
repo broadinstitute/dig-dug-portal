@@ -128,6 +128,12 @@
                                             >
                                         </template>
                                     </div>
+                                    <div>
+                                        <h6>Select gnomAD Frequency</h6>
+                                        <b-form-select v-model="selected" :options="gnomADoptions"></b-form-select>
+                                        <b-input type="number" name="gnomAD_filter" class="form-control" />
+                                        
+                                    </div>
                                 </fieldset>
                             </form>
                         </div>
@@ -442,34 +448,68 @@ export default Vue.component("VariantSearch", {
                 LOW: "outline-success",
                 MODIFIER: "outline-secondary",
             },
+            gnomADoptions: [
+                { value: 0, text: "=" },
+                { value: 1, text: ">" },
+                { value: -1, text: "<" },
+            ],
             HPOTerms: {
-                Sensitive: "Steroid Sensitive Nephrotic Syndrome",
-                AdultSensitive: "Steroid Sensitive Nephrotic Syndrome (Adult)",
-                PediatricSensitive:
-                    "Steroid Sensitive Nephrotic Syndrome (Pediatric)",
-                Uncategorized: "Uncategorized Nephrotic Syndrome",
-                AdultUncategorized: "Uncategorized Nephrotic Syndrome (Adult)",
-                PediatricUncategorized:
-                    "Uncategorized Nephrotic Syndrome (Pediatric)",
-                Resistant: "Steroid Resistant Nephrotic Syndrome",
-                AdultResistant: "Steroid Resistant Nephrotic Syndrome (Adult)",
-                PediatricResistant:
-                    "Steroid Resistant Nephrotic Syndrome (Pediatric)",
-                AllSamples: "All Samples",
+                "Antibody_negative":"Antibody Negative Insulin Deficient (abr. ANID)",
+                "Lipodystrophic":"Lipodystrophic",
+                "Non_obese_insulin_insufficient_DM":"Non-Obese Inulin Insufficient (abr. NOII)",
+                "Possible_monogenic":"Possible Monogenic or Oligogenic (abr. PMO)",
+                "Non_progressive":"Non-Progressive",
+                "Syndromic":"Syndromic",
+                "Very_low_insulin_requirements":"Very Low Insulin Requirements (abr. VLIR)",
+                "A_B__ketosis_prone":"Antibody Negative Beta Cell Negative Ketosis-Prone DM (abr. A (-) B (-) KPDM)",
+                "A_B__ketosis_prone_1":"Antibody Negative Beta Cell Positive Ketosis-Prone DM (abr. A (-) B (+) KPDM)",
+                "Severe_insulin_resistance":"Severe Insulin Resistance (SIR)",
+                "Beta_Cell_Dysfunction":"Beta Cell Dysfunction",
+                "IGF1R_variant":"IGF1R",
+                "INS_variant":"INS",
+                "NFKB1_variant":"NFKB1",
+                "PAX6_variant":"PAX6",
+                "PTPMT1_variant":"PTPMT1",
+                "SMAD5_variant":"SMAD5",
+                "INSR_variant":"INSR",
+                "LMNTD2_variant":"LMNTD2",
+                "SLIT2_ROBO1_variant":"SLIT2 or ROB1",
+                "CERS2_variant":"CERS2",
+                "IDH2_variant":"IDH2",
+                "IRS2_Haploinsufficiency_variant":"IRS2 Haploinsufficiency",
+                "EIF2S1_variant":"EIF2S1",
+                "mTor_Pathway":"Mammalian Target of Rapamycin Pathway (abr. mTOR pathway)",
+                "GLUT4_variant":"GLUT4",
             },
             filters: {
                 impacts: ["HIGH", "MODERATE", "LOW"],
                 phenotypes: [
-                    "AllSamples",
-                    "Resistant",
-                    "AdultResistant",
-                    "PediatricResistant",
-                    "Sensitive",
-                    "AdultSensitive",
-                    "PediatricSensitive",
-                    "Uncategorized",
-                    "AdultUncategorized",
-                    "PediatricUncategorized",
+                    "Antibody Negative Insulin Deficient (abr. ANID)",
+                    "Lipodystrophic",
+                    "Non-Obese Inulin Insufficient (abr. NOII)",
+                    "Possible Monogenic or Oligogenic (abr. PMO)",
+                    "Non-Progressive",
+                    "Syndromic",
+                    "Very Low Insulin Requirements (abr. VLIR)",
+                    "Antibody Negative Beta Cell Negative Ketosis-Prone DM (abr. A (-) B (-) KPDM)",
+                    "Antibody Negative Beta Cell Positive Ketosis-Prone DM (abr. A (-) B (+) KPDM)",
+                    "Severe Insulin Resistance (SIR)",
+                    "Beta Cell Dysfunction",
+                    "IGF1R",
+                    "INS",
+                    "NFKB1",
+                    "PAX6",
+                    "PTPMT1",
+                    "SMAD5",
+                    "INSR",
+                    "LMNTD2",
+                    "SLIT2 or ROB1",
+                    "CERS2",
+                    "IDH2",
+                    "IRS2 Haploinsufficiency",
+                    "EIF2S1",
+                    "Mammalian Target of Rapamycin Pathway (abr. mTOR pathway)",
+                    "GLUT4",
                 ],
             },
 
@@ -620,7 +660,7 @@ export default Vue.component("VariantSearch", {
         tableData() {
             if (this.sortByImpacts && this.variantData.length) {
                 let sortedVariants = structuredClone(this.variantData);
-                console.log("sortedVariants", sortedVariants);
+                //console.log("sortedVariants", sortedVariants);
                 return sortedVariants.sort((a, b) => {
                     return this.sortImpacts(a, b);
                 });
@@ -673,7 +713,7 @@ export default Vue.component("VariantSearch", {
             this.variants = await query("gene-variants", this.gene, {query_private:true}, true);
 
             if (this.variants && this.variants.length) {
-                console.log("Variant Search:"+this.variants.length);
+                //console.log("Variant Search:"+this.variants.length);
                 
                 
                 for (let i = 0; i < this.variants.length; i++) {
@@ -727,13 +767,15 @@ export default Vue.component("VariantSearch", {
                     //do we need vep count?
                     //this.variants[i].vep = this.variants[i].veprecords.length;
                     if (this.variants[i].vepRecords.length > 0) {
-                        console.log("vepRecords:"+this.variants[i].vepRecords.length);
+                        //console.log("vepRecords:"+this.variants[i].vepRecords.length);
                         let varrecords = this.variants[i].vepRecords;
 
                         for (let j = 0; j < varrecords.length; j++) {
                             this.variants[i].vepRecords[j].consequence = varrecords[j].consequenceTerms.toString();
+                            this.variants[i].vepRecords[j].consequence = this.variants[i].vepRecords[j].consequence.substring(1, this.variants[i].vepRecords[j].consequence.length-1);
+                                
                             if (varrecords[j].pick == "1") {
-                                console.log(this.variants[i].varId);
+                                //console.log(this.variants[i].varId);
                                 this.variants[i].Gene_Symbol =
                                     varrecords[j].Gene_Symbol;
                                 this.variants[i].Max_Impact =
@@ -744,6 +786,7 @@ export default Vue.component("VariantSearch", {
 
                                 this.variants[i].max_consequence =
                                     varrecords[j].consequenceTerms.toString();
+                                this.variants[i].max_consequence = this.variants[i].max_consequence.substring(1, this.variants[i].max_consequence.length-1);
                                 this.variants[i].Protein_Position =
                                     varrecords[j].proteinStart;
                                 this.variants[i].Amino_Acids =
@@ -771,7 +814,8 @@ export default Vue.component("VariantSearch", {
                             hpdisplay[j] = {};
                             //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
                             hpdisplay[j].hp = hp.phenotype;
-                            hpdisplay[j].phenotype = hp.phenotype;
+                            hpdisplay[j].phenotype = this.HPOTerms[hp.phenotype];
+                            //console.log(hpdisplay[j].hp+":"+hpdisplay[j].phenotype);
                             //hpdisplay[j].phenotype = Formatters.snakeFormatter(
                             //    this.HPOTerms[hp.phenotype]
                             //);
@@ -794,36 +838,50 @@ export default Vue.component("VariantSearch", {
                         //     return 0;
                         // });
                         let sortOrder = [
-                            "AllSamples",
-                            "Resistant",
-                            "PediatricResistant",
-                            "AdultResistant",
-                            "Sensitive",
-                            "PediatricSensitive",
-                            "AdultSensitive",
-                            "Uncategorized",
-                            "PediatricUncategorized",
-                            "AdultUncategorized",
-                            "Healthy",
-                            "AllNephroticSyndCases",
+                            "Antibody Negative Insulin Deficient (abr. ANID)",
+                            "Lipodystrophic",
+                            "Non-Obese Inulin Insufficient (abr. NOII)",
+                            "Possible Monogenic or Oligogenic (abr. PMO)",
+                            "Non-Progressive",
+                            "Syndromic",
+                            "Very Low Insulin Requirements (abr. VLIR)",
+                            "Antibody Negative Beta Cell Negative Ketosis-Prone DM (abr. A (-) B (-) KPDM)",
+                            "Antibody Negative Beta Cell Positive Ketosis-Prone DM (abr. A (-) B (+) KPDM)",
+                            "Severe Insulin Resistance (SIR)",
+                            "Beta Cell Dysfunction",
+                            "IGF1R",
+                            "INS",
+                            "NFKB1",
+                            "PAX6",
+                            "PTPMT1",
+                            "SMAD5",
+                            "INSR",
+                            "LMNTD2",
+                            "SLIT2 or ROB1",
+                            "CERS2",
+                            "IDH2",
+                            "IRS2 Haploinsufficiency",
+                            "EIF2S1",
+                            "Mammalian Target of Rapamycin Pathway (abr. mTOR pathway)",
+                            "GLUT4",
                         ];
-                        /*hpdisplay = hpdisplay.sort(function (a, b) {
+                        hpdisplay = hpdisplay.sort(function (a, b) {
                             return (
-                                sortOrder.indexOf(a.hp) -
-                                sortOrder.indexOf(b.hp)
+                                sortOrder.indexOf(a.phenotype) -
+                                sortOrder.indexOf(b.phenotype)
                             );
-                        });*/
-                        this.variants[i].hpdisplay2 = hpdisplay;
+                        });
+                        hpdisplay = hpdisplay.filter((item) =>
+							item.alleleCountCases > 0
+						);
+						this.variants[i].hpdisplay2 = hpdisplay;
                         this.variants[i].hpdisplay = hpdisplay;
                     } 
-                    console.log(this.variants[i]);
+                    //console.log(this.variants[i]);
                 }
-                console.log("Variant Search done");
+                //console.log("Variant Search done");
                 //if default filters are set, filter the variants
-                /*if (
-                    this.filters.impacts.length > 0 ||
-                    this.filters.phenotypes.length > 0
-                ) {
+                /*if (this.filters.impacts.length > 0 ||this.filters.phenotypes.length > 0) {
                     this.addfilter();
                 }*/
                 this.variantData = structuredClone(this.variants); //copy data
@@ -917,7 +975,7 @@ export default Vue.component("VariantSearch", {
         },
         sort(s) {
             //if s == current sort, reverse
-            console.log("sort", this.currentSort);
+            //console.log("sort", this.currentSort);
             if (s === this.currentSort) {
                 this.currentSortDir =
                     this.currentSortDir === "asc" ? "desc" : "asc";
