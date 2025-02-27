@@ -31,7 +31,9 @@ export default Vue.component("bulk-volcano-plot", {
 			chart: null,
 			chartWidth: 0,
 			fontSize: "13px",
-			svg: null
+			svg: null,
+			x: null,
+			y: null
 		};
 	},
 	modules: {
@@ -182,8 +184,8 @@ export default Vue.component("bulk-volcano-plot", {
 
 				
 
-			let x = d3.scaleLinear().domain([(xMinVal-(xMaxVal*.05)), xMaxVal + (xMaxVal * .05)]).range([margin.left, width + margin.left]);
-			let y = d3.scaleLinear().domain([(yMinVal - (yMaxVal * .05)), yMaxVal + (yMaxVal * .05)]).range([height + margin.top, margin.top]);
+			this.x = d3.scaleLinear().domain([(xMinVal-(xMaxVal*.05)), xMaxVal + (xMaxVal * .05)]).range([margin.left, width + margin.left]);
+			this.y = d3.scaleLinear().domain([(yMinVal - (yMaxVal * .05)), yMaxVal + (yMaxVal * .05)]).range([height + margin.top, margin.top]);
 
 			this.svg.attr("transform", "translate(0,0)")
 				.append("g")
@@ -194,7 +196,7 @@ export default Vue.component("bulk-volcano-plot", {
 				.attr("transform", function (d) {
 					return "translate(" + (margin.left - margin.bump) + "," + "0" + ")";
 				})
-				.call(d3.axisLeft(y))
+				.call(d3.axisLeft(this.y))
 				.selectAll("text")
 				.style("font-size", this.fontSize);
 			
@@ -203,7 +205,7 @@ export default Vue.component("bulk-volcano-plot", {
 				.attr("transform", function (d) {
 					return "translate(" + "0" + "," + (height+margin.top+margin.bump) + ")";
 				})
-				.call(d3.axisBottom(x))
+				.call(d3.axisBottom(this.x))
 				.selectAll("text")
 				.style("font-size", this.fontSize);
 
@@ -212,9 +214,9 @@ export default Vue.component("bulk-volcano-plot", {
 					this.svg.select("#axisGroup")
 						.append('line')
 						.attr('style', "stroke-dasharray: 3,3")
-						.attr('x1', x(renderConfig["x condition"]["greater than"]))
+						.attr('x1', this.x(renderConfig["x condition"]["greater than"]))
 						.attr('y1', margin.top)
-						.attr('x2', x(renderConfig["x condition"]["greater than"]))
+						.attr('x2', this.x(renderConfig["x condition"]["greater than"]))
 						.attr('y2', margin.top + height)
 						.attr("stroke", "#cccccc")
 						.style("stroke-width", 1)
@@ -224,9 +226,9 @@ export default Vue.component("bulk-volcano-plot", {
 					this.svg.select("#axisGroup")
 						.append('line')
 						.attr('style', "stroke-dasharray: 3,3")
-						.attr('x1', x(renderConfig["x condition"]["lower than"]))
+						.attr('x1', this.x(renderConfig["x condition"]["lower than"]))
 						.attr('y1', margin.top)
-						.attr('x2', x(renderConfig["x condition"]["lower than"]))
+						.attr('x2', this.x(renderConfig["x condition"]["lower than"]))
 						.attr('y2', margin.top + height)
 						.attr("stroke", "#cccccc")
 						.style("stroke-width", 1)
@@ -240,9 +242,9 @@ export default Vue.component("bulk-volcano-plot", {
 						.append('line')
 						.attr('style', "stroke-dasharray: 3,3")
 						.attr('x1', margin.left)
-						.attr('y1', y(renderConfig["y condition"]["greater than"]))
+						.attr('y1', this.y(renderConfig["y condition"]["greater than"]))
 						.attr('x2', margin.left + width)
-						.attr('y2', y(renderConfig["y condition"]["greater than"]))
+						.attr('y2', this.y(renderConfig["y condition"]["greater than"]))
 						.attr("stroke", "#cccccc")
 						.style("stroke-width", 1)
 				}
@@ -252,9 +254,9 @@ export default Vue.component("bulk-volcano-plot", {
 						.append('line')
 						.attr('style', "stroke-dasharray: 3,3")
 						.attr('x1', margin.left)
-						.attr('y1', y(renderConfig["y condition"]["lower than"]))
+						.attr('y1', this.y(renderConfig["y condition"]["lower than"]))
 						.attr('x2', margin.left + width)
-						.attr('y2', y(renderConfig["y condition"]["lower than"]))
+						.attr('y2', this.y(renderConfig["y condition"]["lower than"]))
 						.attr("stroke", "#cccccc")
 						.style("stroke-width", 1)
 				}
@@ -363,14 +365,14 @@ export default Vue.component("bulk-volcano-plot", {
 
 				this.svg.select("#axisGroup")
 					.append('circle')
-					.attr('cx', x(d.value.x))
-					.attr('cy', y(d.value.y))
+					.attr('cx', this.x(d.value.x))
+					.attr('cy', this.y(d.value.y))
 					.attr('r', 4)
 					.style('fill', fillColor)
           .attr("id", (d.key))
           .attr("class", this.dataToClass(d.value));
 			});
-      this.svg.selectAll("circle")
+      this.svg.selectAll("circle.dataCircle")
         .on("mouseover", g => this.hoverDot(g))
 				.on("mouseleave", g =>  mouseTooltip.hide())
 				.on("click", g => this.clickDot(g));
@@ -389,18 +391,27 @@ export default Vue.component("bulk-volcano-plot", {
 		clickDot(dot){
 			let gene = d3.event.target.id;
 			this.$emit("highlight", gene);
+			this.highlightDot();
 		},
 		highlightDot(){
 			let gene = d3.event.target.id;
+			console.log("highlighting ", gene);
       let data = this.classToData(d3.event.target.classList);
 			let xData = this.tpmFormatter(parseFloat(data[0]));
 			let yData = this.tpmFormatter(parseFloat(data[1]));
+			this.svg.select("#axisGroup")
+				.append('circle')
+					.attr('cx', this.x(xData))
+					.attr('cy', this.y(yData))
+					.attr('r', 6)
+					.style('fill', "gold")
+          .attr("class", "highlightCircle");
 			
 		},
     dataToClass(value){
       let valX = `valX_${value.x}`.replaceAll(".","dot");
       let valY = `valY_${value.y}`.replaceAll(".", "dot");
-      return `${valX} ${valY}`;
+      return `${valX} ${valY} dataCircle`;
     },
     classToData(classList){
       let xVal = classList[0];
