@@ -8,12 +8,14 @@ import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 
 import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
 
+import dataConvert from "@/utils/dataConvert";
+
 new Vue({
     components: {
         ResearchBarInCellPlot
     },
     mixins: [sysbioMixin],
-    data:{
+    data: {
         newsFeed: null,
         content: {
             news: {
@@ -31,7 +33,7 @@ new Vue({
                         body: "Leveraging precision medicine to validate existing targets and discover novel targets and biomarkers.",
                         linkLabel: "Learn More",
                         linkUrl: "",
-                        bgImage:"",
+                        bgImage: "",
                         type: "medium"
                     },
                     {
@@ -97,35 +99,79 @@ new Vue({
                 title: "Our Partners",
                 list: [
                     {
-                        url:"",
-                        logo:"/"
-                    },{
-                        url:"",
-                        logo:"/"
-                    },{
-                        url:"",
-                        logo:"/"
-                    },{
-                        url:"",
-                        logo:"/"
-                    },{
-                        url:"",
-                        logo:"/"
-                    },{
-                        url:"",
-                        logo:"/"
-                    },{
-                        url:"",
-                        logo:"/"
+                        url: "",
+                        logo: "/"
+                    }, {
+                        url: "",
+                        logo: "/"
+                    }, {
+                        url: "",
+                        logo: "/"
+                    }, {
+                        url: "",
+                        logo: "/"
+                    }, {
+                        url: "",
+                        logo: "/"
+                    }, {
+                        url: "",
+                        logo: "/"
+                    }, {
+                        url: "",
+                        logo: "/"
                     },
                 ],
             },
         },
+        dataComposition: {
+            data: null,
+            plotMargin: {
+                leftMargin: 150,
+                rightMargin: 40,
+                topMargin: 20,
+                bottomMargin: 100,
+                bump: 11,
+            },
+            plotConfig: {
+                "label": "",
+                "x axis field": "Tissue Type",
+                "y axis field": "Program",
+                "bars in cell": [
+                    {
+                        "field": "Number of Control",
+                        "color": "#ff00c6",
+                        "value type": "number"
+                    },
+                    {
+                        "field": "Number of Treatment",
+                        "color": "#02b9ff",
+                        "value type": "number"
+                    },
+                    {
+                        "field": "Assay Type",
+                        "color": "#666666",
+                        "value type": "string"
+                    }
+                ],
+                "bar width": 100,
+                "bar height": 20,
+                "plot margin": {
+                    "left": 250,
+                    "right": 50,
+                    "top": 80,
+                    "bottom": 5,
+                    "bump": 10
+                }
+            },
+            id: "sysBioDataComposition"
+        }
     },
     async created() {
         this.getNews();
+        this.getDataComposition();
     },
-    methods:{
+    methods: {
+        ...dataConvert,
         async getNews() {
             const newsFeedUrl = this.content.news.feedUrl;
             const newsFeed = await fetch(newsFeedUrl).then((resp) => {
@@ -144,6 +190,15 @@ new Vue({
                         .querySelector("img")?.outerHTML || "";
             });
             this.newsFeed = newsFeed;
+        },
+        async getDataComposition() {
+            const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue";
+            let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+            if (contentJson.error == null) {
+                let data = contentJson[0]['field_data_points'];
+                this.dataComposition.data = dataConvert.csv2Json(data)
+            }
         },
     },
     render: (h) => h(Template),

@@ -62,16 +62,16 @@
                             </div>
                         </div>
                         <div class="tab-content f-col">
-                            <!--
+                            
                             <research-bar-in-cell-plot
-                                v-if="plotConfig['type'] == 'bar in cell plot'"
-                                :plotData="plotData"
-                                :plotMargin="plotMargin"
-                                :plotConfig="plotConfig"
-                                :canvasId="sectionId"
-                                :utils="utils"
+                                v-if="!!$parent.dataComposition.data"
+                                :plotData="$parent.dataComposition.data"
+                                :plotMargin="$parent.dataComposition.plotMargin"
+                                :plotConfig="$parent.dataComposition.plotConfig"
+                                :canvasId="$parent.dataComposition.id"
+                                :utils="null"
                             />
-                            -->
+                            
                         </div>
                     </div>
                 </div>

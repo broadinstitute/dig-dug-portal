@@ -22,4 +22,6 @@ export default {
 .sysbio-body{
     max-width: 1000px !important;
 }
+
+
 </style>
