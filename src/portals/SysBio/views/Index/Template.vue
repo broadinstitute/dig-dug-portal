@@ -21,7 +21,7 @@
                 </div>
                 <div class="f-col" style="gap:40px; align-self:flex-end">
                     <input class="hero-search" type="text" placeholder="Search gene">
-                    <div class="f-row">
+                    <div class="f-row" style="gap:15px">
                         <div class="stat f-row">
                             <div class="stat-num">08</div>
                             <div class="stat-txt">AMP® Programs</div>
@@ -104,9 +104,8 @@
 
             <div class="section">
                 <h2>SysBio FAIRplex Consortium</h2>
-                <div>Section description</div>
                 <div class="section-body">
-                    <div class="partners" style="background: #fbfbfb">
+                    <div class="partners">
                         <div
                             class="partner-logo"
                             v-for="item in $parent.content.partners.list"
@@ -122,7 +121,6 @@
             <div class="f-row grow-children" style="gap:40px">
                 <div class="section">
                     <h2>News</h2>
-                    <div>Section description</div>
                     <div class="section-body">
                         <div class="news-items" v-if="$parent.newsFeed">
                             <div
@@ -152,7 +150,6 @@
 
                 <div class="section">
                     <h2>Releases</h2>
-                    <div>Section description</div>
                     <div class="section-body">
 
                     </div>
@@ -190,7 +187,7 @@
     font-weight: bold;
 }
 .stat-txt {
-    width: 70px;
+    width: min-content;
     line-height: 14px;
     display: flex;
     align-items: flex-end;
@@ -281,6 +278,8 @@
     justify-content: center;
     padding: 20px;
     flex-wrap: wrap;
+    background: #eee;
+    margin: 0 -5vw;
 }
 .partners-title {
     align-self: center;

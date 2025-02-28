@@ -2,6 +2,10 @@
     "logo": "",
     "menuItems": [
         {
+            "label": "Home",
+            "path": "/"
+        },
+        {
             "label": "Resources",
             "path": "",
             "subMenuItems": [

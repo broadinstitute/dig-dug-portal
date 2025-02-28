@@ -96,6 +96,10 @@ export default Vue.component("sysbio-header", {
 .header {
     padding: 0 40px;
     background: white;
+    box-shadow: 0 2px 2px 0px black;
+    position:fixed;
+    z-index: 100;
+    width:100%;
 
     a, a:visited {
         color: black !important;
@@ -140,10 +144,13 @@ export default Vue.component("sysbio-header", {
         position: relative;
         padding: 15px 10px;
         cursor: pointer;
-        border-radius: 10px 10px 0 0;
+        border-radius: 10px;
         font-weight: 600;
         color: var(--sysbio-black);
         font-weight: bold;
+    }
+    .menu-item-wrapper:has(.submenu) .menu-item{
+        border-radius: 10px 10px 0 0;
     }
     .menu-item.menu-item-main {
         color: var(--sysbio-blue) !important;
