@@ -52,7 +52,7 @@ export default Vue.component("mouse-gene-select", {
 		},
     selectGene(geneSymbol) {
 			if (geneSymbol) {
-				this.$store.dispatch("selectGeneName", geneSymbol);
+				//this.$store.dispatch("selectGeneName", geneSymbol);
 				this.$emit("onGeneChange", geneSymbol);
 			}
 		},

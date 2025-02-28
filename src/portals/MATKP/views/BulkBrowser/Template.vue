@@ -69,10 +69,12 @@
                                             <div class="" class="flex-gap">
                                                 <div class="top-block">
                                                     <mouse-gene-select
-                                                        v-if="$parent.isMouse">
-
+                                                        v-if="$parent.isMouse"
+                                                        @onGeneChange="gene => $parent.highlight(gene)">
                                                     </mouse-gene-select>
-                                                    <gene-selectpicker v-else></gene-selectpicker>
+                                                    <gene-selectpicker v-else
+                                                        @onGeneChange="gene => $parent.highlight(gene)"
+                                                    ></gene-selectpicker>
                                                 </div>
                                                 </div>
                                         </div>
