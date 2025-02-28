@@ -10,6 +10,7 @@ import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import BulkTable from "../../components/BulkTable.vue";
 import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
+import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
@@ -30,6 +31,7 @@ new Vue({
         BulkVolcanoPlot,
         BulkTable,
         BulkViolinPlot,
+        GeneSelectPicker,
         ResearchSingleCellBrowser,
         ResearchSingleCellInfo,
         uiUtils

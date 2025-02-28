@@ -68,13 +68,7 @@
                                         <div class="tab-section" >
                                             <div class="" class="flex-gap">
                                                 <div class="top-block">
-                                                    <select v-model="$store.state.selectedDataset">
-                                                        <option value="">Select a dataset</option>
-                                                        <option v-for="dataset in $parent.datasets"
-                                                            :value="dataset">
-                                                            {{ dataset }}
-                                                        </option>
-                                                    </select>
+                                                    <gene-selectpicker></gene-selectpicker>
                                                 </div>
                                                 </div>
                                         </div>
