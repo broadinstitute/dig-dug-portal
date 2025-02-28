@@ -1,6 +1,12 @@
 <template>
   <div>
-    <!-- <h5>Top 20 Differentially Expressed Genes</h5> -->
+    <div style="display:flex; gap:5px" class="legends">
+                                    <div style="display:flex; flex-direction: column;" class="legend">
+                                        <div class="label">Expression</div>
+                                        <div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`"></div>
+                                        <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
+                                    </div>
+                                </div>
     <div :id="plotId">
     </div>
   </div>
@@ -28,7 +34,8 @@ export default Vue.component("bulk-heatmap", {
           color2: "red",
           fontSize: "13px",
           minExp: null,
-          maxExp: null
+          maxExp: null,
+          colorScaleArray: []
         };
     },
     computed: {},
@@ -87,7 +94,8 @@ export default Vue.component("bulk-heatmap", {
           var colorScale = d3.scaleLinear()
               .range([this.color1, this.color2])
               .domain([this.minExp,this.maxExp]);
-          
+          let step = 0.01 * (this.maxExp - this.minExp);
+          this.colorScaleArray = d3.range(this.minExp, this.maxExp, step).map(t => colorScale(t)).join(', ');
           // Building the heatmap
           this.svg.selectAll()
               .data(collatedData, function(d) {return d.sample+':'+d.expression;})
@@ -204,3 +212,18 @@ export default Vue.component("bulk-heatmap", {
     }
 });
 </script>
+<style scoped>
+.legend {
+    margin: 0 10px 0 0;
+    gap:1px;
+}
+.legend .label {
+    font-size: 11px !important;
+    line-height: 11px;
+}
+.legend .gradient {
+    height: 15px;
+    width: 100px;
+    border-radius: 20px;
+}
+</style>
