@@ -1,5 +1,6 @@
 <template>
 	<div>
+		<div class="sub-section-header"><strong v-if="!!subectionConfig['label']">{{ subectionConfig['label'] }}</strong></div>
 		<div v-if="!!subectionConfig['visualizers'] && (subectionConfig['visualizers']['wrapper type'] == 'tabs' || subectionConfig['visualizers']['wrapper type'] == 'divs')"  class="sub-plot-wrapper">
 			<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + rowId">
 				<div v-for="tab, tabIndex in subectionConfig['visualizers']['visualizers']" :id="'tabUi' + rowId + tabIndex"
@@ -230,6 +231,10 @@ export default Vue.component("research-sub-section", {
 $(function () { });
 </script>
 <style scoped>
+.sub-section-header {
+	color: #ffffff;
+	padding: 2px 0px;
+}
 .subsection-table, .sub-plot-wrapper{
 	width: calc(100% - 20px);
 	margin-left: 20px;

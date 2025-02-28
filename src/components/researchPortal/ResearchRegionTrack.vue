@@ -29,7 +29,7 @@
                             <br />Max length: {{ plotConfig['set region parameter by']['max region'] }}
                         </template>
                     </span>
-                    <template v-if="infoBoxContent.data.lenght > 1">
+                    <template v-if="infoBoxContent.data.length > 1">
                         <br /><br />
                     </template>
                 </template>
