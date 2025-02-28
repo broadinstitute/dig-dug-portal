@@ -68,7 +68,11 @@
                                         <div class="tab-section" >
                                             <div class="" class="flex-gap">
                                                 <div class="top-block">
-                                                    <gene-selectpicker></gene-selectpicker>
+                                                    <mouse-gene-select
+                                                        v-if="$parent.isMouse">
+
+                                                    </mouse-gene-select>
+                                                    <gene-selectpicker v-else></gene-selectpicker>
                                                 </div>
                                                 </div>
                                         </div>

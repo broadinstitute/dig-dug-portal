@@ -1,6 +1,4 @@
 <template>
-  <div class="col filter-col-md">
-    <div class="label">Gene</div>
     <autocomplete
       :placeholder="
         !$store.state.geneToQuery ? 'Search gene' : $store.state.geneToQuery
@@ -11,7 +9,6 @@
       @item-select="selectGene($event)"
     >
     </autocomplete>
-  </div>
 </template>
 
 <script>
