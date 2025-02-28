@@ -32,7 +32,7 @@
                                                         </option>
                                                     </select>
                                                 </div>
-                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -58,6 +58,32 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="tabs-group">
+                                    <div class="tabs-wrapper">
+                                        <div class="tab">
+                                            Select a gene
+                                        </div>
+                                    </div>
+                                    <div class="tabs-section-wrapper">
+                                        <div class="tab-section" >
+                                            <div class="" class="flex-gap">
+                                                <div class="top-block">
+                                                    <select v-model="$store.state.selectedDataset">
+                                                        <option value="">Select a dataset</option>
+                                                        <option v-for="dataset in $parent.datasets"
+                                                            :value="dataset">
+                                                            {{ dataset }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="$parent.dataReady" class="" class="flex-gap">
+                                <!--left tab group-->
+                                
                             </div>
                             <div v-if="$parent.dataReady" class="" class="flex-gap">
                                 <!--left tab group-->
@@ -70,7 +96,7 @@
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" >
                                             <div class="" class="flex-gap">
-                                                <div class="top-block">
+                                                <div class="wide-block">
                                                     <div v-if="$parent.zNormData.length > 0">
                                                         <bulk-heatmap
                                                             :zNormData="$parent.zNormData"
@@ -98,7 +124,7 @@
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" >
                                             <div class="" class="flex-gap">
-                                                <div class="top-block">
+                                                <div class="wide-block">
                                                     <div v-if="$parent.bulkData19K.length> 0">
                                                         <bulk-volcano-plot
                                                             :renderData="$parent.bulkData19K"
@@ -172,6 +198,11 @@
     width: -webkit-fill-available;
   }
   .top-block {
+    display:flex;
+    flex-direction: column;
+    min-width: 400px;;
+  }
+  .wide-block {
     display:flex;
     flex-direction: column;
     min-width: 600px;;
