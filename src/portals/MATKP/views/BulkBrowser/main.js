@@ -10,6 +10,8 @@ import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import BulkTable from "../../components/BulkTable.vue";
 import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
+import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
+import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
@@ -30,6 +32,8 @@ new Vue({
         BulkVolcanoPlot,
         BulkTable,
         BulkViolinPlot,
+        GeneSelectPicker,
+        MouseGeneSelect,
         ResearchSingleCellBrowser,
         ResearchSingleCellInfo,
         uiUtils
@@ -137,6 +141,9 @@ new Vue({
         },
         kpGene(){
             return keyParams.gene;
+        },
+        isMouse(){
+            return this.bulkMetadata?.species === 'Mus musculus';
         }
     },
     async mounted() {
@@ -171,6 +178,7 @@ new Vue({
           }
         
          this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+         console.log(this.bulkMetadata.species);
       },
         getTop20(data){
             let processedData = data.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);

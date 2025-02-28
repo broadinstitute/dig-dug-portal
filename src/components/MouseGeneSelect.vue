@@ -1,6 +1,4 @@
 <template>
-  <div class="col filter-col-md">
-    <div class="label">Gene</div>
     <autocomplete
       :placeholder="
         !$store.state.geneToQuery ? 'Search gene' : $store.state.geneToQuery
@@ -11,7 +9,6 @@
       @item-select="selectGene($event)"
     >
     </autocomplete>
-  </div>
 </template>
 
 <script>
@@ -55,7 +52,7 @@ export default Vue.component("mouse-gene-select", {
 		},
     selectGene(geneSymbol) {
 			if (geneSymbol) {
-				this.$store.dispatch("selectGeneName", geneSymbol);
+				//this.$store.dispatch("selectGeneName", geneSymbol);
 				this.$emit("onGeneChange", geneSymbol);
 			}
 		},
