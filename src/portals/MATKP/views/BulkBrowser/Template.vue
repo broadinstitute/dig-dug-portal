@@ -200,12 +200,12 @@
   .top-block {
     display:flex;
     flex-direction: column;
-    min-width: 400px;;
+    min-width: 380px;
   }
   .wide-block {
     display:flex;
     flex-direction: column;
-    min-width: 600px;;
+    min-width: 600px;
   }
   .flex-gap {
     display:flex;
