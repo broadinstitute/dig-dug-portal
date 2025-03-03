@@ -10,13 +10,6 @@ let pages = {
         title: "Home",
         chunks: ["chunk-vendors", "chunk-common", "index"],
     },
-    debug: {
-        entry: "src/views/Debug/main.js",
-        template: "public/index.html",
-        filename: "debug.html",
-        title: "Debug Page",
-        chunks: ["chunk-vendors", "chunk-common", "debug"],
-    },
     phenotype: {
         entry: "src/views/Phenotype/main.js",
         template: "public/index.html",
@@ -252,11 +245,6 @@ let pages = {
     },
 };
 
-// remove the debug page in production
-if (process.env.NODE_ENV === "production") {
-    delete pages.debug;
-}
-
 module.exports = {
     devServer: {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
@@ -292,7 +280,6 @@ module.exports = {
         });
 
         // add the transform rule for bioindex
-        // Helen 2021-06-17
         config.module.rules.push({
             test: /bioIndexUtils\.js$/,
             loader: "string-replace-loader",
@@ -311,7 +298,7 @@ module.exports = {
             config.devtool = "cheap-module-source-map";
         }
     },
-    outputDir: "portals/A2FKP/dist",
+    outputDir: "portals/CancerGenetics",
     productionSourceMap: false,
     pages,
 };
