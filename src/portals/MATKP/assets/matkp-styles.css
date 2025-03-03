@@ -21,6 +21,22 @@ body.kp-default{
     *{
         box-sizing: border-box;
     }
+    h1 {
+        font-size: 1.7rem;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    h3 {
+        font-size: 1.2rem;
+    }
+
+    h4 {
+        font-size: 1.1rem;
+    }
+
     .hidden{
         display: none !important;
     }
@@ -96,7 +112,7 @@ body.kp-default{
         border: 0;
         border-bottom: 1px solid dimgray;
         background: #ddd;
-        padding: 10px;
+        padding: 5px 10px;
         font-size: 14px;
     }
     .search-input:not([value=''])::after{

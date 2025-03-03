@@ -492,7 +492,8 @@
 .filter-count.active {
   background: #ffd10c;
 }
-.dataset-explore-link {
+.dataset-explore-link,
+.matkp a.dataset-explore-link {
   background: #ffd10c;
   padding: 5px 10px;
   border-radius: 10px;

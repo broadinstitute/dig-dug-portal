@@ -25,21 +25,13 @@
                     </a>
                 </div>
             </div>
-            <!--
-            <a href="/info.html?page=about">About</a>
-            <a href="/datasets.html">Datasets</a>
-            <a href="/cellbrowser.html">Cell Browser</a>
-            <a href="/info.html?page=adipose">Adipose Tissue</a>
-            <a href="/info.html?page=collaborate">Collaborate</a>
-            <a href="/info.html?page=news">News</a>
-            <a href="/info.html?page=help">Help</a>
-            -->
         </div>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
+import matkpMenu from "@/portals/MATKP/assets/matkp-menu.json";
 
 let menuItemActive = false;
 
@@ -53,37 +45,7 @@ export default Vue.component("matkp-nav", {
     },
     data() {
         return {
-            menuItems: [
-                {
-                    label: "Data",
-                    path: "/datasets.html"
-                },
-                {
-                    label: "Resources",
-                    path: "",
-                    subMenuItems: [
-                        { label: "Single Cell Browser", path: "/cellbrowser.html" },
-                        { label: "Bulk Browser", path: "/bulkbrowser.html" },
-                    ],
-                },
-                {
-                    label: "About",
-                    path: "",
-                    subMenuItems: [
-                        { label: "MATKP", path: "/info.html?page=about" },
-                        { label: "Adipose Tissue", path: "/info.html?page=adipose" },
-                        { label: "Collaborate", path: "/info.html?page=collaborate" },
-                    ],
-                },
-                {
-                    label: "Help",
-                    path: "",
-                    subMenuItems: [
-                        { label: "Contact", path: "/info.html?page=collaborate" },
-                        { label: "News", path: "/info.html?page=news" },
-                    ],
-                },
-            ],
+            menuItems: matkpMenu
         };
     },
     computed: {},

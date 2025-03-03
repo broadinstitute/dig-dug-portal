@@ -105,20 +105,20 @@
                 <div class="section f-col">
                     <div class="f-col" style="font-size:14px;gap:20px;">
                         <div class="section-title">Why study adipose tissue?</div>
-                        <div style="column-count:3; column-gap: 20px; text-indent: 40px;">
+                        <div style="column-count:3; column-gap: 20px;">
                             Once thought to be an inert, cellularly bland storage reservoir for energy 
                             in the form of triacylglycerol, adipose tissue (AT) is now recognized to be 
                             a multifocal, complex, heterogenous, and dynamic organ that controls 
                             metabolic homeostasis via both endocrine and paracrine mechanisms. Unlike 
-                            most organs, AT is <span class="highlight-text">multifocal</span>, found 
+                            most organs, AT is <span class="bold">multifocal</span>, found 
                             both in discrete depots as well as scattered throughout other organs and 
-                            tissues. AT is <span class="highlight-text">complex</span> because it 
+                            tissues. AT is <span class="bold">complex</span> because it 
                             contains a multitude of cell types and subtypes, including adipocytes, 
                             fibroblastic stromal cells (many of which represent adipocyte progenitor 
                             cells), immune cells, Schwann cells, and vascular cells. AT is 
-                            <span class="highlight-text">heterogeneous</span> because its cellular 
+                            <span class="bold">heterogeneous</span> because its cellular 
                             composition (and therefore its function) varies significantly between, 
-                            and also within depots. AT is <span class="highlight-text">dynamic</span> 
+                            and also within depots. AT is <span class="bold">dynamic</span> 
                             because its composition changes during development or after changes in 
                             nutrition, physical activity, or ambient temperature.
                             <br/><br/>

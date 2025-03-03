@@ -8,15 +8,17 @@
                 class="mat-body f-col"
                 style="max-width: 1400px; margin: 0 auto; width: -webkit-fill-available"
             >
-                <template>
                 <!-- CONTENT -->
+                 <div v-if="$parent.info">
+                    <h2>{{ $parent.info.title }}</h2>
+                    <div v-html="$parent.info.body"></div>
+                 </div>
                 <research-single-cell-browser 
                     sectionId="matkp"
                     :renderConfig="$parent.scbConfig"
                     :utils="$parent.utils"
                     :data="$parent.data"
                 ></research-single-cell-browser>
-                </template>
             </div>
             <!-- FOOTER -->
             <matkp-footer></matkp-footer>

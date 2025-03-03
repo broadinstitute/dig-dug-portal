@@ -4,6 +4,7 @@ import Template from "./Template.vue";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
+import { getTextContent } from "@/portals/MATKP/utils/content";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
@@ -21,6 +22,7 @@ new Vue({
     data() {
         return {
             data: [],
+            info: null,
             utils: {
                 dataConvert: dataConvert
             },
@@ -76,7 +78,10 @@ new Vue({
     mounted() {
     },
 
-    created() {
+    async created() {
+        const pageId = 'matkp_singlecellbrowser';
+        this.info = await getTextContent(pageId, true);
+        console.log('!!', this.info)
         if(keyParams[this.scbConfig["parameters"].datasetId]){
             this.selectedDataset = keyParams[this.scbConfig["parameters"].datasetId];
         }else{
