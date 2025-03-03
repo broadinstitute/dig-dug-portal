@@ -19,7 +19,7 @@
                         to generate novel insights.</div>
                     <a class="bold">Learn More ❯</a>
                 </div>
-                <div class="f-col" style="gap:40px; align-self:flex-end; padding-bottom: 10px;">
+                <div class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">
                     <input class="hero-search" type="text" placeholder="Search gene">
                     <div class="f-row" style="gap:15px">
                         <div class="stat f-row">
@@ -171,7 +171,7 @@
 .hero{
     background: #eee;
     height: 500px;
-    margin: -40px 0 0;
+    margin: -40px -5vw 0;
     padding: 100px;
     background-image: url('https://hugeampkpncms.org/sites/default/files/images/sysbio/images/sysbio_hero.png');
     background-size: cover;
