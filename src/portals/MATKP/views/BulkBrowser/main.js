@@ -55,6 +55,24 @@ new Vue({
             utils: {
                 uiUtils: uiUtils
             },
+            colors: [
+                "#007bff",
+                "#048845",
+                "#8490C8",
+                "#BF61A5",
+                "#EE3124",
+                "#FCD700",
+                "#5555FF",
+                "#7aaa1c",
+                "#9F78AC",
+                "#F88084",
+                "#F5A4C7",
+                "#CEE6C1",
+                "#cccc00",
+                "#6FC7B6",
+                "#D5A768",
+                "#d4d4d4",
+            ],
             margin: {
                 top: 20,
                 bottom: 100,
@@ -92,26 +110,26 @@ new Vue({
         };
     },
     computed: {
-        selectedDataset(){
+        selectedDataset() {
             return this.$store.state.selectedDataset;
         },
-        selectedComparison(){
+        selectedComparison() {
             return this.$store.state.selectedComparison;
         },
-        selectedGene(){
+        selectedGene() {
             return this.$store.state.selectedGene;
         },
-        zNormData(){
+        zNormData() {
             return this.$store.state.singleBulkZNormData;
         },
-        bulkData19K(){
+        bulkData19K() {
             return this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
-                && item.comparison_id === this.$store.state.selectedComparison);
+                    && item.comparison_id === this.$store.state.selectedComparison);
         },
-        volcanoConfig(){
+        volcanoConfig() {
             let config = {
-                "type":"volcano plot",
+                "type": "volcano plot",
                 "label": "This is a Test",
                 "legend": "This is a Test",
                 "render by": "gene",
@@ -121,28 +139,28 @@ new Vue({
                 "y axis label": "-log10(FDR adj. p)",
                 "width": 600,
                 "height": this.plotHeight,
-                "x condition": {"combination":"or","greater than":1,"lower than":-1}, 
-                    //combination for condition can be "greater than", "lower than", "or" and "and."
-                "y condition": {"combination":"greater than","greater than":1},
-                "dot label score": 2 
-                    //number of conditions that the value of each dot to meet to have labeled
+                "x condition": { "combination": "or", "greater than": 1, "lower than": -1 },
+                //combination for condition can be "greater than", "lower than", "or" and "and."
+                "y condition": { "combination": "greater than", "greater than": 1 },
+                "dot label score": 2
+                //number of conditions that the value of each dot to meet to have labeled
             };
             return config;
         },
-        comparisons(){
+        comparisons() {
             let items = Object.keys(this.$store.state.currentComparisons);
             return items;
         },
-        kpDataset(){
+        kpDataset() {
             return keyParams.dataset;
         },
-        kpComparison(){
+        kpComparison() {
             return keyParams.comparison;
         },
-        kpGene(){
+        kpGene() {
             return keyParams.gene;
         },
-        isMouse(){
+        isMouse() {
             return this.bulkMetadata?.species === 'Mus musculus';
         }
     },
@@ -152,93 +170,93 @@ new Vue({
     created() {
     },
     methods: {
-        async init(){
-            if (!keyParams.dataset){
-                keyParams.set({dataset: this.$store.state.selectedDataset});
+        async init() {
+            if (!keyParams.dataset) {
+                keyParams.set({ dataset: this.$store.state.selectedDataset });
             }
-            if (!keyParams.gene){
-                keyParams.set({gene: this.$store.state.selectedGene});
+            if (!keyParams.gene) {
+                keyParams.set({ gene: this.$store.state.selectedGene });
             }
             this.getParams();
             await this.getBulkMetadata();
-            if (!keyParams.comparison){
+            if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
-                keyParams.set({comparison: this.$store.state.selectedComparison});
+                keyParams.set({ comparison: this.$store.state.selectedComparison });
             }
             await this.$store.dispatch("queryBulkFile");
             await this.$store.dispatch("queryBulk");
             this.dataReady = true;
 
         },
-        async getBulkMetadata(){
-          if (!this.allMetadata){
-            let metadataUrl = "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
-            let myMetadata = await scUtils.fetchMetadata(metadataUrl);
-            this.allMetadata = myMetadata;
-          }
-        
-         this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-         console.log(this.bulkMetadata.species);
-      },
-        getTop20(data){
-            let processedData = data.sort((a,b) => b.log10FDR - a.log10FDR).slice(0,20);
+        async getBulkMetadata() {
+            if (!this.allMetadata) {
+                let metadataUrl = "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
+                let myMetadata = await scUtils.fetchMetadata(metadataUrl);
+                this.allMetadata = myMetadata;
+            }
+
+            this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+            console.log(this.bulkMetadata.species);
+        },
+        getTop20(data) {
+            let processedData = data.sort((a, b) => b.log10FDR - a.log10FDR).slice(0, 20);
             return processedData;
         },
-        async getParams () {
+        async getParams() {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
             try {
                 const response = await fetch(url);
-                const data = await(response.json());
+                const data = await (response.json());
                 let allKeys = data.keys;
                 this.datasets = Array.from(new Set(allKeys.map(item => item[0])));
-            } catch (error){
+            } catch (error) {
                 console.error("Error: ", error);
             }
         },
-        highlight(highlightedGene){
+        highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
         }
-        
+
     },
-    watch:{
-        async selectedDataset(newData, oldData){
-            if (newData !== oldData){
-                keyParams.set({dataset: newData});
+    watch: {
+        async selectedDataset(newData, oldData) {
+            if (newData !== oldData) {
+                keyParams.set({ dataset: newData });
                 await this.$store.dispatch("queryBulkFile");
                 await this.$store.dispatch("queryBulk");
-                if (newData !== ""){
+                if (newData !== "") {
                     this.getBulkMetadata();
                 }
             }
         },
-        selectedComparison(newData, oldData){
-            if (newData !== oldData){
-                keyParams.set({comparison: newData});
+        selectedComparison(newData, oldData) {
+            if (newData !== oldData) {
+                keyParams.set({ comparison: newData });
                 this.$store.dispatch("queryBulk");
             }
         },
-        selectedGene(newData, oldData){
-            if(newData !== oldData){
-                keyParams.set({gene: newData});
+        selectedGene(newData, oldData) {
+            if (newData !== oldData) {
+                keyParams.set({ gene: newData });
             }
         },
-        comparisons(newData){
-            if(!newData.includes(this.selectedComparison)){
+        comparisons(newData) {
+            if (!newData.includes(this.selectedComparison)) {
                 this.$store.dispatch("resetComparison");
             }
         },
-        kpDataset(newData, oldData){
-            if (newData !== oldData){
+        kpDataset(newData, oldData) {
+            if (newData !== oldData) {
                 this.$store.state.selectedDataset = newData;
             }
         },
-        kpComparison(newData, oldData){
-            if (newData !== oldData){
+        kpComparison(newData, oldData) {
+            if (newData !== oldData) {
                 this.$store.state.selectedComparison = newData;
             }
         },
-        kpGene(newData, oldData){
-            if(newData !== oldData){
+        kpGene(newData, oldData) {
+            if (newData !== oldData) {
                 this.$store.state.selectedGene = newData;
             }
         }

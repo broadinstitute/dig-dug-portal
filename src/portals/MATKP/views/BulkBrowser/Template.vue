@@ -93,6 +93,7 @@
                                             Top 20 Differentially Expressed Genes
                                         </div>
                                     </div>
+                                    
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" >
                                             <div class="" class="flex-gap">
@@ -101,7 +102,9 @@
                                                         <bulk-heatmap
                                                             :zNormData="$parent.zNormData"
                                                             :samplesColumns="$parent.samplesColumns"
+                                                            :comparisonId="$parent.selectedComparison"
                                                             :margin="$parent.margin"
+                                                            :sampleColors="$parent.colors"
                                                             :plotHeight="$parent.plotHeight"
                                                             @highlight="gene => $parent.highlight(gene)"
                                                         >

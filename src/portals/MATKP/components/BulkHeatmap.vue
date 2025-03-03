@@ -1,12 +1,20 @@
 <template>
   <div>
     <div style="display:flex; gap:5px" class="legends">
-        <div style="display:flex; flex-direction: column;" class="legend">
+        <div style="display:inline-block; width:35%;" class="legend">
             <strong>Expression</strong>
             <div style="display:flex; margin-top:10px" class="marks">
               <span>{{ this.minExp }}</span>
               <div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`"></div>
               <span>{{ this.maxExp }}</span>
+            </div>
+        </div>
+        <div style="display:inline-block; width:65%;" class="legend">
+            <strong>Sample groups</strong>
+            <div style="display:flex; margin-top:10px">
+              <template v-for="(sample, sIndex) in sampleGroups" >
+                <span class="group-legend-box" :style="'background-color:'+sampleColors[sIndex]">&nbsp;</span><span class="group-legend-name">{{ (sample == "")? 'N/A':sample  }}</span>
+              </template>
             </div>
         </div>
     </div>
@@ -18,6 +26,7 @@
 import Vue from "vue";
 import * as d3 from 'd3';
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import sortUtils from "@/utils/sortUtils";
 import "../assets/matkp-styles.css";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 export default Vue.component("bulk-heatmap", {
@@ -25,8 +34,10 @@ export default Vue.component("bulk-heatmap", {
     },
     props: [
         "zNormData",
+        "comparisonId",
         "margin",
-        "plotHeight"
+        "plotHeight",
+        "sampleColors"
     ],
     data() {
         return {
@@ -38,11 +49,13 @@ export default Vue.component("bulk-heatmap", {
           fontSize: "13px",
           minExp: null,
           maxExp: null,
-          colorScaleArray: []
+          colorScaleArray: [],
+          sampleGroups:[],
         };
     },
     computed: {},
     methods: {
+        ...sortUtils,
       async drawHeatMap(){
           let plotId = `#${this.plotId}`;
           // Clear existing
@@ -69,17 +82,20 @@ export default Vue.component("bulk-heatmap", {
           let dataset = this.zNormData[0].dataset;
           let samplesColumns = await this.getSampleIds(dataset);
           let collatedData = this.collateData(this.zNormData, samplesColumns)
+          let sampleColors = this.sampleColors
 
+          console.log("samplesColumns",samplesColumns);
           // Build X scales and axis:
           let x = d3.scaleBand()
               .range([ 0, width ])
-              .domain(samplesColumns)
+              .domain(samplesColumns.samples)
               .padding(0.01);
           this.svg.append("g")
               .attr("transform", "translate(0," + height + ")")
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
                       .style("text-anchor", "end")
+                      .style('fill',function(d) {return sampleColors[samplesColumns.sampleGroups[d].groupIndex]}) //set colors by group
                       .attr('font-size', this.fontSize)
                       .attr("transform", "rotate(-35) translate(-5, 0)");
 
@@ -144,7 +160,43 @@ export default Vue.component("bulk-heatmap", {
         try {
             const response = await fetch(queryUrl);
             const data = await(response.json());
-            return data.sample_id;
+            
+            if(!!data) {
+
+                const metaData = data.metadata[this.comparisonId]
+                const metaLabel = data.metadata_labels[this.comparisonId]
+
+                let tempDataArr = [];
+
+                data.sample_id.map( (id, idIndex) => {
+                    tempDataArr.push({
+                        id: id,
+                        sampleIndex: idIndex,
+                        group: metaLabel[metaData[idIndex]],
+                        groupIndex: metaData[idIndex]
+                    })
+                })
+
+                let sortedArr = sortUtils.sortArrOfObjects(tempDataArr, 'group', 'alphabetical', 'asc')
+
+                console.log("sortedArr",sortedArr)
+
+                //Not the best way to do but required to render legend
+                this.sampleGroups = metaLabel.sort();
+                
+                let samples = {
+                    samples:[],
+                    sampleGroups: {}
+                }
+
+                sortedArr.map(s => {
+                    samples.samples.push(s.id);
+                    samples.sampleGroups[s.id] = s
+                })
+
+                return samples;//data.sample_id;
+            }
+            
         }
         catch(error) {
             console.error("Error: ", error);
@@ -155,8 +207,26 @@ export default Vue.component("bulk-heatmap", {
             let outputData = [];
             let minExp = rawData[0]?.expression[0] || null;
             let maxExp = rawData[0]?.expression[0] || null;
+
             rawData.forEach(item => {
-                for (let i = 0; i < item.expression.length; i++){
+                ///DK: Modified to add group
+                samplesColumns.samples.map(sample =>{
+                    let groupInfo = samplesColumns.sampleGroups[sample]
+                    let currentExp = item.expression[groupInfo.sampleIndex];
+                    minExp = (currentExp < minExp)? currentExp : minExp;
+                    maxExp = (currentExp > maxExp)? currentExp : maxExp;
+
+                    let expressionEntry = {
+                        gene: item.gene,
+                        sample: sample,
+                        expression: currentExp,
+                        group: groupInfo.group,
+                        groupIndex: groupInfo.groupIndex
+                    };
+
+                    outputData.push(expressionEntry);
+                })
+                /*for (let i = 0; i < item.expression.length; i++){
                     let currentExp = item.expression[i];
                     if (currentExp < minExp){
                         minExp = currentExp;
@@ -170,10 +240,12 @@ export default Vue.component("bulk-heatmap", {
                         expression: item.expression[i]
                     };
                     outputData.push(expressionEntry);
-                }
+                }*/
             });
+
             this.minExp = minExp;
             this.maxExp = maxExp;
+
             return outputData;
         },
       showTooltip(event){
@@ -219,6 +291,7 @@ export default Vue.component("bulk-heatmap", {
 .legends {
     gap: 20px;
 }
+
 .legend {
     margin: 0 10px 0 0;
     gap:1px;
@@ -235,5 +308,18 @@ export default Vue.component("bulk-heatmap", {
 .legend span {
   padding-left: 15px;
   padding-right: 15px;
+}
+
+.group-legend-box {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    padding: 0 !important;
+}
+
+.group-legend-name {
+    padding-left: 5px !important;
+    padding-right: 15px !important;
+    vertical-align: text-bottom;
 }
 </style>
