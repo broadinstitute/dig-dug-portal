@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="https://hugeampkpncms.org/sites/default/files/images/sysbio/logos/sb-color-icon.svg">
+    <title>SysBio FAIRplex - Style Template</title>
+    <style>
+        /*
+
+        All basic styles for the wrapper template, header and footer
+
+        */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+        :root {
+            --sysbio-black: #000000;
+            --sysbio-blue: #0000C6;
+            --sysbio-white-blue: #efefff;
+        }
+        body{
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: Roboto, Arial, sans-serif;
+            background-color: #fafafa;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .sysbio{
+            width:100vw;
+            height:100vh;
+            display:flex;
+            flex-direction: column;
+            
+            *{
+                box-sizing: border-box;
+            }
+
+            h1{
+                font-size: 1.7rem;
+            }
+            h2{
+                font-size: 1.4rem;
+            }
+            h3{
+                font-size: 1.2rem;
+            }
+            h4{
+                font-size: 1.1rem;
+            }
+            a, a:visited{
+                color: var(--sysbio-blue) !important; 
+                text-decoration: none;
+            }
+
+            .sysbio-body {
+                min-width: 800px;
+                max-width: 1400px;
+                width: 90vw;
+                padding: 115px 0 80px;
+                display: flex;
+                flex-direction: column;
+                align-self: center;
+            }
+        }
+        .header {
+            padding: 0 40px;
+            background: white;
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            position:fixed;
+            z-index: 100;
+            box-shadow: 0 2px 2px 0px black;
+
+            a, a:visited {
+                color: black !important;
+                text-decoration: none;
+            }
+            .logo {
+                height: 75px;
+                padding: 10px 0;
+                gap: 10px;
+                font-size: 22px;
+            }
+            .logo img {
+                height: 100%;
+            }
+
+            /* menu */
+
+            .menu {
+                display: flex;
+                font-size: 14px;
+                letter-spacing: .2px;
+                z-index: 5000;
+            }
+            .menu-item-wrapper {
+                position: relative;
+                display: flex;
+            }
+            .main-menu-items {
+                display: flex;
+                position: relative;
+                padding-right: 2px;
+            }
+            .main-menu-items:after {
+                content: "";
+                position: absolute;
+                top: 7px;
+                right: 0px;
+                width: 2px;
+                height: 50%;
+            }
+            .menu-item {
+                position: relative;
+                padding: 15px 10px;
+                cursor: pointer;
+                border-radius: 10px;
+                font-weight: 600;
+                color: var(--sysbio-black);
+                font-weight: bold;
+            }
+            .menu-item-wrapper:has(.submenu) .menu-item{
+                border-radius: 10px 10px 0 0;
+            }
+            .menu-item.menu-item-main {
+                color: var(--sysbio-blue) !important;
+            }
+            .menu-item.menu-item-selected {
+                color: var(--sysbio-blue);
+            }
+            .menu-item-wrapper:hover .menu-item,
+            .menu-item-wrapper.active .menu-item,
+            .menu-item-wrapper:has(.submenu-item.active) .menu-item,
+            .menu-item-wrapper .submenu-item.active,
+            .menu-item-wrapper .submenu-item:hover {
+                color: var(--sysbio-blue) !important;
+            }
+            .menu-item-wrapper:hover .menu-item,
+            .menu-item-wrapper:hover .submenu{
+                background: white;
+                box-shadow: 0 2px 2px 0px black;
+            }
+            .menu-item-wrapper:hover > .submenu {
+                display: flex;
+            }
+            .submenu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                padding: 10px 10px 15px 15px;
+                width: max-content;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 5px;
+                display: none;
+                border-radius: 5px 0 5px 5px;
+            }
+            .submenu-item {
+                color: black;
+                width: -webkit-fill-available;
+                text-align: right;
+                font-weight: normal
+            }
+        }
+        .footer {
+            width: 100%;
+            background: var(--sysbio-blue);
+            color: var(--sysbio-white-blue);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 40px;
+            margin-top: auto;
+            flex-direction: column;
+            gap: 40px;
+            font-size: 14px;
+
+            .footer-top{
+                display:flex;
+                width: 100%;
+                justify-content: space-between;
+            }
+            .footer-title{
+                font-size: 18px;
+                font-weight: bold;
+            }
+            .footer-logo{
+                width: 250px;
+                display: flex;
+                justify-content: flex-end;
+            }
+            .footer-logo img {
+                height: 100px;
+                mix-blend-mode: hard-light;
+            }
+            .footer-contact{
+                width:250px;
+            }
+            .footer-contact a, .footer-contact a:visited {
+                margin-top:10px;
+                color: var(--sysbio-white-blue) !important;
+                font-weight: bold;
+            }
+            .footer-contact a:hover{
+                text-decoration: underline;
+            }
+            .menu {
+                display: flex;
+                gap: 50px;
+            }
+            .menu a, .menu a:visited {
+                color: var(--sysbio-white-blue) !important;
+            }
+            .menu a:hover{
+                text-decoration: none;
+            }
+            .menu a[href]:not([href=""]):hover{
+                text-decoration: underline;
+            }
+            .menu-item-wrapper {
+                display: flex;
+                flex-direction: column;
+            }
+            .menu-item{
+                font-weight: bold;
+            }
+            .submenu {
+                display: flex;
+                flex-direction: column;
+            }
+            a.submenu-item {
+                font-weight: normal;
+            }
+            .colophon{
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sysbio">
+        <!--HEADER-->
+        <div class="header">
+            <a class="logo" href="/">
+                <img src="https://hugeampkpncms.org/sites/default/files/images/sysbio/logos/sb-color-h.svg">
+            </a>
+            <div class="menu">
+                <div class="menu-item-wrapper">
+                    <a class="menu-item" href="/" target="">
+                        ItemA
+                    </a>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item" href="/" target="">
+                        ItemB
+                    </a>
+                    <div v-if="item.subMenuItems" class="submenu">
+                        <a class="submenu-item" href="" target="">
+                            Sub Item 1
+                        </a>
+                        <a class="submenu-item" href="" target="">
+                            Sub Item 2
+                        </a>
+                    </div>
+                </div>
+                <div class="menu-item-wrapper active">
+                    <a class="menu-item" href="/" target="">
+                        ItemC
+                    </a>
+                    <div v-if="item.subMenuItems" class="submenu">
+                        <a class="submenu-item" href="" target="">
+                            Sub Item 1
+                        </a>
+                        <a class="submenu-item" href="" target="">
+                            Sub Item 2
+                        </a>
+                    </div>
+                </div>
+                <div class="menu-item-wrapper">
+                    <a class="menu-item" href="/" target="">
+                        ItemD
+                    </a>
+                    <div v-if="item.subMenuItems" class="submenu">
+                        <a class="submenu-item active" href="" target="">
+                            Sub Item 1
+                        </a>
+                        <a class="submenu-item" href="" target="">
+                            Sub Item 2
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--BODY-->
+        <div class="sysbio-body">
+            <div style="background:#eee; height:500px">Content</div>
+        </div>
+        <!--FOOTER-->
+        <div class="footer">
+            <div class="footer-top">
+                <div class="footer-contact">
+                    <div class="footer-title">Get in Touch</div>
+                    <div>We welcome any questions or feedback, invite collaborations, and value input about SysBio FAIRplex.</div>
+                    <a href="mailto:help@sysbio-fairplex.org">help@sysbio-fairplex.org</a>
+                </div>
+                <div class="menu">
+                    <div class="menu-item-wrapper">
+                        <a class="menu-item" href="" target="">
+                            ItemA
+                        </a>
+                        <div class="submenu">
+                            <a class="submenu-item" href="/" target="">
+                                Sub Item 1
+                            </a>
+                            <a class="submenu-item" href="/" target="">
+                                Sub Item 2
+                            </a>
+                        </div>
+                    </div>
+                    <div class="menu-item-wrapper">
+                        <a class="menu-item" href="" target="">
+                            ItemB
+                        </a>
+                        <div class="submenu">
+                            <a class="submenu-item" href="/" target="">
+                                Sub Item 1
+                            </a>
+                            <a class="submenu-item" href="/" target="">
+                                Sub Item 2
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-logo">
+                    <img src="https://hugeampkpncms.org/sites/default/files/images/sysbio/logos/sb-white-v.svg" />
+                </div>
+            </div>
+            <div class="colophon">
+                Sysbio FAIRplex is supported by the NIH Common Fund under Award Number OT2OD037975 as part of the Common Fund's Venture Program SysBio Initiative. 
+            </div>
+        </div>
+    </div>
+</body>
+</html>
