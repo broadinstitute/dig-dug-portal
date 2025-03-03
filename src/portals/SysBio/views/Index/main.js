@@ -200,6 +200,22 @@ new Vue({
                 this.dataComposition.data = dataConvert.csv2Json(data)
             }
         },
+        showTab(e){
+            const el = e.currentTarget;
+            const tab = el.dataset.tab;
+            const parent = el.parentElement;
+            const tabs = Array.from(parent.children)
+            tabs.forEach(tab => {
+                tab.classList.remove('active')
+            })
+            el.classList.add('active');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tabContent=>{
+                tabContent.classList.remove('active');
+            })
+            const tabContent = document.querySelector(`.tab-content[data-tab="${tab}"]`);
+            tabContent.classList.add('active');
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

@@ -5,10 +5,10 @@
         <!-- BODY -->
         <div class="sysbio-body" style="gap:70px">
             <div class="section hero f-row grow-children align-v-center" style="gap:50px;">
-                <div class="f-col" style="gap:20px;">
+                <div class="f-col" style="gap:20px; margin-top: -100px;">
                     <div class="f-col">
                         <div class="hero-title">SysBio FAIRplex</div>
-                        <h4>
+                        <h4 style="line-height: 1em;">
                             a FAIR PLatform for EXploration<br/>
                             of Systems Biology
                         </h4>
@@ -19,7 +19,7 @@
                         to generate novel insights.</div>
                     <a class="bold">Learn More ❯</a>
                 </div>
-                <div class="f-col" style="gap:40px; align-self:flex-end">
+                <div class="f-col" style="gap:40px; align-self:flex-end; padding-bottom: 10px;">
                     <input class="hero-search" type="text" placeholder="Search gene">
                     <div class="f-row" style="gap:15px">
                         <div class="stat f-row">
@@ -48,30 +48,36 @@
                 <div class="section-body">
                     <div class="f-row">
                         <div class="tabs f-col">
-                            <div class="tab f-col active">
+                            <div class="tab f-col active" data-tab="composition" @click="$parent.showTab($event)">
                                 <div class="tab-title">Data Composition</div>
                                 <div class="tab-body">Distribution of samples by assay, tissue, and disease status</div>
                             </div>
-                            <div class="tab f-col">
+                            <div class="tab f-col" data-tab="expression" @click="$parent.showTab($event)">
                                 <div class="tab-title">Gene Expression</div>
                                 <div class="tab-body">Differential expression between disease and control samples</div>
                             </div>
-                            <div class="tab f-col">
+                            <div class="tab f-col" data-tab="clustering" @click="$parent.showTab($event)">
                                 <div class="tab-title">Sample Clustering</div>
                                 <div class="tab-body">PCA variation across tissues and disease status</div>
                             </div>
                         </div>
-                        <div class="tab-content f-col">
-                            
-                            <research-bar-in-cell-plot
-                                v-if="!!$parent.dataComposition.data"
-                                :plotData="$parent.dataComposition.data"
-                                :plotMargin="$parent.dataComposition.plotMargin"
-                                :plotConfig="$parent.dataComposition.plotConfig"
-                                :canvasId="$parent.dataComposition.id"
-                                :utils="null"
-                            />
-                            
+                        <div class="tab-contents f-col">
+                            <div class="tab-content active f-col" data-tab="composition">
+                                <research-bar-in-cell-plot
+                                    v-if="!!$parent.dataComposition.data"
+                                    :plotData="$parent.dataComposition.data"
+                                    :plotMargin="$parent.dataComposition.plotMargin"
+                                    :plotConfig="$parent.dataComposition.plotConfig"
+                                    :canvasId="$parent.dataComposition.id"
+                                    :utils="null"
+                                />
+                            </div>
+                            <div class="tab-content active f-col" data-tab="expression">
+
+                            </div>
+                            <div class="tab-content active f-col" data-tab="clustering">
+
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -167,6 +173,13 @@
     height: 500px;
     margin: -40px 0 0;
     padding: 100px;
+    background-image: url('https://hugeampkpncms.org/sites/default/files/images/sysbio/images/sysbio_hero.png');
+    background-size: cover;
+    background-position: bottom center;
+    color: white;
+}
+.hero a{
+    color:white !important;
 }
 .hero-title{
     font-size: 2.15rem;
@@ -305,14 +318,16 @@
     background: #eee;
     margin: 0 0 0 5px;
     border-radius: 5px 0 0 5px;
+    cursor: pointer;
 }
 .tab.active {
     background: white;
     box-shadow: 2px 2px 2px 0 black;
     z-index: 1;
     margin: 0;
+    cursor: default;
 }
-.tab-content {
+.tab-contents {
     flex: 1;
     background: white;
     z-index: 1;
@@ -320,6 +335,12 @@
     padding: 20px;
     border-radius: 0 5px 5px 0;
     box-shadow: 2px 2px 2px 0 black;
+}
+.tab-content{
+    display:none !important;
+}
+.tab-content.active{
+    display:flex !important;
 }
 .tab-title{
     font-weight: bold;
