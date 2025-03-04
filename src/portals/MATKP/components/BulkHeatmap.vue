@@ -13,7 +13,7 @@
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
               <template v-for="(sample, sIndex) in sampleGroups" >
-                <span class="group-legend-box" :style="'background-color:'+sampleColors[sIndex]">&nbsp;</span><span class="group-legend-name">{{ (sample == "")? 'N/A':sample  }}</span>
+                <span class="group-legend-box" :style="'background-color:'+sampleColors[sample.index]">&nbsp;</span><span class="group-legend-name">{{ (sample.label == "")? 'N/A':sample.label  }}</span>
               </template>
             </div>
         </div>
@@ -84,7 +84,6 @@ export default Vue.component("bulk-heatmap", {
           let collatedData = this.collateData(this.zNormData, samplesColumns)
           let sampleColors = this.sampleColors
 
-          console.log("samplesColumns",samplesColumns);
           // Build X scales and axis:
           let x = d3.scaleBand()
               .range([ 0, width ])
@@ -179,10 +178,17 @@ export default Vue.component("bulk-heatmap", {
 
                 let sortedArr = sortUtils.sortArrOfObjects(tempDataArr, 'group', 'alphabetical', 'asc')
 
-                console.log("sortedArr",sortedArr)
-
                 //Not the best way to do but required to render legend
-                this.sampleGroups = metaLabel.sort();
+                let tempMetaLabel = [];
+
+                metaLabel.map((m,mIndex) => {
+                    tempMetaLabel.push({
+                        label: m,
+                        index: mIndex
+                    })
+                })
+
+                this.sampleGroups = sortUtils.sortArrOfObjects(tempMetaLabel, 'label', 'alphabetical', 'asc');
                 
                 let samples = {
                     samples:[],

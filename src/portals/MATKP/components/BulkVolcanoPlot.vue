@@ -1,6 +1,19 @@
 <template>
 	<div>
-		<div style="min-height: 53px;"></div>
+		<!--<div style="min-height: 53px;"></div>-->
+		<div style="display:flex; gap:5px" class="legends">
+			<div style="display:inline-block;" class="legend">
+				<strong>Regulation of gene expression</strong>
+				<div style="display:flex; margin-top:10px">
+				
+					<span class="group-legend-box" style="background-color:#ff0000">&nbsp;</span><span class="group-legend-name">down-regulated genes</span>
+
+					<span class="group-legend-box" style="background-color:#0000ff">&nbsp;</span><span class="group-legend-name">up-regulated genes</span>
+
+					<span class="group-legend-box" style="background-color:gold">&nbsp;</span><span class="group-legend-name">highlighted gene</span>
+				</div>
+        	</div>
+		</div>
 		<div :id="'vector_wrapper_'+sectionId" :class="'vector-wrapper-'+ canvasId">
 
 		</div>
@@ -439,7 +452,41 @@ export default Vue.component("bulk-volcano-plot", {
 $(function () {});
 </script>
 
-<style>
+<style scoped>
+.legends {
+    gap: 20px;
+}
+
+.legend {
+    margin: 0 10px 0 0;
+    gap:1px;
+}
+.legend .label {
+    font-size: 11px !important;
+    line-height: 11px;
+}
+.legend .gradient {
+    height: 20px;
+    width: 200px;
+    border-radius: 20px;
+}
+.legend span {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.group-legend-box {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    padding: 0 !important;
+}
+
+.group-legend-name {
+    padding-left: 5px !important;
+    padding-right: 15px !important;
+    vertical-align: text-bottom;
+}
 </style>
 
 

@@ -139,9 +139,9 @@ new Vue({
                 "y axis label": "-log10(FDR adj. p)",
                 "width": 600,
                 "height": this.plotHeight,
-                "x condition": { "combination": "or", "greater than": 1, "lower than": -1 },
+                "x condition": { "combination": "or", "greater than": 1.5, "lower than": -1.5 },
                 //combination for condition can be "greater than", "lower than", "or" and "and."
-                "y condition": { "combination": "greater than", "greater than": 1 },
+                "y condition": { "combination": "greater than", "greater than": 1.3 },
                 "dot label score": 2
                 //number of conditions that the value of each dot to meet to have labeled
             };
