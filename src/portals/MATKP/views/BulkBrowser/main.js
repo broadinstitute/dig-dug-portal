@@ -52,6 +52,7 @@ new Vue({
             chartWidth: 0,
             datasets: [],
             endpoint: "single-cell-bulk-z-norm",
+            documentation: null,
             utils: {
                 uiUtils: uiUtils
             },
