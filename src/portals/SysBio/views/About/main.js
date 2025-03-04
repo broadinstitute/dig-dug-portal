@@ -7,6 +7,7 @@ import "../../css/sysbio.css";
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 
 import keyParams from "../../../../utils/keyParams.js";
+import dataConvert from "../../../../utils/dataConvert.js";
 
 // Use keyparams to do this
 
@@ -51,6 +52,10 @@ new Vue({
     },
 
     methods: {
+        ...dataConvert,
+        csv2Json(DATA) {
+            return dataConvert.csv2Json(DATA);
+        },
         async getContent(PAGE) {
 
             const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=" + this.pages[PAGE];
