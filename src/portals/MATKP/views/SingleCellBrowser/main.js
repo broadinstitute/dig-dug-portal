@@ -29,24 +29,24 @@ new Vue({
             scbConfig: {
                 "type": "cell browser",
                 "label": "Single Cell Browser",
-                "parameters":{
+                "parameters": {
                     "datasetId": "dataset",
                     "gene": "gene"
                 },
-                "data points":[ 
+                "data points": [
                     {
                         "role": "metadata",
                         "url": "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_metadata/dataset_metadata.json.gz"
-                    },{
+                    }, {
                         "role": "fields",
                         "url": "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell/$datasetId/fields.json.gz"
-                    },{
+                    }, {
                         "role": "coordinates",
                         "url": "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz"
-                    },{
+                    }, {
                         "role": "expression",
                         "url": "https://bioindex-dev.hugeamp.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
-                    },{
+                    }, {
                         "role": "markers",
                         "url": "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
                     }
@@ -82,9 +82,9 @@ new Vue({
         const pageId = 'matkp_singlecellbrowser';
         this.info = await getTextContent(pageId, true);
         console.log('!!', this.info)
-        if(keyParams[this.scbConfig["parameters"].datasetId]){
+        if (keyParams[this.scbConfig["parameters"].datasetId]) {
             this.selectedDataset = keyParams[this.scbConfig["parameters"].datasetId];
-        }else{
+        } else {
             this.selectedDataset = this.scbConfig["presets"]["datasetId"];
         }
     },
@@ -96,7 +96,7 @@ new Vue({
     },
 
     methods: {
-        
+
     },
 
     render(createElement, context) {

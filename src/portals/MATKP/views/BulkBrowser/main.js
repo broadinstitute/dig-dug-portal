@@ -167,6 +167,7 @@ new Vue({
     },
     async mounted() {
         this.init();
+        this.getDocumentation();
     },
     created() {
     },
@@ -198,6 +199,19 @@ new Vue({
 
             this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
             console.log(this.bulkMetadata.species);
+        },
+        async getDocumentation() {
+            const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=matkp_differentialgeneexpressionbrowser";
+
+            let jsonContent = await fetch(CONTENT_URL).then(
+                resp => resp.json());
+            if (jsonContent.length === 0) {
+                this.documentation = null;
+            }
+
+            this.documentation = jsonContent[0];
+
+            console.log("this.pageContent", this.documentation);
         },
         getTop20(data) {
             let processedData = data.sort((a, b) => b.log10FDR - a.log10FDR).slice(0, 20);
