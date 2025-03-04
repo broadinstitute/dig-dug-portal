@@ -21,7 +21,7 @@
                 </div>
                 <div class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">
                     <input class="hero-search" type="text" placeholder="Search gene">
-                    <div class="f-row" style="gap:15px">
+                    <div class="f-row spread-out" style="gap:15px">
                         <div class="stat f-row">
                             <div class="stat-num">08</div>
                             <div class="stat-txt">AMP® Programs</div>
@@ -205,6 +205,7 @@
     display: flex;
     align-items: flex-end;
     font-weight: bold;
+    color: #e6e6e6;
 }
 
 .section-body{
