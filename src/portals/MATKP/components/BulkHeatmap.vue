@@ -37,7 +37,8 @@ export default Vue.component("bulk-heatmap", {
         "comparisonId",
         "margin",
         "plotHeight",
-        "sampleColors"
+        "sampleColors",
+        "selectedGene"
     ],
     data() {
         return {
@@ -57,6 +58,9 @@ export default Vue.component("bulk-heatmap", {
     methods: {
         ...sortUtils,
       async drawHeatMap(){
+        //empty the wrapper first
+        document.getElementById(this.plotId).innerHTML = "";
+
           let plotId = `#${this.plotId}`;
           // Clear existing
           d3.select(plotId)
@@ -99,6 +103,7 @@ export default Vue.component("bulk-heatmap", {
                       .attr("transform", "rotate(-35) translate(-5, 0)");
 
           // Build Y scales and axis:
+          let selectedGene = this.selectedGene
           var y = d3.scaleBand()
               .range([ height, 0 ])
               .domain(genesRows)
@@ -106,6 +111,9 @@ export default Vue.component("bulk-heatmap", {
           this.svg.append("g")
               .call(d3.axisLeft(y))
                 .selectAll("text")
+                .style('fill',function(d) {
+                    console.log("highlight",d,selectedGene)
+                    return ( d == selectedGene)? "#FF8800":"black"}) //set colors by group
                   .attr('font-size', this.fontSize);
           
           // Build color scale
@@ -284,6 +292,9 @@ export default Vue.component("bulk-heatmap", {
             },
             deep: true
         },
+        selectedGene(GENE){
+            this.drawHeatMap();
+        }
     },
     mounted(){
 

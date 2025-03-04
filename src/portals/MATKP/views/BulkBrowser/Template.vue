@@ -5,6 +5,8 @@
           <matkp-nav></matkp-nav>
           <!-- BODY -->
           <div class="mat-body f-col">
+            <h2 class="matkp-static-content-title">Differential Gene Expression Browser</h2>
+            <div class="matkp-tool-documentation" v-html="$parent.documentation"></div>
               <div class="flex-column flex-small-gap">
                     <div id="center-width" class="flex-gap flex-column">
                         <div class="flex-gap flex-column" id="center-content">
@@ -106,6 +108,7 @@
                                                             :margin="$parent.margin"
                                                             :sampleColors="$parent.colors"
                                                             :plotHeight="$parent.plotHeight"
+                                                            :selectedGene="$parent.selectedGene"
                                                             @highlight="gene => $parent.highlight(gene)"
                                                         >
                                                         </bulk-heatmap>

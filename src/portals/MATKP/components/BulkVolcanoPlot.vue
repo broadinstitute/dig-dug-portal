@@ -10,7 +10,7 @@
 
 					<span class="group-legend-box" style="background-color:#0000ff">&nbsp;</span><span class="group-legend-name">up-regulated genes</span>
 
-					<span class="group-legend-box" style="background-color:gold">&nbsp;</span><span class="group-legend-name">highlighted gene</span>
+					<span class="group-legend-box" style="background-color:#FF9900">&nbsp;</span><span class="group-legend-name">highlighted gene</span>
 				</div>
         	</div>
 		</div>
@@ -429,7 +429,7 @@ export default Vue.component("bulk-volcano-plot", {
 					.attr('cx', this.x(xData))
 					.attr('cy', this.y(yData))
 					.attr('r', 6)
-					.style('fill', "gold")
+					.style('fill', "#FF9900")
           .attr("class", "highlightCircle");
 		},
     dataToClass(value){
