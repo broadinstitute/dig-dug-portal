@@ -54,11 +54,11 @@
                             </div>
                             <div class="tab f-col" data-tab="expression" @click="$parent.showTab($event)">
                                 <div class="tab-title">Gene Expression</div>
-                                <div class="tab-body">Differential expression between disease and control samples</div>
+                                <div class="tab-body">Differential gene expression across AMP programs</div>
                             </div>
                             <div class="tab f-col" data-tab="clustering" @click="$parent.showTab($event)">
                                 <div class="tab-title">Sample Clustering</div>
-                                <div class="tab-body">PCA variation across tissues and disease status</div>
+                                <div class="tab-body">PCA of cases and controls</div>
                             </div>
                         </div>
                         <div class="tab-contents f-col">
