@@ -32,7 +32,7 @@ new Vue({
                         title: "AMP® AD Alzheimer's Disease",
                         body: "Leveraging precision medicine to validate existing targets and discover novel targets and biomarkers.",
                         linkLabel: "Learn More",
-                        linkUrl: "",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-alzheimers-disease-2-0/",
                         bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_AD.png",
                         type: "medium"
                     },
@@ -40,7 +40,7 @@ new Vue({
                         title: "AMP® ALS Amyotrophic Lateral Sclerosis",
                         body: "Identifying biomarkers, therapeutic targets, and clinical outcome assessments for ALS.",
                         linkLabel: "Learn More",
-                        linkUrl: "",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amyotrophic-lateral-sclerosis/",
                         bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_ALS.png",
                         type: "medium"
                     },
@@ -48,7 +48,7 @@ new Vue({
                         title: "AMP® AIM Autoimmune and Immune-Mediated Diseases",
                         body: "Understanding the cellular and molecular interactions that lead to AIM.",
                         linkLabel: "Learn More",
-                        linkUrl: "/",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-autoimmune-immune-mediated-diseases/",
                         bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_AIM.jpg",
                         type: "medium"
                     },
@@ -56,7 +56,7 @@ new Vue({
                         title: "AMP® CMD Common Metabolic Diseases",
                         body: "Identifying targets for six common metabolic diseases: liver diseases, kidney diseases, obesity, cardiovascular diseases, type 2 diabetes/prediabetes, and type 1 diabetes.",
                         linkLabel: "Learn More",
-                        linkUrl: "/",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-common-metabolic-disorders/",
                         bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_CMD.png",
                         type: "medium"
                     },
@@ -65,7 +65,7 @@ new Vue({
                         title: "AMP® PD Parkinson’s Disease",
                         body: "Identifying biomarkers and therapies for Parkinson’s Disease.",
                         linkLabel: "Learn More",
-                        linkUrl: "/",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-parkinsons-disease/",
                         bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_PD.png",
                         type: "medium"
                     },
@@ -73,7 +73,7 @@ new Vue({
                         title: "AMP® RA/SLE Rheumatoid Arthritis and Systemic Lupus Erythematosus",
                         body: "Performing single cell-level analyses of tissue and blood samples from people with rheumatoid arthritis and systemic lupus erythematosus to pinpoint genes, proteins, pathways, and signaling networks. ",
                         linkLabel: "Learn More",
-                        linkUrl: "/",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-rheumatoid-arthritis-and-lupus/",
                         bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_RA-SLE.png",
                         type: "medium"
                     },
@@ -81,7 +81,7 @@ new Vue({
                         title: "AMP® SCZ Schizophrenia",
                         body: "Developing effective early-stage treatments for individuals at risk for schizophrenia, understanding disease pathways, and identifying targets for treatment.",
                         linkLabel: "Learn More",
-                        linkUrl: "/",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-schizophrenia/",
                         bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_SCZ.png",
                         type: "medium"
                     },
@@ -89,7 +89,7 @@ new Vue({
                         title: "AMP® HF Heart Failure",
                         body: "Investigating heart failure with preserved ejection fraction (HFpEF) through deep phenotyping and data analysis.",
                         linkLabel: "Learn More",
-                        linkUrl: "/",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-heart-failure/",
                         bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_HF.png",
                         type: "medium"
                     },
@@ -200,7 +200,7 @@ new Vue({
                 this.dataComposition.data = dataConvert.csv2Json(data)
             }
         },
-        showTab(e){
+        showTab(e) {
             const el = e.currentTarget;
             const tab = el.dataset.tab;
             const parent = el.parentElement;
@@ -210,7 +210,7 @@ new Vue({
             })
             el.classList.add('active');
             const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(tabContent=>{
+            tabContents.forEach(tabContent => {
                 tabContent.classList.remove('active');
             })
             const tabContent = document.querySelector(`.tab-content[data-tab="${tab}"]`);
