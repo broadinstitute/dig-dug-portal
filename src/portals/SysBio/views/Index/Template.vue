@@ -9,13 +9,13 @@
                     <div class="f-col">
                         <div class="hero-title">SysBio FAIRplex</div>
                         <h4 style="line-height: 1em;">
-                            a FAIR PLatform for EXploration<br/>
+                            a FAIR PLatform for EXploration<br />
                             of Systems Biology
                         </h4>
                     </div>
                     <div>
-                        Integrated multi-tissue and multi-modal data from<br/>
-                        the Accelerating Medicines Partnership<sup>®</sup> (AMP<sup>®</sup>) ecosystem<br/>
+                        Integrated multi-tissue and multi-modal data from<br />
+                        the Accelerating Medicines Partnership<sup>®</sup> (AMP<sup>®</sup>) ecosystem<br />
                         to generate novel insights.</div>
                     <a class="bold">Learn More ❯</a>
                 </div>
@@ -63,20 +63,34 @@
                         </div>
                         <div class="tab-contents f-col">
                             <div class="tab-content active f-col" data-tab="composition">
-                                <research-bar-in-cell-plot
-                                    v-if="!!$parent.dataComposition.data"
+                                <research-bar-in-cell-plot v-if="!!$parent.dataComposition.data"
                                     :plotData="$parent.dataComposition.data"
                                     :plotMargin="$parent.dataComposition.plotMargin"
                                     :plotConfig="$parent.dataComposition.plotConfig"
-                                    :canvasId="$parent.dataComposition.id"
-                                    :utils="null"
-                                />
+                                    :canvasId="$parent.dataComposition.id" :utils="null" />
                             </div>
-                            <div class="tab-content active f-col" data-tab="expression">
+                            <div class="tab-content f-col" data-tab="expression">
+                                <div>Explore visualizations of differential gene expression within human tissues derived
+                                    from the Accelerating Medicines Partnership (AMP) programs. Differential expression
+                                    analyses were performed on blood-derived bulk RNA sequencing datasets from
+                                    individuals with common metabolic disorders versus blood-derived pseudobulk RNA
+                                    sequencing datasets from individuals with Parkinson's disease. The volcano plot
+                                    shows all differentially expressed genes between the two groups.</div>
+                                <div class="tab-content-img-wrapper">
+                                    <img style="width: 450px;"
+                                        src="https://hugeampkpncms.org/sites/default/files/images/sysbio/images/sysbio_volcano.jpg" />
 
+                                </div>
                             </div>
-                            <div class="tab-content active f-col" data-tab="clustering">
+                            <div class="tab-content f-col" data-tab="clustering">
+                                <div>Explore principal component analyses (PCA) of cases and controls derived from
+                                    the following Accelerating Medicines Partnership (AMP) programs: AMP AD, AMP PD,
+                                    and AMP CMD. </div>
+                                <div class="tab-content-img-wrapper">
 
+                                    <img style="width: 850px;"
+                                        src="https://hugeampkpncms.org/sites/default/files/images/sysbio/images/sysbio_pca_collected.jpg" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -88,23 +102,19 @@
                 <div>Learn more about the AMP<sup>®</sup> Programs</div>
                 <div class="section-body">
                     <div class="section-items f-row">
-                    <div
-                        class="section-item"
-                        v-for="item in $parent.content.amps.rows"
-                        :class="[item.type, item.comingSoon ? 'soon' : '']"
-                    >
-                        <div class="item-copy">
-                            <div class="item-title">{{ item.title }}</div>
-                            <div class="item-body" v-html="item.body"></div>
-                            <a class="item-btn" :href="item.linkUrl" style="margin-top: auto;"
-                                >{{ item.linkLabel }} ❯</a
-                            >
-                        </div>
-                        <div class="item-bg contain">
-                            <img :src="item.bgImage" />
+                        <div class="section-item" v-for="item in $parent.content.amps.rows"
+                            :class="[item.type, item.comingSoon ? 'soon' : '']">
+                            <div class="item-copy">
+                                <div class="item-title">{{ item.title }}</div>
+                                <div class="item-body" v-html="item.body"></div>
+                                <a class="item-btn" :href="item.linkUrl" style="margin-top: auto;">{{ item.linkLabel
+                                    }} ❯</a>
+                            </div>
+                            <div class="item-bg contain">
+                                <img :src="item.bgImage" />
+                            </div>
                         </div>
                     </div>
-                </div>
                 </div>
             </div>
 
@@ -112,10 +122,7 @@
                 <h2>SysBio FAIRplex Consortium</h2>
                 <div class="section-body">
                     <div class="partners">
-                        <div
-                            class="partner-logo"
-                            v-for="item in $parent.content.partners.list"
-                        >
+                        <div class="partner-logo" v-for="item in $parent.content.partners.list">
                             <a :href="item.url || null" target="_blank">
                                 <img :src="item.logo" />
                             </a>
@@ -129,27 +136,17 @@
                     <h2>News</h2>
                     <div class="section-body">
                         <div class="news-items" v-if="$parent.newsFeed">
-                            <div
-                                class="news-item f-row"
-                                v-for="item in $parent.newsFeed"
-                            >
-                                <div
-                                    class="news-thumbnail contain"
-                                    v-html="item.field_thumbnail_image"
-                                ></div>
+                            <div class="news-item f-row" v-for="item in $parent.newsFeed">
+                                <div class="news-thumbnail contain" v-html="item.field_thumbnail_image"></div>
                                 <div class="f-col">
-                                    <a
-                                        :href="`${$parent.content.news.newsItemUrl}${item.nid}`"
-                                        ><div class="">{{ item.title }}</div></a
-                                    >
+                                    <a :href="`${$parent.content.news.newsItemUrl}${item.nid}`">
+                                        <div class="">{{ item.title }}</div>
+                                    </a>
                                     <div class="" v-html="item.body"></div>
                                 </div>
                             </div>
-                            <a
-                                style="align-self: flex-end"
-                                :href="`${$parent.content.news.newsUrl}`"
-                                >See All News ❯</a
-                            >
+                            <a style="align-self: flex-end" :href="`${$parent.content.news.newsUrl}`">See All News
+                                ❯</a>
                         </div>
                     </div>
                 </div>
@@ -346,6 +343,11 @@
 .tab-title{
     font-weight: bold;
     font-size: 1.1em;
+}
+
+.tab-content-img-wrapper {
+    text-align: center;
+    padding-top: 15px;
 }
 
 
