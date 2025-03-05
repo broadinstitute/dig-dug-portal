@@ -44,7 +44,7 @@
 
             <div class="section">
                 <h2>Resources</h2>
-                <div>Section description</div>
+                <div>Explore data from programs across the Accelerating Medicines Partnership (AMP)</div>
                 <div class="section-body">
                     <div class="f-row">
                         <div class="tabs f-col">
