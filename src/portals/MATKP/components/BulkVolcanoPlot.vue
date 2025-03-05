@@ -6,9 +6,9 @@
 				<strong>Regulation of gene expression</strong>
 				<div style="display:flex; margin-top:10px">
 				
-					<span class="group-legend-box" style="background-color:#ff0000">&nbsp;</span><span class="group-legend-name">down-regulated genes</span>
+					<span class="group-legend-box" style="background-color:#ff0000">&nbsp;</span><span class="group-legend-name">up-regulated genes</span>
 
-					<span class="group-legend-box" style="background-color:#0000ff">&nbsp;</span><span class="group-legend-name">up-regulated genes</span>
+					<span class="group-legend-box" style="background-color:#0000ff">&nbsp;</span><span class="group-legend-name">down-regulated genes</span>
 
 					<span class="group-legend-box" style="background-color:#FF9900">&nbsp;</span><span class="group-legend-name">highlighted gene</span>
 				</div>
@@ -383,7 +383,7 @@ export default Vue.component("bulk-volcano-plot", {
 						fillColor = renderConfig["dot label score"] > 1 ? "#00000050" :"#09910980";
 						break;
 					case 2:
-						fillColor = xFieldVal > 0 ? "blue" : "red";
+						fillColor = xFieldVal > 0 ? "red":"blue";
 						break;
 				}
 
