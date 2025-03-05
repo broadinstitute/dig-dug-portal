@@ -17,7 +17,7 @@
                         Integrated multi-tissue and multi-modal data from<br />
                         the Accelerating Medicines Partnership<sup>®</sup> (AMP<sup>®</sup>) ecosystem<br />
                         to generate novel insights.</div>
-                    <a class="bold">Learn More ❯</a>
+                    <a href="/about.html?page=about" class="bold" style="color: #FFFFFF !important">Learn More ❯</a>
                 </div>
                 <div class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">
                     <input class="hero-search" type="text" placeholder="Search gene">
