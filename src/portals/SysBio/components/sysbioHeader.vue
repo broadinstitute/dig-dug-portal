@@ -3,6 +3,7 @@
         <a class="logo f-row align-v-center" href="/">
             <img src="https://hugeampkpncms.org/sites/default/files/images/sysbio/logos/sb-color-h.svg">
         </a>
+        <div class="beta">beta</div>
         <div class="menu f-row">
             <div
                 v-for="item in nav.menuItems"
@@ -100,6 +101,21 @@ export default Vue.component("sysbio-header", {
     position:fixed;
     z-index: 100;
     width:100%;
+
+    .beta {
+        font-size: 12px;
+        position: absolute;
+        transform: rotate(45deg);
+        background: var(--sysbio-light-blue);
+        color: white;
+        width: 75px;
+        height: 40px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        right: -28px;
+        top: -10px;
+    }
 
     a, a:visited {
         color: black !important;
