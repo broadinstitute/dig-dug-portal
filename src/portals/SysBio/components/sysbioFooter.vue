@@ -4,7 +4,7 @@
             <div class="footer-contact">
                 <div class="footer-title">Get in Touch</div>
                 <div>We welcome any questions or feedback, invite collaborations, and value input about SysBio FAIRplex.</div>
-                <a href="mailto:help@sysbio-fairplex.org">help@sysbio-fairplex.org</a>
+                <a href="mailto:support@sysbio-fairplex.org">support@sysbio-fairplex.org</a>
             </div>
             <div class="menu">
                 <div v-for="item in nav.menuItems" class="menu-item-wrapper">
