@@ -1,10 +1,28 @@
 <template>
-  <div id="pigean-gene" :class="isSubtable ? 'pigean-subtable' : ''">
+  <div id="bulk-table" :class="isSubtable ? 'bulk-subtable' : ''">
+
+    <b-form-radio-group
+        v-model="showGenes">
+        <b-form-radio
+            value="">
+                All genes
+        </b-form-radio>
+        <b-form-radio
+            :value="up">
+                Upregulated only
+        </b-form-radio>
+        <b-form-radio
+            :value="down">
+                Downregulated only
+        </b-form-radio>
+    </b-form-radio-group>
       <div v-if="tableData.length > 0">
+        <div>
+        </div>
           <div v-if="!isSubtable" class="text-right mb-2">
               <data-download
                   :data="bulkData"
-                  filename="pigean_gene"
+                  filename="bulk_gene"
               ></data-download>
           </div>
           <div v-html="'Total rows: ' + rows" class="table-total-rows"></div>
@@ -141,6 +159,7 @@ export default Vue.component("bulk-table", {
     data() {
         return {
             perPage: 20,
+            showGenes: "",
             currentPage: 1,
             subtableData: {},
             subtableFields: {},
@@ -148,7 +167,9 @@ export default Vue.component("bulk-table", {
             catField: null,
             currentData: [],
             tableYField: "-log10P",
-            tableXField: "logFoldChange"
+            tableXField: "logFoldChange",
+            up: "upregulated",
+            down: "downregulated"
         };
     },
     mounted(){
@@ -194,6 +215,9 @@ export default Vue.component("bulk-table", {
             let data = structuredClone(this.bulkData);
             if (this.filter) {
                 data = data.filter(this.filter);
+            }
+            if (!!this.showGenes){
+                data = data.filter(item => this.showRegulation(item) === this.showGenes);
             }
             return data;
         },
@@ -291,10 +315,10 @@ export default Vue.component("bulk-table", {
                 return "";
             }
             if (item[this.tableXField] <= cond.xLower){
-                return "downregulated";
+                return this.down;
             }
             if (item[this.tableXField] >= cond.xGreater){
-                return "upregulated";
+                return this.up;
             }
             return "";
         },
@@ -319,18 +343,18 @@ export default Vue.component("bulk-table", {
     }
 });
 </script>
-<style>
+<style scoped>
 @import url("/css/effectorGenes.css");
 
 label {
     margin: 10px;
 }
-.pigean-subtable {
+.bulk-subtable {
     margin-left: 15px;
     padding-left: 30px;
     background-color: #efefef;
 }
-.pigean-subtable .row .col-12 {
+.bulk-subtable .row .col-12 {
     padding: 0 0 0 5px !important;
 }
 ul.top-list {
@@ -346,11 +370,5 @@ button {
 }
 .subtable-all {
     background-color: #efefef;
-}
-.upregulated {
-    border-left: 5px solid red !important;
-}
-.downregulated {
-    border-left: 5px solid blue !important;
 }
 </style>

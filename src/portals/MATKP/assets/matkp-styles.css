@@ -260,9 +260,13 @@ body.kp-default{
         flex-grow: 1;
     }
 }
-.upregulated {
+tr.upregulated {
     border-left: 5px solid red !important;
 }
-.downregulated {
+tr.downregulated {
     border-left: 5px solid blue !important;
+}
+.custom-control-inline {
+    display: -webkit-inline-box !important;
+    display: inline-block;
 }
