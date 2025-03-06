@@ -299,8 +299,13 @@ export default Vue.component("bulk-heatmap", {
             },
             deep: true
         },
-        selectedGene(GENE){
-            this.drawHeatMap();
+        selectedGene(newGene, oldGene){
+            let geneInMap = 
+                this.zNormData.map(i => i.gene).includes(newGene) ||
+                this.zNormData.map(i => i.gene).includes(oldGene);
+            if (newGene !== oldGene && geneInMap){
+                this.drawHeatMap();
+            }
         }
     },
     mounted(){

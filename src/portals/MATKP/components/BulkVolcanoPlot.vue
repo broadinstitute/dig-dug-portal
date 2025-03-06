@@ -65,6 +65,7 @@ export default Vue.component("bulk-volcano-plot", {
 		this.renderPlot();
 		if (this.selectedGene){
 			this.highlightDot(this.selectedGene);
+			//this.$emit("highlight", this.selectedGene);
 		}
 	},
 	computed: {
@@ -86,9 +87,7 @@ export default Vue.component("bulk-volcano-plot", {
 			}
 		},
 		selectedGene(newData, oldData){
-			if(newData !== oldData){
-				this.highlightDot(newData);
-			}
+			this.highlightDot(newData);
 		}
 	},
 	methods: {
@@ -428,15 +427,22 @@ export default Vue.component("bulk-volcano-plot", {
 				.selectAll(".highlightCircle")
 				.remove();
 			let dataItem = this.plotData.find(d => d.gene === gene);
-			let xData = dataItem[this.xAxisField];
-			let yData = dataItem[this.yAxisField];
+			let geneVal = {
+				x: dataItem[this.xAxisField],
+				y: dataItem[this.yAxisField]
+			}
+			let classes = `${this.dataToClass(geneVal)} highlightCircle`;
 			this.svg.select("#axisGroup")
 				.append('circle')
-					.attr('cx', this.x(xData))
-					.attr('cy', this.y(yData))
+					.attr('cx', this.x(geneVal.x))
+					.attr('cy', this.y(geneVal.y))
 					.attr('r', 6)
 					.style('fill', "#FF9900")
-          .attr("class", "highlightCircle");
+					.attr("id", gene)
+          .attr("class", classes)
+					.on("mouseover", g => this.hoverDot(g))
+					.on("mouseleave", g =>  mouseTooltip.hide())
+					.on("click", g => this.clickDot(g));
 		},
     dataToClass(value){
       let valX = `valX_${value.x}`.replaceAll(".","dot");
