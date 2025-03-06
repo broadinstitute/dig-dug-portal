@@ -14,6 +14,8 @@ import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
@@ -34,6 +36,8 @@ new Vue({
         BulkViolinPlot,
         GeneSelectPicker,
         MouseGeneSelect,
+        CriterionFunctionGroup,
+        FilterGreaterThan,
         ResearchSingleCellBrowser,
         ResearchSingleCellInfo,
         uiUtils
@@ -108,6 +112,9 @@ new Vue({
                     { key: "beta", label: "Effect (joint)", sortable: true },
                 ],
             },
+            volcanoYCondition: 1.3,
+            volcanoXConditionGreater: 1.5,
+            volcanoXConditionLower: -1.5,
         };
     },
     computed: {
@@ -121,7 +128,9 @@ new Vue({
             return this.$store.state.selectedGene;
         },
         zNormData() {
-            return this.$store.state.singleBulkZNormData;
+            let outputData = structuredClone(this.$store.state.singleBulkZNormData);
+            outputData.forEach(item => item["-log10P"] = item.log10FDR);
+            return outputData;
         },
         bulkData19K() {
             return this.$store.state.bulkData19K.filter(
@@ -140,9 +149,14 @@ new Vue({
                 "y axis label": "-log10(FDR adj. p)",
                 "width": 600,
                 "height": this.plotHeight,
-                "x condition": { "combination": "or", "greater than": 1.5, "lower than": -1.5 },
+                "x condition": { 
+                    "combination": "or", 
+                    "greater than": this.volcanoXConditionGreater, 
+                    "lower than": this.volcanoXConditionLower },
                 //combination for condition can be "greater than", "lower than", "or" and "and."
-                "y condition": { "combination": "greater than", "greater than": 1.3 },
+                "y condition": { 
+                    "combination": "greater than", 
+                    "greater than": this.volcanoYCondition },
                 "dot label score": 2
                 //number of conditions that the value of each dot to meet to have labeled
             };
@@ -163,6 +177,13 @@ new Vue({
         },
         isMouse() {
             return this.bulkMetadata?.species === 'Mus musculus';
+        },
+        regulationConditions(){
+            return {
+                xGreater: this.volcanoXConditionGreater,
+                xLower: this.volcanoXConditionLower,
+                yGreater: this.volcanoYCondition
+            }
         }
     },
     async mounted() {

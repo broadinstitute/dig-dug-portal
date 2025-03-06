@@ -14,7 +14,7 @@
                                 :data="$parent.bulkMetadata"
                             />
 
-                            <div v-if="$parent.dataReady" class="" class="flex-gap">
+                            <div v-if="$parent.dataReady"class="flex-gap">
                                 <!--left tab group-->
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
@@ -83,11 +83,16 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="$parent.dataReady" class="" class="flex-gap">
-                                <!--left tab group-->
-                                
-                            </div>
-                            <div v-if="$parent.dataReady" class="" class="flex-gap">
+                            <div v-if="$parent.dataReady">
+                                <criterion-function-group>
+                                    <filter-greater-control
+                                        field="-log10P">
+                                        <div>
+                                            -log10 FDR adj. P (&ge;)
+                                        </div>
+                                    </filter-greater-control>
+                                    <template slot="filtered" slot-scope="{ filter }">
+                            <div class="flex-gap">
                                 <!--left tab group-->
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
@@ -103,6 +108,7 @@
                                                     <div v-if="$parent.zNormData.length > 0">
                                                         <bulk-heatmap
                                                             :zNormData="$parent.zNormData"
+                                                            :filter="filter"
                                                             :samplesColumns="$parent.samplesColumns"
                                                             :comparisonId="$parent.selectedComparison"
                                                             :margin="$parent.margin"
@@ -134,6 +140,7 @@
                                                     <div v-if="$parent.bulkData19K.length> 0">
                                                         <bulk-volcano-plot
                                                             :renderData="$parent.bulkData19K"
+                                                            :filter="filter"
                                                             :renderConfig="$parent.volcanoConfig"
                                                             :margin="$parent.margin"
                                                             sectionId="_bulk"
@@ -150,18 +157,23 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        
-                            <div v-if="$parent.dataReady" id="table-wrapper" class="flex-gap flex-column">
+                            </div>   
+                            <div id="table-wrapper" class="flex-gap flex-column">
                                 <div class="flex-gap flex-column">
                                     <bulk-table
                                         :bulkData="$parent.bulkData19K"
+                                        :filter="filter"
                                         :dataset="$store.state.selectedDataset"
                                         :config="$parent.tableConfig"
                                         :scatterConfig="$parent.scatterplotConfig"
-                                        :highlightedGene="$store.state.selectedGene">
+                                        :highlightedGene="$store.state.selectedGene"
+                                        :regulationConditions="$parent.regulationConditions">
                                     </bulk-table>
                                 </div>
+                            </div>
+                                    </template>
+                                </criterion-function-group>
+                                
                             </div>
                             <div v-else>Loading...</div>
                         </div>

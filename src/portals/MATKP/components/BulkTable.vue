@@ -1,10 +1,28 @@
 <template>
-  <div id="pigean-gene" :class="isSubtable ? 'pigean-subtable' : ''">
+  <div id="bulk-table" :class="isSubtable ? 'bulk-subtable' : ''">
+
+    <b-form-radio-group
+        v-model="showGenes">
+        <b-form-radio
+            value="">
+                All genes
+        </b-form-radio>
+        <b-form-radio
+            :value="up">
+                Upregulated only
+        </b-form-radio>
+        <b-form-radio
+            :value="down">
+                Downregulated only
+        </b-form-radio>
+    </b-form-radio-group>
       <div v-if="tableData.length > 0">
+        <div>
+        </div>
           <div v-if="!isSubtable" class="text-right mb-2">
               <data-download
                   :data="bulkData"
-                  filename="pigean_gene"
+                  filename="bulk_gene"
               ></data-download>
           </div>
           <div v-html="'Total rows: ' + rows" class="table-total-rows"></div>
@@ -19,7 +37,7 @@
               :sort-by="isSubtable? 'sample_id' : '-log10P'"
               :sort-desc="!isSubtable"
               :sort-icon-left="true"
-              :tbody-tr-class="isHighlightedGene"
+              :tbody-tr-class="rowClasses"
           >
               <template #cell(gene)="r">
                   <!-- Link to where? -->
@@ -135,17 +153,23 @@ export default Vue.component("bulk-table", {
         "isSubtable",
         "filter",
         "dataset",
-        "highlightedGene"
+        "highlightedGene",
+        "regulationConditions"
     ],
     data() {
         return {
             perPage: 20,
+            showGenes: "",
             currentPage: 1,
             subtableData: {},
             subtableFields: {},
             contField: null,
             catField: null,
-            currentData: []
+            currentData: [],
+            tableYField: "-log10P",
+            tableXField: "logFoldChange",
+            up: "upregulated",
+            down: "downregulated"
         };
     },
     mounted(){
@@ -185,12 +209,15 @@ export default Vue.component("bulk-table", {
             return config;
         },
         rows() {
-            return this.bulkData.length || 0;
+            return this.tableData.length || 0;
         },
         tableData() {
             let data = structuredClone(this.bulkData);
             if (this.filter) {
                 data = data.filter(this.filter);
+            }
+            if (!!this.showGenes){
+                data = data.filter(item => this.showRegulation(item) === this.showGenes);
             }
             return data;
         },
@@ -207,7 +234,6 @@ export default Vue.component("bulk-table", {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey]) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
-                console.log(JSON.stringify(data[0]));
                 let fields = this.getFields(data[0]);
                 Vue.set(this.subtableData, queryKey, this.toNumeric(data, fields));
                 Vue.set(this.subtableFields, queryKey, fields);
@@ -276,8 +302,25 @@ export default Vue.component("bulk-table", {
           }
           return outputData;
         },
-        isHighlightedGene(item, type){
-            return item.gene === this.highlightedGene ? "table-warning" : "";
+        rowClasses(item, type){
+            let classString = this.isHighlightedGene(item).concat(this.showRegulation(item));
+            return classString;
+        },
+        isHighlightedGene(item){
+            return item.gene === this.highlightedGene ? "table-warning " : "";
+        },
+        showRegulation(item){
+            let cond = this.regulationConditions;
+            if (item[this.tableYField] < cond.yGreater){
+                return "";
+            }
+            if (item[this.tableXField] <= cond.xLower){
+                return this.down;
+            }
+            if (item[this.tableXField] >= cond.xGreater){
+                return this.up;
+            }
+            return "";
         },
         findGene(gene){
             let allGenes = this.tableData.map(t => t.gene);
@@ -306,12 +349,12 @@ export default Vue.component("bulk-table", {
 label {
     margin: 10px;
 }
-.pigean-subtable {
+.bulk-subtable {
     margin-left: 15px;
     padding-left: 30px;
     background-color: #efefef;
 }
-.pigean-subtable .row .col-12 {
+.bulk-subtable .row .col-12 {
     padding: 0 0 0 5px !important;
 }
 ul.top-list {

@@ -37,7 +37,8 @@ export default Vue.component("bulk-volcano-plot", {
 		"renderConfig",
 		"margin",
 		"sectionId",
-		"selectedGene"
+		"selectedGene",
+		"filter"
 	],
 	data() {
 		return {
@@ -64,24 +65,29 @@ export default Vue.component("bulk-volcano-plot", {
 		this.renderPlot();
 		if (this.selectedGene){
 			this.highlightDot(this.selectedGene);
+			//this.$emit("highlight", this.selectedGene);
 		}
 	},
 	computed: {
 		canvasId() {
 			let canvasId = this.sectionId.replaceAll("_","-").toLowerCase();
 			return canvasId;
+		},
+		plotData(){
+			if (this.filter){
+				return this.renderData.filter(this.filter);
+			}
+			return this.renderData;
 		}
 	},
 	watch: {
-		renderData(newData, oldData) {
+		plotData(newData, oldData) {
 			if(newData !== oldData){
 				this.renderPlot();
 			}
 		},
 		selectedGene(newData, oldData){
-			if(newData !== oldData){
-				this.highlightDot(newData);
-			}
+			this.highlightDot(newData);
 		}
 	},
 	methods: {
@@ -125,7 +131,7 @@ export default Vue.component("bulk-volcano-plot", {
 			conditions.map(condition => {
 				if (renderConfig[condition[0]][condition[1]] && renderConfig[condition[0]][condition[1]] == "calculate") {
 					let expression = renderConfig[condition[0]]["condition calculate"][condition[1]];
-					renderConfig[condition[0]][condition[1]] = calculateCondition(expression, this.renderData.length)
+					renderConfig[condition[0]][condition[1]] = calculateCondition(expression, this.plotData.length)
 				}
 			})
 
@@ -158,7 +164,7 @@ export default Vue.component("bulk-volcano-plot", {
 
 
 			let sumstat = [];
-			this.renderData.map((v) => {
+			this.plotData.map((v) => {
 					let tempObj = { key: v[renderField], value: {} };
 
 					tempObj.value['x'] = v[this.xAxisField];
@@ -420,17 +426,23 @@ export default Vue.component("bulk-volcano-plot", {
 			this.svg.select("#axisGroup")
 				.selectAll(".highlightCircle")
 				.remove();
-			console.log("highlighting ", gene);
-			let dataItem = this.renderData.find(d => d.gene === gene);
-			let xData = dataItem[this.xAxisField];
-			let yData = dataItem[this.yAxisField];
+			let dataItem = this.plotData.find(d => d.gene === gene);
+			let geneVal = {
+				x: dataItem[this.xAxisField],
+				y: dataItem[this.yAxisField]
+			}
+			let classes = `${this.dataToClass(geneVal)} highlightCircle`;
 			this.svg.select("#axisGroup")
 				.append('circle')
-					.attr('cx', this.x(xData))
-					.attr('cy', this.y(yData))
+					.attr('cx', this.x(geneVal.x))
+					.attr('cy', this.y(geneVal.y))
 					.attr('r', 6)
 					.style('fill', "#FF9900")
-          .attr("class", "highlightCircle");
+					.attr("id", gene)
+          .attr("class", classes)
+					.on("mouseover", g => this.hoverDot(g))
+					.on("mouseleave", g =>  mouseTooltip.hide())
+					.on("click", g => this.clickDot(g));
 		},
     dataToClass(value){
       let valX = `valX_${value.x}`.replaceAll(".","dot");
