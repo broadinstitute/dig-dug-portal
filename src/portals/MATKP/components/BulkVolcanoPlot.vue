@@ -37,7 +37,8 @@ export default Vue.component("bulk-volcano-plot", {
 		"renderConfig",
 		"margin",
 		"sectionId",
-		"selectedGene"
+		"selectedGene",
+		"filter"
 	],
 	data() {
 		return {
@@ -70,10 +71,16 @@ export default Vue.component("bulk-volcano-plot", {
 		canvasId() {
 			let canvasId = this.sectionId.replaceAll("_","-").toLowerCase();
 			return canvasId;
+		},
+		plotData(){
+			if (this.filter){
+				return this.renderData.filter(this.filter);
+			}
+			return this.renderData;
 		}
 	},
 	watch: {
-		renderData(newData, oldData) {
+		plotData(newData, oldData) {
 			if(newData !== oldData){
 				this.renderPlot();
 			}
@@ -125,7 +132,7 @@ export default Vue.component("bulk-volcano-plot", {
 			conditions.map(condition => {
 				if (renderConfig[condition[0]][condition[1]] && renderConfig[condition[0]][condition[1]] == "calculate") {
 					let expression = renderConfig[condition[0]]["condition calculate"][condition[1]];
-					renderConfig[condition[0]][condition[1]] = calculateCondition(expression, this.renderData.length)
+					renderConfig[condition[0]][condition[1]] = calculateCondition(expression, this.plotData.length)
 				}
 			})
 
@@ -158,7 +165,7 @@ export default Vue.component("bulk-volcano-plot", {
 
 
 			let sumstat = [];
-			this.renderData.map((v) => {
+			this.plotData.map((v) => {
 					let tempObj = { key: v[renderField], value: {} };
 
 					tempObj.value['x'] = v[this.xAxisField];
@@ -420,8 +427,7 @@ export default Vue.component("bulk-volcano-plot", {
 			this.svg.select("#axisGroup")
 				.selectAll(".highlightCircle")
 				.remove();
-			console.log("highlighting ", gene);
-			let dataItem = this.renderData.find(d => d.gene === gene);
+			let dataItem = this.plotData.find(d => d.gene === gene);
 			let xData = dataItem[this.xAxisField];
 			let yData = dataItem[this.yAxisField];
 			this.svg.select("#axisGroup")

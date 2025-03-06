@@ -112,7 +112,6 @@ export default Vue.component("bulk-heatmap", {
               .call(d3.axisLeft(y))
                 .selectAll("text")
                 .style('fill',function(d) {
-                    console.log("highlight",d,selectedGene)
                     return ( d == selectedGene)? "#FF8800":"black"}) //set colors by group
                   .attr('font-size', this.fontSize);
           

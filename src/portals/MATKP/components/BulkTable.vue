@@ -207,7 +207,6 @@ export default Vue.component("bulk-table", {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey]) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
-                console.log(JSON.stringify(data[0]));
                 let fields = this.getFields(data[0]);
                 Vue.set(this.subtableData, queryKey, this.toNumeric(data, fields));
                 Vue.set(this.subtableFields, queryKey, fields);
