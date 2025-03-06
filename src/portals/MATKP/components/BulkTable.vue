@@ -185,7 +185,7 @@ export default Vue.component("bulk-table", {
             return config;
         },
         rows() {
-            return this.bulkData.length || 0;
+            return this.tableData.length || 0;
         },
         tableData() {
             let data = structuredClone(this.bulkData);

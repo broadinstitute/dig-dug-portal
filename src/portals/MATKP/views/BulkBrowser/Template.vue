@@ -162,6 +162,7 @@
                                 <div class="flex-gap flex-column">
                                     <bulk-table
                                         :bulkData="$parent.bulkData19K"
+                                        :filter="filter"
                                         :dataset="$store.state.selectedDataset"
                                         :config="$parent.tableConfig"
                                         :scatterConfig="$parent.scatterplotConfig"
