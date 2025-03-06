@@ -14,7 +14,7 @@
                                 :data="$parent.bulkMetadata"
                             />
 
-                            <div v-if="$parent.dataReady" class="" class="flex-gap">
+                            <div v-if="$parent.dataReady"class="flex-gap">
                                 <!--left tab group-->
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
@@ -83,11 +83,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="$parent.dataReady" class="" class="flex-gap">
-                                <!--left tab group-->
+                            <div v-if="$parent.dataReady">
+                                <criterion-function-group>
+                                    <filter-greater-control
+                                        field="-log10P">
+                                        <div>
+                                            -log10 FDR adj. P (&ge;)
+                                        </div>
+                                    </filter-greater-control>
+                                </criterion-function-group>
                                 
                             </div>
-                            <div v-if="$parent.dataReady" class="" class="flex-gap">
+                            <div v-if="$parent.dataReady" class="flex-gap">
                                 <!--left tab group-->
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">

@@ -14,6 +14,8 @@ import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
@@ -34,6 +36,8 @@ new Vue({
         BulkViolinPlot,
         GeneSelectPicker,
         MouseGeneSelect,
+        CriterionFunctionGroup,
+        FilterGreaterThan,
         ResearchSingleCellBrowser,
         ResearchSingleCellInfo,
         uiUtils
