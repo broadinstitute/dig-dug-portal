@@ -38,7 +38,8 @@ export default Vue.component("bulk-heatmap", {
         "margin",
         "plotHeight",
         "sampleColors",
-        "selectedGene"
+        "selectedGene",
+        "filter"
     ],
     data() {
         return {
@@ -54,7 +55,14 @@ export default Vue.component("bulk-heatmap", {
           sampleGroups:[],
         };
     },
-    computed: {},
+    computed: {
+        plotData(){
+            if (!!this.filter){
+                return this.zNormData.filter(this.filter);
+            }
+            return this.zNormData;
+        }
+    },
     methods: {
         ...sortUtils,
       async drawHeatMap(){
@@ -81,11 +89,11 @@ export default Vue.component("bulk-heatmap", {
               .append("g")
                   .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
 
-          let genesRows = this.zNormData.map(d => d.gene);
+          let genesRows = this.plotData.map(d => d.gene);
           
-          let dataset = this.zNormData[0].dataset;
+          let dataset = this.plotData[0].dataset;
           let samplesColumns = await this.getSampleIds(dataset);
-          let collatedData = this.collateData(this.zNormData, samplesColumns)
+          let collatedData = this.collateData(this.plotData, samplesColumns)
           let sampleColors = this.sampleColors
 
           // Build X scales and axis:
@@ -283,7 +291,7 @@ export default Vue.component("bulk-heatmap", {
     },
     },
     watch: {
-      zNormData:{
+      plotData:{
             handler(newData, oldData){
                 if(newData !== oldData){
                     this.drawHeatMap();
