@@ -112,6 +112,9 @@ new Vue({
                     { key: "beta", label: "Effect (joint)", sortable: true },
                 ],
             },
+            volcanoYCondition: 1.3,
+            volcanoXConditionGreater: 1.5,
+            volcanoXConditionLower: -1.5,
         };
     },
     computed: {
@@ -146,9 +149,14 @@ new Vue({
                 "y axis label": "-log10(FDR adj. p)",
                 "width": 600,
                 "height": this.plotHeight,
-                "x condition": { "combination": "or", "greater than": 1.5, "lower than": -1.5 },
+                "x condition": { 
+                    "combination": "or", 
+                    "greater than": this.volcanoXConditionGreater, 
+                    "lower than": this.volcanoXConditionLower },
                 //combination for condition can be "greater than", "lower than", "or" and "and."
-                "y condition": { "combination": "greater than", "greater than": 1.3 },
+                "y condition": { 
+                    "combination": "greater than", 
+                    "greater than": this.volcanoYCondition },
                 "dot label score": 2
                 //number of conditions that the value of each dot to meet to have labeled
             };
@@ -169,6 +177,13 @@ new Vue({
         },
         isMouse() {
             return this.bulkMetadata?.species === 'Mus musculus';
+        },
+        regulationConditions(){
+            return {
+                xGreater: this.volcanoXConditionGreater,
+                xLower: this.volcanoXConditionLower,
+                yGreater: this.volcanoYCondition
+            }
         }
     },
     async mounted() {

@@ -19,7 +19,7 @@
               :sort-by="isSubtable? 'sample_id' : '-log10P'"
               :sort-desc="!isSubtable"
               :sort-icon-left="true"
-              :tbody-tr-class="isHighlightedGene"
+              :tbody-tr-class="rowClasses"
           >
               <template #cell(gene)="r">
                   <!-- Link to where? -->
@@ -135,7 +135,8 @@ export default Vue.component("bulk-table", {
         "isSubtable",
         "filter",
         "dataset",
-        "highlightedGene"
+        "highlightedGene",
+        "regulationConditions"
     ],
     data() {
         return {
@@ -145,7 +146,9 @@ export default Vue.component("bulk-table", {
             subtableFields: {},
             contField: null,
             catField: null,
-            currentData: []
+            currentData: [],
+            tableYField: "-log10P",
+            tableXField: "logFoldChange"
         };
     },
     mounted(){
@@ -275,8 +278,25 @@ export default Vue.component("bulk-table", {
           }
           return outputData;
         },
-        isHighlightedGene(item, type){
-            return item.gene === this.highlightedGene ? "table-warning" : "";
+        rowClasses(item, type){
+            let classString = this.isHighlightedGene(item).concat(this.showRegulation(item));
+            return classString;
+        },
+        isHighlightedGene(item){
+            return item.gene === this.highlightedGene ? "table-warning " : "";
+        },
+        showRegulation(item){
+            let cond = this.regulationConditions;
+            if (item[this.tableYField] < cond.yGreater){
+                return "";
+            }
+            if (item[this.tableXField] <= cond.xLower){
+                return "downregulated";
+            }
+            if (item[this.tableXField] >= cond.xGreater){
+                return "upregulated";
+            }
+            return "";
         },
         findGene(gene){
             let allGenes = this.tableData.map(t => t.gene);
@@ -299,7 +319,7 @@ export default Vue.component("bulk-table", {
     }
 });
 </script>
-<style scoped>
+<style>
 @import url("/css/effectorGenes.css");
 
 label {
@@ -326,5 +346,11 @@ button {
 }
 .subtable-all {
     background-color: #efefef;
+}
+.upregulated {
+    border-left: 5px solid red !important;
+}
+.downregulated {
+    border-left: 5px solid blue !important;
 }
 </style>

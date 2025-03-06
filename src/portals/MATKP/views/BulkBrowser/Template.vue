@@ -166,7 +166,8 @@
                                         :dataset="$store.state.selectedDataset"
                                         :config="$parent.tableConfig"
                                         :scatterConfig="$parent.scatterplotConfig"
-                                        :highlightedGene="$store.state.selectedGene">
+                                        :highlightedGene="$store.state.selectedGene"
+                                        :regulationConditions="$parent.regulationConditions">
                                     </bulk-table>
                                 </div>
                             </div>

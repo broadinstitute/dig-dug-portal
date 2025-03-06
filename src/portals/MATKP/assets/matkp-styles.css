@@ -260,3 +260,9 @@ body.kp-default{
         flex-grow: 1;
     }
 }
+.upregulated {
+    border-left: 5px solid red !important;
+}
+.downregulated {
+    border-left: 5px solid blue !important;
+}
