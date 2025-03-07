@@ -22,25 +22,15 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="tagline">
-                                An open community portal for adipose biology across multiple mammalian species
+                            <div class="f-col" style="gap:20px">
+                                <div class="tagline">
+                                    An open community portal for adipose biology across multiple mammalian species
+                                </div>
+                                <div class="f-col align-v-center yes-events" style="z-index: 1; gap: 20px; height:100%">
+                                    <matkp-search />
+                                </div>
                             </div>
                         </div>
-
-                        <!--
-                        <div class="f-col align-v-center no-events" style="z-index: 1; gap: 20px; height:100%">
-                            <b-input-group size="sm" style="pointer-events: none; opacity: 0.7">
-                                <input type="text" placeholder="Search gene, cell type or trait"/>
-                                <b-button class="button-lock-right" @click="">
-                                    Search
-                                </b-button>
-                            </b-input-group>
-                            
-                            <a class="matkp-input" style="pointer-events: all" href="/datasets.html">
-                                Browse all Datasets
-                            </a>
-                        </div>
-                        -->
                     </div>
                 </div>
 

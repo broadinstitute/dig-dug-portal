@@ -38,6 +38,13 @@ let pages = {
         title: "MATKP | Bulk Browser",
         chunks: ["chunk-vendors", "chunk-common", "bulkbrowser"],
     },
+    gene: {
+        entry: "src/portals/MATKP/views/Gene/main.js",
+        template: "public/index.html",
+        filename: "gene.html",
+        title: "MATKP | Gene",
+        chunks: ["chunk-vendors", "chunk-common", "gene"],
+    },
     info: {
         entry: "src/portals/MATKP/views/StaticPage/main.js",
         template: "public.index.html",
