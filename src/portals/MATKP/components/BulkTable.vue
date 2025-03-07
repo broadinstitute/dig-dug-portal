@@ -11,7 +11,7 @@
           </div>
           <div class="show-inline">
             <div class="table-total-rows">Total rows:{{ rows }}</div>
-            <b-form-radio-group class="show-inline"
+            <b-form-radio-group v-if="!isSubtable" class="show-inline"
                 v-model="showGenes">
                 <b-form-radio
                     value="">
@@ -217,7 +217,7 @@ export default Vue.component("bulk-table", {
             if (this.filter) {
                 data = data.filter(this.filter);
             }
-            if (!!this.showGenes){
+            if (!!this.showGenes && !this.isSubtable){
                 data = data.filter(item => this.showRegulation(item) === this.showGenes);
             }
             return data;
@@ -311,6 +311,9 @@ export default Vue.component("bulk-table", {
             return item.gene === this.highlightedGene ? "table-warning " : "";
         },
         showRegulation(item){
+            if (this.isSubtable){
+                return "";
+            }
             let cond = this.regulationConditions;
             if (item[this.tableYField] < cond.yGreater){
                 return "";
