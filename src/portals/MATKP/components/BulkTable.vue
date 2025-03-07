@@ -9,9 +9,9 @@
                   filename="bulk_gene"
               ></data-download>
           </div>
-          <div style="display: inline;">
-            <div style="display: inline;" class="table-total-rows">Total rows:{{ rows }}</div>
-            <b-form-radio-group style="display: inline;"
+          <div class="show-inline">
+            <div class="table-total-rows">Total rows:{{ rows }}</div>
+            <b-form-radio-group class="show-inline"
                 v-model="showGenes">
                 <b-form-radio
                     value="">
@@ -373,7 +373,11 @@ button {
     background-color: #efefef;
 }
 .table-total-rows {
+    display: inline;
     margin-right: 35px;
     margin-bottom: 10px;
+}
+.show-inline {
+    display: inline;
 }
 </style>
