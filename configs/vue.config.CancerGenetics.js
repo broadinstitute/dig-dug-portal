@@ -4,7 +4,7 @@
 
 let pages = {
     index: {
-        entry: "src/views/A2fIndex/main.js",
+        entry: "src/views/CancerGeneticsIndex/main.js",
         template: "public/index.html",
         filename: "index.html",
         title: "Home",

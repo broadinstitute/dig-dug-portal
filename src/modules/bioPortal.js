@@ -39,6 +39,7 @@ export default {
             state.diseaseSystems = data;
         },
         setDiseaseGroups(state, data) {
+            console.log("setDiseaseGroups", data)
             state.diseaseGroups = data;
         },
         setPhenotypes(state, data) {
@@ -214,7 +215,7 @@ export default {
         async getUser(context, access_token) {
             let data = await fetch(
                 "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                    access_token
+                access_token
             ).then((response) => response.json());
 
             context.commit("setUser", data.email);

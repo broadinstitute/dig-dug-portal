@@ -36,6 +36,11 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+.front-top-banner-cancerkp {
+    background-image: linear-gradient(#30c9c3, #70c9c3);
+    background-position: 120% 0px, top left;
+}
+
 .front-top-banner-autoimmunekp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/autoimmunekp_front_bg.png),
         linear-gradient(#71cddd, #009bc8);
@@ -239,6 +244,12 @@ a:hover {
     transform: translate(0%, 75%);
 }
 
+.front-logo-tagline-cancerkp {
+    transform: translate(0%, 105%);
+    font-size: 25px;
+    line-height: 35px;
+}
+
 .front-logo-tagline-autoimmunekp {
     transform: translate(0%, 25%);
 }
@@ -370,6 +381,10 @@ a:hover {
     height: 50px;
 }
 
+.cancerkp-logo {
+    height: 50px;
+}
+
 .autoimmunekp-logo {
     height: 50px;
 }
@@ -456,6 +471,12 @@ a:hover {
 .kidneykp-header,
 .kidneykp-footer {
     background-color: #96cbca;
+    height: 50px;
+}
+
+.cancerkp-header,
+.cancerkp-footer {
+    background-color: #30C9C3;
     height: 50px;
 }
 
@@ -656,6 +677,7 @@ a:hover {
 
 .agingkp-footer,
 .kidneykp-footer,
+.cancerkp-footer,
 .autoimmunekp-footer,
 .ocularkp-footer,
 .reproductivekp-footer,
@@ -683,6 +705,7 @@ a:hover {
 
 .agingkp-body,
 .kidneykp-body,
+.cancerkp-body,
 .autoimmunekp-body,
 .ocularkp-body,
 .reproductivekp-body,
@@ -709,6 +732,7 @@ a:hover {
 
 .agingkp-card,
 .kidneykp-card,
+.cancerkp-card,
 .autoimmunekp-card,
 .ocularkp-card,
 .reproductivekp-card,
