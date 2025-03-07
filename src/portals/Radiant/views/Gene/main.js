@@ -41,6 +41,9 @@ import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 import sessionUtils from "@/utils/sessionUtils";
 import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
+import PigeanTable from "@/components/PigeanTable.vue";
+
+
 import Counter from "@/utils/idCounter";
 import regionUtils from "@/utils/regionUtils";
 
@@ -48,6 +51,8 @@ import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
+import pigeanUtils from "@/utils/pigeanUtils.js";
+
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
@@ -98,6 +103,7 @@ new Vue({
         HugeScoresTable,
         EffectorGenesSectionOnGene,
         ResearchSingleSearch,
+        PigeanTable
     },
 
     data() {
@@ -157,6 +163,39 @@ new Vue({
                 topMargin: 20,
                 bottomMargin: 100,
                 bump: 11,
+            },
+            pigeanTableConfig: {
+                fields: [
+                    { key: "phenotype", label: "Phenotype", sortable: true },
+                    {
+                        key: "combined",
+                        label: "Combined genetic support",
+                        showProbability: true,
+                        sortable: true,
+                    },
+                    {
+                        key: "huge_score",
+                        label: "Direct support (w/o gene sets)",
+                        sortable: true,
+                    },
+                    {
+                        key: "log_bf",
+                        label: "Direct support (w/ gene sets)",
+                        sortable: true,
+                    },
+                    {
+                        key: "prior",
+                        label: "Indirect support",
+                        sortable: true,
+                    },
+                    { key: "expand", label: "Gene sets" },
+                ],
+                queryParam: "gene",
+                subtableEndpoint: "pigean-joined-gene",
+                subtableFields: [
+                    { key: "gene_set", label: "Gene set", sortable: true },
+                    { key: "beta", label: "Effect (joint)", sortable: true },
+                ],
             },
             hugeScoreRenderConfig: {
                 type: "phewas plot",
@@ -219,6 +258,27 @@ new Vue({
                     bottom: 300,
                 },
             },
+            pigeanGeneRenderConfig: {
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "combined",
+                "convert y -log10": "false",
+                "y axis label": "Combined genetic support",
+                "x axis label": "",
+                "beta field": "null",
+                "hover content": ["combined", "huge_score", "log_bf", "prior"],
+                thresholds: [Math.log(3), Math.log(30)],
+                "label in black": "greater than",
+                height: "535",
+                "plot margin": {
+                    left: 150,
+                    right: 180,
+                    top: 250,
+                    bottom: 300,
+                },
+            },
         };
     },
 
@@ -260,7 +320,11 @@ new Vue({
                 .filter((x) => x.name != this.$store.state.phenotype)
                 .map((phenotype) => phenotype.name);
         },
-
+        pigeanMap(){
+            //console.log("get pigeanMap");
+            //console.log(this.pigeanPhenotypeMap);
+            return this.pigeanPhenotypeMap;
+        },
         transcriptOr52k() {
             let endpoint = !this.$store.state.selectedTranscript
                 ? this.$store.state.associations52k
@@ -281,9 +345,11 @@ new Vue({
                 const assoc = endpoint.data[i];
 
                 // skip associations not part of the disease group
+                // helen disable phenotype filter
+                /*
                 if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
-                }
+                }*/
 
                 const curAssoc = assocMap[assoc.phenotype];
                 if (!curAssoc || assoc.pValue < curAssoc.pValue) {
@@ -317,9 +383,10 @@ new Vue({
                 const assoc = data[i];
 
                 // skip associations not part of the disease group
-                if (!this.phenotypeMap[assoc.phenotype]) {
+                // helen block phenotype filter by group
+                /*if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
-                }
+                } */
 
                 const curAssoc = assocMap[assoc.phenotype];
                 if (!curAssoc || assoc.pValue < curAssoc.pValue) {
@@ -333,20 +400,27 @@ new Vue({
         },
         //filter associations that only exist in the phenotypeMap
         filteredAssociations() {
+            //console.log("filteredAssociations");
+            //console.log(this.pigeanMap);
+            //console.log(this.geneassociations);
+            let filteredPhenotypes = this.pigeanMap;
             return (
                 this.geneassociations.filter((row) => {
-                    return this.phenotypeMap[row.phenotype];
+                    //console.log(row.phenotype);
+                    //return this.phenotypeMap[row.phenotype];
+                    return filteredPhenotypes[row.phenotype];
                 }) || []
             );
         },
         hugeScores() {
+            console.log("calculate huge Scores");
+            console.log(this.$store.state.hugeScores.data);
             let data = sortUtils.sortArrOfObjects(
                 this.$store.state.hugeScores.data,
                 "huge",
                 "number",
                 "desc"
             );
-
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
                 data = sessionUtils.getInSession(
                     data,
@@ -354,28 +428,32 @@ new Vue({
                     "phenotype"
                 );
             }
-
+            //console.log(data);
+            
             let hugeMap = {};
 
             for (let i in data) {
                 const score = data[i];
-                let phenotypeEntity =
-                    this.$store.state.bioPortal.phenotypeMap[score.phenotype];
+                //let phenotypeEntity =
+                //    this.$store.state.bioPortal.phenotypeMap[score.phenotype];
+                let phenotypeEntity = this.pigeanMap[score.phenotype];
                 score["group"] = phenotypeEntity
                     ? phenotypeEntity.group
                     : "No group info";
                 score["renderScore"] = Math.log(data[i].huge);
-
+                //console.log(score);
                 // skip associations not part of the disease group
-                if (!this.phenotypeMap[score.phenotype]) {
+                //if (!this.phenotypeMap[score.phenotype]) {
+                if(!this.pigeanMap[score.phenotype]) {
                     continue;
                 }
 
                 hugeMap[score.phenotype] = score;
             }
-
+            
             // convert to an array, sorted by p-value
             let x = Object.values(hugeMap);
+            console.log(hugeMap);
             return x;
         },
 
@@ -540,6 +618,7 @@ new Vue({
         },
 
         associationPhenotypes() {
+            
             return this.$store.state.geneassociations.data.map(
                 (a) => a.phenotype
             );
@@ -566,6 +645,7 @@ new Vue({
 
     watch: {
         geneassociations(newData, oldData) {
+            console.log("geneassociations");
             let topPhenotype = "LDL";
             if (newData.length > 0) {
                 topPhenotype = newData[0].phenotype;
@@ -631,19 +711,28 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
         //this.$store.dispatch("queryAssociations");
+
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
+        
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        
+        //helen
+        //this.$store.dispatch("getHugeScoresData");
+        
         this.pushCriterionPhenotype("T2D");
         this.checkGeneName(this.$store.state.geneName);
+        
     },
 
     methods: {
@@ -727,8 +816,11 @@ new Vue({
             return topAssocData[0];
         },
         renderPhewas(REF) {
+            console.log(REF);
+            console.log(this.$store.state.hugeScores.data.length);
             this.activeTab = REF;
             let refComponent = this.$children[0].$refs[REF];
+            console.log("canvasId:"+refComponent.canvasId);
             setTimeout(function () {
                 refComponent.renderPheWas();
             }, 500);
