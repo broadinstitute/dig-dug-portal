@@ -102,7 +102,7 @@
                             <div v-if="$parent.dataReady">
                                 <div class="flex-gap">
                                     <!--left tab group-->
-                                    <div class="tabs-group">
+                                    <div class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
                                                 Top 20 Differentially Expressed Genes
@@ -134,7 +134,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="tabs-group">
+                                    <div class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
                                                 Differentially Expressed Genes
@@ -222,7 +222,7 @@
   .top-block {
     display:flex;
     flex-direction: column;
-    min-width: 280px;
+    min-width: 285px;
   }
   .wide-block {
     display:flex;
@@ -259,5 +259,8 @@
   .flex-small-gap {
     display:flex;
     gap:10px; 
+  }
+  .wide-group {
+    width: 670px;
   }
 </style>
