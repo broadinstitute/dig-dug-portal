@@ -78,7 +78,7 @@ export default Vue.component("bulk-volcano-plot", {
 				return this.renderData.filter(this.filter);
 			}
 			return this.renderData;
-		}
+		},
 	},
 	watch: {
 		plotData(newData, oldData) {
@@ -88,6 +88,11 @@ export default Vue.component("bulk-volcano-plot", {
 		},
 		selectedGene(newData, oldData){
 			this.highlightDot(newData);
+		},
+		renderConfig(newData, oldData){
+			if(newData !== oldData){
+				this.renderPlot();
+			}
 		}
 	},
 	methods: {
