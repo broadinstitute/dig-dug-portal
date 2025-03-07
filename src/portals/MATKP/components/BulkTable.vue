@@ -1,21 +1,5 @@
 <template>
   <div id="bulk-table" :class="isSubtable ? 'bulk-subtable' : ''">
-
-    <b-form-radio-group
-        v-model="showGenes">
-        <b-form-radio
-            value="">
-                All genes
-        </b-form-radio>
-        <b-form-radio
-            :value="up">
-                Upregulated only
-        </b-form-radio>
-        <b-form-radio
-            :value="down">
-                Downregulated only
-        </b-form-radio>
-    </b-form-radio-group>
       <div v-if="tableData.length > 0">
         <div>
         </div>
@@ -25,7 +9,24 @@
                   filename="bulk_gene"
               ></data-download>
           </div>
-          <div v-html="'Total rows: ' + rows" class="table-total-rows"></div>
+          <div class="show-inline">
+            <div class="table-total-rows">Total rows:{{ rows }}</div>
+            <b-form-radio-group class="show-inline"
+                v-model="showGenes">
+                <b-form-radio
+                    value="">
+                        All genes
+                </b-form-radio>
+                <b-form-radio
+                    :value="up">
+                        Upregulated only
+                </b-form-radio>
+                <b-form-radio
+                    :value="down">
+                        Downregulated only
+                </b-form-radio>
+            </b-form-radio-group>
+          </div>
           <b-table v-model="currentData"
               :hover="isSubtable"
               small
@@ -370,5 +371,13 @@ button {
 }
 .subtable-all {
     background-color: #efefef;
+}
+.table-total-rows {
+    display: inline;
+    margin-right: 35px;
+    margin-bottom: 10px;
+}
+.show-inline {
+    display: inline;
 }
 </style>

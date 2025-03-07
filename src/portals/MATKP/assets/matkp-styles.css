@@ -268,5 +268,6 @@ tr.downregulated {
 }
 .custom-control-inline {
     display: -webkit-inline-box !important;
-    display: inline-block;
+    display: inline-block !important;
+    margin-bottom: 5px;
 }
