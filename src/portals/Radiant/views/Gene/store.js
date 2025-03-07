@@ -7,6 +7,7 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 import regionUtils from "@/utils/regionUtils";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -24,6 +25,8 @@ export default new Vuex.Store({
         transcriptAssoc: bioIndex("transcript-associations"),
         hugeScores: bioIndex("huge"),
         geneExpression: bioIndex("gene-expression"),
+        pigeanGene: bioIndex("pigean-gene"),
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
         uniprot,
     },
     state: {
@@ -37,6 +40,11 @@ export default new Vuex.Store({
         selectedAncestry: "",
         selectedTranscript: "",
         commonVariantsLength: 0,
+        genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
+        genesetSizeToQuery: null,
+        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroupToQuery: null,
+        traitsData: [],
     },
 
     mutations: {
@@ -63,6 +71,9 @@ export default new Vuex.Store({
         setCommonVariantsLength(state, NUM) {
             state.commonVariantsLength = NUM;
         },
+        setTraitsData(state, traitsData){
+            state.traitsData = traitsData;
+        }
     },
 
     getters: {
@@ -131,10 +142,33 @@ export default new Vuex.Store({
         async queryGeneName(context, symbol) {
             let name = context.state.geneToQuery || context.state.geneName;
             context.commit("setGeneName", name);
+            
+            let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
+            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
+            context.commit("setGenesetSize", genesetSize);
+            context.commit("setTraitGroup", traitGroup);
+
+            //console.log("genesetSize");
 
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
                 context.dispatch("geneToTranscript/query", { q: name });
+                
+                //add pigean gene
+                console.log("query gene name");
+                let traitsData = [];
+                for (let i = 0; i < bioIndexUtils.TRAIT_GROUPS.length; i++){
+                    let group = bioIndexUtils.TRAIT_GROUPS[i];
+                    let traitQuery = `${group},${context.state.geneName},${
+                        bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
+                    let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
+                    traitsData = traitsData.concat(groupData);
+                }
+                traitsData = traitsData.sort((a,b) => b.combined - a.combined);
+                //console.log(traitsData.length);
+                context.commit("setTraitsData", traitsData);
+                //console.log(context.state.traitsData.length);
+                
             }
         },
         ///
@@ -182,11 +216,15 @@ export default new Vuex.Store({
             context.dispatch("associations52k/query", { q: name });
         },
         async getHugeScoresData(context) {
+            //console.log("getHugeScoresData");
             let name = context.state.geneName;
             context.dispatch("hugeScores/query", { q: name });
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
     },
 });
