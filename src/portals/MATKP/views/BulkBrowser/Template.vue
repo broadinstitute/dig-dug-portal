@@ -92,7 +92,7 @@
                                         <div class="tab-section" >
                                             <div  class="flex-gap">
                                                 <div class="top-block">
-                                                    <input type="number"
+                                                    <input type="number" step="0.1"
                                                         v-model="$parent.volcanoYCondition"/>
                                                 </div>
                                             </div>
