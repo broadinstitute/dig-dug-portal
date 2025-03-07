@@ -14,7 +14,7 @@
                                 :data="$parent.bulkMetadata"
                             />
 
-                            <div v-if="$parent.dataReady"class="flex-gap">
+                            <div v-if="$parent.dataReady" id="menu" class="flex-gap">
                                 <!--left tab group-->
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
@@ -24,7 +24,7 @@
                                     </div>
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" >
-                                            <div class="" class="flex-gap">
+                                            <div  class="flex-gap">
                                                 <div class="top-block">
                                                     <select v-model="$store.state.selectedDataset">
                                                         <option value="">Select a dataset</option>
@@ -46,7 +46,7 @@
                                     </div>
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" >
-                                            <div class="" class="flex-gap">
+                                            <div  class="flex-gap">
                                                 <div class="top-block">
                                                     <select v-model="$store.state.selectedComparison">
                                                         <option value="">Select a comparison</option>
@@ -68,7 +68,7 @@
                                     </div>
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" >
-                                            <div class="" class="flex-gap">
+                                            <div  class="flex-gap">
                                                 <div class="top-block">
                                                     <mouse-gene-select
                                                         v-if="$parent.isMouse"
@@ -82,98 +82,102 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="tabs-group">
+                                    <div class="tabs-wrapper">
+                                        <div class="tab">
+                                            Set log(P) threshold
+                                        </div>
+                                    </div>
+                                    <div class="tabs-section-wrapper">
+                                        <div class="tab-section" >
+                                            <div  class="flex-gap">
+                                                <div class="top-block">
+                                                    <input type="number"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div v-if="$parent.dataReady">
-                                <criterion-function-group>
-                                    <filter-greater-control
-                                        field="-log10P">
-                                        <div>
-                                            -log10 FDR adj. P (&ge;)
+                                <div class="flex-gap">
+                                    <!--left tab group-->
+                                    <div class="tabs-group">
+                                        <div class="tabs-wrapper">
+                                            <div class="tab">
+                                                Top 20 Differentially Expressed Genes
+                                            </div>
                                         </div>
-                                    </filter-greater-control>
-                                    <template slot="filtered" slot-scope="{ filter }">
-                            <div class="flex-gap">
-                                <!--left tab group-->
-                                <div class="tabs-group">
-                                    <div class="tabs-wrapper">
-                                        <div class="tab">
-                                            Top 20 Differentially Expressed Genes
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tabs-section-wrapper">
-                                        <div class="tab-section" >
-                                            <div class="" class="flex-gap">
-                                                <div class="wide-block">
-                                                    <div v-if="$parent.zNormData.length > 0">
-                                                        <bulk-heatmap
-                                                            :zNormData="$parent.zNormData"
-                                                            :filter="filter"
-                                                            :samplesColumns="$parent.samplesColumns"
-                                                            :comparisonId="$parent.selectedComparison"
-                                                            :margin="$parent.margin"
-                                                            :sampleColors="$parent.colors"
-                                                            :plotHeight="$parent.plotHeight"
-                                                            :selectedGene="$parent.selectedGene"
-                                                            @highlight="gene => $parent.highlight(gene)"
-                                                        >
-                                                        </bulk-heatmap>
+                                        
+                                        <div class="tabs-section-wrapper">
+                                            <div class="tab-section" >
+                                                <div  class="flex-gap">
+                                                    <div class="wide-block">
+                                                        <div v-if="$parent.zNormData.length > 0">
+                                                            <bulk-heatmap
+                                                                :zNormData="$parent.zNormData"
+                                                                :samplesColumns="$parent.samplesColumns"
+                                                                :comparisonId="$parent.selectedComparison"
+                                                                :margin="$parent.margin"
+                                                                :sampleColors="$parent.colors"
+                                                                :plotHeight="$parent.plotHeight"
+                                                                :selectedGene="$parent.selectedGene"
+                                                                @highlight="gene => $parent.highlight(gene)"
+                                                            >
+                                                            </bulk-heatmap>
+                                                        </div>
+                                                        <div v-else>
+                                                            Select a dataset and a comparison to view the heatmap.
+                                                        </div>
                                                     </div>
-                                                    <div v-else>
-                                                        Select a dataset and a comparison to view the heatmap.
                                                     </div>
-                                                </div>
-                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="tabs-group">
-                                    <div class="tabs-wrapper">
-                                        <div class="tab">
-                                            Differentially Expressed Genes
+                                    <div class="tabs-group">
+                                        <div class="tabs-wrapper">
+                                            <div class="tab">
+                                                Differentially Expressed Genes
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="tabs-section-wrapper">
-                                        <div class="tab-section" >
-                                            <div class="" class="flex-gap">
-                                                <div class="wide-block">
-                                                    <div v-if="$parent.bulkData19K.length> 0">
-                                                        <bulk-volcano-plot
-                                                            :renderData="$parent.bulkData19K"
-                                                            :filter="filter"
-                                                            :renderConfig="$parent.volcanoConfig"
-                                                            :margin="$parent.margin"
-                                                            sectionId="_bulk"
-                                                            :selectedGene="$parent.selectedGene"
-                                                            @highlight="gene => $parent.highlight(gene)">
+                                        <div class="tabs-section-wrapper">
+                                            <div class="tab-section" >
+                                                <div class="flex-gap">
+                                                    <div class="wide-block">
+                                                        <div v-if="$parent.bulkData19K.length> 0">
+                                                            <bulk-volcano-plot
+                                                                :renderData="$parent.bulkData19K"
+                                                                
+                                                                :renderConfig="$parent.volcanoConfig"
+                                                                :margin="$parent.margin"
+                                                                sectionId="_bulk"
+                                                                :selectedGene="$parent.selectedGene"
+                                                                @highlight="gene => $parent.highlight(gene)">
 
-                                                        </bulk-volcano-plot>
+                                                            </bulk-volcano-plot>
+                                                        </div>
+                                                        <div v-else>
+                                                            Select a dataset and a comparison to view the volcano plot.
+                                                        </div>
                                                     </div>
-                                                    <div v-else>
-                                                        Select a dataset and a comparison to view the volcano plot.
                                                     </div>
-                                                </div>
-                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>   
+                                <div id="table-wrapper" class="flex-gap flex-column">
+                                    <div class="flex-gap flex-column">
+                                        <bulk-table
+                                            :bulkData="$parent.bulkData19K"
+                                            
+                                            :dataset="$store.state.selectedDataset"
+                                            :config="$parent.tableConfig"
+                                            :scatterConfig="$parent.scatterplotConfig"
+                                            :highlightedGene="$store.state.selectedGene"
+                                            :regulationConditions="$parent.regulationConditions">
+                                        </bulk-table>
+                                    </div>
                                 </div>
-                            </div>   
-                            <div id="table-wrapper" class="flex-gap flex-column">
-                                <div class="flex-gap flex-column">
-                                    <bulk-table
-                                        :bulkData="$parent.bulkData19K"
-                                        :filter="filter"
-                                        :dataset="$store.state.selectedDataset"
-                                        :config="$parent.tableConfig"
-                                        :scatterConfig="$parent.scatterplotConfig"
-                                        :highlightedGene="$store.state.selectedGene"
-                                        :regulationConditions="$parent.regulationConditions">
-                                    </bulk-table>
-                                </div>
-                            </div>
-                                    </template>
-                                </criterion-function-group>
-                                
                             </div>
                             <div v-else>Loading...</div>
                         </div>
@@ -218,7 +222,7 @@
   .top-block {
     display:flex;
     flex-direction: column;
-    min-width: 380px;
+    min-width: 280px;
   }
   .wide-block {
     display:flex;
