@@ -48,7 +48,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
-                        <div v-if="$parent.symbolName" class="input-group">
+                        <!--<div v-if="$parent.symbolName" class="input-group">
                             <button
                                 class="btn btn-primary input-group-prepend explore-region-btn"
                                 style="margin-right: 20px"
@@ -64,7 +64,7 @@
                             >
                                 Explore &plusmn; 50 kb
                             </button>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -359,6 +359,9 @@
                                 </b-badge>
                             </span>
                             <b-tabs>
+                                
+                                <!-- Huge Scores Tab -->
+                                
                                 <b-tab
                                     title="HuGE Scores"
                                     @click="
@@ -379,46 +382,51 @@
                                         >
                                         </documentation>
                                     </span>
+                                    
                                     <research-phewas-plot
                                         v-if="$parent.hugeScores.length > 0"
                                         ref="hugeScorePheWASPlot"
-                                        canvas-id="hugeScorePlot"
+                                        canvasId="hugeScorePlot"
                                         :plotName="`huge_scores_${$store.state.geneName}`"
-                                        :phenotypes-data="$parent.hugeScores"
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                        :phenotypesData="$parent.hugeScores"
+                                        :phenotypeMap="
+                                            $parent.pigeanMap
                                         "
                                         :colors="$parent.plotColors"
                                         :plot-margin="$parent.phewasPlotMargin"
-                                        :render-config="
+                                        :renderConfig="
                                             $parent.hugeScoreRenderConfig
                                         "
-                                        :pkg-data="null"
-                                        :pkg-data-selected="null"
+                                        :pkgData="null"
+                                        :pkgDataSelected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
                                         :options="['open phenotype page']"
                                     >
                                     </research-phewas-plot>
+                                    
                                     <unauthorized-message
                                         :restricted="
                                             $store.state.varassociations
                                                 .restricted
                                         "
                                     >
-                                    </unauthorized-message>
+                                    </unauthorized-message> 
+                                    
                                     <huge-scores-table
                                         v-if="$parent.hugeScores.length > 0"
                                         :pageKey="$store.state.gene.data[0]"
                                         leadTableField="phenotype"
                                         :hugeScores="$parent.hugeScores"
                                         :phenotypeMap="
-                                            $store.state.bioPortal.phenotypeMap
+                                            $parent.pigeanMap
                                         "
                                         :filter="filter"
                                     >
                                     </huge-scores-table>
-                                </b-tab>
+                                </b-tab> 
+                                <!-- end of Huge Scores Tab -->
+                                
                                 <b-tab
                                     title="Common variant associations"
                                     @click="
@@ -460,21 +468,21 @@
                                                 .length > 0
                                         "
                                         ref="commonVariantPheWASPlot"
-                                        canvas-id="commonVariantPlot"
+                                        canvasId="commonVariantPlot"
                                         :plotName="`common_variant_${$store.state.geneName}`"
-                                        :phenotypes-data="
+                                        :phenotypesData="
                                             $parent.filteredAssociations
                                         "
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                        :phenotypeMap="
+                                            $parent.pigeanMap
                                         "
                                         :colors="$parent.plotColors"
-                                        :plot-margin="$parent.phewasPlotMargin"
-                                        :render-config="
+                                        :plotMargin="$parent.phewasPlotMargin"
+                                        :renderConfig="
                                             $parent.commonVariantRenderConfig
                                         "
-                                        :pkg-data="null"
-                                        :pkg-data-selected="null"
+                                        :pkgData="null"
+                                        :pkgDataSelected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
                                         :options="['open phenotype page']"
@@ -491,13 +499,14 @@
                                         v-if="$store.state.gene.data.length > 0"
                                         :gene="$store.state.gene.data[0]"
                                         :associations="$parent.geneassociations"
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                        :phenotypeMap="
+                                            $parent.pigeanMap
                                         "
                                         :filter="filter"
                                     >
                                     </gene-associations-table>
                                 </b-tab>
+                                
                                 <b-tab
                                     title="Rare variant associations"
                                     @click="
@@ -529,21 +538,21 @@
                                             $parent.transcriptOr52k.length > 0
                                         "
                                         ref="rareVariantPheWASPlot"
-                                        canvas-id="rareVariantPlot"
+                                        canvasId="rareVariantPlot"
                                         :plotName="`rare_variant_${$store.state.geneName}`"
-                                        :phenotypes-data="
+                                        :phenotypesData="
                                             $parent.transcriptOr52k
                                         "
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                        :phenotypeMap="
+                                            $parent.pigeanMap
                                         "
                                         :colors="$parent.plotColors"
-                                        :plot-margin="$parent.phewasPlotMargin"
-                                        :render-config="
+                                        :plotMargin="$parent.phewasPlotMargin"
+                                        :renderConfig="
                                             $parent.rareVariantRenderConfig
                                         "
-                                        :pkg-data="null"
-                                        :pkg-data-selected="null"
+                                        :pkgData="null"
+                                        :pkgDataSelected="null"
                                         :filter="filter"
                                         :utils="$parent.utilsBox"
                                         :options="['open phenotype page']"
@@ -555,13 +564,80 @@
                                     </unauthorized-message>
                                     <gene-associations-masks
                                         :associations="$parent.transcriptOr52k"
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
+                                        :phenotypeMap="
+                                            $parent.pigeanMap
                                         "
                                         :filter="filter"
                                     >
                                     </gene-associations-masks>
                                 </b-tab>
+                                
+                                <!-- Helen Pigean Gene Tab -->
+                                
+                                <b-tab
+                                    title="Pigean Gene"
+                                    @click="
+                                        $parent.renderPhewas(
+                                            'pigeanGenePheWASPlot'
+                                        )
+                                    "
+                                >
+                                    <h4 class="card-title">
+                                        Traits with genetic support
+                                        <tooltip-documentation
+                                            name="gene.52k.tooltip.hover"
+                                            :contentFill="$parent.docDetails"
+                                            :is-hover="true"
+                                            :no-icon="false"
+                                            :contentMap="
+                                                $store.state.bioPortal
+                                                    .documentations
+                                            "
+                                        ></tooltip-documentation> 
+                                    </h4>
+                                    <research-phewas-plot
+                                        v-if="
+                                            $store.state.traitsData.length > 0
+                                        "
+                                        ref="pigeanGenePheWASPlot"
+                                        canvasId="pigeanGenePlot"
+                                        :plotName="`pigean_gene_${$store.state.geneName}`"
+                                        :phenotypesData="
+                                            $store.state.traitsData
+                                        "
+                                        :phenotypeMap="
+                                            $parent.pigeanMap
+                                        "
+                                        :colors="$parent.plotColors"
+                                        :plotMargin="$parent.phewasPlotMargin"
+                                        :renderConfig="
+                                            $parent.pigeanGeneRenderConfig
+                                        "
+                                        :pkgData="null"
+                                        :pkgDataSelected="null"
+                                        :filter="filter"
+                                        :utils="$parent.utilsBox"
+                                        :options="['open phenotype page']"
+                                    >
+                                    </research-phewas-plot>
+                                    <unauthorized-message
+                                        :restricted="$store.state.restricted"
+                                    >
+                                    </unauthorized-message>
+                                    <pigean-table
+                                        v-if="$store.state.traitsData.length > 0"
+                                        :pigeanData="$store.state.traitsData"
+                                        :phenotypeMap="
+                                            $parent.pigeanMap
+                                        "
+                                        :config="$parent.pigeanTableConfig"
+                                        :filter="filter"
+                                    >
+                                    </pigean-table>
+                                </b-tab>
+                                
+                                <!-- end Pigean Gene Tab -->
+                                
                             </b-tabs>
                         </template>
                     </criterion-function-group>
