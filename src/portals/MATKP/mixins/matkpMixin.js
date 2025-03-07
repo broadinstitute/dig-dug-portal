@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import matkpNav from "@/portals/MATKP/components/matkp-nav.vue";
 import matkpFooter from "@/portals/MATKP/components/matkp-footer.vue";
+import matkpSearch from "@/portals/MATKP/components/matkp-search.vue";
 
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
@@ -13,5 +14,6 @@ export const matkpMixin = {
     components: {
         matkpNav,
         matkpFooter,
+        matkpSearch
     },
 };
