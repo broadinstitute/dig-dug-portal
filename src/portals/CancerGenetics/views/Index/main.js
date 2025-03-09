@@ -325,6 +325,7 @@ new Vue({
     },
 
     created() {
+        this.$store.commit("bioPortal/setDefaultPortal", "cancer");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -334,10 +335,6 @@ new Vue({
 
     methods: {
         ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
         showHideElement(ID) {
             uiUtils.showHideElement(ID);
         },
