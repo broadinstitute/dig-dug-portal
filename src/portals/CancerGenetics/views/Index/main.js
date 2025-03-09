@@ -2,17 +2,11 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-Vue.config.productionTip = false;
-
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import NewsFeedSection from "@/components/frontPage/NewsFeedSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 import DiseaseSystems from "@/components/DiseaseSystems.vue";
-import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
-import Documentation from "@/components/Documentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
@@ -25,33 +19,21 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert,
-} from "@/components/Alert";
+import { pageMixin } from "@/mixins/pageMixin";
 
 new Vue({
     store,
-
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         PhenotypeSelectPicker,
         DatasetSelectPicker,
         NewsFeedSection,
         DiseaseGroupSelect,
-        TooltipDocumentation,
-        Documentation,
         Autocomplete,
         ResearchSingleSearch,
         ResearchPageDescription,
         DiseaseSystems,
     },
-
+    mixins: [pageMixin],
     data: {
         selected: "",
         searches: [
@@ -102,7 +84,6 @@ new Vue({
         },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
-
                 return this.$store.state.bioPortal.phenotypes;
             } else {
                 return this.$store.state.phenotypesInSession;
