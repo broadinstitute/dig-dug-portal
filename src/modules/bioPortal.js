@@ -40,7 +40,6 @@ export default {
             state.diseaseSystems = data;
         },
         setDiseaseGroups(state, data) {
-            console.log("setDiseaseGroups", data);
             state.diseaseGroups = data;
         },
         setPhenotypes(state, data) {
