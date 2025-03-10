@@ -62,6 +62,7 @@
 					</div>
 				</div>
 			</div>
+
 			<div v-if="!!renderConfig.legend" class="mbm-plot-legend" v-html="renderConfig.legend"></div>
 			<div class="region-plot-default-legend">
 				<span class="plot-legend-dot" style="background-color: #824099cc"></span>
@@ -92,10 +93,14 @@
 			<template v-for="(item, itemIndex) in plotsList">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId" class="asso-plots-wrapper">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
+					
 					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
+						@mouseleave="resetPosMarker()"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
+					
+					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
 
 					<div class="download-images-setting">
 						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
@@ -202,6 +207,9 @@ export default Vue.component("multi-region-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		hoverPos() {
+			return this.$root.hoverPos;
+		},
 		adjPlotMargin() {
 
 			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
@@ -246,8 +254,6 @@ export default Vue.component("multi-region-plot", {
 				renderByField = this.renderConfig["render by"],
 				yAxField = this.renderConfig["y axis field"];
 
-			//console.log("1", variantField, renderByField, "this.refProperties", this.refProperties)
-
 			if (
 				!this.refProperties.region ||
 				this.refProperties.region != this.region
@@ -262,13 +268,10 @@ export default Vue.component("multi-region-plot", {
 
 			if (this.plotData != null) {
 
-				//console.log("this.plotData", this.plotData)
 
 				let plotDataLocal = this.plotData;
 
 				let plotsKeys = [];
-
-				//console.log("2", "this.dataComparisonConfig", this.dataComparisonConfig)
 
 				if (this.dataComparisonConfig != null) {
 					let field =
@@ -292,9 +295,6 @@ export default Vue.component("multi-region-plot", {
 					plotsKeys.push("default");
 				}
 
-				/*if (!!newRegion) {
-				}*/
-
 				this.assoData = {}; // reset assoData
 				this.ldData = {}; // reset ldData
 				this.recombData = ""; // reset recombData
@@ -315,8 +315,6 @@ export default Vue.component("multi-region-plot", {
 						data: {},
 						variantData: {},
 					};
-
-					//console.log("!!this.ldData[group]", !!this.ldData[group])
 
 					if (!!this.ldData[group]) {
 						
@@ -373,8 +371,6 @@ export default Vue.component("multi-region-plot", {
 									}
 
 									// set initial refVarint
-
-									//console.log("this.refProperties", this.refProperties)
 
 									if (
 										!this.refProperties.refVariants[group]
@@ -608,6 +604,9 @@ export default Vue.component("multi-region-plot", {
 		},
 	},
 	watch: {
+		hoverPos(POS){
+			this.renderPlots();
+		},
 		staredVariants(CONTENT) {
 			this.renderPlots();
 		},
@@ -618,7 +617,7 @@ export default Vue.component("multi-region-plot", {
 	},
 	methods: {
 		downloadImage(ID, NAME, TYPE, SVG, DATA, ref) {
-			//console.log("ID: ",ID, "NAME: ", NAME, "TYPE: ", TYPE, "SVG: ", SVG)
+
 			if (TYPE == 'svg') {
 				let refName = ref;
 				this.$refs[refName].renderPlot(DATA);
@@ -686,7 +685,6 @@ export default Vue.component("multi-region-plot", {
 			if (!!this.isSectionPage) {
 				let stard = [...new Set(this.starItems)]
 
-				//console.log("started",stard)
 				let tempObj = {
 					type: this.renderConfig["star key"],
 					id: ITEM,
@@ -787,18 +785,87 @@ export default Vue.component("multi-region-plot", {
 
 			return dotsList;
 		},
-		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
+		resetPosMarker() {
+				let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = "0px";
+                xPosMarker.style.top = "0px";
+                xPosMarker.style.height = "1px";
+		},
+
+		checkPosition(e,GROUP, TYPE, action) {
+            const rect = e.target.getBoundingClientRect();
+                let X = Math.floor(e.clientX - rect.left);
+                let Y = Math.floor(e.clientY - rect.top);
+
+            const wrapperRect = document.getElementById("assoPlotsWrapper"+GROUP+this.sectionId).getBoundingClientRect()
+
+            this.getPosInfo(X,Y,GROUP, TYPE, action);
+
+            if(action == "move" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2)) {
+
+                const xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = (X)+"px";
+                xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
+                xPosMarker.style.height = (rect.height - this.adjPlotMargin.bottom/2)+"px";
+
+            } else {
+				this.resetPosMarker();
+			}
+
+            if(action == "click" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
+
+                const tempWidth = rect.width - (this.adjPlotMargin.left/2 + this.adjPlotMargin.right/2)
+                const tempXPos = X - (this.adjPlotMargin.left/2);
+
+                let xPos = this.convertXPos(tempXPos, tempWidth);
+
+                let itThere = false;
+                let tempArr = [];
+
+                if(this.hoverPos.length > 0) {
+
+                    this.hoverPos.map(h =>{
+
+						let xMargin = Math.floor((this.searchingRegion.end - this.searchingRegion.start)/tempWidth)*2;
+
+                        if( h >= xPos - xMargin && h <= xPos + xMargin) {
+                            itThere = true;
+                        } else {
+                            tempArr.push(h);
+                        }
+                    })
+
+                    this.$root.hoverPos = tempArr;
+                }
+                
+                if(!itThere) {
+                    this.$root.hoverPos.push(xPos);
+                }
+                
+            }
+            
+        },
+
+		convertXPos(X,WIDTH) {
+
+            let perPixel = ((this.searchingRegion.end - this.searchingRegion.start)/WIDTH);
+            let xPos = (X * perPixel) + this.searchingRegion.start;
+
+            return Math.floor(xPos);
+        },
+
+		getPosInfo(x,y, GROUP, TYPE, EVENT_TYPE) {
 
 			if(EVENT_TYPE == 'click') {
 				//console.log(event, GROUP, TYPE, EVENT_TYPE);
 			}
 			
 
-			let e = event;
+			/*let e = event;
 			let rect = e.target.getBoundingClientRect();
 			let x = Math.floor(e.clientX - rect.left);
 			let y = Math.floor(e.clientY - rect.top);
-			let rawX = e.clientX;
+			let rawX = e.clientX;*/
 
 			let dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];
@@ -983,7 +1050,6 @@ export default Vue.component("multi-region-plot", {
 						"&limit=100000";
 				}
 
-				//console.log("ldURL", ldURL);
 
 				let ldJson = await fetch(ldURL).then((resp) => resp.json());
 
@@ -1024,7 +1090,7 @@ export default Vue.component("multi-region-plot", {
 
 				this.renderPlots();
 			}
-			//console.log("this.ldData",this.sectionId, this.ldData)
+			
 			this.$forceUpdate();
 		},
 		renderPlots(event) {
@@ -1045,7 +1111,7 @@ export default Vue.component("multi-region-plot", {
 				this.adjPlotMargin.bottom;
 
 			let assoPlotWidth =
-				assoCanvasWidth - this.adjPlotMargin.left * 2;
+				assoCanvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
 			let ldPlotWidth =
 				ldCanvasWidth -
 				this.adjPlotMargin.left -
@@ -1101,6 +1167,35 @@ export default Vue.component("multi-region-plot", {
 					p
 				);
 
+				///render marker band
+
+				
+				ctx.fillStyle = "#ff880025";
+
+				ctx.fillRect(
+					this.adjPlotMargin.left,
+					plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 2)+12,
+					assoPlotWidth,
+					12
+				);
+					
+				//
+				/// if there are markers
+
+				let xPerPixel = assoPlotWidth / (regionEnd - regionStart);
+
+				if(this.hoverPos.length > 0) {
+
+					
+					this.hoverPos.map(h => {
+						let yPos1 = this.adjPlotMargin.top - this.adjPlotMargin.bump;
+						let yPos2 = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump*3);
+
+						let xPos = this.adjPlotMargin.left + (h - regionStart) * xPerPixel;
+						this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 1, "#ff0000", [6, 2]);
+					})
+				}
+
 				this.renderRecombLine(
 					ctx,
 					assoPlotWidth,
@@ -1121,6 +1216,8 @@ export default Vue.component("multi-region-plot", {
 					"asso",
 					p
 				);
+
+				//this.utils.uiUtils.moveCanvas("rp_region_plot_"+this.sectionId, this.sectionId+"_wrapper");
 
 				// second LD plot
 				c = document.getElementById(
@@ -1412,6 +1509,7 @@ export default Vue.component("multi-region-plot", {
 						linesObj
 					);
 				}
+
 			}
 
 			if (TYPE == "LD") {
@@ -1885,7 +1983,7 @@ export default Vue.component("multi-region-plot", {
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT + bump * 4
+					this.adjPlotMargin.top + HEIGHT + (bump * 4.5)
 				);
 			}
 
@@ -1976,6 +2074,7 @@ $(function () { });
 	height: auto !important;
 	padding-bottom: 0 !important;
 	width: 100%;
+	position: relative;
 }
 
 .asso-plots-wrapper.hidden,
@@ -2085,6 +2184,20 @@ $(function () { });
 .content-on-clicked-dot-values {
 	padding-left: 10px;
 }
+
+canvas {
+	position:relative
+}
+
+.x-pos-marker {
+    position:absolute;
+    top:0;
+    left:0;
+    color: #ff0000;
+    border-left:solid 1px #ff0000;
+	height: 0;
+}
+
 </style>
 
 
