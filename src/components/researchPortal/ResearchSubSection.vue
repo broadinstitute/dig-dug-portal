@@ -119,13 +119,14 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 
 export default Vue.component("research-sub-section", {
-	props: ["rowId","subectionConfig", "subsectionData","phenotypeMap","utils","colors","plotMargin"],
+	props: ["sectionId","rowId","subectionConfig", "subsectionData","phenotypeMap","utils","colors","plotMargin"],
 	components: {
 		ResearchSectionVisualizers,
 		ResearchSectionComponents,
 	},
 	data() {
 		return {
+			currentData:null,
 			currentPage: 1,
 			numberOfRows: 10,
 		};
@@ -136,6 +137,8 @@ export default Vue.component("research-sub-section", {
 
 	},
 	mounted() {
+		console.log("from mount");
+		this.filterData();
 	},
 	computed: {
 		subPageData() {
@@ -165,9 +168,161 @@ export default Vue.component("research-sub-section", {
 		},
 	},
 	watch: {
+		'$parent.$parent.filterValues'(FILTERS) {
+			console.log("from watch");
+			this.filterData()
+		}
 	},
 	methods: {
+		filterData() {
+			const filterConfig = this.$parent.$parent.sectionConfig.filters;
+			const filtersIndex = this.$parent.$parent.filtersIndex;
+			const filterValues = this.$parent.$parent.filterValues;
+
+			console.log("filterConfig",filterConfig)
+			console.log("filtersIndex",filtersIndex)
+			console.log("filterValues",filterValues)
+
+			const rawData = this.subsectionData;
+
+			this.currentData = [];
+
+
+/*			if(!!filtersIndex) {
+				console.log("Start")
+
+				for (var f in filtersIndex) {
+
+					let searchIndex = filtersIndex[f];
+
+					if (searchIndex.type != "checkbox" && searchIndex.search.length > 0) {
+
+
+						searchIndex.search
+						.filter((v, i, arr) => arr.indexOf(v) == i)
+						.map((s) => {
+							let targetData = filtered;
+							let search = s;
+							let searchVals;
+
+						rawData.filter((row) => {
+				if (
+					!!row[searchIndex.field] &&
+					row[searchIndex.field] != undefined
+				) {
+					switch (searchIndex.type) {
+						case "dropdown":
+							search ===
+							row[
+								searchIndex.field
+							].toString()
+								? tempFiltered.push(row)
+								: "";
+
+							break;
+						case "search":
+							row[searchIndex.field]
+								.toLowerCase()
+								.includes(
+									search.toLowerCase()
+								)
+								? tempFiltered.push(row)
+								: "";
+							break;
+						case "search exact":
+							search.toLowerCase() ===
+							row[searchIndex.field]
+								.toString()
+								.toLowerCase()
+								? tempFiltered.push(row)
+								: "";
+
+							break;
+						case "dropdown word":
+							row[searchIndex.field]
+								.toLowerCase()
+								.includes(
+									search.toLowerCase()
+								)
+								? tempFiltered.push(row)
+								: "";
+
+							break;
+
+						case "search greater than":
+							typeof row[searchIndex.field] == 'number' && row[searchIndex.field] >= search
+								? tempFiltered.push(row)
+								: "";
+							break;
+						case "search lower than":
+						typeof row[searchIndex.field] == 'number' && row[searchIndex.field] <= search
+								? tempFiltered.push(row)
+								: "";
+
+							break;
+						case "search or":
+							searchVals = search.split(",");
+
+							typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] <=
+								searchVals[0].trim() ||
+							row[searchIndex.field] >=
+								searchVals[1].trim())
+								? tempFiltered.push(row)
+								: "";
+							break;
+						case "search change direction":
+							let searchDirection =
+								document.getElementById(
+									"filter_" + this.sectionId +
+										this.getColumnId(
+											searchIndex.field
+										) +
+										"_direction"
+								).value;
+
+							searchDirection == "lt"
+								? row[searchIndex.field] <=
+									search
+									? tempFiltered.push(row)
+									: ""
+								: searchDirection == "gt"
+								? row[searchIndex.field] >=
+									search
+									? tempFiltered.push(row)
+									: ""
+								: "";
+
+							break;
+
+						case "search and":
+							searchVals = search.split(",");
+
+							typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+								searchVals[0].trim() &&
+							row[searchIndex.field] <=
+								searchVals[1].trim())
+								? tempFiltered.push(row)
+								: "";
+							break;
+
+						case "slider":
+							searchVals = search.split(",");
+
+							typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+								searchVals[0].trim() &&
+								row[searchIndex.field] <=
+								searchVals[1].trim())
+								? tempFiltered.push(row)
+								: "";
+
+							break;
+					}
+				}
+			})
 		
+			})*/
+
+		},
 		convertJson2Csv(DATA, FILENAME) {
 
 			// First wrap strings with comma or typeof object, and flatten the data

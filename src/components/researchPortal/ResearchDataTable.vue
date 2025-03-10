@@ -342,6 +342,7 @@
 					>
 					<td :colspan="topRowNumber">
 						<research-sub-section
+						:sectionId="sectionId"
 						:rowId="getRowID(itemKey + value[itemKey] + index)"
 						:colors="colors"
 						:plotMargin="plotMargin"
@@ -715,7 +716,7 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		subSectionData(DATA){
-			console.log("cont data",DATA);
+			//console.log("cont data",DATA);
 		},
 		featureRowsNumber(NUMBER) {
 			this.$emit('on-feature-rows-change', NUMBER);
@@ -917,7 +918,7 @@ export default Vue.component("research-data-table", {
 						break;
 					case "api":
 
-					console.log(paramsString, paramsType, params, dataPoint, tableFormat,KEY)
+					//console.log(paramsString, paramsType, params, dataPoint, tableFormat,KEY)
 						this.queryApi(paramsString, paramsType, params, dataPoint, tableFormat,INDEX, KEY);
 						break;
 					/*case "file":
@@ -940,7 +941,7 @@ export default Vue.component("research-data-table", {
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
-			console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+			//console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl = DATA_POINT.url;
 			let fKEY = this.getRowID(KEY + QUERY + INDEX);
@@ -975,7 +976,7 @@ export default Vue.component("research-data-table", {
 
 		async queryBiContinue(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
-			console.log(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+			//console.log(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl;
 			let PARAMS = DATA_POINT["parameters"];
@@ -1045,7 +1046,7 @@ export default Vue.component("research-data-table", {
 
 		async queryApi(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
-			console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
+			//console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl = DATA_POINT.url;
 			let fKEY = this.getRowID(KEY + QUERY + INDEX);
@@ -1105,7 +1106,7 @@ export default Vue.component("research-data-table", {
 
 			let data = CONTENT.data;
 
-			console.log("data",data);
+			//console.log("data",data);
 
 			// if loaded data is processed
 			let tableFormat = TABLE_FORMAT;
