@@ -89,6 +89,12 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
             let cType = c.type;
 
+            let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
+
+            if (d[c["raw field"]] === 0) {
+                rawValue = "0";
+            }
+
             switch (cType) {
                 case "from parameter":
                     let param = c["parameter"];
@@ -121,7 +127,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                                     if (c["condition"]["type"] == "equal to") {
 
                                         subList.map(row => {
-                                            //console.log("field", row[c["condition"]["field"]], c["condition"]["value"])
 
                                             if (row[c["condition"]["field"]] == c["condition"]["value"]) {
                                                 subRow = row
@@ -154,8 +159,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     let newFieldValues = [];
                     let string2Split = (!!tempObj[c["field to split"]]) ? tempObj[c["field to split"]] : d[c["field to split"]];
 
-                    //console.log('c["field name"]', c["field name"]);
-
                     if (!!string2Split) {
                         let loopIndex = 1;
                         c["split by"].map(s => {
@@ -172,14 +175,10 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             loopIndex++;
                         })
 
-                        //console.log("newFieldValues", newFieldValues);
-
                         loopIndex = 0;
                         newFields.map(f => {
                             tempObj[f] = newFieldValues[loopIndex];
                             d[f] = tempObj[f];
-
-
 
                             loopIndex++;
                         })
@@ -239,15 +238,17 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "raw":
-                    let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
 
-                    if (d[c["raw field"]] === 0) {
-                        rawValue = "0";
-                    }
                     if (!!rawValue) {
                         tempObj[c["field name"]] = rawValue;
                         d[c["field name"]] = tempObj[c["field name"]];
                     }
+
+                    break;
+
+                case "map name":
+
+                    tempObj[c["field name"]] = c["map"][rawValue];
 
                     break;
 

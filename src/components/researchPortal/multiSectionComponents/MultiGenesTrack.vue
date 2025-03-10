@@ -88,7 +88,8 @@ export default Vue.component("multi-genes-track", {
 		"regionViewArea",
 		"utils",
 		"sectionId",
-		"starItems"
+		"starItems",
+		"hoverPos"
 	],
 	data() {
 		return {
@@ -313,9 +314,11 @@ export default Vue.component("multi-genes-track", {
 
 		renderTrack(GENES) {
 
+			let canvasRenderWidth, canvasRenderHeight;
+
 			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
 
-				let canvasRenderWidth, canvasRenderHeight;
+				
 				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
 
 				canvasRenderWidth = !!this.plotConfig.width
@@ -460,7 +463,9 @@ export default Vue.component("multi-genes-track", {
 						this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
 					})
 				}
-			}
+
+			}			
+			
 		},
 		async getGenesInRegion(region) {
 
