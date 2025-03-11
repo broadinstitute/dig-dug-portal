@@ -21,7 +21,7 @@
 					<h6 v-html="plotConfig.label" v-if="subectionConfig['visualizers']['wrapper type'] != 'tabs'"></h6>
 					<research-section-visualizers 
 						:plotConfig="plotConfig"
-						:plotData="subsectionData"
+						:plotData="currentData"
 						:phenotypeMap="phenotypeMap" 
 						:colors="colors" 
 						:plotMargin="plotMargin"
@@ -37,7 +37,7 @@
 		<div v-if="!!subectionConfig['visualizer']" class="sub-plot-wrapper">
 			<research-section-visualizers 
 				:plotConfig="subectionConfig['visualizer']"
-				:plotData="subsectionData"
+				:plotData="currentData"
 				:phenotypeMap="phenotypeMap" 
 				:colors="colors" 
 				:plotMargin="plotMargin"
@@ -72,7 +72,7 @@
 						<b-container
 									class="egl-table-page-ui-wrapper subsection-page-ui-left"
 								>
-							<span>{{ "Total rows: "+ subsectionData.length }}</span>
+							<span>{{ "Total rows: "+ currentData.length }}</span>
 							</b-container>
 						<b-container
 							class="egl-table-page-ui-wrapper subsection-page-ui-center"
@@ -80,7 +80,7 @@
 							<b-pagination
 								class="pagination-sm justify-content-center"
 								v-model="currentPage"
-								:total-rows="subsectionData.length"
+								:total-rows="currentData.length"
 								:per-page="numberOfRows"
 								:phenotypeMap="phenotypeMap"
 							></b-pagination>
@@ -92,13 +92,13 @@
 								<strong>Save data in section: </strong>
 								<div
 									class="convert-2-csv btn-sm"
-									@click="convertJson2Csv(subsectionData, rowId + '_subsection')"
+									@click="convertJson2Csv(currentData, rowId + '_subsection')"
 								>
 									CSV
 								</div>
 								<div
 									class="convert-2-csv btn-sm"
-									@click="saveJson(subsectionData, rowId + '_subsection')"
+									@click="saveJson(currentData, rowId + '_subsection')"
 								>
 									JSON
 								</div>
@@ -134,16 +134,16 @@ export default Vue.component("research-sub-section", {
 	modules: {
 	},
 	created() {
-
-	},
-	mounted() {
 		console.log("from mount");
 		this.filterData();
+	},
+	mounted() {
+		
 	},
 	computed: {
 		subPageData() {
 			let pageData = [];
-			let rows = this.subsectionData.length;
+			let rows = this.currentData.length;
 
 			let startIndex = (this.currentPage - 1) * this.numberOfRows;
 			let endIndex =
@@ -152,8 +152,8 @@ export default Vue.component("research-sub-section", {
 					: rows;
 
 			for (let i = startIndex; i < endIndex; i++) {
-				if (!!this.subsectionData[i]) {
-					pageData.push(this.subsectionData[i]);
+				if (!!this.currentData[i]) {
+					pageData.push(this.currentData[i]);
 				}
 			}
 
@@ -175,17 +175,177 @@ export default Vue.component("research-sub-section", {
 	},
 	methods: {
 		filterData() {
+			const preFilters = this.$parent.$parent.sectionConfig["pre filters"];
 			const filterConfig = this.$parent.$parent.sectionConfig.filters;
 			const filtersIndex = this.$parent.$parent.filtersIndex;
 			const filterValues = this.$parent.$parent.filterValues;
 
 			console.log("filterConfig",filterConfig)
 			console.log("filtersIndex",filtersIndex)
-			console.log("filterValues",filterValues)
+			console.log("filterValues",filterValues.length)
 
 			const rawData = this.subsectionData;
 
-			this.currentData = [];
+			
+
+			/// prefilters
+
+
+			/// dynamic filters
+
+			if(filterValues.length < 1) {
+				this.currentData = [];
+
+				rawData.map( row => {
+					filterConfig.map(filter => {
+						if(filter.type == 'checkbox' && !!filter.uncheck) {
+							if(!filter.uncheck.includes(row[filter.field])) {
+								this.currentData.push(row);
+							}
+						}
+					})
+				})
+			} else {
+				this.currentData = [];
+
+				rawData.map( row => {
+					let meetFilters = true;
+
+					filterConfig.map(filter => {
+						let search = filter.type == 'checkbox'? filterValues : filtersIndex.search;
+
+						if (!!row[filter.field] && row[filter.field] != undefined && !!search && search.length > 0) {
+
+							let value = row[filter.field];
+							
+							switch (filter.type) {
+								case "checkbox":
+									if(!search.includes(value)) {
+										//console.log('no');
+										meetFilters = false;
+									}
+
+									break;
+									
+									if(search[0] != value.toString()) {
+										meetFilters = false;
+									}
+
+									break;
+								/*case "search":
+									row[searchIndex.field]
+										.toLowerCase()
+										.includes(
+											search.toLowerCase()
+										)
+										? tempFiltered.push(row)
+										: "";
+									break;
+								case "search exact":
+									search.toLowerCase() ===
+									row[searchIndex.field]
+										.toString()
+										.toLowerCase()
+										? tempFiltered.push(row)
+										: "";
+
+									break;
+								case "dropdown word":
+									row[searchIndex.field]
+										.toLowerCase()
+										.includes(
+											search.toLowerCase()
+										)
+										? tempFiltered.push(row)
+										: "";
+
+									break;
+*/
+								case "search greater than":
+									if (typeof value == 'number' && value < search[0]) {
+										meetFilters = false;
+									}
+									break;
+								case "search lower than":
+									if (typeof value == 'number' && value > search[0]) {
+										meetFilters = false;
+									}
+
+									break;
+								/*case "search or":
+									searchVals = search.split(",");
+
+									typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] <=
+										searchVals[0].trim() ||
+									row[searchIndex.field] >=
+										searchVals[1].trim())
+										? tempFiltered.push(row)
+										: "";
+									break;
+								case "search change direction":
+									let searchDirection =
+										document.getElementById(
+											"filter_" + this.sectionId +
+												this.getColumnId(
+													searchIndex.field
+												) +
+												"_direction"
+										).value;
+
+									searchDirection == "lt"
+										? row[searchIndex.field] <=
+											search
+											? tempFiltered.push(row)
+											: ""
+										: searchDirection == "gt"
+										? row[searchIndex.field] >=
+											search
+											? tempFiltered.push(row)
+											: ""
+										: "";
+
+									break;
+
+								case "search and":
+									searchVals = search.split(",");
+
+									typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+										searchVals[0].trim() &&
+									row[searchIndex.field] <=
+										searchVals[1].trim())
+										? tempFiltered.push(row)
+										: "";
+									break;
+
+								case "slider":
+									searchVals = search.split(",");
+
+									typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+										searchVals[0].trim() &&
+										row[searchIndex.field] <=
+										searchVals[1].trim())
+										? tempFiltered.push(row)
+										: "";
+
+									break;*/
+							}
+						}
+					});
+
+					
+					console.log("meetFilters 1", meetFilters)
+					if( meetFilters == true) {
+
+						console.log("meetFilters 2", meetFilters)
+
+						this.currentData.push(row)
+					}
+				});
+
+				console.log("this.currentData",this.currentData);
+			}
+
+			//console.log("this.currentData",this.currentData);
 
 
 /*			if(!!filtersIndex) {
