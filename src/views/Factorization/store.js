@@ -59,6 +59,7 @@ export default new Vuex.Store({
             state.roundTripInputGenes = [];
             state.genesetPValues = [];
             state.networkGraph = {nodes:[], edges:[]};
+            state.phenotypeData = [];
         }
     },
 
