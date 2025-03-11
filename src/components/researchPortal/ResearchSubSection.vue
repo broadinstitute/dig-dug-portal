@@ -69,20 +69,20 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="row in subPageData">
+				<tr v-for="(row, rowIndex) in subPageData">
 					<td v-if="!!tableFormat['star column']">
-						<span v-if="checkStared('1', value) == false"
+						<span v-if="checkStared('1', row) == false"
 							><b-icon
 								icon="star"
 								style="color: #aaaaaa; cursor: pointer"
-								@click="addStar(value)"
+								@click="addStar(row)"
 							></b-icon
 						></span>
-						<span v-if="checkStared('2', value) == true"
+						<span v-if="checkStared('2', row) == true"
 							><b-icon
 								icon="star-fill"
 								style="color: #ffcc00; cursor: pointer"
-								@click="removeStar(value)"
+								@click="removeStar(row)"
 							></b-icon
 						></span>
 					</td>
@@ -148,7 +148,7 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 
 export default Vue.component("research-sub-section", {
-	props: ["sectionId","rowId","subSectionConfig", "subSectionData","phenotypeMap","utils","colors","plotMargin"],
+	props: ["sectionId","rowId","subSectionConfig", "subSectionData","phenotypeMap","utils","colors","starItems","plotMargin","multiSectionPage"],
 	components: {
 		ResearchSectionVisualizers,
 		ResearchSectionComponents,
@@ -205,6 +205,21 @@ export default Vue.component("research-sub-section", {
 		}
 	},
 	methods: {
+		getColumns(ID) {
+			let item;
+			/*if (this.dataComparisonConfig != null) {
+				for (const [key, value] of Object.entries(
+					this.dataset
+				)) {
+					if (value[this.tableFormat["star column"]] == ID) {
+						item = value;
+					}
+				}
+			} else {*/
+				item = this.currentData.filter(p => p[this.tableFormat["star column"]] == ID)[0];
+			//}
+			return item;
+		},
 		starAll() {
 
 			if(this.staredAll == true) {
@@ -214,16 +229,16 @@ export default Vue.component("research-sub-section", {
 
 					let stard = [...new Set(this.starItems)]
 
-					this.rawData.map(row => {
-						let value = row[this.tableFormat["star column"]];
+					//this.subSectionData.map(row => {
+						//let value = row[this.tableFormat["star column"]];
 
 						//stard = stard.filter(s => s.section != this.sectionId);
-					})
+					//})
 
-					stard = stard.filter(s => s.section != this.sectionId);
+					stard = stard.filter(s => s.section != this.sectionId + "_" + this.rowId);
 
-					this.$emit('on-star', stard);
-				} else {
+					this.$parent.$emit('on-star', stard);
+				} /*else {
 					this.rawData.map(row => {
 						let value = row[this.tableFormat["star column"]];
 
@@ -234,7 +249,7 @@ export default Vue.component("research-sub-section", {
 						});
 
 					})
-				}
+				}*/
 
 			} else {
 				this.staredAll = true;
@@ -243,20 +258,20 @@ export default Vue.component("research-sub-section", {
 
 					let stard = [...new Set(this.starItems)]
 
-					this.rawData.map(row => {
+					this.subSectionData.map(row => {
 						let value = row[this.tableFormat["star column"]];
 
 						let tempObj = {
 							type: this.tableFormat["star column"],
 							id: value,
 							columns: this.getColumns(value),
-							section: this.sectionId,
+							section: this.sectionId + "_" + this.rowId,
 						}
 						stard.push(tempObj);
 					})
 
-					this.$emit('on-star', stard);
-				} else {
+					this.$parent.$emit('on-star', stard);
+				} /*else {
 					this.rawData.map(row => {
 						let value = row[this.tableFormat["star column"]];
 
@@ -267,7 +282,7 @@ export default Vue.component("research-sub-section", {
 						});
 
 					})
-				}
+				}*/
 
 			}
 			
@@ -281,30 +296,30 @@ export default Vue.component("research-sub-section", {
 					type: this.tableFormat["star column"],
 					id: value,
 					columns: this.getColumns(value),
-					section: this.sectionId,
+					section: this.sectionId + "_" + this.rowId,
 				}
 				stard.push(tempObj);
-				this.$emit('on-star', stard);
-			} else {
+				this.$parent.$emit('on-star', stard);
+			} /*else {
 				this.$store.dispatch("pkgDataSelected", {
 					type: this.tableFormat["star column"],
 					id: value,
 					action: "add",
 				});
-			}
+			}*/
 		},
 		removeStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
 			if (!!this.multiSectionPage) {
 				let stard = [...new Set(this.starItems)].filter(s => s.id != value);
-				this.$emit('on-star', stard);
-			} else {
+				this.$parent.$emit('on-star', stard);
+			} /*else {
 				this.$store.dispatch("pkgDataSelected", {
 					type: this.tableFormat["star column"],
 					id: value,
 					action: "remove",
 				});
-			}
+			}*/
 		},
 		checkStared(WHERE, ITEM) {
 			if (!!ITEM) {
@@ -314,11 +329,11 @@ export default Vue.component("research-sub-section", {
 					selectedItems = this.starItems
 					.filter((s) => s.type == this.tableFormat["star column"])
 					.map((s) => s.id);
-				} else {
+				}/* else {
 					selectedItems = this.pkgDataSelected
 					.filter((s) => s.type == this.tableFormat["star column"])
 					.map((s) => s.id);
-				}
+				}*/
 				
 				let value = ITEM[this.tableFormat["star column"]];
 

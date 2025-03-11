@@ -345,6 +345,8 @@
 						:sectionId="sectionId"
 						:rowId="getRowID(itemKey + value[itemKey] + index)"
 						:colors="colors"
+						:starItems="starItems"
+						:multiSectionPage="multiSectionPage"
 						:plotMargin="plotMargin"
 						:subSectionConfig="itemValue['subsection']"
 						:subSectionData="collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
