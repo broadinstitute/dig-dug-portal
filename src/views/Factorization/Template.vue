@@ -139,6 +139,13 @@
                     
                 </div>
             </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>Phenotypes</h4>
+                    <b-table :items="$store.state.phenotypeData">
+                    </b-table>
+                </div>
+            </div>
         </div>
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>

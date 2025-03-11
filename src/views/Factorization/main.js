@@ -193,10 +193,6 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        networkGraph(newData){
-            console.log(JSON.stringify(newData.edges));
-            console.log(JSON.stringify(newData.nodes));
-        }
     },
 
     created() {
@@ -209,12 +205,14 @@ new Vue({
         search() {
             if (this.geneInput) {
                 let genes = this.geneInput.trim().split(/[\n, ]+/);
+                console.log(genes.length);
                 let geneSets = this.genesetParam;
-                let queryString = JSON.stringify({
+                let query = {
                     "genes": genes,
-                    "gene_sets": geneSets
-                });
-                this.$store.dispatch("queryBayesGenes", queryString);
+                };
+                this.$store.dispatch("queryBayesPhenotypes", JSON.stringify(query));
+                query["gene_sets"] = geneSets;
+                this.$store.dispatch("queryBayesGenes", JSON.stringify(query));
             }
         },
         flatData(data){
