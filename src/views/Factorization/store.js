@@ -14,6 +14,7 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         pigeanGeneset: bioIndex("pigean-gene-set"),
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },
     state: {
         pigeanFactor: [],
@@ -22,7 +23,8 @@ export default new Vuex.Store({
         roundTripInputGenes: [],
         genesetOptions: [],
         genesetPValues: [],
-        networkGraph: {nodes:[], edges:[]}
+        networkGraph: {nodes:[], edges:[]},
+        phenotypeData: [],
     },
 
     mutations: {
@@ -46,6 +48,9 @@ export default new Vuex.Store({
         },
         setNetworkGraph(state, data){
             state.networkGraph = data || state.networkGraph;
+        },
+        setPhenotypeData(state, data){
+            state.phenotypeData = data || state.phenotypeData;
         },
         clearAllData(state){
             state.pigeanFactor = [];
@@ -78,6 +83,17 @@ export default new Vuex.Store({
             //Network graph is a single item array
             context.commit("setNetworkGraph", json["network_graph"][0])
         },
+        async queryBayesPhenotypes(context, queryString){
+            let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/phenotypes";
+            let json = await fetch(address, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: queryString
+            }).then(resp => resp.json());
+            context.commit("setPhenotypeData", json["phenotypes"]);
+        },
         async queryGenesetOptions(context){
             let address = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/heartbeat";
             let json = await fetch(address, {
@@ -87,6 +103,9 @@ export default new Vuex.Store({
                 }
             }).then(resp => resp.json());
             context.commit("setGenesetOptions", json.gene_sets);
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
     },
 });
