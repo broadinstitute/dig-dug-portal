@@ -1,9 +1,9 @@
 <template>
 	<div>
-		<div class="sub-section-header"><strong v-if="!!subectionConfig['label']">{{ subectionConfig['label'] }}</strong></div>
-		<div v-if="!!subectionConfig['visualizers'] && (subectionConfig['visualizers']['wrapper type'] == 'tabs' || subectionConfig['visualizers']['wrapper type'] == 'divs')"  class="sub-plot-wrapper">
+		<div class="sub-section-header"><strong v-if="!!subSectionConfig['label']">{{ subSectionConfig['label'] }}</strong></div>
+		<div v-if="!!subSectionConfig['visualizers'] && (subSectionConfig['visualizers']['wrapper type'] == 'tabs' || subSectionConfig['visualizers']['wrapper type'] == 'divs')"  class="sub-plot-wrapper">
 			<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + rowId">
-				<div v-for="tab, tabIndex in subectionConfig['visualizers']['visualizers']" :id="'tabUi' + rowId + tabIndex"
+				<div v-for="tab, tabIndex in subSectionConfig['visualizers']['visualizers']" :id="'tabUi' + rowId + tabIndex"
 					class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + rowId + tabIndex,
 						'tabUiGroup' + rowId,
 						'tabContent' + rowId + tabIndex, 'tabContentGroup' + rowId, true)">
@@ -11,14 +11,14 @@
 				</div>
 			</div>
 
-			<div :id="subectionConfig['visualizers']['wrapper type'] == 'tabs' ? 'tabContentGroup' + rowId : ''"
+			<div :id="subSectionConfig['visualizers']['wrapper type'] == 'tabs' ? 'tabContentGroup' + rowId : ''"
 			>
 
-				<div v-for="plotConfig, plotIndex in subectionConfig['visualizers']['visualizers']"
-					:id="subectionConfig['visualizers']['wrapper type'] == 'tabs' ? 'tabContent' + rowId + plotIndex : ''"
+				<div v-for="plotConfig, plotIndex in subSectionConfig['visualizers']['visualizers']"
+					:id="subSectionConfig['visualizers']['wrapper type'] == 'tabs' ? 'tabContent' + rowId + plotIndex : ''"
 					class="plot-tab-content-wrapper"
-					:class="(subectionConfig['visualizers']['wrapper type'] == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
-					<h6 v-html="plotConfig.label" v-if="subectionConfig['visualizers']['wrapper type'] != 'tabs'"></h6>
+					:class="(subSectionConfig['visualizers']['wrapper type'] == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
+					<h6 v-html="plotConfig.label" v-if="subSectionConfig['visualizers']['wrapper type'] != 'tabs'"></h6>
 					<research-section-visualizers 
 						:plotConfig="plotConfig"
 						:plotData="currentData"
@@ -34,9 +34,9 @@
 		
 		</div>
 			
-		<div v-if="!!subectionConfig['visualizer']" class="sub-plot-wrapper">
+		<div v-if="!!subSectionConfig['visualizer']" class="sub-plot-wrapper">
 			<research-section-visualizers 
-				:plotConfig="subectionConfig['visualizer']"
+				:plotConfig="subSectionConfig['visualizer']"
 				:plotData="currentData"
 				:phenotypeMap="phenotypeMap" 
 				:colors="colors" 
@@ -50,6 +50,19 @@
 		<table class="table table-sm table-striped research-data-table subsection-table">
 			<thead>
 				<tr>
+					<th v-if="!!tableFormat['star column']" class="star-items-control">
+						<b-icon
+							:icon="!!stared ? 'star-fill' : 'star'"
+							style="color: #ffcc00; cursor: pointer"
+						>
+						</b-icon>
+						<span class="star-items-options">
+							<ul>
+								<li><a href="javascript:;" @click="showHideStared()">Show stard only</a></li>
+								<li><a href="javascript:;" @click="starAll()">Star / unstar all</a></li>
+							</ul>
+						</span>
+					</th>
 					<th v-for="head in getTopRows()">
 						<span>{{ head }}</span>
 					</th>
@@ -57,6 +70,22 @@
 			</thead>
 			<tbody>
 				<tr v-for="row in subPageData">
+					<td v-if="!!tableFormat['star column']">
+						<span v-if="checkStared('1', value) == false"
+							><b-icon
+								icon="star"
+								style="color: #aaaaaa; cursor: pointer"
+								@click="addStar(value)"
+							></b-icon
+						></span>
+						<span v-if="checkStared('2', value) == true"
+							><b-icon
+								icon="star-fill"
+								style="color: #ffcc00; cursor: pointer"
+								@click="removeStar(value)"
+							></b-icon
+						></span>
+					</td>
 					<td  v-for="head in getTopRows()">
 						
 						<span v-html="formatValue(row[head],head)"></span>
@@ -119,7 +148,7 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 
 export default Vue.component("research-sub-section", {
-	props: ["sectionId","rowId","subectionConfig", "subsectionData","phenotypeMap","utils","colors","plotMargin"],
+	props: ["sectionId","rowId","subSectionConfig", "subSectionData","phenotypeMap","utils","colors","plotMargin"],
 	components: {
 		ResearchSectionVisualizers,
 		ResearchSectionComponents,
@@ -129,6 +158,8 @@ export default Vue.component("research-sub-section", {
 			currentData:null,
 			currentPage: 1,
 			numberOfRows: 10,
+			stared: false,
+			staredAll: false,
 		};
 	},
 	modules: {
@@ -160,8 +191,8 @@ export default Vue.component("research-sub-section", {
 			return pageData;
 		},
 		tableFormat() {
-			if (!!this.subectionConfig['table format']) {
-				return this.subectionConfig['table format'];
+			if (!!this.subSectionConfig['table format']) {
+				return this.subSectionConfig['table format'];
 			} else {
 				return null;
 			}
@@ -174,19 +205,146 @@ export default Vue.component("research-sub-section", {
 		}
 	},
 	methods: {
+		starAll() {
+
+			if(this.staredAll == true) {
+				this.staredAll = false;
+
+				if (!!this.multiSectionPage) {
+
+					let stard = [...new Set(this.starItems)]
+
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						//stard = stard.filter(s => s.section != this.sectionId);
+					})
+
+					stard = stard.filter(s => s.section != this.sectionId);
+
+					this.$emit('on-star', stard);
+				} else {
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						this.$store.dispatch("pkgDataSelected", {
+							type: this.tableFormat["star column"],
+							id: value,
+							action: "remove",
+						});
+
+					})
+				}
+
+			} else {
+				this.staredAll = true;
+
+				if (!!this.multiSectionPage) {
+
+					let stard = [...new Set(this.starItems)]
+
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						let tempObj = {
+							type: this.tableFormat["star column"],
+							id: value,
+							columns: this.getColumns(value),
+							section: this.sectionId,
+						}
+						stard.push(tempObj);
+					})
+
+					this.$emit('on-star', stard);
+				} else {
+					this.rawData.map(row => {
+						let value = row[this.tableFormat["star column"]];
+
+						this.$store.dispatch("pkgDataSelected", {
+							type: this.tableFormat["star column"],
+							id: value,
+							action: "add",
+						});
+
+					})
+				}
+
+			}
+			
+		},
+		addStar(ITEM) {
+			let value = ITEM[this.tableFormat["star column"]];
+			if (!!this.multiSectionPage) {
+				
+				let stard = [...new Set(this.starItems)]
+				let tempObj = {
+					type: this.tableFormat["star column"],
+					id: value,
+					columns: this.getColumns(value),
+					section: this.sectionId,
+				}
+				stard.push(tempObj);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.tableFormat["star column"],
+					id: value,
+					action: "add",
+				});
+			}
+		},
+		removeStar(ITEM) {
+			let value = ITEM[this.tableFormat["star column"]];
+			if (!!this.multiSectionPage) {
+				let stard = [...new Set(this.starItems)].filter(s => s.id != value);
+				this.$emit('on-star', stard);
+			} else {
+				this.$store.dispatch("pkgDataSelected", {
+					type: this.tableFormat["star column"],
+					id: value,
+					action: "remove",
+				});
+			}
+		},
+		checkStared(WHERE, ITEM) {
+			if (!!ITEM) {
+				let selectedItems;
+
+				if(!!this.multiSectionPage) {
+					selectedItems = this.starItems
+					.filter((s) => s.type == this.tableFormat["star column"])
+					.map((s) => s.id);
+				} else {
+					selectedItems = this.pkgDataSelected
+					.filter((s) => s.type == this.tableFormat["star column"])
+					.map((s) => s.id);
+				}
+				
+				let value = ITEM[this.tableFormat["star column"]];
+
+				if (!!selectedItems.includes(value)) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		},
+		showHideStared() {
+			if (this.stared == false) {
+				this.stared = true;
+			} else {
+				this.stared = false;
+			}
+		},
 		filterData() {
 			const preFilters = this.$parent.$parent.sectionConfig["pre filters"];
 			const filterConfig = this.$parent.$parent.sectionConfig.filters;
 			const filtersIndex = this.$parent.$parent.filtersIndex;
 			const filterValues = this.$parent.$parent.filterValues;
 
-			console.log("filterConfig",filterConfig)
-			console.log("filtersIndex",filtersIndex)
-			console.log("filterValues",filterValues.length)
-
-			const rawData = this.subsectionData;
-
-			
+			const rawData = this.subSectionData;
 
 			/// prefilters
 
@@ -212,7 +370,9 @@ export default Vue.component("research-sub-section", {
 					let meetFilters = true;
 
 					filterConfig.map(filter => {
-						let search = filter.type == 'checkbox'? filterValues : filtersIndex.search;
+						let search = filter.type == 'checkbox'? filterValues : filtersIndex[filter.field].search;
+
+						
 
 						if (!!row[filter.field] && row[filter.field] != undefined && !!search && search.length > 0) {
 
@@ -221,68 +381,64 @@ export default Vue.component("research-sub-section", {
 							switch (filter.type) {
 								case "checkbox":
 									if(!search.includes(value)) {
-										//console.log('no');
 										meetFilters = false;
 									}
 
 									break;
 									
-									if(search[0] != value.toString()) {
-										meetFilters = false;
-									}
-
-									break;
-								/*case "search":
-									row[searchIndex.field]
-										.toLowerCase()
-										.includes(
-											search.toLowerCase()
-										)
-										? tempFiltered.push(row)
-										: "";
-									break;
-								case "search exact":
-									search.toLowerCase() ===
-									row[searchIndex.field]
-										.toString()
-										.toLowerCase()
-										? tempFiltered.push(row)
-										: "";
-
-									break;
-								case "dropdown word":
-									row[searchIndex.field]
-										.toLowerCase()
-										.includes(
-											search.toLowerCase()
-										)
-										? tempFiltered.push(row)
-										: "";
-
-									break;
-*/
 								case "search greater than":
-									if (typeof value == 'number' && value < search[0]) {
-										meetFilters = false;
-									}
+
+									typeof value == 'number' && value < search[0]? meetFilters = false :"";
 									break;
 								case "search lower than":
-									if (typeof value == 'number' && value > search[0]) {
-										meetFilters = false;
-									}
+
+									typeof value == 'number' && value > search[0]? meetFilters = false :"";
 
 									break;
-								/*case "search or":
-									searchVals = search.split(",");
+								case "dropdown":
 
-									typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] <=
+									value.toString() != search[0]? meetFilters = false :"";
+
+									break;
+								
+								case "dropdown word":
+									value.toLowerCase()
+										.includes(
+											search[0].toLowerCase()
+										)
+										? ""
+										: meetFilters = false;
+
+									break;
+								case "search":
+									value.toLowerCase()
+										.includes(
+											search[0].toLowerCase()
+										)
+										? ""
+										: meetFilters = false;
+									break;
+								case "search exact":
+									search[0].toLowerCase() ===
+									value
+										.toString()
+										.toLowerCase()
+										? "":meetFilters = false;
+
+									break;
+								
+								case "search or":
+									searchVals = search[0].split(",");
+
+									typeof value == 'number' && (value <=
 										searchVals[0].trim() ||
-									row[searchIndex.field] >=
+									value >=
 										searchVals[1].trim())
-										? tempFiltered.push(row)
-										: "";
+										? "":meetFilters = false;
+
 									break;
-								case "search change direction":
+
+								/*case "search change direction":
 									let searchDirection =
 										document.getElementById(
 											"filter_" + this.sectionId +
@@ -293,59 +449,48 @@ export default Vue.component("research-sub-section", {
 										).value;
 
 									searchDirection == "lt"
-										? row[searchIndex.field] <=
+										? value <=
 											search
-											? tempFiltered.push(row)
-											: ""
+											? "":meetFilters = false
 										: searchDirection == "gt"
-										? row[searchIndex.field] >=
+										? value >=
 											search
-											? tempFiltered.push(row)
-											: ""
-										: "";
+											? "":meetFilters = false
+											: "";
 
-									break;
+									break;*/
 
 								case "search and":
-									searchVals = search.split(",");
+									searchVals = search[0].split(",");
 
-									typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+									typeof value == 'number' && (value >=
 										searchVals[0].trim() &&
-									row[searchIndex.field] <=
+									value <=
 										searchVals[1].trim())
-										? tempFiltered.push(row)
-										: "";
+										? "":meetFilters = false;
 									break;
 
 								case "slider":
-									searchVals = search.split(",");
+									searchVals = search[0].split(",");
 
-									typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
+									typeof value == 'number' && (value >=
 										searchVals[0].trim() &&
-										row[searchIndex.field] <=
+										value <=
 										searchVals[1].trim())
-										? tempFiltered.push(row)
-										: "";
+										? "":meetFilters = false;
 
-									break;*/
+									break;
 							}
 						}
 					});
 
-					
-					console.log("meetFilters 1", meetFilters)
 					if( meetFilters == true) {
-
-						console.log("meetFilters 2", meetFilters)
-
 						this.currentData.push(row)
 					}
 				});
-
-				console.log("this.currentData",this.currentData);
 			}
 
-			//console.log("this.currentData",this.currentData);
+			
 
 
 /*			if(!!filtersIndex) {
@@ -371,111 +516,9 @@ export default Vue.component("research-sub-section", {
 					row[searchIndex.field] != undefined
 				) {
 					switch (searchIndex.type) {
-						case "dropdown":
-							search ===
-							row[
-								searchIndex.field
-							].toString()
-								? tempFiltered.push(row)
-								: "";
+						
 
-							break;
-						case "search":
-							row[searchIndex.field]
-								.toLowerCase()
-								.includes(
-									search.toLowerCase()
-								)
-								? tempFiltered.push(row)
-								: "";
-							break;
-						case "search exact":
-							search.toLowerCase() ===
-							row[searchIndex.field]
-								.toString()
-								.toLowerCase()
-								? tempFiltered.push(row)
-								: "";
-
-							break;
-						case "dropdown word":
-							row[searchIndex.field]
-								.toLowerCase()
-								.includes(
-									search.toLowerCase()
-								)
-								? tempFiltered.push(row)
-								: "";
-
-							break;
-
-						case "search greater than":
-							typeof row[searchIndex.field] == 'number' && row[searchIndex.field] >= search
-								? tempFiltered.push(row)
-								: "";
-							break;
-						case "search lower than":
-						typeof row[searchIndex.field] == 'number' && row[searchIndex.field] <= search
-								? tempFiltered.push(row)
-								: "";
-
-							break;
-						case "search or":
-							searchVals = search.split(",");
-
-							typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] <=
-								searchVals[0].trim() ||
-							row[searchIndex.field] >=
-								searchVals[1].trim())
-								? tempFiltered.push(row)
-								: "";
-							break;
-						case "search change direction":
-							let searchDirection =
-								document.getElementById(
-									"filter_" + this.sectionId +
-										this.getColumnId(
-											searchIndex.field
-										) +
-										"_direction"
-								).value;
-
-							searchDirection == "lt"
-								? row[searchIndex.field] <=
-									search
-									? tempFiltered.push(row)
-									: ""
-								: searchDirection == "gt"
-								? row[searchIndex.field] >=
-									search
-									? tempFiltered.push(row)
-									: ""
-								: "";
-
-							break;
-
-						case "search and":
-							searchVals = search.split(",");
-
-							typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
-								searchVals[0].trim() &&
-							row[searchIndex.field] <=
-								searchVals[1].trim())
-								? tempFiltered.push(row)
-								: "";
-							break;
-
-						case "slider":
-							searchVals = search.split(",");
-
-							typeof row[searchIndex.field] == 'number' && (row[searchIndex.field] >=
-								searchVals[0].trim() &&
-								row[searchIndex.field] <=
-								searchVals[1].trim())
-								? tempFiltered.push(row)
-								: "";
-
-							break;
+						
 					}
 				}
 			})
@@ -497,16 +540,16 @@ export default Vue.component("research-sub-section", {
 		getTopRows(){
 			let topRows = [];
 
-			if(!!this.subectionConfig['table format'] && !!this.subectionConfig['table format']['top rows']) {
-				topRows = this.subectionConfig['table format']['top rows'];
+			if(!!this.subSectionConfig['table format'] && !!this.subSectionConfig['table format']['top rows']) {
+				topRows = this.subSectionConfig['table format']['top rows'];
 			} else {
-				topRows = Object.keys(this.subsectionData[0]);
+				topRows = Object.keys(this.subSectionData[0]);
 			}
 			return topRows;
 		},
 		formatValue(tdValue, tdKey) {
 			let content;
-			let tableFormat = this.subectionConfig['table format']
+			let tableFormat = this.subSectionConfig['table format']
 
 			if (
 				!!tableFormat &&
@@ -569,6 +612,29 @@ $(function () { });
 
 .plot-tab-content-wrapper {
 	padding-top: 25px;
+}
+
+.star-items-options {
+	display: none;
+    position: absolute;
+    background-color: #ffffff;
+    padding: 10px;
+    border: solid 1px #dddddd;
+    border-radius: 5px;
+    z-index: 10;
+    top: 0;
+    left: 20px;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.star-items-options ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.star-items-control:hover .star-items-options {
+	display: block;
 }
 
 .subsection-table tr{

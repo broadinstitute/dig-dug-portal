@@ -346,8 +346,8 @@
 						:rowId="getRowID(itemKey + value[itemKey] + index)"
 						:colors="colors"
 						:plotMargin="plotMargin"
-						:subectionConfig="itemValue['subsection']"
-						:subsectionData="collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
+						:subSectionConfig="itemValue['subsection']"
+						:subSectionData="collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
 						:phenotypeMap="phenotypeMap"
 						:utils="utils"
 						>
