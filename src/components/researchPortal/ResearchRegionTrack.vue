@@ -33,7 +33,7 @@
                         <br />
                     </span>
                     <template v-if="infoBoxContent.data.length > 1">
-                        <br />
+                        <br /><br />
                     </template>
                 </template>
             </div>
