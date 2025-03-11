@@ -20,6 +20,7 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 import FilterBasic from "@/components/criterion/FilterBasic.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -28,6 +29,7 @@ import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
+import pigeanUtils from "@/utils/pigeanUtils";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -50,7 +52,8 @@ new Vue({
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
-        FilterBasic
+        FilterBasic,
+        FilterLessThan,
     },
 
     data() {
@@ -132,6 +135,19 @@ new Vue({
                     label: "Top gene sets",
                     sortable: false
                 }
+            ],
+            phenotypeFields: [
+                {
+                    key: "p_value",
+                    label: "P-value",
+                    sortable: true,
+                    formatter: Formatters.pValueFormatter
+                },
+                {
+                    key: "phenotype",
+                    label: "Phenotype",
+                    sortable: true,
+                }
             ]
             
         };
@@ -195,10 +211,13 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("queryGenesetOptions");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = 
+                    pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
 
     methods: {

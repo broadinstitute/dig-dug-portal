@@ -142,8 +142,21 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Phenotypes</h4>
-                    <b-table :items="$store.state.phenotypeData">
-                    </b-table>
+                    <criterion-function-group>
+                        <filter-less-control
+                            field="p_value"
+                        >
+                            <div class="label">Filter by P-Value</div>
+                        </filter-less-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-bayes-table
+                                :pigeanData="$store.state.phenotypeData"
+                                :fields="$parent.phenotypeFields"
+                                :filter="filter"
+                                :phenotypeMap="$parent.pigeanPhenotypeMap">
+                            </pigean-bayes-table>
+                        </template>
+                    </criterion-function-group>
                 </div>
             </div>
         </div>
