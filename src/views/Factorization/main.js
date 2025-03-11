@@ -61,6 +61,7 @@ new Vue({
             geneInput: "",
             genesetParam: "default",
             placeholder: "Enter a list of genes.",
+            maxPhenotypes: 100,
             baseFields: [
                 {
                     key: "label_factor",
@@ -227,6 +228,7 @@ new Vue({
                 console.log(genes.length);
                 let geneSets = this.genesetParam;
                 let query = {
+                    "max_number_phenotypes": this.maxPhenotypes,
                     "genes": genes,
                 };
                 this.$store.dispatch("queryBayesPhenotypes", JSON.stringify(query));

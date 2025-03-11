@@ -49,6 +49,13 @@
                                         </option>
                                     </select>
                                 </div>
+                                <div class="col filter-col-md" id="maxPhenotypeDiv">
+                                    <div class="label">
+                                        Max. Phenotypes
+                                    </div>
+                                    <input class="form-control"
+                                        type="number" v-model="$parent.maxPhenotypes"/>
+                                </div>
                                 <div class="col filter-col-md"
                                     id="searchButtonDiv">
                                     <div class="label">Search</div>
@@ -146,7 +153,7 @@
                         <filter-less-control
                             field="p_value"
                         >
-                            <div class="label">Filter by P-Value</div>
+                            <div class="label">Filter by P-Value (&le;)</div>
                         </filter-less-control>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-bayes-table
@@ -182,7 +189,7 @@
 #bayesSearchField {
     min-height: 125px !important;
 }
-#searchButtonDiv, #dropdownDiv {
+#searchButtonDiv, #dropdownDiv, #maxPhenotypeDiv {
     vertical-align: top !important;
 }
 #searchButtonDiv button {
