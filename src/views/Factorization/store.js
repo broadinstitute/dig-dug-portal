@@ -58,6 +58,7 @@ export default new Vuex.Store({
             state.genesetFactor = [];
             state.roundTripInputGenes = [];
             state.genesetPValues = [];
+            state.networkGraph = {nodes:[], edges:[]};
         }
     },
 
