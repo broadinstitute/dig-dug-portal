@@ -166,7 +166,11 @@ export default Vue.component("research-sub-section", {
 	},
 	created() {
 		console.log("from mount");
-		this.filterData();
+		this.currentData = this.subSectionData;
+
+		if(!!this.subSectionConfig["share parent filters"]) {
+			this.filterData()
+		}
 	},
 	mounted() {
 		
@@ -201,7 +205,12 @@ export default Vue.component("research-sub-section", {
 	watch: {
 		'$parent.$parent.filterValues'(FILTERS) {
 			console.log("from watch");
-			this.filterData()
+
+			this.currentData = this.subSectionData;
+
+			if(!!this.subSectionConfig["share parent filters"]) {
+				this.filterData()
+			}
 		}
 	},
 	methods: {
