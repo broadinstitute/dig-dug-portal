@@ -183,7 +183,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             loopIndex++;
                         })
 
-                        console.log(tempObj);
+                        //console.log(tempObj);
                     }
 
 
