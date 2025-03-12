@@ -648,6 +648,112 @@
 </template>
   
 <script>
+    /*
+    sample render config:
+    {
+        "type": "cell browser",
+        "label": "Single Cell Browser",
+        "parameters":{
+          "datasetId": "PKBdatasetId",
+          "gene": "PKBgene"
+        },
+        "data points":[ 
+          {
+            "role": "metadata",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell_metadata/dataset_metadata.json.gz"
+          },{
+            "role": "fields",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/fields.json.gz"
+          },{
+            "role": "coordinates",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz"
+          },{
+            "role": "expression",
+            "url": "https://skin.hugeampkpnbi.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
+          },{
+            "role": "markers",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
+          }
+        ],
+        "components": {
+          "cell info": {
+            "enabled": true
+          },
+          "cell proportion": {
+            "enabled": true
+          },
+          "gene expression": {
+            "enabled": true
+          },
+          "marker genes": {
+            "enabled": true
+          }
+        },
+        "presets": {
+          "cell type label": "Cell Type",
+          "samples label": "Samples",
+
+          "genes": []
+        }
+    }
+
+
+    proposed render config
+    {
+        "type": "cell browser",
+        "label": "Single Cell Browser",
+        "parameters":{
+          "datasetId": "PKBdatasetId",
+          "gene": "PKBgene"
+        },
+        "bio_index": "skin",
+        "fields":["field.A", "field.B", "field.C"],
+        "fields":[
+            {
+                "raw": "field.A",
+                "clean": "Field A",
+                "type": "cont"
+            }
+        ],
+        "data points":[ 
+          {
+            "role": "metadata",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell_metadata/dataset_metadata.json.gz"
+          },{
+            "role": "fields",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/fields.json.gz"
+          },{
+            "role": "coordinates",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz"
+          },{
+            "role": "expression",
+            "url": "https://skin.hugeampkpnbi.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
+          },{
+            "role": "markers",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
+          }
+        ],
+        "components": {
+          "cell info": {
+            "enabled": true
+          },
+          "cell proportion": {
+            "enabled": true
+          },
+          "gene expression": {
+            "enabled": true
+          },
+          "marker genes": {
+            "enabled": true
+          }
+        },
+        "presets": {
+          "cell type label": "Cell Type",
+          "genes": []
+        }
+    }
+    */
+
     import * as d3 from 'd3';
     import Vue from 'vue';
     import keyParams from "@/utils/keyParams";
@@ -818,8 +924,8 @@
 
                 //check for requested datasetId
                 /* it can come from multiple places
-                    1. 'on-select' event from byor
-                    2. query string param
+                    1. 'on-select' event
+                    2. querystring param
                     3. config preset
                 */
                 if(!this.datasetId || this.datasetId === ''){
@@ -935,6 +1041,8 @@
                 this.dataLoaded = true;
 
                 await Vue.nextTick();
+
+                this.prepFields(this.fields);
 
                 //pre-calculate colors for labels in each field
                 this.labelColors = scUtils.calcLabelColors(this.fields, colors);
@@ -1131,6 +1239,27 @@
                 console.log('selector hovered', e);
                 this.cellCompositionVars.highlightLabel = e.hoveredLabel;
             },
+
+
+            prepFields(fields){
+                const f = fields;
+                const metadata_types = {}
+                const metadata_to_remove = []
+                Object.entries(fields.metadata_labels).forEach(([key, value]) => {
+                    //const colType = scUtils.detectVarType(value);
+                    //metadata_types[key] = colType;
+
+                    //include only fields with more than 1 value
+                    if(value.length < 2) metadata_to_remove.push(key)
+                })
+                f["metadata_removed"] = {};
+                metadata_to_remove.forEach(column => {
+                    f["metadata_removed"][column] = [...f.metadata_labels[column]];
+                    delete f.metadata_labels[column];
+                })
+                //console.log({metadata_to_remove, metadata_types, f});
+                return f;
+            }
         },
     });
 </script>
