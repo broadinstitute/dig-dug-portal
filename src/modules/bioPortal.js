@@ -102,10 +102,13 @@ export default {
         defaultGroup(state) {
             if (state.diseaseGroups.length > 0) {
                 //if defaultPortal is set, use that
-                if (state.defaultPortal) {
+                if (state.defaultPortal || process.env.VUE_APP_DEFAULT_PORTAL) {
+                    const portalToUse =
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL;
                     for (let i in state.diseaseGroups) {
                         let group = state.diseaseGroups[i];
-                        if (group.name == state.defaultPortal) {
+                        if (group.name == portalToUse) {
                             return group;
                         }
                     }
@@ -165,6 +168,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -182,6 +186,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -199,6 +204,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -216,6 +222,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -235,6 +242,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -251,7 +259,7 @@ export default {
         async getUser(context, access_token) {
             let data = await fetch(
                 "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                access_token
+                    access_token
             ).then((response) => response.json());
 
             context.commit("setUser", data.email);

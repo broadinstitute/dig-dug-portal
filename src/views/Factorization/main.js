@@ -20,6 +20,7 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 import FilterBasic from "@/components/criterion/FilterBasic.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
@@ -28,6 +29,7 @@ import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
+import pigeanUtils from "@/utils/pigeanUtils";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -50,7 +52,8 @@ new Vue({
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
-        FilterBasic
+        FilterBasic,
+        FilterLessThan,
     },
 
     data() {
@@ -58,6 +61,7 @@ new Vue({
             geneInput: "",
             genesetParam: "default",
             placeholder: "Enter a list of genes.",
+            maxPhenotypes: 100,
             baseFields: [
                 {
                     key: "label_factor",
@@ -132,6 +136,19 @@ new Vue({
                     label: "Top gene sets",
                     sortable: false
                 }
+            ],
+            phenotypeFields: [
+                {
+                    key: "p_value",
+                    label: "P-value",
+                    sortable: true,
+                    formatter: Formatters.pValueFormatter
+                },
+                {
+                    key: "phenotype",
+                    label: "Phenotype",
+                    sortable: true,
+                }
             ]
             
         };
@@ -193,28 +210,30 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        networkGraph(newData){
-            console.log(JSON.stringify(newData.edges));
-            console.log(JSON.stringify(newData.nodes));
-        }
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("queryGenesetOptions");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = 
+                    pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
 
     methods: {
         search() {
             if (this.geneInput) {
                 let genes = this.geneInput.trim().split(/[\n, ]+/);
+                console.log(genes.length);
                 let geneSets = this.genesetParam;
-                let queryString = JSON.stringify({
+                let query = {
+                    "max_number_phenotypes": this.maxPhenotypes,
                     "genes": genes,
-                    "gene_sets": geneSets
-                });
-                this.$store.dispatch("queryBayesGenes", queryString);
+                };
+                this.$store.dispatch("queryBayesPhenotypes", JSON.stringify(query));
+                query["gene_sets"] = geneSets;
+                this.$store.dispatch("queryBayesGenes", JSON.stringify(query));
             }
         },
         flatData(data){

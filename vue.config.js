@@ -328,7 +328,7 @@ module.exports = {
         let bioindex_host_private =
             process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
 
-        if (!!bioindex_dev) {
+        if (!!bioindex_dev && !process.env.BIOINDEX_HOST) {
             bioindex_host =
                 bioindex_dev == "localhost"
                     ? "http://localhost:5000"
