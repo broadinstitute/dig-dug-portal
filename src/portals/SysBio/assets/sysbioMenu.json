@@ -15,7 +15,7 @@
                 },
                 {
                     "label": "Gene Expression Browser",
-                    "path": "#"
+                    "path": "/expression.html"
                 }
             ]
         },

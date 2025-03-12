@@ -83,4 +83,36 @@ body.kp-default {
         font-size: 1.25em;
         font-weight: 500;
     }
+
+    .pagination{
+        li.page-item .page-link, 
+        li.page-item.active .page-link, 
+        li.page-item.disabled .page-link {
+            border: 0;
+            color:black;
+        }
+
+        li.page-item .page-link {
+            background-color:transparent;
+        }
+        li.page-item:not(.disabled, .active):hover .page-link {
+            background-color: #eee;
+            border-radius: 5px;
+        }
+        li.page-item.disabled .page-link{
+            background-color: transparent;
+            color: #ddd;
+        }
+        li.page-item.active .page-link {
+            color: black;
+            background-color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            box-shadow: 0px 1px 2px 0 black;
+        }
+    }
+
+    table thead th{
+        background-color: #eee;
+    }
 }
