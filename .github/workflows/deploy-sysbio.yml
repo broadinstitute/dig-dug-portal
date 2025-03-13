@@ -1,0 +1,36 @@
+name: Build and Deploy SysBio
+
+on:
+    push:
+        tags:
+            - "sysbio_*"
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "16"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build project
+              env:
+                  VUE_CLI_SERVICE_CONFIG_PATH: "./configs/vue.config.SysBio.js" # Update with your actual path
+                  VUE_APP_GA4_ID: ${{ secrets.VUE_APP_GA4_ID_SYSBIO }} # Use a secret for sensitive data
+              run: npm run build # Adjust this command based on your build script
+
+            - name: Deploy to target repository
+              uses: JamesIves/github-pages-deploy-action@v4
+              with:
+                  folder: portals/SysBio # Change this to your build output directory
+                  token: ${{ secrets.DEPLOY_SYSBIO_TOKEN }}
+                  repository-name: broadinstitute/sysbio # Change this to your target repo
+                  branch: main
+                  clean: true
