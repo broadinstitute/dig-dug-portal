@@ -36,4 +36,4 @@ jobs:
                   clean: true
                   commit-message: "Deploying SysBio portal"
                   single-commit: true
-                  tag: ${{ github.ref }}
+                  tag: ${{ startsWith(github.ref, 'refs/tags/') && github.ref.substring(10) || '' }}
