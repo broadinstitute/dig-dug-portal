@@ -5,14 +5,14 @@
 let pages = {
     index: {
         entry: "src/portals/SysBio/views/Index/main.js",
-        template: "src/portals/SysBio/views/Index/index.html",
+        template: "src/portals/SysBio/views/index.html",
         filename: "index.html",
         title: "Home",
         chunks: ["chunk-vendors", "chunk-common", "index"],
     },
     page404: {
         entry: "src/views/404/main.js",
-        template: "src/portals/SysBio/index.html",
+        template: "src/portals/SysBio/views/index.html",
         filename: "404.html",
         title: "Page Not Found",
         chunks: ["chunk-vendors", "chunk-common", "page404"],
