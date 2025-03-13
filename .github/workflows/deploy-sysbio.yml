@@ -38,6 +38,6 @@ jobs:
                   repository-name: broadinstitute/sysbio
                   branch: main
                   clean: true
-                  commit-message: "Deploying SysBio portal"
+                  commit-message: "Deploying SysBio portal from ${{ env.TAG_NAME }}"
                   single-commit: true
                   tag: ${{ env.TAG_NAME }}
