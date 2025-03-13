@@ -36,3 +36,4 @@ jobs:
                   clean: true
                   commit-message: "Deploying SysBio portal"
                   single-commit: true
+                  tag: ${{ github.ref }}
