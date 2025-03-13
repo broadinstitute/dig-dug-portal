@@ -8,6 +8,7 @@ import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 
 import keyParams from "../../../../utils/keyParams.js";
 import dataConvert from "../../../../utils/dataConvert.js";
+import { getTextContent } from "@/portals/SysBio/utils/content.js";
 
 // Use keyparams to do this
 
@@ -48,7 +49,7 @@ new Vue({
     },
 
     async created() {
-        await this.getContent(keyParams.page);
+        this.pageContent = await getTextContent(this.pages[keyParams.page], true);
     },
 
     methods: {
@@ -56,20 +57,6 @@ new Vue({
         csv2Json(DATA) {
             return dataConvert.csv2Json(DATA);
         },
-        async getContent(PAGE) {
-
-            const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=" + this.pages[PAGE];
-
-            let jsonContent = await fetch(CONTENT_URL).then(
-                resp => resp.json());
-            if (jsonContent.length === 0) {
-                this.pageContent = null;
-            }
-
-            this.pageContent = jsonContent[0];
-
-            console.log("this.pageContent", this.pageContent);
-        }
     },
 
     render(createElement, context) {

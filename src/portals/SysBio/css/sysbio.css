@@ -46,6 +46,14 @@ body.kp-default {
     a:visited {
         color: var(--sysbio-blue) !important;
     }
+    
+
+    label{
+        margin:0;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
 
     .hidden {
         display: none !important;
