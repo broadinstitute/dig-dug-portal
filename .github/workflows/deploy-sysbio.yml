@@ -20,20 +20,24 @@ jobs:
             - name: Install dependencies
               run: npm install
 
+            - name: Extract tag name
+              id: get_tag
+              run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
             - name: Build project
               env:
-                  VUE_CLI_SERVICE_CONFIG_PATH: "./configs/vue.config.SysBio.js" # Update with your actual path
-                  VUE_APP_GA4_ID: ${{ secrets.VUE_APP_GA4_ID_SYSBIO }} # Use a secret for sensitive data
-              run: npm run build # Adjust this command based on your build script
+                  VUE_CLI_SERVICE_CONFIG_PATH: "./configs/vue.config.SysBio.js"
+                  VUE_APP_GA4_ID: ${{ secrets.VUE_APP_GA4_ID_SYSBIO }}
+              run: npm run build
 
             - name: Deploy to target repository
               uses: JamesIves/github-pages-deploy-action@v4
               with:
-                  folder: portals/SysBio # Change this to your build output directory
+                  folder: portals/SysBio
                   token: ${{ secrets.DEPLOY_SYSBIO_TOKEN }}
-                  repository-name: broadinstitute/sysbio # Change this to your target repo
+                  repository-name: broadinstitute/sysbio
                   branch: main
                   clean: true
                   commit-message: "Deploying SysBio portal"
                   single-commit: true
-                  tag: ${{ startsWith(github.ref, 'refs/tags/') && github.ref.substring(10) || '' }}
+                  tag: ${{ env.TAG_NAME }}
