@@ -87,6 +87,12 @@ new Vue({
                     sortable: true
                 },
                 {
+                    key: "gene_set_score",
+                    label: "Gene set score",
+                    sortable: true,
+                    formatter: Formatters.tpmFormatter
+                },
+                {
                     key: "p_value",
                     label: "P-value",
                     formatter: Formatters.pValueFormatter,
@@ -195,7 +201,11 @@ new Vue({
         },
         genesetFactor() {
             let data = this.flatData(this.$store.state.genesetFactor);
-            data.forEach(item => item["p_value"] = this.pValueLookup[item.gene_set]);
+            data.forEach(item => { 
+                let geneSet = item.gene_set
+                item["p_value"] = this.pValueLookup[geneSet];
+                item["gene_set_score"] = this.$store.state.genesetScores[geneSet];
+            });
             return this.formatLabels(data);
         },
         genesetFields(){
