@@ -100,6 +100,12 @@ new Vue({
                     sortable: true
                 },
                 {
+                    key: "gene_score",
+                    label: "Gene score",
+                    sortable: true,
+                    formatter: Formatters.tpmFormatter
+                },
+                {
                     key: "inQuery",
                     label: "In original query?",
                     sortable: true
@@ -181,6 +187,10 @@ new Vue({
         },
         geneFactor() {
             let data = this.flatData(this.$store.state.geneFactor);
+            data.forEach(item => {
+                let gene = item.gene;
+                item.gene_score = this.$store.state.geneScores[gene];
+            })
             return this.formatLabels(this.inputQueryMembership(data));
         },
         genesetFactor() {
@@ -229,6 +239,7 @@ new Vue({
                 let geneSets = this.genesetParam;
                 let query = {
                     "max_number_phenotypes": this.maxPhenotypes,
+                    "calculate_gene_scores": true,
                     "genes": genes,
                 };
                 this.$store.dispatch("queryBayesPhenotypes", JSON.stringify(query));
