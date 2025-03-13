@@ -4,8 +4,10 @@
             <div style="display:flex; flex-direction:column; flex:1">
                 <strong style="font-size:20px">{{ data["datasetName"] }}</strong>
                 <em>{{ data["authors"] || '' }}</em>
-                <div style="max-height:100px; overflow:scroll; text-overflow: ellipsis; margin:10px 0">
-                    {{ data["summary"] || '' }}
+                <div style="flex:1; position: relative;">
+                    <div style="position: absolute; top:0; right:0; bottom:0; left:0; max-height:-webkit-fill-available; overflow:scroll; text-overflow: ellipsis; margin:10px 0 0">
+                        {{ data["summary"] || '' }}
+                    </div>
                 </div>
             </div>
             <div style="display:flex; flex-direction: column; border-left: 1px solid #ccc; padding-left: 20px; width:25%;">

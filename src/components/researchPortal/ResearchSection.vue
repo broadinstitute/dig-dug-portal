@@ -372,6 +372,8 @@ export default Vue.component("research-section", {
 			sectionHidden: false,
 			openInfoCard: null,
 			customList: {},
+			filterValues: null,
+			filtersIndex: null,
 		};
 	},
 	modules: {
@@ -403,6 +405,8 @@ export default Vue.component("research-section", {
 		if (!!this.sectionConfig["data point"] && !this.sectionConfig["data point"]["parameters point"]) {
 			this.getData();
 		}
+
+		this.getFilterValues()
 
 	},
 	computed: {
@@ -565,6 +569,7 @@ export default Vue.component("research-section", {
 			}
 			this.getRegion();
 			this.getBigRegion();
+			this.getFilterValues();
 		},
 		originalData(DATA) {
 			if (this.loadingDataFlag == "down") {
@@ -573,6 +578,59 @@ export default Vue.component("research-section", {
 		},
 	},
 	methods: {
+		getFilterValues() {
+			/*
+			{
+          "field": "Tissue",
+          "label": "Tissue",
+          "type": "checkbox",
+          "features": [
+            "autocomplete"
+          ],
+          "label in bubble": "true"
+        }
+		  */
+			//filter_c2ct_phenotype_annotationppo
+			if(!!this.sectionConfig.filters) {
+
+				//console.log("this.sectionConfig.filters",this.sectionConfig.filters)
+
+			let filters = [];
+
+				this.sectionConfig.filters.map( f => {
+
+					//console.log("f",f)
+					
+					const fItem = f.type == 'checkbox'? '.filter-' + this.sectionID + f.field.replace(/\W/g, "").toLowerCase():'#filter_' + this.sectionID + f.field.replace(/\W/g, "").toLowerCase();
+					const fItems = document.querySelectorAll(fItem);
+
+					//console.log("fItem",fItem);
+					//console.log("fItems",fItems);
+					
+					if(f.type == 'checkbox') {
+						fItems.forEach(node => {
+							if(node.checked) {
+								filters.push(node.value)
+								//console.log(node.id + " is checked");
+							}
+						})
+					} else {
+						
+						fItems.forEach(node => {
+							if(!!!!this.filtersIndex && !!this.filtersIndex[f.field] && this.filtersIndex[f.field].search.length > 0) {
+								filters.push(node.id+":"+this.filtersIndex[f.field].search[0] );
+							}
+						})
+					}
+				})
+
+				//console.log("filtes", filters);
+				this.filterValues = filters;
+					
+			} else {
+				this.filterValues = null;
+			}
+		},
 		buildTabData(DATA,TAB) {
 
 			let tabData = [];
@@ -799,8 +857,12 @@ export default Vue.component("research-section", {
 
 			return this.utils.Formatters.replaceWithParams(legend, this.pageParams);
 		},
-		updateData(data) {
+		updateData(data,filtersIndex) {
 			this.sectionData = data;
+
+			if(!!filtersIndex) {
+				this.filtersIndex = filtersIndex;
+			}
 		},
 		setOpenInfoCard(KEY) {
 			this.openInfoCard = KEY;
@@ -952,7 +1014,7 @@ export default Vue.component("research-section", {
 							
 							region = chr +":"+posStart+"-"+posEnd;
 
-							console.log("region",region)
+							//console.log("region",region)
 
 							queryParams[p] = region.toString().split(",");
 
