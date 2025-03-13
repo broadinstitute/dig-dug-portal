@@ -34,3 +34,5 @@ jobs:
                   repository-name: broadinstitute/sysbio # Change this to your target repo
                   branch: main
                   clean: true
+                  commit-message: "Deploying SysBio portal"
+                  single-commit: true
