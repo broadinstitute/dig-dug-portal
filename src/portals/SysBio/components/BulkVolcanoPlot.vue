@@ -46,7 +46,8 @@ export default Vue.component("bulk-volcano-plot", {
 			x: null,
 			y: null,
 			yAxisField: null,
-			xAxisField: null
+			xAxisField: null,
+            geneMap: null
 		};
 	},
 	modules: {
@@ -58,6 +59,7 @@ export default Vue.component("bulk-volcano-plot", {
 	mounted: function () {
 		this.chart = document.getElementById(`vector_wrapper_${this.sectionId}`);
 		this.chartWidth = this.renderConfig.width || this.chart.clientWidth;
+        this.geneMap = new Map(this.plotData.map(d => [d.GENE, d])); //should be this.renderConfig.renderBy
 		this.renderPlot();
 		if (this.selectedGene){
 			this.highlightDot(this.selectedGene);
@@ -85,15 +87,20 @@ export default Vue.component("bulk-volcano-plot", {
 		selectedGene(newData, oldData){
 			this.highlightDot(newData);
 		},
-		renderConfig(newData, oldData){
-			if(newData !== oldData){
-				this.renderPlot();
-			}
-		}
+		renderConfig:{
+            handler(newData, oldData){
+                //console.log(newData === oldData)
+                //if(newData !== oldData){
+                    this.renderPlot();
+                //}
+            },
+            deep: true
+        }
 	},
 	methods: {
 		tpmFormatter: Formatters.tpmFormatter,
 		renderPlot() {
+            console.log('rendering')
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
 
@@ -434,9 +441,10 @@ export default Vue.component("bulk-volcano-plot", {
 
 		highlightDot(gene){
 			this.svg.select("#axisGroup")
-				.selectAll(".highlightCircle")
+				.selectAll(".highlightCircle, .highlightLabel")
 				.remove();
-			let dataItem = this.plotData.find(d => d.gene === gene);
+			//let dataItem = this.plotData.find(d => d.GENE === gene);
+            const dataItem = this.geneMap.get(gene);
 			let geneVal = {
 				x: dataItem[this.xAxisField],
 				y: dataItem[this.yAxisField]
@@ -444,15 +452,36 @@ export default Vue.component("bulk-volcano-plot", {
 			let classes = `${this.dataToClass(geneVal)} highlightCircle`;
 			this.svg.select("#axisGroup")
 				.append('circle')
-					.attr('cx', this.x(geneVal.x))
-					.attr('cy', this.y(geneVal.y))
-					.attr('r', 6)
-					.style('fill', "#FF9900")
-					.attr("id", gene)
-          .attr("class", classes)
-					.on("mouseover", g => this.hoverDot(g))
-					.on("mouseleave", g =>  mouseTooltip.hide())
-					.on("click", g => this.clickDot(g));
+                .attr('cx', this.x(geneVal.x))
+                .attr('cy', this.y(geneVal.y))
+                .attr('r', 6)
+                .style('fill', "#0000C6")
+                .style('stroke', 'white')
+                .attr("id", gene)
+                .attr("class", classes)
+                .on("mouseover", g => this.hoverDot(g))
+                .on("mouseleave", g =>  mouseTooltip.hide())
+                .on("click", g => this.clickDot(g));
+
+            //label position
+            const dotXpos = this.x(geneVal.x) - this.margin.left;
+            const plotWidth = this.chartWidth - this.margin.left;
+            let xLabelAnchor = "end"
+            let xLabelOffset = -10
+            if(dotXpos < 50){
+                xLabelAnchor = "start"
+                xLabelOffset = 10;
+            }
+
+            this.svg.select("#axisGroup")
+                .append('text')
+                .attr('text-anchor', xLabelAnchor)
+                .attr("x", this.x(geneVal.x) + xLabelOffset)
+                .attr("y", this.y(geneVal.y) + 4)
+                .attr("class", "highlightLabel")
+                .style("font-family", "Arial").style("font-size", 10)
+                .style("text-shadow", "1px 1px 1px white")
+                .text(gene);
 		},
 
         dataToClass(value){
