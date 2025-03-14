@@ -224,6 +224,262 @@
             ></research-bar-plot>
              -->
 
+
+             <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>
+                        {{
+                            `Gene-sigantures for ${$store.state.geneName.toUpperCase()}`
+                        }}
+                        <tooltip-documentation
+                            name="gene.level.association.tooltip.hover"
+                            :content-fill="$parent.docDetails"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
+                    </h4>
+                    <span>
+                        <documentation
+                            name="gene.level.association.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </documentation>
+                    </span>
+                    <criterion-function-group
+                        @update:filter-list="
+                            (newFilters) => $parent.filterPhenotype(newFilters)
+                        "
+                    >
+                        <!--
+                        <filter-enumeration-control
+                            :field="'phenotype'"
+                            placeholder="Select a phenotype ..."
+                            :options="
+                                $parent.geneassociations.map(
+                                    (association) => association.phenotype
+                                )
+                            "
+                            :label-formatter="
+                                (phenotype) =>
+                                    !!$store.state.bioPortal.phenotypeMap[
+                                        phenotype
+                                    ]
+                                        ? $store.state.bioPortal.phenotypeMap[
+                                              phenotype
+                                          ].description
+                                        : phenotype
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Phenotypes</div>
+                        </filter-enumeration-control>
+                        <filter-greater-control
+                            v-if="$parent.activeTab === 'hugeScorePheWASPlot'"
+                            :field="'huge'"
+                            placeholder="Set HuGE..."
+                        >
+                            <div>
+                                <strong>HuGE Score (&ge;)</strong>
+                            </div>
+                        </filter-greater-control>
+                        <div
+                            v-if="
+                                $parent.activeTab === 'commonVariantPheWASPlot'
+                            "
+                            class="col filter-col-md"
+                        >
+                            <div class="label">Ancestry</div>
+                            <ancestry-selectpicker
+                                :ancestries="
+                                    $store.state.bioPortal.datasets.map(
+                                        (dataset) => dataset.ancestry
+                                    )
+                                "
+                            >
+                            </ancestry-selectpicker>
+                        </div>
+                        <filter-pvalue-control
+                            v-if="$parent.activeTab !== 'hugeScorePheWASPlot'"
+                            :field="'pValue'"
+                            placeholder="Set P-Value ..."
+                        >
+                            <div class="label">P-Value (&le;)</div>
+                        </filter-pvalue-control>
+                        <div
+                            v-if="
+                                $parent.diseaseGroup &&
+                                !$parent.noTranscriptDataPortal.includes(
+                                    $parent.diseaseGroup.name
+                                ) &&
+                                $parent.activeTab === 'rareVariantPheWASPlot'
+                            "
+                            class="col filter-col-md"
+                        >
+                            <div class="label">Transcript</div>
+                            <transcript-selectpicker
+                                v-if="
+                                    $store.state.geneToTranscript &&
+                                    $store.state.geneToTranscript.length
+                                "
+                                :transcripts="
+                                    $store.state.geneToTranscript.data
+                                "
+                            >
+                            </transcript-selectpicker>
+                        </div>
+                        -->
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <!--
+                            <span class="filter-pill-collection center">
+                                <b-badge
+                                    v-if="
+                                        !!$store.state.selectedAncestry &&
+                                        $parent.activeTab ===
+                                            'commonVariantPheWASPlot'
+                                    "
+                                    pill
+                                    class="btn btn-secondary search-bubble 1 pseudoFilter"
+                                >
+                                    <strong>
+                                        Ancestry =
+                                        {{
+                                            $parent.ancestryFormatter(
+                                                $store.state.selectedAncestry
+                                            )
+                                        }}
+                                        <a
+                                            @click="
+                                                $parent.clearCriterion(
+                                                    'ancestry'
+                                                )
+                                            "
+                                            >X</a
+                                        >
+                                    </strong>
+                                </b-badge>
+                                <b-badge
+                                    v-if="
+                                        !!$store.state.selectedTranscript &&
+                                        $parent.diseaseGroup &&
+                                        !$parent.noTranscriptDataPortal.includes(
+                                            $parent.diseaseGroup.name
+                                        ) &&
+                                        $parent.activeTab ===
+                                            'rareVariantPheWASPlot'
+                                    "
+                                    pill
+                                    class="btn search-bubble 1 pseudoFilter"
+                                >
+                                    <strong>
+                                        Transcript =
+                                        {{ $store.state.selectedTranscript }}
+                                        <a
+                                            @click="
+                                                $parent.clearCriterion(
+                                                    'transcript'
+                                                )
+                                            "
+                                            >X</a
+                                        >
+                                    </strong>
+                                </b-badge>
+                            </span>
+                            -->
+                            <b-tabs>
+                                <b-tab
+                                    title="Gene Sigantures"
+                                >
+                                    <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
+                                        <h4 class="card-title">Gene Sigantures</h4>
+                                        <!--
+                                        <span>
+                                            <documentation
+                                                name="gene.hugecal.subheader"
+                                                :content-fill="$parent.docDetails"
+                                                :content-map="
+                                                    $store.state.bioPortal
+                                                        .documentations
+                                                "
+                                            >
+                                            </documentation>
+                                        </span>
+                                        -->
+                                        <!--
+                                        <research-bar-plot
+                                            v-if="$parent.GTExData"
+                                            ref="GTExSpecificity"
+                                            :phenotypesData="$parent.GTExData"
+                                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                            :colors="$parent.plotColors"
+                                            :plotMargin="$parent.GTExRenderConfig['plot margin']"
+                                            :renderConfig="$parent.GTExRenderConfig"
+                                            :pkgData="null"
+                                            :pkgDataSelected="null"
+                                            :canvasId="'GTEx'"
+                                            :utils="$parent.utilsBox"
+                                        ></research-bar-plot>
+                                        -->
+                                        <data-download
+                                            v-if="$parent.geneSigsData"
+                                            :data="$parent.geneSigsData"
+                                            :filename="`${$store.state.geneName.toUpperCase()}_tissue_specificity`"
+                                            style="width: 125px; align-self: flex-end;"
+                                         ></data-download>
+                                        <b-table
+                                            v-if="$parent.geneSigsData"
+                                            small
+                                            :items="$parent.geneSigsData"
+                                            :fields="['gene', 'species', 'datasetId', 'datasetRef', 'datasetType', 'log_fold_change', 'p_value', 'p_value_adj']"
+                                            sortBy="gene"
+                                            :sortDesc="false"
+                                            :per-page="10"
+                                            :current-page="$parent.geneSigsPage"
+                                        >
+                                            <template #cell(datasetId)="data">
+                                                <a :href="$parent.buildGeneSigUrl(data.item)">
+                                                    {{ data.value }}
+                                                </a>
+                                            </template>
+                                        </b-table>
+                                        <b-pagination
+                                            v-if="$parent.geneSigsData"
+                                            v-model="$parent.geneSigsPage"
+                                            class="pagination-sm justify-content-center"
+                                            :total-rows="$parent.geneSigsData.length"
+                                            :per-page="10"
+                                        ></b-pagination>
+                                        <!--
+                                        <unauthorized-message
+                                            :restricted="
+                                                $store.state.varassociations
+                                                    .restricted
+                                            "
+                                        >
+                                        </unauthorized-message>
+                                        <huge-scores-table
+                                            v-if="$parent.hugeScores.length > 0"
+                                            :page-key="$store.state.gene.data[0]"
+                                            lead-table-field="phenotype"
+                                            :huge-scores="$parent.hugeScores"
+                                            :phenotype-map="
+                                                $store.state.bioPortal.phenotypeMap
+                                            "
+                                            :filter="filter"
+                                        >
+                                        </huge-scores-table>
+                                        -->
+                                    </div>
+                                </b-tab>
+                            </b-tabs>
+                        </template>
+                    </criterion-function-group>
+                </div>
+            </div>
+
+
              <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>

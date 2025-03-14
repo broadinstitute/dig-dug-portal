@@ -220,6 +220,9 @@ new Vue({
                 },
             },
 
+            geneSigsData: null,
+            geneSigsPage: 1,
+
             GTExData: null,
             GTExRenderConfig: {
                 type: "bar plot",
@@ -710,6 +713,7 @@ new Vue({
         this.checkGeneName(this.$store.state.geneName);
         this.getGTExdata();
         this.getGTExdata2();
+        this.getGeneSigs();
     },
 
     methods: {
@@ -808,6 +812,22 @@ new Vue({
                 this.$store.state.selectedAncestry = "";
                 return;
             }
+        },
+
+        async getGeneSigs(){
+            const cmsAPI = 'https://hugeampkpncms.org/servedata/dataset?dataset=';
+            const datasetFile = 'https://hugeampkpncms.org/sites/default/files/users/user32/all_sig_genes.all_datasets.test_.csv';
+            const response = await fetch(cmsAPI+datasetFile).then((resp) => resp.json());
+            const json = dataConvert.csv2Json(response);
+            const filtered = json.filter(row => row.gene === this.$store.state.geneName);
+            this.geneSigsData = filtered.length>0 ? filtered : json;
+            console.log('geneSigsData', this.geneSigsData);
+        },
+
+        buildGeneSigUrl(item){
+            let url = item.datasetType === 'bulk_rna' ? "/bulkbrowser.html?dataset=" : "/cellbrowser.html?datasetId=";
+            url += `${item.datasetId}&gene=${item.gene}`
+            return url;
         },
 
         async getGTExdata(){
