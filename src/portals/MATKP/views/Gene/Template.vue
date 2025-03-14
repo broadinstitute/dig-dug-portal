@@ -432,7 +432,7 @@
                                             v-if="$parent.geneSigsData"
                                             small
                                             :items="$parent.geneSigsData"
-                                            :fields="['gene', 'species', 'datasetId', 'datasetRef', 'datasetType', 'log_fold_change', 'p_value', 'p_value_adj']"
+                                            :fields="['species', 'datasetId', 'datasetRef', 'datasetType', 'log_fold_change', 'p_value', 'p_value_adj']"
                                             sortBy="gene"
                                             :sortDesc="false"
                                             :per-page="10"

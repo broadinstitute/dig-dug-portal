@@ -815,13 +815,12 @@ new Vue({
         },
 
         async getGeneSigs(){
-            const cmsAPI = 'https://hugeampkpncms.org/servedata/dataset?dataset=';
-            const datasetFile = 'https://hugeampkpncms.org/sites/default/files/users/user32/all_sig_genes.all_datasets.test_.csv';
-            const response = await fetch(cmsAPI+datasetFile).then((resp) => resp.json());
-            const json = dataConvert.csv2Json(response);
-            const filtered = json.filter(row => row.gene === this.$store.state.geneName);
-            this.geneSigsData = filtered.length>0 ? filtered : json;
-            console.log('geneSigsData', this.geneSigsData);
+            const dataUrl = "https://bioindex-dev.hugeamp.org/api/bio/query/single-cell-gene?q="+this.$store.state.geneName;
+            let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+            if (contentJson.error == null) {
+                this.geneSigsData = contentJson.data;
+                console.log('geneSigsData', this.geneSigsData);
+            }
         },
 
         buildGeneSigUrl(item){
