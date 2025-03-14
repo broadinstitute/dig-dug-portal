@@ -35,11 +35,14 @@
                                 </div>
                             </div>
                         </div>
-                        <download-chart 
-                            class="download"
-                            chartId="vector_volcano_plot__bulk"
-                            style="width: 125px; align-self: flex-end;"
-                        />
+                        <div class="f-row" style="gap:10px">
+                            <!--<div style="align-self:center; font-size:12px">n: {{ $parent.deData.length.toLocaleString() }}</div>-->
+                            <download-chart 
+                                class="download"
+                                chartId="vector_volcano_plot__bulk"
+                                style="width: 125px; align-self: flex-end;"
+                            />
+                        </div>
                     </div>
                     <bulk-volcano-plot v-if="$parent.deData"
                         :renderData="$parent.deData"
@@ -60,15 +63,17 @@
                                 <label><input type="radio" name="radio-group" :value="$parent.up" v-model="$parent.showGenes"/>Upregulated</label>
                             </div>
                         </div>
-                        <data-download
-                            class="download"
-                            :data="$parent.deData"
-                            :filename="`sysbio_dge`"
-                            style="width: 125px; align-self: flex-end;"
-                        />
+                        <div class="f-row align-v-center" style="gap:10px">
+                            <data-download
+                                class="download"
+                                :data="$parent.tableData"
+                                :filename="`sysbio_dge`"
+                                style="width: 125px; align-self: flex-end;"
+                            />
+                        </div>
                     </div>
+                    <div style="align-self:flex-end">rows: {{ $parent.tableData.length.toLocaleString() }}</div>
                     <b-table
-                        style="margin:10px 0 0"
                         small
                         hover
                         responsive="sm"
@@ -89,12 +94,15 @@
                             </span>
                         </template>
                     </b-table>
-                    <b-pagination
-                        v-model="$parent.dePage"
-                        class="pagination-sm justify-content-center"
-                        :total-rows="$parent.rows"
-                        :per-page="10"
-                    />
+                    <div class="f-row fill-width align-v-center align-h-center">
+                        <b-pagination
+                            v-model="$parent.dePage"
+                            class="pagination-sm justify-content-center"
+                            style="justify-self:center; margin: 0 !important"
+                            :total-rows="$parent.rows"
+                            :per-page="10"
+                        />
+                    </div>
                 </div>
             </div>
         </div>

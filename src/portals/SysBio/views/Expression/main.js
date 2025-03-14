@@ -77,17 +77,20 @@ new Vue({
                     key: 'BETA',
                     label: 'Standardized beta',
                     sortable: true,
-                    tdClass: 'text-right', formatter: (value) => value.toFixed(2)
+                    tdClass: '',
+                     formatter: (value) => value.toFixed(2)
                 }, {
                     key: 'neg_log10_p',
                     label: '-log10(P)',
                     sortable: true,
-                    tdClass: 'text-right', formatter: (value) => value.toFixed(2)
+                    tdClass: '', 
+                    formatter: (value) => value.toFixed(2)
                 }, {
                     key: 'P',
                     label: 'P-value',
                     sortable: true,
-                    tdClass: 'text-right', formatter: (value) => Formatters.pValueFormatter(value)
+                    tdClass: '', 
+                    formatter: (value) => Formatters.pValueFormatter(value)
                 }
             ],
             filteredRows: [],
