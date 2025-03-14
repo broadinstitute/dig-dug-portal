@@ -298,6 +298,13 @@ let pages = {
         title: "Gene Set Factorization Server",
         chunks: ["chunk-vendors", "chunk-common", "factorization"],
     },
+    customgeneset: {
+        entry: "src/views/CustomGeneset/main.js",
+        template: "public/index.html",
+        filename: "customgeneset.html",
+        title: "Custom gene set",
+        chunks: ["chunk-vendors", "chunk-common", "customgeneset"],
+    },
     mouse_diff_exp: {
         entry: "src/views/MouseDiffExp/main.js",
         template: "public/index.html",
