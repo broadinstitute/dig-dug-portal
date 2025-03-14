@@ -229,7 +229,7 @@
                 <div class="card-body">
                     <h4>
                         {{
-                            `Gene-sigantures for ${$store.state.geneName.toUpperCase()}`
+                            `Gene signatures for ${$store.state.geneName.toUpperCase()}`
                         }}
                         <tooltip-documentation
                             name="gene.level.association.tooltip.hover"
@@ -390,10 +390,10 @@
                             -->
                             <b-tabs>
                                 <b-tab
-                                    title="Gene Sigantures"
+                                    title="Gene Signatures"
                                 >
                                     <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
-                                        <h4 class="card-title">Gene Sigantures</h4>
+                                        <h4 class="card-title">Gene Signatures</h4>
                                         <!--
                                         <span>
                                             <documentation
