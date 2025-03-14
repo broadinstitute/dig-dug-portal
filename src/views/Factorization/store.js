@@ -19,10 +19,12 @@ export default new Vuex.Store({
     state: {
         pigeanFactor: [],
         geneFactor: [],
+        geneScores: {},
         genesetFactor: [],
         roundTripInputGenes: [],
         genesetOptions: [],
         genesetPValues: [],
+        genesetScores: {},
         networkGraph: {nodes:[], edges:[]},
         phenotypeData: [],
     },
@@ -33,6 +35,9 @@ export default new Vuex.Store({
         },
         setGeneFactor(state, data){
             state.geneFactor = data || state.geneFactor;
+        },
+        setGeneScores(state, data){
+            state.geneScores = data || state.geneScores;
         },
         setGenesetFactor(state, data){
             state.genesetFactor = data || state.genesetFactor;
@@ -45,6 +50,9 @@ export default new Vuex.Store({
         },
         setGenesetPValues(state, data){
             state.genesetPValues = data || state.genesetPValues;
+        },
+        setGenesetScores(state, data){
+            state.genesetScores = data || state.genesetScores;
         },
         setNetworkGraph(state, data){
             state.networkGraph = data || state.networkGraph;
@@ -59,6 +67,7 @@ export default new Vuex.Store({
             state.roundTripInputGenes = [];
             state.genesetPValues = [];
             state.networkGraph = {nodes:[], edges:[]};
+            state.phenotypeData = [];
         }
     },
 
@@ -76,11 +85,14 @@ export default new Vuex.Store({
                 },
                 body: queryString
             }).then(resp => resp.json());
+            console.log(JSON.stringify(json.gene_set_scores));
             context.commit("setRoundTripInputGenes", json.input_genes);
             context.commit("setPigeanFactor", json["pigean-factor"].data);
             context.commit("setGeneFactor", json["gene-factor"]);
             context.commit("setGenesetFactor", json["gene-set-factor"]);
             context.commit("setGenesetPValues", json["gene_sets"]);
+            context.commit("setGeneScores", json["gene_scores"]);
+            context.commit("setGenesetScores", json["gene_set_scores"]);
             //Network graph is a single item array
             context.commit("setNetworkGraph", json["network_graph"][0])
         },
