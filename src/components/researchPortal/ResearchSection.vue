@@ -1678,6 +1678,39 @@ export default Vue.component("research-section", {
 					}
 
 					break;
+
+				case "object to array":
+
+					if (!!dataWrapper) {
+						let dataEntity = CONTENT;
+
+						dataWrapper.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+						data =[];
+
+						Object.keys(dataEntity).map(d => {
+							let tempObj = {};
+							tempObj['gene'] = d;
+							tempObj['score'] = dataEntity[d];
+
+							data.push(tempObj);
+						})
+
+					} else {
+						data =[];
+
+						Object.keys(CONTENT).map(d => {
+							let tempObj = {};
+							tempObj['gene'] = d;
+							tempObj['score'] = CONTENT[d];
+
+							data.push(tempObj);
+						})
+					}
+
+					break;
 			}
 
 
