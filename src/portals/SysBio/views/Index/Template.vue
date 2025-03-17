@@ -309,6 +309,7 @@
 
 .tabs {
     width: 300px;
+    min-width: 300px;
     gap: 1px;
 }
 .tab {
@@ -348,6 +349,12 @@
 .tab-content-img-wrapper {
     text-align: center;
     padding-top: 15px;
+}
+
+::v-deep #sysBioDataCompositionbarInCellPlot{
+    width: 100% !important;
+    min-width: 600px;
+    height: auto !important;
 }
 
 
