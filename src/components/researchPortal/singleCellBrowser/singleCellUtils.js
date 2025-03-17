@@ -239,3 +239,83 @@ function calculateExpressionStats(exprValues, partial=false) {
         }
     }
 }
+
+function parseStringValue(str) {
+    // Trim it so we handle random spaces
+    const trimmed = str.trim().toLowerCase();
+    
+    // 1. Check for boolean strings
+    if (trimmed === 'true') {
+      return true;
+    }
+    if (trimmed === 'false') {
+      return false;
+    }
+  
+    // 2. Check for numeric strings
+    const num = Number(str);
+    // If parseable and not NaN
+    if (!isNaN(num) && str !== '') {
+      return num;
+    }
+  
+    // 3. Check for date - just see if new Date(...) is valid
+    /*const dateObj = new Date(str);
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj;
+    }*/
+  
+    // 4. Fallback: keep as string
+    return str;
+  }
+  
+  /**
+   * Given an array of  values, parse them into real types if possible,
+   * then use heuristics to detect if the result is boolean, numeric, datetime, etc.
+   */
+export function detectVarType(values, options = {}) {
+    const { categoricalThreshold = 0.2 } = options;
+  
+    // 1. Parse each string to the best possible type
+    const parsedValues = values.map(parseStringValue);
+  
+    // 2. Filter out null/undefined
+    const nonMissing = parsedValues.filter(v => v !== null && v !== undefined);
+    if (nonMissing.length === 0) {
+      return 'unknown';
+    }
+  
+    // 3. Check if all booleans
+    const allBooleans = nonMissing.every(v => typeof v === 'boolean');
+    if (allBooleans) {
+      return 'boolean';
+    }
+  
+    // 4. Check if all dates
+    /*const allDates = nonMissing.every(v => v instanceof Date && !isNaN(v.getTime()));
+    if (allDates) {
+      return 'datetime';
+    }*/
+  
+    // 5. Check if all numeric
+    const allNumeric = nonMissing.every(v => typeof v === 'number' && !isNaN(v));
+    if (allNumeric) {
+      // Calculate ratio of unique values to total
+      const uniqueNums = new Set(nonMissing);
+      const ratio = uniqueNums.size / nonMissing.length;
+      return ratio <= categoricalThreshold ? 'categorical' : 'continuous';
+    }
+  
+    // 6. Finally, do a “categorical vs text” check
+    const uniqueValues = new Set(nonMissing);
+    const ratio = uniqueValues.size / nonMissing.length;
+    //console.log(uniqueValues.size, nonMissing.length, ratio, categoricalThreshold)
+    //console.log(parsedValues);
+    if (ratio >= categoricalThreshold) {
+      return 'categorical';
+    }
+  
+    // 7. If none of the above, it’s probably freeform text
+    return 'text';
+  }
+   
