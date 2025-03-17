@@ -1081,18 +1081,8 @@
 
                 //return;
                 
-                if(this.markerGenes){
-                    await this.getGeneExpression(this.markerGenes[0].gene.toUpperCase(), false);
-                    //this.geneClick(this.markerGenes[0].gene.toUpperCase());
-                }else if(this.markersList){
-                    //load gene data markers api
-                    console.log('loading marker genes');
-                    for(const gene of this.markersList){
-                        await this.getGeneExpression(gene.toUpperCase(), false);
-                        await Vue.nextTick();
-                    }
-                }
-                //
+                //check if a gene was requested in config or url key params
+                let geneRequested = false;
                 if(this.renderConfig["parameters"]?.gene){
                     //load genes from url key params
                     const paramGenes = decodeURIComponent(keyParams[this.renderConfig["parameters"].gene]);
@@ -1102,6 +1092,7 @@
                         for (const gene of paramGenesArray) {
                             await this.getGeneExpression(gene.toUpperCase(), false);
                             await Vue.nextTick();
+                            geneRequested = true;
                         }
                     }else if(this.presetsConfig?.["genes"]){
                         //load genes from config
@@ -1109,9 +1100,27 @@
                         for (const gene of this.presetsConfig["genes"]) {
                             await this.getGeneExpression(gene.toUpperCase(), false);
                             await Vue.nextTick();
+                            geneRequested = true;
                         }
                     }
                 }
+
+                //if no specific gene was requested
+                if(!geneRequested){
+                    //but we have marker genes
+                    if(this.markerGenes){
+                        //just load the first in the list
+                        await this.getGeneExpression(this.markerGenes[0].gene.toUpperCase(), false);
+                    }else if(this.markersList){
+                        //no marker genes given, try loading genes from config list
+                        console.log('loading marker genes');
+                        for(const gene of this.markersList){
+                            await this.getGeneExpression(gene.toUpperCase(), false);
+                            await Vue.nextTick();
+                        }
+                    }
+                }
+                
             },
             async getGeneExpression(gene, addToKeyParams = true, setAsSelected = false){
                 if(this.geneNames.includes(gene)) {
@@ -1135,20 +1144,23 @@
                     Vue.set(this.expressionData, gene, expressionResult);
 
                     console.log('getGeneExpression', gene);
-                    //console.log('   expressionData', this.expressionData);
+                    console.log(addToKeyParams);
 
                     //update query string gene params 
                     if(addToKeyParams && this.renderConfig["parameters"]?.gene){
+                        keyParams.set({[this.renderConfig["parameters"].gene] : gene});
+                        /*
                         let paramGenes = decodeURIComponent(keyParams[this.renderConfig["parameters"].gene]);
                         if(paramGenes){
                             const paramGenesArray = paramGenes==='undefined' ? [] : paramGenes.toLowerCase().split(',');
                             console.log(`try adding: ${gene} to ${paramGenesArray}`)
-                            if(!paramGenesArray.includes(gene.toLowerCase()) && !this.markersList.includes(gene)){
+                            if(!paramGenesArray.includes(gene.toLowerCase())){// && !this.markersList.includes(gene)){
                                 paramGenesArray.push(gene);
                                 console.log(`not in list, adding: ${gene} to ${paramGenesArray}`)
                                 keyParams.set({[this.renderConfig["parameters"].gene] : paramGenesArray.toString()});
                             }
                         }
+                            */
                     }
 
                     await Vue.nextTick();
