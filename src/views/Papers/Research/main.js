@@ -277,6 +277,16 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
+        rawSearchParameters() {
+            let parameters;
+            if (!!this.sectionConfigs["search parameters"]) {
+                parameters = this.sectionConfigs["search parameters"];
+            } else {
+                parameters = [];
+            }
+
+            return parameters;
+        },
         multiSectionsSearchParameters() {
             if (this.phenotypesInSession.length > 0) {
                 let parameters = [];

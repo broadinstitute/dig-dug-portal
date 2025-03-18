@@ -146,7 +146,7 @@ export default Vue.component("pigean-bayes-table", {
         DataDownload,
     },
     props: ["pigeanData", "filter", "fields", "geneData", "genesetData", "isSubtable",
-        "geneFields", "genesetFields"
+        "geneFields", "genesetFields", "phenotypeMap"
     ],
     data() {
         return {

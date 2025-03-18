@@ -343,7 +343,7 @@ import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
 		"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils", "starItems", "regionZoom",
-		"regionViewArea", "isInTab", "pageParams"],
+		"regionViewArea", "isInTab", "pageParams","searchParameters"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionFiltersVertical,
@@ -372,6 +372,8 @@ export default Vue.component("research-section", {
 			sectionHidden: false,
 			openInfoCard: null,
 			customList: {},
+			filterValues: null,
+			filtersIndex: null,
 		};
 	},
 	modules: {
@@ -403,6 +405,8 @@ export default Vue.component("research-section", {
 		if (!!this.sectionConfig["data point"] && !this.sectionConfig["data point"]["parameters point"]) {
 			this.getData();
 		}
+
+		this.getFilterValues()
 
 	},
 	computed: {
@@ -565,6 +569,7 @@ export default Vue.component("research-section", {
 			}
 			this.getRegion();
 			this.getBigRegion();
+			this.getFilterValues();
 		},
 		originalData(DATA) {
 			if (this.loadingDataFlag == "down") {
@@ -573,6 +578,59 @@ export default Vue.component("research-section", {
 		},
 	},
 	methods: {
+		getFilterValues() {
+			/*
+			{
+          "field": "Tissue",
+          "label": "Tissue",
+          "type": "checkbox",
+          "features": [
+            "autocomplete"
+          ],
+          "label in bubble": "true"
+        }
+		  */
+			//filter_c2ct_phenotype_annotationppo
+			if(!!this.sectionConfig.filters) {
+
+				//console.log("this.sectionConfig.filters",this.sectionConfig.filters)
+
+			let filters = [];
+
+				this.sectionConfig.filters.map( f => {
+
+					//console.log("f",f)
+					
+					const fItem = f.type == 'checkbox'? '.filter-' + this.sectionID + f.field.replace(/\W/g, "").toLowerCase():'#filter_' + this.sectionID + f.field.replace(/\W/g, "").toLowerCase();
+					const fItems = document.querySelectorAll(fItem);
+
+					//console.log("fItem",fItem);
+					//console.log("fItems",fItems);
+					
+					if(f.type == 'checkbox') {
+						fItems.forEach(node => {
+							if(node.checked) {
+								filters.push(node.value)
+								//console.log(node.id + " is checked");
+							}
+						})
+					} else {
+						
+						fItems.forEach(node => {
+							if(!!!!this.filtersIndex && !!this.filtersIndex[f.field] && this.filtersIndex[f.field].search.length > 0) {
+								filters.push(node.id+":"+this.filtersIndex[f.field].search[0] );
+							}
+						})
+					}
+				})
+
+				//console.log("filtes", filters);
+				this.filterValues = filters;
+					
+			} else {
+				this.filterValues = null;
+			}
+		},
 		buildTabData(DATA,TAB) {
 
 			let tabData = [];
@@ -799,8 +857,12 @@ export default Vue.component("research-section", {
 
 			return this.utils.Formatters.replaceWithParams(legend, this.pageParams);
 		},
-		updateData(data) {
+		updateData(data,filtersIndex) {
 			this.sectionData = data;
+
+			if(!!filtersIndex) {
+				this.filtersIndex = filtersIndex;
+			}
 		},
 		setOpenInfoCard(KEY) {
 			this.openInfoCard = KEY;
@@ -952,7 +1014,7 @@ export default Vue.component("research-section", {
 							
 							region = chr +":"+posStart+"-"+posEnd;
 
-							console.log("region",region)
+							//console.log("region",region)
 
 							queryParams[p] = region.toString().split(",");
 
@@ -1019,10 +1081,11 @@ export default Vue.component("research-section", {
 		},
 
 		queryData(FROM) {
-			let queryType = this.dataPoint["type"];
-			let paramsType = this.dataPoint["parameters type"];
-			let params = this.dataPoint["parameters"];
-			let dataType = this.dataPoint["data type"]
+			
+			const queryType = this.dataPoint["type"];
+			const paramsType = this.dataPoint["parameters type"];
+			const params = this.dataPoint["parameters"];
+			const dataType = this.dataPoint["data type"]
 			// if data isn't getting cumulated, remove older search params other than the last one
 			if (!this.dataPoint["cumulate data"] && this.searched.length > 1) {
 				let lastSearched = this.searched[this.searched.length - 1]
@@ -1034,6 +1097,7 @@ export default Vue.component("research-section", {
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.add("loading");
 				}
+
 				let urlString, query, autoToken;
 				switch (queryType) {
 					case "bioindex":
@@ -1079,10 +1143,28 @@ export default Vue.component("research-section", {
 
 						let paramStrArr = paramsString.split(",");
 
+						console.log("paramStrArr",paramsString);
+						console.log("searchParams",this.searchParameters);
+
 						params.map((param, pIndex) => {
+
+							
+
 							for (const [key, value] of Object.entries(body)) {
 								if(value == '$'+param) {
-									body[key] = paramStrArr[pIndex];
+
+									let paramType;
+									this.searchParameters.map( p => {
+										if(p.parameter == key) {
+											paramType = p.type
+										}
+									})
+
+									if(paramType == "string to array") {
+										body[key] = paramStrArr[pIndex].split(";");
+									} else {
+										body[key] = paramStrArr[pIndex];
+									}
 								}
 							}
 						})
@@ -1141,6 +1223,8 @@ export default Vue.component("research-section", {
 				if (!response.ok) {
 					throw new Error(`Request failed with status ${response.status}`);
 				}
+
+				console.log("response",response);
 
 				return response.json();
 			}
@@ -1613,6 +1697,41 @@ export default Vue.component("research-section", {
 
 					} else {
 						data = this.utils.dataConvert.csv2Json(CONTENT); // convert csv data to json format
+					}
+
+					break;
+
+				case "object to array":
+					console.log("CONTENT",CONTENT);
+					let objKey = this.dataPoint.object.key, objValue = this.dataPoint.object.value;
+
+					if (!!dataWrapper) {
+						let dataEntity = CONTENT;
+
+						dataWrapper.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+						data =[];
+
+						Object.keys(dataEntity).map(d => {
+							let tempObj = {};
+							tempObj[objKey] = d;
+							tempObj[objValue] = dataEntity[d];
+
+							data.push(tempObj);
+						})
+
+					} else {
+						data =[];
+
+						Object.keys(CONTENT).map(d => {
+							let tempObj = {};
+							tempObj[objKey] = d;
+							tempObj[objValue] = CONTENT[d];
+
+							data.push(tempObj);
+						})
 					}
 
 					break;

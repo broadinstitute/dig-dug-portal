@@ -52,6 +52,14 @@
 						</div>
 					</template>
 					<div>
+						<div class="col" v-if="parameter.type == 'string to array'">
+							<textarea
+								rows="4" cols="50"
+								class="form-control research-textarea"
+								:id="'search_param_' + parameter.parameter">
+
+							</textarea>
+						</div>
 						<div v-if="parameter.type == 'input' && parameter.values == 'kp genes'"
 							:id="'kp_gene_search_wrapper' + paramIndex"
 							:style="!!parameter['expand region'] ? 'display: inline-block;' : ''">
@@ -101,12 +109,12 @@
 						parameter.values != 'kp genes'
 						" type="text" class="form-control" :id="'search_param_' + parameter.parameter" />
 				</div>
-				<div class="col">
+				<div class="col search-btn-wrapper">
 					<div @click="updateSearch()" class="btn btn-sm btn-primary">
 						Search
 					</div>
 				</div>
-				<div class="col">
+				<div class="col reset-btn-wrapper">
 					<div @click="resetSearch()" class="btn btn-sm btn-warning ">
 						Reset
 					</div>
@@ -453,6 +461,11 @@ export default Vue.component("research-multi-sections-search", {
 </script>
 
 <style>
+.form-control.research-textarea {
+	width: auto !important;
+	height: auto !important;
+}
+
 .hidden-search {
 	display: none !important;
 }
