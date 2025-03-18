@@ -343,7 +343,7 @@ import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
 		"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils", "starItems", "regionZoom",
-		"regionViewArea", "isInTab", "pageParams"],
+		"regionViewArea", "isInTab", "pageParams","searchParameters"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionFiltersVertical,
@@ -1081,10 +1081,11 @@ export default Vue.component("research-section", {
 		},
 
 		queryData(FROM) {
-			let queryType = this.dataPoint["type"];
-			let paramsType = this.dataPoint["parameters type"];
-			let params = this.dataPoint["parameters"];
-			let dataType = this.dataPoint["data type"]
+			
+			const queryType = this.dataPoint["type"];
+			const paramsType = this.dataPoint["parameters type"];
+			const params = this.dataPoint["parameters"];
+			const dataType = this.dataPoint["data type"]
 			// if data isn't getting cumulated, remove older search params other than the last one
 			if (!this.dataPoint["cumulate data"] && this.searched.length > 1) {
 				let lastSearched = this.searched[this.searched.length - 1]
@@ -1096,6 +1097,7 @@ export default Vue.component("research-section", {
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.add("loading");
 				}
+
 				let urlString, query, autoToken;
 				switch (queryType) {
 					case "bioindex":
@@ -1141,10 +1143,28 @@ export default Vue.component("research-section", {
 
 						let paramStrArr = paramsString.split(",");
 
+						console.log("paramStrArr",paramsString);
+						console.log("searchParams",this.searchParameters);
+
 						params.map((param, pIndex) => {
+
+							
+
 							for (const [key, value] of Object.entries(body)) {
 								if(value == '$'+param) {
-									body[key] = paramStrArr[pIndex];
+
+									let paramType;
+									this.searchParameters.map( p => {
+										if(p.parameter == key) {
+											paramType = p.type
+										}
+									})
+
+									if(paramType == "string to array") {
+										body[key] = paramStrArr[pIndex].split(";");
+									} else {
+										body[key] = paramStrArr[pIndex];
+									}
 								}
 							}
 						})
@@ -1203,6 +1223,8 @@ export default Vue.component("research-section", {
 				if (!response.ok) {
 					throw new Error(`Request failed with status ${response.status}`);
 				}
+
+				console.log("response",response);
 
 				return response.json();
 			}
@@ -1680,6 +1702,8 @@ export default Vue.component("research-section", {
 					break;
 
 				case "object to array":
+					console.log("CONTENT",CONTENT);
+					let objKey = this.dataPoint.object.key, objValue = this.dataPoint.object.value;
 
 					if (!!dataWrapper) {
 						let dataEntity = CONTENT;
@@ -1692,8 +1716,8 @@ export default Vue.component("research-section", {
 
 						Object.keys(dataEntity).map(d => {
 							let tempObj = {};
-							tempObj['gene'] = d;
-							tempObj['score'] = dataEntity[d];
+							tempObj[objKey] = d;
+							tempObj[objValue] = dataEntity[d];
 
 							data.push(tempObj);
 						})
@@ -1703,8 +1727,8 @@ export default Vue.component("research-section", {
 
 						Object.keys(CONTENT).map(d => {
 							let tempObj = {};
-							tempObj['gene'] = d;
-							tempObj['score'] = CONTENT[d];
+							tempObj[objKey] = d;
+							tempObj[objValue] = CONTENT[d];
 
 							data.push(tempObj);
 						})
