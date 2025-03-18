@@ -648,6 +648,112 @@
 </template>
   
 <script>
+    /*
+    sample render config:
+    {
+        "type": "cell browser",
+        "label": "Single Cell Browser",
+        "parameters":{
+          "datasetId": "PKBdatasetId",
+          "gene": "PKBgene"
+        },
+        "data points":[ 
+          {
+            "role": "metadata",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell_metadata/dataset_metadata.json.gz"
+          },{
+            "role": "fields",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/fields.json.gz"
+          },{
+            "role": "coordinates",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz"
+          },{
+            "role": "expression",
+            "url": "https://skin.hugeampkpnbi.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
+          },{
+            "role": "markers",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
+          }
+        ],
+        "components": {
+          "cell info": {
+            "enabled": true
+          },
+          "cell proportion": {
+            "enabled": true
+          },
+          "gene expression": {
+            "enabled": true
+          },
+          "marker genes": {
+            "enabled": true
+          }
+        },
+        "presets": {
+          "cell type label": "Cell Type",
+          "samples label": "Samples",
+
+          "genes": []
+        }
+    }
+
+
+    proposed render config
+    {
+        "type": "cell browser",
+        "label": "Single Cell Browser",
+        "parameters":{
+          "datasetId": "PKBdatasetId",
+          "gene": "PKBgene"
+        },
+        "bio_index": "skin",
+        "fields":["field.A", "field.B", "field.C"],
+        "fields":[
+            {
+                "raw": "field.A",
+                "clean": "Field A",
+                "type": "cont"
+            }
+        ],
+        "data points":[ 
+          {
+            "role": "metadata",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell_metadata/dataset_metadata.json.gz"
+          },{
+            "role": "fields",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/fields.json.gz"
+          },{
+            "role": "coordinates",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz"
+          },{
+            "role": "expression",
+            "url": "https://skin.hugeampkpnbi.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
+          },{
+            "role": "markers",
+            "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
+          }
+        ],
+        "components": {
+          "cell info": {
+            "enabled": true
+          },
+          "cell proportion": {
+            "enabled": true
+          },
+          "gene expression": {
+            "enabled": true
+          },
+          "marker genes": {
+            "enabled": true
+          }
+        },
+        "presets": {
+          "cell type label": "Cell Type",
+          "genes": []
+        }
+    }
+    */
+
     import * as d3 from 'd3';
     import Vue from 'vue';
     import keyParams from "@/utils/keyParams";
@@ -818,8 +924,8 @@
 
                 //check for requested datasetId
                 /* it can come from multiple places
-                    1. 'on-select' event from byor
-                    2. query string param
+                    1. 'on-select' event
+                    2. querystring param
                     3. config preset
                 */
                 if(!this.datasetId || this.datasetId === ''){
@@ -936,6 +1042,8 @@
 
                 await Vue.nextTick();
 
+                this.prepFields(this.fields);
+
                 //pre-calculate colors for labels in each field
                 this.labelColors = scUtils.calcLabelColors(this.fields, colors);
                 
@@ -973,18 +1081,8 @@
 
                 //return;
                 
-                if(this.markerGenes){
-                    await this.getGeneExpression(this.markerGenes[0].gene.toUpperCase(), false);
-                    //this.geneClick(this.markerGenes[0].gene.toUpperCase());
-                }else if(this.markersList){
-                    //load gene data markers api
-                    console.log('loading marker genes');
-                    for(const gene of this.markersList){
-                        await this.getGeneExpression(gene.toUpperCase(), false);
-                        await Vue.nextTick();
-                    }
-                }
-                //
+                //check if a gene was requested in config or url key params
+                let geneRequested = false;
                 if(this.renderConfig["parameters"]?.gene){
                     //load genes from url key params
                     const paramGenes = decodeURIComponent(keyParams[this.renderConfig["parameters"].gene]);
@@ -994,6 +1092,7 @@
                         for (const gene of paramGenesArray) {
                             await this.getGeneExpression(gene.toUpperCase(), false);
                             await Vue.nextTick();
+                            geneRequested = true;
                         }
                     }else if(this.presetsConfig?.["genes"]){
                         //load genes from config
@@ -1001,9 +1100,27 @@
                         for (const gene of this.presetsConfig["genes"]) {
                             await this.getGeneExpression(gene.toUpperCase(), false);
                             await Vue.nextTick();
+                            geneRequested = true;
                         }
                     }
                 }
+
+                //if no specific gene was requested
+                if(!geneRequested){
+                    //but we have marker genes
+                    if(this.markerGenes){
+                        //just load the first in the list
+                        await this.getGeneExpression(this.markerGenes[0].gene.toUpperCase(), false);
+                    }else if(this.markersList){
+                        //no marker genes given, try loading genes from config list
+                        console.log('loading marker genes');
+                        for(const gene of this.markersList){
+                            await this.getGeneExpression(gene.toUpperCase(), false);
+                            await Vue.nextTick();
+                        }
+                    }
+                }
+                
             },
             async getGeneExpression(gene, addToKeyParams = true, setAsSelected = false){
                 if(this.geneNames.includes(gene)) {
@@ -1027,20 +1144,23 @@
                     Vue.set(this.expressionData, gene, expressionResult);
 
                     console.log('getGeneExpression', gene);
-                    //console.log('   expressionData', this.expressionData);
+                    console.log(addToKeyParams);
 
                     //update query string gene params 
                     if(addToKeyParams && this.renderConfig["parameters"]?.gene){
+                        keyParams.set({[this.renderConfig["parameters"].gene] : gene});
+                        /*
                         let paramGenes = decodeURIComponent(keyParams[this.renderConfig["parameters"].gene]);
                         if(paramGenes){
                             const paramGenesArray = paramGenes==='undefined' ? [] : paramGenes.toLowerCase().split(',');
                             console.log(`try adding: ${gene} to ${paramGenesArray}`)
-                            if(!paramGenesArray.includes(gene.toLowerCase()) && !this.markersList.includes(gene)){
+                            if(!paramGenesArray.includes(gene.toLowerCase())){// && !this.markersList.includes(gene)){
                                 paramGenesArray.push(gene);
                                 console.log(`not in list, adding: ${gene} to ${paramGenesArray}`)
                                 keyParams.set({[this.renderConfig["parameters"].gene] : paramGenesArray.toString()});
                             }
                         }
+                            */
                     }
 
                     await Vue.nextTick();
@@ -1131,6 +1251,27 @@
                 console.log('selector hovered', e);
                 this.cellCompositionVars.highlightLabel = e.hoveredLabel;
             },
+
+
+            prepFields(fields){
+                const f = fields;
+                const metadata_types = {}
+                const metadata_to_remove = []
+                Object.entries(fields.metadata_labels).forEach(([key, value]) => {
+                    //const colType = scUtils.detectVarType(value);
+                    //metadata_types[key] = colType;
+
+                    //include only fields with more than 1 value
+                    if(value.length < 2) metadata_to_remove.push(key)
+                })
+                f["metadata_removed"] = {};
+                metadata_to_remove.forEach(column => {
+                    f["metadata_removed"][column] = [...f.metadata_labels[column]];
+                    delete f.metadata_labels[column];
+                })
+                //console.log({metadata_to_remove, metadata_types, f});
+                return f;
+            }
         },
     });
 </script>
