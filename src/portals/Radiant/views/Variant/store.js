@@ -15,7 +15,7 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         variantData: bioIndex("variant"),
-        transcriptConsequences: bioIndex("transcript-consequences"),
+        transcriptConsequences: bioIndex("transcript-consequences",{query_private:true}),
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
         regions: bioIndex("regions"),
@@ -76,7 +76,7 @@ export default new Vuex.Store({
         queryAll(context) {
             let varId = context.state.pageVariant.varId;
             context.dispatch("phewas/query", { q: varId });
-            context.dispatch("transcriptConsequences/query", { q: varId });
+            context.dispatch("transcriptConsequences/query", { q: varId,query_private:true });
             context.dispatch("transcriptionFactors/query", { q: varId });
             context.dispatch("datasetAssociations/query", { q: varId });
         },
