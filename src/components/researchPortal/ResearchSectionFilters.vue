@@ -1503,8 +1503,9 @@ export default Vue.component("research-section-filters", {
 
 				this.applyFilters();
 			} else {
-				this.$emit('on-filtering', filtered);
+				this.$emit('on-filtering', filtered,this.filtersIndex);
 			}
+
 		},
 		removeAllFilters() {
 			for (const FIELD in this.filtersIndex) {

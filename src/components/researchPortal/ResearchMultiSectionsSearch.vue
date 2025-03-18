@@ -52,6 +52,14 @@
 						</div>
 					</template>
 					<div>
+						<div class="col" v-if="parameter.type == 'string to array'">
+							<textarea
+								rows="4" cols="50"
+								class="form-control research-textarea"
+								:id="'search_param_' + parameter.parameter">
+
+							</textarea>
+						</div>
 						<div v-if="parameter.type == 'input' && parameter.values == 'kp genes'"
 							:id="'kp_gene_search_wrapper' + paramIndex"
 							:style="!!parameter['expand region'] ? 'display: inline-block;' : ''">
@@ -59,7 +67,7 @@
 							<input v-model="paramSearch[paramIndex]" class="form-control" @keyup="getGenes($event)"
 								:id="'search_param_' + parameter.parameter" />
 
-							<div class="custom-select custom-select-search" :size="kpGenes.length >= 5 ? 5 : 'auto'" :style="kpGenes.length == 0
+							<div class="custom-select custom-select-search" :size="kpGenes.length >= 5 ? 5 : 'auto'" :style="kpGenes.length == 0 || checkFocus('search_param_' + parameter.parameter) == false
 								? 'display:none !important;'
 								: ''
 								">
@@ -101,12 +109,12 @@
 						parameter.values != 'kp genes'
 						" type="text" class="form-control" :id="'search_param_' + parameter.parameter" />
 				</div>
-				<div class="col">
+				<div class="col search-btn-wrapper">
 					<div @click="updateSearch()" class="btn btn-sm btn-primary">
 						Search
 					</div>
 				</div>
-				<div class="col">
+				<div class="col reset-btn-wrapper">
 					<div @click="resetSearch()" class="btn btn-sm btn-warning ">
 						Reset
 					</div>
@@ -202,6 +210,13 @@ export default Vue.component("research-multi-sections-search", {
 		
 	},
 	methods: {
+		checkFocus(ID) {
+			if (!document.getElementById(ID).matches(':focus')) {
+				return false;
+			} else {
+				return true;
+			}
+		},
 		async getList(apiPoint, INDEX) {
 			
 			let searchPoint = apiPoint.url;
@@ -323,6 +338,8 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		updateSearch(KEY,TARGET_SECTIONS) {
 
+			this.$root.hoverPos = [];
+
 			let paramsObj = {}
 
 			if(!KEY) {
@@ -370,6 +387,9 @@ export default Vue.component("research-multi-sections-search", {
 				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
 			};
+
+			this.$root.hoverPos = [];
+
 			this.searchParameters.map(s => {
 				paramsObj[s.parameter] = "";
 				document.getElementById("search_param_" + s.parameter).value = "";
@@ -441,6 +461,11 @@ export default Vue.component("research-multi-sections-search", {
 </script>
 
 <style>
+.form-control.research-textarea {
+	width: auto !important;
+	height: auto !important;
+}
+
 .hidden-search {
 	display: none !important;
 }

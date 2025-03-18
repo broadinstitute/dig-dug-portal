@@ -1,13 +1,13 @@
 <template>
     <div ref="chartWrapper">
         <div ref="chart"></div>
-        <div ref="tooltip" class="tooltip"></div>
     </div>
   </template>
   
   <script>
   import * as d3 from 'd3';
   import Vue from 'vue';
+  import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
   
   export default Vue.component('research-violin-plot', {
     props: {
@@ -50,7 +50,6 @@
     data() {
         return {
             eventElements: [],
-            tooltip: null,
         }
     },
     watch: {
@@ -91,7 +90,6 @@
                 this.eventElements = [];
             }
 
-            const tooltip = this.tooltip = this.$refs.tooltip;
             const primaryKey = this.primaryKey;
             const subsetKey = this.subsetKey;
             const hasSubsetKey = subsetKey;
@@ -116,6 +114,8 @@
 
             //calculate sizes and margins
             const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
+            console.log("parentWidth", parentWidth);
+
             const labels = { xAxis: this.xAxisLabel?20:0, yAxis: this.yAxisLabel?20:0 }
             const margin = { top: 10, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
             let width = parentWidth;
@@ -243,7 +243,9 @@
 
                 // kde
                 const bandwidth = 1;
-                const thresholds = d3.range(d3.min(entry.exprValues), d3.max(entry.exprValues), 0.1);
+                //const thresholds = d3.range(d3.min(entry.exprValues), d3.max(entry.exprValues), 0.1);
+                const [minVal, maxVal] = d3.extent(entry.exprValues);
+                const thresholds = d3.ticks(minVal, maxVal, 50);
                 const density = this.kde(this.epanechnikovKernel(bandwidth), thresholds, entry.exprValues);
 
                 // normalize kde
@@ -333,20 +335,17 @@
         },
         addListener(el, entry){
             const mouseOver = this.mouseOverHandler.bind(this, entry);
-            const mouseMove = this.mouseMoveHandler.bind(this);
             const mouseOut = this.mouseOutHandler.bind(this);
-            el._listeners = { mouseOver, mouseMove, mouseOut };
+            el._listeners = { mouseOver, mouseOut };
             this.eventElements.push(el);
             // Tooltip mouseover
             el.addEventListener('mouseover', mouseOver);
-            el.addEventListener('mousemove', mouseMove);
             el.addEventListener('mouseout', mouseOut);
         },
         removeListener(el){
             if(el._listeners){
-                el.addEventListener('mouseover', el._listeners.mouseOver);
-                el.addEventListener('mousemove', el._listeners.mouseMove);
-                el.addEventListener('mouseout', el._listeners.mouseOut);
+                el.removeEventListener('mouseover', el._listeners.mouseOver);
+                el.removeEventListener('mouseout', el._listeners.mouseOut);
                 delete el._listeners;
             }
         },
@@ -357,7 +356,7 @@
             });
         },
         mouseOverHandler(entry){
-            this.tooltip.innerHTML = `<div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.primaryKey}:</div> ${entry[this.primaryKey]}</div>
+            const tooltipContent = `<div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.primaryKey}:</div> ${entry[this.primaryKey]}</div>
                                         <div style="display:${entry[this.subsetKey]?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.subsetKey}:</div> ${entry[this.subsetKey]}</div>
                                         <div style="display:${entry.gene?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Gene:</div> ${entry.gene}</div>
                                         <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Max:</div> ${entry.max}</div>
@@ -366,16 +365,10 @@
                                         <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q1:</div> ${entry.q1}</div>
                                         <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Min:</div> ${entry.min}</div>
                                 `;
-            this.tooltip.classList.add('show')
-        },
-        mouseMoveHandler(e){
-            this.tooltip.style.top = (e.clientY - 10) + "px";
-            this.tooltip.style.left = (e.clientX + 10) + "px";
+            mouseTooltip.show(tooltipContent);
         },
         mouseOutHandler(e){
-            this.tooltip.classList.remove('show');
-            this.tooltip.style.top = -1000 + "px";
-            this.tooltip.style.left = -1000 + "px";
+            mouseTooltip.hide();
         },
         doHighlight(label){
             const plot = this.$refs.chart.querySelector(`.plot`);
@@ -406,18 +399,10 @@
   svg {
     font-family: sans-serif;
   }
+  
   ::v-deep .chart-label{
     font-size:12px;
     opacity:0.5;
-  }
-  .tooltip{
-    position:fixed;
-    background: white;
-    padding: 5px 10px;
-    box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
-  }
-  .tooltip.show{
-    opacity: 1;
   }
   ::v-deep .plot.highlighting .bar{
     opacity: 0.2;

@@ -171,14 +171,6 @@ let pages = {
         title: "HuGe Calculator",
         chunks: ["chunk-vendors", "chunk-common", "hugecalculator"],
     },
-
-    /*genefinder: {
-        entry: "src/views/GeneFinder/main.js",
-        template: "public/index.html",
-        filename: "genefinder.html",
-        title: "Gene Finder",
-        chunks: ["chunk-vendors", "chunk-common", "genefinder"]
-    },*/
     genesifter: {
         entry: "src/views/GeneSifter/main.js",
         template: "public/index.html",
@@ -264,34 +256,6 @@ let pages = {
         title: "Tissue",
         chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
-    matkp: {
-        entry: "src/views/MATKP/Index/main.js",
-        template: "public/index.html",
-        filename: "matkp/index.html",
-        title: "MATKP",
-        chunks: ["chunk-vendors", "chunk-common", "matkp"],
-    },
-    matkp_cellbrowser: {
-        entry: "src/views/MATKP/CellBrowser/main.js",
-        template: "public/index.html",
-        filename: "matkp/cellbrowser.html",
-        title: "MATKP | Cell Browser",
-        chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser"],
-    },
-    matkp_cellbrowser2: {
-        entry: "src/views/MATKP/CellBrowser2/main.js",
-        template: "public/index.html",
-        filename: "matkp/cellbrowser2.html",
-        title: "MATKP | Cell Browser",
-        chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser2"],
-    },
-    matkp_datasets: {
-        entry: "src/views/MATKP/Datasets/main.js",
-        template: "public/index.html",
-        filename: "matkp/datasets.html",
-        title: "MATKP | Datasets",
-        chunks: ["chunk-vendors", "chunk-common", "matkp_datasets"],
-    },
     pigean_index: {
         entry: "src/views/PIGEAN/Index/main.js",
         template: "public/index.html",
@@ -364,7 +328,7 @@ module.exports = {
         let bioindex_host_private =
             process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
 
-        if (!!bioindex_dev) {
+        if (!!bioindex_dev && !process.env.BIOINDEX_HOST) {
             bioindex_host =
                 bioindex_dev == "localhost"
                     ? "http://localhost:5000"

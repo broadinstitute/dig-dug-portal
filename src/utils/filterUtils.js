@@ -7,23 +7,41 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
 
         FILTERS.map(filter => {
 
-            let filterValue = !!PARAMS && !!PARAMS[filter.parameter] ? PARAMS[filter.parameter] : filter.value;
+            let filterValue = !!PARAMS && !!PARAMS[filter.parameter] ? PARAMS[filter.parameter] : (!!filter.values) ? filter.values : filter.value;
 
             if (!!d[filter.field] && d[filter.field] != undefined && meetFilters == true && !!filterValue) {
                 let filterVals;
                 switch (filter.type) {
                     case 'search':
 
-                        if (!!d[filter.field] && typeof d[filter.field] == 'string') {
-                            meetFilters = !!d[filter.field].toLowerCase().includes(filterValue.toLowerCase()) ? true : false;
-                        } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
+                        if (!!filter.value) {
+                            if (!!d[filter.field] && typeof d[filter.field] == 'string') {
+                                meetFilters = !!d[filter.field].toLowerCase().includes(filterValue.toLowerCase()) ? true : false;
+                            } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
 
-                            let valuesInColumn = [...new Set(d[filter.field].map(c => c.toLowerCase()))];
+                                let valuesInColumn = [...new Set(d[filter.field].map(c => c.toLowerCase()))];
 
-                            meetFilters = !!valuesInColumn.includes(filterValue.toLowerCase()) ? true : false;
+                                meetFilters = !!valuesInColumn.includes(filterValue.toLowerCase()) ? true : false;
 
+                            }
+                        } else if (!!filter.values) {
+                            meetFilters = false;
+
+                            if (!!d[filter.field] && typeof d[filter.field] == 'string') {
+
+                                filterValue.map(fV => {
+                                    meetFilters = !!d[filter.field].toLowerCase().includes(fV.toLowerCase()) ? true : meetFilters;
+                                })
+
+                            } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
+
+                                let valuesInColumn = d[filter.field].toString().toLowerCase();
+
+                                filterValue.map(fV => {
+                                    meetFilters = !!d[filter.field].toLowerCase().includes(fV.toLowerCase()) ? true : meetFilters;
+                                })
+                            }
                         }
-
                         break;
 
                     case "search greater than":
@@ -46,6 +64,36 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
                         filterVals = filterValue.split(",");
                         meetFilters = typeof d[filter.field] == 'number' &&
                             (d[filter.field] >= filterVals[0].trim() && d[filter.field] <= filterVals[1].trim()) ? true : false;
+
+                        break;
+
+                    case 'filter out':
+
+                        if (!!d[filter.field] && typeof d[filter.field] == 'string') {
+
+                            meetFilters = !!filterValue.includes(d[filter.field]) || !!d[filter.field].includes(filterValue) ? false : true;
+
+                        } else {
+                            meetFilters = false;
+                        }
+
+                        break;
+
+                    case 'contains':
+
+                        if (!!d[filter.field] && typeof d[filter.field] == 'string') {
+
+                            meetFilters = false;
+
+                            filterValue.map(V => {
+                                if (!!d[filter.field].includes(V)) {
+                                    meetFilters = true;
+                                }
+                            })
+
+                        } else {
+                            meetFilters = false;
+                        }
 
                         break;
                 }

@@ -49,6 +49,13 @@
                                         </option>
                                     </select>
                                 </div>
+                                <div class="col filter-col-md" id="maxPhenotypeDiv">
+                                    <div class="label">
+                                        Max. Phenotypes
+                                    </div>
+                                    <input class="form-control"
+                                        type="number" v-model="$parent.maxPhenotypes"/>
+                                </div>
                                 <div class="col filter-col-md"
                                     id="searchButtonDiv">
                                     <div class="label">Search</div>
@@ -69,6 +76,10 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>Factors</h4>
+                    <factorization-network-graph
+                        :factorGraphData="$parent.networkGraph"
+                        :isEmbed="true">
+                    </factorization-network-graph>
                     <pigean-bayes-table
                         :pigeanData="$parent.pigeanFactor"
                         :geneData="$parent.geneFactor"
@@ -135,6 +146,26 @@
                     
                 </div>
             </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>Phenotypes</h4>
+                    <criterion-function-group>
+                        <filter-less-control
+                            field="p_value"
+                        >
+                            <div class="label">Filter by P-Value (&le;)</div>
+                        </filter-less-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-bayes-table
+                                :pigeanData="$store.state.phenotypeData"
+                                :fields="$parent.phenotypeFields"
+                                :filter="filter"
+                                :phenotypeMap="$parent.pigeanPhenotypeMap">
+                            </pigean-bayes-table>
+                        </template>
+                    </criterion-function-group>
+                </div>
+            </div>
         </div>
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
@@ -158,7 +189,7 @@
 #bayesSearchField {
     min-height: 125px !important;
 }
-#searchButtonDiv, #dropdownDiv {
+#searchButtonDiv, #dropdownDiv, #maxPhenotypeDiv {
     vertical-align: top !important;
 }
 #searchButtonDiv button {
