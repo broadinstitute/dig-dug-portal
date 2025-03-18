@@ -90,13 +90,14 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    
                     <div
                         v-if="
                             $store.state.transcriptConsequences.data.length > 0
                         "
                     >
                         <h4 class="card-title">
-                            Phenotypes of variant carriers in NephKP
+                            Phenotypes of variant carriers in RADIANT
                         </h4>
                         <variant-phenotype-table
                             :variant-id="$store.state.pageVariant.varId"
@@ -151,8 +152,8 @@
                                     "></sitequalitymetrics-tab>
                     </div>
                 </div>
-            </div> -->
-
+            </div>
+-->
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
