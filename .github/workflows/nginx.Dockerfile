@@ -6,7 +6,8 @@ ARG BUILD_PATH
 COPY ${BUILD_PATH} /usr/share/nginx/html
 
 # Copy custom nginx config if it exists
-ADD nginx.conf /etc/nginx/conf.d/default.conf
+#ADD nginx.conf /etc/nginx/conf.d/default.conf
+ADD .github/workflows/nginx.conf /etc/nginx/conf.d/default.conf
 
 # The EXPOSE instruction is optional metadata - Cloud Run doesn't actually use it
 # but it's helpful documentation to indicate the expected port
