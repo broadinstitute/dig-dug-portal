@@ -77,4 +77,4 @@ jobs:
                   service: sysbio-portal
                   image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sysbio-docker/sysbio-portal:${{ env.TAG_NAME }}
                   region: ${{ secrets.GCP_REGION }}
-                  ingress: all
+                  flags: --allow-unauthenticated
