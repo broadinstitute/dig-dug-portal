@@ -28,7 +28,7 @@ jobs:
               env:
                   VUE_CLI_SERVICE_CONFIG_PATH: "./configs/vue.config.SysBio.js"
                   VUE_APP_GA4_ID: ${{ secrets.VUE_APP_GA4_ID_SYSBIO }}
-              run: npm run build
+              run: npm run deploy
 
             - name: Deploy to target repository
               uses: JamesIves/github-pages-deploy-action@v4
