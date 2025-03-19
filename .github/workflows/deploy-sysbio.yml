@@ -68,8 +68,8 @@ jobs:
                   build-args: |
                       BUILD_PATH=portals/SysBio
                   file: .github/workflows/nginx.Dockerfile
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
+                  # Temporarily disable cache to identify if it's causing the issue
+                  no-cache: true
 
             - name: Deploy to Cloud Run
               uses: google-github-actions/deploy-cloudrun@v2
