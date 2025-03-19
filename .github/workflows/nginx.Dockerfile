@@ -6,10 +6,10 @@ ARG BUILD_PATH
 COPY ${BUILD_PATH} /usr/share/nginx/html
 
 # Handle nginx configuration - copy if exists or create default
-RUN if [ -f /nginx.conf ]; then \ true
-    cp /nginx.conf /etc/nginx/conf.d/default.conf; \
+RUN if [ -f nginx.conf ]; then \
+    cp nginx.conf /etc/nginx/conf.d/default.conf; \
     else \
-    echo "server { listen 80; root /usr/share/nginx/html; location / { try_files \$uri \$uri/ /index.html; } }" > /etc/nginx/conf.d/default.conf; \
+    echo "Using default nginx configuration"; \
     fi
 
 # The EXPOSE instruction is optional metadata - Cloud Run doesn't actually use it
