@@ -30,17 +30,17 @@ jobs:
                   VUE_APP_GA4_ID: ${{ secrets.VUE_APP_GA4_ID_SYSBIO }}
               run: npm run deploy
 
-            - name: Deploy to target repository
-              uses: JamesIves/github-pages-deploy-action@v4
-              with:
-                  folder: portals/SysBio
-                  token: ${{ secrets.DEPLOY_SYSBIO_TOKEN }}
-                  repository-name: broadinstitute/sysbio
-                  branch: main
-                  clean: true
-                  commit-message: "Deploying SysBio portal (${{ env.TAG_NAME }})"
-                  single-commit: true
-                  tag: ${{ env.TAG_NAME }}
+            # - name: Deploy to target repository
+            #   uses: JamesIves/github-pages-deploy-action@v4
+            #   with:
+            #       folder: portals/SysBio
+            #       token: ${{ secrets.DEPLOY_SYSBIO_TOKEN }}
+            #       repository-name: broadinstitute/sysbio
+            #       branch: main
+            #       clean: true
+            #       commit-message: "Deploying SysBio portal (${{ env.TAG_NAME }})"
+            #       single-commit: true
+            #       tag: ${{ env.TAG_NAME }}
 
             # Google Cloud Run deployment steps
             - name: Authenticate to Google Cloud
