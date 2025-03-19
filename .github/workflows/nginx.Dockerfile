@@ -5,8 +5,12 @@ ARG BUILD_PATH
 # Copy the built app from the specified path
 COPY ${BUILD_PATH} /usr/share/nginx/html
 
-# Copy custom nginx config if it exists, otherwise use default
-COPY nginx.conf /etc/nginx/conf.d/default.conf 2>/dev/null || :
+# Handle nginx configuration - copy if exists or create default
+RUN if [ -f /nginx.conf ]; then \ true
+    cp /nginx.conf /etc/nginx/conf.d/default.conf; \
+    else \
+    echo "server { listen 80; root /usr/share/nginx/html; location / { try_files \$uri \$uri/ /index.html; } }" > /etc/nginx/conf.d/default.conf; \
+    fi
 
 # The EXPOSE instruction is optional metadata - Cloud Run doesn't actually use it
 # but it's helpful documentation to indicate the expected port

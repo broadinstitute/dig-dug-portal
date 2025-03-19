@@ -59,23 +59,6 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
-            - name: Create default nginx.conf if missing
-              run: |
-                  if [ ! -f nginx.conf ]; then
-                    echo "Creating default nginx.conf"
-                    cat > nginx.conf << 'EOF'
-                    server {
-                        listen 8080;
-                        root /usr/share/nginx/html;
-                        index index.html;
-
-                        location / {
-                            try_files $uri $uri/ /index.html;
-                        }
-                    }
-                    EOF
-                  fi
-
             - name: Build and push Docker image
               uses: docker/build-push-action@v6
               with:
