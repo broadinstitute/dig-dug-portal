@@ -18,7 +18,7 @@ jobs:
                   node-version: "16"
 
             - name: Install dependencies
-              run: npm install --prefer-offline --no-audit --progress=false --production
+              run: npm install --no-audit --progress=false
 
             - name: Extract tag name
               id: get_tag
