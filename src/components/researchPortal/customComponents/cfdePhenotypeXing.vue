@@ -4,7 +4,7 @@
         <table class="cfde-xing-table">
                 <thead>
                     <tr>
-                        <th>{{ renderConfig["render by"] }}</th><th>{{renderConfig["threshold field"]}} : {{renderConfig["suppliment field"]}}</th>
+                        <th>{{ renderConfig["render by"] }}</th><th>{{renderConfig["threshold field"]}}</th><th>{{renderConfig["suppliment field"]}}</th><th></th>
                     </tr>
                     
                 </thead>
@@ -15,8 +15,15 @@
                {{ item[renderConfig["render by"]] }}
 
             </td>
+            <td>
+               {{utils.Formatters.pValueFormatter(item[renderConfig["threshold field"]])}}
+
+            </td>
+            <td>
+               {{utils.Formatters.pValueFormatter(item[renderConfig["suppliment field"]])}}
+
+            </td>
             <td class="value-td">
-               {{utils.Formatters.pValueFormatter(item[renderConfig["threshold field"]])}} : {{utils.Formatters.pValueFormatter(item[renderConfig["suppliment field"]])}}
                <span class="mean-pos" :style="'left:' + getMeanXpos(dataMean)" ></span>
                <span class="value-dot" :style="'left:' + getXpos(item[renderConfig['threshold field']]) + 'width:'+ getDotScale(item[renderConfig['suppliment field']]) + ';height:'+getDotScale(item[renderConfig['suppliment field']])+';'">
                 &nbsp;
@@ -125,7 +132,7 @@ export default Vue.component("research-cfde-xing", {
 }
 .value-td {
     position: relative;
-    width: 400px;
+    width: 250px;
     border-left: solid 1px #999999;
     border-right: solid 1px #999999;
     
