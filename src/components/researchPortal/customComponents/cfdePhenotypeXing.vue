@@ -1,17 +1,26 @@
 <template>
 	<div>
-        {{suppMax}} : {{suppMean}} : {{suppMin}}
+        <div class="phenotype-xing-legend">
+            <strong>{{ renderConfig["threshold field"] }}: </strong>
+            Max: {{ utils.Formatters.pValueFormatter(dataMax) }}, 
+            <span style="color: #ffaa00">Mean: {{ utils.Formatters.pValueFormatter(dataMean) }}</span>, 
+            Min: {{ utils.Formatters.pValueFormatter(dataMin) }}  |  <strong>{{renderConfig["suppliment field"]}} <span class="value-dot" style="width:10px; height:10px; top: 5px; position:relative; display: inline-block;">&nbsp;</span> : </strong>
+            Max: {{ utils.Formatters.pValueFormatter(suppMax) }}, 
+            Mean: {{ utils.Formatters.pValueFormatter(suppMean) }}, 
+            Min: {{ utils.Formatters.pValueFormatter(suppMin) }}
+        </div>
         <table class="cfde-xing-table">
                 <thead>
                     <tr>
-                        <th>{{ renderConfig["render by"] }}</th><th>{{renderConfig["threshold field"]}}</th><th>{{renderConfig["suppliment field"]}}</th><th></th>
+                        <th>{{ renderConfig["render by"] }}</th><th>{{renderConfig["threshold field"]}}</th><th>{{renderConfig["suppliment field"]}}</th><th>Log10({{renderConfig["threshold field"]}}) : {{renderConfig["suppliment field"]}}</th>
                     </tr>
                     
                 </thead>
                 <tbody>
-		<tr v-for=" item in renderData">
+		<tr v-for=" (item, iIndex) in renderData"
+            :class="(iIndex % 2 == 0)? 'shady-tr':''">
                 
-            <td>
+            <td class="phenotype-td">
                {{ item[renderConfig["render by"]] }}
 
             </td>
@@ -25,12 +34,18 @@
             </td>
             <td class="value-td">
                <span class="mean-pos" :style="'left:' + getMeanXpos(dataMean)" ></span>
-               <span class="value-dot" :style="'left:' + getXpos(item[renderConfig['threshold field']]) + 'width:'+ getDotScale(item[renderConfig['suppliment field']]) + ';height:'+getDotScale(item[renderConfig['suppliment field']])+';'">
+               <span class="value-dot" :style="'left:' + getXpos(item[renderConfig['threshold field']],item[renderConfig['suppliment field']]) + 'width:'+ getDotScale(item[renderConfig['suppliment field']]) + 'px;height:'+getDotScale(item[renderConfig['suppliment field']])+'px;'">
                 &nbsp;
                </span>
 
             </td>
 
+        </tr>
+        <tr>
+            <td></td><td></td><td></td><td>
+                <span style="float:left; margin-left: -10px;">{{utils.Formatters.pValueFormatter(dataMin)}}</span>
+                <span style="float:right; margin-right: -10px;">{{utils.Formatters.pValueFormatter(dataMax)}}</span>
+            </td>
         </tr>
         </tbody>
             </table>
@@ -77,12 +92,12 @@ export default Vue.component("research-cfde-xing", {
 	},
 	computed: {
 		renderData() {
-            let data;
+            let data = [...new Set(this.data)];
 
             switch(this.renderConfig["threshold type"]) {
                 case "highest n":
 
-                    data = this.utils.sortUtils.sortArrOfObjects(this.data, this.renderConfig["threshold field"], "number", 'desc');
+                    data = this.utils.sortUtils.sortArrOfObjects(data, this.renderConfig["threshold field"], "number", 'desc');
 
                     this.dataMax = data[0][this.renderConfig["threshold field"]];
                     this.dataMin = data[data.length - 1][this.renderConfig["threshold field"]];
@@ -107,10 +122,11 @@ export default Vue.component("research-cfde-xing", {
 		
 	},
 	methods: {
-        getXpos(VALUE) {
+        getXpos(VALUE,SUPP) {
 
             let xPos = 100 * (Math.log10(VALUE) - Math.log10(this.dataMin))/(Math.log10(this.dataMax) - Math.log10(this.dataMin));
-            return "calc(" + xPos+"% - 10px);";
+            let width = this.getDotScale(SUPP);
+            return "calc(" + xPos+"% - "+(width/2)+"px);margin-top:-"+(width/2)+"px;";
         },
 
         getMeanXpos(VALUE) {
@@ -120,16 +136,32 @@ export default Vue.component("research-cfde-xing", {
 
         getDotScale(VALUE) {
             let size = Math.round(20 * (VALUE - this.suppMin)/(this.suppMax - this.suppMin));
-            return size + "px;";
+            return size;
         }
     },
 });
 </script>
 
-<style>
+<style scoped>
+.phenotype-xing-legend {
+    margin-bottom: 15px;
+}
+.cfde-xing-table {
+    margin: auto;
+}
+
 .cfde-xing-table th, .cfde-xing-table td {
     padding: 5px 10px;
 }
+
+.shady-tr {
+    background-color: #e6e6e6;
+}
+
+.phenotype-td {
+    font-size: 1.25em;
+}
+
 .value-td {
     position: relative;
     width: 250px;
