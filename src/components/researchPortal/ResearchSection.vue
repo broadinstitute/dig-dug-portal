@@ -1143,8 +1143,8 @@ export default Vue.component("research-section", {
 
 						let paramStrArr = paramsString.split(",");
 
-						console.log("paramStrArr",paramsString);
-						console.log("searchParams",this.searchParameters);
+						//console.log("paramStrArr",paramsString);
+						//console.log("searchParams",this.searchParameters);
 
 						params.map((param, pIndex) => {
 
@@ -1161,7 +1161,8 @@ export default Vue.component("research-section", {
 									})
 
 									if(paramType == "string to array") {
-										body[key] = paramStrArr[pIndex].split(";");
+										console.log("paramStrArr[pIndex]",paramStrArr[pIndex].split("\n"));
+										body[key] = (!!paramStrArr[pIndex].includes(";"))? paramStrArr[pIndex].split(";"):paramStrArr[pIndex].split("\n");
 									} else {
 										body[key] = paramStrArr[pIndex];
 									}
