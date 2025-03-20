@@ -38,8 +38,8 @@
                 </div>
             </div>
         </div>
-        <div class="home-section-container">
-            <h3 class="section-title">Learn</h3>
+        <div class="home-section-container" style="padding-top:40px">
+            <!--<h3 class="section-title">Learn</h3>-->
             <div class="hero-wrapper f-col" v-if="this.parsedData">
                 <div class="hero-q" style="top: 0px" @click="this.toggleCFinfo">
                     What is the Common Fund?
@@ -186,14 +186,6 @@
                                 >
                                     <div>
                                         <div class="example-item-type">
-                                            Analysis
-                                        </div>
-                                        <div class="example-item-analysis">
-                                            {{ example.analysis }}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="example-item-type">
                                             Program
                                         </div>
                                         <div
@@ -208,6 +200,26 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div>
+                                        <div class="example-item-type">
+                                            Analysis
+                                        </div>
+                                        <div class="example-item-analysis">
+                                            {{ example.analysis }}
+                                        </div>
+                                    </div>
+                                    <div class="f-row">
+                                        <div class="example-item-analysis">
+                                            See on
+                                            <a
+                                                :href="`/r/kc_entity_${example.type.toLowerCase()}?entity=${example.type.toLowerCase()}&${example.type.toLowerCase()}=${
+                                                    example.entity
+                                                }`"
+                                                >{{ example.type }}</a
+                                            >
+                                            page
+                                        </div>
+                                    </div>
                                 </div>
                                 <div
                                     class="f-col"
@@ -220,18 +232,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="f-row" style="align-self: flex-end">
-                                <div class="example-item-analysis">
-                                    See on
-                                    <a
-                                        :href="`/r/kc_entity_${example.type.toLowerCase()}?entity=${example.type.toLowerCase()}&${example.type.toLowerCase()}=${
-                                            example.entity
-                                        }`"
-                                        >{{ example.type }}</a
-                                    >
-                                    page
-                                </div>
-                            </div>
+                            
                         </div>
                     </template>
                     <div
@@ -278,15 +279,31 @@
             <h3 class="section-title">Analyze</h3>
             <div class="home-section-wrap">
                 <h3 class="kc">Knowledge Center Workflows</h3>
-                <div class="home-section f-row">
-                    <div class="f-col">
+                <div class="f-row grow-children" style="gap:20px">
+                    <div class="home-section f-col">
+                        <div class="analysis-figure">
+                            <img
+                                src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/m2h.png"
+                            />
+                        </div>
+                        <h2>Mouse Phenotypes to Human Phenotypes Analysis</h2>
+                        <div style="flex:1">
+                            Discover mouse phenotypes genetically linked to human traits – using statistical enrichment, not just similarity.
+                        </div>
+                        <a
+                            href="/r/kc_phenotype_x_mouse2hs"
+                            style="align-self: flex-end"
+                            >Start here</a
+                        >
+                    </div>
+                    <div class="home-section f-col">
                         <div class="analysis-figure">
                             <img
                                 src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/gene_set.png"
                             />
                         </div>
                         <h2>Gene Set Analysis</h2>
-                        <div>
+                        <div style="flex:1">
                             Uncover gene set patterns across integrated Common
                             Fund programs—designed for advanced cross-dataset
                             exploration.
@@ -297,14 +314,14 @@
                             >Start here</a
                         >
                     </div>
-                    <div class="f-col">
+                    <div class="home-section f-col">
                         <div class="analysis-figure">
                             <img
                                 src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/dge.png"
                             />
                         </div>
                         <h2>Differential Expression Analysis</h2>
-                        <div>
+                        <div style="flex:1">
                             Compare differentially expressed genes across
                             tissues and diseases, driving insights into gene
                             regulation and disease mechanisms.
@@ -321,114 +338,119 @@
 
         <div class="home-section-container" style="gap:40px;">
             <h3 class="section-title">More</h3>
-            <div class="home-section-wrap" v-if="this.parsedData">
-                <h3 class="kc">Common Fund Program Spotlight</h3>
-                <div class="home-section">
-                    <template v-for="(value, key) in this.parsedData.map">
-                        <div class="spotlight-item">
-                            <div class="spotlight-logo f-row">
-                                <img :src="value.logo" />
-                            </div>
-                            <div class="f-col fill-width">
-                                <div class="spotlight-text f-col fill-height">
-                                    <h3>{{ value.name }}</h3>
-                                    <div v-html="value.spotlight"></div>
+            <div class="f-row grow-children" style="gap: 60px;">
+                <div class="f-col" style="gap: 40px;">
+                    <div class="home-section-wrap" v-if="this.parsedData">
+                        <h3 class="kc">Common Fund Program Spotlight</h3>
+                        <div class="home-section">
+                            <template v-for="(value, key) in this.parsedData.map">
+                                <div class="spotlight-item">
+                                    <div class="spotlight-logo f-row">
+                                        <img :src="value.logo" />
+                                    </div>
+                                    <div class="f-col fill-width">
+                                        <div class="spotlight-text f-col fill-height">
+                                            <h3>{{ value.name }}</h3>
+                                            <div v-html="value.spotlight"></div>
+                                        </div>
+                                        <a
+                                            style="align-self: flex-end"
+                                            :href="`/r/kc_programs?DCC=${key}`"
+                                            >Learn More</a
+                                        >
+                                    </div>
                                 </div>
-                                <a
-                                    style="align-self: flex-end"
-                                    :href="`/r/kc_programs?DCC=${key}`"
-                                    >Learn More</a
+                            </template>
+                            <div
+                                class="spotlight-prev"
+                                data-dir="prev"
+                                @click="this.changeSpotlight"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    stroke="#7c7c7c"
+                                    stroke-width="1.2"
                                 >
+                                    <path
+                                        d="M5.707 9.71a1 1 0 0 0 0 1.415l4.892 4.887a2 2 0 0 0 2.828 0l4.89-4.89a1 1 0 1 0-1.414-1.415l-4.185 4.186a1 1 0 0 1-1.415 0L7.121 9.71a1 1 0 0 0-1.414 0Z"
+                                        fill="#7c7c7c"
+                                    />
+                                </svg>
+                            </div>
+                            <div
+                                class="spotlight-next"
+                                data-dir="next"
+                                @click="this.changeSpotlight"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    stroke="#7c7c7c"
+                                    stroke-width="1.2"
+                                >
+                                    <path
+                                        d="M5.707 9.71a1 1 0 0 0 0 1.415l4.892 4.887a2 2 0 0 0 2.828 0l4.89-4.89a1 1 0 1 0-1.414-1.415l-4.185 4.186a1 1 0 0 1-1.415 0L7.121 9.71a1 1 0 0 0-1.414 0Z"
+                                        fill="#7c7c7c"
+                                    />
+                                </svg>
                             </div>
                         </div>
-                    </template>
-                    <div
-                        class="spotlight-prev"
-                        data-dir="prev"
-                        @click="this.changeSpotlight"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            stroke="#7c7c7c"
-                            stroke-width="1.2"
-                        >
-                            <path
-                                d="M5.707 9.71a1 1 0 0 0 0 1.415l4.892 4.887a2 2 0 0 0 2.828 0l4.89-4.89a1 1 0 1 0-1.414-1.415l-4.185 4.186a1 1 0 0 1-1.415 0L7.121 9.71a1 1 0 0 0-1.414 0Z"
-                                fill="#7c7c7c"
-                            />
-                        </svg>
                     </div>
-                    <div
-                        class="spotlight-next"
-                        data-dir="next"
-                        @click="this.changeSpotlight"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            stroke="#7c7c7c"
-                            stroke-width="1.2"
-                        >
-                            <path
-                                d="M5.707 9.71a1 1 0 0 0 0 1.415l4.892 4.887a2 2 0 0 0 2.828 0l4.89-4.89a1 1 0 1 0-1.414-1.415l-4.185 4.186a1 1 0 0 1-1.415 0L7.121 9.71a1 1 0 0 0-1.414 0Z"
-                                fill="#7c7c7c"
-                            />
-                        </svg>
+                    
+                    <div class="home-section-wrap" v-if="this.parsedData">
+                        <h3 class="kc">CFDE Workbench</h3>
+                        <div class="home-section">
+                            <div class="f-row" style="gap:20px">
+                                <div class="drc-logo">
+                                    <img
+                                        src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/DRC_logo.png"
+                                    />
+                                </div>
+                                <div class="f-col">
+                                    <div>
+                                        Visit our sister resource to query, access, and
+                                        compute Common Fund datasets.
+                                    </div>
+                                    <ul>
+                                        <li>
+                                            Search across all Common Fund metadata and
+                                            processed data.
+                                        </li>
+                                        <li>
+                                            Cloud tools to interrogate data sets from
+                                            various Common Fund programs.
+                                        </li>
+                                        <li>
+                                            Training and outreach to highlight Common
+                                            Fund data and how to use it effectively.
+                                        </li>
+                                    </ul>
+                                    <div class="drc-link">
+                                        <a
+                                            href="https://data.cfde.cloud/"
+                                            target="_blank"
+                                            >Visit CFDE Workbench</a
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="home-section-wrap" v-if="this.newsFeed">
-                <h3 class="kc">Knowledge Center News</h3>
-                <div class="home-section f-col" style="padding-top:30px;">
-                    <div class="news-item f-row" v-for="item in this.newsFeed">
-                        <div class="thumbnail" v-html="item.field_thumbnail_image"></div>
-                        <div class="f-col">
-                            <a :href="`/r/kc_news_item?id=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
-                            <div class="" v-html="item.body"></div>
-                        </div>
-                    </div>
-                    <a style="align-self: flex-end;" :href="`/r/kc_news`">See All News</a>
-                </div>
-            </div>
-            <div class="home-section-wrap" v-if="this.parsedData">
-                <h3 class="kc">CFDE Workbench</h3>
-                <div class="home-section">
-                    <div class="f-row">
-                        <div class="drc-logo">
-                            <img
-                                src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/DRC_logo.png"
-                            />
-                        </div>
-                        <div class="f-col">
-                            <div>
-                                Visit our sister resource to query, access, and
-                                compute Common Fund datasets.
-                            </div>
-                            <ul>
-                                <li>
-                                    Search across all Common Fund metadata and
-                                    processed data.
-                                </li>
-                                <li>
-                                    Cloud tools to interrogate data sets from
-                                    various Common Fund programs.
-                                </li>
-                                <li>
-                                    Training and outreach to highlight Common
-                                    Fund data and how to use it effectively.
-                                </li>
-                            </ul>
-                            <div class="drc-link">
-                                <a
-                                    href="https://data.cfde.cloud/"
-                                    target="_blank"
-                                    >Visit CFDE Workbench</a
-                                >
+                <div class="home-section-wrap" v-if="this.newsFeed">
+                    <h3 class="kc">Knowledge Center News</h3>
+                    <div class="home-section f-col" style="padding-top:30px;">
+                        <div class="news-item f-row" v-for="item in this.newsFeed">
+                            <div class="thumbnail" v-html="item.field_thumbnail_image"></div>
+                            <div class="f-col">
+                                <a :href="`/r/kc_news_item?id=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
+                                <div class="" v-html="item.body"></div>
                             </div>
                         </div>
+                        <a style="align-self: flex-end;" :href="`/r/kc_news`">See All News</a>
                     </div>
                 </div>
             </div>
@@ -1201,87 +1223,7 @@ export default Vue.component("cfde-landing", {
     }
 
     .grow-children > * {
-        flex-grow: 1;
-    }
-}
-
-.flex-layout-styles {
-    /* LAYOUT STYLES */
-    .no-events {
-        pointer-events: none;
-    }
-
-    .f-col {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .f-row {
-        display: flex;
-        flex-direction: row;
-    }
-
-    .f-col.align-v-center {
-        justify-content: center;
-    }
-
-    .f-row.align-v-center {
-        align-items: center;
-    }
-
-    .f-col.align-h-center {
-        align-items: center;
-    }
-
-    .f-row.align-h-center {
-        justify-content: center;
-    }
-
-    .f-col.align-v-bottom {
-        justify-content: flex-end;
-    }
-
-    .f-row.align-v-bottom {
-        align-items: flex-end;
-    }
-
-    .f-col.align-h-bottom {
-        align-items: flex-end;
-    }
-
-    .f-row.align-h-bottom {
-        justify-content: flex-end;
-    }
-
-    .f-col.spread-out,
-    .f-row.spread-out {
-        justify-content: space-between;
-    }
-
-    .fill-height {
-        /*height: -moz-available;
-        height: -webkit-fill-avaiilable;*/
-        height: stretch;
-        height: 100%;
-    }
-
-    .fill-width {
-        /*width: -moz-available;
-        width: -webkit-fill-avaiilable;*/
-        width: stretch;
-        width: 100%;
-    }
-
-    .hug-height {
-        height: fit-content;
-    }
-
-    .hug-width {
-        width: fit-content;
-    }
-
-    .grow-children > * {
-        flex-grow: 1;
+        flex: 1;
     }
 }
 
@@ -1294,8 +1236,7 @@ export default Vue.component("cfde-landing", {
     margin: -30px;
     padding: 15px;
     color: #7c7c7c;
-    font-size: 16px !important;
-    font-size: 16px !important;
+    font-size: 14px;
 
     .map-info {
         opacity: 0;
@@ -1383,11 +1324,12 @@ export default Vue.component("cfde-landing", {
     }
 
     .home-section-container {
-        width: 100vw;
+        width: 100%;
+        max-width: 1400px;
         display: flex;
         align-items: center;
         flex-direction: column;
-        padding: 40px 0;
+        padding: 80px 40px 40px;
         margin: 0px;
         position: relative;
         border-top: 1px solid #ddd;
@@ -1441,6 +1383,7 @@ export default Vue.component("cfde-landing", {
         border-radius: 10px;
         align-items: center;
         align-items: center;
+        font-size: 16px;
     }
 
     .cf-info {
@@ -1473,6 +1416,9 @@ export default Vue.component("cfde-landing", {
     }
 
     .dcc-icons {
+        min-width: 900px;
+        width: calc(100vw - 80px);
+        max-width: 1400px;
         gap: 10px;
         position: absolute;
         top: 50%;
@@ -1481,8 +1427,7 @@ export default Vue.component("cfde-landing", {
     }
 
     .dcc-icon {
-        width: 85px;
-        height: 85px;
+        width: calc(100% / 14);
         aspect-ratio: 1;
         background: #ebebeb;
         display: flex;
@@ -1604,7 +1549,7 @@ export default Vue.component("cfde-landing", {
     }
 
     .home-section-wrap {
-        width: 800px;
+        width: 100%;
         margin: 0px;
     }
 
@@ -1650,14 +1595,17 @@ export default Vue.component("cfde-landing", {
     }
     .example-item-logo {
         width: 100px;
+        height: 80px;
+        padding: 10px;
+        display: flex;
+        align-items: center;
     }
     .example-item-logo img {
         width: 100%;
-        width: -webkit-fill-available;
+        object-fit: contain;
     }
     .example-item-analysis {
         font-size: 16px;
-        min-height: 50px;
     }
     .example-item-image {
         border-radius: 10px;
@@ -1666,6 +1614,8 @@ export default Vue.component("cfde-landing", {
     }
     .example-item-image img {
         /*width: 100%;*/
+        object-fit: contain;
+        height:100%;
     }
 
     .spotlight-item {
@@ -1685,14 +1635,14 @@ export default Vue.component("cfde-landing", {
         color: #f26822 !important;
     }
     .spotlight-logo {
-        min-width: 150px;
-        width: 150px;
+        min-width: 100px;
+        width: 100px;
         align-self: flex-start;
         margin-top: 10px;
     }
     .spotlight-logo img {
         width: 100%;
-        width: -webkit-fill-available;
+        object-fit: contain;
         mix-blend-mode: darken;
     }
     .spotlight-text {
@@ -1729,11 +1679,9 @@ export default Vue.component("cfde-landing", {
         background: white;
         border-radius: 50%;
         padding: 10px;
-        margin: 0 25px;
         width: 100px;
         height: 100px;
         box-shadow: 0 0 5px 0px rgba(0, 0, 0, 0.2);
-        align-self: center;
     }
     .drc-logo img {
         width: 100%;
