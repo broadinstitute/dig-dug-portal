@@ -290,11 +290,18 @@
                         <div style="flex:1">
                             Discover mouse phenotypes genetically linked to human traits – using statistical enrichment, not just similarity.
                         </div>
-                        <a
-                            href="/r/kc_phenotype_x_mouse2hs"
-                            style="align-self: flex-end"
-                            >Start here</a
-                        >
+                        <div class="f-row spread-out">
+                            <a
+                                href="/r/kc_phenotype_x_mouse2hs"
+                                style="align-self: flex-start"
+                                >Explore Mouse</a
+                            >
+                            <a
+                                href="/r/kc_phenotype_x_hs2mouse"
+                                style="align-self: flex-end"
+                                >Explore Human</a
+                            >
+                        </div>
                     </div>
                     <div class="home-section f-col">
                         <div class="analysis-figure">
