@@ -1148,8 +1148,6 @@ export default Vue.component("research-section", {
 
 						params.map((param, pIndex) => {
 
-							
-
 							for (const [key, value] of Object.entries(body)) {
 								if(value == '$'+param) {
 
@@ -1161,8 +1159,9 @@ export default Vue.component("research-section", {
 									})
 
 									if(paramType == "string to array") {
-										console.log("paramStrArr[pIndex]",paramStrArr[pIndex].split("\n"));
-										body[key] = (!!paramStrArr[pIndex].includes(";"))? paramStrArr[pIndex].split(";"):paramStrArr[pIndex].split("\n");
+										console.log("paramStrArr[pIndex]",paramStrArr[pIndex].replaceAll("\n",";"));
+										paramStrArr[pIndex] = paramStrArr[pIndex].replaceAll("\n",";");
+										body[key] = paramStrArr[pIndex].split(";");
 									} else {
 										body[key] = paramStrArr[pIndex];
 									}
@@ -1224,8 +1223,6 @@ export default Vue.component("research-section", {
 				if (!response.ok) {
 					throw new Error(`Request failed with status ${response.status}`);
 				}
-
-				console.log("response",response);
 
 				return response.json();
 			}
