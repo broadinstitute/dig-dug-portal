@@ -303,7 +303,7 @@ function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
 
 }
 
-function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES) {
+function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
 
     let cellValue = VALUE;
     formatTypes.map((type) => {
@@ -448,6 +448,30 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 }
 
                 cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
+                break;
+
+            case "link with parameters":
+                if (!!cellValue && cellValue != "") {
+
+                    let link = "<a href='" + columnKeyObj["link to"];
+
+                    let paramKeys = Object.keys(columnKeyObj["parameters"]);
+
+                    paramKeys.map(key => {
+                        link += key + '=' + ROW_VALUE[columnKeyObj["parameters"][key]] + '&';
+                    })
+
+                    link +=
+                        linkToNewTab == "true"
+                            ? "' target='_blank'>" + cellValue + "</a>"
+                            : "'>" + cellValue + "</a>";
+
+                    linkString = link;
+                }
+
+                //console.log("linkString", linkString)
+                cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
+
                 break;
 
             case "map name":
@@ -608,7 +632,7 @@ function getHoverValue(VALUE) {
     return formatted;
 }
 
-function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
+function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
     if (
         CONFIG["column formatting"] != undefined &&
         CONFIG["column formatting"][KEY] != undefined
@@ -631,7 +655,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 `;
                 cellValue = cellValueString;
             } else {
-                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
             }
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
             //console.log('...is array')
@@ -683,7 +707,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 //console.log('...something else')
                 let cellValueString = (!!formatTypes.includes("image") && VALUE != "") ? "<div class='imgs_wrapper'>" : "";
                 VALUE.map(value => {
-                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
                 })
 
                 cellValueString += (!!formatTypes.includes("image") && VALUE != "") ? "</div>" : "";
