@@ -644,48 +644,50 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
             : null;
         let cellValue;
 
-        if (formatTypes.includes("cfde-datatypes"))
-            //console.log(typeof VALUE, Array.isArray(VALUE));
+        if (formatTypes.includes("cfde-datatypes")) {
+            console.log(typeof VALUE, Array.isArray(VALUE));
+        }
 
-            if (typeof VALUE != "object") {
-                //console.log('...not object')
-                if (formatTypes.includes("youtube")) {
-                    let cellValueString = `
+
+        if (typeof VALUE != "object") {
+            //console.log('...not object')
+            if (formatTypes.includes("youtube")) {
+                let cellValueString = `
                     <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${VALUE}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 `;
-                    cellValue = cellValueString;
-                } else {
-                    cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
-                }
-            } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
-                //console.log('...is array')
-                if (formatTypes.includes("object to mini-card")) {
+                cellValue = cellValueString;
+            } else {
+                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
+            }
+        } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
+            //console.log('...is array')
+            if (formatTypes.includes("object to mini-card")) {
 
-                    let cellValueString = "";
+                let cellValueString = "";
 
-                    VALUE.map(aValue => {
-                        cellValueString += "<div class='mini-card'>";
-                        let valueKeys = Object.keys(aValue);
-                        //console.log(aValue["title"]);
-                        cellValueString += `<div class="mini-card-video">
+                VALUE.map(aValue => {
+                    cellValueString += "<div class='mini-card'>";
+                    let valueKeys = Object.keys(aValue);
+                    //console.log(aValue["title"]);
+                    cellValueString += `<div class="mini-card-video">
                             <video src="${aValue["video"]}" poster="${aValue["screenshot"]}" autoplay muted playsinline>
                         </div>`;
-                        cellValueString += `<div class="mini-card-info">
+                    cellValueString += `<div class="mini-card-info">
                             <a class="mini-card-title" href="${aValue["link"]}" target="_blank">${aValue["title"]}<span>&nearr;</span></a>
                             <div class="mini-card-description">${aValue["description"]}</div>
                         </div>`;
 
-                        cellValueString += "</div>";
-                    })
-                    cellValue = cellValueString;
+                    cellValueString += "</div>";
+                })
+                cellValue = cellValueString;
 
-                } else if (formatTypes.includes("custom-citation")) {
+            } else if (formatTypes.includes("custom-citation")) {
 
-                    let cellValueString = '';
+                let cellValueString = '';
 
-                    VALUE.forEach(item => {
-                        if (!item.title || item.title === "") return;
-                        const citation = `
+                VALUE.forEach(item => {
+                    if (!item.title || item.title === "") return;
+                    const citation = `
                     <div class="citation">
                         <div><strong>${item.title}</strong></div>
                         <div>${item.authors} <i>${item.publication}</i></div>
@@ -697,44 +699,44 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
                         <div class="citation-notes">${item.description}</div>
                     </div>
                     `;
-                        cellValueString += citation;
-                    })
+                    cellValueString += citation;
+                })
 
-                    cellValue = cellValueString;
-                    //console.log('make citation', VALUE);
+                cellValue = cellValueString;
+                //console.log('make citation', VALUE);
 
-                } else {
-                    //console.log('...something else')
-                    let cellValueString = (!!formatTypes.includes("image") && VALUE != "") ? "<div class='imgs_wrapper'>" : "";
-                    VALUE.map(value => {
-                        cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
-                    })
-
-                    cellValueString += (!!formatTypes.includes("image") && VALUE != "") ? "</div>" : "";
-
-                    cellValue = cellValueString;
-                }
             } else {
-                if (formatTypes.includes("custom-extra")) {
-                    cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
-                }
-                if (formatTypes.includes("cfde-datatypes")) {
-                    //console.log("data type!");
-                    let cellValueString = '<div style="display:flex;flex-direction:column; gap:10px;">';
-                    for (const [key, value] of Object.entries(VALUE)) {
-                        if (value.trim() != '') {
-                            const k = key.replaceAll('_', ' ');
-                            cellValueString += `<div style="${k === 'note' ? 'display:flex;gap:5px;font-style:italic;' : ''}">
+                //console.log('...something else')
+                let cellValueString = (!!formatTypes.includes("image") && VALUE != "") ? "<div class='imgs_wrapper'>" : "";
+                VALUE.map(value => {
+                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
+                })
+
+                cellValueString += (!!formatTypes.includes("image") && VALUE != "") ? "</div>" : "";
+
+                cellValue = cellValueString;
+            }
+        } else {
+            if (formatTypes.includes("custom-extra")) {
+                cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
+            }
+            if (formatTypes.includes("cfde-datatypes")) {
+                //console.log("data type!");
+                let cellValueString = '<div style="display:flex;flex-direction:column; gap:10px;">';
+                for (const [key, value] of Object.entries(VALUE)) {
+                    if (value.trim() != '') {
+                        const k = key.replaceAll('_', ' ');
+                        cellValueString += `<div style="${k === 'note' ? 'display:flex;gap:5px;font-style:italic;' : ''}">
                         <div style="font-weight:bold;text-transform:capitalize">${k}</div>
                         <div>${value}</div>
                         </div>
                         `
-                        }
                     }
-                    cellValueString != '</div>';
-                    cellValue = cellValueString;
                 }
+                cellValueString != '</div>';
+                cellValue = cellValueString;
             }
+        }
 
         return cellValue;
     } else {
