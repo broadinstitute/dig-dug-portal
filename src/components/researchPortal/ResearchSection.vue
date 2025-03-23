@@ -1046,7 +1046,7 @@ export default Vue.component("research-section", {
 				}
 			}
 
-			console.log("queryParams",queryParams)
+			//console.log("queryParams",queryParams)
 			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
 			if (!!this.sectionConfig["pre filters"]) {
 				this.sectionConfig["pre filters"].map(f => {
@@ -1063,7 +1063,7 @@ export default Vue.component("research-section", {
 
 				let paramsLength = queryParams[this.dataPoint.parameters[0]].length;
 
-				console.log("paramsLength",paramsLength);
+				//console.log("paramsLength",paramsLength);
 
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
@@ -1087,7 +1087,7 @@ export default Vue.component("research-section", {
 			}
 
 			//5. Check if return the first item in the queryParamsString
-			console.log("queryParamsString", queryParamsString)
+			//console.log("queryParamsString", queryParamsString)
 			if (queryParamsString.length > 0) {
 				return queryParamsString[0];
 			} else {
@@ -1105,7 +1105,7 @@ export default Vue.component("research-section", {
 		},
 
 		queryData(FROM) {
-			console.log("here");
+			//console.log("here");
 			const queryType = this.dataPoint["type"];
 			const paramsType = this.dataPoint["parameters type"];
 			const params = this.dataPoint["parameters"];
@@ -1117,7 +1117,7 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString(paramsType );
 
-			console.log("paramsString",paramsString);
+			//console.log("paramsString",paramsString);
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
@@ -1185,7 +1185,7 @@ export default Vue.component("research-section", {
 									})
 
 									if(paramType == "string to array") {
-										console.log("paramStrArr[pIndex]",paramStrArr[pIndex].replaceAll("\n",";"));
+										//console.log("paramStrArr[pIndex]",paramStrArr[pIndex].replaceAll("\n",";"));
 										paramStrArr[pIndex] = paramStrArr[pIndex].replaceAll("\n",";");
 										body[key] = paramStrArr[pIndex].split(";");
 									} else {
@@ -1261,14 +1261,14 @@ export default Vue.component("research-section", {
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
-			console.log("here2");
+			//console.log("here2");
 
 			this.searched.push(QUERY);
 
 			let dataUrl = this.dataPoint.url;
 
 			if (TYPE == "replace") {
-				console.log("here3");
+				//console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
@@ -1279,11 +1279,11 @@ export default Vue.component("research-section", {
 					}
 				})
 
-				console.log("dataUrl",dataUrl);
+				//console.log("dataUrl",dataUrl);
 
 			} else if(TYPE == "replace or") {
 
-				console.log("here3");
+				//console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
@@ -1294,7 +1294,7 @@ export default Vue.component("research-section", {
 					}
 				})
 
-				console.log("dataUrl",dataUrl);
+				//console.log("dataUrl",dataUrl);
 
 			} else {
 				dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
@@ -1546,6 +1546,7 @@ export default Vue.component("research-section", {
 		processLoadedApi(CONTENT, QUERY, TYPE, PARAMS) {
 
 
+
 			// remote table format
 			if (!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"]
 				&& this.sectionConfig["table format"]["type"] == "remote") {
@@ -1643,6 +1644,7 @@ export default Vue.component("research-section", {
 
 					break;
 				case "json lines":
+
 					if (!!dataWrapper) {
 
 						let tempData = []
@@ -1724,6 +1726,8 @@ export default Vue.component("research-section", {
 
 						data = mergedData;
 
+						console.log("CONTENT data",data);
+
 					} else {
 						data = CONTENT;
 					}
@@ -1748,7 +1752,7 @@ export default Vue.component("research-section", {
 					break;
 
 				case "object to array":
-					console.log("CONTENT",CONTENT);
+					//console.log("CONTENT",CONTENT);
 					let objKey = this.dataPoint.object.key, objValue = this.dataPoint.object.value;
 
 					if (!!dataWrapper) {
