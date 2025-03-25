@@ -316,6 +316,18 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     break;
 
+                case "phenotype probability": /// this is only for CFDE mouse 2 human phenotype mapping feature
+
+                    let background = (!!c["rare"].includes(d[c["group"]])) ? 0.005 : (!!c["common"].includes(d[c["group"]])) ? 0.05 : 0;
+                    let beta = d[c["beta"]];
+
+                    let probability = Math.exp(beta + Math.log(background / (1 - background))) / (1 + Math.exp(beta + Math.log(background / (1 - background))));
+
+                    tempObj[c["field name"]] = probability;
+
+
+                    break;
+
             }
         })
         return tempObj;

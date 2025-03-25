@@ -13,10 +13,12 @@
 							<input type="checkbox" class="chkbox"
 							:id="sectionId + 'GenesTrackAll'"
 							@click="checkAll()"
+							:checked = "(!!plotConfig['genes track']['show all biotypes'])? true:false"
 							/><label> Show all biotypes</label>
 						</li>
 						<li v-for="geneType in localGeneTypes"
 							:key="geneType">
+							<!--
 							<input type="checkbox" class="chkbox"
 								v-if="geneType == 'protein_coding'"
 								:id="sectionId + geneType"
@@ -24,10 +26,11 @@
 								checked
 								@click="renderTrack(localGenesData)"
 							/>
+							-->
 							<input type="checkbox" class="chkbox"
-									v-else
 									:id="sectionId + geneType"
 									:value="geneType"
+									:checked = "(geneType == 'protein_coding' || !!plotConfig['genes track']['show all biotypes'])? true:false"
 									@click="renderTrack(localGenesData)"
 								/>
 							<label :for="geneType">{{ geneType.replaceAll("_"," ") }}</label>
