@@ -8,6 +8,7 @@
   import * as d3 from 'd3';
   import Vue from 'vue';
   import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
+  import {llog} from "./llog.js";
   
   export default Vue.component('research-dot-plot', {
     props: {
@@ -100,19 +101,19 @@
     },
     methods: {
         renderPlot() {
-            console.log('---DotPlot')
-            console.log('   data', this.data);
+            llog('---DotPlot')
+            llog('   data', this.data);
 
             if(!this.data || this.data.length===0){
-                console.log('   expression data required');
+                llog('   expression data required');
                 return;
             }
             if(!this.geneKey){
-                console.log('   geneKey required');
+                llog('   geneKey required');
                 return;
             }
             if(!this.primaryKey){
-                console.log('   primaryKey required');
+                llog('   primaryKey required');
                 return;
             }
 
@@ -122,8 +123,8 @@
             const labels = Array.from(new Set(this.data.map(d => d[primaryKey])));
             const allMeans = this.data.map(d => d.mean);
 
-            //console.log('   genes', keys); 
-            //console.log('   labels', labels);
+            //llog('   genes', keys); 
+            //llog('   labels', labels);
 
             const tempsvg = d3.select(this.$refs.plot)
                 .append('svg')
@@ -147,7 +148,7 @@
                 .attr('font-size', '12px')
             const bbox2 = templabels2.node().parentNode.getBBox();
             const labelsWidth = bbox2.width; 
-            //console.log("***********", labelsWidth)
+            //llog("***********", labelsWidth)
             d3.select(this.$refs.plot).html('');
 
 
@@ -193,7 +194,7 @@
                 height = plotHeight + margin.top + margin.left;
             }
 
-            console.log('   dimentions', {margin, width, height});
+            llog('   dimentions', {margin, width, height});
     
             const yLabel = d3.scaleBand()
                 .range([margin.top, height - margin.bottom])
