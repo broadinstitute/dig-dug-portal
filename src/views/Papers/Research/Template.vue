@@ -716,7 +716,7 @@
 												:class="(tabIndex == 0)?'':'hidden-content'"
 												>
 												<research-section
-													v-if="!config['is summary section']"
+													v-if="!config['is summary section'] && !!$parent.rawSearchParameters"
 													:sectionIndex="'section-' + index"
 													:uId="$parent.uid"
 													:sectionConfig="config"
@@ -736,6 +736,7 @@
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
 													:pageParams="$parent.pageParams"
+													:searchParameters="$parent.rawSearchParameters"
 													
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
@@ -769,7 +770,7 @@
 							</template>
 							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">	
 								<research-section
-									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
+									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section'] && !!$parent.rawSearchParameters"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:sectionConfig="config"
@@ -788,6 +789,7 @@
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
 									:pageParams="$parent.pageParams"
+									:searchParameters="$parent.rawSearchParameters"
 									
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
