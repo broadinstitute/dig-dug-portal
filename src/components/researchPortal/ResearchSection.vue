@@ -984,7 +984,7 @@ export default Vue.component("research-section", {
 			this.$store.dispatch("capturedData", { action: 'add', title: title, data: this.sectionData });
 		},
 
-		getParamString() {
+		getParamString(PARAMS_TYPE) {
 
 
 			let queryParams = {}; // collect search parameters
@@ -994,7 +994,7 @@ export default Vue.component("research-section", {
 			/// check if all required search parameters are there. If not set queryParamsSet null.
 			//1. collect all parameters and put them in queryParams
 
-			if (!!this.dataPoint.parameters) {
+			if (!!this.dataPoint.parameters && (!PARAMS_TYPE || (!!PARAMS_TYPE && PARAMS_TYPE != 'replace or'))) {
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
 						/// !! incomplete: This part is to add multiple query functionality
@@ -1028,6 +1028,25 @@ export default Vue.component("research-section", {
 				})
 			}
 
+			if (!!this.dataPoint.parameters && !!PARAMS_TYPE && PARAMS_TYPE == 'replace or') {
+
+				let pWithValue = 0;
+				this.dataPoint.parameters.map(p => {
+
+					if (!!this.utils.keyParams[p]) {
+						pWithValue++;
+						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+					} else {
+						queryParams[p] = [];
+					}
+				})
+
+				if(pWithValue === 0) {
+					queryParamsSet = null;
+				}
+			}
+
+			//console.log("queryParams",queryParams)
 			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
 			if (!!this.sectionConfig["pre filters"]) {
 				this.sectionConfig["pre filters"].map(f => {
@@ -1040,16 +1059,21 @@ export default Vue.component("research-section", {
 			//2. build parameters sets from queryParams and put them in queryParamsString
 
 			if (!!queryParamsSet && !!this.dataPoint.parameters) {
+
+
 				let paramsLength = queryParams[this.dataPoint.parameters[0]].length;
+
+				//console.log("paramsLength",paramsLength);
 
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
+
 					this.dataPoint.parameters.map(p => {
 						// Don't forget to resolve this.
 						if (!queryParams[p][i]) { queryParams[p][i] = queryParams[p][i - 1] }
 
 						if (queryParams[p][i] != "" && queryParams[p][i] != "*") {
-							pramsString += queryParams[p][i].trim() + ",";
+							pramsString += (!!queryParams[p][i])? queryParams[p][i].trim() + ",":"";
 						} else if (queryParams[p][i] == "*") {
 							pramsString += ""; ///wild key
 						}
@@ -1081,7 +1105,7 @@ export default Vue.component("research-section", {
 		},
 
 		queryData(FROM) {
-			
+			//console.log("here");
 			const queryType = this.dataPoint["type"];
 			const paramsType = this.dataPoint["parameters type"];
 			const params = this.dataPoint["parameters"];
@@ -1091,7 +1115,9 @@ export default Vue.component("research-section", {
 				let lastSearched = this.searched[this.searched.length - 1]
 				this.searched = [lastSearched];
 			}
-			let paramsString = this.getParamString();
+			let paramsString = this.getParamString(paramsType );
+
+			//console.log("paramsString",paramsString);
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
@@ -1143,12 +1169,10 @@ export default Vue.component("research-section", {
 
 						let paramStrArr = paramsString.split(",");
 
-						console.log("paramStrArr",paramsString);
-						console.log("searchParams",this.searchParameters);
+						//console.log("paramStrArr",paramsString);
+						//console.log("searchParams",this.searchParameters);
 
 						params.map((param, pIndex) => {
-
-							
 
 							for (const [key, value] of Object.entries(body)) {
 								if(value == '$'+param) {
@@ -1161,6 +1185,8 @@ export default Vue.component("research-section", {
 									})
 
 									if(paramType == "string to array") {
+										//console.log("paramStrArr[pIndex]",paramStrArr[pIndex].replaceAll("\n",";"));
+										paramStrArr[pIndex] = paramStrArr[pIndex].replaceAll("\n",";");
 										body[key] = paramStrArr[pIndex].split(";");
 									} else {
 										body[key] = paramStrArr[pIndex];
@@ -1224,8 +1250,6 @@ export default Vue.component("research-section", {
 					throw new Error(`Request failed with status ${response.status}`);
 				}
 
-				console.log("response",response);
-
 				return response.json();
 			}
 
@@ -1237,11 +1261,14 @@ export default Vue.component("research-section", {
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
+			//console.log("here2");
+
 			this.searched.push(QUERY);
 
 			let dataUrl = this.dataPoint.url;
 
 			if (TYPE == "replace") {
+				//console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
@@ -1252,9 +1279,28 @@ export default Vue.component("research-section", {
 					}
 				})
 
+				//console.log("dataUrl",dataUrl);
+
+			} else if(TYPE == "replace or") {
+
+				//console.log("here3");
+				PARAMS.map((param, pIndex) => {
+					if (!!QUERY.split(",")[pIndex]) {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					} else {
+						dataUrl = dataUrl.replace("$" + param + ",", '');
+						dataUrl = dataUrl.replace(",$" + param, '');
+						dataUrl = dataUrl.replace("$" + param, '');
+					}
+				})
+
+				//console.log("dataUrl",dataUrl);
+
 			} else {
 				dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
 			}
+
+			
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -1500,6 +1546,7 @@ export default Vue.component("research-section", {
 		processLoadedApi(CONTENT, QUERY, TYPE, PARAMS) {
 
 
+
 			// remote table format
 			if (!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"]
 				&& this.sectionConfig["table format"]["type"] == "remote") {
@@ -1597,6 +1644,7 @@ export default Vue.component("research-section", {
 
 					break;
 				case "json lines":
+
 					if (!!dataWrapper) {
 
 						let tempData = []
@@ -1678,6 +1726,8 @@ export default Vue.component("research-section", {
 
 						data = mergedData;
 
+						console.log("CONTENT data",data);
+
 					} else {
 						data = CONTENT;
 					}
@@ -1702,7 +1752,7 @@ export default Vue.component("research-section", {
 					break;
 
 				case "object to array":
-					console.log("CONTENT",CONTENT);
+					//console.log("CONTENT",CONTENT);
 					let objKey = this.dataPoint.object.key, objValue = this.dataPoint.object.value;
 
 					if (!!dataWrapper) {

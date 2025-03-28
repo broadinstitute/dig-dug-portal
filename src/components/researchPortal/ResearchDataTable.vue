@@ -258,7 +258,7 @@
 										</span>
 								</span>
 								
-								<span v-else v-html="formatValue(tdValue, tdKey)"></span>
+								<span v-else v-html="formatValue(tdValue, tdKey, value)"></span>
 
 								<!-- column formatting contains copy to clipboard -->
 								<b-btn  class="copy-to-clipboard"
@@ -1406,7 +1406,7 @@ export default Vue.component("research-data-table", {
 		saveJson(DATA, FILENAME) {
 			this.utils.uiUtils.saveJson(DATA, FILENAME);
 		},
-		formatValue(tdValue, tdKey) {
+		formatValue(tdValue, tdKey, rowValue) {
 			let content;
 
 			if (
@@ -1435,6 +1435,15 @@ export default Vue.component("research-data-table", {
 						this.tableFormat,
 						this.phenotypeMap,
 						null
+					);
+				} else if (!!types.includes("link with parameters")) {
+					content = this.utils.Formatters.BYORColumnFormatter(
+						tdValue,
+						tdKey,
+						this.tableFormat,
+						this.phenotypeMap,
+						null,
+						rowValue
 					);
 				} else {
 					content = this.utils.Formatters.BYORColumnFormatter(
