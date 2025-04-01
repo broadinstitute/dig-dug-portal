@@ -1,7 +1,7 @@
 <template>
   <div>
     <research-region-plot
-      :plotData="assocData"
+      :plotData="processAssocData"
       :renderConfig="plotConfig"
       :searchParameters="searchParameters"
       :dataComparisonConfig="dataComparisonConfig"
@@ -179,6 +179,14 @@ export default Vue.component("pigean-locus-zoom", {
       let end = data.end + border;
       let region = `${data.chromosome}:${start}-${end}`;
       return region;
+    },
+    processAssocData(){
+      let outputData = {};
+      for (let i = 0; i < this.assocData.length; i++){
+        let item = this.assocData[i];
+        outputData[item.varId] = item;
+      }
+      return outputData;
     }
   },
   methods: {
