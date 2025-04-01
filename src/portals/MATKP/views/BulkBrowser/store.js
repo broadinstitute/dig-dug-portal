@@ -6,10 +6,12 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import bioIndexUtils from "@/utils/bioIndexUtils";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import dataConvert from "@/utils/dataConvert";
 
 Vue.use(Vuex);
+
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 export default new Vuex.Store({
   modules: {
@@ -26,6 +28,7 @@ export default new Vuex.Store({
     selectedComparison: keyParams.comparison || "",
     selectedGene: keyParams.gene || "",
     bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
+    singleBulkZNormUrl: `${BIO_INDEX_HOST}/api/bio/query/single-cell-bulk-z-norm?q=`,
     currentComparisons: {},
   },
 
@@ -52,14 +55,23 @@ export default new Vuex.Store({
   actions: {
     async queryBulk(context) {
       let compQueryParam = context.state.currentComparisons[context.state.selectedComparison];
-
+      let singleBulkZNormObject = {};
       console.log("compQueryParam", compQueryParam);
+      if (context.state.selectedDataset !== "") {
+        const query = `${context.state.singleBulkZNormUrl}${context.state.selectedDataset},${compQueryParam}&limit=${context.state.limit}`
+        const response = await fetch(query);
+        singleBulkZNormObject = await response.json();
+        console.log(query, response, singleBulkZNormObject);
+      }
+      context.commit("setSingleBulkZNormData", singleBulkZNormObject.data);
+      /*
       await context.dispatch("singleBulkZNorm/query",
         {
           q: `${context.state.selectedDataset},${compQueryParam}`,
           limit: context.state.limit
         });
       context.commit("setSingleBulkZNormData", context.state.singleBulkZNorm.data);
+      */
     },
     async queryBulkFile(context) {
       let bulkDataObject = [];

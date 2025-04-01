@@ -24,7 +24,7 @@ import keyParams from "@/utils/keyParams";
 import { isNull } from "lodash";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 new Vue({
     store,
@@ -213,7 +213,7 @@ new Vue({
         },
         async getBulkMetadata() {
             if (!this.allMetadata) {
-                let metadataUrl = "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
+                let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
                 let myMetadata = await scUtils.fetchMetadata(metadataUrl);
                 this.allMetadata = myMetadata;
             }

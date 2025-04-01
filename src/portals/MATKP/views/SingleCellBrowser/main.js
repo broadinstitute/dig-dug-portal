@@ -8,10 +8,6 @@ import { getTextContent } from "@/portals/MATKP/utils/content";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
-//import EventBus from "@/utils/eventBus";
-
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 
 new Vue({
     components: {
@@ -36,19 +32,19 @@ new Vue({
                 "data points": [
                     {
                         "role": "metadata",
-                        "url": "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_metadata/dataset_metadata.json.gz"
+                        "url": "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz"
                     }, {
                         "role": "fields",
-                        "url": "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell/$datasetId/fields.json.gz"
+                        "url": "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/fields.json.gz"
                     }, {
                         "role": "coordinates",
-                        "url": "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz"
+                        "url": "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz"
                     }, {
                         "role": "expression",
-                        "url": "https://bioindex-dev.hugeamp.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
+                        "url": "https://matkp.hugeampkpnbi.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
                     }, {
                         "role": "markers",
-                        "url": "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
+                        "url": "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
                     }
                 ],
                 "components": {

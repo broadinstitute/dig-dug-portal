@@ -6,7 +6,8 @@ import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
+//const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 new Vue({
     components: {

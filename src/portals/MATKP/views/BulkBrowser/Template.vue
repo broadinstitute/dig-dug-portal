@@ -6,7 +6,7 @@
           <!-- BODY -->
           <div class="mat-body f-col">
             <h2 class="matkp-static-content-title">Differential Gene Expression Browser</h2>
-            <div class="matkp-tool-documentation" v-html="$parent.documentation.body"></div>
+            <div class="matkp-tool-documentation" v-if="$parent.documentation?.body" v-html="$parent.documentation.body"></div>
               <div class="flex-column flex-small-gap">
                     <div id="center-width" class="flex-gap flex-column">
                         <div class="flex-gap flex-column" id="center-content">
