@@ -122,7 +122,6 @@ export default Vue.component("pigean-locus-zoom", {
           "fields group data key":["phenotype"],
           "fields to compare":["-log10(P-Value)","P-Value","Beta","MAF","Standard Error","Z Score","LDS"]
           },
-        searchingRegion: "",
         plotMargin: {
             leftMargin: 150,
             rightMargin: 40,
@@ -154,7 +153,6 @@ export default Vue.component("pigean-locus-zoom", {
     this.setSearchParams();
     this.geneData = await this.getGeneData();
     this.assocData = await this.getAssocData();
-    this.setSearchingRegion();
     console.log(JSON.stringify(this.assocData));
   },
   computed: {
@@ -173,6 +171,15 @@ export default Vue.component("pigean-locus-zoom", {
             };
             return utils;
         },
+    
+    searchingRegion(){
+      let border = 250000;
+      let data = this.geneData;
+      let start = data.start < border ? data.start - border : 0;
+      let end = data.end + border;
+      let region = `${data.chromosome}:${start}-${end}`;
+      return region;
+    }
   },
   methods: {
     async getAssocData() {
@@ -188,14 +195,6 @@ export default Vue.component("pigean-locus-zoom", {
         "phenotype":{"type":"list","field":"phenotype","search":[this.phenotype]},
         "gene":{"type":"input","field":"gene","search":[this.gene]}}
     },
-    setSearchingRegion(){
-      let border = 250000;
-      let data = this.geneData;
-      let start = data.start < border ? data.start - border : 0;
-      let end = data.end + border;
-      let region = `${data.chromosome}:${start}-${end}`;
-      this.searchingRegion = region;
-    }
   },
   watch: {}
 });
