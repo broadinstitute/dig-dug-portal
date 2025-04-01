@@ -3,12 +3,8 @@
     <research-region-plot
       :plotData="assocData"
       :renderConfig="plotConfig"
-      :searchParameters="
-        $store.state.searchParameters
-      "
-      :dataComparisonConfig="
-        $parent.dataComparisonConfig
-      "
+      :searchParameters="searchParameters"
+      :dataComparisonConfig="dataComparisonConfig"
       :region="$store.state.searchingRegion"
       :plotMargin="$parent.plotMargin"
       :compareGroupColors="$parent.colors.moderate"
@@ -98,9 +94,16 @@ export default Vue.component("pigean-locus-zoom", {
                 "zoom":"true"
           },
         assocData: [],
+        searchParameters: {},
+        dataComparisonConfig : {
+          "key field":"Variant ID",
+          "fields group data key":["phenotype"],
+          "fields to compare":["-log10(P-Value)","P-Value","Beta","MAF","Standard Error","Z Score","LDS"]
+        }
       };
   },
   async mounted(){
+    this.setSearchParams();
     this.assocData = await this.getAssocData();
     console.log(JSON.stringify(this.assocData));
   },
@@ -110,6 +113,11 @@ export default Vue.component("pigean-locus-zoom", {
       console.log(`${this.phenotype} ${this.gene}`)
       return await query("associations", `${this.phenotype},${this.gene}`);
     },
+    setSearchParams(){
+      this.searchParameters = {
+        "phenotype":{"type":"list","field":"phenotype","search":[this.phenotype]},
+        "gene":{"type":"input","field":"gene","search":[this.gene]}}
+    }
   },
   watch: {}
 });

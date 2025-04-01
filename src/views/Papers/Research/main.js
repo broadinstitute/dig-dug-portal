@@ -401,7 +401,9 @@ new Vue({
                 return null;
             }
 
-            return JSON.parse(contents[0]["field_data_comparison"]);
+            let config = JSON.parse(contents[0]["field_data_comparison"]);
+            console.log(JSON.stringify(config));
+            return config;
         },
         dataPoints() {
             let contents = this.researchPage;
@@ -570,7 +572,6 @@ new Vue({
                 return null;
             }
             let config = JSON.parse(contents[0]["field_visualizer_configuration"]);
-            console.log(JSON.stringify(config));
             return config;
         },
         plotClass() {
