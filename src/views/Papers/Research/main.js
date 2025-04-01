@@ -569,7 +569,9 @@ new Vue({
             ) {
                 return null;
             }
-            return JSON.parse(contents[0]["field_visualizer_configuration"]);
+            let config = JSON.parse(contents[0]["field_visualizer_configuration"]);
+            console.log(JSON.stringify(config));
+            return config;
         },
         plotClass() {
             let contents = this.researchPage;
