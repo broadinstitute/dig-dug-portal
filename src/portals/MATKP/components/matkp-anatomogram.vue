@@ -63,7 +63,7 @@ export default Vue.component("matkp-anatomogram", {
     props: [],
     data() {
         return {
-            datasetsAPI: "https://bioindex-dev.hugeamp.org/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz",
+            datasetsAPI: "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz",
             datasets: null,
             anatomyWidth: 220,
             selectedSpecies: "Homo sapiens",
