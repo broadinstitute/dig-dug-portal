@@ -432,8 +432,8 @@
                                             v-if="$parent.geneSigsData"
                                             small
                                             :items="$parent.geneSigsData"
-                                            :fields="['species', 'datasetId', 'datasetRef', 'datasetType', 'log_fold_change', 'p_value', 'p_value_adj']"
-                                            sortBy="gene"
+                                            :fields="$parent.geneSigsFields"
+                                            sortBy="p_value"
                                             :sortDesc="false"
                                             :per-page="10"
                                             :current-page="$parent.geneSigsPage"
@@ -685,7 +685,7 @@
                                             v-if="$parent.GTExData"
                                             small
                                             :items="$parent.GTExData"
-                                            :fields="['tissue', 'biosample', 'tstat']"
+                                            :fields="$parent.GTExDataFields"
                                             sortBy="tissue"
                                             :sortDesc="false"
                                             :per-page="10"
@@ -762,12 +762,17 @@
                                             <b-table
                                                 small
                                                 :items="$parent.GTExData2"
-                                                :fields="['tissue', 'tissueId', 'biosample', 'biosampleId', 'dataset', 'minTpm', 'firstQuTpm', 'medianTpm', 'thirdQuTpm', 'maxTpm', 'nSamples']"
+                                                :fields="$parent.GTExData2Fields"
                                                 sortBy="tissue"
                                                 :sortDesc="false"
                                                 :per-page="10"
                                                 :current-page="$parent.GTExPage2"
                                             >
+                                                <template #cell(dataset)="data">
+                                                    <a :href="`https://cmdga.org/search/?searchTerm=${data.value}`">
+                                                        {{ data.value }}
+                                                    </a>
+                                                </template>
                                             </b-table>
                                             <b-pagination
                                                 v-model="$parent.GTExPage2"
@@ -804,7 +809,7 @@
                 </div>
             </div>
 
-
+            <!--HUGE scores-->
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>

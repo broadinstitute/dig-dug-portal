@@ -222,8 +222,52 @@ new Vue({
 
             geneSigsData: null,
             geneSigsPage: 1,
+            geneSigsFields: [
+                {
+                    key: 'datasetRef',
+                    label: 'Signature',
+                    sortable: true,
+                },{
+                    key: 'species',
+                    sortable: true,
+                },{
+                    key: 'log_fold_change',
+                    sortable: true,
+                    formatter: (value) => value ? value.toFixed(2) : ""
+                },{
+                    key: 'p_value',
+                    sortable: true,
+                    formatter: (value) => value ? value.toExponential(2) : ""
+                },{
+                    key: 'p_value_adj',
+                    sortable: true,
+                    formatter: (value) => value ? value.toExponential(2) : ""
+                },{
+                    key: 'datasetType',
+                    label: "Data Type",
+                    sortable: true,
+                },{
+                    key: 'datasetId',
+                    label: 'Dataset',
+                    sortable: true,
+                }
+            ],
 
             GTExData: null,
+            GTExDataFields: [
+                {
+                    key: 'tissue',
+                    sortable: true
+                }, {
+                    key: 'biosample',
+                    sortable: true
+                }, {
+                    key: 'tstat',
+                    sortable: true,
+                    formatter: (value) => value ? value.toExponential(2) : ""
+                }
+
+            ],
             GTExRenderConfig: {
                 type: "bar plot",
                 label: "P-Value",
@@ -258,6 +302,46 @@ new Vue({
             GTExPage: 1,
 
             GTExData2: null,
+            GTExData2Fields: [
+                {
+                    key: 'tissue',
+                    sortable: true
+                }, {
+                    key: 'tissueId'
+                }, {
+                    key: 'biosample',
+                    sortable: true
+                }, {
+                    key: 'biosampleId'
+                }, {
+                    key: 'minTpm',
+                    label: 'Min TPM',
+                    sortable: true
+                }, {
+                    key: 'firstQuTpm',
+                    label: 'Q1 TPM',
+                    sortable: true
+                }, {
+                    key: 'medianTpm',
+                    label: 'Median TPM',
+                    sortable: true
+                }, {
+                    key: 'thirdQuTpm',
+                    label: 'Q3 TPM',
+                    sortable: true
+                }, {
+                    key: 'maxTpm',
+                    label: 'Max TPM',
+                    sortable: true
+                }, {
+                    key: 'nSamples',
+                    label: 'Total Samples',
+                    sortable: true
+                }, {
+                    key: 'dataset'
+                },
+
+            ],
             GTExRenderConfig2: {
                 type: "box plot",
                 label: "Absolute gene expression",

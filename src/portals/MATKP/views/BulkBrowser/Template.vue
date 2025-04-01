@@ -85,7 +85,7 @@
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
-                                            Set log(P) threshold
+                                            Set -log10(FDR adj. p) threshold
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">

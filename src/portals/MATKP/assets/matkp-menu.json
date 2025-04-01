@@ -1,5 +1,9 @@
 [
     {
+        "label": "Home",
+        "path": "/"
+    },
+    {
         "label": "Data",
         "path": "/datasets.html"
     },

@@ -34,6 +34,7 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <!--
             <template #cell(phenotype)="r">
                 <a href="javascript:;" class="phenotype-gene-association">
                     {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
@@ -56,6 +57,7 @@
                 </a>
                 &nbsp;
             </template>
+            -->
             <template #cell(gene)="r">
                 <a :href="`/gene.html?gene=${r.item.gene}`">
                     {{ r.item.gene }}
@@ -151,11 +153,7 @@ export default Vue.component("HugeScoresTable", {
                 {
                     key: "range",
                     label: "Evidence Range",
-                },
-                {
-                    key: "link",
-                    label: "HuGE Calculator",
-                },
+                }
             ],
         };
     },
