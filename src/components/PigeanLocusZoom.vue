@@ -120,7 +120,7 @@ export default Vue.component("pigean-locus-zoom", {
         dataComparisonConfig : {
           "key field":"Variant ID",
           "fields group data key":["phenotype"],
-          "fields to compare":["-log10(P-Value)","P-Value","Beta","MAF","Standard Error","Z Score","LDS"]
+          "fields to compare":["pValue","beta","stdErr","zScore"]
           },
         plotMargin: {
             leftMargin: 150,
@@ -182,9 +182,17 @@ export default Vue.component("pigean-locus-zoom", {
     },
     processAssocData(){
       let outputData = {};
+      let fields = this.dataComparisonConfig["fields to compare"];
       for (let i = 0; i < this.assocData.length; i++){
         let item = this.assocData[i];
         outputData[item.varId] = item;
+        // This is how output data looks on Variant Sifter
+        for (let j = 0; j < fields.length; j++){
+          let field = fields[j];
+          let objData = {};
+          objData[this.phenotype] = item[field];
+          outputData[item.varId][field] = objData;
+        }
       }
       return outputData;
     }
