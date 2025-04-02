@@ -41,80 +41,23 @@ export default Vue.component("pigean-locus-zoom", {
   data() {
       return {
         plotConfig: {
-          "type":"gem package",
-          "viewers": ["region plot","genes plot"],
-          "pkg id":"testPkg",
-          "ld server":{
-              "pos":"Position",
-              "ref":"ref",
-              "alt":"alt",
-              "ref variant field":"Variant ID",
-              "populations field":"P-Value",
-              "populations type":"fixed",
-              "fixed population":"ALL",
-              "populations":{"ALL":"ALL"}},
-          "region viewer":{
-            "x axis field":"Position",
-            "y axis field":"-log10(P-Value)",
-            "render by":"Variant ID",
-            "y axis label":"-Log10(p-value)",
+            "x axis field":"position",
+            "y axis field":"pValue",
+            "render by":"varId",
+            "y axis label":"P-Value",
             "x axis label":"Chromosome",
-            "hover content":["P-Value","Beta"],
+            "hover content":["pValue","beta"],
             "height":120,
             "star key":"Variant ID",
             "ld server":{
               "pos":"Position",
               "ref":"ref",
               "alt":"alt",
-              "ref variant field":"Variant ID",
-              "populations field":"P-Value",
+              "ref variant field":"varId",
+              "populations field":"pValue",
               "populations type":"fixed",
               "fixed population":"ALL",
               "populations":{"ALL":"ALL"}}},
-          "credible sets viewer":{
-            "credible sets server":"KP BioIndex",
-            "phenotype parameter":"phenotype",
-            "x axis field":"position",
-            "y axis field":"posteriorProbability",
-            "hover content":["posteriorProbability","credibleSetId","reference","alt","beta","pValue"],
-            "render by":"Variant ID",
-          "data convert":[
-            {"type":"join multi","field name":"Variant ID",
-              "fields to join":["chromosome","position","reference","alt"],
-              "join by":[":","_","/"]},
-            {"type":"raw","field name":"posteriorProbability","raw field":"posteriorProbability"},
-            {"type":"raw","field name":"credibleSetId","raw field":"credibleSetId"},
-            {"type":"raw","field name":"reference","raw field":"reference"},
-            {"type":"raw","field name":"alt","raw field":"alt"},
-            {"type":"raw","field name":"beta","raw field":"beta"},
-            {"type":"raw","field name":"pValue","raw field":"pValue"},
-            {"type":"raw","field name":"position","raw field":"position"},
-            {"type":"raw","field name":"phenotype","raw field":"phenotype"}],
-          "star key":"Variant ID"},
-          "annotations viewer":{
-            "annotations server":"KP BioIndex",
-            "phenotype parameter":"phenotype",
-            "overlapping regions":"false",
-            "ui table legend":"Table is sorted by fold enrichment (SNPs/expectedSNPs) across annotations.",
-            "star key":{"key":"Variant ID","position":"Position"}},
-            "biosamples viewer":{
-              "biosamples server":"KP BioIndex",
-              "phenotype parameter":"phenotype",
-              "overlapping regions":"true",
-              "with annotations viewer":"true",
-              "ui table legend":"Table is sorted by fold enrichment (SNPs/expectedSNPs) across annotations.",
-              "star key":{"key":"Variant ID","position":"Position"}},
-              "gene-links viewer":{
-                "with annotations viewer":"true",
-                "gene links server":"KP BioIndex",
-                "phenotype parameter":"phenotype",
-                "region parameter":"region",
-                "overlapping regions":"true",
-                "global enrichment plot labels":{"x axis":"","y axis":""},
-                "star key":{"key":"Variant ID","position":"Position"}},
-                "genes track":{"input type":"dynamic","dynamic parameter":"region"},
-                "zoom":"true"
-          },
         assocData: [],
         geneData: [],
         region: "",
@@ -173,16 +116,6 @@ export default Vue.component("pigean-locus-zoom", {
             };
             return utils;
         },
-    
-    async searchingRegion(){
-      let border = 250000;
-      let data = this.geneData;
-      let start = data.start < border ? data.start - border : 0;
-      let end = data.end + border;
-      let region = `${data.chromosome}:${start}-${end}`;
-      console.log(region);
-      return region;
-    },
     processAssocData(){
       let outputData = {};
       let fields = this.dataComparisonConfig["fields to compare"];
@@ -208,8 +141,9 @@ export default Vue.component("pigean-locus-zoom", {
     async getGeneRegion(){
       let geneData = await query("gene", this.gene);
       let data = geneData[0];
-      let region = `${data.chromosome}:${data.start}-${data.end}`;
-      console.log(region);
+      let margin = 250000;
+      let start = data.start < margin ? 0 : data.start - margin;
+      let region = `${data.chromosome}:${start}-${data.end + margin}`;
       return region;
     },
     setSearchParams(){
