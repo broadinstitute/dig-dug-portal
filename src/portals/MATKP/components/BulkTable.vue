@@ -143,6 +143,7 @@ import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 import { cloneDeep } from "lodash";
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 export default Vue.component("bulk-table", {
     components: {
         DataDownload,
@@ -234,7 +235,7 @@ export default Vue.component("bulk-table", {
         async getSubtable(row) {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey]) {
-                let data = await query(this.config.subtableEndpoint, queryKey);
+                let data = await this.query(this.config.subtableEndpoint, queryKey);
                 let fields = this.getFields(data[0]);
                 Vue.set(this.subtableData, queryKey, this.toNumeric(data, fields));
                 Vue.set(this.subtableFields, queryKey, fields);
@@ -243,6 +244,12 @@ export default Vue.component("bulk-table", {
         async showDetails(row) {
             row.toggleDetails();
             await this.getSubtable(row);
+        },
+        async query(endPoint, key){
+            const query = `${BIO_INDEX_HOST}/api/bio/query/${endPoint}?q=${key}`
+            const response = await fetch(query);
+            const json = await response.json();
+            return json.data;
         },
         subtableKey(item) {
             let mySubtableKey = `${this.dataset},${item[this.config.queryParam]}`;
