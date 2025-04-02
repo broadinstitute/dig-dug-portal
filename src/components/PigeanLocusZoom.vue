@@ -13,7 +13,7 @@
       :regionViewArea="0"
       :pkgData="[]"
       :pkgDataSelected="[]"
-      :utils="$parent.utilsBox"
+      :utils="utilsBox"
       sectionId=""
     ></research-region-plot>
   </div>
@@ -102,20 +102,20 @@ export default Vue.component("pigean-locus-zoom", {
   },
   computed: {
     utilsBox() {
-            let utils = {
-                Formatters: Formatters,
-                uiUtils: uiUtils,
-                alertUtils: alertUtils,
-                keyParams: keyParams,
-                dataConvert: dataConvert,
-                sortUtils: sortUtils,
-                plotUtils: plotUtils,
-                filterUtils: filterUtils,
-                regionUtils: regionUtils,
-                userUtils: userUtils,
-            };
-            return utils;
-        },
+        let utils = {
+            Formatters: Formatters,
+            uiUtils: uiUtils,
+            alertUtils: alertUtils,
+            keyParams: keyParams,
+            dataConvert: dataConvert,
+            sortUtils: sortUtils,
+            plotUtils: plotUtils,
+            filterUtils: filterUtils,
+            regionUtils: regionUtils,
+            userUtils: userUtils,
+        };
+        return utils;
+    },
     processAssocData(){
       let outputData = {};
       let fields = this.dataComparisonConfig["fields to compare"];
