@@ -1,11 +1,12 @@
 <template>
   <div>
     <research-region-plot
+      v-if="!!region"
       :plotData="processAssocData"
       :renderConfig="plotConfig"
       :searchParameters="searchParameters"
       :dataComparisonConfig="dataComparisonConfig"
-      :region="searchingRegion"
+      :region="region"
       :plotMargin="plotMargin"
       :compareGroupColors="colors"
       :regionZoom="0"
@@ -116,6 +117,7 @@ export default Vue.component("pigean-locus-zoom", {
           },
         assocData: [],
         geneData: [],
+        region: "",
         searchParameters: {},
         dataComparisonConfig : {
           "key field":"Variant ID",
@@ -150,9 +152,9 @@ export default Vue.component("pigean-locus-zoom", {
       };
   },
   async mounted(){
-    this.setSearchParams();
-    this.geneData = await this.getGeneData();
+    this.region = await this.getGeneRegion();
     this.assocData = await this.getAssocData();
+    this.setSearchParams();
     console.log(JSON.stringify(this.assocData));
   },
   computed: {
@@ -172,12 +174,13 @@ export default Vue.component("pigean-locus-zoom", {
             return utils;
         },
     
-    searchingRegion(){
+    async searchingRegion(){
       let border = 250000;
       let data = this.geneData;
       let start = data.start < border ? data.start - border : 0;
       let end = data.end + border;
       let region = `${data.chromosome}:${start}-${end}`;
+      console.log(region);
       return region;
     },
     processAssocData(){
@@ -202,9 +205,12 @@ export default Vue.component("pigean-locus-zoom", {
       console.log(`${this.phenotype} ${this.gene}`)
       return await query("associations", `${this.phenotype},${this.gene}`);
     },
-    async getGeneData(){
-      let data = await query("gene", this.gene);
-      return data[0];
+    async getGeneRegion(){
+      let geneData = await query("gene", this.gene);
+      let data = geneData[0];
+      let region = `${data.chromosome}:${data.start}-${data.end}`;
+      console.log(region);
+      return region;
     },
     setSearchParams(){
       this.searchParameters = {
