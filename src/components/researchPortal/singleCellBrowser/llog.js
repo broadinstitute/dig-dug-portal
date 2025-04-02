@@ -16,6 +16,13 @@ if(!isLoggingEnabled){
 
 export function llog(...args) {
   if (isLoggingEnabled) {
-    console.log(...args);
+    //this always shows llog:XX in the console, so we dont know the orignal called
+    ///console.log(...args);
+
+    //include the stack strace 
+    //so we can see where the original console.log call is coming from
+    console.groupCollapsed(...args);
+    console.trace();
+    console.groupEnd();
   }
 }

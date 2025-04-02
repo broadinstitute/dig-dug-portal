@@ -277,7 +277,7 @@ export default Vue.component("multi-genes-track", {
 								let lastGene = t[t.length - 1];
 
 								//measuring if the regioon of the last gene is bigger than the gene label
-								console.log("t", t);
+								//console.log("t", t);
 								let lastGeneWidth = lastGene.xEndPos - lastGene.xStartPos;
 								let newGeneWidth = g.xEndPos - g.xStartPos;
 								
