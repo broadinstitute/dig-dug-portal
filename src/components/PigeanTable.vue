@@ -5,6 +5,7 @@ import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import PigeanTable from "./PigeanTable.vue";
+import PigeanLocusZoom from "./PigeanLocusZoom.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
@@ -16,6 +17,7 @@ export default Vue.component("pigean-table", {
     components: {
         DataDownload,
         PigeanTable,
+        PigeanLocusZoom,
     },
     props: [
         "pigeanData",
@@ -130,6 +132,7 @@ export default Vue.component("pigean-table", {
             }
         },
         showDetails(row, tableNum) {
+            console.log(tableNum);
             this.toggleTable(row, tableNum);
             this.getSubtable(row, tableNum);
         },
@@ -283,7 +286,7 @@ export default Vue.component("pigean-table", {
                         size="sm"
                         @click="showDetails(row, 1)"
                     >
-                        {{ row.detailsShowing ? "Hide" : "Show" }}
+                        {{ row.detailsShowing && row.item.subtableActive !== 3 ? "Hide" : "Show" }}
                     </b-button>
                 </template>
                 <template #cell(expand1)="row">
@@ -340,6 +343,15 @@ export default Vue.component("pigean-table", {
                         </b-dropdown-item>
                     </b-dropdown>
                 </template>
+                <template #cell(expand3)="row">
+                    <b-button
+                        variant="outline-primary"
+                        size="sm"
+                        @click="showDetails(row, 3)"
+                    >
+                        {{ row.detailsShowing && row.item.subtableActive === 3  ? "Hide" : "Show" }}
+                    </b-button>
+                </template>
                 <template #row-details="row">
                     <research-phewas-plot
                         v-if="
@@ -385,6 +397,12 @@ export default Vue.component("pigean-table", {
                         :isSubtable="true"
                     >
                     </pigean-table>
+                    <div v-if="row.item.subtableActive === 3">
+                        <pigean-locus-zoom
+                            :phenotype="row.item.phenotype"
+                            :gene="row.item.gene"
+                        ></pigean-locus-zoom>
+                    </div>
                 </template>
             </b-table>
             <b-pagination
