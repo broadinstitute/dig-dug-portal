@@ -1,21 +1,34 @@
 <template>
   <div>
-    <research-region-plot
-      v-if="!!region"
-      :plotData="processAssocData"
-      :renderConfig="plotConfig"
-      :searchParameters="searchParameters"
-      :dataComparisonConfig="dataComparisonConfig"
-      :region="region"
-      :plotMargin="plotMargin"
-      :compareGroupColors="colors"
-      :regionZoom="0"
-      :regionViewArea="0"
-      :pkgData="[]"
-      :pkgDataSelected="[]"
-      :utils="utilsBox"
-      sectionId=""
-    ></research-region-plot>
+    <div v-if="!!region">
+      <research-region-plot
+        v-if="!!region"
+        :plotData="processAssocData"
+        :renderConfig="plotConfig"
+        :searchParameters="searchParameters"
+        :dataComparisonConfig="dataComparisonConfig"
+        :region="region"
+        :plotMargin="plotMargin"
+        :compareGroupColors="colors"
+        :regionZoom="0"
+        :regionViewArea="0"
+        :pkgData="[]"
+        :pkgDataSelected="[]"
+        :utils="utilsBox"
+        sectionId=""
+      ></research-region-plot>
+      <research-genes-track
+          :region="region"
+          :genesData="genesTrackData"
+          :plotConfig="plotConfig"
+          plotType="region plot"
+          :plotMargin="plotMargin"
+          :regionZoom="0"
+          :regionViewArea="0"
+          :utils="utilsBox"
+          sectionId=""
+      ></research-genes-track>
+    </div>
   </div>
 </template>
 <script>
@@ -33,9 +46,12 @@ import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
+import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
+import hugeampkpncms from "@/modules/hugeampkpncms";
 export default Vue.component("pigean-locus-zoom", {
   components: {
-    ResearchRegionPlot
+    ResearchRegionPlot,
+    ResearchGenesTrack
   },
   props: ["phenotype", "gene"],
   data() {
@@ -48,10 +64,10 @@ export default Vue.component("pigean-locus-zoom", {
             "x axis label":"Chromosome",
             "hover content":["pValue","beta"],
             "height":120,
-            "star key":"Variant ID",
+            "star key":"varId",
             "ld server":{
-              "pos":"Position",
-              "ref":"ref",
+              "pos":"position",
+              "ref":"reference",
               "alt":"alt",
               "ref variant field":"varId",
               "populations field":"minusLog10P",
@@ -59,7 +75,7 @@ export default Vue.component("pigean-locus-zoom", {
               "fixed population":"ALL",
               "populations":{"ALL":"ALL"}}},
         assocData: [],
-        geneData: [],
+        genesTrackData: [],
         region: "",
         searchParameters: {},
         dataComparisonConfig : {
@@ -95,8 +111,9 @@ export default Vue.component("pigean-locus-zoom", {
       };
   },
   async mounted(){
-    this.region = await this.getGeneRegion();
     this.assocData = await this.getAssocData();
+    this.genesTrackData = await this.getGenesTrackData();
+    this.region = await this.getGeneRegion();
     this.setSearchParams();
   },
   computed: {
@@ -131,6 +148,7 @@ export default Vue.component("pigean-locus-zoom", {
           outputData[item.varId][field] = objData;
         }
       }
+      console.log(JSON.stringify(outputData));
       return outputData;
     }
   },
@@ -138,6 +156,11 @@ export default Vue.component("pigean-locus-zoom", {
     async getAssocData() {
       console.log(`${this.phenotype} ${this.gene}`)
       return await query("associations", `${this.phenotype},${this.gene}`);
+    },
+    async getGenesTrackData(){
+      let geneParam = `'${this.gene}'`;
+      let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + geneParam;
+      return await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
     },
     async getGeneRegion(){
       let geneData = await query("gene", this.gene);
