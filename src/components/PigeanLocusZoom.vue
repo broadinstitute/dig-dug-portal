@@ -42,9 +42,9 @@ export default Vue.component("pigean-locus-zoom", {
       return {
         plotConfig: {
             "x axis field":"position",
-            "y axis field":"pValue",
+            "y axis field":"minusLog10P",
             "render by":"varId",
-            "y axis label":"P-Value",
+            "y axis label":"-log10 (p)",
             "x axis label":"Chromosome",
             "hover content":["pValue","beta"],
             "height":120,
@@ -54,7 +54,7 @@ export default Vue.component("pigean-locus-zoom", {
               "ref":"ref",
               "alt":"alt",
               "ref variant field":"varId",
-              "populations field":"pValue",
+              "populations field":"minusLog10P",
               "populations type":"fixed",
               "fixed population":"ALL",
               "populations":{"ALL":"ALL"}}},
@@ -65,7 +65,7 @@ export default Vue.component("pigean-locus-zoom", {
         dataComparisonConfig : {
           "key field":"Variant ID",
           "fields group data key":["phenotype"],
-          "fields to compare":["pValue","beta","stdErr","zScore"]
+          "fields to compare":["minusLog10P","beta","stdErr","zScore"]
           },
         plotMargin: {
             leftMargin: 150,
@@ -98,7 +98,6 @@ export default Vue.component("pigean-locus-zoom", {
     this.region = await this.getGeneRegion();
     this.assocData = await this.getAssocData();
     this.setSearchParams();
-    console.log(JSON.stringify(this.assocData));
   },
   computed: {
     utilsBox() {
@@ -121,6 +120,8 @@ export default Vue.component("pigean-locus-zoom", {
       let fields = this.dataComparisonConfig["fields to compare"];
       for (let i = 0; i < this.assocData.length; i++){
         let item = this.assocData[i];
+        item.varId = this.fixVarId(item.varId);
+        item.minusLog10P = -Math.log10(item.pValue);
         outputData[item.varId] = item;
         // This is how output data looks on Variant Sifter
         for (let j = 0; j < fields.length; j++){
@@ -145,6 +146,14 @@ export default Vue.component("pigean-locus-zoom", {
       let start = data.start < margin ? 0 : data.start - margin;
       let region = `${data.chromosome}:${start}-${data.end + margin}`;
       return region;
+    },
+    fixVarId(varId){
+      let parts = varId.split(":");
+      if (parts.length !== 4){
+        //how should we handle this?
+        return varId;
+      }
+      return `${parts[0]}:${parts[1]}_${parts[2]}/${parts[3]}`;
     },
     setSearchParams(){
       this.searchParameters = {
