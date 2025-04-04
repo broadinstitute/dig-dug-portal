@@ -520,7 +520,7 @@ export default Vue.component("research-region-plot", {
 			} else {
 				let returnObj = {};
 
-				console.log("this.region",this.region);
+				//console.log("this.region",this.region);
 
 				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 

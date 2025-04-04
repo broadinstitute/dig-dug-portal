@@ -64,7 +64,6 @@ export default Vue.component("research-genes-track", {
 		} else {
 			this.getGenesInRegion(this.region)
 		}
-		console.log(JSON.stringify(this.genesData));
 	},
 	created() {
 		//this.$root.$refs.genesTrack = this;
