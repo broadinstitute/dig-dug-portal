@@ -2,7 +2,7 @@
   <div>
     <div v-if="!!region">
       <research-region-plot
-        v-if="!!region"
+        v-if="!!region && genesTrackData.length > 0"
         :plotData="processAssocData"
         :renderConfig="plotConfig"
         :searchParameters="searchParameters"
@@ -73,7 +73,8 @@ export default Vue.component("pigean-locus-zoom", {
               "populations field":"minusLog10P",
               "populations type":"fixed",
               "fixed population":"ALL",
-              "populations":{"ALL":"ALL"}}},
+          "populations":{"ALL":"ALL"}}
+        },
         assocData: [],
         genesTrackData: [],
         region: "",
@@ -111,9 +112,9 @@ export default Vue.component("pigean-locus-zoom", {
       };
   },
   async mounted(){
+    this.region = await this.getGeneRegion();
     this.assocData = await this.getAssocData();
     this.genesTrackData = await this.getGenesTrackData();
-    this.region = await this.getGeneRegion();
     this.setSearchParams();
   },
   computed: {
@@ -148,19 +149,17 @@ export default Vue.component("pigean-locus-zoom", {
           outputData[item.varId][field] = objData;
         }
       }
-      console.log(JSON.stringify(outputData));
       return outputData;
     }
   },
   methods: {
     async getAssocData() {
-      console.log(`${this.phenotype} ${this.gene}`)
       return await query("associations", `${this.phenotype},${this.gene}`);
     },
     async getGenesTrackData(){
-      let geneParam = `'${this.gene}'`;
-      let fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + geneParam;
-      return await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+      let fetchUrl = `https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in ${this.gene}`;
+      let genesData =  await fetch(fetchUrl).then(resp => resp.json(fetchUrl));
+      return genesData.data;
     },
     async getGeneRegion(){
       let geneData = await query("gene", this.gene);
