@@ -1,8 +1,7 @@
 <template>
   <div>
-    <div v-if="!!region">
+    <div v-if="!!region && genesTrackData.length > 0">
       <research-region-plot
-        v-if="!!region && genesTrackData.length > 0"
         :plotData="processAssocData"
         :renderConfig="plotConfig"
         :searchParameters="searchParameters"
@@ -47,7 +46,7 @@ import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
-import hugeampkpncms from "@/modules/hugeampkpncms";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 export default Vue.component("pigean-locus-zoom", {
   components: {
     ResearchRegionPlot,
@@ -162,11 +161,8 @@ export default Vue.component("pigean-locus-zoom", {
       return genesData.data;
     },
     async getGeneRegion(){
-      let geneData = await query("gene", this.gene);
-      let data = geneData[0];
-      let margin = 250000;
-      let start = data.start < margin ? 0 : data.start - margin;
-      let region = `${data.chromosome}:${start}-${data.end + margin}`;
+      let data = await regionUtils.parseRegion(this.gene, true, 250000);
+      let region = `${data.chr}:${data.start}-${data.end}`;
       return region;
     },
     fixVarId(varId){
