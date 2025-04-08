@@ -2,7 +2,7 @@
   <div>
     <div v-if="!!region && genesTrackData.length > 0">
       <research-region-plot
-        :plotData="processedAssocData"
+        :plotData="assocData"
         :renderConfig="plotConfig"
         :searchParameters="searchParameters"
         :dataComparisonConfig="dataComparisonConfig"
@@ -27,6 +27,9 @@
           :utils="utilsBox"
           :sectionId="`${sectionId}_genes`"
       ></research-genes-track>
+    </div>
+    <div v-else class="loading">
+      <b-spinner label="Loading..."></b-spinner>
     </div>
   </div>
 </template>
@@ -76,7 +79,6 @@ export default Vue.component("pigean-locus-zoom", {
         },
         sectionId: "",
         assocData: [],
-        processedAssocData: [],
         genesTrackData: [],
         region: "",
         searchParameters: {},
@@ -115,7 +117,7 @@ export default Vue.component("pigean-locus-zoom", {
   async mounted(){
     this.sectionId = Math.floor(Math.random() * 10e9);
     this.region = await this.getGeneRegion();
-    this.assocData = await this.getAssocData();
+    this.assocData = await this.processAssocData();
     this.genesTrackData = await this.getGenesTrackData();
     this.setSearchParams();
   },
@@ -163,7 +165,8 @@ export default Vue.component("pigean-locus-zoom", {
         }
       }
     },
-    processAssocData(inputData){
+    async processAssocData(){
+      let inputData = await this.getAssocData();
       let outputData = {};
       let fields = this.dataComparisonConfig["fields to compare"];
       for (let i = 0; i < inputData.length; i++){
@@ -205,11 +208,11 @@ export default Vue.component("pigean-locus-zoom", {
         "gene":{"type":"input","field":"gene","search":[this.gene]}}
     },
   },
-  watch: {
-    assocData(newData){
-      this.processedAssocData = this.processAssocData(newData);
-    }
-  }
 });
 </script>
+<style scoped>
+  .loading {
+    margin-left: 50px;
+  }
+</style>
 
