@@ -74,6 +74,7 @@ new Vue({
                         sortable: true,
                     },
                     { key: "expand", label: "Gene sets" },
+                    { key: "expand3", label: "View locus plot"}
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
