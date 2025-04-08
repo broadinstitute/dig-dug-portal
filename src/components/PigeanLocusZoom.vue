@@ -137,34 +137,34 @@ export default Vue.component("pigean-locus-zoom", {
     },
   },
   methods: {
-    async getAssocData() {
+    async getAssocData(CONTENT=null) {
       let query = `${this.phenotype},${this.region}`;
       let url = `${BIO_INDEX_HOST}/api/bio/query/associations?q=${query}`;
-      let json = await fetch(url).then(resp => resp.json());
-      if (json.continuation !== null){
-        return this.loadContinue(json);
-      }
-      this.assocData = json.data;
-    },
-    async loadContinue(CONTENT) {
-      let contURL = `${BIO_INDEX_HOST}/api/bio/cont?token=${CONTENT.continuation}`;
-			let contJson = await fetch(contURL).then((resp) => resp.json());
-
-			if (contJson.error == null) {
-				let prevData = CONTENT.data;
-				let newData = prevData.concat(contJson.data);
-
-				contJson.data = newData;
-
-				if (contJson.continuation == null) {
-					this.assocData = contJson.data;
+      if (CONTENT === null) {
+        let json = await fetch(url).then(resp => resp.json());
+        if (json.continuation !== null){
+          this.getAssocData(json);
+        } else {
+          this.assocData = json.data; 
           return;
-				} else {
-					this.loadContinue(contJson);
-				}
-			}
-		},
+        }
+      } else {
+        let contURL = `${BIO_INDEX_HOST}/api/bio/cont?token=${CONTENT.continuation}`;
+        let contJson = await fetch(contURL).then((resp) => resp.json());
 
+        if (contJson.error == null) {
+          let prevData = CONTENT.data;
+          let newData = prevData.concat(contJson.data);
+          contJson.data = newData;
+          if (contJson.continuation == null) {
+            this.assocData = contJson.data;
+            return;
+          } else {
+            this.getAssocData(contJson);
+          }
+        }
+      }
+    },
     processAssocData(inputData){
       let outputData = {};
       let fields = this.dataComparisonConfig["fields to compare"];
