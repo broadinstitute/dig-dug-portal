@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div v-if="!!ready">
+    <div v-if="!!region && genesTrackData.length > 0">
       <research-region-plot
-        :plotData="processAssocData"
+        :plotData="processedAssocData"
         :renderConfig="plotConfig"
         :searchParameters="searchParameters"
         :dataComparisonConfig="dataComparisonConfig"
@@ -75,6 +75,7 @@ export default Vue.component("pigean-locus-zoom", {
           "populations":{"ALL":"ALL"}}
         },
         assocData: [],
+        processedAssocData: [],
         genesTrackData: [],
         region: "",
         searchParameters: {},
@@ -112,7 +113,7 @@ export default Vue.component("pigean-locus-zoom", {
   },
   async mounted(){
     this.region = await this.getGeneRegion();
-    this.assocData = await this.getAssocData();
+    await this.getAssocData();
     this.genesTrackData = await this.getGenesTrackData();
     this.setSearchParams();
   },
@@ -132,28 +133,6 @@ export default Vue.component("pigean-locus-zoom", {
         };
         return utils;
     },
-    ready(){
-      return !!this.region && this.genesTrackData.length > 0
-        && this.assocData.length > 0;
-    },
-    processAssocData(){
-      let outputData = {};
-      let fields = this.dataComparisonConfig["fields to compare"];
-      for (let i = 0; i < this.assocData.length; i++){
-        let item = this.assocData[i];
-        item.varId = this.fixVarId(item.varId);
-        item.minusLog10P = -Math.log10(item.pValue);
-        outputData[item.varId] = item;
-        // This is how output data looks on Variant Sifter
-        for (let j = 0; j < fields.length; j++){
-          let field = fields[j];
-          let objData = {};
-          objData[this.phenotype] = item[field];
-          outputData[item.varId][field] = objData;
-        }
-      }
-      return outputData;
-    }
   },
   methods: {
     async getAssocData() {
@@ -180,12 +159,32 @@ export default Vue.component("pigean-locus-zoom", {
 
 				if (contJson.continuation == null) {
           console.log("done! ", contJson.data.length);
-					return contJson.data;
+					this.assocData = contJson.data;
+          return;
 				} else {
 					this.loadContinue(contJson);
 				}
 			}
 		},
+
+    processAssocData(inputData){
+      let outputData = {};
+      let fields = this.dataComparisonConfig["fields to compare"];
+      for (let i = 0; i < inputData.length; i++){
+        let item = inputData[i];
+        item.varId = this.fixVarId(item.varId);
+        item.minusLog10P = -Math.log10(item.pValue);
+        outputData[item.varId] = item;
+        // This is how output data looks on Variant Sifter
+        for (let j = 0; j < fields.length; j++){
+          let field = fields[j];
+          let objData = {};
+          objData[this.phenotype] = item[field];
+          outputData[item.varId][field] = objData;
+        }
+      }
+      return outputData;
+    },
     async getGenesTrackData(){
       let fetchUrl = `https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in ${this.gene}`;
       let genesData =  await fetch(fetchUrl).then(resp => resp.json(fetchUrl));
@@ -210,6 +209,11 @@ export default Vue.component("pigean-locus-zoom", {
         "gene":{"type":"input","field":"gene","search":[this.gene]}}
     },
   },
+  watch: {
+    assocData(newData){
+      this.processedAssocData = this.processAssocData(newData);
+    }
+  }
 });
 </script>
 
