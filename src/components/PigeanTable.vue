@@ -132,7 +132,6 @@ export default Vue.component("pigean-table", {
             }
         },
         showDetails(row, tableNum) {
-            console.log(tableNum);
             this.toggleTable(row, tableNum);
             this.getSubtable(row, tableNum);
         },
@@ -217,6 +216,13 @@ export default Vue.component("pigean-table", {
             });
             return allFields;
         },
+        hideLocusButton(phenotype){
+            if (!!this.phenotypeMap){
+                return this.phenotypeMap[phenotype] === undefined 
+                    || this.phenotypeMap[phenotype].trait_group !== "portal";
+            }
+            return this.traitGroup !== "portal";
+        }
     },
 });
 </script>
@@ -347,6 +353,7 @@ export default Vue.component("pigean-table", {
                     <b-button
                         variant="outline-primary"
                         size="sm"
+                        :disabled="hideLocusButton(row.item.phenotype)"
                         @click="showDetails(row, 3)"
                     >
                         {{ row.detailsShowing && row.item.subtableActive === 3  ? "Hide" : "Show" }}
