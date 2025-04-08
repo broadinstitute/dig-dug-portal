@@ -139,18 +139,15 @@ export default Vue.component("pigean-locus-zoom", {
   methods: {
     async getAssocData() {
       let query = `${this.phenotype},${this.region}`;
-      console.log(query);
       let url = `${BIO_INDEX_HOST}/api/bio/query/associations?q=${query}`;
       let json = await fetch(url).then(resp => resp.json());
       if (json.continuation !== null){
-        console.log(JSON.stringify(json));
         return this.loadContinue(json);
       }
-      return json.data;
+      this.assocData = json.data;
     },
     async loadContinue(CONTENT) {
       let contURL = `${BIO_INDEX_HOST}/api/bio/cont?token=${CONTENT.continuation}`;
-      console.log(contURL);
 			let contJson = await fetch(contURL).then((resp) => resp.json());
 
 			if (contJson.error == null) {
@@ -160,7 +157,6 @@ export default Vue.component("pigean-locus-zoom", {
 				contJson.data = newData;
 
 				if (contJson.continuation == null) {
-          console.log("done! ", contJson.data.length);
 					this.assocData = contJson.data;
           return;
 				} else {
