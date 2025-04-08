@@ -14,7 +14,7 @@
         :pkgData="[]"
         :pkgDataSelected="[]"
         :utils="utilsBox"
-        sectionId=""
+        :sectionId="`${sectionId}_region`"
       ></research-region-plot>
       <research-genes-track
           :region="region"
@@ -25,7 +25,7 @@
           :regionZoom="0"
           :regionViewArea="0"
           :utils="utilsBox"
-          sectionId=""
+          :sectionId="`${sectionId}_genes`"
       ></research-genes-track>
     </div>
   </div>
@@ -74,6 +74,7 @@ export default Vue.component("pigean-locus-zoom", {
               "fixed population":"ALL",
           "populations":{"ALL":"ALL"}}
         },
+        sectionId: "",
         assocData: [],
         processedAssocData: [],
         genesTrackData: [],
@@ -112,6 +113,7 @@ export default Vue.component("pigean-locus-zoom", {
       };
   },
   async mounted(){
+    this.sectionId = Math.floor(Math.random() * 10e9);
     this.region = await this.getGeneRegion();
     await this.getAssocData();
     this.genesTrackData = await this.getGenesTrackData();
