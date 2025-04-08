@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="!!region && genesTrackData.length > 0">
+    <div v-if="!!ready">
       <research-region-plot
         :plotData="processAssocData"
         :renderConfig="plotConfig"
@@ -132,6 +132,10 @@ export default Vue.component("pigean-locus-zoom", {
         };
         return utils;
     },
+    ready(){
+      return !!this.region && this.genesTrackData.length > 0
+        && this.assocData.length > 0;
+    },
     processAssocData(){
       let outputData = {};
       let fields = this.dataComparisonConfig["fields to compare"];
@@ -153,8 +157,35 @@ export default Vue.component("pigean-locus-zoom", {
   },
   methods: {
     async getAssocData() {
-      return await query("associations", `${this.phenotype},${this.gene}`);
+      let query = `${this.phenotype},${this.region}`;
+      console.log(query);
+      let url = `${BIO_INDEX_HOST}/api/bio/query/associations?q=${query}`;
+      let json = await fetch(url).then(resp => resp.json());
+      if (json.continuation !== null){
+        console.log(JSON.stringify(json));
+        return this.loadContinue(json);
+      }
+      return json.data;
     },
+    async loadContinue(CONTENT) {
+      let contURL = `${BIO_INDEX_HOST}/api/bio/cont?token=${CONTENT.continuation}`;
+      console.log(contURL);
+			let contJson = await fetch(contURL).then((resp) => resp.json());
+
+			if (contJson.error == null) {
+				let prevData = CONTENT.data;
+				let newData = prevData.concat(contJson.data);
+
+				contJson.data = newData;
+
+				if (contJson.continuation == null) {
+          console.log("done! ", contJson.data.length);
+					return contJson.data;
+				} else {
+					this.loadContinue(contJson);
+				}
+			}
+		},
     async getGenesTrackData(){
       let fetchUrl = `https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in ${this.gene}`;
       let genesData =  await fetch(fetchUrl).then(resp => resp.json(fetchUrl));
@@ -179,7 +210,6 @@ export default Vue.component("pigean-locus-zoom", {
         "gene":{"type":"input","field":"gene","search":[this.gene]}}
     },
   },
-  watch: {}
 });
 </script>
 
