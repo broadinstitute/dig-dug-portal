@@ -22,7 +22,6 @@
 						title="Show / hide section"><b-icon icon="eye"></b-icon></button>
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-
 						
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
 							colorStyle="color"></research-loading-spinner>
@@ -37,15 +36,6 @@
 						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-						
-						<!--<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
-						<span class="required-parameters-wrapper">
-							<small
-								:class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
-								v-for="parameter in dataPoint['parameters']" :key="parameter"
-								v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
-
-						</span>-->
 
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
 							colorStyle="color"></research-loading-spinner>
