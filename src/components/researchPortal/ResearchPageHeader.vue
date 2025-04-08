@@ -165,9 +165,9 @@ export default Vue.component("research-page-header", {
 		},
 		tryAddSearch(){
 			if(this.researchMenu && !this.researchMenu.length){
-				console.log(this.researchMenu);
+				//console.log(this.researchMenu);
 				if(this.researchMenu["search"]){
-					console.log('adding search');
+					//console.log('adding search');
 					this.addSearch = true;
 				};
 			}

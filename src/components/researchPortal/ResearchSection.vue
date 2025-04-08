@@ -23,22 +23,7 @@
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
 
-						<!--
-						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
-							v-for="parameter in dataPoint['parameters']" :key="parameter"
-							style="font-size:0.7em"
-							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-
 						
-						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
-						<span class="required-parameters-wrapper">
-							<small
-								:class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
-								v-for="parameter in dataPoint['parameters']" :key="parameter"
-								v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
-						</span>-->
-						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-							:id="'flag_' + sectionID">Loading data...</small>-->
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
 							colorStyle="color"></research-loading-spinner>
 						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
@@ -1726,7 +1711,7 @@ export default Vue.component("research-section", {
 
 						data = mergedData;
 
-						console.log("CONTENT data",data);
+						//console.log("CONTENT data",data);
 
 					} else {
 						data = CONTENT;
