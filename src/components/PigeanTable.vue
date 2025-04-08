@@ -246,6 +246,7 @@ export default Vue.component("pigean-table", {
                 :current-page="currentPage"
                 :sort-by="sortBy"
                 :sort-desc="true"
+                :sort-null-last="true"
             >
                 <template #cell(label)="r">
                     <span v-if="!!r.item.label">

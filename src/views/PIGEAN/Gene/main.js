@@ -52,6 +52,7 @@ new Vue({
             tableConfig: {
                 fields: [
                     { key: "phenotype", label: "Phenotype", sortable: true },
+                    { key: "label", label: "Factor label", sortable: true},
                     {
                         key: "combined",
                         label: "Combined genetic support",
