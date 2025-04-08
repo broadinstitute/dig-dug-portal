@@ -115,7 +115,7 @@ export default Vue.component("pigean-locus-zoom", {
   async mounted(){
     this.sectionId = Math.floor(Math.random() * 10e9);
     this.region = await this.getGeneRegion();
-    await this.getAssocData();
+    this.assocData = await this.getAssocData();
     this.genesTrackData = await this.getGenesTrackData();
     this.setSearchParams();
   },
@@ -143,10 +143,9 @@ export default Vue.component("pigean-locus-zoom", {
       if (CONTENT === null) {
         let json = await fetch(url).then(resp => resp.json());
         if (json.continuation !== null){
-          this.getAssocData(json);
+          return await this.getAssocData(json);
         } else {
-          this.assocData = json.data; 
-          return;
+          return json.data; 
         }
       } else {
         let contURL = `${BIO_INDEX_HOST}/api/bio/cont?token=${CONTENT.continuation}`;
@@ -157,10 +156,9 @@ export default Vue.component("pigean-locus-zoom", {
           let newData = prevData.concat(contJson.data);
           contJson.data = newData;
           if (contJson.continuation == null) {
-            this.assocData = contJson.data;
-            return;
+            return contJson.data;
           } else {
-            this.getAssocData(contJson);
+            return await this.getAssocData(contJson);
           }
         }
       }
