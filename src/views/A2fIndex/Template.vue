@@ -334,7 +334,6 @@
             style="
                 position: sticky;
                 bottom: 0;
-                width: 100vw;
                 padding: 10px;
                 z-index: 50;
                 background: #38942d;
