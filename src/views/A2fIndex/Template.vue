@@ -328,6 +328,22 @@
         </div>
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+        <!-- Only for CDKP -->
+        <div
+            v-if="$parent.diseaseGroup.name == 'cd'"
+            style="
+                position: sticky;
+                bottom: 0;
+                padding: 10px;
+                z-index: 50;
+                background: #38942d;
+                text-align: center;
+                color: #fff;
+            "
+        >
+            This repository is under review for potential modification in
+            compliance with Administration directives.
+        </div>
     </div>
 </template>
 <style>
