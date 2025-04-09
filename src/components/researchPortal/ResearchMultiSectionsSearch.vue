@@ -11,6 +11,18 @@
 						<span v-html="parameter.label"></span>
 					</div>
 
+					<!-- single search -->
+				<research-multi-search
+					v-if="parameter.type == 'multi search'"
+					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse}"
+					:paramIndex="paramIndex"
+					:parent="parentMethods"
+					:utils="utils">
+
+				</research-multi-search>
+
+					<!-- end -->
+
 					
 					<select v-if="parameter.type == 'api list'"
 						:id="'search_param_' + parameter.parameter"  class="custom-select custom-select-search"
@@ -126,6 +138,7 @@
 
 <script>
 import Vue from "vue";
+import ResearchMultiSearch from "@/components/researchPortal/ResearchMultiSearch.vue";
 
 export default Vue.component("research-multi-sections-search", {
 	props: [
@@ -135,7 +148,9 @@ export default Vue.component("research-multi-sections-search", {
 		"utils",
 		"searchVisible"
 	],
-
+	components: {
+		ResearchMultiSearch
+	},
 	data() {
 		return {
 			paramSearch: {
@@ -168,7 +183,7 @@ export default Vue.component("research-multi-sections-search", {
 	mounted() {
 		window.addEventListener("scroll", this.onScroll);
 		this.searchParameters.map(s => {
-			if (!!this.utils.keyParams[s.parameter]) {
+			if (!!this.utils.keyParams[s.parameter] && s.type != 'multi search') {
 				document.getElementById("search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})
@@ -178,21 +193,6 @@ export default Vue.component("research-multi-sections-search", {
 		window.removeEventListener("scroll", this.onScroll);
 	},
 	computed: {
-		/*tableTop() {
-			let eglTable = document.getElementsByClassName("multi-page-search")[0];
-			if(!!eglTable) {
-				let rect = eglTable.getBoundingClientRect();
-				let scrollTop = document.documentElement.scrollTop
-					? document.documentElement.scrollTop
-					: document.body.scrollTop;
-
-				let tableTop = rect.top + scrollTop;
-
-				return tableTop;
-			} else {
-				return null;
-			}			
-		},*/
 		displyingSearchNum() {
 			let totalSearchNum = this.searchParameters.length;
 
@@ -204,12 +204,21 @@ export default Vue.component("research-multi-sections-search", {
 			})
 
 			return totalSearchNum;
+		},
+		parentMethods() {
+			return {
+				kpGenes: this.kpGenes,
+				kpPhenotypes: this.phenotypesInUse,
+				getGenes: this.getGenes,
+				setListValue: this.setListValue
+			}
 		}
 	},
 	watch: {
 		
 	},
 	methods: {
+		
 		checkFocus(ID) {
 			if (!document.getElementById(ID).matches(':focus')) {
 				return false;
@@ -305,6 +314,8 @@ export default Vue.component("research-multi-sections-search", {
 
 		},
 		setListValue(KEY, PARAMETER, INDEX) {
+
+			console.log(KEY, PARAMETER, INDEX);
 
 			this.paramSearch[INDEX] = KEY;
 			this.searchingValues[PARAMETER] = KEY;
