@@ -1,25 +1,29 @@
 <template>
     <div class="multi-options-search-ui">
-        {{ listOptions.length }}
-        <div class="type">
-            <select id="parameter_type" v-model="parameterFocused">
-                <option value="">{{ 'Set parameter' }}</option>
-                <option v-for="item in searchParameters"
-                    :value="item.parameter" >{{ item.label }}
-                </option>
-            </select>
+        <div class="search-ui-wrapper">
+            <div class="type">
+                <select id="parameter_type" v-model="parameterFocused">
+                    <option value="">{{ 'Set parameter' }}</option>
+                    <option v-for="item in searchParameters"
+                        :value="item.parameter" >{{ item.label }}
+                    </option>
+                </select>
+            </div>
+            <div class="input">
+                <input class="form-control" 
+                    v-model="parent.paramSearch[paramIndex]"
+                    @keyup="(parameterFocused != '')?getValue($event):''" 
+                    :id="'search_param_' + parameterFocused" />
+            </div>
         </div>
-        <div class="input">
-            <input class="form-control" 
-                v-model="parent.paramSearch[paramIndex]"
-                @keyup="(parameterFocused != '')?getValue($event):''" 
-                :id="'search_param_' + parameterFocused" />
+        <div>
             <div :id="'listOptions' + parameterFocused" class="custom-select custom-select-search long-list"
-							:size="listOptions.length >= 5 ? 5 : 'auto'"
-							:style="listOptions.length == 0
-								? 'display:none !important;'
-								: ''
-								">
+                        :size="listOptions.length >= 5 ? 5 : 'auto'"
+                        :style="listOptions.length == 0
+                            ? 'display:none !important;'
+                            : ''
+                            "
+                            style="float:right">
                 <template v-for="option in listOptions">
                     <a href="javascript:;" v-html="option.label"
                         @click="parent.setListValue(
@@ -32,6 +36,8 @@
                 </template>
             </div>
         </div>
+        
+        
     </div>
 </template>
 
@@ -79,7 +85,7 @@ export default Vue.component("research-multi-search", {
         getListOptions(EVENT,PARAM,LIST) {
             let options = [];
 			if (EVENT.target.value.length >= 2) {
-				//let optionChrLength = 0;
+
 				LIST.map(option => {
 					if (!!option.label.toLowerCase().includes(EVENT.target.value.toLowerCase())) {
 						options.push(option);
@@ -115,7 +121,7 @@ export default Vue.component("research-multi-search", {
 $(function () { });
 </script>
 <style scoped>
-    .multi-options-search-ui > div {
+    .multi-options-search-ui > div.search-ui-wrapper > div {
         display:inline-flex;
     }
 
@@ -123,7 +129,7 @@ $(function () { });
         /*border: none; */
     }
 
-    .multi-options-search-ui > div.type > select {
+    .multi-options-search-ui > div.search-ui-wrapper > div.type > select {
         border-radius: 5px 0 0 5px;
         border: solid 1px #aaaaaa;
         width: auto;
@@ -131,7 +137,7 @@ $(function () { });
         padding: 0 0 0 5px;
     }
 
-    .multi-options-search-ui > div.input > input {
+    .multi-options-search-ui > div.search-ui-wrapper > div.input > input {
         border-radius: 0 5px 5px 0;
         border: solid 1px #aaaaaa;
         width: auto;

@@ -447,8 +447,26 @@ export default Vue.component("research-multi-sections-search", {
 			this.$root.hoverPos = [];
 
 			this.searchParameters.map(s => {
-				paramsObj[s.parameter] = "";
-				document.getElementById("search_param_" + s.parameter).value = "";
+
+				switch (s.type) {
+					case "multi search":
+
+						s.parameters.map( p => {
+							paramsObj[p.parameter] = "";
+							 
+							if(!!document.getElementById("search_param_" + p.parameter)) {
+								document.getElementById("search_param_" + p.parameter).value = "";
+							}
+						})
+						break;
+					default:
+
+						paramsObj[s.parameter] = "";
+						document.getElementById("search_param_" + s.parameter).value = "";
+
+					break;
+				}
+				
 			})
 			this.utils.keyParams.set(paramsObj);
 
