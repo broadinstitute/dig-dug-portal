@@ -170,6 +170,13 @@ let pages = {
         filename: "donor-metadata.html",
         title: "Donor Metadata",
         chunks: ["chunk-vendors", "chunk-common", "donormetadata"]
+    },
+    diffexp: {
+        entry: "src/portals/PanKbase/views/DiffExp/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "diff-exp.html",
+        title: "Differential Expression",
+        chunks: ["chunk-vendors", "chunk-common", "diffexp"]    
     }
 };
 
