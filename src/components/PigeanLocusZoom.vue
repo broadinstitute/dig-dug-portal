@@ -18,7 +18,6 @@
       ></research-region-plot>
       <research-genes-track
           :region="region"
-          :genesData="genesTrackData"
           :plotConfig="plotConfig"
           plotType="region plot"
           :plotMargin="plotMargin"
