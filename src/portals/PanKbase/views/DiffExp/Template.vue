@@ -1,12 +1,12 @@
 <template>
-  <div class="matkp">
+  <div class="pkb-wrapper">
       <div class="f-col fill-height">
           <!-- NAV -->
-          <matkp-nav></matkp-nav>
+          <pkb-header></pkb-header>
           <!-- BODY -->
           <div class="mat-body f-col">
-            <h2 class="matkp-static-content-title">Differential Gene Expression Browser</h2>
-            <div class="matkp-tool-documentation" v-if="$parent.documentation?.body" v-html="$parent.documentation.body"></div>
+            <h2 class="static-content-title">Differential Gene Expression Browser</h2>
+            <div class="tool-documentation" v-if="$parent.documentation?.body" v-html="$parent.documentation.body"></div>
               <div class="flex-column flex-small-gap">
                     <div id="center-width" class="flex-gap flex-column">
                         <div class="flex-gap flex-column" id="center-content">
@@ -186,7 +186,7 @@
                 </div>
           </div>
           <!-- FOOTER -->
-          <matkp-footer></matkp-footer>
+          <pkb-footer></pkb-footer>
       </div>
   </div>
 </template>
