@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="!!region && genesTrackData.length > 0">
+    <div v-if="!!region">
       <research-region-plot
         :plotData="assocData"
         :renderConfig="plotConfig"
@@ -18,7 +18,6 @@
       ></research-region-plot>
       <research-genes-track
           :region="region"
-          :genesData="genesTrackData"
           :plotConfig="plotConfig"
           plotType="region plot"
           :plotMargin="plotMargin"
@@ -35,7 +34,6 @@
 </template>
 <script>
 import Vue from "vue";
-import { query } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -43,7 +41,6 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
-import sessionUtils from "@/utils/sessionUtils";
 import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
@@ -118,7 +115,6 @@ export default Vue.component("pigean-locus-zoom", {
     this.sectionId = Math.floor(Math.random() * 10e9);
     this.region = await this.getGeneRegion();
     this.assocData = await this.processAssocData();
-    this.genesTrackData = await this.getGenesTrackData();
     this.setSearchParams();
   },
   computed: {
@@ -183,11 +179,6 @@ export default Vue.component("pigean-locus-zoom", {
         }
       }
       return outputData;
-    },
-    async getGenesTrackData(){
-      let fetchUrl = `https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in ${this.gene}`;
-      let genesData =  await fetch(fetchUrl).then(resp => resp.json(fetchUrl));
-      return genesData.data;
     },
     async getGeneRegion(){
       let data = await regionUtils.parseRegion(this.gene, true, 250000);
