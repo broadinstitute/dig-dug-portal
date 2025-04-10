@@ -2,9 +2,10 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import "../../assets/matkp-styles.css";
+import "../../assets/layout.css";
+import "../../assets/pkb-styles.css";
 
-import { matkpMixin } from "../../mixins/matkpMixin.js";
+import { pankbaseMixin } from "../../mixins/pankbaseMixin.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -23,8 +24,8 @@ import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
 import { isNull } from "lodash";
 
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+
 
 new Vue({
     store,
@@ -42,7 +43,7 @@ new Vue({
         ResearchSingleCellInfo,
         uiUtils
     },
-    mixins: [matkpMixin],
+    mixins: [pankbaseMixin],
     props: [],
     data() {
         return {
@@ -222,7 +223,7 @@ new Vue({
             console.log(this.bulkMetadata.species);
         },
         async getDocumentation() {
-            const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=matkp_differentialgeneexpressionbrowser";
+            const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=pankbase_differentialexpressionbrowser";
 
             let jsonContent = await fetch(CONTENT_URL).then(
                 resp => resp.json());
