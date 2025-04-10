@@ -15,7 +15,7 @@
 				<research-multi-search
 					v-if="parameter.type == 'multi search'"
 					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse}"
-					:paramIndex="paramIndex"
+					:paramIndex="paramIndex+1"
 					:parent="parentMethods"
 					:utils="utils">
 
@@ -210,7 +210,8 @@ export default Vue.component("research-multi-sections-search", {
 				kpGenes: this.kpGenes,
 				kpPhenotypes: this.phenotypesInUse,
 				getGenes: this.getGenes,
-				setListValue: this.setListValue
+				setListValue: this.setListValue,
+				paramSearch: this.paramSearch,
 			}
 		}
 	},
@@ -355,11 +356,53 @@ export default Vue.component("research-multi-sections-search", {
 
 			if(!KEY) {
 				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("search_param_" + s.parameter).value;
+					/*let paramValue = document.getElementById("search_param_" + s.parameter).value;
 					
-					paramValue = (s.type == "string to array")?	paramValue.replaceAll("\n",";"):paramValue;
+					paramValue = (s.type == "string to array")?	paramValue.replaceAll("\n",";"):paramValue;*/
 
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+					let paramValue;
+
+					switch(s.type) {
+						case "string to array":
+							paramValue = document.getElementById("search_param_" + s.parameter).value.replaceAll("\n",";");
+
+							break;
+
+						case "multi search":
+
+							s.parameters.map( p => {
+								if(!!document.getElementById("search_param_" + p.parameter)) {
+									paramValue = (p.type == "string to array")? 
+										document.getElementById("search_param_" + p.parameter).value.replaceAll("\n",";") :
+										document.getElementById("search_param_" + p.parameter).value;
+								}
+							})
+
+							break;
+
+						default:
+							paramValue = document.getElementById("search_param_" + s.parameter).value;
+
+							break;
+
+					}
+
+					switch(s.type) {
+						case "multi search":
+
+							s.parameters.map( p => {
+								if(!!document.getElementById("search_param_" + p.parameter)) {
+									paramsObj[p.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+								}
+							})
+
+							break;
+
+						default:
+							paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+							break;
+					}
+					
 				})
 			} else {
 				

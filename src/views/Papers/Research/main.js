@@ -205,18 +205,35 @@ new Vue({
             let params = {};
             if (this.multiSectionsSearchParameters) {
                 this.multiSectionsSearchParameters.map((mp) => {
-                    let values =
-                        !!mp.values && !!Array.isArray(mp.values) ? {} : null;
-                    if (values != null) {
-                        mp.values.map((v) => {
-                            values[v.value] = v.label;
-                        });
-                    }
+                    if (mp.type != "multi search") {
+                        let values =
+                            !!mp.values && !!Array.isArray(mp.values) ? {} : null;
+                        if (values != null) {
+                            mp.values.map((v) => {
+                                values[v.value] = v.label;
+                            });
+                        }
 
-                    params[mp.parameter] = {
-                        label: mp.label,
-                        values: values,
-                    };
+                        params[mp.parameter] = {
+                            label: mp.label,
+                            values: values,
+                        };
+                    } else if (mp.type == "multi search") {
+                        mp.parameters.map(P => {
+                            let values =
+                                !!P.values && !!Array.isArray(P.values) ? {} : null;
+                            if (values != null) {
+                                P.values.map((v) => {
+                                    values[v.value] = v.label;
+                                });
+                            }
+
+                            params[P.parameter] = {
+                                label: P.label,
+                                values: values,
+                            };
+                        })
+                    }
                 });
             }
 

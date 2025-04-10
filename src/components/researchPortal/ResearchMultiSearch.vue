@@ -1,5 +1,6 @@
 <template>
     <div class="multi-options-search-ui">
+        {{ listOptions.length }}
         <div class="type">
             <select id="parameter_type" v-model="parameterFocused">
                 <option value="">{{ 'Set parameter' }}</option>
@@ -9,8 +10,16 @@
             </select>
         </div>
         <div class="input">
-            <input class="form-control" @keyup="(parameterFocused != '')?getValue($event):''" />
-            <div>
+            <input class="form-control" 
+                v-model="parent.paramSearch[paramIndex]"
+                @keyup="(parameterFocused != '')?getValue($event):''" 
+                :id="'search_param_' + parameterFocused" />
+            <div :id="'listOptions' + parameterFocused" class="custom-select custom-select-search long-list"
+							:size="listOptions.length >= 5 ? 5 : 'auto'"
+							:style="listOptions.length == 0
+								? 'display:none !important;'
+								: ''
+								">
                 <template v-for="option in listOptions">
                     <a href="javascript:;" v-html="option.label"
                         @click="parent.setListValue(
@@ -18,7 +27,7 @@
                         parameterFocused,
                         paramIndex,
                         true
-                    )
+                    ); listOptions = [];
                         " class="custom-select-a-option"></a>
                 </template>
             </div>
@@ -39,20 +48,6 @@ export default Vue.component("research-multi-search", {
 		return {
             parameterFocused: '',
             listOptions:[],
-            searchParameters: [
-                {
-                "type":"input",
-                "parameter":"gene",
-                "label":"Gene",
-                "values":"kp genes"
-                },
-                {
-                "type":"input",
-                "parameter":"phenotype",
-                "label":"Phenotype",
-                "values":"kp phenotypes"
-                }
-            ]
 		};
 	},
 	modules: {
@@ -100,6 +95,10 @@ export default Vue.component("research-multi-search", {
         }
 	},
 	computed: {
+        searchParameters() {
+            console.log("this.sectionsConfig",this.sectionsConfig);
+            return this.sectionsConfig["search parameters"]["parameters"];
+        },
 		kpPhenotypes() {
             let phenotypes = []
             this.parent.kpPhenotypes.map(p => {
