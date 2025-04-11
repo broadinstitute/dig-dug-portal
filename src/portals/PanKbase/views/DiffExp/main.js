@@ -6,6 +6,7 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 
 import { pankbaseMixin } from "../../mixins/pankbaseMixin.js";
+import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -48,6 +49,8 @@ new Vue({
     data() {
         return {
             loading: true,
+            sampleDataId: "brusman_749",
+            sampleData: {},
             dataReady: false,
             allMetadata: null,
             bulkMetadata: null,
@@ -190,6 +193,9 @@ new Vue({
     async mounted() {
         this.init();
         this.getDocumentation();
+        let content = await getPankbaseContent(this.sampleDataId);
+        console.log(JSON.stringify(content));
+        this.sampleData = content;
     },
     created() {
     },
