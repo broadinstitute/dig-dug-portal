@@ -1,8 +1,9 @@
 <template>
-    <div class="multi-options-search-ui">
+    <div class="multi-options-search-ui col-md-12">
         <div class="search-ui-wrapper">
             <div class="type">
-                <select id="parameter_type" v-model="parameterFocused">
+                <select id="parameter_type" v-model="parameterFocused"
+                    @change="resetInput()">
                     <option value="">{{ 'Set parameter' }}</option>
                     <option v-for="item in searchParameters"
                         :value="item.parameter" >{{ item.label }}
@@ -10,14 +11,23 @@
                 </select>
             </div>
             <div class="input">
-                <input class="form-control" 
+                <input class="form-control multi-options-search-input" 
                     v-model="parent.paramSearch[paramIndex]"
                     @keyup="(parameterFocused != '')?getValue($event):''" 
-                    :id="'search_param_' + parameterFocused" />
+                    :id="'search_param_' + parameterFocused"
+                    autoComplete="off" />
             </div>
         </div>
         <div>
-            <div :id="'listOptions' + parameterFocused" class="custom-select custom-select-search long-list"
+            <div class="custom-select custom-select-search long-list col-md-6">
+                <template v-for="option in contextOptions">
+                    <div>
+                        <div>{{ option.label }}</div>
+                        <div>{{ option.description }}</div>
+                    </div>
+                </template>
+            </div>
+            <div :id="'listOptions' + parameterFocused" class="custom-select custom-select-search long-list col-md-6"
                         :size="listOptions.length >= 5 ? 5 : 'auto'"
                         :style="listOptions.length == 0
                             ? 'display:none !important;'
@@ -62,6 +72,9 @@ export default Vue.component("research-multi-search", {
 
 	},
     methods: {
+        resetInput() {
+            // input box needs to be emptied on change.
+        },
 		getValue(EVENT) {
             const paramType = this.parameterFocused;
             let paramValue = (paramType == 'all')? 'all' : this.searchParameters.filter(i => i.parameter == paramType)[0].values;
@@ -102,8 +115,18 @@ export default Vue.component("research-multi-search", {
 	},
 	computed: {
         searchParameters() {
-            console.log("this.sectionsConfig",this.sectionsConfig);
             return this.sectionsConfig["search parameters"]["parameters"];
+        },
+        contextOptions() {
+            console.log(this.parameterFocused)
+
+            if(this.parameterFocused != '') {
+                let context = this.sectionsConfig["search parameters"]["parameters"].filter( P => P.parameter == this.parameterFocused)[0]['context'];
+                return context;
+            } else {
+                return null;
+            }
+            
         },
 		kpPhenotypes() {
             let phenotypes = []
@@ -114,6 +137,10 @@ export default Vue.component("research-multi-search", {
         }
 	},
 	watch: {
+        /*parameterFocused(DATA) {
+            console.log(DATA)
+            (!!document.getElementById("search_param_" + PREV))? document.getElementById("search_param_" + PREV).value = "" : "";
+        }*/
 	},
 	
 });
