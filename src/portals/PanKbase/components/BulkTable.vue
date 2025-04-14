@@ -168,8 +168,8 @@ export default Vue.component("bulk-table", {
             contField: null,
             catField: null,
             currentData: [],
-            tableYField: "-log10P",
-            tableXField: "logFoldChange",
+            tableYField: "minusLog10P",
+            tableXField: "log2FoldChange",
             up: "upregulated",
             down: "downregulated"
         };
