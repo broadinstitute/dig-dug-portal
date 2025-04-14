@@ -234,3 +234,9 @@ input.pkb[type="radio"]:disabled:checked {
 .page-info {
     font-size: 18px;
 }
+tr.upregulated {
+    border-left: 5px solid red !important;
+}
+tr.downregulated {
+    border-left: 5px solid blue !important;
+}
