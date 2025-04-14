@@ -3,7 +3,7 @@
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
 	<div
-		:class="(!!sectionConfig.display && sectionConfig.display == 'false') ? 'multi-section-card hidden' : 'multi-section-card'">
+		:class="(!!sectionConfig.display && sectionConfig.display == 'false') ? 'multi-section-card hidden' : 'multi-section-card'" :id="'section_wrapper_' + sectionID">
 		<div v-if="dataPoint.type == 'component'">
 			<research-section-components :component="dataPoint.name" :phenotypesInUse="phenotypesInUse" :utilsBox="utils"
 				:sectionConfigs="sectionConfig">
@@ -961,6 +961,7 @@ export default Vue.component("research-section", {
 
 		getParamString(PARAMS_TYPE) {
 
+			console.log("PARAMS_TYPE",)
 
 			let queryParams = {}; // collect search parameters
 			let queryParamsString = []; // search parameters into one string
@@ -1074,13 +1075,14 @@ export default Vue.component("research-section", {
 			}
 		},
 		getData(FROM) {
+			
 			this.loadingDataFlag = "up";
 			this.noLoadedData = null;
 			this.queryData(FROM);
 		},
 
 		queryData(FROM) {
-			//console.log("here");
+			console.log("here");
 			const queryType = this.dataPoint["type"];
 			const paramsType = this.dataPoint["parameters type"];
 			const params = this.dataPoint["parameters"];
@@ -1092,7 +1094,7 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString(paramsType );
 
-			//console.log("paramsString",paramsString);
+			console.log("paramsString",paramsString);
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {

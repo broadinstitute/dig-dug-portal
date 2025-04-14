@@ -656,8 +656,12 @@
 							  </template>
 							</div>
 							<!-- canvas collection end -->
+
+							<div id="custom_sections_list_wrapper">
+
+							</div>
 							
-								<!-- multi section tab groups -->
+							<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
 									  v-for="group, groupIndex in $parent.getTabGroups($parent.sectionConfigs['tab groups'])" >
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"

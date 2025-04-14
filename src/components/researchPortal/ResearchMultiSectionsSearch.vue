@@ -212,6 +212,7 @@ export default Vue.component("research-multi-sections-search", {
 				getGenes: this.getGenes,
 				setListValue: this.setListValue,
 				paramSearch: this.paramSearch,
+				updateSearch: this.updateSearch
 			}
 		}
 	},
@@ -420,7 +421,18 @@ export default Vue.component("research-multi-sections-search", {
 			} else if (!!KEY) {
 
 				if(!!TARGET_SECTIONS) {
+					const elements = document.querySelectorAll('.multi-section-card');
+
+					elements.forEach(element => {
+						element.classList.contains("hidden")? "" : element.classList.add("hidden");
+					});
+
+
+
 					TARGET_SECTIONS.map(s=>{
+						document.getElementById('section_wrapper_' + s).classList.remove('hidden');
+						
+						this.utils.uiUtils.moveElement('section_wrapper_' + s, "custom_sections_list_wrapper");
 						this.$root.$refs[s].getData();
 					})
 				} else {

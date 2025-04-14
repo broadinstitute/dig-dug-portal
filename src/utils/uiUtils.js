@@ -832,7 +832,7 @@ let moveElement = function (element, destinationDivId) {
     // Check if the element is already a child of the destination div
     if (ELEMENT.parentNode === destinationDiv) {
         console.warn("Element is already in the destination div.");
-        return; // Or you could optionally move it back to the source
+        //return; // Or you could optionally move it back to the source
     }
 
     // Remove the element from its current parent (if it has one)

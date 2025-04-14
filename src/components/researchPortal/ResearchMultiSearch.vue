@@ -19,15 +19,16 @@
             </div>
         </div>
         <div>
-            <div class="custom-select custom-select-search long-list col-md-6">
+            <div class="research-narrative-options">
                 <template v-for="option in contextOptions">
                     <div>
                         <div>{{ option.label }}</div>
                         <div>{{ option.description }}</div>
+                        <div @click="parent.updateSearch(parameterFocused,option.sections)">Test</div>
                     </div>
                 </template>
             </div>
-            <div :id="'listOptions' + parameterFocused" class="custom-select custom-select-search long-list col-md-6"
+            <div :id="'listOptions' + parameterFocused" class="custom-select custom-select-search long-list"
                         :size="listOptions.length >= 5 ? 5 : 'auto'"
                         :style="listOptions.length == 0
                             ? 'display:none !important;'
@@ -171,5 +172,18 @@ $(function () { });
         background-color: #ffffff;
         padding: 0 15px 0;
         border-left: none;
+    }
+
+    .research-narrative-options {
+        position: absolute;
+        width: 600px !important;
+        background-color: #fff;
+        border: solid 1px #aaa;
+        border-radius: 5px;
+        padding: 10px 15px;
+        text-align: left;
+        margin: auto -25%;
+        top: 40px;
+        z-index: 100;
     }
 </style>
