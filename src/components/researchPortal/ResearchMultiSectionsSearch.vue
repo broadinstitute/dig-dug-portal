@@ -15,7 +15,7 @@
 				<research-multi-search
 					v-if="parameter.type == 'multi search'"
 					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse}"
-					:paramIndex="paramIndex+1"
+					:paramIndex="paramIndex"
 					:parent="parentMethods"
 					:utils="utils">
 
@@ -154,7 +154,7 @@ export default Vue.component("research-multi-sections-search", {
 	data() {
 		return {
 			paramSearch: {
-				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
+				0:"", 1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
 			},
 			parameterOptions: {
@@ -355,7 +355,7 @@ export default Vue.component("research-multi-sections-search", {
 
 			let paramsObj = {}
 
-			if(!KEY) {
+			//if(!KEY) {
 				this.searchParameters.map(s => {
 					/*let paramValue = document.getElementById("search_param_" + s.parameter).value;
 					
@@ -405,12 +405,12 @@ export default Vue.component("research-multi-sections-search", {
 					}
 					
 				})
-			} else {
+			/*} else {
 				
 				let paramValue = document.getElementById("search_param_" + KEY).value;
 				
 				paramsObj[KEY] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-			}
+			}*/
 			
 			this.utils.keyParams.set(paramsObj);
 
@@ -426,8 +426,6 @@ export default Vue.component("research-multi-sections-search", {
 					elements.forEach(element => {
 						element.classList.contains("hidden")? "" : element.classList.add("hidden");
 					});
-
-
 
 					TARGET_SECTIONS.map(s=>{
 						document.getElementById('section_wrapper_' + s).classList.remove('hidden');

@@ -961,7 +961,7 @@ export default Vue.component("research-section", {
 
 		getParamString(PARAMS_TYPE) {
 
-			console.log("PARAMS_TYPE",)
+			console.log("PARAMS_TYPE",PARAMS_TYPE)
 
 			let queryParams = {}; // collect search parameters
 			let queryParamsString = []; // search parameters into one string
@@ -1002,6 +1002,24 @@ export default Vue.component("research-section", {
 						queryParamsSet = null;
 					}
 				})
+			}
+
+			if (!!this.dataPoint.parameters && !!PARAMS_TYPE && (PARAMS_TYPE == 'replace')) {
+
+				let pWithValue = 0;
+				this.dataPoint.parameters.map(p => {
+
+					if (!!this.utils.keyParams[p]) {
+						pWithValue++;
+						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+					} else {
+						queryParams[p] = [];
+					}
+				})
+
+				if(pWithValue === 0) {
+					queryParamsSet = null;
+				}
 			}
 
 			if (!!this.dataPoint.parameters && !!PARAMS_TYPE && PARAMS_TYPE == 'replace or') {
@@ -1238,14 +1256,14 @@ export default Vue.component("research-section", {
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
-			//console.log("here2");
+			console.log("here2",QUERY, TYPE, PARAMS);
 
 			this.searched.push(QUERY);
 
 			let dataUrl = this.dataPoint.url;
 
 			if (TYPE == "replace") {
-				//console.log("here3");
+				console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);

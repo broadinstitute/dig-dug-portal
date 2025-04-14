@@ -24,7 +24,7 @@
                     <div>
                         <div>{{ option.label }}</div>
                         <div>{{ option.description }}</div>
-                        <div @click="parent.updateSearch(parameterFocused,option.sections)">Test</div>
+                        <div @click="parent.updateSearch(parameterFocused,option.sections)">Test</div><!--<div @click="parent.updateSearch()">Test</div>-->
                     </div>
                 </template>
             </div>
