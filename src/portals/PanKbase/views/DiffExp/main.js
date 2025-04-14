@@ -50,7 +50,7 @@ new Vue({
         return {
             loading: true,
             sampleDataId: "brusman_749",
-            sampleData: {},
+            sampleData: [],
             dataReady: false,
             allMetadata: null,
             bulkMetadata: null,
