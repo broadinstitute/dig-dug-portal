@@ -107,7 +107,7 @@ new Vue({
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
-                    { key: "expand", label: "Gene query" },
+                    //{ key: "expand", label: "Gene query" },
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "single-cell-bulk-melted",
