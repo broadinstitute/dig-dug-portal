@@ -96,14 +96,14 @@ new Vue({
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
                     {
-                        key: "logFoldChange",
+                        key: "log2FoldChange",
                         label: "log2 Fold Change",
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "-log10P",
-                        label: "-log10(FDR adj. p)",
+                        key: "minusLog10P",
+                        label: "-log10(P adj.)",
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
@@ -137,6 +137,9 @@ new Vue({
             return outputData;
         },
         bulkData19K() {
+            if (this.selectedDataset === 'sample'){
+                return this.sampleData;
+            }
             return this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
                     && item.comparison_id === this.$store.state.selectedComparison);
@@ -147,10 +150,10 @@ new Vue({
                 "label": "This is a Test",
                 "legend": "This is a Test",
                 "render by": "gene",
-                "x axis field": "logFoldChange",
+                "x axis field": "log2FoldChange",
                 "x axis label": "log2 Fold Change",
-                "y axis field": "-log10P",
-                "y axis label": "-log10(FDR adj. p)",
+                "y axis field": "minusLog10P",
+                "y axis label": "-log10 (P adj.)",
                 "width": 600,
                 "height": this.plotHeight,
                 "x condition": { 
@@ -195,7 +198,7 @@ new Vue({
         this.getDocumentation();
         let content = await getPankbaseContent(this.sampleDataId);
         console.log(JSON.stringify(content));
-        this.sampleData = content;
+        this.sampleData = this.processData(content);
     },
     created() {
     },
@@ -207,14 +210,14 @@ new Vue({
             if (!keyParams.gene) {
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
-            this.getParams();
-            await this.getBulkMetadata();
+            //this.getParams();
+            //await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
                 keyParams.set({ comparison: this.$store.state.selectedComparison });
             }
-            await this.$store.dispatch("queryBulkFile");
-            await this.$store.dispatch("queryBulk");
+            //await this.$store.dispatch("queryBulkFile");
+            //await this.$store.dispatch("queryBulk");
             this.dataReady = true;
 
         },
@@ -258,6 +261,17 @@ new Vue({
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
+        },
+        processData(inputData){
+            let data = inputData.filter(d => d.padj !== 'NA');
+            for (let i = 0; i < data.length; i++){
+                let padj = data[i]["padj"];
+                if (Number.isNaN(-Math.log10(padj))){
+                    console.log(data[i].gene, padj);
+                }
+                data[i]["minusLog10P"] = -Math.log10(data[i]["padj"]);
+            }
+            return data;
         }
 
     },
