@@ -22,7 +22,7 @@ export default new Vuex.Store({
     limit: 20,
     singleBulkZNormData: [],
     bulkData19K: [],
-    selectedDataset: keyParams.dataset || 'bulkRNA_Emont2022_Humans_SAT',
+    selectedDataset: keyParams.dataset || 'sample',
     defaultComparison: "",
     selectedComparison: keyParams.comparison || "",
     selectedGene: keyParams.gene || "",
