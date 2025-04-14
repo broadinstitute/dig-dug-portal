@@ -14,11 +14,12 @@
             </div>
         </div>
         <div class="f-row" style="gap:20px">
-            <div class="logo">
-                <a href="/">
-                    <img style="height:37px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black.svg"/>
-                </a>
-            </div>
+            <a href="https://hirnetwork.org/" target="_blank">
+                <img style="height:37px" src="https://hugeampkpncms.org/sites/default/files/images/pankbase/logo-hirn.svg" />
+            </a>
+            <a href="/">
+                <img style="height:37px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black.svg"/>
+            </a>
             <div>
                 Supported by <strong>National Institutes of Health (NIH)</strong> grants <strong>U24 DK138515</strong>, <strong>U24 DK138512</strong><br>
                 Supplemental funds from the <strong>NIH Office of Data Science Strategies</strong>

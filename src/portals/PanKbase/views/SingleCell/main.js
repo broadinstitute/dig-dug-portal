@@ -73,7 +73,7 @@ new Vue({
                   }
                 },
                 "presets": {
-                  "datasetId": "islet_of_Langerhans_snATAC_v1",
+                  "datasetId": "islet_of_Langerhans_scRNA_v1",
                   "cell type label": "Cell Type"
                 }
             },
