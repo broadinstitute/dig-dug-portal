@@ -222,6 +222,9 @@ export default Vue.component("bulk-table", {
             }
             return data;
         },
+        allGenes(){
+            return this.tableData.map(t => t.gene);
+        }
     },
     methods: {
         phenotypeFormatter: Formatters.phenotypeFormatter,
@@ -333,15 +336,11 @@ export default Vue.component("bulk-table", {
             return "";
         },
         findGene(gene){
-            let allGenes = this.tableData.map(t => t.gene);
-            let location = allGenes.indexOf(gene);
+            let location = this.allGenes.indexOf(gene);
             if (location === -1){
                 return;
             }
-            let page = Math.ceil(location / this.perPage);
-            if (page === 0){
-                page = 1;
-            }
+            let page = Math.floor(location / this.perPage) + 1;
             this.currentPage = page;
 
         }
@@ -349,6 +348,9 @@ export default Vue.component("bulk-table", {
     watch: {
         highlightedGene(newGene){
             if (!!newGene){this.findGene(newGene)};
+        },
+        tableData(){
+            this.findGene(this.highlightedGene);
         }
     }
 });
