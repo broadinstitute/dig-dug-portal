@@ -18,6 +18,7 @@
   import * as d3 from 'd3';
   import Vue from 'vue';
   import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
+  import {llog} from "./llog.js";
   
   export default Vue.component('research-stacked-bar-plot', {
     props: {
@@ -84,7 +85,7 @@
         },
         highlightKey(newVal, oldVal) {
             //this.drawChart();
-            console.log("do highlight", newVal);
+            llog("do highlight", newVal);
             this.doHighlight(newVal);
         }
     },
@@ -92,7 +93,7 @@
         if(this.data){
             this.drawChart();
         }else{
-            console.log('no data');
+            llog('no data');
         }
         //window.addEventListener('resize', this.handleResize);
     },
@@ -107,8 +108,8 @@
             this.drawChart();
         },
         drawChart() {
-            console.log("---StackedBar Plot");
-            console.log("   data", this.data);
+            llog("---StackedBar Plot");
+            llog("   data", this.data);
 
             if(!this.data) return;
 
@@ -118,7 +119,7 @@
                 this.eventElements = [];
             }
 
-            console.log('settings',{isStacked:this.isStacked, isNormalized:this.isNormalized})
+            llog('settings',{isStacked:this.isStacked, isNormalized:this.isNormalized})
             
             const primaryKey = this.primaryKey;
             const subsetKey = this.subsetKey;
@@ -154,7 +155,7 @@
             let plotWidth = width - margin.left - margin.right - labels.xAxis;
             let plotHeight = height - margin.top - margin.bottom - labels.yAxis;
 
-            console.log('dimentions', {width, height, plotWidth, plotHeight, margin, labels});
+            llog('dimentions', {width, height, plotWidth, plotHeight, margin, labels});
 
             //if we have subsetKey
             //calculate the totals for each primaryKey
@@ -168,7 +169,7 @@
                 primaryCounts = Object.entries(counts).map(([primaryLabel, count]) => ({ [primaryKey]:primaryLabel, count }));
             }
             
-            console.log('primaryCounts', primaryCounts);
+            llog('primaryCounts', primaryCounts);
 
             const min = 0;
             const max = d3.max(this.data, (d) => d.count);
@@ -281,7 +282,7 @@
                     //draw stacked bars
                     primaryCounts.forEach(entry => {
                         const subsetKeys = this.data.filter(row => row[primaryKey] === entry[primaryKey]);
-                        //console.log('subsetKeys', entry[primaryKey], subsetKeys);
+                        //llog('subsetKeys', entry[primaryKey], subsetKeys);
 
                         const xCenter = x2(entry[primaryKey]) + x2.bandwidth() / 2;
 
@@ -370,7 +371,7 @@
             }
         },
         removeAllListeners(elsArr){
-            console.log(`removing event listeners for ${elsArr.length} elements`);
+            llog(`removing event listeners for ${elsArr.length} elements`);
             elsArr.forEach(el=>{
                 this.removeListener(el);
             });
