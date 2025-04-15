@@ -9,7 +9,7 @@
               <span>{{ this.maxExp }}</span>
             </div>
         </div>
-        <div style="display:inline-block; width:65%;" class="legend">
+        <div style="display:inline-block; width:65%;" class="legend" v-if="sampleGroups.length > 0">
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
               <template v-for="(sample, sIndex) in sampleGroups" >
@@ -318,7 +318,7 @@ export default Vue.component("bulk-heatmap", {
 }
 .legend .gradient {
     height: 20px;
-    width: 200px;
+    min-width: 200px !important;
     border-radius: 20px;
 }
 .legend span {
