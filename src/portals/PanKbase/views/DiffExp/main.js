@@ -116,9 +116,8 @@ new Vue({
                     { key: "beta", label: "Effect (joint)", sortable: true },
                 ],
             },
-            volcanoYCondition: 1.3,
+            volcanoYCondition: 0.05,
             volcanoXConditionGreater: 1.5,
-            volcanoXConditionLower: -1.5,
         };
     },
     computed: {
@@ -159,11 +158,11 @@ new Vue({
                 "x condition": { 
                     "combination": "or", 
                     "greater than": this.volcanoXConditionGreater, 
-                    "lower than": this.volcanoXConditionLower },
+                    "lower than": -this.volcanoXConditionGreater },
                 //combination for condition can be "greater than", "lower than", "or" and "and."
                 "y condition": { 
                     "combination": "greater than", 
-                    "greater than": parseFloat(this.volcanoYCondition) },
+                    "greater than": -Math.log(parseFloat(this.volcanoYCondition)) },
                 "dot label score": 2
                 //number of conditions that the value of each dot to meet to have labeled
             };
@@ -188,8 +187,8 @@ new Vue({
         regulationConditions(){
             return {
                 xGreater: this.volcanoXConditionGreater,
-                xLower: this.volcanoXConditionLower,
-                yGreater: this.volcanoYCondition
+                xLower: -this.volcanoXConditionGreater,
+                yGreater: -Math.log(this.volcanoYCondition)
             }
         }
     },
