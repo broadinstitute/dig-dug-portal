@@ -40,7 +40,8 @@ export default Vue.component("bulk-heatmap", {
         "plotHeight",
         "sampleColors",
         "selectedGene",
-        "filter"
+        "filter",
+        "samplesColumns"
     ],
     data() {
         return {
@@ -93,21 +94,20 @@ export default Vue.component("bulk-heatmap", {
           let genesRows = this.plotData.map(d => d.gene);
           
           let dataset = this.plotData[0].dataset;
-          let samplesColumns = await this.getSampleIds(dataset);
-          let collatedData = this.collateData(this.plotData, samplesColumns)
+          let collatedData = this.collateData(this.plotData, this.samplesColumns)
           let sampleColors = this.sampleColors
 
           // Build X scales and axis:
           let x = d3.scaleBand()
               .range([ 0, width ])
-              .domain(samplesColumns.samples)
+              .domain(this.samplesColumns)
               .padding(0.01);
           this.svg.append("g")
               .attr("transform", "translate(0," + height + ")")
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
                       .style("text-anchor", "end")
-                      .style('fill',function(d) {return sampleColors[samplesColumns.sampleGroups[d].groupIndex]}) //set colors by group
+                      //.style('fill',function(d) {return sampleColors[samplesColumns.sampleGroups[d].groupIndex]}) //set colors by group
                       .attr('font-size', this.fontSize)
                       .attr("transform", "rotate(-35) translate(-5, 0)");
 
@@ -227,42 +227,28 @@ export default Vue.component("bulk-heatmap", {
         },
       collateData(rawData, samplesColumns){
             let outputData = [];
-            let minExp = rawData[0]?.expression[0] || null;
-            let maxExp = rawData[0]?.expression[0] || null;
+            let minExp = null;
+            let maxExp = null;
 
             rawData.forEach(item => {
                 ///DK: Modified to add group
-                samplesColumns.samples.map(sample =>{
-                    let groupInfo = samplesColumns.sampleGroups[sample]
-                    let currentExp = item.expression[groupInfo.sampleIndex];
-                    minExp = (currentExp < minExp)? currentExp : minExp;
-                    maxExp = (currentExp > maxExp)? currentExp : maxExp;
+                samplesColumns.map(sample =>{
+
+                    //let groupInfo = samplesColumns.sampleGroups[sample]
+                    let currentExp = item[sample];
+                    minExp = (currentExp < minExp) || minExp === null ? currentExp : minExp;
+                    maxExp = (currentExp > maxExp) || maxExp === null ? currentExp : maxExp;
 
                     let expressionEntry = {
                         gene: item.gene,
                         sample: sample,
                         expression: currentExp,
-                        group: groupInfo.group,
-                        groupIndex: groupInfo.groupIndex
+                        //group: groupInfo.group,
+                        //groupIndex: groupInfo.groupIndex
                     };
 
                     outputData.push(expressionEntry);
                 })
-                /*for (let i = 0; i < item.expression.length; i++){
-                    let currentExp = item.expression[i];
-                    if (currentExp < minExp){
-                        minExp = currentExp;
-                    }
-                    if (currentExp > maxExp){
-                        maxExp = currentExp;
-                    }
-                    let expressionEntry = {
-                        gene: item.gene,
-                        sample: samplesColumns[i],
-                        expression: item.expression[i]
-                    };
-                    outputData.push(expressionEntry);
-                }*/
             });
 
             this.minExp = minExp;

@@ -51,6 +51,8 @@ new Vue({
             loading: true,
             sampleDataId: "brusman_749",
             sampleData: [],
+            heatmapSampleDataId: "brusman_750",
+            heatmapSampleData: [],
             dataReady: false,
             allMetadata: null,
             bulkMetadata: null,
@@ -131,6 +133,9 @@ new Vue({
             return this.$store.state.selectedGene;
         },
         zNormData() {
+            if (this.heatmapSampleData.length > 0){
+                return this.heatmapSampleData;
+            }
             let outputData = structuredClone(this.$store.state.singleBulkZNormData);
             outputData.forEach(item => item["-log10P"] = item.log10FDR);
             return outputData;
@@ -190,14 +195,22 @@ new Vue({
                 xLower: -this.volcanoXConditionGreater,
                 yGreater: -Math.log(this.volcanoYCondition)
             }
+        },
+        samplesColumns(){
+            if(this.zNormData.length === 0){
+                return [];
+            }
+            let item = this.zNormData[0];
+            let columns = Object.keys(item).filter(i => i !== 'gene');
+            return columns;
         }
     },
     async mounted() {
         this.init();
         this.getDocumentation();
         let content = await getPankbaseContent(this.sampleDataId);
-        console.log(JSON.stringify(content));
         this.sampleData = this.processData(content);
+        this.heatmapSampleData = await getPankbaseContent(this.heatmapSampleDataId);
     },
     created() {
     },
@@ -228,7 +241,6 @@ new Vue({
             }
 
             this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-            console.log(this.bulkMetadata.species);
         },
         async getDocumentation() {
             const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=pankbase_differentialexpressionbrowser";
@@ -238,13 +250,10 @@ new Vue({
             if (jsonContent.length === 0) {
                 this.documentation = null;
             }
-
             this.documentation = jsonContent[0];
-
-            console.log("this.pageContent", this.documentation);
         },
         getTop20(data) {
-            let processedData = data.sort((a, b) => b.log10FDR - a.log10FDR).slice(0, 20);
+            let processedData = data.sort((a, b) => b.minusLog10P - a.minusLog10P).slice(0, 20);
             return processedData;
         },
         async getParams() {
