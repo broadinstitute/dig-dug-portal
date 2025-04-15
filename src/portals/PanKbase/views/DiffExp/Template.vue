@@ -26,8 +26,9 @@
                                         <div class="tab-section" >
                                             <div  class="flex-gap">
                                                 <div class="top-block">
-                                                    <select v-model="$store.state.selectedDataset">
+                                                    <select v-model="$store.state.selectedDataset" disabled>
                                                         <option value="">Select a dataset</option>
+                                                        <option value="sample">Sample dataset</option>
                                                         <option v-for="dataset in $parent.datasets"
                                                             :value="dataset">
                                                             {{ dataset }}
@@ -38,7 +39,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tabs-group">
+                                <!-- <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
                                             Select a comparison
@@ -59,7 +60,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
@@ -85,7 +86,24 @@
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
-                                            Set -log10(FDR adj. p) threshold
+                                            Set p (adj.) threshold
+                                        </div>
+                                    </div>
+                                    <div class="tabs-section-wrapper">
+                                        <div class="tab-section" >
+                                            <div  class="flex-gap">
+                                                <div class="top-block">
+                                                    <input type="number" step="0.01"
+                                                        v-model="$parent.volcanoYCondition"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tabs-group">
+                                    <div class="tabs-wrapper">
+                                        <div class="tab">
+                                            Set &plusmn; log2(fold change) threshold
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
@@ -93,7 +111,7 @@
                                             <div  class="flex-gap">
                                                 <div class="top-block">
                                                     <input type="number" step="0.1"
-                                                        v-model="$parent.volcanoYCondition"/>
+                                                        v-model="$parent.volcanoXConditionGreater"/>
                                                 </div>
                                             </div>
                                         </div>
@@ -128,7 +146,7 @@
                                                             </bulk-heatmap>
                                                         </div>
                                                         <div v-else>
-                                                            Select a dataset and a comparison to view the heatmap.
+                                                            Heatmap coming soon
                                                         </div>
                                                     </div>
                                                     </div>
