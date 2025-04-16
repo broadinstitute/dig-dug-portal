@@ -12,14 +12,14 @@
 					</div>
 
 					<!-- single search -->
-				<research-multi-search
-					v-if="parameter.type == 'multi search'"
+				<research-context-search
+					v-if="parameter.type == 'context search'"
 					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse}"
 					:paramIndex="paramIndex"
 					:parent="parentMethods"
 					:utils="utils">
 
-				</research-multi-search>
+				</research-context-search>
 
 					<!-- end -->
 
@@ -121,15 +121,18 @@
 						parameter.values != 'kp genes'
 						" type="text" class="form-control" :id="'search_param_' + parameter.parameter" />
 				</div>
-				<div class="col search-btn-wrapper">
+				<div class="col search-btn-wrapper" :class="containsContextSearch()">
 					<div @click="updateSearch()" class="btn btn-sm btn-primary">
 						Search
 					</div>
 				</div>
-				<div class="col reset-btn-wrapper">
+				<div class="col reset-btn-wrapper" :class="containsContextSearch()">
 					<div @click="resetSearch()" class="btn btn-sm btn-warning ">
 						Reset
 					</div>
+				</div>
+				<div class="col narrative-opener" :class="(containsContextSearch() == 'hidden')? '':'hidden'">
+					<span><b-icon icon="view-list" @click="utils.uiUtils.showHideElement('research-narrative-options')"></b-icon></span>
 				</div>
 			</div>
 		</div>
@@ -138,7 +141,7 @@
 
 <script>
 import Vue from "vue";
-import ResearchMultiSearch from "@/components/researchPortal/ResearchMultiSearch.vue";
+import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch.vue";
 
 export default Vue.component("research-multi-sections-search", {
 	props: [
@@ -149,7 +152,7 @@ export default Vue.component("research-multi-sections-search", {
 		"searchVisible"
 	],
 	components: {
-		ResearchMultiSearch
+		ResearchContextSearch
 	},
 	data() {
 		return {
@@ -212,14 +215,27 @@ export default Vue.component("research-multi-sections-search", {
 				getGenes: this.getGenes,
 				setListValue: this.setListValue,
 				paramSearch: this.paramSearch,
-				updateSearch: this.updateSearch
+				updateSearch: this.updateSearch,
+				resetSearch: this.resetSearch,
 			}
-		}
+		},
+		
 	},
 	watch: {
 		
 	},
 	methods: {
+
+		containsContextSearch() {
+
+			let contextSearch = this.searchParameters.filter(S => S.type == "context search");
+
+			if(contextSearch.length >= 1) {
+				return 'hidden';
+			} else {
+				return '';
+			}
+		},
 		
 		checkFocus(ID) {
 			if (!document.getElementById(ID).matches(':focus')) {
@@ -317,8 +333,6 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		setListValue(KEY, PARAMETER, INDEX) {
 
-			console.log(KEY, PARAMETER, INDEX);
-
 			this.paramSearch[INDEX] = KEY;
 			this.searchingValues[PARAMETER] = KEY;
 
@@ -369,7 +383,9 @@ export default Vue.component("research-multi-sections-search", {
 
 							break;
 
-						case "multi search":
+						case "context search":
+							//hide context search options
+							this.utils.uiUtils.hideElement("research-narrative-options");
 
 							s.parameters.map( p => {
 								if(!!document.getElementById("search_param_" + p.parameter)) {
@@ -389,7 +405,7 @@ export default Vue.component("research-multi-sections-search", {
 					}
 
 					switch(s.type) {
-						case "multi search":
+						case "context search":
 
 							s.parameters.map( p => {
 								if(!!document.getElementById("search_param_" + p.parameter)) {
@@ -459,7 +475,7 @@ export default Vue.component("research-multi-sections-search", {
 			this.searchParameters.map(s => {
 
 				switch (s.type) {
-					case "multi search":
+					case "context search":
 
 						s.parameters.map( p => {
 							paramsObj[p.parameter] = "";
@@ -545,6 +561,37 @@ export default Vue.component("research-multi-sections-search", {
 </script>
 
 <style>
+
+
+.narrative-opener{
+	position: relative;
+}
+
+.narrative-opener span {
+	font-size: 25px;
+	position: absolute;
+	top: -3px;
+    left: -15px;
+}
+
+.narrative-opener span svg{
+	background-color: #668899;
+	padding: 3px;
+	border-radius: 3px;
+	color: #ffffff;
+}
+
+.narrative-opener span:hover svg{
+	background-color: #0069d9;
+}
+
+.narrative-opener span:hover{
+	cursor: pointer;
+}
+
+.col.search-btn-wrapper.hidden, .col.reset-btn-wrapper.hidden, .col.narrative-opener.hidden {
+	display: none !important;
+}
 .form-control.research-textarea {
 	width: auto !important;
 	height: auto !important;
@@ -716,7 +763,9 @@ div.custom-select-search {
 	left: 5px;
 }
 
-.filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {}
+.filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
+	vertical-align: middle !important;
+}
 
 .autocomplete-options {
 	position: absolute;

@@ -304,6 +304,16 @@ new Vue({
 
             return parameters;
         },
+        sharedResource() {
+            let sharedResource;
+            if (!!this.sectionConfigs["shared resource"]) {
+                sharedResource = this.sectionConfigs["shared resource"];
+            } else {
+                sharedResource = null;
+            }
+
+            return sharedResource;
+        },
         multiSectionsSearchParameters() {
             if (this.phenotypesInSession.length > 0) {
                 let parameters = [];
@@ -392,7 +402,6 @@ new Vue({
                         pr.parameter == "phenotype" &&
                         pr.values == "kp phenotypes"
                     ) {
-                        //console.log("this.phenotypesInSession", this.phenotypesInSession)
 
                         let shorterFirst = this.phenotypesInSession.sort(
                             (a, b) =>
@@ -1352,7 +1361,7 @@ new Vue({
             })
         },
         updateParams() {
-            console.log("updateParams() called");
+            //console.log("updateParams() called");
         },
         getReplaced(CONTENT) {
             return this.utilsBox.Formatters.replaceWithParams(

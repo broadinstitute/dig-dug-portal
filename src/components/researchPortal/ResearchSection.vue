@@ -961,7 +961,7 @@ export default Vue.component("research-section", {
 
 		getParamString(PARAMS_TYPE) {
 
-			console.log("PARAMS_TYPE",PARAMS_TYPE)
+			//console.log("PARAMS_TYPE",PARAMS_TYPE)
 
 			let queryParams = {}; // collect search parameters
 			let queryParamsString = []; // search parameters into one string
@@ -1100,7 +1100,7 @@ export default Vue.component("research-section", {
 		},
 
 		queryData(FROM) {
-			console.log("here");
+			//console.log("here");
 			const queryType = this.dataPoint["type"];
 			const paramsType = this.dataPoint["parameters type"];
 			const params = this.dataPoint["parameters"];
@@ -1112,7 +1112,7 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString(paramsType );
 
-			console.log("paramsString",paramsString);
+			//console.log("paramsString",paramsString);
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
@@ -1256,14 +1256,14 @@ export default Vue.component("research-section", {
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
-			console.log("here2",QUERY, TYPE, PARAMS);
+			//console.log("here2",QUERY, TYPE, PARAMS);
 
 			this.searched.push(QUERY);
 
 			let dataUrl = this.dataPoint.url;
 
 			if (TYPE == "replace") {
-				console.log("here3");
+				//console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
@@ -1472,7 +1472,7 @@ export default Vue.component("research-section", {
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 			}
 
 			let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
@@ -1795,7 +1795,7 @@ export default Vue.component("research-section", {
 				if (!!tableFormat && !!tableFormat["data convert"]) {
 					let convertConfig = tableFormat["data convert"];
 
-					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 				}
 
 				let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;

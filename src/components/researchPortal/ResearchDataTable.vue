@@ -718,7 +718,7 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		subSectionData(DATA){
-			//console.log("cont data",DATA);
+			
 		},
 		featureRowsNumber(NUMBER) {
 			this.$emit('on-feature-rows-change', NUMBER);
@@ -790,12 +790,9 @@ export default Vue.component("research-data-table", {
 					paramsNewValues[p] = values[pIndex];
 				})
 
-				//console.log("paramsCurrentValues", paramsCurrentValues)
-
 				if(!!COMPARE) {
-					//console.log("Compare 1")
+					
 					Object.keys(COMPARE).map( p => {
-						//console.log("Compare 1-1", COMPARE[p], COMPARE[p]["parameter type"] )
 
 						let oldVal = paramsCurrentValues[p],
 						newVal = paramsNewValues[p],
@@ -803,17 +800,17 @@ export default Vue.component("research-data-table", {
 
 						switch(COMPARE[p]["parameter type"]) {
 							case "region":
-								//console.log("Compare 2")
+								
 								let newRegion = '';
 								let chr, start = [], end = [];
 
 								let regions = [oldVal,newVal,compareVal];
 
 								regions.map( r => {
-									//console.log("Compare 3")
+									
 									if(!!r && r != "") {
 										r.split(':').map((pVal, pIndex) => {
-											//console.log("Compare 4")
+											
 											if (pIndex == 0) {
 												chr = pVal
 											} else {
@@ -827,14 +824,10 @@ export default Vue.component("research-data-table", {
 									
 								})
 
-								//console.log("chr, start, end", chr, start, end)
-
 								switch (COMPARE[p]["compare type"]) {
 									case "set wider":
 
 									let newChr = chr, newStart = Math.min(...start), newEnd = Math.max(...end);
-
-									//console.log("newChr, start, end", newChr, newStart, newEnd)
 
 									paramsNewValues[p] = newChr+":"+ newStart+"-"+newEnd;
 
@@ -844,7 +837,6 @@ export default Vue.component("research-data-table", {
 								break;
 						}
 
-						//console.log(p, paramsNewValues[p])
 					});
 				}
 
@@ -920,7 +912,6 @@ export default Vue.component("research-data-table", {
 						break;
 					case "api":
 
-					//console.log(paramsString, paramsType, params, dataPoint, tableFormat,KEY)
 						this.queryApi(paramsString, paramsType, params, dataPoint, tableFormat,INDEX, KEY);
 						break;
 					/*case "file":
@@ -942,8 +933,6 @@ export default Vue.component("research-data-table", {
 			}
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
-
-			//console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl = DATA_POINT.url;
 			let fKEY = this.getRowID(KEY + QUERY + INDEX);
@@ -972,13 +961,11 @@ export default Vue.component("research-data-table", {
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
 				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 			} else {
-				//console.log("No data is returned. Please check query parameters.");
 			}
 		},
 
 		async queryBiContinue(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
-			//console.log(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl;
 			let PARAMS = DATA_POINT["parameters"];
@@ -996,7 +983,7 @@ export default Vue.component("research-data-table", {
 				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 			} else {
 				// fetch failed
-				//console.log("fetch failed");
+				console.log("fetch failed");
 			}
 		},
 		processLoadedBI(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
@@ -1009,7 +996,7 @@ export default Vue.component("research-data-table", {
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 			}
 
 			// Apply pre-filters
@@ -1047,8 +1034,6 @@ export default Vue.component("research-data-table", {
 		},
 
 		async queryApi(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
-
-			//console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl = DATA_POINT.url;
 			let fKEY = this.getRowID(KEY + QUERY + INDEX);
@@ -1108,14 +1093,12 @@ export default Vue.component("research-data-table", {
 
 			let data = CONTENT.data;
 
-			//console.log("data",data);
-
 			// if loaded data is processed
 			let tableFormat = TABLE_FORMAT;
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 			}
 
 			// Apply pre-filters

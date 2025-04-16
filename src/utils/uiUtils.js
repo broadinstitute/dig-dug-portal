@@ -100,12 +100,6 @@ let getToolTipPosition = function (ELEMENT) {
             : "1.0em";
 
     viewer.style.setProperty("left", elementLeft);
-    /*
-        console.log(ELEMENT);
-        console.log(" intViewportWidth: " + intViewportWidth);
-        console.log(" elementWidth: " + elementWidth);
-        console.log(" locatin.left: " + location.left);
-        */
 };
 
 let getOffset = function (ELEMENT) {
