@@ -1112,10 +1112,9 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString(paramsType );
 
-			//console.log("paramsString",paramsString);
-
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
+					//raise the data loading flag up.
 					document.getElementById('tabUi' + this.sectionID).classList.add("loading");
 				}
 
@@ -1202,6 +1201,10 @@ export default Vue.component("research-section", {
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
+			}
+
+			if(paramsString == "invalid") {
+				document.getElementById('section_wrapper_' + this.sectionID).classList.add('hidden');
 			}
 		},
 

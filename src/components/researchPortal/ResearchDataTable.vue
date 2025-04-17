@@ -257,6 +257,22 @@
 											</button>
 										</span>
 								</span>
+
+								<span v-else-if="!!ifByoglSectionColumn(tdKey)"
+									class="dynamic-subsection-options">
+										<span class="btns-wrapper">
+											<button class="btn btn-sm show-evidence-btn set-search-btn" 
+												:data-id="getRowID(tdKey+tdValue+index)"
+												:class="{
+													'loaded-subsection' : !!ifSubsectionData(sanitizeKey(tdKey+tdValue+index)),
+													'loading-subsection' : !!ifSubsectionLoading(sanitizeKey(tdKey+tdValue+index))
+												}"
+												@click="getSubsectionData(tdValue, tdKey, index)" 
+											>
+												<span>{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</span>
+											</button>
+										</span>
+								</span>
 								
 								<span v-else v-html="formatValue(tdValue, tdKey, value)"></span>
 
@@ -292,6 +308,15 @@
 										</span>
 									</span>
 									<span v-else-if="!!ifSubsectionColumn(tdKey)"
+											class="dynamic-subsection-options">
+											<span class="btns-wrapper">
+												<button class="btn btn-sm show-evidence-btn set-search-btn"
+													:class="!!ifSubsectionData(sanitizeKey(tdKey + tdValue + index))?'loaded-subsection':''"
+													@click="getSubsectionData(tdValue, tdKey, index)" >
+												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+											</span>
+									</span>
+									<span v-else-if="!!ifByoglSectionColumn(tdKey)"
 											class="dynamic-subsection-options">
 											<span class="btns-wrapper">
 												<button class="btn btn-sm show-evidence-btn set-search-btn"
@@ -356,7 +381,25 @@
 						</research-sub-section>
 					</td>
 					</tr>
-
+					<!-- testing BYOGL table-->
+					<tr v-if="itemValue.type.includes('byogl section') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
+					>
+						<td :colspan="topRowNumber">
+							<research-byogl-section
+							:sectionId="sectionId"
+							:rowId="getRowID(itemKey + value[itemKey] + index)"
+							:colors="colors"
+							:starItems="starItems"
+							:multiSectionPage="multiSectionPage"
+							:plotMargin="plotMargin"
+							:subSectionConfig="itemValue['subsection']"
+							:subSectionData="collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
+							:phenotypeMap="phenotypeMap"
+							:utils="utils"
+							>
+							</research-byogl-section>
+						</td>
+					</tr>
 					</template>
 				</template>
 			</tbody>
@@ -386,6 +429,7 @@ import EventBus from "@/utils/eventBus";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
+import ResearchByoglSection from "@/components/researchPortal/ResearchByoglSection.vue";
 
 export default Vue.component("research-data-table", {
 	props: [
@@ -425,7 +469,7 @@ export default Vue.component("research-data-table", {
 		};
 	},
 	modules: {},
-	components: { ResearchDataTableFeatures, ResearchSummaryPlot, ResearchSubSection },
+	components: { ResearchDataTableFeatures, ResearchSummaryPlot, ResearchSubSection, ResearchByoglSection },
 	created() {},
 	beforeMount() {},
 
@@ -889,7 +933,7 @@ export default Vue.component("research-data-table", {
 			return data;
 		},
 		getSubsectionData(VALUE,KEY,INDEX){
-			
+			console.log(VALUE,KEY,INDEX);
 			let dataPoint = this.tableFormat['column formatting'][KEY]['subsection']['data point'];
 			let tableFormat = this.tableFormat['column formatting'][KEY]['subsection']['table format']
 			let queryType = dataPoint["type"];
@@ -932,6 +976,7 @@ export default Vue.component("research-data-table", {
 				}
 			}
 		},
+		
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
 			let dataUrl = DATA_POINT.url;
@@ -1154,8 +1199,16 @@ export default Vue.component("research-data-table", {
 				return null;
 			}
 		},
+		ifByoglSectionColumn(KEY) {
+			if (!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+				&& !!this.tableFormat['column formatting'][KEY]['type'].includes('byogl section')) {
+				return true;
+			} else {
+				return null;
+			}
+		},
 		getParameterColumnLabel(KEY){
-			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY)) {
+			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY) || !!this.ifByoglSectionColumn(KEY)) {
 				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
 				return label;
 			} else {

@@ -21,7 +21,7 @@
         </div>
         <div>
             <div class="research-narrative-options hidden">
-                <div><span @click="parent.resetSearch()">Reset</span></div>
+                <div><button class="btn btn-sm btn-warning context-search-btn" @click="parent.resetSearch()">Reset search</button></div>
                 <template v-for="option in contextOptions">
                     <div class="row">
                         <div class="col-md-10">
@@ -77,7 +77,6 @@ export default Vue.component("research-context-search", {
 	modules: {
 	},
 	mounted: function () {
-
 	},
     methods: {
         resetInput(PARAM_INDEX) {
@@ -157,8 +156,7 @@ export default Vue.component("research-context-search", {
             return phenotypes;
         }
 	},
-	watch: {
-       
+	watch: {       
 	},
 	
 });

@@ -216,7 +216,7 @@ export default Vue.component("research-multi-sections-search", {
 				setListValue: this.setListValue,
 				paramSearch: this.paramSearch,
 				updateSearch: this.updateSearch,
-				resetSearch: this.resetSearch,
+				resetSearch: this.resetSearch
 			}
 		},
 		
