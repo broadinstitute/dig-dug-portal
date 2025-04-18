@@ -20,6 +20,7 @@
     "d3": "^5.16.0",
     "flat": "^5.0.2",
     "gwas-credible-sets": "^0.1.0",
+    "igv": "2.12",
     "jquery": "^3.7.1",
     "json-query": "^2.2.2",
     "locuszoom": "^0.13.4",

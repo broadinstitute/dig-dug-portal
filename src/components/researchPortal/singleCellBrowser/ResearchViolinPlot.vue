@@ -8,6 +8,7 @@
   import * as d3 from 'd3';
   import Vue from 'vue';
   import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
+  import {llog} from "./llog.js";
   
   export default Vue.component('research-violin-plot', {
     props: {
@@ -64,7 +65,7 @@
         if(this.data){
             this.drawChart();
         }else{
-            console.log('no data');
+            llog('no data');
         }
         //window.addEventListener('resize', this.handleResize);
     },
@@ -79,8 +80,8 @@
             this.drawChart();
         },
         drawChart(){
-            console.log("---Violin Plot");
-            console.log("   data", this.data);
+            llog("---Violin Plot");
+            llog("   data", this.data);
 
             if(!this.data) return;
 
@@ -114,7 +115,7 @@
 
             //calculate sizes and margins
             const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
-            console.log("parentWidth", parentWidth);
+            llog("parentWidth", parentWidth);
 
             const labels = { xAxis: this.xAxisLabel?20:0, yAxis: this.yAxisLabel?20:0 }
             const margin = { top: 10, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
@@ -350,7 +351,7 @@
             }
         },
         removeAllListeners(elsArr){
-            console.log(`removing event listeners for ${elsArr.length} elements`);
+            llog(`removing event listeners for ${elsArr.length} elements`);
             elsArr.forEach(el=>{
                 this.removeListener(el);
             });

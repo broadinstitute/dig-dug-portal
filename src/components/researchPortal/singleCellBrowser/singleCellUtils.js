@@ -1,9 +1,10 @@
 import dataConvert from "@/utils/dataConvert";
 import * as d3 from 'd3';
+import {llog} from "./llog.js";
 
 /* fetch utils */
 export async function fetchMetadata(url) {
-    console.log('getting metadata', url);
+    llog('getting metadata', url);
     try {
         const response = await fetch(url);
         //returns line json
@@ -12,34 +13,34 @@ export async function fetchMetadata(url) {
         const metadata = lines.map(line => JSON.parse(line));
         return metadata;
     } catch (error) {
-        console.error('Error fetching metadata:', error);
+        llog('Error fetching metadata:', error);
     }
 }
 export async function fetchFields(url, datasetId) {
     const replacedUrl = url.replace('$datasetId', datasetId);
-    console.log('getting fields', replacedUrl);
+    llog('getting fields', replacedUrl);
     try {
         const response = await fetch(replacedUrl);
         const fields = await response.json();
         return fields;
     } catch (error) {
-        console.error('Error fetching fields:', error);
+        llog('Error fetching fields:', error);
     }
 }
 export async function fetchCoordinates(url, datasetId) {
     const replacedUrl = url.replace('$datasetId', datasetId);
-    console.log('getting coordinates', replacedUrl);
+    llog('getting coordinates', replacedUrl);
     try {
         const response = await fetch(replacedUrl);
         const json = dataConvert.tsv2Json(await response.text());
         return json;
     }catch (error){
-        console.error('Error fetching coordinates:', error);
+        llog('Error fetching coordinates:', error);
     }
 }
 export async function fetchMarkers(url, datasetId) {
     const replacedUrl = url.replace('$datasetId', datasetId);
-    console.log('getting markers', replacedUrl);
+    llog('getting markers', replacedUrl);
     try {
         const response = await fetch(replacedUrl);
         //likely temporary, but currently the marker_genes api
@@ -55,24 +56,24 @@ export async function fetchMarkers(url, datasetId) {
         }
         return markers;
     } catch (error) {
-        console.error('Error fetching markers:', error);
+        llog('Error fetching markers:', error);
         return null;
     }
 }
 export async function fetchGeneExpression(url, gene, datasetId){
     const replacedUrl = url.replace('$datasetId', datasetId).replace('$gene', gene);
-    console.log(`getting ${gene} expression`, replacedUrl)
+    llog(`getting ${gene} expression`, replacedUrl)
     try{
         const response = await fetch(replacedUrl);
         const json = await response.json();
         if(json.data.length===0){
-            console.log(`${gene} not found`);
+            llog(`${gene} not found`);
             return null;
         }
         const expression = json.data[0]['expression'];
         return expression;
     }catch(error){
-        console.error('   Error fetching gene expression', error);
+        llog('   Error fetching gene expression', error);
         return null;
     }
 }
@@ -82,7 +83,7 @@ export function calcFieldsDisplayList(fields){
     for(const [key, value] of Object.entries(fields.metadata_labels)){
         list.push({"raw field": key, "field label": key.replaceAll("_", " ")});
     }
-    console.log('   calcFieldsDisplayList', list);
+    llog('   calcFieldsDisplayList', list);
     return list;
 }
 
@@ -97,12 +98,12 @@ export function calcLabelColors(fields, colors){
             colorIndex++;
         }
     }
-    console.log('calcLabelColors', labelColors);
+    llog('calcLabelColors', labelColors);
     return labelColors;
 }
 
 export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
-    console.log('calcCellCounts', {fields, labelColors, primaryKey, subsetKey})
+    llog('calcCellCounts', {fields, labelColors, primaryKey, subsetKey})
     const keys = fields.metadata_labels;
     const values = fields.metadata;
     
@@ -239,3 +240,83 @@ function calculateExpressionStats(exprValues, partial=false) {
         }
     }
 }
+
+function parseStringValue(str) {
+    // Trim it so we handle random spaces
+    const trimmed = str.trim().toLowerCase();
+    
+    // 1. Check for boolean strings
+    if (trimmed === 'true') {
+      return true;
+    }
+    if (trimmed === 'false') {
+      return false;
+    }
+  
+    // 2. Check for numeric strings
+    const num = Number(str);
+    // If parseable and not NaN
+    if (!isNaN(num) && str !== '') {
+      return num;
+    }
+  
+    // 3. Check for date - just see if new Date(...) is valid
+    /*const dateObj = new Date(str);
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj;
+    }*/
+  
+    // 4. Fallback: keep as string
+    return str;
+  }
+  
+  /**
+   * Given an array of  values, parse them into real types if possible,
+   * then use heuristics to detect if the result is boolean, numeric, datetime, etc.
+   */
+export function detectVarType(values, options = {}) {
+    const { categoricalThreshold = 0.2 } = options;
+  
+    // 1. Parse each string to the best possible type
+    const parsedValues = values.map(parseStringValue);
+  
+    // 2. Filter out null/undefined
+    const nonMissing = parsedValues.filter(v => v !== null && v !== undefined);
+    if (nonMissing.length === 0) {
+      return 'unknown';
+    }
+  
+    // 3. Check if all booleans
+    const allBooleans = nonMissing.every(v => typeof v === 'boolean');
+    if (allBooleans) {
+      return 'boolean';
+    }
+  
+    // 4. Check if all dates
+    /*const allDates = nonMissing.every(v => v instanceof Date && !isNaN(v.getTime()));
+    if (allDates) {
+      return 'datetime';
+    }*/
+  
+    // 5. Check if all numeric
+    const allNumeric = nonMissing.every(v => typeof v === 'number' && !isNaN(v));
+    if (allNumeric) {
+      // Calculate ratio of unique values to total
+      const uniqueNums = new Set(nonMissing);
+      const ratio = uniqueNums.size / nonMissing.length;
+      return ratio <= categoricalThreshold ? 'categorical' : 'continuous';
+    }
+  
+    // 6. Finally, do a “categorical vs text” check
+    const uniqueValues = new Set(nonMissing);
+    const ratio = uniqueValues.size / nonMissing.length;
+    //llog(uniqueValues.size, nonMissing.length, ratio, categoricalThreshold)
+    //llog(parsedValues);
+    if (ratio >= categoricalThreshold) {
+      return 'categorical';
+    }
+  
+    // 7. If none of the above, it’s probably freeform text
+    return 'text';
+  }
+   

@@ -226,6 +226,13 @@
 						class="form-control"
 						:id="'search_param_' + parameter.parameter"
 					/>
+					<textarea
+						v-if="parameter.type == 'string to array'"
+						rows="4" cols="50"
+						class="form-control"
+						:id="'search_param_' + parameter.parameter">
+
+					</textarea>
 				</div>
 
 				<div
