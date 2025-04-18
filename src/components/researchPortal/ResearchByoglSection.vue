@@ -1,6 +1,16 @@
 <template>
 	<div>
-		<div class="sub-section-header"><strong v-if="!!subSectionConfig['label']">{{ subSectionConfig['label'] }}</strong></div>
+		"genes in list", "cfde gene set", "human traits"
+		<div v-if="tableFormat.features.includes('genes in list')">
+			{{ geneScores }}
+		</div>
+		<div v-if="tableFormat.features.includes('cfde gene set')">
+			{{ geneSetScores }}
+		</div>
+		<div v-if="tableFormat.features.includes('human traits')">
+			{{ humanTraits }}
+		</div>
+		<!--<div class="sub-section-header"><strong v-if="!!subSectionConfig['label']">{{ subSectionConfig['label'] }}</strong></div>
 		<div v-if="!!subSectionConfig['visualizers'] && (subSectionConfig['visualizers']['wrapper type'] == 'tabs' || subSectionConfig['visualizers']['wrapper type'] == 'divs')"  class="sub-plot-wrapper">
 			<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + rowId">
 				<div v-for="tab, tabIndex in subSectionConfig['visualizers']['visualizers']" :id="'tabUi' + rowId + tabIndex"
@@ -89,7 +99,6 @@
 					<td  v-for="head in getTopRows()">
 						
 						<span v-html="formatValue(row[head],head,row)"></span>
-						<!-- column formatting contains copy to clipboard -->
 
 						<b-btn class="copy-to-clipboard" v-if="tableFormat['column formatting'] && tableFormat['column formatting'][head] &&
 							tableFormat['column formatting'][head].type.includes('copy to clipboard')"
@@ -138,6 +147,7 @@
 				</tr>
 			</tbody>
 		</table>
+		-->
 	</div>
 </template>
 
@@ -160,6 +170,9 @@ export default Vue.component("research-byogl-section", {
 			numberOfRows: 10,
 			stared: false,
 			staredAll: false,
+			geneScores: null,
+			geneSetScores: null,
+			humanTraits: null,
 		};
 	},
 	modules: {
@@ -173,8 +186,14 @@ export default Vue.component("research-byogl-section", {
 	},
 	mounted() {
 		
+		this.getByoglData(this.customGeneSet)
 	},
 	computed: {
+		customGeneSet() {
+			let genes = [...new Set(this.currentData.map(G => G[this.tableFormat['genes']]))];
+
+			return genes;
+		},
 		subPageData() {
 			let pageData = [];
 			let rows = this.currentData.length;
@@ -212,6 +231,76 @@ export default Vue.component("research-byogl-section", {
 		}
 	},
 	methods: {
+		async fetchApi(header,body,URL) {
+			console.log(header,body,URL);
+			const response = await fetch(URL, {
+				method: 'POST',
+				headers: header,
+				body: JSON.stringify(body),
+			});
+
+			if (!response.ok) {
+				throw new Error(`Request failed with status ${response.status}`);
+			}
+
+			return response.json();
+		},
+		getByoglData(GENES) {
+
+			console.log("GENES",GENES);
+
+			let geneScoresURL = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/gene_scores";
+			let humanTraitsURL = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/phenotypes";
+			let header = {
+				"Content-Type": "application/json"
+			}
+
+			let geneScoresBody = {
+				"p_value": "0.05",
+				"max_number_gene_sets": 150,
+				"gene_sets": "cfde",
+				"genes": GENES
+				}
+
+			let humanTraitsBody = {
+				"max_number_gene_sets": 150,
+				"genes": GENES
+				}
+
+			this.fetchApi(header,geneScoresBody,geneScoresURL)
+				.then(data => {
+					console.log(data);
+					this.geneScores = data['gene_scores'];
+					this.geneSetScores = data['gene_set_scores'];
+				})
+				.catch(error => console.error('Error fetching GraphQL:', error));
+
+			this.fetchApi(header,humanTraitsBody,humanTraitsURL)
+				.then(data => {
+					console.log(data);
+					this.humanTraits = data['phenotypes'];
+					//this.geneSetScores = data['gene_set_scores'];
+				})
+				.catch(error => console.error('Error fetching GraphQL:', error));
+			
+			/*const response = await fetch(URL, {
+				method: 'POST',
+				headers: header,
+				body: JSON.stringify(body),
+			});
+
+			if (!response.ok) {
+				throw new Error(`Request failed with status ${response.status}`);
+			} else {
+				let data = response.json()
+				this.geneScores = data['gene_scores'];
+				this.geneSetScores = data['gene_set_scores'];
+				console.log(data);
+			}*/
+
+			//return response.json();
+
+		},
 		getColumns(ID) {
 			let item;
 			/*if (this.dataComparisonConfig != null) {

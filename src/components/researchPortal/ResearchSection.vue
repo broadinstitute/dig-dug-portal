@@ -1203,9 +1203,9 @@ export default Vue.component("research-section", {
 				}
 			}
 
-			if(paramsString == "invalid") {
-				document.getElementById('section_wrapper_' + this.sectionID).classList.add('hidden');
-			}
+			//if(paramsString == "invalid") {
+				//document.getElementById('section_wrapper_' + this.sectionID).classList.add('hidden');
+			//}
 		},
 
 		queryGraphQl(QUERY, URL, PARAM, TYPE, PARAMS) {
