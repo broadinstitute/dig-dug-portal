@@ -95,20 +95,32 @@ export default Vue.component("variant-phenotype-table", {
     data() {
         return {
             HPOTerms: {
-                Healthy: "Healthy",
-                Sensitive: "Steroid Sensitive Nephrotic Syndrome",
-                AdultSensitive: "Steroid Sensitive Nephrotic Syndrome (Adult)",
-                PediatricSensitive:
-                    "Steroid Sensitive Nephrotic Syndrome (Pediatric)",
-                Uncategorized: "Uncategorized Nephrotic Syndrome",
-                AdultUncategorized: "Uncategorized Nephrotic Syndrome (Adult)",
-                PediatricUncategorized:
-                    "Uncategorized Nephrotic Syndrome (Pediatric)",
-                Resistant: "Steroid Resistant Nephrotic Syndrome",
-                AdultResistant: "Steroid Resistant Nephrotic Syndrome (Adult)",
-                PediatricResistant:
-                    "Steroid Resistant Nephrotic Syndrome (Pediatric)",
-                AllSamples: "All Samples",
+                "Antibody_negative":"Antibody Negative Insulin Deficient (abr. ANID)",
+                "Lipodystrophic":"Lipodystrophic",
+                "Non_obese_insulin_insufficient_DM":"Non-Obese Inulin Insufficient (abr. NOII)",
+                "Possible_monogenic":"Possible Monogenic or Oligogenic (abr. PMO)",
+                "Non_progressive":"Non-Progressive",
+                "Syndromic":"Syndromic",
+                "Very_low_insulin_requirements":"Very Low Insulin Requirements (abr. VLIR)",
+                "A_B__ketosis_prone":"Antibody Negative Beta Cell Negative Ketosis-Prone DM (abr. A (-) B (-) KPDM)",
+                "A_B__ketosis_prone_1":"Antibody Negative Beta Cell Positive Ketosis-Prone DM (abr. A (-) B (+) KPDM)",
+                "Severe_insulin_resistance":"Severe Insulin Resistance (SIR)",
+                "Beta_Cell_Dysfunction":"Beta Cell Dysfunction",
+                "IGF1R_variant":"IGF1R",
+                "INS_variant":"INS",
+                "NFKB1_variant":"NFKB1",
+                "PAX6_variant":"PAX6",
+                "PTPMT1_variant":"PTPMT1",
+                "SMAD5_variant":"SMAD5",
+                "INSR_variant":"INSR",
+                "LMNTD2_variant":"LMNTD2",
+                "SLIT2_ROBO1_variant":"SLIT2 or ROB1",
+                "CERS2_variant":"CERS2",
+                "IDH2_variant":"IDH2",
+                "IRS2_Haploinsufficiency_variant":"IRS2 Haploinsufficiency",
+                "EIF2S1_variant":"EIF2S1",
+                "mTor_Pathway":"Mammalian Target of Rapamycin Pathway (abr. mTOR pathway)",
+                "GLUT4_variant":"GLUT4",
             },
             fields: [
                 {
@@ -116,28 +128,28 @@ export default Vue.component("variant-phenotype-table", {
                     label: "Phenotype",
                 },
                 {
-                    key: "allelecount",
+                    key: "alleleCount",
                     label: "Allele Count",
                     sortable: true,
-                    tdClass: "text-right pr-3",
-                    thClass: "text-right",
+                    tdClass: "text-left pr-3",
+                    thClass: "text-left",
                 },
                 {
-                    key: "allelnumber",
+                    key: "alleleNumber",
                     label: "Allele Number",
                     sortable: true,
-                    tdClass: "text-right pr-3",
-                    thClass: "text-right",
+                    tdClass: "text-left pr-3",
+                    thClass: "text-left",
                 },
                 {
-                    key: "n_hom_var_case",
+                    key: "homozygousCount",
                     label: "Homozygotes",
                     sortable: true,
-                    tdClass: "text-right pr-3",
-                    thClass: "text-right",
+                    tdClass: "text-left pr-3",
+                    thClass: "text-left",
                 },
                 {
-                    key: "allelefrequency",
+                    key: "alleleFrequency",
                     label: "Allele Frequency",
                     sortable: true,
                     tdClass: "text-left pl-5",
@@ -172,6 +184,7 @@ export default Vue.component("variant-phenotype-table", {
         },
     },
     created() {
+        console.log("Variant Phenotype Table:"+ this.variantId);
         if (this.variantId) {
             this.searchVariants();
         }
@@ -185,7 +198,9 @@ export default Vue.component("variant-phenotype-table", {
             //console.log("variant id:" + this.variantId);
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0] + ":" + varinfo[1];
-            this.variant = await query("variants", searchquery, {}, true);
+            //this.variant = await query("variants", searchquery, {});
+            this.variant = await query("gene-locus", searchquery, {}, true);
+            console.log(this.variant);
             let hpdisplay = [];
             let j = 0;
 
@@ -194,20 +209,15 @@ export default Vue.component("variant-phenotype-table", {
                 //if (hp.HP != "AllControl") {
                 hpdisplay[j] = {};
                 //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
-                hpdisplay[j].hp = hp.HP;
+                hpdisplay[j].hp = hp.phenotype;
                 hpdisplay[j].hpoterms = Formatters.snakeFormatter(
-                    this.HPOTerms[hp.HP]
+                    this.HPOTerms[hp.phenotype]
                 );
-                hpdisplay[j].allelecount =
-                    2 * hp.n_hom_var_case + hp.n_het_case;
-                hpdisplay[j].allelnumber =
-                    2 * (hp.n_hom_ref_case + hp.n_het_case + hp.n_hom_var_case);
-                hpdisplay[j].allelefrequency = this.calculateAlleleFrequency(
-                    hpdisplay[j].allelecount,
-                    hpdisplay[j].allelnumber
-                );
+                hpdisplay[j].alleleCount = hp.alleleCount;
+                hpdisplay[j].alleleNumber = hp.alleleNumber;
+                hpdisplay[j].alleleFrequency = hp.alleleFrequency;
 
-                hpdisplay[j].n_hom_var_case = hp.n_hom_var_case;
+                hpdisplay[j].homozygousCount = hp.homozygousCount;
                 j++;
                 //}
             }
@@ -223,18 +233,32 @@ export default Vue.component("variant-phenotype-table", {
             // });
 
             let sortOrder = [
-                "AllSamples",
-                "Resistant",
-                "PediatricResistant",
-                "AdultResistant",
-                "Sensitive",
-                "PediatricSensitive",
-                "AdultSensitive",
-                "Uncategorized",
-                "PediatricUncategorized",
-                "AdultUncategorized",
-                "Healthy",
-                "AllNephroticSyndCases",
+                "Antibody Negative Insulin Deficient (abr. ANID)",
+                "Lipodystrophic",
+                "Non-Obese Inulin Insufficient (abr. NOII)",
+                "Possible Monogenic or Oligogenic (abr. PMO)",
+                "Non-Progressive",
+                "Syndromic",
+                "Very Low Insulin Requirements (abr. VLIR)",
+                "Antibody Negative Beta Cell Negative Ketosis-Prone DM (abr. A (-) B (-) KPDM)",
+                "Antibody Negative Beta Cell Positive Ketosis-Prone DM (abr. A (-) B (+) KPDM)",
+                "Severe Insulin Resistance (SIR)",
+                "Beta Cell Dysfunction",
+                "IGF1R",
+                "INS",
+                "NFKB1",
+                "PAX6",
+                "PTPMT1",
+                "SMAD5",
+                "INSR",
+                "LMNTD2",
+                "SLIT2 or ROB1",
+                "CERS2",
+                "IDH2",
+                "IRS2 Haploinsufficiency",
+                "EIF2S1",
+                "Mammalian Target of Rapamycin Pathway (abr. mTOR pathway)",
+                "GLUT4",
             ];
 
             //remove Healthy and AllNephroticSyndCases
