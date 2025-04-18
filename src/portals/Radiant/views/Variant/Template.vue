@@ -105,6 +105,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Helen added IGV display -->
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div
+                        v-if="$store.state.pageVariant.varId"
+                    >
+                        <h4 class="card-title">
+                            IGV viewer
+                        </h4>
+                        <igv-card v-bind:variantId="
+                                $store.state.pageVariant.varId
+                            ">
+                        </igv-card>
+                    </div>
+                </div>
+            </div>
 <!--
             <div class="card mdkp-card">
                 <div class="card-body">
