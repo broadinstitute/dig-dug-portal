@@ -1,6 +1,8 @@
 <template>
-    <div ref="umapContainer" class="umap-container" @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"
-        @mouseover="onMouseOver" @mouseout="onMouseOut" @wheel.prevent="onWheel">
+    <div ref="umapContainer" class="umap-container" 
+        @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"
+        @mouseover="onMouseOver" @mouseout="onMouseOut" @wheel.prevent="onWheel"
+        style="width:100%; position:relative; overflow-x:hidden;">
         <div v-if="points"
             style="display:flex; align-items: center; justify-content: flex-end; gap:5px; position: absolute; right: 5px; top: 5px; z-index: 1">
             <!--<div><span style="font-family: monospace;">{{ points.length.toLocaleString() }}</span> cells</div>-->
@@ -116,6 +118,8 @@ export default Vue.component('research-umap-plot-gl', {
 
             // For coloring expression, define a plasma scale
             expressionScale: null,
+
+            resizeTimeout: null,
         };
     },
     watch: {
@@ -161,30 +165,42 @@ export default Vue.component('research-umap-plot-gl', {
         },
     },
     mounted() {
-        EventBus.$on('view-transform-change', this.handleUpdateViewTransform)
+        EventBus.$on('view-transform-change', this.handleUpdateViewTransform);
+        window.addEventListener('resize', this.handleResize);
         this.init();
     },
     beforeDestroy() {
         EventBus.$off('view-transform-change', this.handleUpdateViewTransform);
+        window.removeEventListener('resize', this.handleResize);
         this.cleanUp();
     },
     methods: {
+        handleResize(){
+            clearTimeout(this.resizeTimeout);
+            d3.select(this.$refs.umapCanvas).style('position', 'absolute');
+            this.resizeTimeout = setTimeout(() => {
+                this.init();
+            }, 100);
+        },
         init() {
             llog("---glUMAP init");
 
             sharedUmapData.initPoints(this.group, this.points);
 
+            const parentWidth = this.$refs.umapContainer.parentElement.offsetWidth;
+            this.$refs.umapContainer.style.height = this.height+'px';
+
             // 1) Setup canvases
             const canvas = this.$refs.umapCanvas;
-            canvas.width = this.width * window.devicePixelRatio;
+            canvas.width = parentWidth * window.devicePixelRatio;
             canvas.height = this.height * window.devicePixelRatio;
-            canvas.style.width = `${this.width}px`;
+            canvas.style.width = `${parentWidth}px`;
             canvas.style.height = `${this.height}px`;
 
             const labelCanvas = this.$refs.umapLabelCanvas;
-            labelCanvas.width = this.width * window.devicePixelRatio;
+            labelCanvas.width = parentWidth * window.devicePixelRatio;
             labelCanvas.height = this.height * window.devicePixelRatio;
-            labelCanvas.style.width = `${this.width}px`;
+            labelCanvas.style.width = `${parentWidth}px`;
             labelCanvas.style.height = `${this.height}px`;
 
             // 2) Calculate bounds & cluster centers
@@ -214,7 +230,6 @@ export default Vue.component('research-umap-plot-gl', {
                 gl.deleteBuffer(this.buffers.highlight);
                 this.buffers.highlight = null;
             }
-
 
             sharedUmapData.release(this.group);
         },

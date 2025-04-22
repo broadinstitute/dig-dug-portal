@@ -1,5 +1,5 @@
 <template>
-    <div ref="chartWrapper">
+    <div ref="chartWrapper" style="width:100%; position:relative; overflow-x:hidden;">
         <div ref="chart"></div>
     </div>
   </template>
@@ -46,11 +46,16 @@
       xAxisLabel: {
         type: String,
         required: false,
+      },
+      range: {
+        type: Array,
+        required: false
       }
     },
     data() {
         return {
             eventElements: [],
+            resizeTimeout: null,
         }
     },
     watch: {
@@ -67,19 +72,25 @@
         }else{
             llog('no data');
         }
-        //window.addEventListener('resize', this.handleResize);
+        window.addEventListener('resize', this.handleResize);
     },
     beforeDestroy(){
-        //window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener('resize', this.handleResize);
         if(this.eventElements.length>0) {
             this.removeAllListeners(this.eventElements);
         }
     },
     methods: {
         handleResize(){
-            this.drawChart();
+            clearTimeout(this.resizeTimeout);
+            //d3.select(this.$refs.chart).html('');
+            d3.select(this.$refs.chart).style('position', 'absolute');
+            this.resizeTimeout = setTimeout(() => {
+                this.drawChart();
+            }, 100);
         },
         drawChart(){
+            d3.select(this.$refs.chart).style('position', 'relative');
             llog("---Violin Plot");
             llog("   data", this.data);
 
@@ -95,6 +106,9 @@
             const subsetKey = this.subsetKey;
             const hasSubsetKey = subsetKey;
             const keys = Array.from(new Set(this.data.map((d) => d[primaryKey])));
+
+            //clear rendering
+            d3.select(this.$refs.chart).html('')
 
             //pre-render x-axis labels to get the their max height
             //this way we can ensure long labels dont get cut off at the bottom
@@ -127,6 +141,8 @@
             let plotWidth = width - margin.left - margin.right - labels.xAxis;
             let plotHeight = height - margin.top - margin.bottom - labels.yAxis;
 
+            this.$refs.chartWrapper.style.height = height+'px';
+
             /*
             //update plot width so each violin has min size
             //warn: this will cause violin plot to be wider than requested
@@ -138,8 +154,8 @@
             */
 
             //get absolute min/max values
-            const min = d3.min(this.data, (d) => d.min);
-            const max = d3.max(this.data, (d) => d.max);
+            const min = this.range ? this.range[0] : d3.min(this.data, (d) => d.min);
+            const max = this.range ? this.range[1] : d3.max(this.data, (d) => d.max);
 
             const svg = d3.select(this.$refs.chart)
                 .append('svg')
@@ -351,7 +367,7 @@
             }
         },
         removeAllListeners(elsArr){
-            llog(`removing event listeners for ${elsArr.length} elements`);
+            //llog(`removing event listeners for ${elsArr.length} elements`);
             elsArr.forEach(el=>{
                 this.removeListener(el);
             });
