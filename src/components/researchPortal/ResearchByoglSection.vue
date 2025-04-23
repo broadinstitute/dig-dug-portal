@@ -1,21 +1,22 @@
 <template>
 	<div>
-		
-
 		<div class="sub-tab-ui-wrapper" :id="'byoglTabUiGroup'+ sectionId + rowId">
 			<div 
+				v-if="!!tableFormat.features.includes('genes in list')"
 				:id="'byoglTabUi'+ sectionId + rowId + '0'" class="tab-ui-tab active" 
 				@click="utils.uiUtils.setTabActive('byoglTabUi'+ sectionId + rowId + '0',
 					'byoglTabUiGroup'+ sectionId + rowId,
 					'byoglTabContent'+ sectionId + rowId + '0', 'byoglTabContentGroup' + sectionId + rowId)">
 				Genes predicted to be in your gene list</div>
 			<div 
+				v-if="!!tableFormat.features.includes('cfde gene set')"
 				:id="'byoglTabUi'+ sectionId + rowId + '1'" class="tab-ui-tab" 
 				@click="utils.uiUtils.setTabActive('byoglTabUi'+ sectionId + rowId + '1',
 					'byoglTabUiGroup'+ sectionId + rowId,
 					'byoglTabContent'+ sectionId + rowId + '1', 'byoglTabContentGroup' + sectionId + rowId)">
 				CFDE gene sets that predict membership in your gene list</div>
 			<div 
+				v-if="!!tableFormat.features.includes('human traits')"
 				:id="'byoglTabUi'+ sectionId + rowId + '2'" class="tab-ui-tab" 
 				@click="utils.uiUtils.setTabActive('byoglTabUi'+ sectionId + rowId + '2',
 					'byoglTabUiGroup'+ sectionId + rowId,
@@ -25,38 +26,207 @@
 
 		
 		<div :id="'byoglTabContentGroup' + sectionId + rowId">
-			<div 
+			<div v-if="!!geneScores"
 				:id="'byoglTabContent'+ sectionId + rowId + '0'"
-				class="tab-content-wrapper">{{ 'geneScores' }}</div>
-			<div 
+				class="tab-content-wrapper">
+				<table class="table table-sm table-striped research-data-table subsection-table">
+					<thead>
+						<tr>
+							<th>
+								Gene
+							</th>
+							<th>
+								Predicted probability
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(row, rowIndex) in getSubPageData(geneScores,tab0Page)">
+							<td>{{ row['gene'] }}</td>
+							<td>{{ utils.Formatters.pValueFormatter(row['score']) }}</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+							<b-container
+								class="egl-table-page-ui-wrapper subsection-page-ui-left"
+							>
+								<span>{{ "Total rows: "+ geneScores.length }}</span>
+								</b-container>
+							<b-container
+								class="egl-table-page-ui-wrapper subsection-page-ui-center"
+							>
+								<b-pagination
+									class="pagination-sm justify-content-center"
+									v-model="tab0Page"
+									:total-rows="geneScores.length"
+									:per-page="numberOfRows"
+									:phenotypeMap="phenotypeMap"
+								></b-pagination>
+								</b-container>
+								<b-container
+									class="egl-table-page-ui-wrapper subsection-page-ui-right"
+								>
+									<div>
+										<strong>Save data in section: </strong>
+										<div
+											class="convert-2-csv btn-sm"
+											@click="convertJson2Csv(geneScores, rowId + '_geneScores')"
+										>
+											CSV
+										</div>
+										<div
+											class="convert-2-csv btn-sm"
+											@click="saveJson(geneScores, rowId + '_geneScores')"
+										>
+											JSON
+										</div>
+									</div>
+								</b-container>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div v-if="!!geneSetScores"
 				:id="'byoglTabContent'+ sectionId + rowId + '1'"
-				class="tab-content-wrapper hidden-content">{{ 'geneSetScores' }}</div>
-			<div 
+				class="tab-content-wrapper hidden-content">
+				<table class="table table-sm table-striped research-data-table subsection-table">
+					<thead>
+						<tr>
+							<th>
+								Gene set
+							</th>
+							<th>
+								Marginal effect
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(row, rowIndex) in getSubPageData(geneSetScores,tab1Page)">
+							<td>{{ row['geneSet'] }}</td>
+							<td>{{ utils.Formatters.pValueFormatter(row['score']) }}</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+							<b-container
+								class="egl-table-page-ui-wrapper subsection-page-ui-left"
+							>
+								<span>{{ "Total rows: "+ geneSetScores.length }}</span>
+								</b-container>
+							<b-container
+								class="egl-table-page-ui-wrapper subsection-page-ui-center"
+							>
+								<b-pagination
+									class="pagination-sm justify-content-center"
+									v-model="tab1Page"
+									:total-rows="geneSetScores.length"
+									:per-page="numberOfRows"
+									:phenotypeMap="phenotypeMap"
+								></b-pagination>
+								</b-container>
+								<b-container
+									class="egl-table-page-ui-wrapper subsection-page-ui-right"
+								>
+									<div>
+										<strong>Save data in section: </strong>
+										<div
+											class="convert-2-csv btn-sm"
+											@click="convertJson2Csv(geneSetScores, rowId + '_geneSetScores')"
+										>
+											CSV
+										</div>
+										<div
+											class="convert-2-csv btn-sm"
+											@click="saveJson(geneSetScores, rowId + '_geneSetScores')"
+										>
+											JSON
+										</div>
+									</div>
+								</b-container>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div v-if="!!humanTraits"
 				:id="'byoglTabContent'+ sectionId + rowId + '2'"
-				class="tab-content-wrapper hidden-content">{{ 'humanTraits' }}</div>
-		</div>
-
-		
-	
+				class="tab-content-wrapper hidden-content">
+				<table class="table table-sm table-striped research-data-table subsection-table">
+					<thead>
+						<tr>
+							<th>
+								Phenotype
+							</th>
+							<th>
+								P-value
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(row, rowIndex) in getSubPageData(humanTraits,tab2Page)">
+							<td>{{ row['phenotype'] }}</td>
+							<td>{{ utils.Formatters.pValueFormatter(row['p_value']) }}</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+							<b-container
+								class="egl-table-page-ui-wrapper subsection-page-ui-left"
+							>
+								<span>{{ "Total rows: "+ humanTraits.length }}</span>
+								</b-container>
+							<b-container
+								class="egl-table-page-ui-wrapper subsection-page-ui-center"
+							>
+								<b-pagination
+									class="pagination-sm justify-content-center"
+									v-model="tab2Page"
+									:total-rows="humanTraits.length"
+									:per-page="numberOfRows"
+									:phenotypeMap="phenotypeMap"
+								></b-pagination>
+								</b-container>
+								<b-container
+									class="egl-table-page-ui-wrapper subsection-page-ui-right"
+								>
+									<div>
+										<strong>Save data in section: </strong>
+										<div
+											class="convert-2-csv btn-sm"
+											@click="convertJson2Csv(humanTraits, rowId + '_humanTraitsScores')"
+										>
+											CSV
+										</div>
+										<div
+											class="convert-2-csv btn-sm"
+											@click="saveJson(humanTraits, rowId + '_humanTraitsScores')"
+										>
+											JSON
+										</div>
+									</div>
+								</b-container>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>	
 	</div>
 </template>
 
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
-import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 
 export default Vue.component("research-byogl-section", {
 	props: ["sectionId","rowId","subSectionConfig", "subSectionData","phenotypeMap","utils","colors","starItems","plotMargin","multiSectionPage"],
 	components: {
-		ResearchSectionVisualizers,
-		ResearchSectionComponents,
 	},
 	data() {
 		return {
 			currentData:null,
-			currentPage: 1,
+			tab0Page: 1,
+			tab1Page: 1,
+			tab2Page: 1,
 			numberOfRows: 10,
 			stared: false,
 			staredAll: false,
@@ -84,24 +254,6 @@ export default Vue.component("research-byogl-section", {
 
 			return genes;
 		},
-		subPageData() {
-			let pageData = [];
-			let rows = this.currentData.length;
-
-			let startIndex = (this.currentPage - 1) * this.numberOfRows;
-			let endIndex =
-				rows - this.currentPage * this.numberOfRows > 0
-					? this.currentPage * this.numberOfRows
-					: rows;
-
-			for (let i = startIndex; i < endIndex; i++) {
-				if (!!this.currentData[i]) {
-					pageData.push(this.currentData[i]);
-				}
-			}
-
-			return pageData;
-		},
 		tableFormat() {
 			if (!!this.subSectionConfig['table format']) {
 				return this.subSectionConfig['table format'];
@@ -121,8 +273,26 @@ export default Vue.component("research-byogl-section", {
 		}
 	},
 	methods: {
+		getSubPageData(DATA, PAGE) {
+			let pageData = [];
+			let rows = DATA.length;
+
+			let startIndex = (PAGE - 1) * this.numberOfRows;
+			let endIndex =
+				rows - PAGE * this.numberOfRows > 0
+					? PAGE * this.numberOfRows
+					: rows;
+
+			for (let i = startIndex; i < endIndex; i++) {
+				if (!!DATA[i]) {
+					pageData.push(DATA[i]);
+				}
+			}
+
+			return pageData;
+		},
 		async fetchApi(header,body,URL) {
-			console.log(header,body,URL);
+			
 			const response = await fetch(URL, {
 				method: 'POST',
 				headers: header,
@@ -136,8 +306,6 @@ export default Vue.component("research-byogl-section", {
 			return response.json();
 		},
 		getByoglData(GENES) {
-
-			console.log("GENES",GENES);
 
 			let geneScoresURL = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/gene_scores";
 			let humanTraitsURL = "https://translator.broadinstitute.org/genetics_provider/bayes_gene/phenotypes";
@@ -159,51 +327,30 @@ export default Vue.component("research-byogl-section", {
 
 			this.fetchApi(header,geneScoresBody,geneScoresURL)
 				.then(data => {
-					console.log(data);
-					this.geneScores = data['gene_scores'];
-					this.geneSetScores = data['gene_set_scores'];
+					let geneScores = [];
+					Object.keys(data['gene_scores']).map(geneKey => {
+						geneScores.push({gene: geneKey, score: data['gene_scores'][geneKey]});
+					})
+					this.geneScores = geneScores;
+
+					let geneSetScores = [];
+					Object.keys(data['gene_set_scores']).map(geneSetKey => {
+						geneSetScores.push({geneSet: geneSetKey, score: data['gene_set_scores'][geneSetKey]});
+					})
+
+					this.geneSetScores = geneSetScores
 				})
 				.catch(error => console.error('Error fetching GraphQL:', error));
 
 			this.fetchApi(header,humanTraitsBody,humanTraitsURL)
 				.then(data => {
-					console.log(data);
 					this.humanTraits = data['phenotypes'];
-					//this.geneSetScores = data['gene_set_scores'];
 				})
 				.catch(error => console.error('Error fetching GraphQL:', error));
-			
-			/*const response = await fetch(URL, {
-				method: 'POST',
-				headers: header,
-				body: JSON.stringify(body),
-			});
-
-			if (!response.ok) {
-				throw new Error(`Request failed with status ${response.status}`);
-			} else {
-				let data = response.json()
-				this.geneScores = data['gene_scores'];
-				this.geneSetScores = data['gene_set_scores'];
-				console.log(data);
-			}*/
-
-			//return response.json();
 
 		},
 		getColumns(ID) {
-			let item;
-			/*if (this.dataComparisonConfig != null) {
-				for (const [key, value] of Object.entries(
-					this.dataset
-				)) {
-					if (value[this.tableFormat["star column"]] == ID) {
-						item = value;
-					}
-				}
-			} else {*/
-				item = this.currentData.filter(p => p[this.tableFormat["star column"]] == ID)[0];
-			//}
+			let item = this.currentData.filter(p => p[this.tableFormat["star column"]] == ID)[0];
 			return item;
 		},
 		starAll() {
@@ -215,27 +362,10 @@ export default Vue.component("research-byogl-section", {
 
 					let stard = [...new Set(this.starItems)]
 
-					//this.subSectionData.map(row => {
-						//let value = row[this.tableFormat["star column"]];
-
-						//stard = stard.filter(s => s.section != this.sectionId);
-					//})
-
 					stard = stard.filter(s => s.section != this.sectionId + "_" + this.rowId);
 
 					this.$parent.$emit('on-star', stard);
-				} /*else {
-					this.rawData.map(row => {
-						let value = row[this.tableFormat["star column"]];
-
-						this.$store.dispatch("pkgDataSelected", {
-							type: this.tableFormat["star column"],
-							id: value,
-							action: "remove",
-						});
-
-					})
-				}*/
+				} 
 
 			} else {
 				this.staredAll = true;
@@ -257,18 +387,7 @@ export default Vue.component("research-byogl-section", {
 					})
 
 					this.$parent.$emit('on-star', stard);
-				} /*else {
-					this.rawData.map(row => {
-						let value = row[this.tableFormat["star column"]];
-
-						this.$store.dispatch("pkgDataSelected", {
-							type: this.tableFormat["star column"],
-							id: value,
-							action: "add",
-						});
-
-					})
-				}*/
+				}
 
 			}
 			
@@ -286,26 +405,14 @@ export default Vue.component("research-byogl-section", {
 				}
 				stard.push(tempObj);
 				this.$parent.$emit('on-star', stard);
-			} /*else {
-				this.$store.dispatch("pkgDataSelected", {
-					type: this.tableFormat["star column"],
-					id: value,
-					action: "add",
-				});
-			}*/
+			}
 		},
 		removeStar(ITEM) {
 			let value = ITEM[this.tableFormat["star column"]];
 			if (!!this.multiSectionPage) {
 				let stard = [...new Set(this.starItems)].filter(s => s.id != value);
 				this.$parent.$emit('on-star', stard);
-			} /*else {
-				this.$store.dispatch("pkgDataSelected", {
-					type: this.tableFormat["star column"],
-					id: value,
-					action: "remove",
-				});
-			}*/
+			}
 		},
 		checkStared(WHERE, ITEM) {
 			if (!!ITEM) {
@@ -315,11 +422,7 @@ export default Vue.component("research-byogl-section", {
 					selectedItems = this.starItems
 					.filter((s) => s.type == this.tableFormat["star column"])
 					.map((s) => s.id);
-				}/* else {
-					selectedItems = this.pkgDataSelected
-					.filter((s) => s.type == this.tableFormat["star column"])
-					.map((s) => s.id);
-				}*/
+				}
 				
 				let value = ITEM[this.tableFormat["star column"]];
 
@@ -439,27 +542,7 @@ export default Vue.component("research-byogl-section", {
 
 									break;
 
-								/*case "search change direction":
-									let searchDirection =
-										document.getElementById(
-											"filter_" + this.sectionId +
-												this.getColumnId(
-													searchIndex.field
-												) +
-												"_direction"
-										).value;
-
-									searchDirection == "lt"
-										? value <=
-											search
-											? "":meetFilters = false
-										: searchDirection == "gt"
-										? value >=
-											search
-											? "":meetFilters = false
-											: "";
-
-									break;*/
+								
 
 								case "search and":
 									searchVals = search[0].split(",");
@@ -490,41 +573,6 @@ export default Vue.component("research-byogl-section", {
 					}
 				});
 			}
-
-			
-
-
-/*			if(!!filtersIndex) {
-				console.log("Start")
-
-				for (var f in filtersIndex) {
-
-					let searchIndex = filtersIndex[f];
-
-					if (searchIndex.type != "checkbox" && searchIndex.search.length > 0) {
-
-
-						searchIndex.search
-						.filter((v, i, arr) => arr.indexOf(v) == i)
-						.map((s) => {
-							let targetData = filtered;
-							let search = s;
-							let searchVals;
-
-						rawData.filter((row) => {
-				if (
-					!!row[searchIndex.field] &&
-					row[searchIndex.field] != undefined
-				) {
-					switch (searchIndex.type) {
-						
-
-						
-					}
-				}
-			})
-		
-			})*/
 
 		},
 		convertJson2Csv(DATA, FILENAME) {

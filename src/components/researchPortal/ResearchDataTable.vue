@@ -933,7 +933,7 @@ export default Vue.component("research-data-table", {
 			return data;
 		},
 		getSubsectionData(VALUE,KEY,INDEX){
-			console.log(VALUE,KEY,INDEX);
+			
 			let dataPoint = this.tableFormat['column formatting'][KEY]['subsection']['data point'];
 			let tableFormat = this.tableFormat['column formatting'][KEY]['subsection']['table format']
 			let queryType = dataPoint["type"];
