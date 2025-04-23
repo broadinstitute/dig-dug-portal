@@ -1,153 +1,43 @@
 <template>
 	<div>
-		"genes in list", "cfde gene set", "human traits"
-		<div v-if="tableFormat.features.includes('genes in list')">
-			{{ geneScores }}
-		</div>
-		<div v-if="tableFormat.features.includes('cfde gene set')">
-			{{ geneSetScores }}
-		</div>
-		<div v-if="tableFormat.features.includes('human traits')">
-			{{ humanTraits }}
-		</div>
-		<!--<div class="sub-section-header"><strong v-if="!!subSectionConfig['label']">{{ subSectionConfig['label'] }}</strong></div>
-		<div v-if="!!subSectionConfig['visualizers'] && (subSectionConfig['visualizers']['wrapper type'] == 'tabs' || subSectionConfig['visualizers']['wrapper type'] == 'divs')"  class="sub-plot-wrapper">
-			<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + rowId">
-				<div v-for="tab, tabIndex in subSectionConfig['visualizers']['visualizers']" :id="'tabUi' + rowId + tabIndex"
-					class="tab-ui-tab" :class="tabIndex == 0 ? 'active' : ''" @click="utils.uiUtils.setTabActive('tabUi' + rowId + tabIndex,
-						'tabUiGroup' + rowId,
-						'tabContent' + rowId + tabIndex, 'tabContentGroup' + rowId, true)">
-					{{ tab.label/*utils.Formatters.replaceWithParams(tab.label, pageParams)*/ }}
-				</div>
-			</div>
-
-			<div :id="subSectionConfig['visualizers']['wrapper type'] == 'tabs' ? 'tabContentGroup' + rowId : ''"
-			>
-
-				<div v-for="plotConfig, plotIndex in subSectionConfig['visualizers']['visualizers']"
-					:id="subSectionConfig['visualizers']['wrapper type'] == 'tabs' ? 'tabContent' + rowId + plotIndex : ''"
-					class="plot-tab-content-wrapper"
-					:class="(subSectionConfig['visualizers']['wrapper type'] == 'tabs') ? (plotIndex == 0) ? '' : 'hidden-content' : ''">
-					<h6 v-html="plotConfig.label" v-if="subSectionConfig['visualizers']['wrapper type'] != 'tabs'"></h6>
-					<research-section-visualizers 
-						:plotConfig="plotConfig"
-						:plotData="currentData"
-						:phenotypeMap="phenotypeMap" 
-						:colors="colors" 
-						:plotMargin="plotMargin"
-						:sectionId="(rowId + plotIndex).replaceAll(',','')"
-						:utils="utils"
-						:searchParameters="rowId">
-					</research-section-visualizers>
-				</div>
-			</div>
 		
-		</div>
-			
-		<div v-if="!!subSectionConfig['visualizer']" class="sub-plot-wrapper">
-			<research-section-visualizers 
-				:plotConfig="subSectionConfig['visualizer']"
-				:plotData="currentData"
-				:phenotypeMap="phenotypeMap" 
-				:colors="colors" 
-				:plotMargin="plotMargin"
-				:sectionId="rowId.replaceAll(',','')"
-				:utils="utils" 
-				:searchParameters="rowId">
-			</research-section-visualizers>
-		</div>
-		
-		<table class="table table-sm table-striped research-data-table subsection-table">
-			<thead>
-				<tr>
-					<th v-if="!!tableFormat['star column']" class="star-items-control">
-						<b-icon
-							:icon="!!stared ? 'star-fill' : 'star'"
-							style="color: #ffcc00; cursor: pointer"
-						>
-						</b-icon>
-						<span class="star-items-options">
-							<ul>
-								<li><a href="javascript:;" @click="showHideStared()">Show stard only</a></li>
-								<li><a href="javascript:;" @click="starAll()">Star / unstar all</a></li>
-							</ul>
-						</span>
-					</th>
-					<th v-for="head in getTopRows()">
-						<span>{{ head }}</span>
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="(row, rowIndex) in subPageData">
-					<td v-if="!!tableFormat['star column']">
-						<span v-if="checkStared('1', row) == false"
-							><b-icon
-								icon="star"
-								style="color: #aaaaaa; cursor: pointer"
-								@click="addStar(row)"
-							></b-icon
-						></span>
-						<span v-if="checkStared('2', row) == true"
-							><b-icon
-								icon="star-fill"
-								style="color: #ffcc00; cursor: pointer"
-								@click="removeStar(row)"
-							></b-icon
-						></span>
-					</td>
-					<td  v-for="head in getTopRows()">
-						
-						<span v-html="formatValue(row[head],head,row)"></span>
 
-						<b-btn class="copy-to-clipboard" v-if="tableFormat['column formatting'] && tableFormat['column formatting'][head] &&
-							tableFormat['column formatting'][head].type.includes('copy to clipboard')"
-							@click="utils.uiUtils.copy2Clipboard(row[head])">Copy</b-btn>
-					</td>
-				</tr>
-				<tr>
-					<td :colspan="getTopRows().length">
-						<b-container
-									class="egl-table-page-ui-wrapper subsection-page-ui-left"
-								>
-							<span>{{ "Total rows: "+ currentData.length }}</span>
-							</b-container>
-						<b-container
-							class="egl-table-page-ui-wrapper subsection-page-ui-center"
-						>
-							<b-pagination
-								class="pagination-sm justify-content-center"
-								v-model="currentPage"
-								:total-rows="currentData.length"
-								:per-page="numberOfRows"
-								:phenotypeMap="phenotypeMap"
-							></b-pagination>
-						</b-container>
-						<b-container
-								class="egl-table-page-ui-wrapper subsection-page-ui-right"
-							>
-							<div>
-								<strong>Save data in section: </strong>
-								<div
-									class="convert-2-csv btn-sm"
-									@click="convertJson2Csv(currentData, rowId + '_subsection')"
-								>
-									CSV
-								</div>
-								<div
-									class="convert-2-csv btn-sm"
-									@click="saveJson(currentData, rowId + '_subsection')"
-								>
-									JSON
-								</div>
-							</div>
-						</b-container>
-					</td>
-					
-				</tr>
-			</tbody>
-		</table>
-		-->
+		<div class="sub-tab-ui-wrapper" :id="'byoglTabUiGroup'+ sectionId + rowId">
+			<div 
+				:id="'byoglTabUi'+ sectionId + rowId + '0'" class="tab-ui-tab active" 
+				@click="utils.uiUtils.setTabActive('byoglTabUi'+ sectionId + rowId + '0',
+					'byoglTabUiGroup'+ sectionId + rowId,
+					'byoglTabContent'+ sectionId + rowId + '0', 'byoglTabContentGroup' + sectionId + rowId)">
+				Genes predicted to be in your gene list</div>
+			<div 
+				:id="'byoglTabUi'+ sectionId + rowId + '1'" class="tab-ui-tab" 
+				@click="utils.uiUtils.setTabActive('byoglTabUi'+ sectionId + rowId + '1',
+					'byoglTabUiGroup'+ sectionId + rowId,
+					'byoglTabContent'+ sectionId + rowId + '1', 'byoglTabContentGroup' + sectionId + rowId)">
+				CFDE gene sets that predict membership in your gene list</div>
+			<div 
+				:id="'byoglTabUi'+ sectionId + rowId + '2'" class="tab-ui-tab" 
+				@click="utils.uiUtils.setTabActive('byoglTabUi'+ sectionId + rowId + '2',
+					'byoglTabUiGroup'+ sectionId + rowId,
+					'byoglTabContent'+ sectionId + rowId + '2', 'byoglTabContentGroup' + sectionId + rowId)">
+				Human traits that share genes with your input list</div>
+		</div>
+
+		
+		<div :id="'byoglTabContentGroup' + sectionId + rowId">
+			<div 
+				:id="'byoglTabContent'+ sectionId + rowId + '0'"
+				class="tab-content-wrapper">{{ 'geneScores' }}</div>
+			<div 
+				:id="'byoglTabContent'+ sectionId + rowId + '1'"
+				class="tab-content-wrapper hidden-content">{{ 'geneSetScores' }}</div>
+			<div 
+				:id="'byoglTabContent'+ sectionId + rowId + '2'"
+				class="tab-content-wrapper hidden-content">{{ 'humanTraits' }}</div>
+		</div>
+
+		
+	
 	</div>
 </template>
 
