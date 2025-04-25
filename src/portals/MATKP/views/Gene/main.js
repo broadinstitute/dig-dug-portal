@@ -899,7 +899,7 @@ new Vue({
         },
 
         async getGeneSigs(){
-            const dataUrl = "https://bioindex-dev.hugeamp.org/api/bio/query/single-cell-gene?q="+this.$store.state.geneName;
+            const dataUrl = "https://matkp.hugeampkpnbi.org/api/bio/query/single-cell-gene?q="+this.$store.state.geneName;
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.geneSigsData = contentJson.data;
