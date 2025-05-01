@@ -56,7 +56,8 @@ jobs:
                   echo "" >> repo-b/README.md
                   echo "This repository contains the code for the SysBio Portal, automatically synced from the source repository." >> repo-b/README.md
                   echo "" >> repo-b/README.md
-                  echo "**Please do not make direct edits here.** Changes should be made in the source repository. Contact the maintainers if any hotfixes are needed." >> repo-b/README.md
+                  echo "**Please do not make direct edits here.** Changes should be made in the source repository. Contact the maintainers for any questions. This is WIP repo, and depends on how things progress, auto-sync might be disabled in favor of manual review in the future if needed." >> repo-b/README.md
+                  echo "" >> repo-b/README.md
                   echo "" >> repo-b/README.md
                   echo "To set the volcano plot data source, you can set the environment variable \`VUE_APP_VOLCANO_DATA_URL\` to desired path at runtime." >> repo-b/README.md
                   echo "" >> repo-b/README.md
