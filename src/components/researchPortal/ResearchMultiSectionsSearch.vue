@@ -484,7 +484,14 @@ export default Vue.component("research-multi-sections-search", {
 								document.getElementById("search_param_" + p.parameter).value = "";
 							}
 						})
+
+						let currentSections = document.querySelectorAll('.multi-section-card');
+
+						currentSections.forEach(section => {
+							section.classList.add('hidden');
+						});
 						break;
+
 					default:
 
 						paramsObj[s.parameter] = "";
