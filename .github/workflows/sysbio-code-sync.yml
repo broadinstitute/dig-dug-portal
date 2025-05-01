@@ -58,7 +58,11 @@ jobs:
                   echo "" >> repo-b/README.md
                   echo "**Please do not make direct edits here.** Changes should be made in the source repository. Contact the maintainers if any hotfixes are needed." >> repo-b/README.md
                   echo "" >> repo-b/README.md
+                  echo "To set the volcano plot data source, you can set the environment variable \`VUE_APP_VOLCANO_DATA_URL\` to desired path at runtime." >> repo-b/README.md
+                  echo "" >> repo-b/README.md
                   echo "To run: \`npm install\`, then \`npm run deploy\`" >> repo-b/README.md
+                  echo "" >> repo-b/README.md
+                  echo "The output will be in the \`portals/SysBio\` directory, ready to be served by any webserver." >> repo-b/README.md
 
             # Step 4.6: Replace vue.config.js with configs/vue.config.SysBio.js in the target directory
             - name: Update Vue config in target
