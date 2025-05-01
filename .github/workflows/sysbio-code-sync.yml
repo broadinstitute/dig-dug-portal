@@ -36,6 +36,12 @@ jobs:
                   ref: main # <-- Destination branch
                   path: repo-b # <-- Subdirectory for checkout
                   token: ${{ secrets.SYSBIO_CODE_SYNC_PAT }} # <-- Secret name (must match below)
+            # Step 3.5: Clean the target directory before syncing
+            - name: Clean Target Directory Contents
+              run: |
+                  cd repo-b
+                  # Remove all files and directories (including hidden) except the .git directory
+                  ls -A | grep -vE '^\.git$' | xargs rm -rf || true
 
             # Step 4: Synchronize files from source to target directory
             # This copies the content of 'sysbio-main' over the content of 'main' in the checkout.
@@ -78,4 +84,5 @@ jobs:
                   git commit -m "$COMMIT_MSG"
 
                   # Push the single commit to the 'main' branch of the target repository
-                  git push origin main
+                  #git push origin main
+                  git push --force origin main
