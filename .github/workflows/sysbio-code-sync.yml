@@ -52,7 +52,7 @@ jobs:
                   echo "" >> repo-b/README.md
                   echo "**Please do not make direct edits here.** Changes should be made in the source repository. Contact the maintainers if any hotfixes are needed." >> repo-b/README.md
                   echo "" >> repo-b/README.md
-                  echo "To run: \`npm install && npm run deploy\`" >> repo-b/README.md
+                  echo "To run: \`npm install\`, then \`VUE_CLI_SERVICE_CONFIG_PATH=$PWD/configs/vue.config.SysBio.js npm run deploy\`" >> repo-b/README.md
 
             # Step 5: Commit and push the changes to the target repository
             # This creates a single squashed commit on the 'main' branch of sysbio-portal.
