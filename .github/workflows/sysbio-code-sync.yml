@@ -1,0 +1,63 @@
+name: Sync sysbio-main to SysBio-FAIRPlex/sysbio-portal main
+
+# Trigger: Runs on push to 'sysbio-main' branch in broadinstitute/dig-dug-portal, or manually
+on:
+    push:
+        branches:
+            - sysbio-main
+    workflow_dispatch: # Allows manual triggering from the Actions tab
+
+jobs:
+    sync:
+        runs-on: ubuntu-latest
+        steps:
+            # Step 1: Check out the source repository (broadinstitute/dig-dug-portal)
+            # This checks out the 'sysbio-main' branch when triggered by a push to it.
+            - name: Checkout Source Repo (dig-dug-portal @ sysbio-main)
+              uses: actions/checkout@v4
+              with:
+                  # fetch-depth: 0 needed to get commit details for message below
+                  fetch-depth: 0
+                  ref: ${{ github.ref }}
+
+            # Step 2: Set up Git user for the commit in the target repo
+            - name: Set up Git User
+              run: |
+                  git config --global user.name "GitHub Actions Sync Bot"
+                  git config --global user.email "actions-sync@users.noreply.github.com"
+
+            # Step 3: Check out the target repository (SysBio-FAIRPlex/sysbio-portal)
+            # This checks out the 'main' branch into a subdirectory named 'repo-b'.
+            # Requires a PAT with write access stored as a secret.
+            - name: Checkout Target Repo (sysbio-portal @ main)
+              uses: actions/checkout@v4
+              with:
+                  repository: SysBio-FAIRPlex/sysbio-portal # <-- Destination repository
+                  ref: main # <-- Destination branch
+                  path: repo-b # <-- Subdirectory for checkout
+                  token: ${{ secrets.SYSBIO_CODE_SYNC_PAT }} # <-- Secret name (must match below)
+
+            # Step 4: Synchronize files from source to target directory
+            # This copies the content of 'sysbio-main' over the content of 'main' in the checkout.
+            - name: Sync Files from Source to Target Directory
+              run: |
+                  rsync -av --delete --exclude='.git/' ./ repo-b/
+
+            # Step 5: Commit and push the changes to the target repository
+            # This creates a single squashed commit on the 'main' branch of sysbio-portal.
+            - name: Commit and Push Changes to Target Repo (sysbio-portal @ main)
+              run: |
+                  cd repo-b # Navigate into the target repo's checkout directory
+                  # Check if there are any actual file changes
+                  if [[ -z "$(git status --porcelain)" ]]; then
+                    echo "No file changes detected in target repository. Nothing to commit."
+                    exit 0
+                  fi
+
+                  git add .
+                  # Create a commit message indicating the source repo, branch, and commit SHA
+                  COMMIT_MSG="Sync ${{ github.ref_name }}@${{ github.sha }}"
+                  git commit -m "$COMMIT_MSG"
+
+                  # Push the single commit to the 'main' branch of the target repository
+                  git push origin main
