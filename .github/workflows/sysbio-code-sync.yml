@@ -23,7 +23,7 @@ jobs:
             # Step 2: Set up Git user for the commit in the target repo
             - name: Set up Git User
               run: |
-                  git config --global user.name "GitHub Actions Sync Bot"
+                  git config --global user.name "GitHub Sync"
                   git config --global user.email "actions-sync@users.noreply.github.com"
 
             # Step 3: Check out the target repository (SysBio-FAIRPlex/sysbio-portal)
@@ -42,6 +42,17 @@ jobs:
             - name: Sync Files from Source to Target Directory
               run: |
                   rsync -av --delete --exclude='.git/' ./ repo-b/
+
+            # Step 4.5: Create a custom README in the target directory
+            - name: Create Custom README in Target
+              run: |
+                  echo "# SysBio Portal Code" > repo-b/README.md
+                  echo "" >> repo-b/README.md
+                  echo "This repository contains the code for the SysBio Portal, automatically synced from the source repository." >> repo-b/README.md
+                  echo "" >> repo-b/README.md
+                  echo "**Please do not make direct edits here.** Changes should be made in the source repository. Contact the maintainers if any hotfixes are needed." >> repo-b/README.md
+                  echo "" >> repo-b/README.md
+                  echo "To run: `npm install && npm run deploy`" >> repo-b/README.md
 
             # Step 5: Commit and push the changes to the target repository
             # This creates a single squashed commit on the 'main' branch of sysbio-portal.
