@@ -24,6 +24,14 @@
             type: String,
             required: true,
         },
+        xLabel:{
+            type: String,
+            required: false,
+        },
+        yLabel:{
+            type: String,
+            required: false,
+        },
         width:{
             type: Number,
             default: 300,
@@ -111,7 +119,7 @@
             const yKey = this.yKey;
             const xKeyLabels = Array.from(new Set(this.data.map(d => d[xKey])));
             const yKeyLabels = Array.from(new Set(this.data.map(d => d[yKey])));
-            const allMeans = this.data.map(d => d.mean);
+            const allMeans = this.data.map(d => d.mean_expression);
 
             llog('   xKeyLabels', xKey, this.xKey, xKeyLabels); 
             llog('   yKeyLabels', yKey, this.yKey, yKeyLabels);
@@ -210,6 +218,7 @@
             //render plot    
             const svg = d3.select(this.$refs.plot)
                 .append('svg')
+                .attr('id', 'sc_dot_plot')
                 .attr('width', width)
                 .attr('height', height)
 
@@ -218,8 +227,9 @@
             {
                 const label = svg.append('g')
                     .append('text')
+                    .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
                     .attr('class', 'chart-label')
-                    .text(this.yKey)
+                    .text(this.yLabel ? this.yLabel : this.yKey)
                     const bbox = label.node().getBBox();
                     const xAxisLabelTopPosition = (margin.top + plotHeight / 2) + (bbox.width / 2);
                     label.attr('transform', `rotate(-90) translate( -${(xAxisLabelTopPosition)}, 10)`);
@@ -227,8 +237,9 @@
             {
                 const label = svg.append('g')
                     .append('text')
+                    .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
                     .attr('class', 'chart-label')
-                    .text(this.xKey)
+                    .text(this.xLabel ? this.xLabel : this.xKey)
                     const bbox = label.node().getBBox();
                     const yAxisLabelLeftPosition = width - (plotWidth/2) - (bbox.width / 2);
                     label.attr('transform', `translate(${yAxisLabelLeftPosition}, 10)`);
@@ -279,18 +290,18 @@
                     cells.append('circle')
                         .attr('cx', xScale(d[xKey]) + xScale.bandwidth() / 2 )
                         .attr('cy', yScale(d[yKey]) + yScale.bandwidth() / 2 )
-                        .attr('r', cellScale(d.pctExpr))
-                        .style('fill', colorScale(d.mean))
+                        .attr('r', cellScale(d.pct_nz_group*100))
+                        .style('fill', colorScale(d.mean_expression))
                         .style('pointer-events', 'none')
                         .attr('data-key', d[yKey])
                         .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d[yKey] ? '1' : '0.1')
 
                     // Tooltip mouseover
                     outerCircle.addEventListener('mouseover', function(e){
-                        const tooltipContent = `<div style="display:flex"><div style="width:70px; font-weight:bold">${xKey}</div>${d[xKey]}</div>
-                                                <div style="display:flex"><div style="width:70px; font-weight:bold">${yKey}</div>${d[yKey]}</div>
-                                                <div style="display:flex"><div style="width:70px; font-weight:bold">Expr.</div>${d.mean.toFixed(4)}</div>
-                                                <div style="display:flex"><div style="width:70px; font-weight:bold">% Expr.</div>${d.pctExpr.toFixed(4)}</div>`;
+                        const tooltipContent = `<div style="display:flex"><div style="width:100px; font-weight:bold">${xKey}</div>${d[xKey]}</div>
+                                                <div style="display:flex"><div style="width:100px; font-weight:bold">${yKey}</div>${d[yKey]}</div>
+                                                <div style="display:flex"><div style="width:100px; font-weight:bold">Mean Expr.</div>${d.mean_expression.toFixed(4)}</div>
+                                                <div style="display:flex"><div style="width:100px; font-weight:bold">% Expr.</div>${(d.pct_nz_group*100).toFixed(4)}</div>`;
                         mouseTooltip.show(tooltipContent);
                     })
                     // Tooltip mouseout to hide it

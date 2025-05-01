@@ -374,6 +374,9 @@ export default Vue.component('research-umap-plot-gl', {
                 llog("      colors")
 
                 const colors = new Uint8Array(this.points.length * 4);
+                if(this.expression){
+                    this.expressionScale = d3.scaleLinear().domain([0, d3.max(this.expression)]).range(["lightgrey", "blue"]);
+                }
 
                 for (let i = 0; i < this.points.length; i++) {
                     let r, g, b, a;

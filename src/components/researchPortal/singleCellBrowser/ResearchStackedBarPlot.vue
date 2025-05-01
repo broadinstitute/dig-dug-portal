@@ -24,18 +24,21 @@
         type: String,
         required: false,
       },
+      facetKey: {
+        type: String,
+        required: false,
+      },
       highlightKey: {                   //label to highlight
         type: String,
         required: false,
       },
       normalize: {                      //normalize values as %
         type: Boolean,
-        default: false,
+        default: false
       },
       stack:{                         //applied with subsetKey
         type: Boolean,
-        default: false,         
-        required: false,
+        default: false
       },
       height: {
         type: Number,
@@ -120,8 +123,12 @@
             
             const primaryKey = this.primaryKey;
             const subsetKey = this.subsetKey;
+            const facetKey = this.facetKey;
             const hasSubsetKey = subsetKey && subsetKey!='';
+            const hasFacetKey = facetKey && facetKey!='';
             const primaryKeys = Array.from(new Set(this.data.map((d) => d[primaryKey])));
+            this.isNormalized = this.normalize;
+            this.isStacked = this.stack;
 
             //clear rendering
             d3.select(this.$refs.chart).html('')
@@ -186,6 +193,7 @@
 
             const svg = d3.select(this.$refs.chart)
                 .append('svg')
+                .attr("id", 'sc_stacked_bar_plot')
                 .attr('width', width)
                 .attr('height', height)
 
@@ -193,6 +201,7 @@
             if(this.xAxisLabel){
                 const label = svg.append('g')
                     .append('text')
+                    .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
                     .attr('class', 'chart-label')
                     .text(this.xAxisLabel)
                     const bbox = label.node().getBBox();
@@ -202,6 +211,7 @@
             if(this.yAxisLabel){
                 const label = svg.append('g')
                     .append('text')
+                    .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
                     .attr('class', 'chart-label')
                     .text(this.yAxisLabel)
                     const bbox = label.node().getBBox();
@@ -479,6 +489,7 @@
   ::v-deep .chart-label{
     font-size:12px;
     opacity:0.5;
+    font-family: inherit;
   }
   ::v-deep .plot.highlighting .bar{
     opacity: 0.2;
