@@ -10,60 +10,65 @@
                     />
                 </a>
             </div>
-            <div class="menu-wrapper">
-                <div class="topmenu">
-                    <a class="topmenu-item">
-                        Search
-                        <img
-                            style="height: 15px; width: 15px"
-                            src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/search-icon.svg"
-                        />
-                    </a>
-                    <a class="topmenu-item"> Analysis </a>
-                    <a class="topmenu-item">
-                        Login
-                        <img
-                            style="height: 15px; width: 15px"
-                            src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"
-                        />
-                    </a>
-                </div>
-                <div class="menu">
-                    <div class="main-menu-items">
+            <div style="display:flex; gap:10px; align-items: center;">
+                <div class="menu-wrapper">
+                    <div class="topmenu">
+                        <a class="topmenu-item">
+                            Search
+                            <img
+                                style="height: 15px; width: 15px"
+                                src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/search-icon.svg"
+                            />
+                        </a>
+                        <a class="topmenu-item"> Analysis </a>
+                        <a class="topmenu-item">
+                            Login
+                            <img
+                                style="height: 15px; width: 15px"
+                                src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/user-icon.svg"
+                            />
+                        </a>
+                    </div>
+                    <div class="menu">
+                        <div class="main-menu-items">
+                            <div
+                                v-for="item in pkbMenu.highlightItems"
+                                class="menu-item-wrapper"
+                                :class="{ active: isActive(item.path) }"
+                            >
+                                <a
+                                    class="menu-item menu-item-main"
+                                    :href="item.path"
+                                    >{{ item.label }}</a
+                                >
+                            </div>
+                        </div>
                         <div
-                            v-for="item in pkbMenu.highlightItems"
+                            v-for="item in pkbMenu.menuItems"
                             class="menu-item-wrapper"
                             :class="{ active: isActive(item.path) }"
                         >
-                            <a
-                                class="menu-item menu-item-main"
-                                :href="item.path"
-                                >{{ item.label }}</a
-                            >
-                        </div>
-                    </div>
-                    <div
-                        v-for="item in pkbMenu.menuItems"
-                        class="menu-item-wrapper"
-                        :class="{ active: isActive(item.path) }"
-                    >
-                        <a class="menu-item" :href="item.path || null">{{
-                            item.label
-                        }}</a>
-                        <div v-if="item.subMenuItems" class="submenu">
-                            <a
-                                v-for="subItem in item.subMenuItems"
-                                class="submenu-item"
-                                :href="subItem.path || null"
-                                :class="{ active: isActive(subItem.path) }"
-                                :data-whatever="
-                                    isActive(subItem.path).toString()
-                                "
-                                >{{ subItem.label }}</a
-                            >
+                            <a class="menu-item" :href="item.path || null">{{
+                                item.label
+                            }}</a>
+                            <div v-if="item.subMenuItems" class="submenu">
+                                <a
+                                    v-for="subItem in item.subMenuItems"
+                                    class="submenu-item"
+                                    :href="subItem.path || null"
+                                    :class="{ active: isActive(subItem.path) }"
+                                    :data-whatever="
+                                        isActive(subItem.path).toString()
+                                    "
+                                    >{{ subItem.label }}</a
+                                >
+                            </div>
                         </div>
                     </div>
                 </div>
+                <a href="https://hirnetwork.org/" target="_blank">
+                    <img style="height:37px" src="https://hugeampkpncms.org/sites/default/files/images/pankbase/logo-hirn.svg" />
+                </a>
             </div>
             <div class="pkb-beta">beta</div>
         </div>

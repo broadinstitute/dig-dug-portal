@@ -163,9 +163,6 @@ new Vue({
                 title: "Our Partners",
                 list: [
                     {
-                        url:"https://hirnetwork.org/",
-                        logo:"https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_hirn.png"
-                    },{
                         url:"https://pancreatlas.org/",
                         logo:"https://hugeampkpncms.org/sites/default/files/images/pankbase/logo_pancreatlas.png"
                     },{
