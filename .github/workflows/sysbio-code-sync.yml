@@ -58,8 +58,13 @@ jobs:
             - name: Update Vue config in target
               run: |
                   if [ -f repo-b/vue.config.js ]; then
-                      mv repo-b/vue.config.js repo-b/configs/vue.config.SysBio.js
+                      mv repo-b/configs/vue.config.SysBio.js repo-b/vue.config.js
                   fi
+
+            #Step 4.7: Remove the configs directory and repo-b from the target directory
+            - name: Clean up target directory
+              run: |
+                  rm -rf repo-b
 
             # Step 5: Commit and push the changes to the target repository
             # This creates a single squashed commit on the 'main' branch of sysbio-portal.
