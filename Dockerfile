@@ -16,9 +16,11 @@ RUN npm install
 COPY . .
 
 # Build the project for production
-# You can change this to build or watch depending on your needs
-ARG VUE_CONFIG_PATH="./configs/vue.config.SysBio.js"
+# Set build-time environment variables
+ARG VUE_CONFIG_PATH="./vue.config.js"
+ARG VUE_APP_VOLCANO_DATASET_URL="https://storage.cloud.google.com/sysbio-staging-broad/differentialexpression_ampcmd_vs_amppd.csv"
 ENV VUE_CLI_SERVICE_CONFIG_PATH=${VUE_CONFIG_PATH}
+ENV VUE_APP_VOLCANO_DATASET_URL=${VUE_APP_VOLCANO_DATASET_URL}
 RUN npm run deploy
 
 # Stage 2: Serve the application using Nginx

@@ -138,7 +138,6 @@ new Vue({
         this.fetchData();
         this.fetchInfo();
     },
-
     methods: {
         async fetchData() {
             const datasetFile =
