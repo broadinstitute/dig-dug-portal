@@ -72,23 +72,33 @@ export default {
     },
     methods: {
         cleanUpKeyParams(PARAMETER, SECTIONS) {
-            console.log(PARAMETER, SECTIONS);
+
             const sections = this.sectionsConfig.sections;
-            const currentParameters = sections.filter(section => section['section id'] == SECTIONS)[0]['data point'].parameters;
-            let paramsObj = {};
-            console.log(currentParameters);
-            sections.map(section => {
-                if(!SECTIONS.includes(section['section id'])) {
-                    let sectionParams = section['data point'].parameters;
-                    
-                    sectionParams.map(param => {
-                        if(!currentParameters.includes(param) && this.utils.keyParams[param]) {
-                            paramsObj[param] = false;
-                        }
-                    })
-                }
+
+            //1. get all parameters list;
+            let allParameters = [];
+            sections.map(S => {
+                const sParameters = S['data point'].parameters;
+                allParameters = [...new Set(allParameters.concat(sParameters))]
             })
+            //2. remove querying parameters from the all parameters list
+            SECTIONS.map(S => {
+                const parameters = sections.filter(section => section['section id'] == S)[0]['data point'].parameters;
+                parameters.map(P => {
+                    allParameters = allParameters.filter(param => param !== P);
+                })
+            })
+
+            //3. set parameters in paramObj = false;
+
+            let paramsObj = {};    
+            
+            allParameters.map( P => {
+                paramsObj[P] = false;
+            })
+
             this.utils.keyParams.set(paramsObj);
+            
         },
         hideSections() {
             let currentSections = document.querySelectorAll('.multi-section-card');
