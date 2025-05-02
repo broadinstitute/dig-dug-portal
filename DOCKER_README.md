@@ -53,6 +53,31 @@ The Dockerfile uses the `npm run deploy` command by default, which builds the ap
 2. Find the line `RUN npm run deploy`
 3. Change `deploy` to either `build` for development mode or `watch` for development mode with watch
 
+## Portal Configuration
+
+By default, the Dockerfile is configured to build and serve the SysBio portal. You can build with a different configuration in two ways:
+
+### Option 1: Build with a different config file
+
+```powershell
+# Build using a different Vue config file
+docker build --build-arg VUE_CONFIG_PATH="./configs/vue.config.YourPortal.js" -t your-portal .
+```
+
+### Option 2: For SysBio-FAIRPlex/sysbio-portal repository
+
+If you're building from the SysBio-FAIRPlex/sysbio-portal repository (where vue.config.js has already been replaced by the sysbio-code-sync workflow), you can simply:
+
+```powershell
+docker build -t sysbio-portal .
+```
+
+Remember to also update the output directory path if using a different portal configuration:
+
+```dockerfile
+COPY --from=build-stage /app/portals/YourPortal /usr/share/nginx/html
+```
+
 ## Troubleshooting
 
 - If you encounter issues with the Nginx configuration, check the `nginx.conf` file.
