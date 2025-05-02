@@ -62,7 +62,7 @@
                     <div class="tabs-group">
                         <div class="tabs-wrapper">
                             <div class="tab" >
-                                {{isATACseq ? 'Nucleus' : 'Cell'}} Composition
+                                {{isATACseq ? 'Nuclei' : 'Cell'}} Composition
                             </div>
                         </div>
                         <div class="tabs-section-wrapper">
@@ -439,12 +439,12 @@
                 <div style="display:flex; gap:25px">
                     <!-- marker genes-->
                     <div v-if="markers && showMarkerGenes && (markerGenes || expressionStatsAll.length>0)" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
-                        <div style="display:flex; flex-direction: column; gap:20px;">
+                        <div style="display:flex; flex-direction: column; gap:20px; min-width: 50%;">
                             <div style="display:flex; justify-content: space-between;">
                                 <div style="display:flex; flex-direction: column;">
                                     <strong style="font-size: 16px;">Marker Genes {{ dotPlotCellType!=""?`for ${dotPlotCellType}` : '' }}</strong>
                                     <div v-if="dotPlotCellType===''">Top 5 per Cell Type</div>
-                                    <div  style="font-size:12px; opacity:0.5">Ranked by z-score</div>
+                                    <div  style="font-size:12px; opacity:0.5">Ranked by {{markersHaveZscores ? 'z-score' : 'mean expression'}}</div>
                                 </div>
                                 <div style="display:flex; gap:5px" class="legends">
                                     <div style="display:flex; flex-direction: column;" class="legend">
@@ -495,11 +495,11 @@
                                 :cellWidth="30"
                                 highlightKey=""
                             />
-
-                            <b-table v-if="markerGenesTable"
+                        </div>
+                        <b-table v-if="markerGenesTable"
                                 style="font-size:12px"
                                 :items="markerGenesTable"
-                                :fields="['cell_type', 'gene', 'mean_expression', 'p_value_adj', 'log_fold_change', 'z_score']"
+                                :fields="markerTableColumns"
                                 striped
                                 hover
                                 small
@@ -507,8 +507,7 @@
                                 head-variant="light"
                                 sticky-header="300px" 
                             >
-                            </b-table>
-                        </div>
+                        </b-table>
                     </div>
                 </div>
             </div>
@@ -907,7 +906,6 @@
                         bioIndex: "https://bioindex-dev.hugeamp.org"
                     }
                 ],
-                selectedBI: null,
 
                 BIendpoints:{
                     metadata: "/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz",
@@ -970,6 +968,42 @@
                 markersByCellType: null,
                 markerGenesMaxMean: 3.0,
                 dotPlotCellType: "",
+                markersHaveZscores: false,
+                markerTableColumns: null,
+                markerDesiredColumns: [
+                    {
+                        key: 'cell_type',
+                        label: 'Cell Type'
+                    },{
+                        key: 'gene',
+                        label: 'Gene'
+                    },{
+                        key: 'mean_expression',
+                        label: 'Mean Expression',
+                        sortable: true,
+                        formatter: (val) => typeof val === 'number' ? val.toPrecision(3) : ''
+                    },{
+                        key: 'pct_nz_group',
+                        label: '% Expressing',
+                        sortable: true,
+                        formatter: (val) => typeof val === 'number' ? (val * 100).toFixed(1) + '%' : ''
+                    },{
+                        key: 'p_value_adj',
+                        label: 'Adj. P-Value',
+                        sortable: true,
+                        formatter: (val) => typeof val === 'number' ? val.toPrecision(3) : ''
+                    },{
+                        key: 'log_fold_change',
+                        label: 'Log Fold Change',
+                        sortable: true,
+                        formatter: (val) => typeof val === 'number' ? val.toPrecision(3) : ''
+                    },{
+                        key: 'z_score',
+                        label: 'Z-score',
+                        sortable: true,
+                        formatter: (val) => typeof val === 'number' ? val.toPrecision(3) : ''
+                    }
+                ],
 
                 geneLists: {
                     ["searched genes"]: [],
@@ -1033,13 +1067,40 @@
         },
         computed: {
             isDev(){
-                return keyParams['log']===1;
+                return keyParams['dev']===1;
             },
             isATACseq(){
                 if(this.metadata?.["method"]?.toLowerCase().includes('atac')){
                     return true;
                 }
                 return false;
+            },
+            selectedBI(){
+                const domain = window.location.hostname;
+                const port = window.location.port;
+                const isDev = domain === "localhost" || domain.split('.')[0].includes('dev') || port === '8000';
+                
+                let bi;
+                if(keyParams["bioIndex"]){
+                    bi = keyParams["bioIndex"];
+                }else if(isDev && this.renderConfig["bioIndexDev"]){
+                    bi = this.renderConfig["bioIndexDev"];
+                }else if(this.renderConfig["bioIndex"]){
+                    bi = this.renderConfig["bioIndex"];
+                }else{
+                    llog("No BioIndex provided.")
+                }
+
+                llog("index", {
+                    domain,
+                    isDev: isDev,
+                    biInUrlParam: keyParams["bioIndex"],
+                    biInConfig: this.renderConfig["bioIndex"],
+                    biDevInConfig: this.renderConfig["bioIndexDev"],
+                    using: bi
+                })
+
+                return bi;
             },
             filteredMetadata() {
                 if(!this.allMetadata){
@@ -1083,21 +1144,6 @@
                     subsetLabel: "",
                 }
             },
-            async getBImetadata(){
-                if(!this.selecedBI){
-                    this.givenBI = keyParams["bioIndex"];
-                    this.selectedBI = keyParams["bioIndex"] || this.renderConfig["bioIndex"];
-                }
-                const metadataEnpoint = this.selectedBI+this.BIendpoints.metadata;
-                this.allMetadata = await scUtils.fetchMetadata(metadataEnpoint);
-                if(!this.allMetadata){
-                    llog('there was an error getting metadata');
-                    return;
-                }
-                llog('allMetadata', this.allMetadata);
-                this.totalDatasets = this.filteredMetadata.length;
-                llog('filteredMetadata', this.filteredMetadata);
-            },
             async init(){
                 //check which components to enable based on config options
                 //all are enabled by default if not set
@@ -1136,12 +1182,21 @@
                 //clear existing data
                 this.clean();
                 
-                //fetch base data
-                await this.getBImetadata();
-
-                //metadata
                 this.dataLoaded = false;
                 this.preloadItem = 'metadata';
+                //fetch metadata
+                const metadataEnpoint = this.selectedBI+this.BIendpoints.metadata;
+                this.allMetadata = await scUtils.fetchMetadata(metadataEnpoint);
+                if(!this.allMetadata){
+                    llog('there was an error getting metadata');
+                    return;
+                }
+                llog('allMetadata', this.allMetadata);
+                this.totalDatasets = this.filteredMetadata.length;
+                llog('filteredMetadata', this.filteredMetadata);
+
+                //metadata
+                
                 //const metadataUrl = this.renderConfig["data points"].find(x => x.role === "metadata");
                 //const metadataEnpoint = this.selectedBI+this.BIendpoints.metadata;
                 //this.allMetadata = await scUtils.fetchMetadata(metadataEnpoint);
@@ -1216,6 +1271,10 @@
                             this.markerGenes = markersMatrix;
                             this.markerGenesTable = markersTable;
                             this.markerGenesMaxMean = d3.max(this.markerGenes.map(d => d.mean_expression)).toFixed(1);
+                            this.markerTableColumns = this.markerDesiredColumns.filter(f =>
+                                this.markerGenes.some(row => row[f.key] !== null && row[f.key] !== undefined)
+                            );
+                            this.markersHaveZscores = this.markerGenes.some(row => row.z_score !== null && row.z_score !== undefined);
                             llog('markers', {markersByGene:this.markersByGene, markersByCellType:this.markersByCellType, transformedData:this.markerGenes, markersList:this.markersList});
                             
                         }else{
@@ -1460,9 +1519,17 @@
                 for (const [cellType, genes] of Object.entries(this.markersByCellType)) {
                     if(!cellTypeName || (cellTypeName && cellType===cellTypeName)){
                         if (genes.every(gene => gene.z_score != null)) {
-                            topGenes = genes.sort((a, b) => b.z_score - a.z_score).slice(0, topN);
+                            topGenes = genes
+                                .sort((a, b) => b.z_score - a.z_score)
+                                .filter(a => a.z_score > 0)
                         }else{
-                            topGenes = genes.sort((a, b) => b.mean_expression - a.mean_expression).slice(0, topN);
+                            topGenes = genes
+                                .sort((a, b) => b.mean_expression - a.mean_expression)
+                                .filter(a => a.mean_expression > 0);
+                        }
+
+                        if(topN){
+                            topGenes = topGenes.slice(0, topN);
                         }
 
                         for (const gene of topGenes) {
@@ -1485,7 +1552,7 @@
             showMarkersByCellType(cellType){
                 if(cellType!=''){
                    // this.markerGenes = this.markersByCellType[cellType];
-                    const {markersMatrix, markersTable} = this.topNmarkersByCellType(50, cellType);
+                    const {markersMatrix, markersTable} = this.topNmarkersByCellType(null, cellType);
                     this.markerGenes = markersMatrix;
                     this.markerGenesTable = markersTable;
                 }else{
