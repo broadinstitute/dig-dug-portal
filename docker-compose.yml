@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+    sysbio-portal:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "8080:8080"
+        environment:
+            - PORT=8080
+            # Uncomment below to use development BioIndex
+            # - BIOINDEX_DEV=1
