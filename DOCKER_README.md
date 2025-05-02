@@ -46,24 +46,19 @@ This document explains how to build and run the Portal using Docker.
 - `BIOINDEX_DEV`: Set to `1` to use the development BioIndex server instead of production
 - `VUE_APP_VOLCANO_DATASET_URL`: URL to the volcano plot dataset (for the gene expression viewer)
 
-### Setting Runtime Environment Variables
+### Setting Build-Time Environment Variables
 
-You can set Vue.js environment variables (those prefixed with `VUE_APP_`) at runtime by passing them to the Docker container:
+Vue.js environment variables (those prefixed with `VUE_APP_`) must be set at build time:
 
-```powershell
+```bash
 # Using Docker directly
-docker run -p 8080:8080 -e PORT=8080 -e VUE_APP_VOLCANO_DATASET_URL=https://example.com/data.csv.gz sysbio-portal
+docker build --build-arg VUE_APP_VOLCANO_DATASET_URL=https://example.com/data.csv.gz -t sysbio-portal .
 
 # Using Docker Compose
-docker-compose up -d
-```
-
-In `docker-compose.yml`, you can specify environment variables like this:
-
-```yaml
-environment:
-  - PORT=8080
-  - VUE_APP_VOLCANO_DATASET_URL=https://example.com/data.csv.gz
+# Edit the docker-compose.yml file to include:
+# build:
+#   args:
+#     VUE_APP_VOLCANO_DATASET_URL: https://example.com/data.csv.gz
 ```
 
 ## Customizing the Build
