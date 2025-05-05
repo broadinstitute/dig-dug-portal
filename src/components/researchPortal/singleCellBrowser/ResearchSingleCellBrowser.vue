@@ -789,10 +789,12 @@
 
         ///
             (required) desired bioindex url where api enpoints are localed
+            "bioIndexDev" will be used if detected subdomain contains 'dev' or port is 8000
             TODO: make something default?
             TODO: handle trailing slash
         ///
-        "bioIndex": "https://matkp.hugeampkpnbi.org",
+        "bioIndex": "https://bioindex.pankbase.org",
+        "bioIndexDev": "https://bioindex-dev.pankbase.org",
 
         ///
             (optional) formatting params
@@ -808,8 +810,8 @@
                         for your dataset column names
                     each key in displayMap should match a key in fields.metadata_labels
                         from the fields enpoint of your bioindex
-                    the value of each key should be the desired label to show users
-                    otherwise the key name will be used
+                    the value of each key should be the desired label to display
+                    otherwise the key name will be used for display
                 ///
                 "displayMap":{
                     "biosample_id": "Biosample ID",
@@ -837,6 +839,13 @@
                     "experimental": ["custom__cell_cycle__phase"],
                     "samples": "biosample_id"
                 }
+            }
+            ///
+                in addition to default settings, you can specify same settings per datasetId
+            ///
+            "<some_dataset_ID>":{
+                "displayMap": {},
+                "annotationGroups": {},    
             }
         }
     }
