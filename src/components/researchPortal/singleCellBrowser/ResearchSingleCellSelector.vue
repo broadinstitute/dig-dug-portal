@@ -15,8 +15,8 @@
             <div class="dropdown-group">
                 <select style="width: 100%;" @change="selectOption($event.target.value)" v-model="selectedOption">
                     <option value="">--Select--</option>
-                    <option v-for="(value, key) of data" :value="key">
-                        {{ key }}
+                    <option v-for="(value, key) of filteredData" :value="key">
+                        {{ displayLabel(key) }}
                     </option>
                 </select>
             </div>
@@ -31,8 +31,8 @@
                 <template v-if="showSelect">
                     <select style="width: 100%;" @change="selectOption($event.target.value)" v-model="selectedOption">
                         <option value="">--Select--</option>
-                        <option v-for="(value, key) of data" :value="key">
-                            {{ key }}
+                        <option v-for="(value, key) of filteredData" :value="key">
+                            {{ displayLabel(key) }}
                         </option>
                     </select>
                 </template>
@@ -124,6 +124,11 @@ export default Vue.component('research-single-cell-selector', {
             type: (Object, Array, null),
             required: true,
         },
+        displayData: {
+            type: Object,
+            required: false,
+            default: null
+        },
         selectedField: {
             type: String,
             required: false,
@@ -174,7 +179,8 @@ export default Vue.component('research-single-cell-selector', {
             selectedOption: '',
             coloredOption: '',
             coloredLabels: [],
-            listData: null
+            listData: null,
+            filteredData: null
         }
     },
     watch: {
@@ -209,6 +215,19 @@ export default Vue.component('research-single-cell-selector', {
 
             //check if data is array
             const isArray = Array.isArray(this.data);
+
+            /*if(this.displayData){
+                this.filteredData = Object.fromEntries(
+                    Object.keys(this.displayData)
+                    .filter(key => key in this.data)
+                    .map(key => [key, this.data[key]])
+                );
+            }else{
+                this.filteredData = this.data;
+            }*/
+            this.filteredData = this.data;
+            
+            llog('filteredData', this.filteredData);
 
             if(isArray || this.layout==='list'){
                 //isArray
@@ -292,6 +311,13 @@ export default Vue.component('research-single-cell-selector', {
             this.$emit('on-hover', {
                 hoveredLabel: label
             });
+        },
+        displayLabel(rawLabel){
+            if(this.displayData?.[rawLabel]){
+                return this.displayData[rawLabel];
+            }else{
+                return rawLabel;
+            }
         }
     },
 });
