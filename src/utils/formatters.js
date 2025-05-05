@@ -303,7 +303,7 @@ function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
 
 }
 
-function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES) {
+function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
 
     let cellValue = VALUE;
     formatTypes.map((type) => {
@@ -448,6 +448,42 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 }
 
                 cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
+                break;
+
+            case "link with parameters":
+                if (!!cellValue && cellValue != "") {
+
+                    let link = "<a href='" + columnKeyObj["link to"];
+
+                    let paramKeys = Object.keys(columnKeyObj["parameters"]);
+
+                    paramKeys.map(key => {
+                        link += key + '=' + ROW_VALUE[columnKeyObj["parameters"][key]] + '&';
+                    })
+
+                    link +=
+                        linkToNewTab == "true"
+                            ? "' target='_blank'>" + cellValue + "</a>"
+                            : "'>" + cellValue + "</a>";
+
+                    linkString = link;
+                }
+
+                //console.log("linkString", linkString)
+                cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
+
+                break;
+
+            case "map name":
+
+                let tempValue = cellValue;
+
+                cellValue = columnKeyObj["map"][cellValue];
+
+                if (!!columnKeyObj["link to"]) {
+                    cellValue = "<a href='" + tempValue + "'>" + cellValue + "</a>"
+                }
+
                 break;
 
             case "as link":
@@ -596,7 +632,7 @@ function getHoverValue(VALUE) {
     return formatted;
 }
 
-function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
+function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
     if (
         CONFIG["column formatting"] != undefined &&
         CONFIG["column formatting"][KEY] != undefined
@@ -608,8 +644,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             : null;
         let cellValue;
 
-        if (formatTypes.includes("cfde-datatypes"))
+        if (formatTypes.includes("cfde-datatypes")) {
             console.log(typeof VALUE, Array.isArray(VALUE));
+        }
+
 
         if (typeof VALUE != "object") {
             //console.log('...not object')
@@ -619,7 +657,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 `;
                 cellValue = cellValueString;
             } else {
-                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
             }
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
             //console.log('...is array')
@@ -655,8 +693,8 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                         <div>${item.authors} <i>${item.publication}</i></div>
                         <div class="citation-links">
                             <div>DOI: <a href="https://doi.org/${item.doi}" target="_blank">${item.doi}</a></div>
-                            <div style="display:${item.pmid===""?'none':'block'}">PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}" target="_blank">${item.pmid}</a></div>
-                            <div style="display:${item.pmcid===""?'none':'block'}">PMCID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmcid}" target="_blank">${item.pmcid}</a></div>
+                            <div style="display:${item.pmid === "" ? 'none' : 'block'}">PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}" target="_blank">${item.pmid}</a></div>
+                            <div style="display:${item.pmcid === "" ? 'none' : 'block'}">PMCID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmcid}" target="_blank">${item.pmcid}</a></div>
                         </div>
                         <div class="citation-notes">${item.description}</div>
                     </div>
@@ -671,7 +709,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 //console.log('...something else')
                 let cellValueString = (!!formatTypes.includes("image") && VALUE != "") ? "<div class='imgs_wrapper'>" : "";
                 VALUE.map(value => {
-                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
                 })
 
                 cellValueString += (!!formatTypes.includes("image") && VALUE != "") ? "</div>" : "";
@@ -683,7 +721,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
             }
             if (formatTypes.includes("cfde-datatypes")) {
-                console.log("data type!");
+                //console.log("data type!");
                 let cellValueString = '<div style="display:flex;flex-direction:column; gap:10px;">';
                 for (const [key, value] of Object.entries(VALUE)) {
                     if (value.trim() != '') {

@@ -7,174 +7,202 @@
 		></div>
 		<!--m_plot-->
 		<!--<research-m-plot
-			v-if="plotConfig != null && plotConfig['type'] == 'manhattan plot'"
+			v-if="plotConfig['type'] == 'manhattan plot'"
 			:plotData="plotData"
 			:renderConfig="plotConfig"
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-m-plot>-->
 		<!--'mbm_plot-->
-		<research-m-bitmap-plot
-			v-if="plotConfig != null && plotConfig['type'] == 'manhattan bitmap plot'"
-			:plotData="plotData"
-			:renderConfig="plotConfig"
-			:dataComparisonConfig="dataComparisonConfig"
-			:compareGroupColors="colors.moderate"
-			:utils="utils"
-			:sectionId="sectionId"
-		></research-m-bitmap-plot>
-		<!-- Box plot-->
-		<research-box-plot
-			v-if="plotConfig != null && plotConfig['type'] == 'box plot'"
-			:phenotypesData="plotData"
-			:phenotypeMap="phenotypeMap"
-			:colors="colors.extraBold"
-			:plotMargin="plotMargin"
-			:renderConfig="plotConfig"
-			:pkgData="null"
-			:pkgDataSelected="null"
-			:canvasId="sectionId"
-			:utils="utils"
-		></research-box-plot>
-			<!-- Bar plot-->
-		<research-bar-plot
-			v-if="plotConfig != null && plotConfig['type'] == 'bar plot'"
-			:phenotypesData="plotData"
-			:phenotypeMap="phenotypeMap"
-			:colors="colors.extraBold"
-			:plotMargin="plotMargin"
-			:renderConfig="plotConfig"
-			:pkgData="null"
-			:pkgDataSelected="null"
-			:canvasId="sectionId"
-			:utils="utils"
-		></research-bar-plot>
-		<!-- PheWAS plot-->
-		<research-phewas-plot
-			v-if="plotConfig != null && plotConfig['type'] == 'phewas plot'"
-			:phenotypesData="plotData"
-			:phenotypeMap="phenotypeMap"
-			:colors="colors.extraBold"
-			:plotMargin="plotMargin"
-			:renderConfig="plotConfig"
-			:pkgData="null"
-			:pkgDataSelected="null"
-			:canvasId="sectionId"
-			:utils="utils"
-		></research-phewas-plot>
-		<!-- Heatmap -->
-		<research-heatmap
-			v-if="plotConfig != null && plotConfig['type'] == 'heat map'"
-			:heatmapData="plotData"
-			:renderConfig="plotConfig"
-			:utils="utils"
-			:sectionId="sectionId"
-		></research-heatmap>
-		<!-- volcano_plot -->
-		<research-volcano-plot
-			v-if="plotConfig != null && plotConfig['type'] == 'volcano plot'"
-			:plotData="plotData"
-			:renderConfig="plotConfig"
-			:utils="utils"
-			:sectionId="sectionId"
-		></research-volcano-plot>
+		<template v-if="!!plotConfig">
+			<research-m-bitmap-plot
+				v-if="plotConfig['type'] == 'manhattan bitmap plot'"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:dataComparisonConfig="dataComparisonConfig"
+				:compareGroupColors="colors.moderate"
+				:utils="utils"
+				:sectionId="sectionId"
+			></research-m-bitmap-plot>
+			<!-- Box plot-->
+			<research-box-plot
+				v-if="plotConfig['type'] == 'box plot'"
+				:phenotypesData="plotData"
+				:phenotypeMap="phenotypeMap"
+				:colors="colors.extraBold"
+				:plotMargin="plotMargin"
+				:renderConfig="plotConfig"
+				:pkgData="null"
+				:pkgDataSelected="null"
+				:canvasId="sectionId"
+				:utils="utils"
+			></research-box-plot>
+				<!-- Bar plot-->
+			<research-bar-plot
+				v-if="plotConfig['type'] == 'bar plot'"
+				:phenotypesData="plotData"
+				:phenotypeMap="phenotypeMap"
+				:colors="colors.extraBold"
+				:plotMargin="plotMargin"
+				:renderConfig="plotConfig"
+				:pkgData="null"
+				:pkgDataSelected="null"
+				:canvasId="sectionId"
+				:utils="utils"
+			></research-bar-plot>
+			<!-- CFDE Xing plot-->
+			<research-cfde-xing
+				v-if="plotConfig['type'] == 'cfde xing'"
+				:data="plotData"
+				:colors="colors"
+				:plotMargin="plotMargin"
+				:renderConfig="plotConfig"
+				:canvasId="sectionId"
+				:utils="utils"
+			></research-cfde-xing>
+			<!-- Bar in cell plot-->
+			<research-bar-in-cell-plot
+				v-if="plotConfig['type'] == 'bar in cell plot'"
+				:plotData="plotData"
+				:plotMargin="plotMargin"
+				:plotConfig="plotConfig"
+				:canvasId="sectionId"
+				:utils="utils"
+			></research-bar-in-cell-plot>
+			<!-- PheWAS plot-->
+			<research-phewas-plot
+				v-if="plotConfig['type'] == 'phewas plot'"
+				:phenotypesData="plotData"
+				:phenotypeMap="phenotypeMap"
+				:colors="colors.extraBold"
+				:plotMargin="plotMargin"
+				:renderConfig="plotConfig"
+				:pkgData="null"
+				:pkgDataSelected="null"
+				:canvasId="sectionId"
+				:utils="utils"
+			></research-phewas-plot>
+			<!-- Heatmap -->
+			<research-heatmap
+				v-if="plotConfig['type'] == 'heat map'"
+				:heatmapData="plotData"
+				:renderConfig="plotConfig"
+				:utils="utils"
+				:sectionId="sectionId"
+			></research-heatmap>
+			<!-- volcano_plot -->
+			<research-volcano-plot
+				v-if="plotConfig['type'] == 'volcano plot'"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:utils="utils"
+				:sectionId="sectionId"
+			></research-volcano-plot>
 
-		<research-m-qq-plot
-			v-if="
-				plotConfig != null && plotConfig['type'] == 'manhattan qq plot'
-			"
-			:plotData="plotData"
-			:renderConfig="plotConfig"
-			:utils="utils"
-			:sectionId="sectionId"
-		></research-m-qq-plot>
-		<!-- region_plot -->
-		<multi-region-plot
-			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!region"
-			:plotData="plotData"
-			:renderConfig="plotConfig"
-			:searchParameters="searchParameters"
-			:dataComparisonConfig="dataComparisonConfig"
-			:region="region"
-			:plotMargin="plotMargin"
-			:compareGroupColors="colors.moderate"
-			:regionZoom="regionZoom"
-			:regionViewArea="regionViewArea"
-			:pkgData="null"
-			:pkgDataSelected="null"
-			:isSectionPage="true"
-			:sectionId="sectionId"
-			:utils="utils"
-			:starItems="starItems"
-			:colors="colors"
-			@on-star="starColumn"
-		></multi-region-plot>
-		
-		<!-- general track -->
-		<research-region-track
-			v-if="!!plotConfig && plotConfig['type'] == 'region track' && !!region"
-			:sectionId="sectionId"
-			:plotConfig="plotConfig"
-			:plotData="plotData"
-			:dataComparisonConfig="dataComparisonConfig"
-			:region="region"
-			:regionZoom="regionZoom"
-			:regionViewArea="regionViewArea"
-			:colors="colors"
-			:utils="utils"
-			:plotMargin="plotMargin"
-			:starItems="starItems"
-		></research-region-track>
-		<!-- general dots track -->
-		<research-region-dots-track
-			v-if="!!plotConfig && plotConfig['type'] == 'region dots track' && !!region"
-			:sectionId="sectionId"
-			:plotConfig="plotConfig"
-			:plotData="plotData"
-			:dataComparisonConfig="dataComparisonConfig"
-			:region="region"
-			:regionZoom="regionZoom"
-			:regionViewArea="regionViewArea"
-			:colors="colors"
-			:utils="utils"
-			:plotMargin="plotMargin"
-			:starItems="starItems"
-		></research-region-dots-track>
-		<!-- genes track -->
-		<multi-genes-track
-			v-if="!!plotConfig && (plotConfig['type'] == 'region plot' || plotConfig['type'] == 'region track' || plotConfig['type'] == 'region dots track') && !!plotConfig['genes track'] && !!region"
-			:region="region"
-			:genesData="null"
-			:plotConfig="plotConfig"
-			:plotType="plotConfig['type']"
-			:plotMargin="plotMargin"
-			:regionZoom="regionZoom"
-			:regionViewArea="regionViewArea"
-			:utils="utils"
-			:sectionId="sectionId"
-			:starItems="starItems"
-		></multi-genes-track>
-		<!-- scatter plot -->
-		<research-scatter-plot
-			v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
-			:plotData="plotData"
-			:renderConfig="plotConfig"
-			:searchParameters="searchParameters"
-			:dataComparisonConfig="dataComparisonConfig"
-			:plotMargin="plotMargin"
-			:compareGroupColors="colors.moderate"
-			:isSectionPage="true"
-			:sectionId="sectionId"
-			:starItems="starItems"
-			:utils="utils"
-		></research-scatter-plot>
-		<research-single-cell-browser
-			v-if="plotConfig && plotConfig['type'] == 'cell browser'"
-			:sectionId="sectionId"
-			:renderConfig="plotConfig"
-			:utils="utils"
-			:data="plotData"
-		></research-single-cell-browser>
+			<research-m-qq-plot
+				v-if="
+					plotConfig['type'] == 'manhattan qq plot'
+				"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:utils="utils"
+				:sectionId="sectionId"
+			></research-m-qq-plot>
+			<!-- region_plot -->
+
+			<multi-region-plot
+				v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!region"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:searchParameters="searchParameters"
+				:dataComparisonConfig="dataComparisonConfig"
+				:region="region"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.moderate"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+				:pkgData="null"
+				:pkgDataSelected="null"
+				:isSectionPage="true"
+				:sectionId="sectionId"
+				:utils="utils"
+				:starItems="starItems"
+				:colors="colors"
+				
+				@on-star="starColumn"
+			></multi-region-plot>
+			
+			<!-- general track -->
+			<research-region-track
+				v-if="!!plotConfig && plotConfig['type'] == 'region track' && !!region"
+				:sectionId="sectionId"
+				:plotConfig="plotConfig"
+				:plotData="plotData"
+				:dataComparisonConfig="dataComparisonConfig"
+				:regionParam="region"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+				:colors="colors"
+				:utils="utils"
+				:plotMargin="plotMargin"
+				
+				:starItems="starItems"
+			></research-region-track>
+			<!-- general dots track -->
+			<research-region-dots-track
+				v-if="!!plotConfig && plotConfig['type'] == 'region dots track' && !!region"
+				:sectionId="sectionId"
+				:plotConfig="plotConfig"
+				:plotData="plotData"
+				:dataComparisonConfig="dataComparisonConfig"
+				:region="region"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+				:colors="colors"
+				:utils="utils"
+				:plotMargin="plotMargin"
+				:starItems="starItems"
+				
+			></research-region-dots-track>
+			<!-- genes track -->
+			<multi-genes-track
+				v-if="!!plotConfig && (plotConfig['type'] == 'region plot' || plotConfig['type'] == 'region track' || plotConfig['type'] == 'region dots track') && !!plotConfig['genes track'] && !!region"
+				:region="region"
+				:genesData="null"
+				:plotConfig="plotConfig"
+				:plotType="plotConfig['type']"
+				:plotMargin="plotMargin"
+				:regionZoom="regionZoom"
+				:regionViewArea="regionViewArea"
+				:utils="utils"
+				:sectionId="sectionId"
+				:starItems="starItems"
+				
+			></multi-genes-track>
+
+			<!-- scatter plot -->
+			<research-scatter-plot
+				v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:searchParameters="searchParameters"
+				:dataComparisonConfig="dataComparisonConfig"
+				:plotMargin="plotMargin"
+				:compareGroupColors="colors.moderate"
+				:isSectionPage="true"
+				:sectionId="sectionId"
+				:starItems="starItems"
+				:utils="utils"
+			></research-scatter-plot>
+			<research-single-cell-browser
+				v-if="plotConfig && plotConfig['type'] == 'cell browser'"
+				:sectionId="sectionId"
+				:renderConfig="plotConfig"
+				:utils="utils"
+				:data="plotData"
+			></research-single-cell-browser>
+
+		</template>
 		
 	</div>
 </template>
@@ -195,14 +223,16 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAn
 import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
+import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
 import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfdePhenotypeXing.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
-		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region"],
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region","bigRegion"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
@@ -216,10 +246,12 @@ export default Vue.component("research-section-visualizers", {
 		ResearchHeatmap,
 		ResearchPheWAS,
 		ResearchBarPlot,
+		ResearchBarInCellPlot,
 		ResearchBoxPlot,
 		ResearchRegionTrack,
 		ResearchRegionDotsTrack,
-		ResearchSingleCellBrowser
+		ResearchSingleCellBrowser,
+		cfdePhenotypeXing
     },
 	data() {
 		return {

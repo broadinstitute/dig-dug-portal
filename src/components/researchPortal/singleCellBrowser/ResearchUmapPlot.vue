@@ -36,6 +36,7 @@
   import * as d3 from 'd3';
   import Vue from 'vue';
   import EventBus from "@/utils/eventBus"
+  import {llog} from "./llog.js";
   
   export default Vue.component('research-umap-plot', {
     props: {
@@ -181,8 +182,8 @@
         drawUMAP(from=''){
             const {points, colors, width, fieldColors} = this;
 
-            console.log('drawingUMAP', from);
-            //console.log('drawUMAP', points, colors);
+            llog('drawingUMAP', from);
+            //llog('drawUMAP', points, colors);
 
             if(!points) return;
 
@@ -208,7 +209,7 @@
             this.resetPlot(canvas);
 
             if(!this.pointBoundsCalculated){
-                //console.log('calculating umap point bounds');
+                //llog('calculating umap point bounds');
                 this.pointBounds = {n: 0, s: 0, e: 0, w: 0};
                 //get point bounds by storing outermost points in each cardinal direction
                 points.forEach(coord => {
@@ -220,7 +221,7 @@
                     if(py<0) this.pointBounds.n = py < this.pointBounds.n ? py : this.pointBounds.n;
                 });
 
-                //console.log(this.pointBounds);
+                //llog(this.pointBounds);
 
                 this.calculateScaleFactor(canvas);
 
@@ -288,7 +289,7 @@
                 const x = ((px - this.pointBounds.w) * this.zoom) + this.boundsOffset.x/2;
                 const y = ((this.pointBounds.s - py) * this.zoom) + this.boundsOffset.y/2;
 
-                //console.log(px, py, x, y)
+                //llog(px, py, x, y)
 
                 const labelField = this.colorByField || this.cellTypeField;
                 const label = this.fields.metadata_labels[labelField][this.fields.metadata[labelField][index]];
@@ -336,14 +337,14 @@
                 ctx.fill();
             });
 
-            console.log("    POINTS RENDERED", pointsCount);
+            llog("    POINTS RENDERED", pointsCount);
 
             ctx.restore();
 
             this.addClusterLabels();
         },
         addClusterLabels(){
-            //console.log('addClusterLabels', this.clusterCenters);
+            //llog('addClusterLabels', this.clusterCenters);
             const canvas = this.$refs.umapCanvasLabels;
             const ctx = canvas.getContext("2d");
             const canvasWidth = this.width;
@@ -507,7 +508,7 @@
                 }
             });
 
-            //console.log(`Found ${nearbyPointIndices.length} points within radius ${radius}`);
+            //llog(`Found ${nearbyPointIndices.length} points within radius ${radius}`);
 
             if(nearbyPointIndices.length>0 && !this.isPanning){
                 let hoverHTML = `<div style="display:flex"><div style="width:100px; font-weight:bold">Cell ID</div>${this.fields.NAME[nearbyPointIndices[0]]}</div>`;

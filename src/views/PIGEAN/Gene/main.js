@@ -52,6 +52,7 @@ new Vue({
             tableConfig: {
                 fields: [
                     { key: "phenotype", label: "Phenotype", sortable: true },
+                    { key: "label", label: "Factor label", sortable: true},
                     {
                         key: "combined",
                         label: "Combined genetic support",
@@ -74,6 +75,7 @@ new Vue({
                         sortable: true,
                     },
                     { key: "expand", label: "Gene sets" },
+                    { key: "expand3", label: "View locus plot"}
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",

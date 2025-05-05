@@ -31,6 +31,7 @@ export default {
             documentations: {},
             user: "",
             links: [],
+            defaultPortal: "",
         };
     },
 
@@ -92,12 +93,26 @@ export default {
         setLinks(state, data) {
             state.links = data;
         },
+        setDefaultPortal(state, portal) {
+            state.defaultPortal = portal;
+        },
     },
 
     getters: {
         defaultGroup(state) {
             if (state.diseaseGroups.length > 0) {
-                return state.diseaseGroups.filter((g) => g.default)[0];
+                //if defaultPortal is set, use that
+                if (state.defaultPortal || process.env.VUE_APP_DEFAULT_PORTAL) {
+                    const portalToUse =
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL;
+                    for (let i in state.diseaseGroups) {
+                        let group = state.diseaseGroups[i];
+                        if (group.name == portalToUse) {
+                            return group;
+                        }
+                    }
+                } else return state.diseaseGroups.filter((g) => g.default)[0];
             }
         },
 
@@ -150,7 +165,13 @@ export default {
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain?.replace(/\.?dev/, "") || "md" },
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -162,7 +183,13 @@ export default {
         },
         async getDocumentations({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain?.replace(/\.?dev/, "") || "md" },
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -174,7 +201,13 @@ export default {
         },
         async getAncestries({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain?.replace(/\.?dev/, "") || "md" },
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -186,7 +219,13 @@ export default {
         // fetch all the complicaitons for given disease group
         async getComplications({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain?.replace(/\.?dev/, "") || "md" },
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -200,7 +239,13 @@ export default {
         // fetch all datasets for this portal
         async getDatasets({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain?.replace(/\.?dev/, "") || "md" },
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
                 { skipNull: true }
             );
             let json = await fetch(

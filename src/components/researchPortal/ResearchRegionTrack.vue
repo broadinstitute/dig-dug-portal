@@ -1,21 +1,56 @@
 <template>
     <div :id="'region_track_wrapper'+sectionId" class="region-track-wrapper">
-            
+        
         <div :id="'block_data_' + sectionId" class="block-data hidden">
             <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
                 <b-icon icon="x-circle-fill"></b-icon>
             </div>
-            <div :id="'block_data_content_' + sectionId" class="block-data-content"></div>
+            <div :id="'block_data_content_' + sectionId" class="block-data-content">
+                <template v-for="item, itemIndex in infoBoxContent.data">
+                    <span v-if="infoBoxContent.action == 'hover' && itemIndex < 5">
+                        <strong>{{ item.title }}</strong>
+                        <template v-for="iValue, iKey in item">
+                            <span v-if="iKey != 'title'"><br />{{ iKey +": "+iValue }}</span>
+                        </template>
+                        <template v-if="!!plotConfig['set region parameter by']
+                         && !!item[plotConfig['set region parameter by']['field']]">
+                            <br /><span style="color: #5fa331;">Click to set region.</span>
+                        </template>
+                        <br />
+                    </span>
+                    <span v-if="infoBoxContent.action == 'click'">
+                        <strong>{{ item.title }}</strong>
+                        <template v-for="iValue, iKey in item">
+                            <span v-if="iKey != 'title'"><br />{{ iKey +": "+iValue }}</span>
+                        </template>
+                        <template v-if="!!plotConfig['set region parameter by']
+                         && !!item[plotConfig['set region parameter by']['field']]">
+                            <br /><button class="btn btn-primary btn-sm" @click="setRegion(item[plotConfig['set region parameter by']['field']],plotConfig['set region parameter by']['parameter'],plotConfig['set region parameter by']['max region'] )">
+                                Set region
+                            </button>
+                            <br />Max length: {{ plotConfig['set region parameter by']['max region'] }}
+                        </template>
+                        <br />
+                    </span>
+                    <template v-if="infoBoxContent.data.length > 1">
+                        <br /><br />
+                    </template>
+                </template>
+            </div>
         </div>
         <div class="col-md-11">
             <span v-for="cKey,index in colorGroups" :key="cKey" class="color-groups" @mouseover="renderPlot(cKey)" @mouseleave="renderPlot()">
                 <span class="box" :style="'background-color:' + colors.bold[index % 16]"></span><span class="label" v-html="cKey"></span>
             </span>
         </div>
+        
         <canvas v-if="!!plotConfig" :id="'track_' + sectionId" class="region-track"
-            @mouseleave="hidePanel('block_data_' + sectionId)" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
+            @mouseleave="hidePanel('block_data_' + sectionId);resetPosMarker()" @mousemove="checkPosition($event,'hover')" @click="checkPosition($event, 'click')" @resize="onResize"
             width="" height="">
         </canvas>
+
+        <span :id="sectionId+'_xPosMarker'" class="x-pos-marker"></span>
+        
         <div class="download-images-setting">
             <span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
             <ul class="options" >
@@ -60,7 +95,7 @@ export default Vue.component("research-region-track", {
         "plotConfig",
         "plotData",
         "dataComparisonConfig",
-        "region",
+        "regionParam",
         "regionZoom",
         "regionViewArea",
         "colors",
@@ -75,6 +110,7 @@ export default Vue.component("research-region-track", {
             colorGroups:[],
             infoBoxFrozen: false,
             starGroups: [],
+            infoBoxContent:{action:null,data:[]}
         };
     },
     modules: {
@@ -90,6 +126,33 @@ export default Vue.component("research-region-track", {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
+        hoverPos() {
+            return this.$root.hoverPos;
+        },
+        region() {
+
+            let region = this.regionParam;
+
+            if(!!this.plotConfig['expand region by']) {
+
+                let regionArr = region.split(":");
+                    let chr = regionArr[0];
+                    let posRegion = regionArr[1].split("-");
+                    let posStart = Number(posRegion[0]);
+                    let posEnd = Number(posRegion[1]);
+
+                    posStart -= this.plotConfig['expand region by']/2
+                    posStart = (posStart <= 0)? 0:posStart;
+
+                    posEnd += this.plotConfig['expand region by']/2
+                    
+                    region = chr +":"+posStart+"-"+posEnd;
+
+            }
+
+            return region;
+
+        },
         adjPlotMargin() {
 
             let customPlotMargin = !!this.plotConfig["plot margin"] ? this.plotConfig["plot margin"] : null;
@@ -172,6 +235,10 @@ export default Vue.component("research-region-track", {
         },
     },
     watch: {
+        hoverPos(POS_ARR) {
+            
+            this.renderPlot(null,"enter");
+        },
         viewingRegion(REGION){
             this.renderPlot();
         },
@@ -184,6 +251,35 @@ export default Vue.component("research-region-track", {
         }
     },
     methods: {
+        setRegion(REGION,PARAM,MAX) {
+            //first calculate the new region;
+
+            const regionArr = REGION.split(":");
+            const region = regionArr[1].split("-");
+            const centerPos = Math.floor(Number(region[0]) + (region[1] - region[0])/2);
+            const rStart = ((centerPos - (MAX/2))<= 0)? 0 : Math.floor(centerPos - (MAX/2))
+            const rEnd = Math.floor(centerPos + (MAX/2));
+
+            const newRegion = regionArr[0]+":"+rStart+"-"+rEnd;
+
+            const currentUrlArr = window.location.href.split("?");
+            const currentParamsArr = currentUrlArr[1].split("&");
+            const paramsObj = {}
+
+            let hrefString = "?";
+
+            currentParamsArr.map((param,pIndex) => {
+                const paramPair = param.split("=")
+
+                hrefString += (paramPair[0] == PARAM)? paramPair[0]+"="+newRegion: paramPair[0]+"="+paramPair[1];
+                hrefString += (pIndex < (currentParamsArr.length - 1))? "&":"";
+
+                
+            })
+
+            window.location.href = currentUrlArr[0] + hrefString;
+
+        },
         downloadImage(ID, NAME, TYPE) {
             if (TYPE == 'svg') {
                 this.$refs[this.sectionId + '_regionTrack'].renderPlot();
@@ -193,7 +289,7 @@ export default Vue.component("research-region-track", {
             }
 
         },
-        renderPlot(cKey) {
+        renderPlot(cKey,action) {
             
             this.posData = {};
 
@@ -211,7 +307,6 @@ export default Vue.component("research-region-track", {
             c.setAttribute("height", canvasHeight);
             c.setAttribute(
                 "style",
-                "background-color: #ffffff;"+
                 "width: " +
 						canvasWidth / 2 +
                 "px;height:" +
@@ -230,6 +325,19 @@ export default Vue.component("research-region-track", {
             //let regionArr = this.region.split(":");
             //let region = regionArr[1].split("-");
             
+
+            // render marker band
+            
+            ctx.fillStyle = "#ff880025";
+
+            ctx.fillRect(
+                this.adjPlotMargin.left,
+                plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 2)+12,
+                plotWidth,
+                12
+            );
+                
+            //
 
             this.renderAxis(ctx,
                 plotWidth,
@@ -425,6 +533,52 @@ export default Vue.component("research-region-track", {
                     xPos += getWidth(group, 24, "Arial") + this.adjPlotMargin.bump;
                 })
             }
+
+            /// if there are markers
+            if(this.hoverPos.length > 0) {
+
+                
+                this.hoverPos.map(h => {
+                    let yPos1 = this.adjPlotMargin.top - this.adjPlotMargin.bump;
+                    let yPos2 = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump*3);
+
+                    let xPos = xStart + (h - region.start) * xPerPixel;
+                    this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 1, "#ff0000", [6, 2]);
+                })
+            }
+
+            // if the region is expanded
+
+            if(!!this.plotConfig['expand region by']) {
+
+                let smallRegion = this.regionParam.split(":")[1].split("-");
+
+                let yPos = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump/2);
+                let xPosStart = xStart + (smallRegion[0] - region.start) * xPerPixel;
+                let xPosEnd = xStart + (smallRegion[1] - region.start) * xPerPixel;
+                let xWidth = xPosEnd - xPosStart;
+
+                ctx.fillStyle = "#FF0000";
+
+                ctx.fillRect(
+                    xPosStart,
+                    yPos,
+                    xWidth,
+                    10
+                );
+
+                ctx.font = "24px Arial";
+                ctx.fillStyle = "#ff0000";
+                ctx.textAlign = "center"
+
+                ctx.fillText(
+                    'Viewing region',
+                    xPosStart + (xWidth/2),
+                    yPos + (this.adjPlotMargin.bump*3)
+                );
+    
+            }
+            ///
         },
         renderAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, plotMargin) {
             CTX.beginPath();
@@ -488,12 +642,81 @@ export default Vue.component("research-region-track", {
                 );
             }
         },
+        resetPosMarker() {
+				let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = "0px";
+                xPosMarker.style.top = "0px";
+                xPosMarker.style.height = "1px";
+		},
+
         checkPosition(e,action) {
+            let rect = e.target.getBoundingClientRect();
+                let X = Math.floor(e.clientX - rect.left);
+                let Y = Math.floor(e.clientY - rect.top);
+
+            let wrapperRect = document.getElementById("region_track_wrapper"+this.sectionId).getBoundingClientRect()
+
+            this.getPosInfo(X,Y,action);
+
+            if(action == "hover" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
+
+                let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = (X)+"px";
+                xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
+                xPosMarker.style.height = (rect.height - this.adjPlotMargin.bottom/2)+"px";
+
+            } else {
+				this.resetPosMarker();
+			}
+
+            if(action == "click" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
+
+                const tempWidth = rect.width - (this.adjPlotMargin.left/2 + this.adjPlotMargin.right/2)
+                const tempXPos = X-this.adjPlotMargin.left/2;
+                let xPos = this.convertXPos(tempXPos, tempWidth);
+
+                let itThere = false;
+                let tempArr = [];
+
+                if(this.hoverPos.length > 0) {
+                    
+
+                    this.hoverPos.map(h =>{
+
+                    let xMargin = Math.floor((this.viewingRegion.end - this.viewingRegion.start)/tempWidth)*2;
+
+                        if( h >= xPos - xMargin && h <= xPos + xMargin) {
+                            itThere = true;
+                        } else {
+                            tempArr.push(h);
+                        }
+                    })
+
+                    this.$root.hoverPos = tempArr;
+                }
+                
+                if(!itThere) {
+                    this.$root.hoverPos.push(Math.floor(xPos));
+                }
+                
+            }
+            
+        },
+
+        convertXPos(X,WIDTH) {
+
+            let perPixel = ((this.viewingRegion.end - this.viewingRegion.start)/WIDTH);
+            let xPos = (X * perPixel) + this.viewingRegion.start;
+
+            return xPos;
+        },
+
+        getPosInfo(x,y,action) {
 
             if(this.infoBoxFrozen == false) {
-                let rect = e.target.getBoundingClientRect();
+                /*let rect = e.target.getBoundingClientRect();
                 let x = Math.floor(e.clientX - rect.left);
-                let y = Math.floor(e.clientY - rect.top);
+                let y = Math.floor(e.clientY - rect.top);*/
 
                 let wrapper = document.getElementById("block_data_" + this.sectionId);
                 let contentWrapper = document.getElementById("block_data_content_" + this.sectionId);
@@ -528,34 +751,64 @@ export default Vue.component("research-region-track", {
                     }
 
                     let hoverContent = ""
+                    let tempArr = [];
 
                     let blockIndex = 0;
                     blockData.map(b => {
-                        if (action == "hover" && blockIndex < 5) {
+                        let tempObj = {}
+                        /*if (action == "hover") {
                             hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
                             this.plotConfig["hover content"].map(h => {
                                 hoverContent += "<strong>" + h + "</strong>: <span>" + this.utils.Formatters.getHoverValue(b[h]) + "</span><br />";
                             })
                             hoverContent += "<br />";
+
+                            
+
                         } else if (action == "click") {
                             hoverContent += "<strong>" + b[this.plotConfig["render by"]] + "</strong><br />";
                             this.plotConfig["hover content"].map(h => {
                                 hoverContent += "<strong>" + h + "</strong>: <span>" + this.utils.Formatters.getHoverValue(b[h]) + "</span><br />";
                             })
                             hoverContent += "<br />";
-                        }
 
-                        blockIndex++;
+                            if(!!this.plotConfig["set region parameter by"]){
+                                let rFieldArr = b[this.plotConfig["set region parameter by"]["field"]].split(":");
+                                let chr = rFieldArr[0];
+                                let regionArr = rFieldArr[1].split("-");
+                                let rParam = this.plotConfig["set region parameter by"]["parameter"];
+
+                                let passingParams = chr+","+regionArr[0]+","+regionArr[1]+","+rParam;
+                                let chrStartEnd = chr+","+regionArr[0]+","+regionArr[1];
+
+                                hoverContent += "<button id='btn_12345' data='"+passingParams+"' onClick='setRegionFunction("+chrStartEnd+")'>Set region</button><br />"      
+                            }
+                            
+                        }*/
+
+                        tempObj["title"] = b[this.plotConfig["render by"]];
+
+                        this.plotConfig["hover content"].map(h => {
+                            tempObj[h] = this.utils.Formatters.getHoverValue(b[h]);
+                        })
+
+                        tempArr.push(tempObj)
+
+                        //blockIndex++;
                     })
 
-                    if (action == "hover" && blockData.length > 5) {
+                    this.infoBoxContent.action = action;
+                    this.infoBoxContent.data = (tempArr.length > 0)? tempArr:
+                        [{"title": rowLabel}];
+
+                    /*if (action == "hover" && blockData.length > 5) {
                         hoverContent +=
                             '<strong style="color: #36c;">Viewing 5 of ' +
                             blockData.length +
                             " items. Click to view full list.</strong>";
                     }
 
-                    contentWrapper.innerHTML = (blockData.length > 0)? hoverContent : rowLabel;
+                    contentWrapper.innerHTML = (blockData.length > 0)? hoverContent : rowLabel;*/
 
                     if (action == "hover") {
                         wrapper.classList.remove("hidden");
@@ -591,6 +844,7 @@ export default Vue.component("research-region-track", {
 });
 
 $(function () { });
+
 </script>
 
 <style>
@@ -637,11 +891,18 @@ $(function () { });
 }
 
 .region-track-wrapper {
+    position:relative;
     padding: 0 !important;
 }
+
+.region-track {
+    position: relative;
+}
+
 .region-track.hover {
     cursor: pointer;
 }
+
 
 .gene-on-clicked-dot-mplot,
 .content-on-clicked-dot {
@@ -682,6 +943,14 @@ $(function () { });
     height: 280px;
     overflow: auto;
     width: 389px;
+}
+
+.x-pos-marker {
+    position:absolute;
+    top:0;
+    left:0;
+    color: #ff0000;
+    border-left:solid 1px #ff0000;
 }
 
 </style>
