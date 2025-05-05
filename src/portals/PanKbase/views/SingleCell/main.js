@@ -40,38 +40,8 @@ new Vue({
                   "datasetId": "PKBdatasetId",
                   "gene": "PKBgene"
                 },
-                "data points":[ 
-                  {
-                    "role": "metadata",
-                    "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell_metadata/dataset_metadata.json.gz"
-                  },{
-                    "role": "fields",
-                    "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/fields.json.gz"
-                  },{
-                    "role": "coordinates",
-                    "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz"
-                  },{
-                    "role": "expression",
-                    "url": "https://skin.hugeampkpnbi.org/api/bio/query/single-cell-lognorm?q=$datasetId,$gene"
-                  },{
-                    "role": "markers",
-                    "url": "https://skin.hugeampkpnbi.org/api/raw/file/single_cell/$datasetId/marker_genes.json.gz"
-                  }
-                ],
-                "components": {
-                  "cell info": {
-                    "enabled": true
-                  },
-                  "cell proportion": {
-                    "enabled": true
-                  },
-                  "gene expression": {
-                    "enabled": true
-                  },
-                  "marker genes": {
-                    "enabled": true
-                  }
-                },
+                "bioIndex": "https://bioindex.pankbase.org",
+                "bioIndexDev": "https://bioindex-dev.pankbase.org",
                 "presets": {
                   "datasetId": "islet_of_Langerhans_scRNA_v1",
                   "cell type label": "Cell Type"
@@ -94,8 +64,12 @@ new Vue({
             keyParams.set({[this.scbConfig["parameters"].datasetId] : this.selectedDataset});
           }
         }
-        this.allMetadata = await this.fetchMetadata(this.scbConfig["data points"].find(x => x.role === "metadata").url);
-        
+        const domain = window.location.hostname;
+        const port = window.location.port;
+        const isDev = domain === "localhost" || domain.split('.')[0].includes('dev') || port === '8000';
+        const metadataEndpoint = "/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
+        const bioIndex = isDev ? this.scbConfig.bioIndexDev : this.scbConfig.bioIndex;
+        this.allMetadata = await this.fetchMetadata(bioIndex+metadataEndpoint);
     },
     render(createElement, context) {
         return createElement(Template);
