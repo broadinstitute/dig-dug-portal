@@ -22,6 +22,16 @@
                 </div>
 
                 <div class="mb-4">
+                    <label for="type" class="block text-sm font-medium text-gray-700 mb-2">Query to get:</label>
+                    <select id="type"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="sections">Sections</option>
+                        <option value="genes">Genes</option>
+                        <option value="prompt-options">Prompt options</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
                     <label for="prompt" class="block text-sm font-medium text-gray-700 mb-2">Enter your prompt:</label>
                     <textarea id="prompt" rows="4"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -69,6 +79,7 @@ export default Vue.component("gemini-search", {
                document.addEventListener('DOMContentLoaded', () => {
             const apiKeyInput = document.getElementById('apiKey');
             const modelSelect = document.getElementById('model');
+            const promptType = document.getElementById('type');
             const promptInput = document.getElementById('prompt');
             const streamCheckbox = document.getElementById('stream');
             const submitBtn = document.getElementById('submitBtn');
@@ -78,11 +89,24 @@ export default Vue.component("gemini-search", {
             submitBtn.addEventListener('click', async () => {
                 const apiKey = apiKeyInput.value.trim();
                 const model = modelSelect.value;
-                const contextPrompt = "You are an expert at understanding the purpose of keys in a JSON object based on their description. Given the following JSON object and a user input, find out what the sentence is about and return the keys of the items meaningful to the sentence. Don't include reasonings but format your response in the following format.\
-                {'paramters':[parameter1, parameter2...],'keys':[key1, key2...]} \
-                If search question is not biology related, return 'Your input is not relevant to this portal.'\
-                JSON Object:[{key:'pigean_gene','search parameter':'gene','return':'phenotypes associated by a gene. This sections provides access to gene sets associated with the phenotypes.'},{key:'pigean_gene_set_phenotype','search parameter':'pehnotype','return':'Returns genes sets associated with a phenotype.'},{key:'pigean_gene_phenotype','search parameter':'phenotype','return':'Returns genes associated with a phenotype.'},{key:'pigean_gene_set_source','search parameter':'source','return':'Returns phenotypes and gene sets associated phenotypes, by the research program generated the gene sets.'}]\
-                Search: "
+                const type = promptType.value;
+                let contextPrompt;
+                if(type == "sections") {
+
+                    contextPrompt = "You are an expert at understanding the purpose of keys in a JSON object based on their description. Given the following JSON object and a user input, find out what the sentence is about and return the keys of the items meaningful to the sentence. Don't include reasonings but format your response in the following format.\
+                    {'paramters':[parameter1, parameter2...],'keys':[key1, key2...]} \
+                    Do NOT include any markdown formatting, code block markers, or triple backticks in your response. \
+                    If search question is not biology related, return 'Your input is not relevant to this portal.'\
+                    JSON Object:[{key:'pigean_gene','search parameter':'gene','return':'phenotypes associated by a gene. This sections provides access to gene sets associated with the phenotypes.'},{key:'pigean_gene_set_phenotype','search parameter':'pehnotype','return':'Returns genes sets associated with a phenotype.'},{key:'pigean_gene_phenotype','search parameter':'phenotype','return':'Returns genes associated with a phenotype.'},{key:'pigean_gene_set_source','search parameter':'source','return':'Returns phenotypes and gene sets associated phenotypes, by the research program generated the gene sets.'}]\
+                    Search: "
+
+                } else if (type == "genes") {
+                    contextPrompt = "You are a helpful research assistant specialized in biology and genetics. Your task is to identify 10 genes relevant to a user-provided medical condition or a combination of conditions. You must respond exclusively with a JSON array. Each element in the array should be a JSON object containing two keys: 'gene' (the official gene symbol) and 'reason' (a concise biological rationale explaining the gene's relevance to the specified condition(s)). If the user's query is not related to biology or genetics, or if it does not ask for information about medical conditions, you must respond with the following JSON object:\
+                    {'error': 'Your query is asking no biology related question.'}\
+                    Do NOT include any markdown formatting, code block markers, or triple backticks in your response."
+                } else if (type == "prompt-options") {
+                    contextPrompt = "Given the following data point from a biology research portal: Generate a JSON formatted list of dictionaries, where each dictionary has two keys: 'direction' and 'prompts'. The 'direction' key should describe the category of the research questions, and the 'prompts' key should contain a list of specific research questions (prompts) that could be used to further explore the relationships and information presented in the data. Do not include any markdown formatting in your response."
+                }
                 const prompt = contextPrompt + promptInput.value.trim();
 
                 if (!apiKey) {
@@ -100,7 +124,7 @@ export default Vue.component("gemini-search", {
                     loadingIndicator.classList.add('active');
                     responseDiv.textContent = '';
 
-                    const response = await fetch('http://localhost:5000/api/generate', {
+                    const response = await fetch('http://localhost:3000/api/generate', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
