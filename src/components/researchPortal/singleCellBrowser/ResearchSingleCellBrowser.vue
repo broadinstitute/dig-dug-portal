@@ -315,7 +315,6 @@
                                                 :selectedField="geneExpressionVars.selectedGene"
                                                 @on-update="geneClick($event.coloredLabels[0])"
                                             />
-                                         
                                         </div>
                                     </div>
                                 </div>
@@ -586,7 +585,177 @@
                     </div>
                 </div>
             </div>
-            <!-- layout 2 -->
+            <!-- layout test -->
+                <div v-if="layout===2 && dataReady" style="display:flex; gap:20px;">
+                    <!--SIDEBAR-->
+                    <div style="display:flex; flex-direction: column; gap: 10px;">
+                        <!--COLOR BY-->
+                        <div v-if="fieldsDisplayList" style="display:flex; flex-direction: column; align-self: flex-start; width:200px;">
+                            <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
+                            <research-single-cell-selector 
+                                :data="fields['metadata_labels']"
+                                :displayData="fields['metadata_display_labels']"
+                                :selectedField="cellCompositionVars.colorByField"
+                                layout="dropdown"
+                                :colors="labelColors"
+                                @on-update="handleSelectorUpdate($event)"
+                                @on-hover="handleSelectorHover($event)"
+                            />
+                        </div>
+                        <!--GENE SEARCH-->
+                        <div style="display:flex; flex-direction: column; align-self: flex-start; width:200px">
+                            <strong style="font-size: 16px; margin: 0 0 5px;">Gene Search</strong>
+                            <div style="display:flex; flex-direction: column; gap:5px">
+                                <div style="display:flex; gap:5px;">
+                                    <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:100%; position:relative;"/>
+                                    <button @click="searchGene(geneToSearch)">
+                                        <svg :style="`display:${!geneLoading?'block':'none'}`" style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
+                                        <div :style="`display:${geneLoading?'block':'none'}`" class="geneLoader"></div>
+                                    </button>
+                                </div>
+                                <div v-if="genesNotFound.length>0" style="display:flex; flex-direction:column; gap:1px; flex: 0 0 auto; max-height:100%; overflow-y: auto;">
+                                    <div v-for="gene in genesNotFound" style="display:flex; gap:5px; width:100%; background:#ff4500; color:white">
+                                        <div style="display:flex; flex:1; align-items:center; padding:0 5px; font-size:12px;">{{gene}} not found.</div>
+                                        <div @click="clearGeneNotFound(gene)" style="width:28px; height: 28px; display:flex; align-items:center; justify-content: center; font-size:18px; line-height:18px; cursor:pointer">×</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--X-AXIS-->
+                        <div>
+                            <div style="margin:0 0 5px">
+                                <div style="font-weight:bold">X-axis</div>
+                            </div>
+                            <research-single-cell-selector 
+                                :data="fields['metadata_labels']"
+                                :displayData="fields['metadata_display_labels']"
+                                layout="dropdown"
+                                :showColor="false"
+                                :selectedField="cellCompositionVars.displayByLabel"
+                                @on-update="selectSegmentBy($event.selectedField, cellCompositionVars.segmentByLabel)"
+                            />
+                        </div>
+                        <!--Y-AXIS-->
+                        <div>
+                            <div style="margin:0 0 5px">
+                                <div style="font-weight:bold">Y-axis</div>
+                            </div>
+                            <research-single-cell-selector 
+                                :data="fields['metadata_labels']"
+                                :displayData="fields['metadata_display_labels']"
+                                layout="dropdown"
+                                :showColor="false"
+                                :selectedField="cellCompositionVars.segmentByLabel || ''"
+                                @on-update="selectSegmentBy(cellCompositionVars.displayByLabel, $event.selectedField)"
+                            />
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; width:100%; align-self:center;">
+                        <div style="display:flex; gap:20px;">
+                            <!--COLOR BY-->
+                            <div v-if="fieldsDisplayList" style="display:flex; flex-direction: column; align-self: flex-start; width:200px; height:400px">
+                                <strong style="font-size: 16px; margin: 0 0 5px;">{{displayLabel(cellCompositionVars.colorByField)}}</strong>
+                                <research-single-cell-selector 
+                                    :data="fields['metadata_labels']"
+                                    :displayData="fields['metadata_display_labels']"
+                                    :selectedField="cellCompositionVars.colorByField"
+                                    layout="list"
+                                    listDirection="vertical"
+                                    listAlignment="start"
+                                    :colors="labelColors"
+                                    @on-update="handleSelectorUpdate($event)"
+                                    @on-hover="handleSelectorHover($event)"
+                                />
+                            </div>
+                            <!--UMAP-->
+                            <div style="display:flex; flex-direction: column; flex: 1">
+                                <strong style="font-size: 16px; margin: 0 0 5px;">UMAP</strong>
+                                <research-umap-plot-gl 
+                                    :group="datasetId"
+                                    :points="coordinates"
+                                    :labels="fields"
+                                    :colors="labelColors"
+                                    :cellTypeField="cellTypeField"
+                                    :colorByField="viewType===0 && cellCompositionVars.colorByField || ''"
+                                    :expression="viewType===1 && expressionData[geneExpressionVars.selectedGene] || []"
+                                    :hoverFields="[]"
+                                    :highlightLabel="cellCompositionVars.highlightLabel"
+                                    :highlightLabels="cellCompositionVars.highlightLabels"
+                                    :width="400"
+                                    :height="400"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <!--CELL COUNTS-->
+                                <div style="display:flex; flex-direction: column; gap:5px">
+                                    <research-stacked-bar-plot
+                                        :data="cellCompositionVars.segmentByCounts2"
+                                        :primaryKey="cellCompositionVars.displayByLabel"
+                                        :subsetKey="cellCompositionVars.segmentByLabel"
+                                        :xAxisLabel="displayLabel(cellCompositionVars.displayByLabel)"
+                                        :yAxisLabel="`${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
+                                        :highlightKey="cellCompositionVars.highlightLabel"
+                                        :normalize="isNormalized"
+                                        :stack="isStacked"
+                                    />
+                                    <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
+                                    <research-single-cell-selector 
+                                        :data="fields['metadata_labels']"
+                                        layout="list"
+                                        listDirection="horizontal"
+                                        listAlignment="start"
+                                        :colors="labelColors"
+                                        :selectedField="cellCompositionVars.segmentByLabel"
+                                        @on-update="handleSelectorUpdate($event)"
+                                        @on-hover="handleSelectorHover($event)"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <!--GENE EXPRESSION-->
+                                <div v-if="geneExpressionVars.expressionStats.length>0" style="display:flex; flex-direction: column; gap:5px">
+                                    <research-violin-plot
+                                        :data="geneExpressionVars.expressionStats"
+                                        :primaryKey="geneExpressionVars.selectedLabel"
+                                        :subsetKey="geneExpressionVars.subsetLabel"
+                                        :highlightKey="cellCompositionVars.highlightLabel"
+                                        :height="300"
+                                        xAxisLabel="Log-Normalized Expression"
+                                        :xAxisLabel="isATACseq ? 'Gene Activity Score' : 'Log-Normalized Expression'"
+                                        :yAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
+                                    />
+                                    <div style="font-size:12px; opacity:0.5">{{ displayLabel(geneExpressionVars.subsetLabel) }}</div>
+                                    <research-single-cell-selector
+                                        :data="fields['metadata_labels']"
+                                        layout="list"
+                                        listDirection="horizontal"
+                                        listAlignment="start"
+                                        :colors="labelColors"
+                                        :selectedField="geneExpressionVars.subsetLabel"
+                                        @on-update="handleSelectorUpdate($event)"
+                                        @on-hover="handleSelectorHover($event)"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    <div>
+                        <research-dot-plot
+                            style="display:flex; align-self: center"
+                            :data="markerGenes || expressionStatsAll"
+                            yKey="cell_type"
+                            xKey="gene"
+                            yLabel="Cell Type"
+                            xLabel="Gene"
+                            :fitToSize="true"
+                            :cellWidth="30"
+                            highlightKey=""
+                        />
+                    </div>
+                </div>
+            </div>
+            
             <div v-if="layout===999" style="display:flex; flex-direction:column; width:100%; background: #f8f8f8; padding: 20px; gap: 20px;">
                 <!--
                 <research-single-cell-info 
@@ -929,6 +1098,8 @@
                 fields: null,   //raw fields
                 coordinates: null,  //raw coordinates
                 markers: null, //raw marker genes
+
+                viewType: 1,
                 
                 tableColumns: ["datasetName", "tissue", "method", "totalCells", { key: 'datasetId', label: 'View' }],
                 currentDatasetsPage: 1,
