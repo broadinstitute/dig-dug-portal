@@ -105,7 +105,7 @@ new Vue({
         return {
             counter: 0,
             byor_tooltips_id: "matkp_tooltips",
-            tooltips: null,
+            tooltips: [],
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
             activeTab: "hugeScorePheWASPlot",
@@ -968,6 +968,14 @@ new Vue({
 
 			return returnData;
 		},
+
+        getTooltip(tooltipId){
+            if (!this.tooltips.find(t => t["ID"] === tooltipId)){
+                return "Tooltip Not Found";
+            }
+            let tooltipItem = this.tooltips.find(t => t["ID"] === tooltipId);
+            return tooltipItem["Content"];
+        }
     },
 
     render(createElement, context) {
