@@ -88,7 +88,7 @@ new Vue({
         },
         async getContent(pageLabel){
           let byorPageId = this.pages[pageLabel]?.page_id || this.fallbackId;
-          let allContent = await getTextContent(byorPageId);
+          let allContent = await getTextContent(byorPageId, false, true);
           this.pageContent = allContent;
         }
     },
