@@ -329,6 +329,25 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
 
                     break;
 
+                case "llm options":
+                    let rowData;
+                    if (c["data fields"] === "all") {
+                        rowData = d
+                    } else {
+
+                        let fieldData = {}
+
+                        c["data fields"].map(F => {
+                            fieldData[F] = d[F]
+                        })
+
+                        rowData = fieldData;
+                    };
+
+                    tempObj[c["field name"]] = JSON.stringify(rowData);
+
+                    break;
+
             }
         })
         return tempObj;

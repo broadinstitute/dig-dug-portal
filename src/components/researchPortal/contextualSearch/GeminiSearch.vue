@@ -4,12 +4,12 @@
             <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Gemini API Interface</h1>
 
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="mb-4">
+                <!--<div class="mb-4">
                     <label for="apiKey" class="block text-sm font-medium text-gray-700 mb-2">API Key:</label>
                     <input type="password" id="apiKey"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your API key">
-                </div>
+                </div>-->
 
                 <div class="mb-4">
                     <label for="model" class="block text-sm font-medium text-gray-700 mb-2">Model:</label>
@@ -77,7 +77,7 @@ export default Vue.component("gemini-search", {
     },
     mounted() {
                document.addEventListener('DOMContentLoaded', () => {
-            const apiKeyInput = document.getElementById('apiKey');
+            //const apiKeyInput = document.getElementById('apiKey');
             const modelSelect = document.getElementById('model');
             const promptType = document.getElementById('type');
             const promptInput = document.getElementById('prompt');
@@ -87,32 +87,73 @@ export default Vue.component("gemini-search", {
             const responseDiv = document.getElementById('response');
 
             submitBtn.addEventListener('click', async () => {
-                const apiKey = apiKeyInput.value.trim();
+                //const apiKey = apiKeyInput.value.trim();
                 const model = modelSelect.value;
                 const type = promptType.value;
                 let contextPrompt;
                 if(type == "sections") {
 
-                    contextPrompt = "You are an expert at understanding the purpose of keys in a JSON object based on their description. Given the following JSON object and a user input, find out what the sentence is about and return the keys of the items meaningful to the sentence. Don't include reasonings but format your response in the following format.\
-                    {'paramters':[parameter1, parameter2...],'keys':[key1, key2...]} \
-                    Do NOT include any markdown formatting, code block markers, or triple backticks in your response. \
-                    If search question is not biology related, return 'Your input is not relevant to this portal.'\
-                    JSON Object:[{key:'pigean_gene','search parameter':'gene','return':'phenotypes associated by a gene. This sections provides access to gene sets associated with the phenotypes.'},{key:'pigean_gene_set_phenotype','search parameter':'pehnotype','return':'Returns genes sets associated with a phenotype.'},{key:'pigean_gene_phenotype','search parameter':'phenotype','return':'Returns genes associated with a phenotype.'},{key:'pigean_gene_set_source','search parameter':'source','return':'Returns phenotypes and gene sets associated phenotypes, by the research program generated the gene sets.'}]\
-                    Search: "
+                    const sectionProfiles = [
+                        {
+                            sectionId:'pigean_gene',
+                            queryKey:'gene',
+                            parameter: null,
+                            return:'phenotypes',
+                            purpose: 'Get phenotypes associated with a gene'
+                        },
+                        {
+                            sectionId:'pigean_gene_set_phenotype',
+                            queryKey:'phenotype',
+                            parameter: null,
+                            return:'genes sets',
+                            purpose: 'Get gene sets associated with a phenotype'
+                        },
+                        {
+                            sectionId:'pigean_gene_phenotype',
+                            queryKey:'phenotype',
+                            parameter: null,
+                            return:'genes',
+                            purpose: 'Get genes associated with a phenotype'
+                        },
+                        {
+                            sectionId:'pigean_gene_set_source',
+                            queryKey:'source',
+                            parameter: null,
+                            return:'gene sets',
+                            purpose: 'Get gene sets curated by a source'
+                        },
+                        {
+                            sectionId:'pigean_gene_set',
+                            queryKey:'geneSet',
+                            parameter: null,
+                            return:'phenotypes',
+                            purpose: 'Get phenotypes associated with a gene set'
+                        },
+                        {
+                            sectionId:'pigean-joined-gene-set',
+                            queryKey:'geneSet',
+                            parameter: null,
+                            return:'genes',
+                            purpose: 'Get genes in a gene set'
+                        }
+                    ]
+
+                    contextPrompt = "You are an expert at understanding the purposes in a JSON object based on their description. Given the following JSON object and a user input, find out what the user provided phrase is about and return the the items meaningful to the user input. For each matching section, infer the appropriate value for the `parameter` field based on the `queryKey`. The `parameter` value should represent the type of information the user is likely searching for based on the `queryKey`. Return the result as a plain JSON array of the matching section objects, with the `parameter` field populated. Sections: "+JSON.stringify(sectionProfiles)+" User query:"
 
                 } else if (type == "genes") {
-                    contextPrompt = "You are a helpful research assistant specialized in biology and genetics. Your task is to identify 10 genes relevant to a user-provided medical condition or a combination of conditions. You must respond exclusively with a JSON array. Each element in the array should be a JSON object containing two keys: 'gene' (the official gene symbol) and 'reason' (a concise biological rationale explaining the gene's relevance to the specified condition(s)). If the user's query is not related to biology or genetics, or if it does not ask for information about medical conditions, you must respond with the following JSON object:\
-                    {'error': 'Your query is asking no biology related question.'}\
-                    Do NOT include any markdown formatting, code block markers, or triple backticks in your response."
+                    contextPrompt = "You are a helpful research assistant specialized in biology and genetics. Your task is to identify 10 genes relevant to a user-provided medical condition or a combination of conditions. You must respond exclusively with a JSON array. Each element in the array should be a JSON object containing two keys: 'gene' (the official gene symbol) and 'reason' (a concise biological rationale explaining the gene's relevance to the specified condition(s)). User query:"
                 } else if (type == "prompt-options") {
-                    contextPrompt = "Given the following data point from a biology research portal: Generate a JSON formatted list of dictionaries, where each dictionary has two keys: 'direction' and 'prompts'. The 'direction' key should describe the category of the research questions, and the 'prompts' key should contain a list of specific research questions (prompts) that could be used to further explore the relationships and information presented in the data. Do not include any markdown formatting in your response."
+                    contextPrompt = "Given the following data point from a biology research portal: Generate a JSON formatted list of dictionaries, where each dictionary has two keys: 'direction' and 'prompts'. The 'direction' key should describe the category of the research questions, and the 'prompts' key should contain a list of specific research questions (prompts) that could be used to further explore the relationships and information presented in the data. User query:"
                 }
-                const prompt = contextPrompt + promptInput.value.trim();
 
-                if (!apiKey) {
+                const onlyJson = "Do NOT include any markdown formatting, code block markers, or triple backticks in your response. If the user's query is not related to biology or genetics, or if it does not ask for information about medical conditions, you must respond with the following JSON object: {'error': 'That's an interesting direction! However, this portal is specifically designed to explore data related to researches in biology. Your prompt seems to fall outside of that scope.'}"
+
+                const prompt = contextPrompt + promptInput.value.trim()+onlyJson;
+
+                /*if (!apiKey) {
                     alert('Please enter your API key');
                     return;
-                }
+                }*/
 
                 if (!prompt) {
                     alert('Please enter a prompt');
@@ -130,7 +171,7 @@ export default Vue.component("gemini-search", {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            api_key: apiKey,
+                            api_key: "apiKey",
                             model: model,
                             prompt: prompt,
                             stream: streamCheckbox.checked

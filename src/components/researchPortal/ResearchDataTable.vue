@@ -273,6 +273,34 @@
 											</button>
 										</span>
 								</span>
+
+								<span v-else-if="!!ifLlmOptionsSectionColumn(tdKey)"
+									class="dynamic-subsection-options">
+										<span class="btns-wrapper">
+											<button class="btn btn-sm show-evidence-btn set-search-btn" 
+												:data-id="getRowID(tdKey + getIdField(tdKey,index) + index)"
+												:class="{
+													'loaded-subsection' : !!ifSubsectionData(sanitizeKey(tdKey + getIdField(tdKey,index) + index)),
+													'loading-subsection' : !!ifSubsectionLoading(sanitizeKey(tdKey + getIdField(tdKey,index) + index))
+												}"
+												@click="getLLMResponse(tdValue, tdKey, index)" 
+											>
+												<span>{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : 'LLM options' }}</span>
+											</button>
+										</span>
+								</span>
+
+								<!--
+								<span v-else-if="!!ifLlmOptionsSectionColumn(tdKey)"
+											class="dynamic-subsection-options">
+											<span class="btns-wrapper">
+												<button class="btn btn-sm show-evidence-btn set-search-btn"
+													:class="!!ifSubsectionData(sanitizeKey(tdKey + 'llm_options_' + index))?'loaded-subsection':''"
+													@click="getSubsectionData(tdValue, tdKey, index)" >
+												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : 'LLM options' }}</button>
+											</span>
+									</span>
+								-->
 								
 								<span v-else v-html="formatValue(tdValue, tdKey, value)"></span>
 
@@ -325,6 +353,16 @@
 												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
 											</span>
 									</span>
+									<span v-else-if="!!ifLlmOptionsSectionColumn(tdKey)"
+											class="dynamic-subsection-options">
+											<span class="btns-wrapper">
+												<button class="btn btn-sm show-evidence-btn set-search-btn"
+													:class="!!ifSubsectionData(sanitizeKey(tdKey + getIdField(tdKey,index) + index))?'loaded-subsection':''"
+													@click="getLLMResponse(tdValue, tdKey, index)" >
+												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : 'LLM options' }}</button>
+											</span>
+									</span>
+									
 									<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
 							</td>
 						</template>
@@ -400,6 +438,16 @@
 							</research-byogl-section>
 						</td>
 					</tr>
+
+					<!-- testing llm options table-->
+					<tr v-if="itemValue.type.includes('llm options') && !!ifSubsectionData(sanitizeKey(itemKey + getIdField(itemKey,index) + index))" class="dynamic-sub-section" :class="getRowID(itemKey + getIdField(itemKey,index) + index) + ' '+ ifHidden(sanitizeKey(itemKey + getIdField(itemKey,index) + index))" :key="value[itemKey]"
+					>
+						<td :colspan="topRowNumber">
+							<research-llm-options-section
+							:subSectionData="collectSubsectionData(sanitizeKey(itemKey + getIdField(itemKey,index) + index))">
+							</research-llm-options-section>
+						</td>
+					</tr>
 					</template>
 				</template>
 			</tbody>
@@ -430,6 +478,7 @@ import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataT
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
 import ResearchByoglSection from "@/components/researchPortal/ResearchByoglSection.vue";
+import ResearchLlmOptionsSection from "@/components/researchPortal/ResearchLlmOptionsSection.vue";
 
 export default Vue.component("research-data-table", {
 	props: [
@@ -469,7 +518,7 @@ export default Vue.component("research-data-table", {
 		};
 	},
 	modules: {},
-	components: { ResearchDataTableFeatures, ResearchSummaryPlot, ResearchSubSection, ResearchByoglSection },
+	components: { ResearchDataTableFeatures, ResearchSummaryPlot, ResearchSubSection, ResearchByoglSection, ResearchLlmOptionsSection },
 	created() {},
 	beforeMount() {},
 
@@ -976,6 +1025,92 @@ export default Vue.component("research-data-table", {
 				}
 			}
 		},
+
+		getIdField(KEY,INDEX) {
+			
+			const keyField = this.tableFormat['column formatting'][KEY]['key field'];
+			//console.log("keyField", keyField);
+			//console.log("this.rawData[INDEX]", this.rawData[INDEX]);
+			return this.rawData[INDEX][keyField];
+		},
+
+		async getLLMResponse(VALUE,KEY,INDEX) {
+			//console.log(VALUE,KEY,INDEX);
+
+			let fKEY = this.getRowID(KEY + this.getIdField(KEY,INDEX) + INDEX)
+
+			let ifLoadedBefore = this.ifSubsectionData(this.sanitizeKey(KEY + this.getIdField(KEY,INDEX) + INDEX));
+
+			//console.log("ifLoadedBefore",ifLoadedBefore);
+
+			
+
+			if(ifLoadedBefore != true) {
+
+				this.subSectionLoading.push(fKEY); //start loading
+
+				const model = "gemini-2.0-flash";
+				const userProfile = "";
+				const contextPrompt = "Given the following data point from a biology research portal: Generate a JSON formatted list of dictionaries, where each dictionary has two keys: 'direction' and 'prompts'. The 'direction' key should describe the category of the research questions, and the 'prompts' key should contain a list of specific research questions (prompts) that could be used to further explore the relationships and information presented in the data. User query:"
+				const onlyJson = "Do NOT include any markdown formatting, code block markers, or triple backticks in your response. If the user's query is not related to biology or genetics, or if it does not ask for information about medical conditions, you must respond with the following JSON object: {'error': 'That is an interesting direction! However, this portal is specifically designed to explore data related to researches in biology. Your prompt seems to fall outside of that scope.'}"
+
+				const prompt = userProfile + contextPrompt + VALUE.trim()+onlyJson;
+
+				try {
+
+					// Show loading indicator
+
+					const response = await fetch('http://localhost:3000/api/generate', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							api_key: "apiKey",
+							model: model,
+							prompt: prompt,
+							stream: false
+						})
+					});
+
+					const data = await response.json();
+
+					if (!response.ok) {
+						throw new Error(data.error || 'Failed to generate response');
+					}
+
+					// Display the response
+					//console.log(data.response);
+					let tempObj = {
+						key: fKEY,
+						data: JSON.parse(data.response)
+					}
+
+					this.subSectionData.push(tempObj);
+
+					this.subSectionLoading.splice(this.subSectionLoading.indexOf(fKEY), 1); //finish loading
+
+				} catch (error) {
+					console.log(error.message);
+				} finally {
+					// Hide loading indicator
+				}
+
+			} else {
+
+				this.utils.uiUtils.showHideElement(fKEY);
+
+				let elementClassList = document.getElementsByClassName(fKEY)[0].classList;
+
+				if(!!elementClassList.contains("hidden")) {
+					this.subSectionHidden.push(fKEY);
+				} else {
+					this.subSectionHidden = this.subSectionHidden.filter(s => s != fKEY);
+				}
+
+			}
+
+		},
 		
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
@@ -1207,8 +1342,16 @@ export default Vue.component("research-data-table", {
 				return null;
 			}
 		},
+		ifLlmOptionsSectionColumn(KEY) {
+			if (!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+				&& !!this.tableFormat['column formatting'][KEY]['type'].includes('llm options')) {
+				return true;
+			} else {
+				return null;
+			}
+		},
 		getParameterColumnLabel(KEY){
-			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY) || !!this.ifByoglSectionColumn(KEY)) {
+			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY) || !!this.ifByoglSectionColumn(KEY) || !!this.ifLlmOptionsSectionColumn(KEY)) {
 				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
 				return label;
 			} else {
