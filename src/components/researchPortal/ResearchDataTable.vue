@@ -1052,7 +1052,7 @@ export default Vue.component("research-data-table", {
 				const model = "gemini-2.0-flash";
 				const userProfile = "";
 				const contextPrompt = "Given the following data point from a biology research portal: Generate a JSON formatted list of dictionaries, where each dictionary has two keys: 'direction' and 'prompts'. The 'direction' key should describe the category of the research questions, and the 'prompts' key should contain a list of specific research questions (prompts) that could be used to further explore the relationships and information presented in the data. User query:"
-				const onlyJson = "Do NOT include any markdown formatting, code block markers, or triple backticks in your response. If the user's query is not related to biology or genetics, or if it does not ask for information about medical conditions, you must respond with the following JSON object: {'error': 'That is an interesting direction! However, this portal is specifically designed to explore data related to researches in biology. Your prompt seems to fall outside of that scope.'}"
+				const onlyJson = "Do NOT include any markdown formatting, code block markers, or triple backticks in your response. If the user's query is not related to biology, genetics, computational biology, rare disease researcher, common disease researcher, animal modeling, drug discovery, you must respond with the following JSON object: {'error': 'That is an interesting direction! However, this portal is specifically designed to explore data related to researches in biology. Your prompt seems to fall outside of that scope.'}"
 
 				const prompt = userProfile + contextPrompt + VALUE.trim()+onlyJson;
 
