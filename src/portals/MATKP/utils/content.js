@@ -1,3 +1,5 @@
+import dataConvert from "@/utils/dataConvert";
+
 const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id="
 
 export async function getTextContent(contentId, getBody=false, getAll=false){
@@ -7,5 +9,12 @@ export async function getTextContent(contentId, getBody=false, getAll=false){
   if (jsonContent.length === 0){
     return null;
   }
-  return jsonContent[0]; 
+  if (getBody){
+    return jsonContent[0].body;
+  }
+  if (getAll){
+    return jsonContent[0];
+  }
+  let csvContent = jsonContent[0].field_data_points;
+  return dataConvert.csv2Json(csvContent);
 }

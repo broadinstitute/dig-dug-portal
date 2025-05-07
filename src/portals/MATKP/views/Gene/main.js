@@ -6,6 +6,7 @@ import _ from "lodash";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
+import { getTextContent } from "@/portals/MATKP/utils/content";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -103,6 +104,8 @@ new Vue({
     data() {
         return {
             counter: 0,
+            byor_tooltips_id: "matkp_tooltips",
+            tooltips: null,
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
             activeTab: "hugeScorePheWASPlot",
@@ -782,7 +785,9 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
+        this.tooltips = await getTextContent(this.byor_tooltips_id);
+        console.log(JSON.stringify(this.tooltips.map(item => item["ID"])));
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
