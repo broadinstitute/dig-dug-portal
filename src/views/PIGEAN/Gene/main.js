@@ -171,14 +171,7 @@ new Vue({
             return this.pigeanPhenotypeMap;
         },
         phewasAllData(){
-            let allData = structuredClone(this.$store.state.phewasData);
-            /* for (let i = 0; i < allData.length; i++){
-                allData[i]["phenotypeDesc"] = 
-                    this.pigeanPhenotypeMap[allData[i].phenotype] !== undefined ?
-                    this.pigeanPhenotypeMap[allData[i].phenotype] :
-                    allData[i].phenotype;
-            } */
-            return allData;
+            return this.$store.state.phewasData;
         },
         hoverDotsToPigean(){
             return this.dotsToPigean;

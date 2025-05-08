@@ -135,6 +135,7 @@
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.tableConfig"
                                 :filter="filter"
+                                :phenotypeMap="$parent.pigeanMap"
                             >
                             </pigean-table>
                         </template>
@@ -187,6 +188,7 @@
                                 v-if="$parent.plotReady"
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetTableConfig"
+                                :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
                             >
                             </pigean-table>
