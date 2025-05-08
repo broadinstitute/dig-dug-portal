@@ -262,12 +262,12 @@ export default Vue.component("pigean-table", {
                         {{ r.item.gene }}
                     </a>
                 </template>
-                <template #cell(phenotype)="r">
+                <template #cell(phenotypeDesc)="r">
                     <a
                         v-if="!!phenotypeMap[r.item.phenotype]"
                         :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
                     >
-                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+                        {{ phenotypeFormatter(r.item.phenotypeDesc) }}
                     </a>
                     <span v-else>{{ r.item.phenotype }}</span>
                 </template>

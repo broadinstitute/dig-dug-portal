@@ -51,7 +51,7 @@ new Vue({
             ],
             tableConfig: {
                 fields: [
-                    { key: "phenotype", label: "Phenotype", sortable: true },
+                    { key: "phenotypeDesc", label: "Phenotype", sortable: true },
                     { key: "label", label: "Factor label", sortable: true},
                     {
                         key: "combined",
@@ -171,7 +171,16 @@ new Vue({
             return this.pigeanPhenotypeMap;
         },
         phewasAllData(){
-            return this.$store.state.phewasData;
+            let suspiciousData = this.pigeanPhenotypeMap['SleepInsomnia_add'];
+            console.log(`The phenotype is${suspiciousData}`);
+            let allData = structuredClone(this.$store.state.phewasData);
+            for (let i = 0; i < allData.length; i++){
+                allData[i]["phenotypeDesc"] = 
+                    this.pigeanPhenotypeMap[allData[i].phenotype] !== undefined ?
+                    this.pigeanPhenotypeMap[allData[i].phenotype] :
+                    allData[i].phenotype;
+            }
+            return allData;
         },
         hoverDotsToPigean(){
             return this.dotsToPigean;
