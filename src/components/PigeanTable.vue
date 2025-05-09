@@ -186,7 +186,9 @@ export default Vue.component("pigean-table", {
             return a / (1 + a);
         },
         computeProbabilities() {
-            let data = structuredClone(this.pigeanData);
+            let data = this.isSubtable 
+                ? this.pigeanData 
+                : this.describePhenotypes(this.pigeanData);
             for (let i = 0; i < this.config.fields.length; i++) {
                 let fieldConfig = this.config.fields[i];
                 if (!fieldConfig.showProbability) {
@@ -215,6 +217,21 @@ export default Vue.component("pigean-table", {
                 allFields.push(field);
             });
             return allFields;
+        },
+        describePhenotypes(data){
+            let inputData = structuredClone(data);
+            for (let i = 0; i < inputData.length; i++){
+                if (!inputData[i].phenotype){
+                    continue;
+                }
+                let desc = this.phenotypeMap[inputData[i].phenotype];
+                if (desc === undefined){
+                    desc = { phenotype_name : inputData[i].phenotype}
+                }
+                let phenotypeDesc = desc.phenotype_name.trim();
+                inputData[i]["phenotypeDesc"] = phenotypeDesc;
+            }
+            return inputData;
         },
         hideLocusButton(phenotype){
             if (!!this.phenotypeMap){
@@ -262,12 +279,12 @@ export default Vue.component("pigean-table", {
                         {{ r.item.gene }}
                     </a>
                 </template>
-                <template #cell(phenotype)="r">
+                <template #cell(phenotypeDesc)="r">
                     <a
                         v-if="!!phenotypeMap[r.item.phenotype]"
                         :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
                     >
-                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+                        {{ r.item.phenotypeDesc }}
                     </a>
                     <span v-else>{{ r.item.phenotype }}</span>
                 </template>
