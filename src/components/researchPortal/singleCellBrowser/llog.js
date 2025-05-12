@@ -8,10 +8,10 @@
 */
 
 const params = new URLSearchParams(window.location.search);
-const isLoggingEnabled = params.get("log") === "1";
+const isLoggingEnabled = params.get("dev") === "1";
 
 if(!isLoggingEnabled){
-    console.log('single-cell logging disabled, add log=1 to url to enable');
+    console.log('single-cell logging disabled, add dev=1 to url to enable');
 }
 
 export function llog(...args) {

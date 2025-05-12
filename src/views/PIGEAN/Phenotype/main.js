@@ -307,13 +307,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        plotReady() {
-            return (
-                this.$store.state.genesetPhenotype.data.length > 0 &&
-                this.$store.state.pigeanPhenotype.data.length > 0 &&
-                Object.keys(this.pigeanPhenotypeMap).length > 0
-            );
-        },
         heatmapData() {
             return this.filterHeatmapData(this.heatmapMaxP);
         },

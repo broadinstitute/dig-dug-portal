@@ -1,15 +1,5 @@
 <template>
-    <div ref="chartWrapper">
-        <div ref="controls" v-if="subsetKey" style="display: flex; gap: 10px; justify-content: flex-end; padding:0 10px">
-            <div class="plot-toggle" @click="isNormalized = !isNormalized" v-if="isStacked">
-                <div class="plot-toggle-btn" :class="`${isNormalized?'':'toggled'}`">count</div>
-                <div class="plot-toggle-btn" :class="`${isNormalized?'toggled':''}`">pct.</div>
-            </div>
-            <div class="plot-toggle" @click="isStacked = !isStacked">
-                <div class="plot-toggle-btn" :class="`${isStacked?'':'toggled'}`">group</div>
-                <div class="plot-toggle-btn" :class="`${isStacked?'toggled':''}`">stack</div>
-            </div>
-        </div>
+    <div ref="chartWrapper" style="width:100%; position:relative; overflow-x:hidden;">
         <div ref="chart"></div>
     </div>
   </template>
@@ -34,18 +24,21 @@
         type: String,
         required: false,
       },
+      facetKey: {
+        type: String,
+        required: false,
+      },
       highlightKey: {                   //label to highlight
         type: String,
         required: false,
       },
       normalize: {                      //normalize values as %
         type: Boolean,
-        default: false,
+        default: false
       },
-      barType:{                         //the way the bars are rendered when subset
-        type: String,
-        default: 'grouped',             //'group'=side by side, 'stacked'=on top of eachother
-        required: false,
+      stack:{                         //applied with subsetKey
+        type: Boolean,
+        default: false
       },
       height: {
         type: Number,
@@ -58,6 +51,10 @@
       yAxisLabel: {
         type: String,
         required: false,
+      },
+      range: {
+        type: Array,
+        required: false
       }
     },
     data() {
@@ -65,22 +62,19 @@
             isNormalized: false,
             isStacked: false,
             eventElements: [],
+            resizeTimeout: null,
         }
     },
     watch: {
         data() {
             this.drawChart();
         },
-        barType() {
+        stack() {
+            this.isStacked = this.stack;
             this.drawChart();
         },
         normalize() {
-            this.drawChart();
-        },
-        isNormalized() {
-            this.drawChart();
-        },
-        isStacked() {
+            this.isNormalized = this.normalize;
             this.drawChart();
         },
         highlightKey(newVal, oldVal) {
@@ -95,19 +89,25 @@
         }else{
             llog('no data');
         }
-        //window.addEventListener('resize', this.handleResize);
+        window.addEventListener('resize', this.handleResize);
     },
     beforeDestroy() {
-        //window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener('resize', this.handleResize);
         if(this.eventElements.length>0) {
             this.removeAllListeners(this.eventElements);
         }
     },
     methods: {
         handleResize(){
-            this.drawChart();
+            clearTimeout(this.resizeTimeout);
+            //d3.select(this.$refs.chart).html('');
+            d3.select(this.$refs.chart).style('position', 'absolute');
+            this.resizeTimeout = setTimeout(() => {
+                this.drawChart();
+            }, 100);
         },
         drawChart() {
+            d3.select(this.$refs.chart).style('position', 'relative');
             llog("---StackedBar Plot");
             llog("   data", this.data);
 
@@ -123,8 +123,15 @@
             
             const primaryKey = this.primaryKey;
             const subsetKey = this.subsetKey;
+            const facetKey = this.facetKey;
             const hasSubsetKey = subsetKey && subsetKey!='';
+            const hasFacetKey = facetKey && facetKey!='';
             const primaryKeys = Array.from(new Set(this.data.map((d) => d[primaryKey])));
+            this.isNormalized = this.normalize;
+            this.isStacked = this.stack;
+
+            //clear rendering
+            d3.select(this.$refs.chart).html('')
 
             //pre-render x-axis labels to get the their max height
             //this way we can ensure long labels dont get cut off at the bottom
@@ -155,30 +162,38 @@
             let plotWidth = width - margin.left - margin.right - labels.xAxis;
             let plotHeight = height - margin.top - margin.bottom - labels.yAxis;
 
+            this.$refs.chartWrapper.style.height = height+'px';
+
             llog('dimentions', {width, height, plotWidth, plotHeight, margin, labels});
 
             //if we have subsetKey
             //calculate the totals for each primaryKey
             let primaryCounts = [];
-            if(hasSubsetKey){
+            //if(hasSubsetKey){
                 const counts = {};
                 this.data.forEach(item => {
                     if (!counts[item[primaryKey]]) counts[item[primaryKey]] = 0;
                     counts[item[primaryKey]] += item.count;
                 });
                 primaryCounts = Object.entries(counts).map(([primaryLabel, count]) => ({ [primaryKey]:primaryLabel, count }));
-            }
+            //}
             
+            
+
+            const primarySum = d3.sum(primaryCounts, (d) => d.count);
+
             llog('primaryCounts', primaryCounts);
+            llog('primarySum', primarySum);
 
             const min = 0;
-            const max = d3.max(this.data, (d) => d.count);
+            const max = this.range ? this.range[1] : d3.max(this.data, (d) => d.count);
 
             const minPrimary = 0;
             const maxPrimary = d3.max(primaryCounts, (d) => d.count);
 
             const svg = d3.select(this.$refs.chart)
                 .append('svg')
+                .attr("id", 'sc_stacked_bar_plot')
                 .attr('width', width)
                 .attr('height', height)
 
@@ -186,6 +201,7 @@
             if(this.xAxisLabel){
                 const label = svg.append('g')
                     .append('text')
+                    .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
                     .attr('class', 'chart-label')
                     .text(this.xAxisLabel)
                     const bbox = label.node().getBBox();
@@ -195,6 +211,7 @@
             if(this.yAxisLabel){
                 const label = svg.append('g')
                     .append('text')
+                    .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
                     .attr('class', 'chart-label')
                     .text(this.yAxisLabel)
                     const bbox = label.node().getBBox();
@@ -218,10 +235,16 @@
             
 
             // x scale
-            const x = d3.scaleBand()
+            let x = d3.scaleBand()
                 .domain(domain)
                 .range([5, plotWidth])
                 .padding(0);
+            if(this.isStacked){
+                x = d3.scaleBand()
+                    .domain([primaryKey])
+                    .range([5, plotWidth])
+                    .padding(0);
+            }
 
             let x2;
             if(hasSubsetKey){
@@ -232,10 +255,22 @@
             }
 
             // y scale
-            const y = d3.scaleLinear()
+            let y = d3.scaleLinear()
                 .domain([min, max])
                 .range([plotHeight, 0])
                 .nice();
+            if(this.isStacked){
+                y = d3.scaleLinear()
+                .domain([0, primarySum])
+                .range([plotHeight, 0])
+                .nice(false)
+            }
+            if(this.isNormalized){
+                y = d3.scaleLinear()
+                .domain([0, 100])
+                .range([plotHeight, 0])
+                .nice()
+            }
 
             let y2;
             if(hasSubsetKey){
@@ -271,7 +306,6 @@
                         .attr('fill', i % 2 ? '#fff' : '#eee')
                 })
             }
-
 
             if(hasSubsetKey){
                 if(this.isStacked){
@@ -316,19 +350,21 @@
                     //draw the bars
                     this.data.forEach((entry) => {
                         const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
+                        const primaryVal = primaryCounts.find(obj => obj[primaryKey] === entry[primaryKey]).count;
+                        const entryVal = this.isNormalized ? (entry.count / primaryVal) * 100 : entry.count;
 
                         const bar = plot.append("rect")
                             .attr("x", xCenter - boxWidth / 2)
-                            .attr("y", y(entry.count))
+                            .attr("y", y(entryVal))
                             .attr("width", boxWidth)
-                            .attr("height", plotHeight -  y(entry.count))
+                            .attr("height", plotHeight -  y(entryVal))
                             .attr("fill", entry.color)
                             .attr('class', 'bar')
                             .attr('data-label', `${entry[primaryKey]},${entry[subsetKey]}`)
 
                         const barNode = bar.node();
-
-                        this.addListener(barNode, entry);
+                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: ((entry.count / primaryVal) * 100).toFixed(2)+'%'}}
+                        this.addListener(barNode, entryInfo);
                     });
                 }
                 
@@ -336,22 +372,51 @@
                 //primaryKey only
                 const boxWidth = x.bandwidth() * 0.6;
 
-                //draw bars
-                this.data.forEach((entry) => {
-                    const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
+                if(this.isStacked){
+                    let lastCount = 0;
+                    this.data.forEach(entry => {
+                        const subCount = this.isNormalized ? (entry.count / primarySum) * 100 : entry.count;
+                        const subHeight = y(0) - y(subCount);
+                        const subY = y(lastCount + subCount);
+                        const xCenter = x(primaryKey) + x.bandwidth() / 2;
 
-                    const bar = plot.append("rect")
-                        .attr("x", xCenter - boxWidth / 2)
-                        .attr("y", y(entry.count))
-                        .attr("width", boxWidth)
-                        .attr("height", plotHeight -  y(entry.count))
-                        .attr("fill", entry.color)
-                        .attr('class', 'bar')
-                        .attr('data-label', `${entry[primaryKey]}`)
+                        const bar = plot.append("rect")
+                            .attr("x", xCenter - boxWidth / 2)
+                            .attr("y", subY)
+                            .attr("width", boxWidth)
+                            .attr("height", subHeight)
+                            .attr("fill", entry.color)
+                            .attr('class', 'bar')
+                            .attr('data-label', `${entry[primaryKey]},${entry[subsetKey]}`)
+                        
+                        const barNode = bar.node();
+                        //add pct value to entry for hover
+                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: ((entry.count / primarySum) * 100).toFixed(2)+'%'}}
+                        this.addListener(barNode, entryInfo);
 
-                    const barNode = bar.node();
-                    this.addListener(barNode, entry);
-                });
+                        lastCount += subCount;
+                    });
+                }else{
+                    //draw bars
+                    this.data.forEach((entry) => {
+                        const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
+                        const entryVal = this.isNormalized ? (entry.count / primarySum) * 100 : entry.count;
+    
+                        const bar = plot.append("rect")
+                            .attr("x", xCenter - boxWidth / 2)
+                            .attr("y", y(entryVal))
+                            .attr("width", boxWidth)
+                            .attr("height", plotHeight -  y(entryVal))
+                            .attr("fill", entry.color)
+                            .attr('class', 'bar')
+                            .attr('data-label', `${entry[primaryKey]}`)
+    
+                        const barNode = bar.node();
+                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: ((entry.count / primarySum) * 100).toFixed(2)+'%'}}
+                        this.addListener(barNode, entryInfo);
+                    });
+                }
+
             }
         },
         addListener(el, entry){
@@ -424,27 +489,13 @@
   ::v-deep .chart-label{
     font-size:12px;
     opacity:0.5;
+    font-family: inherit;
   }
   ::v-deep .plot.highlighting .bar{
     opacity: 0.2;
   }
   ::v-deep .plot.highlighting .bar.on{
     opacity: 1;
-  }
-  .plot-toggle {
-    display: flex;
-    background: #ddd;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    width: min-content;
-    cursor: pointer;
-  }
-  .plot-toggle-btn {
-    padding: 0 5px;
-    border-radius: 10px;
-  }
-  .plot-toggle-btn.toggled {
-    background: white;
   }
   </style>
   
