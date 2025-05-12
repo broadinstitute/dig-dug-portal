@@ -313,6 +313,7 @@ export default Vue.component('research-single-cell-selector', {
             });
         },
         displayLabel(rawLabel){
+            return rawLabel;
             if(this.displayData?.[rawLabel]){
                 return this.displayData[rawLabel];
             }else{

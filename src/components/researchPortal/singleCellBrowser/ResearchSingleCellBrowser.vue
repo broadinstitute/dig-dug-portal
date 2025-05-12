@@ -15,8 +15,8 @@
                     :per-page="datasetsPerPage"
                 ></b-pagination>
             </div>
-            <b-table v-if="filteredMetadata"
-                :items="filteredMetadata"
+            <b-table v-if="singleCellMetadata"
+                :items="singleCellMetadata"
                 :fields="tableColumns"
                 striped
                 hover
@@ -437,7 +437,7 @@
 
                 <div style="display:flex; gap:25px">
                     <!-- marker genes-->
-                    <div v-if="markers && showMarkerGenes && (markerGenes || expressionStatsAll.length>0)" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
+                    <div v-if="markers && (markerGenes || expressionStatsAll.length>0)" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
                         <div style="display:flex; flex-direction: column; gap:20px; min-width: 50%;">
                             <div style="display:flex; justify-content: space-between;">
                                 <div style="display:flex; flex-direction: column;">
@@ -687,6 +687,23 @@
                             </div>
                         </div>
                         <div>
+                            <div style="display:flex; gap:20px; align-items: center; justify-content: space-between;">
+                                <div style="display:flex; gap:10px; height: fit-content">
+                                    <div class="plot-toggle" @click="isStacked = !isStacked">
+                                        <div class="plot-toggle-btn" :class="`${isStacked?'':'toggled'}`">group</div>
+                                        <div class="plot-toggle-btn" :class="`${isStacked?'toggled':''}`">stack</div>
+                                    </div>
+                                    <div class="plot-toggle" @click="isNormalized = !isNormalized">
+                                        <div class="plot-toggle-btn" :class="`${isNormalized?'':'toggled'}`">count</div>
+                                        <div class="plot-toggle-btn" :class="`${isNormalized?'toggled':''}`">pct.</div>
+                                    </div>
+                                </div>
+                                <download-chart 
+                                    class="download"
+                                    chartId="sc_stacked_bar_plot"
+                                    style="width: 125px; align-self: flex-end;"
+                                />
+                            </div>
                             <div>
                                 <!--CELL COUNTS-->
                                 <div style="display:flex; flex-direction: column; gap:5px">
@@ -1094,6 +1111,7 @@
                 },
 
                 allMetadata: null, //raw metadata for all datasets
+                singleCellMetadata: null, //raw metadata filtered for single-cell datasets
                 metadata: null, //raw metadata for current dataset
                 fields: null,   //raw fields
                 coordinates: null,  //raw coordinates
@@ -1106,13 +1124,7 @@
                 totalDatasets: null,
                 datasetsPerPage: 3,
 
-                componentsConfig: null,
                 presetsConfig: null,
-
-                showCellInfo: true,
-                showCellProportion: true,
-                showGeneExpression: true,
-                showMarkerGenes: true,
 
                 datasetId: null,
                 cellTypeField: null,
@@ -1281,15 +1293,6 @@
                 })
 
                 return bi;
-            },
-            filteredMetadata() {
-                if(!this.allMetadata){
-                    return;
-                }
-                if(this.allMetadata[0].data_type){
-                    return this.allMetadata.filter(item => item.data_type === 'single_cell');
-                }
-                return this.allMetadata;
             }
         },
         methods: {
@@ -1325,14 +1328,6 @@
                 }
             },
             async init(){
-                //check which components to enable based on config options
-                //all are enabled by default if not set
-                this.componentsConfig = this.renderConfig["components"];
-                this.showCellInfo = this.componentsConfig?.["cell info"]?.enabled ?? true;
-                this.showCellProportion = this.componentsConfig?.["cell proportion"]?.enabled ?? true;
-                this.showGeneExpression = this.componentsConfig?.["gene expression"]?.enabled ?? true;
-                this.showMarkerGenes = this.componentsConfig?.["marker genes"]?.enabled ?? true;
-
                 this.presetsConfig = this.renderConfig["presets"];
 
                 const givenLayout = keyParams["layout"];
@@ -1364,6 +1359,7 @@
                 
                 this.dataLoaded = false;
                 this.preloadItem = 'metadata';
+
                 //fetch metadata
                 const metadataEnpoint = this.selectedBI+this.BIendpoints.metadata;
                 this.allMetadata = await scUtils.fetchMetadata(metadataEnpoint);
@@ -1372,25 +1368,29 @@
                     return;
                 }
                 llog('allMetadata', this.allMetadata);
-                this.totalDatasets = this.filteredMetadata.length;
-                llog('filteredMetadata', this.filteredMetadata);
 
-                //metadata
-                
-                //const metadataUrl = this.renderConfig["data points"].find(x => x.role === "metadata");
-                //const metadataEnpoint = this.selectedBI+this.BIendpoints.metadata;
-                //this.allMetadata = await scUtils.fetchMetadata(metadataEnpoint);
-                //llog('addMetadata', this.allMetadata);
-                if(this.allMetadata){
-                    this.metadata = this.allMetadata.find(x => x.datasetId === this.datasetId);
-                    llog('metadata', this.metadata);
-                    this.totalCells = this.metadata.totalCells;
+                this.singleCellMetadata = function() {
+                    if (this.allMetadata[0]?.data_type) {
+                        return this.allMetadata.filter(item => item.data_type === 'single_cell');
+                    }
+                    return this.allMetadata;
+                };
+
+                llog('singleCellMetadata', this.singleCellMetadata);
+
+                this.metadata = this.allMetadata.find(x => x.datasetId === this.datasetId);
+
+                if(!this.metadata){
+                    llog(this.datasetId, 'not available in this collection');
+                    return;
                 }
-                
+                llog('datasetMetadata', this.metadata);
+
+                this.totalDatasets = this.singleCellMetadata.length;
+                this.totalCells = this.metadata.totalCells;
 
                 //fields
                 this.preloadItem = 'fields';
-                //const fieldsUrl = this.renderConfig["data points"].find(x => x.role === "fields");
                 const fieldsEnpoint = this.selectedBI+this.BIendpoints.fields;
                 this.fields = await scUtils.fetchFields(fieldsEnpoint, this.datasetId);
                 if(this.fields){
@@ -1422,8 +1422,6 @@
                     -"searched genes", "marker genes"
 
                 -dotpot
-                    -view as table
-                    -save dot plot 
                     -include other stats in hover (p-value, z-score, etc)
                     -add ability to click on genes from dot plot
                     -hovering cell type in dot plot should highlight umap, bar and violin
@@ -1686,6 +1684,7 @@
             },
 
             displayLabel(rawLabel){
+                return rawLabel;
                 if(this.fields['metadata_display_labels']?.[rawLabel]){
                     return this.fields['metadata_display_labels'][rawLabel];
                 }else{
