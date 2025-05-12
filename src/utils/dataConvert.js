@@ -138,7 +138,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
                             }
                         }
 
-                        tempObj[c["field name"]] = subRow[c["raw field"]];
+                        tempObj[c["field name"]] = (!!subRow && !!subRow[c["raw field"]]) ? subRow[c["raw field"]] : null;
                     }
 
                     break;
