@@ -31,6 +31,12 @@ new Vue({
                     sortable: false,
                 },
                 {
+                    key: "allele",
+                    label: "Allele(REF/ALT)",
+                    sortable: false,
+                    tdClass: "",
+                },
+                {
                     key: "dbSNP",
                     label: "dbSNP",
                     sortable: false,
@@ -41,6 +47,14 @@ new Vue({
                     label: "Consequence",
                     sortable: false,
                     tdClass: "",
+                    formatter: (value) => value.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+                },
+                {
+                    key: "nearest",
+                    label: "Closest Genes",
+                    sortable: false,
+                    tdClass: "",
+                    formatter: (value) => Array.isArray(value) ? value.join(', ') : ''
                 },
                 {
                     key: "pValue",
@@ -48,9 +62,19 @@ new Vue({
                     sortable: true,
                     tdClass: "",
                 },
+                {
+                    key: "beta",
+                    label: "Beta",
+                    sortable: false,
+                    tdClass: "",
+                },
                 
             ],
             currPage: 1,
+            currSort: {
+                sortBy: "pValue",
+                sortDesc: false,
+            },
         };
     },
 
@@ -60,17 +84,19 @@ new Vue({
     computed: {
         totalRows() {
             return this.tableData?.length || 0;
+        },
+        tablePhenotype() {
+            return this.tableData?.[0].phenotype || '';
         }
     },
 
     mounted() {},
 
     created() {
-        //this.fetchData();
+        this.fetchData();
     },
     methods: {
         async fetchData() {
-            //this is just a stub for now, update when needed.
             const bi = "https://sysbio.hugeampkpnbi.org/api/bio/query/dataset-associations"
             const limit = 500;
             const dataset = "SysBio_Nalls2025_ADvPD_EU";
@@ -79,7 +105,7 @@ new Vue({
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;
-            console.log(json.data);
+            //console.log(json.data);
         },
     },
 
