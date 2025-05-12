@@ -31,6 +31,13 @@ let pages = {
         title: "Gene Expression Browser",
         chunks: ["chunk-vendors", "chunk-common", "expression"],
     },
+    gwas: {
+        entry: "src/portals/SysBio/views/GWAS/main.js",
+        template: "src/portals/SysBio/views/index.html",
+        filename: "gwas.html",
+        title: "Genetic Studues",
+        chunks: ["chunk-vendors", "chunk-common", "gwas"],
+    },
 };
 
 module.exports = {

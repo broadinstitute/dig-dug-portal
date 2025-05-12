@@ -16,6 +16,10 @@
                 {
                     "label": "Gene Expression Browser",
                     "path": "/expression.html"
+                },
+                {
+                    "label": "Genetic Studies",
+                    "path": "/gwas.html"
                 }
             ]
         },
