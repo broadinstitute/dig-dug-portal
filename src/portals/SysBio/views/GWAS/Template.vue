@@ -4,20 +4,11 @@
         <sysbio-header></sysbio-header>
         <!-- BODY -->
         <div class="sysbio-body">
-            <div v-if="$parent.pageInfo" style="margin:0 0 40px">
+            <div v-if="$parent.pageInfo">
                 <h2>{{ $parent.pageInfo.title }}</h2>
                 <div v-html="$parent.pageInfo.body"></div>
             </div>
-            <h2>SysBio FAIRplex Genome-Wide Association Studies</h2>
-            <div style="font-size: 16px;">
-                Explore visualizations of Genome-Wide Association Studies (GWAS) from the Accelerating 
-                Medicines Partnership (AMP) programs. Case versus case Genome-Wide Association Studies 
-                (GWAS) were performed on individuals with Alzheimer's Disease (AD) from AMP-AD versus 
-                individuals with Parkinson's disease (PD) from AMP-PD. In the Manhattan plot, the x-axis 
-                represents the genome as if all chromosomes were laid end-to-end, ordered by their chromosome 
-                number. The y-axis shows the -log10(p-value) of each association. Each point represents a variant. In the Quantile-Quantile (Q-Q) probability plot, the x-axis represents the expected quantiles of all associations under a uniform distribution function, and the y-axis shows the actual values. 
-            </div>
-            <div class="f-row gwas-plots" style="margin:40px 0">
+            <div class="f-row gwas-plots" style="margin:20px 0 40px 0">
                 <div style="flex:1">
                     <img src="https://sysbio.hugeampkpnbi.org/api/raw/plot/dataset/GWAS/SysBio_Nalls2025_ADvPD_EU/SysBio_ADvPD/manhattan.png" />
                 </div>
@@ -26,7 +17,7 @@
                 </div>
             </div>
             <div v-if="$parent.tableData" class="f-col" style="gap:10px">
-                <h4>Top single-variant associations for Rare variant {{ $parent.tablePhenotype }} meta-analysis: trans-ancestry</h4>
+                <h4>Top single-variant association signals for AD versus PD: European Ancestry</h4>
                 <b-table
                     small
                     hover

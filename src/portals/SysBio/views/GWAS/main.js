@@ -23,6 +23,7 @@ new Vue({
 
     data() {
         return {
+            pageInfo: null,
             tableData: null,
             tableFields: [
                 {
@@ -94,6 +95,7 @@ new Vue({
 
     created() {
         this.fetchData();
+        this.fetchInfo();
     },
     methods: {
         async fetchData() {
@@ -106,6 +108,12 @@ new Vue({
             const json = await response.json();
             this.tableData = json.data;
             //console.log(json.data);
+        },
+        async fetchInfo() {
+            this.pageInfo = await getTextContent(
+                "sysbio_GWAS",
+                true
+            );
         },
     },
 
