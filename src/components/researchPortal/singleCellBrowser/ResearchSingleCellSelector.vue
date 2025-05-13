@@ -246,7 +246,7 @@ export default Vue.component('research-single-cell-selector', {
             this.scrollToOption(this.coloredOption);
         },
         selectOption(key){
-            llog('selectOption',key);
+            //console.log('selectOption',key);
             const option = key;// ? key : e.target.value;
             this.coloredLabels = [];
             if(this.layout === 'dropdown-list' || this.layout === 'dropdown') {
@@ -277,6 +277,7 @@ export default Vue.component('research-single-cell-selector', {
             this.emitUpdate();
         },
         labelIsolated(key, label){
+            //console.log('!!', key, label, this.coloredOption, this.coloredLabels)
             if(this.coloredLabels.length>0 && this.coloredLabels.includes(label)){
                     return 'on';
             }else if(key === this.coloredOption){
@@ -304,7 +305,7 @@ export default Vue.component('research-single-cell-selector', {
                 coloredField: this.coloredOption, 
                 coloredLabels: this.coloredLabels
             }
-            llog('emitUpdate', emitObj);
+            //console.log('emitUpdate', emitObj);
             this.$emit('on-update', emitObj);
         },
         emitHover(label){

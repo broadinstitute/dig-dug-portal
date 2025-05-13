@@ -476,9 +476,15 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
 
             case "map name":
 
+                console.log("called");
                 let tempValue = cellValue;
 
-                cellValue = columnKeyObj["map"][cellValue];
+                if (columnKeyObj["map"] == "shared resource") {
+                    let map = this.$root.sharedResource[columnKeyObj["map name"]]
+                    cellValue = map[cellValue];
+                } else {
+                    cellValue = columnKeyObj["map"][cellValue];
+                }
 
                 if (!!columnKeyObj["link to"]) {
                     cellValue = "<a href='" + tempValue + "'>" + cellValue + "</a>"
