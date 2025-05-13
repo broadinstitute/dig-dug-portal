@@ -31,7 +31,7 @@
                             <div v-html="option.description"></div>
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-sm btn-primary context-search-btn" @click="cleanUpKeyParams(parameterFocused,option.sections); parent.updateSearch(parameterFocused,option.sections)">Search</button>
+                            <button class="btn btn-sm btn-primary context-search-btn" @click="cleanUpKeyParams(parameterFocused,option.sections,option['context id']); parent.updateSearch(parameterFocused,option.sections)">Search</button>
                         </div>
                     </div>
                 </template>
@@ -71,7 +71,7 @@ export default {
         $(function () { });
     },
     methods: {
-        cleanUpKeyParams(PARAMETER, SECTIONS) {
+        cleanUpKeyParams(PARAMETER, SECTIONS, CNTXT_ID) {
 
             const sections = this.sectionsConfig.sections;
 
@@ -91,7 +91,7 @@ export default {
 
             //3. set parameters in paramObj = false;
 
-            let paramsObj = {};    
+            let paramsObj = {'contextid':CNTXT_ID};   // set contextid parameter
             
             allParameters.map( P => {
                 paramsObj[P] = false;
