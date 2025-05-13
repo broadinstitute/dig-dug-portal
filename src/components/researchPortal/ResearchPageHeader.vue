@@ -98,6 +98,7 @@ export default Vue.component("research-page-header", {
 				}
 				this.tryInjectActions();
 				this.tryAddSearch();
+				this.tryCustomElements();
 			}	
 		}
 	},
@@ -164,9 +165,9 @@ export default Vue.component("research-page-header", {
 		},
 		tryAddSearch(){
 			if(this.researchMenu && !this.researchMenu.length){
-				console.log(this.researchMenu);
+				//console.log(this.researchMenu);
 				if(this.researchMenu["search"]){
-					console.log('adding search');
+					//console.log('adding search');
 					this.addSearch = true;
 				};
 			}
@@ -230,6 +231,13 @@ export default Vue.component("research-page-header", {
 			linkTag.onload = () => {
 				//console.log(linkTag.textContent);
 			};
+		},
+		tryCustomElements(){
+			if(this.researchMenu["google font"] && this.researchMenu["favicon"]){
+				const temp = document.createElement('div');
+				temp.innerHTML = `<div style='position:sticky; bottom:0; width:100vw; padding:10px; z-index:50; background: #f7ab85; text-align:center;'>This repository is under review for potential modification in compliance with Administration directives.</div>`;
+				document.body.appendChild(temp.firstChild);
+			}
 		}
 	},
 	computed: {},

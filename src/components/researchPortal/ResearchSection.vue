@@ -3,7 +3,7 @@
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
 	<div
-		:class="(!!sectionConfig.display && sectionConfig.display == 'false') ? 'multi-section-card hidden' : 'multi-section-card'">
+		:class="(!!sectionConfig.display && sectionConfig.display == 'false') ? 'multi-section-card hidden' : 'multi-section-card'" :id="'section_wrapper_' + sectionID">
 		<div v-if="dataPoint.type == 'component'">
 			<research-section-components :component="dataPoint.name" :phenotypesInUse="phenotypesInUse" :utilsBox="utils"
 				:sectionConfigs="sectionConfig">
@@ -22,23 +22,7 @@
 						title="Show / hide section"><b-icon icon="eye"></b-icon></button>
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-
-						<!--
-						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
-							v-for="parameter in dataPoint['parameters']" :key="parameter"
-							style="font-size:0.7em"
-							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-
 						
-						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
-						<span class="required-parameters-wrapper">
-							<small
-								:class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
-								v-for="parameter in dataPoint['parameters']" :key="parameter"
-								v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
-						</span>-->
-						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-							:id="'flag_' + sectionID">Loading data...</small>-->
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
 							colorStyle="color"></research-loading-spinner>
 						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
@@ -52,15 +36,6 @@
 						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-						
-						<!--<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
-						<span class="required-parameters-wrapper">
-							<small
-								:class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
-								v-for="parameter in dataPoint['parameters']" :key="parameter"
-								v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
-
-						</span>-->
 
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
 							colorStyle="color"></research-loading-spinner>
@@ -986,6 +961,7 @@ export default Vue.component("research-section", {
 
 		getParamString(PARAMS_TYPE) {
 
+			//console.log("PARAMS_TYPE",PARAMS_TYPE)
 
 			let queryParams = {}; // collect search parameters
 			let queryParamsString = []; // search parameters into one string
@@ -1026,6 +1002,24 @@ export default Vue.component("research-section", {
 						queryParamsSet = null;
 					}
 				})
+			}
+
+			if (!!this.dataPoint.parameters && !!PARAMS_TYPE && (PARAMS_TYPE == 'replace')) {
+
+				let pWithValue = 0;
+				this.dataPoint.parameters.map(p => {
+
+					if (!!this.utils.keyParams[p]) {
+						pWithValue++;
+						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+					} else {
+						queryParams[p] = [];
+					}
+				})
+
+				if(pWithValue === 0) {
+					queryParamsSet = null;
+				}
 			}
 
 			if (!!this.dataPoint.parameters && !!PARAMS_TYPE && PARAMS_TYPE == 'replace or') {
@@ -1099,6 +1093,7 @@ export default Vue.component("research-section", {
 			}
 		},
 		getData(FROM) {
+			
 			this.loadingDataFlag = "up";
 			this.noLoadedData = null;
 			this.queryData(FROM);
@@ -1117,10 +1112,9 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString(paramsType );
 
-			//console.log("paramsString",paramsString);
-
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
+					//raise the data loading flag up.
 					document.getElementById('tabUi' + this.sectionID).classList.add("loading");
 				}
 
@@ -1208,6 +1202,10 @@ export default Vue.component("research-section", {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
 			}
+
+			//if(paramsString == "invalid") {
+				//document.getElementById('section_wrapper_' + this.sectionID).classList.add('hidden');
+			//}
 		},
 
 		queryGraphQl(QUERY, URL, PARAM, TYPE, PARAMS) {
@@ -1261,7 +1259,7 @@ export default Vue.component("research-section", {
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
-			//console.log("here2");
+			//console.log("here2",QUERY, TYPE, PARAMS);
 
 			this.searched.push(QUERY);
 
@@ -1477,7 +1475,7 @@ export default Vue.component("research-section", {
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 			}
 
 			let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
@@ -1726,7 +1724,7 @@ export default Vue.component("research-section", {
 
 						data = mergedData;
 
-						console.log("CONTENT data",data);
+						//console.log("CONTENT data",data);
 
 					} else {
 						data = CONTENT;
@@ -1800,7 +1798,7 @@ export default Vue.component("research-section", {
 				if (!!tableFormat && !!tableFormat["data convert"]) {
 					let convertConfig = tableFormat["data convert"];
 
-					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 				}
 
 				let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;

@@ -205,18 +205,35 @@ new Vue({
             let params = {};
             if (this.multiSectionsSearchParameters) {
                 this.multiSectionsSearchParameters.map((mp) => {
-                    let values =
-                        !!mp.values && !!Array.isArray(mp.values) ? {} : null;
-                    if (values != null) {
-                        mp.values.map((v) => {
-                            values[v.value] = v.label;
-                        });
-                    }
+                    if (mp.type != "multi search") {
+                        let values =
+                            !!mp.values && !!Array.isArray(mp.values) ? {} : null;
+                        if (values != null) {
+                            mp.values.map((v) => {
+                                values[v.value] = v.label;
+                            });
+                        }
 
-                    params[mp.parameter] = {
-                        label: mp.label,
-                        values: values,
-                    };
+                        params[mp.parameter] = {
+                            label: mp.label,
+                            values: values,
+                        };
+                    } else if (mp.type == "multi search") {
+                        mp.parameters.map(P => {
+                            let values =
+                                !!P.values && !!Array.isArray(P.values) ? {} : null;
+                            if (values != null) {
+                                P.values.map((v) => {
+                                    values[v.value] = v.label;
+                                });
+                            }
+
+                            params[P.parameter] = {
+                                label: P.label,
+                                values: values,
+                            };
+                        })
+                    }
                 });
             }
 
@@ -286,6 +303,16 @@ new Vue({
             }
 
             return parameters;
+        },
+        sharedResource() {
+            let sharedResource;
+            if (!!this.sectionConfigs["shared resource"]) {
+                sharedResource = this.sectionConfigs["shared resource"];
+            } else {
+                sharedResource = null;
+            }
+
+            return sharedResource;
         },
         multiSectionsSearchParameters() {
             if (this.phenotypesInSession.length > 0) {
@@ -375,7 +402,6 @@ new Vue({
                         pr.parameter == "phenotype" &&
                         pr.values == "kp phenotypes"
                     ) {
-                        //console.log("this.phenotypesInSession", this.phenotypesInSession)
 
                         let shorterFirst = this.phenotypesInSession.sort(
                             (a, b) =>
@@ -1335,7 +1361,7 @@ new Vue({
             })
         },
         updateParams() {
-            console.log("updateParams() called");
+            //console.log("updateParams() called");
         },
         getReplaced(CONTENT) {
             return this.utilsBox.Formatters.replaceWithParams(
