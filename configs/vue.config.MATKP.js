@@ -55,7 +55,7 @@ let pages = {
     adipose_tissue: {
         entry: "src/portals/MATKP/views/AdiposeTissue/main.js",
         template: "public/index.html",
-        filename: "adipose.html",
+        filename: "tissue.html",
         title: "MATKP | Adipose Tissue",
         chunks: ["chunk-vendors", "chunk-common", "adipose_tissue"],
     }

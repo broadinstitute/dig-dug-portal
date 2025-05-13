@@ -26,9 +26,6 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 
-import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
-import { pageMixin } from "@/mixins/pageMixin";
-
 new Vue({
     store,
     components: {
@@ -40,14 +37,13 @@ new Vue({
         FilterGreaterThan,
         FilterLessThan,
         SearchHeaderWrapper,
-        ResearchSingleSearch,
         Scatterplot,
         MouseSummaryTable,
         C2ctTable,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
     },
-    mixins: [pageMixin],
+    mixins: [matkpMixin],
     data() {
         return {
             logScale: false,
@@ -122,7 +118,6 @@ new Vue({
         },
         cs2ctData() {
             let data = this.$store.state.cs2ct.data;
-            console.log(`${data.length} entries`);
             data.forEach((d) => {
                 // Makes biosamples show up alphabetically in the dropdown menu.
                 d.originalBiosample = d.biosample;
@@ -140,7 +135,6 @@ new Vue({
         this.$store.dispatch("getTissue");
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
-        console.log("store should be all set");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,

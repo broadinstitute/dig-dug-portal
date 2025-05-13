@@ -34,7 +34,6 @@ export default new Vuex.Store({
         setTopPhenotype(state, phenotype) {
             state.topPhenotype = phenotype || state.topPhenotype;
             if (!state.selectedPhenotype){
-                console.log("no phenotype here");
                 state.selectedPhenotype = phenotype;
             }
         },
@@ -79,7 +78,6 @@ export default new Vuex.Store({
 					}
 					return json.keys.map(key => key[0])
 				});
-            console.log(annotations);
             context.state.annotationOptions = annotations;
             context.state.selectedAnnotation = annotations[0];
 		},

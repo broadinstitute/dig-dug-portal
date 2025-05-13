@@ -7,15 +7,6 @@
             <template>
                 <div class="mat-body f-col">
                 <div class="card mdkp-card">
-                    <div class="card-body temporary-card">
-                        <documentation
-                            name="tissue.explore.subheader"
-                            :content-fill="{tissue: 'ADIPOSE TISSUE'}"
-                            :content-map="$store.state.bioPortal.documentations"
-                        ></documentation>
-                    </div>
-                </div>
-                <div class="card mdkp-card">
                     <div class="card-body">
                         <h4>
                             {{
@@ -54,8 +45,8 @@
                                 class="filter-col-md"
                                 field="meanTpm"
                             >
-                                <div>
-                                    <strong>Mean TPM (&ge;)</strong>
+                                <div class="label">
+                                    Mean TPM (&ge;)
                                 </div>
                             </filter-greater-control>
                             <filter-less-control
