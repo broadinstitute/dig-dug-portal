@@ -2,7 +2,7 @@
     <div class="matkp">
         <div class="f-col fill-height">
             <!-- NAV -->
-            <matkp-nav></matkp-nav>
+            <matkp-nav :showSearch="false" />
 
 
         <!-- warning in case gene name isn't valid -->
@@ -131,6 +131,33 @@
                 </div>
             </div>
 
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>
+                        {{
+                            `${$store.state.geneName.toUpperCase()} Expression by Cell Type`
+                        }}
+                        <tooltip-documentation
+                            name="cell_type_expression"
+                            :supply-text="$parent.getTooltip('cell_type_expression')"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
+                    </h4>
+                    <div>
+                        <research-single-cell-browser 
+                            sectionId="matkp"
+                            :renderConfig="$parent.scbConfig"
+                            :utils="$parent.utilsBox"
+                            :data="$parent.scbData"
+                        ></research-single-cell-browser>
+                    </div>
+                </div>
+            </div>
+
+
              <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>
@@ -154,52 +181,37 @@
                         >
                         </documentation>
                     </span>
-                    <criterion-function-group
-                        @update:filter-list="
-                            (newFilters) => $parent.filterPhenotype(newFilters)
-                        "
-                    >
-                        <template slot="filtered" slot-scope="{ filter }">
-                            <b-tabs>
-                                <b-tab
-                                    title="Gene Signatures"
-                                >
-                                    <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
-                                        <h4 class="card-title">Gene Signatures</h4>
-                                        <data-download
-                                            v-if="$parent.geneSigsData"
-                                            :data="$parent.geneSigsData"
-                                            :filename="`${$store.state.geneName.toUpperCase()}_tissue_specificity`"
-                                            style="width: 125px; align-self: flex-end;"
-                                         ></data-download>
-                                        <b-table
-                                            v-if="$parent.geneSigsData"
-                                            small
-                                            :items="$parent.geneSigsData"
-                                            :fields="$parent.geneSigsFields"
-                                            sortBy="p_value"
-                                            :sortDesc="false"
-                                            :per-page="10"
-                                            :current-page="$parent.geneSigsPage"
-                                        >
-                                            <template #cell(datasetId)="data">
-                                                <a :href="$parent.buildGeneSigUrl(data.item)">
-                                                    {{ data.value }}
-                                                </a>
-                                            </template>
-                                        </b-table>
-                                        <b-pagination
-                                            v-if="$parent.geneSigsData"
-                                            v-model="$parent.geneSigsPage"
-                                            class="pagination-sm justify-content-center"
-                                            :total-rows="$parent.geneSigsData.length"
-                                            :per-page="10"
-                                        ></b-pagination>
-                                    </div>
-                                </b-tab>
-                            </b-tabs>
-                        </template>
-                    </criterion-function-group>
+                    <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
+                        <data-download
+                            v-if="$parent.geneSigsData"
+                            :data="$parent.geneSigsData"
+                            :filename="`${$store.state.geneName.toUpperCase()}_tissue_specificity`"
+                            style="width: 125px; align-self: flex-end;"
+                            ></data-download>
+                        <b-table
+                            v-if="$parent.geneSigsData"
+                            small
+                            :items="$parent.geneSigsData"
+                            :fields="$parent.geneSigsFields"
+                            sortBy="p_value"
+                            :sortDesc="false"
+                            :per-page="10"
+                            :current-page="$parent.geneSigsPage"
+                        >
+                            <template #cell(datasetId)="data">
+                                <a :href="$parent.buildGeneSigUrl(data.item)">
+                                    {{ data.value }}
+                                </a>
+                            </template>
+                        </b-table>
+                        <b-pagination
+                            v-if="$parent.geneSigsData"
+                            v-model="$parent.geneSigsPage"
+                            class="pagination-sm justify-content-center"
+                            :total-rows="$parent.geneSigsData.length"
+                            :per-page="10"
+                        ></b-pagination>
+                    </div>
                 </div>
             </div>
 
