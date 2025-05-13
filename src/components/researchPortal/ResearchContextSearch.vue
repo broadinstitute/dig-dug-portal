@@ -100,8 +100,23 @@ export default {
             this.utils.keyParams.set(paramsObj);
             
         },
+        getCurrentContext(contextId) {
+            console.log("sectionsConfig",this.sectionsConfig['search parameters']);
+            let contextSections = [];
+            this.sectionsConfig['search parameters'].parameters.map(param => {
+                if(!!this.utils.keyParams[param.parameter]) {
+                    contextSections = param.context.filter(C => C['context id'] == contextId)[0].sections;
+                }
+            })
+
+            return contextSections
+        },
         hideSections() {
             let currentSections = document.querySelectorAll('.multi-section-card');
+            let contextId = (!!this.utils.keyParams['contextid'])? this.utils.keyParams['contextid'] : null;
+            let currentContext = (!!contextId)? this.getCurrentContext(contextId):null;
+            console.log('currentContext',currentContext)
+
             currentSections.forEach(section => {
                 let sectionId = section.getAttribute('id').replace('section_wrapper_', '');
                 let currentConfig = this.sectionsConfig.sections.filter(section => section['section id'] == sectionId)[0];
@@ -109,6 +124,10 @@ export default {
                 let ifParams = true;
                 currentParameters.forEach(parameter => {
                     if(!this.utils.keyParams[parameter]) {
+                        ifParams = false;
+                    }
+
+                    if(!!contextId && !!currentContext && currentContext.includes(sectionId) == false) {
                         ifParams = false;
                     }
                 })
