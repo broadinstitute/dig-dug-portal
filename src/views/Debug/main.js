@@ -4,8 +4,6 @@ import store from "./store.js";
 
 Vue.config.productionTip = false;
 
-import GeminiSearch from "@/components/researchPortal/contextualSearch/GeminiSearch.vue";
-
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -17,7 +15,6 @@ new Vue({
     store,
 
     components: {
-        GeminiSearch,
     },
 
     data: {
