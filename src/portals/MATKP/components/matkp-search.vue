@@ -24,6 +24,10 @@ export default Vue.component("matkp-search", {
     computed: {
     },
     created() {
+        
+    },
+    mounted() {
+        this.$refs.srch.$el.querySelector('input').placeholder="Gene";
     },
     methods: {
         searchGene(gene){

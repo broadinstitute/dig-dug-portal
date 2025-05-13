@@ -26,6 +26,17 @@
                 </div>
             </div>
         </div>
+        <div v-if="showSearch" class="nav-search f-row align-h-center align-v-center" @click="searching = !searching">
+            <div v-if="!searching">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" fill="none">
+                    <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div v-else>✕</div>
+        </div>
+        <div v-if="searching" class="nav-search-box">
+            <matkp-search />
+        </div>
     </div>
 </template>
 
@@ -42,10 +53,15 @@ export default Vue.component("matkp-nav", {
             type: Boolean,
             default: false,
         },
+        showSearch: {
+            type: Boolean,
+            default: true
+        }
     },
     data() {
         return {
-            menuItems: matkpMenu
+            menuItems: matkpMenu,
+            searching: false,
         };
     },
     computed: {},
@@ -97,6 +113,7 @@ export default Vue.component("matkp-nav", {
 <style scoped>
 .mat-header {
     padding: 0 40px;
+    position: relative;
 }
 .mat-header a,
 .mat-header a:visited {
@@ -123,6 +140,28 @@ export default Vue.component("matkp-nav", {
 }
 .logo img {
     height: inherit;
+}
+
+.nav-search{
+    width: 20px;
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-55%);
+    cursor: pointer;
+}
+.glass .nav-search,
+.glass .nav-search path{
+    stroke: #000000;
+    color: #000000;
+}
+.nav-search-box{
+    position: absolute;
+    right: 59px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 500px;
+    z-index: 10000;
 }
 /*
 .menu {
@@ -152,6 +191,7 @@ export default Vue.component("matkp-nav", {
     font-size: 14px;
     letter-spacing: .2px;
     z-index: 5000;
+    margin: 0 10px 0;
 }
 .menu-item-wrapper {
     position: relative;

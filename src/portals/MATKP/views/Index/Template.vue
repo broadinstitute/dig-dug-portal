@@ -2,48 +2,56 @@
     <div class="matkp">
         <div class="f-col fill-height">
             <!-- NAV -->
-            <matkp-nav glass/>
+            <matkp-nav glass :showSearch="false"/>
             <!-- HERO BG -->
             <matkp-hero />
             <!-- BODY -->
             <div class="mat-body f-col align-h-center">
                 
-                <div class="f-col" style="gap:30px;">
+                <div class="f-col" style="gap:30px; width:100%">
                     <div class="f-row align-v-bottom" style="padding: 50px 0 10px; background:none; gap:50px">
                         <div class="hero-label f-row align-v-center align-h-center no-events">
                             <div class="logo f-row align-v-center">
                                 <img src="https://hugeampkpncms.org/sites/default/files/users/user32/matkp/matkplll.png"/>
-                                <div style="font-size: 22px;line-height: 22px;font-weight: bold;">
+                                <div style="font-size: 30px;line-height: 30px;font-weight: bold;">
                                     Mammalian<br />
                                     Adipose<br />
                                     Tissue<br />
-                                    <span style="font-size: 14px;display: block;font-weight: normal;">
+                                    <span style="font-size: 20px;display: block;font-weight: normal; white-space: nowrap;">
                                         Knowledge Portal
                                     </span>
                                 </div>
                             </div>
-                            <div class="f-col" style="gap:20px">
+                            <div class="f-col" style="gap:10px">
                                 <div class="tagline">
                                     An open community portal for adipose biology across multiple mammalian species
                                 </div>
                                 <div class="f-col align-v-center yes-events" style="z-index: 1; gap: 20px; height:100%">
-                                    <matkp-search />
+                                    <matkp-search/>
+                                </div>
+                                <div>
+                                    Search a gene for a summary of adipose knowledge from our portal.
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="f-row align-v-center" style="gap:50px;">
-                    <div class="f-row fill-width grow-children" style="gap:20px; width:400px">
-                        <div class="f-col" style="gap:5px">
+                <div class="f-row align-v-center grow-children" style="gap:20px; flex-wrap: wrap;">
+                    <div class="f-row fill-width grow-children" style="gap:20px;">
+                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
+                            <div style="font-size:16px; font-weight:bold">Contribute Your Data</div>
+                            <div>Simply upload through our Data Registry.</div>
+                            <a class="yes-events" href="/">Try it here</a>
+                        </div>
+                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
                             <div style="font-size:16px; font-weight:bold">Browse Datasets</div>
                             <a class="yes-events" href="/datasets.html?data_type=single_cell">Single cell RNA-seq</a>
                             <a class="yes-events" href="/datasets.html?data_type=bulk_rna">Bulk RNA-seq</a>
                         </div>
-                        <div class="f-col" style="gap:5px">
+                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
                             <div style="font-size:16px; font-weight:bold">Explore Data</div>
-                            <div class="f-row" style="gap:5px">
+                            <div class="f-row" style="gap:5px;">
                                 <a class="yes-events" href="/cellbrowser.html?dataset=SingleCell_Emont2022_Humans_SCP1376_SN_SAT">Single cell </a> Emont, M. (2022)
                             </div>
                             <div class="f-row" style="gap:5px">
@@ -58,8 +66,9 @@
                                 <div class="news-thumbnail contain" style="height:70px; min-width:100px"
                                     v-html="$parent.newsFeed[0].field_thumbnail_image"
                                 ></div>
-                                <div class="f-col align-v-bottom" style="width:200px">
+                                <div class="f-col align-v-bottom">
                                     <div class="bold">{{ $parent.newsFeed[0].title }}</div>
+                                    <div class="" v-html="$parent.newsFeed[0].body"></div>
                                     <a class="yes-events" :href="`${$parent.content.news.newsItemUrl}${$parent.newsFeed[0].nid}`">
                                         Read more
                                     </a>
@@ -171,12 +180,13 @@
 .mat-body{
     pointer-events: none;
     gap:40px;
+    min-width: 1200px;
 }
 .section {
     pointer-events: all;
     background: #f6f6f6;
     padding: 40px;
-    width:90vw;
+    width:1160px;
     max-width: 1400px;
 }
 .highlight-text{
@@ -193,7 +203,7 @@
     background: #ffffff50;
     backdrop-filter: blur(5px);
     padding: 80px;
-    width: 90vw;
+    width: 100%;
     gap:100px;
     box-shadow: 0 0 10px 0 #42424220;
     
@@ -203,13 +213,13 @@
     gap: 20px;
 }
 .logo img {
-    height: 120px;
+    height: 170px;
 }
 .tagline {
     z-index: 1;
     width: 400px;
     line-height: normal;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     color: #424242;
 }
@@ -250,5 +260,9 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+::v-deep p {
+    margin:0;
 }
 </style>
