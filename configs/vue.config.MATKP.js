@@ -47,10 +47,17 @@ let pages = {
     },
     info: {
         entry: "src/portals/MATKP/views/StaticPage/main.js",
-        template: "public.index.html",
+        template: "public/index.html",
         filename: "info.html",
         title: "MATKP | Information",
         chunks: ["chunk-vendors", "chunk-common", "info"],
+    },
+    adipose_tissue: {
+        entry: "src/portals/MATKP/views/AdiposeTissue/main.js",
+        template: "public/index.html",
+        filename: "tissue.html",
+        title: "MATKP | Adipose Tissue",
+        chunks: ["chunk-vendors", "chunk-common", "adipose_tissue"],
     }
 };
 

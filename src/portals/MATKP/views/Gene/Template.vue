@@ -435,8 +435,8 @@
                             :field="'huge'"
                             placeholder="Set HuGE..."
                         >
-                            <div>
-                                <strong>HuGE Score (&ge;)</strong>
+                            <div class="label">
+                                HuGE Score (&ge;)
                             </div>
                         </filter-greater-control>
                         <div
