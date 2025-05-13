@@ -20,7 +20,7 @@
                         <h4>
                             {{
                                 `Gene expression for ${$parent.tissueFormatter(
-                                    $store.state.tissue
+                                    $store.state.tissueName
                                 )}`
                             }}
                         </h4>
@@ -77,7 +77,7 @@
                                             :log-scale="$parent.logScale"
                                             :plot-data="$parent.tissueData"
                                             :config="$parent.plotConfig"
-                                            :plot-name="`${$store.state.tissue}_gene_expression`"
+                                            :plot-name="`${$store.state.tissueName}_gene_expression`"
                                             :filter="filter"
                                             :translucent-dots="true"
                                         >
@@ -88,7 +88,7 @@
                                 <div class="mt-4"></div>
                                 <tissue-expression-table
                                     :tissue-data="$parent.tissueData"
-                                    :tissue="$store.state.tissue"
+                                    :tissue="$store.state.tissueName"
                                     :filter="filter"
                                 >
                                 </tissue-expression-table>
@@ -228,7 +228,7 @@
                     <div class="card-body">
                         <h4 class="card-title">
                             Differential gene expression in
-                            {{ $parent.tissueFormatter($store.state.tissue) }}, in
+                            {{ $parent.tissueFormatter($store.state.tissueName) }}, in
                             mouse founder strains
                             <tooltip-documentation
                                 name="tissue.mice-diff-exp.tooltip"
@@ -285,7 +285,7 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <tissue-heritability-table
-                            :tissue="$store.state.tissue"
+                            :tissue="$store.state.tissueName"
                             :phenotype-map="$store.state.bioPortal.phenotypeMap"
                             @topPhenotypeFound="
                                 (d) => $parent.getTopPhenotype(d)

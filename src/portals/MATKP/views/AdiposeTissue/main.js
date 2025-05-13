@@ -1,6 +1,8 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
+import "../../assets/matkp-styles.css";
+import { matkpMixin } from "../../mixins/matkpMixin.js";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -26,6 +28,7 @@ import regionUtils from "@/utils/regionUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
+
 new Vue({
     store,
     components: {
@@ -49,6 +52,7 @@ new Vue({
         return {
             logScale: false,
             cs2ctAncestry: "",
+            docDetails: {tissue: "ADIPOSE TISSUE"},
             plotConfig: {
                 xField: "H",
                 xAxisLabel: "Entropy (genericity)",
@@ -118,6 +122,7 @@ new Vue({
         },
         cs2ctData() {
             let data = this.$store.state.cs2ct.data;
+            console.log(`${data.length} entries`);
             data.forEach((d) => {
                 // Makes biosamples show up alphabetically in the dropdown menu.
                 d.originalBiosample = d.biosample;
@@ -135,6 +140,7 @@ new Vue({
         this.$store.dispatch("getTissue");
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
+        console.log("store should be all set");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,

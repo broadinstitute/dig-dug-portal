@@ -57,7 +57,7 @@ let pages = {
         template: "public/index.html",
         filename: "adipose.html",
         title: "MATKP | Adipose Tissue",
-        chunks: ["chunk-vendors", "chunk-common", "info"],
+        chunks: ["chunk-vendors", "chunk-common", "adipose_tissue"],
     }
 };
 
