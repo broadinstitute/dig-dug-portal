@@ -477,6 +477,8 @@ export default Vue.component("research-multi-sections-search", {
 				switch (s.type) {
 					case "context search":
 
+						paramsObj['contextid'] = "";
+
 						s.parameters.map( p => {
 							paramsObj[p.parameter] = "";
 							 
