@@ -16,6 +16,8 @@ import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
+import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -42,6 +44,8 @@ new Vue({
         C2ctTable,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
+        TooltipDocumentation,
+        Documentation
     },
     mixins: [matkpMixin],
     data() {

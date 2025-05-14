@@ -290,34 +290,90 @@
             <matkp-footer></matkp-footer>
         </div>
     </div>
-  </template>
-
-        <!-- Body -->
-        
-
+</template>
 <style scoped>
-.row .pagination.b-pagination {
-    border: none !important;
-    margin-bottom: 10px !important;
+.container {
+    display: flex;
+    justify-content: center;
+}
+.center {
+    padding: 10px;
 }
 
-.row li.page-item .page-link {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    padding: 5px;
-    margin: 0 1px;
+/* basic positioning */
+.legend {
+    list-style: none;
+}
+.legend li {
+    float: left;
+    margin-right: 10px;
+}
+.legend span {
+    border: 0px;
+    float: left;
+    width: 12px;
+    height: 12px;
+    margin: 2px;
+}
+/* your colors */
+.legend .superawesome {
+    background-color: #e7edf7;
+}
+.legend .awesome {
+    background-color: #fef8dc;
 }
 
-tr.b-table-details > td {
-    padding: 0 !important;
+.invalid-gene-warning {
+    position: fixed;
+    z-index: 20000;
+    background-color: #ffcccc;
+    width: 500px;
+    padding: 15px 25px;
+    border: solid 1px #cccccc;
+    border-radius: 5px;
+    left: calc(50% - 275px);
+    top: calc(20% - 50px);
+    text-align: center;
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
+    font-size: 20px;
 }
 
-div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
-    background-color: #14a433;
+.invalid-gene-hide-warning {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 15px;
+    height: 15px;
+    border-radius: 15px;
+    font-size: 10px;
+    background-color: #666666;
+    color: #ffffff !important;
 }
-.blue-search {
-    background-color: #66bbff30 !important;
-    border: solid 1px #3399ff30 !important;
+
+.invalid-gene-hide-warning:hover {
+    cursor: pointer;
+}
+
+#invalidGeneRedirect {
+    color: #ffffff !important;
+    margin-top: 15px;
+}
+
+.gene-search-tip {
+    position: absolute;
+    font-weight: 300;
+    font-size: 14px;
+    top: 10px;
+    left: 20px;
+    color: #28a745;
+}
+
+.pseudoFilter {
+    font-weight: bold !important;
+}
+
+.pseudoFilter a {
+    color: inherit !important;
+    text-decoration: inherit !important;
 }
 </style>
