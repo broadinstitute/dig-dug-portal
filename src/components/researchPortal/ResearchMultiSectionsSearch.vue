@@ -186,7 +186,7 @@ export default Vue.component("research-multi-sections-search", {
 	mounted() {
 		window.addEventListener("scroll", this.onScroll);
 		this.searchParameters.map(s => {
-			if (!!this.utils.keyParams[s.parameter] && s.type != 'multi search') {
+			if (!!this.utils.keyParams[s.parameter] && s.type != 'context search') {
 				document.getElementById("search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})
