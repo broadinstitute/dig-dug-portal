@@ -1,6 +1,9 @@
 <template>
 	<div>
-		<!--<div style="min-height: 53px;"></div>-->
+		<download-chart
+        :chartId="`vector_volcano_plot_${sectionId}`"
+        :filename="`${plotId}_expression_regulation`"
+    ></download-chart>
 		<div style="display:flex; gap:5px" class="legends">
 			<div style="display:inline-block;" class="legend">
 				<strong>Regulation of gene expression</strong>
@@ -38,7 +41,8 @@ export default Vue.component("bulk-volcano-plot", {
 		"margin",
 		"sectionId",
 		"selectedGene",
-		"filter"
+		"filter",
+		"plotId"
 	],
 	data() {
 		return {

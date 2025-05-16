@@ -142,6 +142,7 @@
                                                                 :plotHeight="$parent.plotHeight"
                                                                 :selectedGene="$parent.selectedGene"
                                                                 @highlight="gene => $parent.highlight(gene)"
+                                                                :plotId="$parent.kpDataset"
                                                             >
                                                             </bulk-heatmap>
                                                         </div>
@@ -169,9 +170,10 @@
                                                                 
                                                                 :renderConfig="$parent.volcanoConfig"
                                                                 :margin="$parent.margin"
-                                                                sectionId="_bulk"
+                                                                sectionId="bulk"
                                                                 :selectedGene="$parent.selectedGene"
-                                                                @highlight="gene => $parent.highlight(gene)">
+                                                                @highlight="gene => $parent.highlight(gene)"
+                                                                :plotId="$parent.kpDataset">
 
                                                             </bulk-volcano-plot>
                                                         </div>

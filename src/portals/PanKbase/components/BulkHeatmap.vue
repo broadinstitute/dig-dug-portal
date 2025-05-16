@@ -1,5 +1,9 @@
 <template>
   <div>
+    <download-chart
+        :chartId="`${plotId}_svg`"
+        :filename="`${plotId}_differential_expression`"
+    ></download-chart>
     <div style="display:flex; gap:5px" class="legends">
         <div style="display:inline-block; width:35%;" class="legend">
             <strong>Expression</strong>
@@ -29,9 +33,11 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import sortUtils from "@/utils/sortUtils";
 import "../assets/pkb-styles.css";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
+import DownloadChart from "@/components/DownloadChart.vue";
 
 export default Vue.component("bulk-heatmap", {
     components: {
+        DownloadChart
     },
     props: [
         "zNormData",
@@ -41,11 +47,11 @@ export default Vue.component("bulk-heatmap", {
         "sampleColors",
         "selectedGene",
         "filter",
-        "samplesColumns"
+        "samplesColumns",
+        "plotId"
     ],
     data() {
         return {
-          plotId: "bulk_heatmap",
           chart: null,
           chartWidth: 0,
           colorWeak: "rgb(249 249 249)", // colorblind safe gray
@@ -88,6 +94,7 @@ export default Vue.component("bulk-heatmap", {
               .append("svg")
                   .attr("width", width + this.margin.left + this.margin.right)
                   .attr("height", height + this.margin.top + this.margin.bottom)
+                  .attr("id", `${this.plotId}_svg`)
               .append("g")
                   .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
 
