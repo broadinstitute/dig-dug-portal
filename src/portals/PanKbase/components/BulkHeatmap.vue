@@ -48,8 +48,8 @@ export default Vue.component("bulk-heatmap", {
           plotId: "bulk_heatmap",
           chart: null,
           chartWidth: 0,
-          color1: "blue",
-          color2: "red",
+          colorWeak: "rgb(249 249 249)", // colorblind safe gray
+          colorStrong: "rgb(116 040 129)", // colorblind safe purple
           fontSize: "13px",
           minExp: null,
           maxExp: null,
@@ -107,7 +107,6 @@ export default Vue.component("bulk-heatmap", {
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
                       .style("text-anchor", "end")
-                      //.style('fill',function(d) {return sampleColors[samplesColumns.sampleGroups[d].groupIndex]}) //set colors by group
                       .attr('font-size', this.fontSize)
                       .attr("transform", "rotate(-35) translate(-5, 0)");
 
@@ -125,11 +124,12 @@ export default Vue.component("bulk-heatmap", {
                   .attr('font-size', this.fontSize);
           
           // Build color scale
-          var colorScale = d3.scaleLinear()
-              .range([this.color1, this.color2])
-              .domain([this.minExp,this.maxExp]);
+          let colorScale = d3.scaleLinear(
+            [this.minExp, this.maxExp],
+            [this.colorWeak, this.colorStrong]);
           let step = 0.01 * (this.maxExp - this.minExp);
           this.colorScaleArray = d3.range(this.minExp, this.maxExp, step).map(t => colorScale(t)).join(', ');
+
           // Building the heatmap
           this.svg.selectAll()
               .data(collatedData, function(d) {return d.sample+':'+d.expression;})
