@@ -1,8 +1,6 @@
 <template>
   <div id="bulk-table" :class="isSubtable ? 'bulk-subtable' : ''">
-      <div v-if="tableData.length > 0">
-        <div>
-        </div>
+      <div>
           <div v-if="!isSubtable" class="text-right mb-2">
               <data-download
                   :data="bulkData"
@@ -27,106 +25,108 @@
                 </b-form-radio>
             </b-form-radio-group>
           </div>
-          <b-table v-model="currentData"
-              :hover="isSubtable"
-              small
-              responsive="sm"
-              :items="tableData"
-              :fields="config.fields"
-              :per-page="perPage"
-              :current-page="currentPage"
-              :sort-by="isSubtable? 'sample_id' : '-log10P'"
-              :sort-desc="!isSubtable"
-              :sort-icon-left="true"
-              :tbody-tr-class="rowClasses"
-          >
-              <template #cell(gene)="r">
-                  <!-- Link to where? -->
-                  <a>
-                      {{ r.item.gene }}
-                  </a>
-              </template>
-              <template #cell(expand)="row">
-                  <b-button
-                      variant="outline-primary"
-                      size="sm"
-                      @click="showDetails(row, 1)"
-                  >
-                      {{ row.detailsShowing ? "Hide" : "Show" }}
-                  </b-button>
-              </template>
-              <template #row-details="row">
-                <div class="subtable-all" v-if="
-                          subtableData[subtableKey(row.item)]?.length > 0"
-                  >
-                  <div class="row subtable-selectors">
-                    <div class="col-md-1"></div>
-                    <div class="col-md-4">
-                        <div class="label">View data by categorical field.</div>
-                        <select v-model="catField">
-                            <option v-for="field in
-                                subtableFields[subtableKey(row.item)].filter(f => f.isCat)"
-                                :value="field">
-                                {{ field.label }}
-                            </option>
-                        </select>
+          <div v-if="tableData.length > 0">
+            <b-table v-model="currentData"
+                :hover="isSubtable"
+                small
+                responsive="sm"
+                :items="tableData"
+                :fields="config.fields"
+                :per-page="perPage"
+                :current-page="currentPage"
+                :sort-by="isSubtable? 'sample_id' : '-log10P'"
+                :sort-desc="!isSubtable"
+                :sort-icon-left="true"
+                :tbody-tr-class="rowClasses"
+            >
+                <template #cell(gene)="r">
+                    <!-- Link to where? -->
+                    <a>
+                        {{ r.item.gene }}
+                    </a>
+                </template>
+                <template #cell(expand)="row">
+                    <b-button
+                        variant="outline-primary"
+                        size="sm"
+                        @click="showDetails(row, 1)"
+                    >
+                        {{ row.detailsShowing ? "Hide" : "Show" }}
+                    </b-button>
+                </template>
+                <template #row-details="row">
+                    <div class="subtable-all" v-if="
+                            subtableData[subtableKey(row.item)]?.length > 0"
+                    >
+                    <div class="row subtable-selectors">
+                        <div class="col-md-1"></div>
+                        <div class="col-md-4">
+                            <div class="label">View data by categorical field.</div>
+                            <select v-model="catField">
+                                <option v-for="field in
+                                    subtableFields[subtableKey(row.item)].filter(f => f.isCat)"
+                                    :value="field">
+                                    {{ field.label }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-2"></div>
+                        <div class="col-md-4">
+                            
+                            <div class="label">View data by continuous field.</div>
+                            <select v-model="contField">
+                                <option v-for="field in 
+                                    subtableFields[subtableKey(row.item)].filter(f => f.isNumerical)"
+                                    :value="field">
+                                    {{ field.label }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-1"></div>
                     </div>
-                    <div class="col-md-2"></div>
-                    <div class="col-md-4">
-                        
-                        <div class="label">View data by continuous field.</div>
-                        <select v-model="contField">
-                            <option v-for="field in 
-                                subtableFields[subtableKey(row.item)].filter(f => f.isNumerical)"
-                                :value="field">
-                                {{ field.label }}
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-1"></div>
-                  </div>
-                  <div class="row subtable-plots">
-                    <div class="col-md-6">
-                        <bulk-violin-plot 
-                            :data="subtableData[subtableKey(row.item)]"
-                            :gene="row.item.gene"
-                            :xField="catField?.key || catFields[0].key"
-                            :xLabel="catField?.label || catFields[0].label"
-                        />
-                    </div>
-                    <div class="col-md-6">
-                      <scatterplot
-                        :plotData="subtableData[subtableKey(row.item)]"
-                        :config="scatterConfig"
-                        :plotId="`bulk_${row.item.gene}`"
-                        :hideDownload="true"
-                        :tightenLeft="true">
+                    <div class="row subtable-plots">
+                        <div class="col-md-6">
+                            <bulk-violin-plot 
+                                :data="subtableData[subtableKey(row.item)]"
+                                :gene="row.item.gene"
+                                :xField="catField?.key || catFields[0].key"
+                                :xLabel="catField?.label || catFields[0].label"
+                            />
+                        </div>
+                        <div class="col-md-6">
+                        <scatterplot
+                            :plotData="subtableData[subtableKey(row.item)]"
+                            :config="scatterConfig"
+                            :plotId="`bulk_${row.item.gene}`"
+                            :hideDownload="true"
+                            :tightenLeft="true">
 
-                      </scatterplot>
+                        </scatterplot>
+                        </div>
                     </div>
-                  </div>
-                  <bulk-table              
-                      :bulkData="subtableData[subtableKey(row.item)]"
-                      :config="{fields : subtableFields[subtableKey(row.item)]}"
-                      :isSubtable="true"
-                  >
-                  </bulk-table>
-                </div>
-                  
-              </template>
-          </b-table>
-          <b-pagination
-              v-model="currentPage"
-              class="pagination-sm justify-content-center"
-              :total-rows="tableData.length"
-              :per-page="perPage"
-          ></b-pagination>
-      </div>
-      <div v-else>
-          <b-alert show variant="warning" class="text-center">
-              <b-icon icon="exclamation-triangle"></b-icon> No data available
-              for this query.
-          </b-alert>
+                    <bulk-table              
+                        :bulkData="subtableData[subtableKey(row.item)]"
+                        :config="{fields : subtableFields[subtableKey(row.item)]}"
+                        :isSubtable="true"
+                    >
+                    </bulk-table>
+                    </div>
+                    
+                </template>
+            </b-table>
+            <b-pagination
+                v-model="currentPage"
+                class="pagination-sm justify-content-center"
+                :total-rows="tableData.length"
+                :per-page="perPage"
+            ></b-pagination>
+          </div>
+            <div v-else>
+                <b-alert show variant="warning" class="text-center">
+                    <b-icon icon="exclamation-triangle"></b-icon> No data available
+                    for this query.
+                </b-alert>
+            </div>
       </div>
   </div>
 </template>
