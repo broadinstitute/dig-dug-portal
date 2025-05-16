@@ -2,7 +2,7 @@
   <div>
     <download-chart
         :chartId="`${plotId}_svg`"
-        :filename="'testfilename'"
+        :filename="`${plotId}_differential_expression`"
     ></download-chart>
     <div style="display:flex; gap:5px" class="legends">
         <div style="display:inline-block; width:35%;" class="legend">
@@ -47,11 +47,11 @@ export default Vue.component("bulk-heatmap", {
         "sampleColors",
         "selectedGene",
         "filter",
-        "samplesColumns"
+        "samplesColumns",
+        "plotId"
     ],
     data() {
         return {
-          plotId: "bulk_heatmap",
           chart: null,
           chartWidth: 0,
           colorWeak: "rgb(249 249 249)", // colorblind safe gray

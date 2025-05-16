@@ -142,6 +142,7 @@
                                                                 :plotHeight="$parent.plotHeight"
                                                                 :selectedGene="$parent.selectedGene"
                                                                 @highlight="gene => $parent.highlight(gene)"
+                                                                :plotId="$parent.kpDataset"
                                                             >
                                                             </bulk-heatmap>
                                                         </div>
