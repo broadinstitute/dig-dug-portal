@@ -101,7 +101,7 @@
                                 </div>
                             </div>
                             <div v-if="$parent.dataReady">
-                                <div class="flex-gap">
+                                <div class="flex-gap" id="visualizers">
                                     <!--left tab group-->
                                     <div class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
@@ -263,5 +263,8 @@
   }
   .wide-group {
     width: 670px;
+  }
+  #visualizers {
+    margin-bottom: 25px;
   }
 </style>
