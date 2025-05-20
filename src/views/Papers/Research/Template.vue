@@ -656,8 +656,12 @@
 							  </template>
 							</div>
 							<!-- canvas collection end -->
+
+							<div id="custom_sections_list_wrapper">
+
+							</div>
 							
-								<!-- multi section tab groups -->
+							<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
 									  v-for="group, groupIndex in $parent.getTabGroups($parent.sectionConfigs['tab groups'])" >
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
@@ -689,23 +693,11 @@
 												:class="tabIndex == 0 ? 'active' : ''"
 												@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
 													'tabContent' + tab.section, 'tabContentGroup' + groupIndex);">
-												{{ tab.label }} <span class="flag"><b-icon
+													<span v-html="$parent.utilsBox.Formatters.replaceWithParams(tab.label, $parent.pageParams)+'&nbsp;'"></span>
+												 <span class="flag"><b-icon
 													icon="circle-fill"></b-icon></span>
 											</div>
 										</div>
-									<!--
-									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
-										<div v-for="tab, tabIndex in group.sections" 
-											:id="'tabUi'+tab.section" 
-											class="tab-ui-tab" 
-											:class="tabIndex == 0?'active':''"
-											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
-												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
-											{{ $parent.utilsBox.Formatters.replaceWithParams(tab.label, $parent.pageParams) }} <span class="flag"><b-icon
-												icon="circle-fill"></b-icon></span>
-										</div>
-									</div>
-									-->
 									
 									<div :id="'tabContentGroup'+groupIndex" class="tab-content-group">
 										<template v-for="tab, tabIndex in group.sections">
