@@ -76,6 +76,9 @@ export default new Vuex.Store({
             state.currentComparisons = data || state.currentComparisons;
             state.defaultComparison = Object.keys(state.currentComparisons)[0];
         },
+        setSelectedComparison(state, comparison) {
+            state.selectedComparison = comparison;
+        }
     },
 
     getters: {

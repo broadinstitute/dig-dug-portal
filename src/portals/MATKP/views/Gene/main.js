@@ -882,13 +882,13 @@ new Vue({
         this.tooltips = await getTextContent(this.byor_tooltips_id);
         this.datasets = await getParams(this.datasetEndpoint);
         await this.$store.dispatch("queryBulkFile");
-        console.log(JSON.stringify(this.tooltips.map(item => item["ID"])));
+        this.$store.dispatch("resetComparison");
+
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
-        //this.$store.dispatch("queryAssociations");
+        
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -1003,7 +1003,6 @@ new Vue({
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.geneSigsData = contentJson.data;
-                console.log('geneSigsData', this.geneSigsData);
             }
         },
 
@@ -1018,7 +1017,6 @@ new Vue({
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.GTExData = contentJson.data;
-                console.log("GTExData", this.GTExData)
             }
         },
         async getGTExdata2(){
@@ -1027,13 +1025,11 @@ new Vue({
             if (contentJson.error == null) {
                 const filtered = this.checkPreFilters(contentJson.data);
                 this.GTExData2 = filtered;
-                console.log("GTExData2", this.GTExData2)
             }
         },
         renderGTEx(REF) {
             this.activeTab = REF;
             let refComponent = this.$children[0].$refs[REF];
-            console.log(this.activeTab, refComponent)
             setTimeout(function () {
                 refComponent.renderBoxPlot();
             }, 500);
