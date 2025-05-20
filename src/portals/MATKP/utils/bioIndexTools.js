@@ -1,4 +1,7 @@
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import dataConvert from "@/utils/dataConvert";
+
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+
 
 export async function getParams(endpoint, arity=2){
   let params = [];
@@ -22,12 +25,12 @@ export async function getBulkData(dataset) {
   const response = await fetch(datasetFile);
   const bulkDataText = await response.text();
   
-  bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+  let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
   let bulkDataComparisons = bulkDataObject
     .filter(item => !!item.comparison)
     .map(item => [item.comparison_id, item.comparison]);
+  let comparisons = Object.fromEntries(bulkDataComparisons);
   
-    comparisons = Object.fromEntries(bulkDataComparisons);
   results.bulkDataObject = bulkDataObject;
   results.comparisons = comparisons;
   console.log("Is this thing on? Hello?!")
