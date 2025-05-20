@@ -1,6 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
+import "../../assets/matkp-styles.css";
+
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
@@ -43,6 +45,7 @@ export default new Vuex.Store({
         selectedComparison: "",
         currentComparisons: {},
         defaultComparison: "",
+        bulkData19K: [],
     },
 
     mutations: {
@@ -158,6 +161,7 @@ export default new Vuex.Store({
             if (context.state.selectedDataset === ""){
                 return;
             }
+            console.log("should be querying bulk file");
             let bulkData = await getBulkData(context.state.selectedDataset);
             context.commit("setBulkData19K", bulkData.bulkDataObject);
             context.commit("setCurrentComparisons", bulkData.comparisons);

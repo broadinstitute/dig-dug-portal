@@ -763,7 +763,8 @@
                     <criterion-function-group>
                         <div class="col filter-col-md">
                             <div class=label>Select a dataset</div>
-                            <select v-model="$store.state.selectedDataset">
+                            <select v-model="$store.state.selectedDataset"
+                                class="form-control">
                                 <option value="">Select a dataset</option>
                                 <option v-for="dataset in $parent.datasets"
                                     :value="dataset">
@@ -773,7 +774,8 @@
                         </div>
                         <div class="col filter-col-md">
                             <div class="label">Select a comparison</div>
-                            <select v-model="$store.state.selectedComparison">
+                            <select v-model="$store.state.selectedComparison"
+                                class="form-control">
                                 <option value="">Select a comparison</option>
                                 <option v-for="comp in $parent.comparisons"
                                     :value="comp">
@@ -783,7 +785,7 @@
                         </div>
                         <div class="col filter-col-md">
                             <div class="label">Set -log10(FDR adj. p) threshold</div>
-                            <input type="number" step="0.1"
+                            <input type="number" step="0.1" class="form-control"
                                 v-model="$parent.volcanoYCondition"/>
                         </div>
                     </criterion-function-group>
@@ -800,7 +802,6 @@
                                         <div v-if="$parent.bulkData19K.length> 0">
                                             <bulk-volcano-plot
                                                 :renderData="$parent.bulkData19K"
-                                                
                                                 :renderConfig="$parent.volcanoConfig"
                                                 :margin="$parent.margin"
                                                 sectionId="_bulk_volcano"
@@ -911,23 +912,9 @@
     color: inherit !important;
     text-decoration: inherit !important;
 }
-.tabs-group{
-  display:flex;
-  flex-direction: column;
-}
-.tabs-wrapper {
-  display: flex;
-  z-index: 1;
-}
-.tab-section {
-    display:flex;
-    flex-direction: column;
-    gap:20px;
-    background:white;
-    padding:20px;
-}
-.flex-gap {
-    display:flex;
-    gap:20px;
+select:hover {
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
 }
 </style>

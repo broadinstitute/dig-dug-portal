@@ -795,6 +795,9 @@ new Vue({
                 this.plotHeight
             );
         },
+        bulkMetadata(){
+            return this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+        }
     },
 
     watch: {
@@ -850,9 +853,6 @@ new Vue({
         async selectedDataset(newData, oldData) {
             if (newData !== oldData) {
                 await this.$store.dispatch("queryBulkFile");
-                if (newData !== "") {
-                    this.getBulkMetadata();
-                }
             }
         },
         comparisons(newData) {

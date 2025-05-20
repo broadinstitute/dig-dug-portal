@@ -1,4 +1,5 @@
 import dataConvert from "@/utils/dataConvert";
+import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
@@ -33,6 +34,10 @@ export async function getBulkData(dataset) {
   
   results.bulkDataObject = bulkDataObject;
   results.comparisons = comparisons;
-  console.log("Is this thing on? Hello?!")
   return results;
+}
+export async function getBulkMetadata() {
+  let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
+  let myMetadata = await scUtils.fetchMetadata(metadataUrl);
+  return myMetadata;
 }

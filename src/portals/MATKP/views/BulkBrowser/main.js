@@ -5,7 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { getParams } from "@/portals/MATKP/utils/bioIndexTools.js";
+import { getParams, getBulkMetadata } from "@/portals/MATKP/utils/bioIndexTools.js";
 import { getVolcanoConfig, PLOT_MARGIN } from "@/portals/MATKP/utils/visualizations.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
@@ -20,10 +20,7 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
-import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
-import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
-import { isNull } from "lodash";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
@@ -50,8 +47,7 @@ new Vue({
         return {
             loading: true,
             dataReady: false,
-            allMetadata: null,
-            bulkMetadata: null,
+            allMetadata: [],
             plotId: "bulk_heatmap",
             plotHeight: 300,
             chart: null,
@@ -161,6 +157,9 @@ new Vue({
                 xLower: this.volcanoXConditionLower,
                 yGreater: this.volcanoYCondition
             }
+        },
+        bulkMetadata(){
+            return this.allMetadata.find(x => x.datasetId === this.selectedDataset);
         }
     },
     async mounted() {
@@ -178,7 +177,7 @@ new Vue({
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
             this.datasets = await getParams(this.endpoint);
-            await this.getBulkMetadata();
+            this.allMetadata = await getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
                 keyParams.set({ comparison: this.$store.state.selectedComparison });
@@ -187,16 +186,6 @@ new Vue({
             await this.$store.dispatch("queryBulk");
             this.dataReady = true;
 
-        },
-        async getBulkMetadata() {
-            if (!this.allMetadata) {
-                let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
-                let myMetadata = await scUtils.fetchMetadata(metadataUrl);
-                this.allMetadata = myMetadata;
-            }
-
-            this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-            console.log(this.bulkMetadata.species);
         },
         async getDocumentation() {
             const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=matkp_differentialgeneexpressionbrowser";
@@ -208,8 +197,6 @@ new Vue({
             }
 
             this.documentation = jsonContent[0];
-
-            console.log("this.pageContent", this.documentation);
         },
         getTop20(data) {
             let processedData = data.sort((a, b) => b.log10FDR - a.log10FDR).slice(0, 20);
@@ -226,9 +213,6 @@ new Vue({
                 keyParams.set({ dataset: newData });
                 await this.$store.dispatch("queryBulkFile");
                 await this.$store.dispatch("queryBulk");
-                if (newData !== "") {
-                    this.getBulkMetadata();
-                }
             }
         },
         selectedComparison(newData, oldData) {
