@@ -4,7 +4,7 @@
       <pkb-header></pkb-header>
       <!-- BODY -->
       <div class="pkb-body">
-        <h2 class="page-title">Metadata / Data Standards</h2>
+        <h2 class="page-title">Metadata Standards</h2>
         <div v-html="$parent.about"></div>
       </div>
       <!-- FOOTER -->

@@ -25,6 +25,11 @@ export const pkbMenu = {
                     label: "Analytical Library",
                     path: "/analytical-library.html",
                 },
+                {
+                    label: "Metadata Standards",
+                    path: "/metadata-data-standards.html",
+                },
+                { label: "Tools | Pipelines", path: "/tools-pipelines.html" },
                 { label: "Publications", path: "/publications.html" },
             ],
         },
@@ -44,11 +49,6 @@ export const pkbMenu = {
             path: "",
             subMenuItems: [
                 { label: "Contact | Feedback", path: "/contact.html" },
-                {
-                    label: "Metadata | Data Standards",
-                    path: "/metadata-data-standards.html",
-                },
-                { label: "Tools | Pipelines", path: "/tools-pipelines.html" },
                 { label: "Tutorials", path: "/tutorials.html" },
                 { label: "GitHub", path: "https://github.com/PanKbase"},
                 { label: "News", path: "/news.html" },
