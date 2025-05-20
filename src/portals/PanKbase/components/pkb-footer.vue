@@ -13,6 +13,20 @@
                 </div>
             </div>
         </div>
+        <div class="f-row align-v-center logos" style="gap:10px">
+            <a href="https://x.com/PanKbase" target="_blank" title="@PanKbase">
+                <img src="https://hugeampkpncms.org/sites/default/files/images/logos/external/x-black.svg">
+            </a>
+            <a href="https://bsky.app/profile/pankbase.bsky.social"  target="_blank" title="@pankbase.bsky.social">
+                <img src="https://hugeampkpncms.org/sites/default/files/images/logos/external/bluesky-black.svg">
+            </a>
+            <a href="https://www.linkedin.com/groups/13199008/" target="_blank" title="LinkedIn">
+                <img src="https://hugeampkpncms.org/sites/default/files/images/logos/external/linkedin-black.svg">
+            </a>
+            <a href="https://github.com/PanKbase" target="_blank" title="GitHub">
+                <img src="https://hugeampkpncms.org/sites/default/files/images/logos/external/github-black.svg">
+            </a>
+        </div>
         <div class="f-row" style="gap:20px">
             <a href="/">
                 <img style="height:37px" src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/PanKbase_logo-black.svg"/>
@@ -84,6 +98,15 @@ export default Vue.component("PkbFooter", {
     }
     a.submenu-item {
         font-weight: normal;
+    }
+    .logos img{
+        width: 20px;
+    }
+    .logos a{
+        opacity: 0.7;
+    }
+    .logos a:hover{
+        opacity: 1;
     }
 }
 </style>

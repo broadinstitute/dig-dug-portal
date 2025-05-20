@@ -50,6 +50,7 @@ export const pkbMenu = {
                 },
                 { label: "Tools | Pipelines", path: "/tools-pipelines.html" },
                 { label: "Tutorials", path: "/tutorials.html" },
+                { label: "GitHub", path: "https://github.com/PanKbase"},
                 { label: "News", path: "/news.html" },
             ],
         },
