@@ -5,7 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { getParams, getBulkData } from "@/portals/MATKP/utils/bioIndexTools.js";
+import { getParams } from "@/portals/MATKP/utils/bioIndexTools.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";

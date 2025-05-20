@@ -842,6 +842,7 @@ new Vue({
     async created() {
         this.tooltips = await getTextContent(this.byor_tooltips_id);
         this.datasets = await getParams(this.datasetEndpoint);
+        await this.$store.dispatch("queryBulkFile");
         console.log(JSON.stringify(this.tooltips.map(item => item["ID"])));
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");

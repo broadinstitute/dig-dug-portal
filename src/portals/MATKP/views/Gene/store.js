@@ -7,6 +7,7 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 import regionUtils from "@/utils/regionUtils";
+import { getBulkData } from "../../utils/bioIndexTools";
 
 Vue.use(Vuex);
 
@@ -38,6 +39,10 @@ export default new Vuex.Store({
         selectedAncestry: "",
         selectedTranscript: "",
         commonVariantsLength: 0,
+        selectedDataset: 'bulkRNA_Emont2022_Humans_SAT', // change this
+        selectedComparison: "",
+        currentComparisons: {},
+        defaultComparison: "",
     },
 
     mutations: {
@@ -63,6 +68,13 @@ export default new Vuex.Store({
         },
         setCommonVariantsLength(state, NUM) {
             state.commonVariantsLength = NUM;
+        },
+        setBulkData19K(state, data) {
+            state.bulkData19K = data || state.bulkData19K;
+        },
+        setCurrentComparisons(state, data) {
+            state.currentComparisons = data || state.currentComparisons;
+            state.defaultComparison = Object.keys(state.currentComparisons)[0];
         },
     },
 
@@ -138,7 +150,15 @@ export default new Vuex.Store({
                 context.dispatch("geneToTranscript/query", { q: name });
             }
         },
-        ///
+
+        async queryBulkFile(context) {
+            if (context.state.selectedDataset === ""){
+                return;
+            }
+            let bulkData = await getBulkData(context.state.selectedDataset);
+            context.commit("setBulkData19K", bulkData.bulkDataObject);
+            context.commit("setCurrentComparisons", bulkData.comparisons);
+        },
 
         async queryGeneRegion(context, region) {
             //To match with HuGE cal +- 300000 to the region
