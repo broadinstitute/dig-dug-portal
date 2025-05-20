@@ -756,6 +756,75 @@
                     </criterion-function-group>
                 </div>
             </div>
+
+            <!-- Differential expression -->
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div id="menu" class="flex-gap">
+                        <div class="tabs-group">
+                            <div class="tabs-wrapper">
+                                <div class="tab">
+                                    Select a dataset
+                                </div>
+                            </div>
+                            <div class="tabs-section-wrapper">
+                                <div class="tab-section" >
+                                    <div  class="flex-gap">
+                                        <div class="top-block">
+                                            <select v-model="$store.state.selectedDataset">
+                                                <option value="">Select a dataset</option>
+                                                <option v-for="dataset in $parent.datasets"
+                                                    :value="dataset">
+                                                    {{ dataset }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tabs-group">
+                            <div class="tabs-wrapper">
+                                <div class="tab">
+                                    Select a comparison
+                                </div>
+                            </div>
+                            <div class="tabs-section-wrapper">
+                                <div class="tab-section" >
+                                    <div  class="flex-gap">
+                                        <div class="top-block">
+                                            <select v-model="$store.state.selectedComparison">
+                                                <option value="">Select a comparison</option>
+                                                <option v-for="comp in $parent.comparisons"
+                                                    :value="comp">
+                                                    {{ $store.state.currentComparisons[comp] }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tabs-group">
+                            <div class="tabs-wrapper">
+                                <div class="tab">
+                                    Set -log10(FDR adj. p) threshold
+                                </div>
+                            </div>
+                            <div class="tabs-section-wrapper">
+                                <div class="tab-section" >
+                                    <div  class="flex-gap">
+                                        <div class="top-block">
+                                            <input type="number" step="0.1"
+                                                v-model="$parent.volcanoYCondition"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- FOOTER -->

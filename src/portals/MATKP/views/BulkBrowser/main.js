@@ -5,6 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
+import { getParams } from "@/portals/MATKP/utils/bioIndexTools.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -200,7 +201,8 @@ new Vue({
             if (!keyParams.gene) {
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
-            this.getParams();
+            //this.getParams();
+            this.datasets = await getParams(this.endpoint);
             await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
@@ -237,17 +239,6 @@ new Vue({
         getTop20(data) {
             let processedData = data.sort((a, b) => b.log10FDR - a.log10FDR).slice(0, 20);
             return processedData;
-        },
-        async getParams() {
-            let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
-            try {
-                const response = await fetch(url);
-                const data = await (response.json());
-                let allKeys = data.keys;
-                this.datasets = Array.from(new Set(allKeys.map(item => item[0])));
-            } catch (error) {
-                console.error("Error: ", error);
-            }
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
