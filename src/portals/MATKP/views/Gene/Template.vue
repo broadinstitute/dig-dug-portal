@@ -756,67 +756,6 @@
                     </criterion-function-group>
                 </div>
             </div>
-
-            <!-- Differential expression -->
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <criterion-function-group>
-                        <div class="col filter-col-md">
-                            <div class=label>Select a dataset</div>
-                            <select v-model="$store.state.selectedDataset"
-                                class="form-control">
-                                <option v-for="dataset in $parent.datasets"
-                                    :value="dataset">
-                                    {{ dataset }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="col filter-col-md">
-                            <div class="label">Select a comparison</div>
-                            <select v-model="$store.state.selectedComparison"
-                                class="form-control">
-                                <option v-for="comp in $parent.comparisons"
-                                    :value="comp">
-                                    {{ $store.state.currentComparisons[comp] }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="col filter-col-md">
-                            <div class="label">Set -log10(FDR adj. p) threshold</div>
-                            <input type="number" step="0.1" class="form-control"
-                                v-model="$parent.volcanoYCondition"/>
-                        </div>
-                    </criterion-function-group>
-                    <div class="tabs-group wide-group">
-                        <div class="tabs-wrapper">
-                            <div class="tab">
-                                Differentially Expressed Genes
-                            </div>
-                        </div>
-                        <div class="tabs-section-wrapper">
-                            <div class="tab-section" >
-                                <div>
-                                    <div class="wide-block">
-                                        <div v-if="$parent.bulkData19K.length> 0">
-                                            <bulk-volcano-plot
-                                                :renderData="$parent.bulkData19K"
-                                                :renderConfig="$parent.volcanoConfig"
-                                                :margin="$parent.margin"
-                                                sectionId="_bulk_volcano"
-                                                :selectedGene="$store.state.geneName">
-
-                                            </bulk-volcano-plot>
-                                        </div>
-                                        <div v-else>
-                                            Select a dataset and a comparison to view the volcano plot.
-                                        </div>
-                                    </div>
-                                    </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- FOOTER -->
@@ -909,10 +848,5 @@
 .pseudoFilter a {
     color: inherit !important;
     text-decoration: inherit !important;
-}
-select:hover {
-    border-top: none !important;
-    border-left: none !important;
-    border-right: none !important;
 }
 </style>

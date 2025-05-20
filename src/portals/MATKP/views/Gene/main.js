@@ -7,10 +7,7 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent } from "@/portals/MATKP/utils/content";
-import { getParams } from "@/portals/MATKP/utils/bioIndexTools.js";
-import { getVolcanoConfig, PLOT_MARGIN } from "@/portals/MATKP/utils/visualizations.js";
 
-import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
@@ -70,7 +67,6 @@ new Vue({
     store,
     modules: {},
     components: {
-        BulkVolcanoPlot,
         UniprotReferencesTable,
         GeneAssociationsTable,
         GeneAssociationsMasks,
@@ -111,12 +107,6 @@ new Vue({
     data() {
         return {
             counter: 0,
-            datasetEndpoint: "single-cell-bulk-z-norm",
-            datasets: [],
-            volcanoYCondition: 1.3,
-            volcanoXConditionGreater: 1.5,
-            volcanoXConditionLower: -1.5,
-            margin: PLOT_MARGIN,
             byor_tooltips_id: "matkp_tooltips",
             tooltips: [],
             genePageSearchCriterion: [],
@@ -775,29 +765,6 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
-        selectedDataset() {
-            return this.$store.state.selectedDataset;
-        },
-        bulkData19K() {
-            return this.$store.state.bulkData19K.filter(
-                item => item.gene !== undefined
-                    && item.comparison_id === this.$store.state.selectedComparison);
-        },
-        comparisons() {
-            let items = Object.keys(this.$store.state.currentComparisons);
-            return items;
-        },
-        volcanoConfig() {
-            return getVolcanoConfig(
-                this.volcanoXConditionGreater,
-                this.volcanoXConditionLower,
-                this.volcanoYCondition,
-                this.plotHeight
-            );
-        },
-        bulkMetadata(){
-            return this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-        }
     },
 
     watch: {
@@ -850,16 +817,6 @@ new Vue({
             this.$store.dispatch("getHugeScoresData");
             this.$store.dispatch("getMouseData");
         },
-        async selectedDataset(newData, oldData) {
-            if (newData !== oldData) {
-                await this.$store.dispatch("queryBulkFile");
-            }
-        },
-        comparisons(newData) {
-            if (!newData.includes(this.selectedComparison)) {
-                this.$store.dispatch("resetComparison");
-            }
-        },
         "$store.state.selectedAncestry"(newAncestry) {
             let geneQuery = !newAncestry
                 ? { q: this.$store.state.geneName }
@@ -880,16 +837,13 @@ new Vue({
 
     async created() {
         this.tooltips = await getTextContent(this.byor_tooltips_id);
-        this.datasets = await getParams(this.datasetEndpoint);
-        this.$store.dispatch("resetDataset", this.datasets[0]);
-        await this.$store.dispatch("queryBulkFile");
-        this.$store.dispatch("resetComparison");
-
+        console.log(JSON.stringify(this.tooltips.map(item => item["ID"])));
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        
+        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
+        //this.$store.dispatch("queryAssociations");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -1004,6 +958,7 @@ new Vue({
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.geneSigsData = contentJson.data;
+                console.log('geneSigsData', this.geneSigsData);
             }
         },
 
@@ -1018,6 +973,7 @@ new Vue({
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.GTExData = contentJson.data;
+                console.log("GTExData", this.GTExData)
             }
         },
         async getGTExdata2(){
@@ -1026,11 +982,13 @@ new Vue({
             if (contentJson.error == null) {
                 const filtered = this.checkPreFilters(contentJson.data);
                 this.GTExData2 = filtered;
+                console.log("GTExData2", this.GTExData2)
             }
         },
         renderGTEx(REF) {
             this.activeTab = REF;
             let refComponent = this.$children[0].$refs[REF];
+            console.log(this.activeTab, refComponent)
             setTimeout(function () {
                 refComponent.renderBoxPlot();
             }, 500);
