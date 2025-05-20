@@ -881,6 +881,7 @@ new Vue({
     async created() {
         this.tooltips = await getTextContent(this.byor_tooltips_id);
         this.datasets = await getParams(this.datasetEndpoint);
+        this.$store.dispatch("resetDataset", this.datasets[0]);
         await this.$store.dispatch("queryBulkFile");
         this.$store.dispatch("resetComparison");
 

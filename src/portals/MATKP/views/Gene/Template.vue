@@ -765,7 +765,6 @@
                             <div class=label>Select a dataset</div>
                             <select v-model="$store.state.selectedDataset"
                                 class="form-control">
-                                <option value="">Select a dataset</option>
                                 <option v-for="dataset in $parent.datasets"
                                     :value="dataset">
                                     {{ dataset }}
@@ -776,7 +775,6 @@
                             <div class="label">Select a comparison</div>
                             <select v-model="$store.state.selectedComparison"
                                 class="form-control">
-                                <option value="">Select a comparison</option>
                                 <option v-for="comp in $parent.comparisons"
                                     :value="comp">
                                     {{ $store.state.currentComparisons[comp] }}

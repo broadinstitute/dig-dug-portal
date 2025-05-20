@@ -41,7 +41,7 @@ export default new Vuex.Store({
         selectedAncestry: "",
         selectedTranscript: "",
         commonVariantsLength: 0,
-        selectedDataset: 'bulkRNA_Emont2022_Humans_SAT', // change this
+        selectedDataset: "",
         selectedComparison: "",
         currentComparisons: {},
         defaultComparison: "",
@@ -81,6 +81,9 @@ export default new Vuex.Store({
         },
         setSelectedComparison(state, comparison) {
             state.selectedComparison = comparison;
+        },
+        setSelectedDataset(state, dataset){
+            state.selectedDataset = dataset;
         }
     },
 
@@ -222,6 +225,9 @@ export default new Vuex.Store({
         },
         resetComparison(context) {
             context.commit("setSelectedComparison", context.state.defaultComparison);
+        },
+        resetDataset(context, dataset){
+            context.commit("setSelectedDataset", dataset);
         }
     },
 });
