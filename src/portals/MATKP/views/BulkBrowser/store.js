@@ -6,6 +6,7 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import dataConvert from "@/utils/dataConvert";
+import { getBulkData } from "../../utils/bioIndexTools";
 
 Vue.use(Vuex);
 
@@ -62,21 +63,12 @@ export default new Vuex.Store({
       context.commit("setSingleBulkZNormData", singleBulkZNormObject.data);
     },
     async queryBulkFile(context) {
-      let bulkDataObject = [];
-      let comparisons = {};
-      if (context.state.selectedDataset !== "") {
-        let datasetFile = `${context.state.bulkFileUrl
-          }${context.state.selectedDataset}/dea.tsv.gz`;
-        const response = await fetch(datasetFile);
-        const bulkDataText = await response.text();
-        bulkDataObject = dataConvert.tsv2Json(bulkDataText);
-        let bulkDataComparisons = bulkDataObject
-          .filter(item => !!item.comparison)
-          .map(item => [item.comparison_id, item.comparison]);
-        comparisons = Object.fromEntries(bulkDataComparisons);
+      if (context.state.selectedDataset === ""){
+        return;
       }
-      context.commit("setBulkData19K", bulkDataObject);
-      context.commit("setCurrentComparisons", comparisons);
+      let bulkData = await getBulkData(context.state.selectedDataset);
+      context.commit("setBulkData19K", bulkData.bulkDataObject);
+      context.commit("setCurrentComparisons", bulkData.comparisons);
     },
     resetComparison(context) {
       context.commit("setSelectedComparison", context.state.defaultComparison);

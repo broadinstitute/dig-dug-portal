@@ -1,4 +1,4 @@
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 export async function getParams(endpoint, arity=2){
   let params = [];
@@ -12,4 +12,24 @@ export async function getParams(endpoint, arity=2){
       console.error("Error: ", error);
   }
   return params;
+}
+
+export async function getBulkData(dataset) {
+  let bulkFileUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`;
+  let results = {};
+  let datasetFile = `${bulkFileUrl}${dataset}/dea.tsv.gz`;
+
+  const response = await fetch(datasetFile);
+  const bulkDataText = await response.text();
+  
+  bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+  let bulkDataComparisons = bulkDataObject
+    .filter(item => !!item.comparison)
+    .map(item => [item.comparison_id, item.comparison]);
+  
+    comparisons = Object.fromEntries(bulkDataComparisons);
+  results.bulkDataObject = bulkDataObject;
+  results.comparisons = comparisons;
+  console.log("Is this thing on? Hello?!")
+  return results;
 }

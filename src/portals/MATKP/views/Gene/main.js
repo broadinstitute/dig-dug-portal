@@ -7,6 +7,7 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent } from "@/portals/MATKP/utils/content";
+import { getParams } from "@/portals/MATKP/utils/bioIndexTools.js";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -107,6 +108,9 @@ new Vue({
     data() {
         return {
             counter: 0,
+            datasetEndpoint: "single-cell-bulk-z-norm",
+            datasets: [],
+            volcanoYCondition: 1.3,
             byor_tooltips_id: "matkp_tooltips",
             tooltips: [],
             genePageSearchCriterion: [],
@@ -837,6 +841,7 @@ new Vue({
 
     async created() {
         this.tooltips = await getTextContent(this.byor_tooltips_id);
+        this.datasets = await getParams(this.datasetEndpoint);
         console.log(JSON.stringify(this.tooltips.map(item => item["ID"])));
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
