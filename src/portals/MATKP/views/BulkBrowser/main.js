@@ -6,6 +6,7 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getParams } from "@/portals/MATKP/utils/bioIndexTools.js";
+import { getVolcanoConfig, PLOT_MARGIN } from "@/portals/MATKP/utils/visualizations.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -79,15 +80,7 @@ new Vue({
                 "#D5A768",
                 "#d4d4d4",
             ],
-            margin: {
-                top: 20,
-                bottom: 100,
-                left: 100,
-                right: 0,
-                bump: 0,
-                middleSpacing: 0,
-                legendSpacing: 35
-            },
+            margin: PLOT_MARGIN,
             svg: null,
             tableConfig: {
                 fields: [
@@ -139,29 +132,12 @@ new Vue({
                     && item.comparison_id === this.$store.state.selectedComparison);
         },
         volcanoConfig() {
-            let config = {
-                "type": "volcano plot",
-                "label": "This is a Test",
-                "legend": "This is a Test",
-                "render by": "gene",
-                "x axis field": "logFoldChange",
-                "x axis label": "log2 Fold Change",
-                "y axis field": "-log10P",
-                "y axis label": "-log10(FDR adj. p)",
-                "width": 600,
-                "height": this.plotHeight,
-                "x condition": { 
-                    "combination": "or", 
-                    "greater than": this.volcanoXConditionGreater, 
-                    "lower than": this.volcanoXConditionLower },
-                //combination for condition can be "greater than", "lower than", "or" and "and."
-                "y condition": { 
-                    "combination": "greater than", 
-                    "greater than": parseFloat(this.volcanoYCondition) },
-                "dot label score": 2
-                //number of conditions that the value of each dot to meet to have labeled
-            };
-            return config;
+            return getVolcanoConfig(
+                this.volcanoXConditionGreater,
+                this.volcanoXConditionLower,
+                this.volcanoYCondition,
+                this.plotHeight
+            );
         },
         comparisons() {
             let items = Object.keys(this.$store.state.currentComparisons);

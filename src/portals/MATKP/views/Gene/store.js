@@ -213,5 +213,8 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
+        resetComparison(context) {
+            context.commit("setSelectedComparison", context.state.defaultComparison);
+        }
     },
 });

@@ -8,7 +8,9 @@ import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent } from "@/portals/MATKP/utils/content";
 import { getParams } from "@/portals/MATKP/utils/bioIndexTools.js";
+import { getVolcanoConfig, PLOT_MARGIN } from "@/portals/MATKP/utils/visualizations.js";
 
+import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
@@ -68,6 +70,7 @@ new Vue({
     store,
     modules: {},
     components: {
+        BulkVolcanoPlot,
         UniprotReferencesTable,
         GeneAssociationsTable,
         GeneAssociationsMasks,
@@ -111,6 +114,9 @@ new Vue({
             datasetEndpoint: "single-cell-bulk-z-norm",
             datasets: [],
             volcanoYCondition: 1.3,
+            volcanoXConditionGreater: 1.5,
+            volcanoXConditionLower: -1.5,
+            margin: PLOT_MARGIN,
             byor_tooltips_id: "matkp_tooltips",
             tooltips: [],
             genePageSearchCriterion: [],
@@ -769,6 +775,26 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
+        selectedDataset() {
+            return this.$store.state.selectedDataset;
+        },
+        bulkData19K() {
+            return this.$store.state.bulkData19K.filter(
+                item => item.gene !== undefined
+                    && item.comparison_id === this.$store.state.selectedComparison);
+        },
+        comparisons() {
+            let items = Object.keys(this.$store.state.currentComparisons);
+            return items;
+        },
+        volcanoConfig() {
+            return getVolcanoConfig(
+                this.volcanoXConditionGreater,
+                this.volcanoXConditionLower,
+                this.volcanoYCondition,
+                this.plotHeight
+            );
+        },
     },
 
     watch: {
@@ -820,6 +846,19 @@ new Vue({
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
             this.$store.dispatch("getMouseData");
+        },
+        async selectedDataset(newData, oldData) {
+            if (newData !== oldData) {
+                await this.$store.dispatch("queryBulkFile");
+                if (newData !== "") {
+                    this.getBulkMetadata();
+                }
+            }
+        },
+        comparisons(newData) {
+            if (!newData.includes(this.selectedComparison)) {
+                this.$store.dispatch("resetComparison");
+            }
         },
         "$store.state.selectedAncestry"(newAncestry) {
             let geneQuery = !newAncestry
