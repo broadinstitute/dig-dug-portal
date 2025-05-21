@@ -153,9 +153,9 @@ new Vue({
 
             if (phenotype) {
                 if (!ancestry) {
-                    return `/api/raw/plot/phenotype/${phenotype.id}/manhattan.png`;
+                    return `/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`;
                 } else {
-                    return `api/raw/plot/phenotype/${phenotype.id}/${ancestry}/manhattan.png`;
+                    return `api/raw/plot/phenotype/${phenotype.name}/${ancestry}/manhattan.png`;
                 }
             }
         },
@@ -165,9 +165,9 @@ new Vue({
 
             if (phenotype) {
                 if (!ancestry) {
-                    return `/api/raw/plot/phenotype/${phenotype.id}/qq.png`;
+                    return `/api/raw/plot/phenotype/${phenotype.name}/qq.png`;
                 } else {
-                    return `/api/raw/plot/phenotype/${phenotype.id}/${ancestry}/qq.png`;
+                    return `/api/raw/plot/phenotype/${phenotype.name}/${ancestry}/qq.png`;
                 }
             }
         },
@@ -198,24 +198,31 @@ new Vue({
             });
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
+        customPhenotypeMap(){
+            let matkpList = this.matkpPhenotypes.map(p => p.id);
+            let allPhenotypes = structuredClone(this.$store.state.bioPortal.phenotypes);
+            let filteredPhenotypes = allPhenotypes.filter(p => matkpList.includes(p.name));
+            console.log(JSON.stringify(filteredPhenotypes));
+            return filteredPhenotypes;
+        }
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
+        customPhenotypeMap(phenotypeMap) {
             let name = keyParams.phenotype;
             let phenotype = phenotypeMap[name];
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.id });
+                keyParams.set({ phenotype: phenotype.name }); // this one should be name not id
+                //Initial query. Should only happen once.
+                this.$store.dispatch("queryPhenotype");
             }
-            //Initial query. Should only happen once.
-            this.$store.dispatch("queryPhenotype");
         },
         "$store.state.annotationOptions"(data) {
             this.annotation = data[0];
         },
         "$store.state.phenotype": function (phenotype) {
-            keyParams.set({ phenotype: phenotype.id });
+            keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         "$store.state.ancestry": function (ancestry) {
@@ -249,13 +256,13 @@ new Vue({
     },
 
     async created() {
-        this.matkpPhenotypes = await this.getPhenotypes();
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDocumentations");
+        this.matkpPhenotypes = await this.getPhenotypes();
     },
     methods: {
         ...uiUtils,

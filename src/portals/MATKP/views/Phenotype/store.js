@@ -53,7 +53,7 @@ export default new Vuex.Store({
         },
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
-            keyParams.set({ phenotype: PHENOTYPE.id });
+            keyParams.set({ phenotype: phenotype.name });
         },
         setSelectedAnnotation(state, annotation){
             state.selectedAnnotation = annotation;
@@ -69,8 +69,9 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
+            console.log(JSON.stringify(phenotype));
             context.state.selectedPhenotype = phenotype;
-            keyParams.set({ phenotype: phenotype.id });
+            keyParams.set({ phenotype: phenotype.name });
             context.dispatch("queryPhenotype");
         },
 
@@ -92,10 +93,10 @@ export default new Vuex.Store({
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
-            let query = { q: context.state.phenotype.id };
+            let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
             let ancestryQuery = {
-                q: `${context.state.phenotype.id},${context.state.ancestry}`,
+                q: `${context.state.phenotype.name},${context.state.ancestry}`,
             };
             let ancestryAssocQuery = { ...ancestryQuery, limit: 1000 };
             let ancestryOptionalQuery = !context.state.ancestry
@@ -135,7 +136,7 @@ export default new Vuex.Store({
             context.state.manhattanPlotAvailable = true;
         },
         getCs2ct(context){
-            let queryString = context.state.phenotype.id;
+            let queryString = context.state.phenotype.name;
             if (!!context.state.selectedAncestry){
                 queryString = `${context.state.selectedAncestry},${queryString}`;
             }
@@ -157,5 +158,8 @@ export default new Vuex.Store({
             console.log("onState", PHENOTYPE);
             context.commit("setSelectedPhenotype", PHENOTYPE);
         },
+        commonVariantsLength(context, LENGTH){
+            console.log(`${LENGTH} common variants`);
+        }
     },
 });

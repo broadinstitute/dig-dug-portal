@@ -28,7 +28,7 @@
                             </span>
                             <phenotype-selectpicker
                                 :phenotypes="
-                                    $parent.matkpPhenotypes
+                                    $parent.customPhenotypeMap
                                 "
                             >
                             </phenotype-selectpicker>
@@ -306,7 +306,7 @@
                                         $parent.ancestryDatasets
                                             .filter((dataset) =>
                                                 dataset.phenotypes.includes(
-                                                    $store.state.phenotype.id
+                                                    $store.state.phenotype.name
                                                 )
                                             )
                                             .map((dataset) => dataset.tech)
@@ -376,7 +376,7 @@
                                                         .phenotypeMap
                                                 "
                                                 :phenotype="
-                                                    $store.state.phenotype.id
+                                                    $store.state.phenotype.name
                                                 "
                                             >
                                             </phenotype-huge-scores>
@@ -394,7 +394,7 @@
                                         >
                                             <gene-finder-table
                                                 :phenotypes="[
-                                                    $store.state.phenotype.id,
+                                                    $store.state.phenotype.name,
                                                 ]"
                                                 :phenotype-map="
                                                     $store.state.bioPortal
@@ -414,7 +414,7 @@
                                         >
                                             <gene-finder-table
                                                 :phenotypes="[
-                                                    $store.state.phenotype.id,
+                                                    $store.state.phenotype.name,
                                                 ]"
                                                 :phenotype-map="
                                                     $store.state.bioPortal
