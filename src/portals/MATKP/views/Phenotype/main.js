@@ -155,8 +155,7 @@ new Vue({
     },
 
     async created() {
-        this.matkpPhenotypes = await getTextContent(this.byor_phenotype_page);
-        console.log(this.matkpPhenotypes);
+        this.matkpPhenotypes = await this.getPhenotypes();
     },
 
     methods: {
@@ -165,6 +164,11 @@ new Vue({
         ...filterUtils,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
+
+        async getPhenotypes(){
+            let rawContent = await getTextContent(this.byor_phenotype_page, false, true);
+            return JSON.parse(rawContent.field_data_points);
+        },
 
         async checkGeneName(KEY) {
             let gene = await regionUtils.geneSymbol(KEY);

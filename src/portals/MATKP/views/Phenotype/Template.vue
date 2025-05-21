@@ -10,6 +10,11 @@
             <matkp-search style="width: 33.33%; align-self: flex-end; margin:-20px 0 20px;"/>
 
             <h4>Phenotype Page Coming Soon</h4>
+            <ul>
+                <li v-for="phenotype in $parent.matkpPhenotypes">
+                    {{JSON.stringify(phenotype)}}
+                </li>
+            </ul>
 
         </div>
 
