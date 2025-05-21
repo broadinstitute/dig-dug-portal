@@ -1,55 +1,24 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-import _ from "lodash";
 
 import "../../assets/matkp-styles.css";
-
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent } from "@/portals/MATKP/utils/content";
 
-import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
-import GeneAssociationsTable from "@/components/GeneAssociationsTable";
-import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
-import UnauthorizedMessage from "@/components/UnauthorizedMessage";
-import Documentation from "@/components/Documentation.vue";
-import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
-import Autocomplete from "@/components/Autocomplete.vue";
-import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
-import AncestrySelectPicker from "@/components/AncestrySelectPicker";
-import TranscriptSelectPicker from "@/components/TranscriptSelectPicker";
-import VariantSearch from "@/components/VariantSearch.vue";
-import LocusZoom from "@/components/lz/LocusZoom";
-import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
-import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
-import HugeScoresTable from "@/components/HugeScoresTable.vue";
-import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
-import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
-import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
-import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
-import ColocusTable from "@/components/ColocusTable.vue";
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
-import FilterPValue from "@/components/criterion/FilterPValue.vue";
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
-import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
-import ColorBarPlot from "@/components/ColorBarPlot.vue";
-import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
-import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
-import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
-
-import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot"
-import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot"
-
-import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
-import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
-
-import sessionUtils from "@/utils/sessionUtils";
-import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
-
-import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
-
-import Counter from "@/utils/idCounter";
-import regionUtils from "@/utils/regionUtils";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
+import AssociationsTable from "@/components/AssociationsTable.vue";
+import GeneFinderTable from "@/components/GeneFinderTable.vue";
+import EnrichmentTable from "@/components/EnrichmentTable.vue";
+import DatasetsTable from "@/components/DatasetsTable.vue";
+import CorrelationTable from "@/components/CorrelationTable.vue";
+import PathwayTable from "@/components/PathwayTable.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
+import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
+import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue";
+import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
+import RawImage from "@/components/RawImage.vue";
+import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -58,56 +27,54 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
-import filterUtils from "@/utils/filterUtils";
+import sessionUtils from "@/utils/sessionUtils";
+import regionUtils from "@/utils/regionUtils";
+
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
-
-Vue.config.productionTip = false;
-
 new Vue({
     store,
-    modules: {},
     components: {
-        UniprotReferencesTable,
-        GeneAssociationsTable,
-        GeneAssociationsMasks,
-        Documentation,
-        TooltipDocumentation,
-        Autocomplete,
-        GeneSelectPicker,
         AncestrySelectPicker,
-        TranscriptSelectPicker,
-        UnauthorizedMessage,
+        GeneFinderTable,
+        AssociationsTable,
+        EnrichmentTable,
+        DatasetsTable,
+        CorrelationTable,
+        PathwayTable,
+        RawImage,
+        EffectorGenesSection,
         CriterionFunctionGroup,
+        CriterionListGroup,
         FilterPValue,
-        FilterEnumeration,
         FilterGreaterThan,
-        LocusZoom,
-        LocusZoomPhewasPanel,
-        ResearchPheWAS,
-        ResearchExpressionDisplay,
-        ResearchDataTable,
+        FilterLessThan,
+        FilterEnumeration,
+        FilterEffectDirection,
         SearchHeaderWrapper,
-        ResultsDashboard,
-        NCATSPredicateTable,
-        VariantSearch,
-        ColorBarPlot,
-        GenePageCombinedEvidenceTable,
-        HugeCalScoreSection,
-        HugeScoresTable,
-        EffectorGenesSectionOnGene,
+        ResearchMPlot,
+        PhenotypeHugeScores,
+        C2ctTable,
         ResearchSingleSearch,
-        MouseSummaryTable,
-        ColocusTable,
-        ResearchBarPlot,
-        ResearchBoxPlot,
-        ResearchSingleCellBrowser
+        MetaAnalysisBarGraph,
     },
     mixins: [pageMixin, matkpMixin],
-
     data() {
         return {
+            phenotypeSearchKey: null,
+            newPhenotypeSearchKey: null,
+            hidePValueFilter: true,
+            annotation: "",
             byor_phenotype_page: "matkp_phenotypes",
-            matkpPhenotypes: null
+            matkpPhenotypes: []
         };
     },
 
@@ -121,7 +88,7 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
-                regionUtils: regionUtils
+                regionUtils: regionUtils,
             };
             return utils;
         },
@@ -144,195 +111,191 @@ new Vue({
             return this.$store.state.bioPortal.phenotypes;
         },
         ///
-        phenotypeOptions() {
-            return this.phenotypesInSession
-                .filter((x) => x.name != this.$store.state.phenotype)
-                .map((phenotype) => phenotype.name);
+        ancestryDatasets() {
+            if (!this.$store.state.ancestry) {
+                return this.$store.state.bioPortal.datasets;
+            }
+            return this.$store.state.bioPortal.datasets.filter(
+                (dataset) => dataset.ancestry == this.$store.state.ancestry
+            );
+        },
+        ancestryAnnotations() {
+            let data = this.$store.state.annotations.data;
+            if (this.$store.state.ancestry) {
+                data = data.filter(
+                    (annotation) =>
+                        annotation.ancestry == this.$store.state.ancestry
+                );
+            }
+            let filteredData = data.filter((d) => d.pValue < 1e-5);
+            if (filteredData.length < 20) {
+                filteredData = data
+                    .sort((a, b) => a.pValue - b.pValue)
+                    .slice(0, 20);
+            }
+            return filteredData;
+        },
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+
+            if (contents.length === 0) {
+                return {};
+            }
+
+            return contents[0];
+        },
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        manhattanPlot() {
+            let phenotype = this.$store.state.phenotype;
+            let ancestry = this.$store.state.ancestry;
+
+            if (phenotype) {
+                if (!ancestry) {
+                    return `/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`;
+                } else {
+                    return `api/raw/plot/phenotype/${phenotype.name}/${ancestry}/manhattan.png`;
+                }
+            }
+        },
+        qqPlot() {
+            let phenotype = this.$store.state.phenotype;
+            let ancestry = this.$store.state.ancestry;
+
+            if (phenotype) {
+                if (!ancestry) {
+                    return `/api/raw/plot/phenotype/${phenotype.name}/qq.png`;
+                } else {
+                    return `/api/raw/plot/phenotype/${phenotype.name}/${ancestry}/qq.png`;
+                }
+            }
+        },
+        geneticCorrelationData() {
+            let data = this.$store.state.geneticCorrelation.data;
+            let focusedData;
+
+            if (!!this.diseaseInSession && this.diseaseInSession != "") {
+                focusedData = sessionUtils.getInSession(
+                    data,
+                    this.phenotypesInSession,
+                    "other_phenotype"
+                );
+            } else {
+                focusedData = data;
+            }
+
+            return focusedData;
+        },
+        c2ctData() {
+            let data = !!this.$store.state.selectedAnnotation ? 
+                this.$store.state.c2ctAnnotation.data :
+                this.$store.state.c2ct.data;
+            data.forEach((d) => {
+                // Makes biosamples show up alphabetically in the dropdown menu.
+                d.originalBiosample = d.biosample;
+                d.biosample = Formatters.tissueFormatter(d.biosample);
+            });
+            return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
     },
 
     watch: {
+        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
+            let name = keyParams.phenotype;
+            let phenotype = phenotypeMap[name];
+            if (phenotype) {
+                this.$store.state.selectedPhenotype = phenotype;
+                keyParams.set({ phenotype: phenotype.name });
+            }
+            //Initial query. Should only happen once.
+            this.$store.dispatch("queryPhenotype");
+        },
+        "$store.state.annotationOptions"(data) {
+            this.annotation = data[0];
+        },
+        "$store.state.phenotype": function (phenotype) {
+            keyParams.set({ phenotype: phenotype.name });
+            uiUtils.hideElement("phenotypeSearchHolder");
+        },
+        "$store.state.ancestry": function (ancestry) {
+            keyParams.set({ ancestry: ancestry });
+            uiUtils.hideElement("phenotypeSearchHolder");
+        },
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+        hidePValueFilter(hide) {
+            let pValuePills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-pValue"
+            );
+            let genePills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-gene"
+            );
+            let allFilterPills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-collection"
+            );
+            if (hide) {
+                if (pValuePills.length > 0 && genePills.length > 0) {
+                    pValuePills.forEach((e) => (e.hidden = true));
+                } else if (pValuePills.length > 0 && genePills.length === 0) {
+                    allFilterPills.forEach((e) => (e.hidden = true));
+                }
+            } else {
+                allFilterPills.forEach((e) => (e.hidden = false));
+                pValuePills.forEach((e) => (e.hidden = false));
+            }
+        },
     },
 
     async created() {
         this.matkpPhenotypes = await this.getPhenotypes();
+        this.$store.dispatch("getAnnotations");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("bioPortal/getDocumentations");
     },
-
     methods: {
         ...uiUtils,
         ...sessionUtils,
-        ...filterUtils,
+        intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
-        pValueFormatter: Formatters.pValueFormatter,
-
+        tissueFormatter: Formatters.tissueFormatter,
         async getPhenotypes(){
             let rawContent = await getTextContent(this.byor_phenotype_page, false, true);
             return JSON.parse(rawContent.field_data_points);
         },
+        maFormatter(value) {
+            return value
+                .split(";")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" + ");
+        },
+        setSelectedPhenotype(PHENOTYPE) {
+            this.newPhenotypeSearchKey = PHENOTYPE.description;
+            this.phenotypeSearchKey = null;
+            this.$store.dispatch("selectedPhenotype", PHENOTYPE);
+        },
+        ifPhenotypeInSearch(DESCRIPTION) {
+            let searchKeys = this.phenotypeSearchKey.split(" ");
+            let isInPhenotype = 0;
 
-        async checkGeneName(KEY) {
-            let gene = await regionUtils.geneSymbol(KEY);
-
-            if (!!gene && gene != KEY) {
-                document.getElementById("invalidGeneMessage").innerHTML =
-                    "Your search term is an alias name for gene symbol " +
-                    gene +
-                    ". Please enter a new search term above, or go to the " +
-                    gene +
-                    " Gene page";
-
-                document
-                    .getElementById("invalidGeneRedirect")
-                    .setAttribute("href", "/gene.html?gene=" + gene);
-                uiUtils.showElement("invalidGeneWarning");
-                //uiUtils.showElement("pageSearchHeaderContent");
-            }
-        },
-
-        hideGeneWarning() {
-            uiUtils.hideElement("invalidGeneWarning");
-        },
-
-        pushCriterionPhenotype(phenotypeName) {
-            this.genePageSearchCriterion.push({
-                field: "phenotype",
-                threshold: phenotypeName,
-            });
-        },
-        biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
-            const uuid = Counter.getUniqueId;
-            const sid = uuid("s");
-            const oid = uuid("o");
-            const eid = uuid("e");
-            return {
-                query_graph: {
-                    nodes: {
-                        [sid]: {
-                            id: subjectCurie,
-                            category: subject,
-                        },
-                        [oid]: {
-                            category: object,
-                        },
-                    },
-                    edges: {
-                        [eid]: {
-                            subject: sid,
-                            object: oid,
-                            predicate: predicate,
-                        },
-                    },
-                },
-            };
-        },
-
-        // go to region page
-        exploreRegion(expanded = 0) {
-            let r = this.region;
-
-            if (r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
-            }
-        },
-
-        topPhenotype(topAssocData) {
-            return topAssocData[0];
-        },
-        renderPhewas(REF) {
-            this.activeTab = REF;
-            let refComponent = this.$children[0].$refs[REF];
-            setTimeout(function () {
-                refComponent.renderPheWas();
-            }, 500);
-        },
-        filterPhenotype(newFilters) {
-            this.phenotypeFilterList = newFilters;
-        },
-        clearCriterion(criterion) {
-            if (criterion === "transcript") {
-                this.$store.state.selectedTranscript = "";
-                return;
-            }
-            if (criterion === "ancestry") {
-                this.$store.state.selectedAncestry = "";
-                return;
-            }
-        },
-
-        async getGeneSigs(){
-            const dataUrl = "https://matkp.hugeampkpnbi.org/api/bio/query/single-cell-gene?q="+this.$store.state.geneName;
-            let contentJson = await fetch(dataUrl).then((resp) => resp.json());
-            if (contentJson.error == null) {
-                this.geneSigsData = contentJson.data;
-                console.log('geneSigsData', this.geneSigsData);
-            }
-        },
-
-        buildGeneSigUrl(item){
-            let url = item.datasetType === 'bulk_rna' ? "/bulkbrowser.html?dataset=" : "/cellbrowser.html?datasetId=";
-            url += `${item.datasetId}&gene=${item.gene}`
-            return url;
-        },
-
-        async getGTExdata(){
-            const dataUrl = "https://cfde.hugeampkpnbi.org/api/bio/query/gtex-tstat?q="+this.$store.state.geneName;
-            let contentJson = await fetch(dataUrl).then((resp) => resp.json());
-            if (contentJson.error == null) {
-                this.GTExData = contentJson.data;
-                console.log("GTExData", this.GTExData)
-            }
-        },
-        async getGTExdata2(){
-            const dataUrl = "https://bioindex-dev.hugeamp.org/api/bio/query/gene-expression?q="+this.$store.state.geneName;
-            let contentJson = await fetch(dataUrl).then((resp) => resp.json());
-            if (contentJson.error == null) {
-                const filtered = this.checkPreFilters(contentJson.data);
-                this.GTExData2 = filtered;
-                console.log("GTExData2", this.GTExData2)
-            }
-        },
-        renderGTEx(REF) {
-            this.activeTab = REF;
-            let refComponent = this.$children[0].$refs[REF];
-            console.log(this.activeTab, refComponent)
-            setTimeout(function () {
-                refComponent.renderBoxPlot();
-            }, 500);
-        },
-
-        filterGTEx(newFilters) {
-            //this.phenotypeFilterList = newFilters;
-            console.log('newFilters'. newFilters);
-        },
-        checkPreFilters(DATA) {
-			//Apply pre filters as data gets loaded;
-			let returnData = DATA;
-            let filters = [
-                {
-                    "field": "collection",
-                    "value": "GTEx",
-                    "type": "search"
+            searchKeys.map((w) => {
+                if (DESCRIPTION.toLowerCase().includes(w.toLowerCase())) {
+                    isInPhenotype++;
                 }
-            ];
-            let filterValues = {}
-            /*
-            filters.map(filter => {
-                filterValues[filter.parameter] = this.utils.keyParams[filter.parameter];
-            })
-            */
-            returnData = filterUtils.applyFilters(filters, DATA, filterValues);
+            });
 
-			return returnData;
-		},
-
-        getTooltip(tooltipId){
-            if (!this.tooltips.find(t => t["ID"] === tooltipId)){
-                return "Tooltip Not Found";
-            }
-            let tooltipItem = this.tooltips.find(t => t["ID"] === tooltipId);
-            return tooltipItem["Content"];
+            return isInPhenotype == searchKeys.length ? true : null;
+        },
+        clickedTab(tabLabel) {
+            this.hidePValueFilter = tabLabel === "hugescore";
+        },
+        onAnnotationSelected(){
+            this.$store.commit("setSelectedAnnotation", this.annotation);
+            this.$store.dispatch("getCs2ct");
         }
     },
 

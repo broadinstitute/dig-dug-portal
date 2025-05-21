@@ -2,11 +2,10 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
-import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
+import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
-import uniprot from "@/modules/uniprot";
-import regionUtils from "@/utils/regionUtils";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -14,43 +13,34 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        gene: bioIndex("gene"),
-        genes: bioIndex("genes"),
-        geneassociations: bioIndex("gene-associations"),
-        varassociations: bioIndex("associations"),
-        ancestryAssoc: bioIndex("ancestry-associations"),
-        associations52k: bioIndex("gene-associations-52k"),
-        geneToTranscript: bioIndex("gene-to-transcript"),
-        transcriptAssoc: bioIndex("transcript-associations"),
-        hugeScores: bioIndex("huge"),
-        geneExpression: bioIndex("gene-expression"),
-        mouseSummary: bioIndex("diff-exp-summary-gene"),
-        uniprot,
+        associations: bioIndex("global-associations"),
+        annotations: bioIndex("global-enrichment"),
+        genes: bioIndex("gene-finder"),
+        genes52k: bioIndex("gene-finder-52k"),
+        hugePhenotype: bioIndex("huge-phenotype"),
+        ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
+        geneticCorrelation: bioIndex("genetic-correlation"),
+        pathwayAssoc: bioIndex("pathway-associations"),
+        c2ct: bioIndex("c2ct"),
+        c2ctAnnotation: bioIndex("c2ct-annotation"),
     },
     state: {
-        geneName: keyParams.gene,
-        geneToQuery: "",
-        aliasName: null,
-        prior: 0.3696,
+        // phenotypes needs to be an array so colors don't change!
+        phenotype: null,
+        newPhenotype: null,
         phenotypesInSession: null,
         diseaseInSession: null,
         phenotypeCorrelation: null,
-        selectedAncestry: "",
-        selectedTranscript: "",
-        commonVariantsLength: 0,
+        selectedPhenotype: null,
+        ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
+        manhattanPlotAvailable: true,
+        annotationOptions: [],
+        selectedAnnotation: "",
     },
-
     mutations: {
-        setGeneName(state, geneName) {
-            state.geneName = geneName || state.geneName;
-            keyParams.set({ gene: state.geneName });
-        },
-        setGene(state, { name, chromosome, start, end }) {
-            state.geneName = name;
-            state.geneRegion = `${chromosome}:${start}-${end}`;
-        },
-        setAliasName(state, aliasName) {
-            state.aliasName = aliasName || state.aliasName;
+        setPhenotype(state, phenotype) {
+            state.phenotype = phenotype;
         },
         setPhenotypesInSession(state, PHENOTYPES) {
             state.phenotypesInSession = PHENOTYPES;
@@ -61,137 +51,112 @@ export default new Vuex.Store({
         setPhenotypeCorrelation(state, Correlation) {
             state.phenotypeCorrelation = Correlation;
         },
-        setCommonVariantsLength(state, NUM) {
-            state.commonVariantsLength = NUM;
+        setSelectedPhenotype(state, PHENOTYPE) {
+            state.selectedPhenotype = PHENOTYPE;
+            keyParams.set({ phenotype: PHENOTYPE.id });
         },
+        setSelectedAnnotation(state, annotation){
+            state.selectedAnnotation = annotation;
+        }
     },
-
     getters: {
-        region(state) {
-            let data = state.gene.data;
-
-            if (data.length > 0) {
-                let gene = data[0];
-
-                return {
-                    chromosome: gene.chromosome,
-                    start: gene.start,
-                    end: gene.end,
-                };
-            }
-        },
-
-        // canonicalSymbol(state) {
-        //     let data = state.genes.data;
-        //     let geneData = state.gene.data;
-
-        //     for (let i in data) {
-        //         if (data[i].source === "symbol") {
-        //             return data[i].name;
-        //         }
-        //     }
-        // },
-        canonicalSymbol(state) {
-            let data = state.gene.data;
-            if (data.length > 0) {
-                return data[0].symbol;
-            }
-            return null;
-        },
-
-        geneSymbol(state) {
-            let data = state.genes.data;
-            let geneData = state.gene.data;
-
-            for (let i in data) {
-                if (
-                    data[i].chromosome == geneData[0].chromosome &&
-                    data[i].start == geneData[0].start &&
-                    data[i].end == geneData[0].end
-                ) {
-                    if (data[i].source === "symbol") {
-                        return data[i].name;
-                    }
-                }
-            }
+        docDetails(state) {
+            return {
+                phenotype: state.phenotype.description,
+                ancestry: state.ancestry,
+            };
         },
     },
-
     actions: {
-        // For custom phenotypes
+        onPhenotypeChange(context, phenotype) {
+            console.log("changing phenotype");
+            context.state.selectedPhenotype = phenotype;
+            console.log(JSON.stringify(context.state.selectedPhenotype));
+            keyParams.set({ phenotype: phenotype.id });
+        },
+
+        onAncestryChange(context){
+            context.dispatch("queryPhenotype");
+        },
+        async getAnnotations(context) {
+			let annotations = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/c2ct-annotation/2?columns=annotation`)
+				.then(resp => resp.json())
+				.then(json => {
+					if (json.count == 0) {
+						return null;
+					}
+					return json.keys.map(key => key[0])
+				});
+            context.state.annotationOptions = annotations;
+            context.state.selectedAnnotation = annotations[0];
+		},
+        queryPhenotype(context) {
+            context.state.ancestry = context.state.selectedAncestry;
+            context.state.phenotype = context.state.selectedPhenotype;
+            let query = { q: context.state.phenotype.id };
+            let assocQuery = { ...query, limit: 1000 };
+            let ancestryQuery = {
+                q: `${context.state.phenotype.id},${context.state.ancestry}`,
+            };
+            let ancestryAssocQuery = { ...ancestryQuery, limit: 1000 };
+            let ancestryOptionalQuery = !context.state.ancestry
+                ? query
+                : ancestryQuery;
+            let geneQuery = {
+                ...ancestryOptionalQuery,
+                limitWhile: (r) => r.pValue <= 0.05,
+                limit: 1000,
+            };
+            let gene52kQuery = {
+                ...query,
+                limitWhile: (r) => r.pValue <= 0.05,
+                limit: 1000,
+            };
+            let hugePhenotypeQuery = { ...query, limit: 1000 };
+            let pathwayAssocQuery = { ...ancestryOptionalQuery, limit: 100 };
+
+            if (
+                context.state.ancestry == "" ||
+                context.state.ancestry == null
+            ) {
+                context.dispatch("associations/query", assocQuery);
+            } else {
+                context.dispatch(
+                    "ancestryGlobalAssoc/query",
+                    ancestryAssocQuery
+                );
+            }
+            context.dispatch("annotations/query", query);
+            context.dispatch("genes/query", geneQuery);
+            context.dispatch("genes52k/query", gene52kQuery);
+            context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
+            context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
+            context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
+            context.dispatch("getCs2ct");
+            context.state.manhattanPlotAvailable = true;
+        },
+        getCs2ct(context){
+            let queryString = context.state.phenotype.id;
+            if (!!context.state.selectedAncestry){
+                queryString = `${context.state.selectedAncestry},${queryString}`;
+            }
+            queryString = `${queryString},${context.state.selectedAnnotation}`;
+            context.dispatch("c2ctAnnotation/query", { q : queryString });
+            
+        },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
         },
         diseaseInSession(context, DISEASE) {
             context.commit("setDiseaseInSession", DISEASE);
         },
-        commonVariantsLength(context, NUM) {
-            context.commit("setCommonVariantsLength", NUM);
-        },
-
-        async queryGeneName(context, symbol) {
-            let name = context.state.geneToQuery || context.state.geneName;
-            context.commit("setGeneName", name);
-
-            if (!!name) {
-                context.dispatch("gene/query", { q: name });
-                context.dispatch("geneToTranscript/query", { q: name });
-            }
-        },
-        ///
-
-        async queryGeneRegion(context, region) {
-            //To match with HuGE cal +- 300000 to the region
-            let { chromosome, start, end } = region || context.getters.region;
-            let q = `${chromosome}:${start - 300000}-${end + 300000}`;
-
-            context.dispatch("genes/query", { q });
-        },
-
-        async queryUniprot(context, symbol) {
-            let name = symbol || context.getters.canonicalSymbol;
-
-            if (!!symbol) {
-                context.dispatch("uniprot/getUniprotGeneInfo", name);
-            }
-        },
-
-        async queryAssociations(context) {
-            let query = { q: context.state.geneName };
-            context.dispatch("associations52k/query", query);
-            context.dispatch("geneassociations/query", query);
-            context.dispatch("geneExpression/query", query);
-        },
-        async getVarAssociationsData(context, phenotype) {
-            let gene = context.state.geneName;
-            let locus = await regionUtils.parseRegion(gene, true, 50000);
-
-            if (locus) {
-                context.state.newChr = locus.chr;
-                context.state.newStart = locus.start;
-                context.state.newEnd = locus.end;
-            }
-
-            const phenoRegionQuery = `${phenotype},${locus.chr}:${
-                locus.start - 50000
-            }-${locus.end + 50000}`;
-
-            context.dispatch("varassociations/query", { q: phenoRegionQuery });
-        },
-        async get52KAssociationData(context) {
-            let name = context.state.geneName;
-            context.dispatch("associations52k/query", { q: name });
-        },
-        async getHugeScoresData(context) {
-            let name = context.state.geneName;
-            context.dispatch("hugeScores/query", { q: name });
-        },
-        async getMouseData(context) {
-            let name = context.state.geneName;
-            context.dispatch("mouseSummary/query", { q: name });
-        },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
+        },
+
+        selectedPhenotype(context, PHENOTYPE) {
+            console.log("onState", PHENOTYPE);
+            context.commit("setSelectedPhenotype", PHENOTYPE);
         },
     },
 });
