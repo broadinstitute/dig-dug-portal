@@ -2,6 +2,8 @@
  * exported so we can add/remove pages based on build type.
  */
 
+const { template } = require("lodash");
+
 let pages = {
     page404: {
         entry: "src/views/404/main.js",
@@ -58,6 +60,13 @@ let pages = {
         filename: "tissue.html",
         title: "MATKP | Adipose Tissue",
         chunks: ["chunk-vendors", "chunk-common", "adipose_tissue"],
+    },
+    phenotype: {
+        entry: "src/portals/MATKP/views/Phenotype/main.js",
+        template: "public/index.html",
+        filename: "phenotype.html",
+        title: "MATKP | Phenotype",
+        chunks: ["chunk-vendors", "chunk-common", "phenotype"]
     }
 };
 
