@@ -153,9 +153,9 @@ new Vue({
 
             if (phenotype) {
                 if (!ancestry) {
-                    return `/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`;
+                    return `/api/raw/plot/phenotype/${phenotype.id}/manhattan.png`;
                 } else {
-                    return `api/raw/plot/phenotype/${phenotype.name}/${ancestry}/manhattan.png`;
+                    return `api/raw/plot/phenotype/${phenotype.id}/${ancestry}/manhattan.png`;
                 }
             }
         },
@@ -165,9 +165,9 @@ new Vue({
 
             if (phenotype) {
                 if (!ancestry) {
-                    return `/api/raw/plot/phenotype/${phenotype.name}/qq.png`;
+                    return `/api/raw/plot/phenotype/${phenotype.id}/qq.png`;
                 } else {
-                    return `/api/raw/plot/phenotype/${phenotype.name}/${ancestry}/qq.png`;
+                    return `/api/raw/plot/phenotype/${phenotype.id}/${ancestry}/qq.png`;
                 }
             }
         },
@@ -206,7 +206,7 @@ new Vue({
             let phenotype = phenotypeMap[name];
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.name });
+                keyParams.set({ phenotype: phenotype.id });
             }
             //Initial query. Should only happen once.
             this.$store.dispatch("queryPhenotype");
@@ -215,7 +215,7 @@ new Vue({
             this.annotation = data[0];
         },
         "$store.state.phenotype": function (phenotype) {
-            keyParams.set({ phenotype: phenotype.name });
+            keyParams.set({ phenotype: phenotype.id });
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         "$store.state.ancestry": function (ancestry) {
