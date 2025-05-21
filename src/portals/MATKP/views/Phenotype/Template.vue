@@ -6,16 +6,26 @@
 
         <!-- Body -->
         <div class="mat-body f-col" style="width: -webkit-fill-available">
-
-            <matkp-search style="width: 33.33%; align-self: flex-end; margin:-20px 0 20px;"/>
-
             <h4>Phenotype Page Coming Soon</h4>
-            <ul>
-                <li v-for="phenotype in $parent.matkpPhenotypes">
-                    {{JSON.stringify(phenotype)}}
-                </li>
-            </ul>
-
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <criterion-function-group>
+                        <div class="col filter-col-md">
+                            <span>
+                                <div class="label">
+                                    Search by phenotype
+                                </div>
+                            </span>
+                            <phenotype-selectpicker
+                                :phenotypes="
+                                    $parent.matkpPhenotypes
+                                "
+                            >
+                            </phenotype-selectpicker>
+                        </div>
+                    </criterion-function-group>
+                </div>
+            </div>
         </div>
 
         <!-- FOOTER -->
