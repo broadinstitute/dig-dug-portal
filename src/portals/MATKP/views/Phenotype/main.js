@@ -201,21 +201,24 @@ new Vue({
         customPhenotypeMap(){
             let matkpList = this.matkpPhenotypes.map(p => p.id);
             let allPhenotypes = structuredClone(this.$store.state.bioPortal.phenotypes);
+            if (matkpList.length === 0 || allPhenotypes.length === 0){
+                return [];
+            }
             let filteredPhenotypes = allPhenotypes.filter(p => matkpList.includes(p.name));
             console.log(JSON.stringify(filteredPhenotypes));
+            console.log(keyParams.phenotype);
             return filteredPhenotypes;
+        },
+        initialPhenotypeReady(){
+            return this.customPhenotypeMap.length > 0 && !!keyParams.phenotype;
         }
     },
 
     watch: {
-        customPhenotypeMap(phenotypeMap) {
-            let name = keyParams.phenotype;
-            let phenotype = phenotypeMap[name];
-            if (phenotype) {
-                this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.name });
-                //Initial query. Should only happen once.
-                this.$store.dispatch("queryPhenotype");
+        initialPhenotypeReady(ready){
+            if (ready){
+                let phenotype = this.$store.state.bioPortal.phenotypeMap[keyParams.phenotype];
+                this.$store.dispatch("onPhenotypeChange", phenotype);
             }
         },
         "$store.state.annotationOptions"(data) {
@@ -263,6 +266,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDocumentations");
         this.matkpPhenotypes = await this.getPhenotypes();
+        console.log(keyParams.phenotype);
     },
     methods: {
         ...uiUtils,
