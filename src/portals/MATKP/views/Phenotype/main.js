@@ -198,19 +198,17 @@ new Vue({
             });
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
-        customPhenotypeMap(){
+        customPhenotypes(){
             let matkpList = this.matkpPhenotypes.map(p => p.id);
             let allPhenotypes = structuredClone(this.$store.state.bioPortal.phenotypes);
             if (matkpList.length === 0 || allPhenotypes.length === 0){
                 return [];
             }
             let filteredPhenotypes = allPhenotypes.filter(p => matkpList.includes(p.name));
-            console.log(JSON.stringify(filteredPhenotypes));
-            console.log(keyParams.phenotype);
             return filteredPhenotypes;
         },
         initialPhenotypeReady(){
-            return this.customPhenotypeMap.length > 0 && !!keyParams.phenotype;
+            return this.customPhenotypes.length > 0 && !!keyParams.phenotype;
         }
     },
 
@@ -266,7 +264,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDocumentations");
         this.matkpPhenotypes = await this.getPhenotypes();
-        console.log(keyParams.phenotype);
     },
     methods: {
         ...uiUtils,
@@ -283,11 +280,6 @@ new Vue({
                 .split(";")
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(" + ");
-        },
-        setSelectedPhenotype(PHENOTYPE) {
-            this.newPhenotypeSearchKey = PHENOTYPE.description;
-            this.phenotypeSearchKey = null;
-            this.$store.dispatch("selectedPhenotype", PHENOTYPE);
         },
         ifPhenotypeInSearch(DESCRIPTION) {
             let searchKeys = this.phenotypeSearchKey.split(" ");

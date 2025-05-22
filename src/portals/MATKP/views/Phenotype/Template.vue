@@ -27,9 +27,8 @@
                                 </div>
                             </span>
                             <phenotype-selectpicker
-                                :phenotypes="
-                                    $parent.customPhenotypeMap
-                                "
+                                :phenotypes="$parent.customPhenotypes"
+                                :clearOnSelected="true"
                             >
                             </phenotype-selectpicker>
                         </div>
