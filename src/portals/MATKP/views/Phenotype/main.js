@@ -171,6 +171,11 @@ new Vue({
                 }
             }
         },
+        singleVarAssocData(){
+            return !this.$store.state.ancestry
+                ? this.$store.state.associations.data
+                : this.$store.state.ancestryGlobalAssoc.data
+        },
         geneticCorrelationData() {
             let data = this.$store.state.geneticCorrelation.data;
             let focusedData;

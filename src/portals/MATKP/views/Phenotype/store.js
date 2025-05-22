@@ -34,7 +34,6 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
-        manhattanPlotAvailable: true,
         annotationOptions: [],
         selectedAnnotation: "",
     },
@@ -70,7 +69,6 @@ export default new Vuex.Store({
     actions: {
         onPhenotypeChange(context, phenotype) {
             context.state.selectedPhenotype = phenotype;
-            keyParams.set({ phenotype: phenotype.name });
             context.dispatch("queryPhenotype");
         },
 
@@ -132,7 +130,6 @@ export default new Vuex.Store({
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
             context.dispatch("getCs2ct");
-            context.state.manhattanPlotAvailable = true;
         },
         getCs2ct(context){
             let queryString = context.state.phenotype.name;
@@ -151,10 +148,6 @@ export default new Vuex.Store({
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
-        },
-
-        selectedPhenotype(context, PHENOTYPE) {
-            context.commit("setSelectedPhenotype", PHENOTYPE);
         },
         commonVariantsLength(context, LENGTH){
             console.log(`${LENGTH} common variants`);
