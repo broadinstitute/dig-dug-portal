@@ -214,6 +214,9 @@ new Vue({
         },
         initialPhenotypeReady(){
             return this.customPhenotypes.length > 0 && !!keyParams.phenotype;
+        },
+        loading(){
+            return !!keyParams.phenotype && this.$store.state.phenotype === null;
         }
     },
 
