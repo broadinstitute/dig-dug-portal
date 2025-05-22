@@ -280,50 +280,6 @@
                             </criterion-function-group>
                         </div>
                     </div>
-                    <div class="card mdkp-card">
-                        <div class="card-body">
-                            <h4 class="card-title">
-                                Datasets with genetic associations for
-                                {{ $store.state.phenotype.description }}
-                                (Ancestry:
-                                {{
-                                    $store.state.ancestry == ""
-                                        ? "All"
-                                        : $parent.ancestryFormatter(
-                                            $store.state.ancestry
-                                        )
-                                }})
-                            </h4>
-                            <documentation
-                                name="pheno.assocdatasets.subheader"
-                                :content-map="$store.state.bioPortal.documentations"
-                            ></documentation>
-
-                            <criterion-function-group>
-                                <filter-enumeration-control
-                                    :field="'tech'"
-                                    :options="
-                                        $parent.ancestryDatasets
-                                            .filter((dataset) =>
-                                                dataset.phenotypes.includes(
-                                                    $store.state.phenotype.name
-                                                )
-                                            )
-                                            .map((dataset) => dataset.tech)
-                                    "
-                                >
-                                    <div class="label">Technology</div>
-                                </filter-enumeration-control>
-                                <template slot="filtered" slot-scope="{ filter }">
-                                    <datasets-table
-                                        :datasets="$parent.ancestryDatasets"
-                                        :phenotype="$store.state.phenotype"
-                                        :filter="filter"
-                                    ></datasets-table>
-                                </template>
-                            </criterion-function-group>
-                        </div>
-                    </div>
 
                     <div class="card mdkp-card">
                         <div class="card-body geneLevelAssoc">

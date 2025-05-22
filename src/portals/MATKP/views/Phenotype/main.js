@@ -213,7 +213,7 @@ new Vue({
             let phenotype = phenotypeMap[name];
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.name }); // this one should be name not id
+                keyParams.set({ phenotype: phenotype.name });
                 //Initial query. Should only happen once.
                 this.$store.dispatch("queryPhenotype");
             }

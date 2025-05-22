@@ -31,7 +31,7 @@ export default new Vuex.Store({
         phenotypesInSession: null,
         diseaseInSession: null,
         phenotypeCorrelation: null,
-        selectedPhenotype: !!keyParams.phenotype ? keyParams.phenotype : null,
+        selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         manhattanPlotAvailable: true,
@@ -69,7 +69,6 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            console.log(JSON.stringify(phenotype));
             context.state.selectedPhenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
             context.dispatch("queryPhenotype");
@@ -155,7 +154,6 @@ export default new Vuex.Store({
         },
 
         selectedPhenotype(context, PHENOTYPE) {
-            console.log("onState", PHENOTYPE);
             context.commit("setSelectedPhenotype", PHENOTYPE);
         },
         commonVariantsLength(context, LENGTH){
