@@ -182,12 +182,6 @@
                         </documentation>
                     </span>
                     <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
-                        <data-download
-                            v-if="$parent.geneSigsData"
-                            :data="$parent.geneSigsData"
-                            :filename="`${$store.state.geneName.toUpperCase()}_tissue_specificity`"
-                            style="width: 125px; align-self: flex-end;"
-                            ></data-download>
                         <research-phewas-plot
                                 v-if="$parent.geneSigsData.length > 0"
                                 ref="geneSigPhewasPlot"
@@ -207,6 +201,12 @@
                                 :utils="$parent.utilsBox"
                         >
                         </research-phewas-plot>
+                        <data-download
+                            v-if="$parent.geneSigsData"
+                            :data="$parent.geneSigsData"
+                            :filename="`${$store.state.geneName.toUpperCase()}_tissue_specificity`"
+                            style="width: 125px; align-self: flex-end;"
+                            ></data-download>
                         <b-table
                             v-if="$parent.geneSigsData"
                             small
