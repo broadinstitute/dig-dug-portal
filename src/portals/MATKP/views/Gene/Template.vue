@@ -182,6 +182,25 @@
                         </documentation>
                     </span>
                     <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
+                        <research-phewas-plot
+                                v-if="$parent.geneSigsData.length > 0"
+                                ref="geneSigPhewasPlot"
+                                canvas-id="geneSignature_"
+                                :plot-name="`gene_signature_${$store.state.geneName}`"
+                                :phenotypes-data="$parent.geneSigsData"
+                                :phenotype-map="
+                                    $store.state.bioPortal.phenotypeMap
+                                "
+                                :colors="$parent.plotColors"
+                                :plot-margin="$parent.phewasPlotMargin"
+                                :render-config="
+                                    $parent.geneSigRenderConfig
+                                "
+                                :pkg-data="null"
+                                :pkg-data-selected="null"
+                                :utils="$parent.utilsBox"
+                        >
+                        </research-phewas-plot>
                         <data-download
                             v-if="$parent.geneSigsData"
                             :data="$parent.geneSigsData"

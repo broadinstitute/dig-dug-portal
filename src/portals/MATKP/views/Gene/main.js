@@ -226,7 +226,7 @@ new Vue({
                 },
             },
 
-            geneSigsData: null,
+            geneSigsData: [],
             geneSigsPage: 1,
             geneSigsFields: [
                 {
@@ -235,17 +235,21 @@ new Vue({
                     sortable: true,
                 },{
                     key: 'species',
+                    label: "Species",
                     sortable: true,
                 },{
                     key: 'log_fold_change',
+                    label: "Log Fold Change",
                     sortable: true,
                     formatter: (value) => value ? value.toFixed(2) : ""
                 },{
                     key: 'p_value',
+                    label: "P-value",
                     sortable: true,
                     formatter: (value) => value ? value.toExponential(2) : ""
                 },{
                     key: 'p_value_adj',
+                    label: "P-value(adj)",
                     sortable: true,
                     formatter: (value) => value ? value.toExponential(2) : ""
                 },{
@@ -662,6 +666,32 @@ new Vue({
                 }),
             ];
         },
+        geneSigRenderConfig() { 
+            return {
+                "label": "PPA",
+                "type": "phewas plot",
+                "group by": "datasetId",
+                "y axis field": "p_value_adj",
+                "convert y -log10": "true",
+                "y ticks decimal point": "2",
+                "render by": "datasetRef",
+                "y axis label": "-log10(P)",
+                "x axis label": "Dataset",
+                "beta field": "log_fold_change",
+                "hover content": this.geneSigsFields.map(field => field.label),
+                "thresholds": [
+                0.01
+                ],
+                "label in black": "greater than",
+                "height": 400,
+                "plot margin": {
+                "top": 250,
+                "bottom": 250,
+                "left": 150,
+                "right": 150
+                }
+            };
+        },
 
         region() {
             return this.$store.getters.region;
@@ -837,7 +867,6 @@ new Vue({
 
     async created() {
         this.tooltips = await getTextContent(this.byor_tooltips_id);
-        console.log(JSON.stringify(this.tooltips.map(item => item["ID"])));
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
@@ -852,7 +881,7 @@ new Vue({
         this.checkGeneName(this.$store.state.geneName);
         this.getGTExdata();
         this.getGTExdata2();
-        this.getGeneSigs();
+        this.geneSigsData = await this.getGeneSigs();
     },
 
     methods: {
@@ -954,12 +983,25 @@ new Vue({
         },
 
         async getGeneSigs(){
+            let geneSigs = [];
             const dataUrl = "https://matkp.hugeampkpnbi.org/api/bio/query/single-cell-gene?q="+this.$store.state.geneName;
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
-                this.geneSigsData = contentJson.data;
-                console.log('geneSigsData', this.geneSigsData);
+                geneSigs = contentJson.data;
+                // Renaming fields so it shows up on hover in phewas plot
+                for (let i = 0; i < geneSigs.length; i++){
+                    for (let f = 0; f < this.geneSigsFields.length; f++){
+                        let field = this.geneSigsFields[f];
+                        let fieldData = geneSigs[i][field.key];
+                        let newName = field.label;
+                        if (field.formatter !== undefined){
+                            fieldData = field.formatter(fieldData);
+                        }
+                        geneSigs[i][newName] = fieldData;
+                    }
+                }
             }
+            return geneSigs;
         },
 
         buildGeneSigUrl(item){
@@ -973,7 +1015,6 @@ new Vue({
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.GTExData = contentJson.data;
-                console.log("GTExData", this.GTExData)
             }
         },
         async getGTExdata2(){
@@ -982,13 +1023,11 @@ new Vue({
             if (contentJson.error == null) {
                 const filtered = this.checkPreFilters(contentJson.data);
                 this.GTExData2 = filtered;
-                console.log("GTExData2", this.GTExData2)
             }
         },
         renderGTEx(REF) {
             this.activeTab = REF;
             let refComponent = this.$children[0].$refs[REF];
-            console.log(this.activeTab, refComponent)
             setTimeout(function () {
                 refComponent.renderBoxPlot();
             }, 500);
