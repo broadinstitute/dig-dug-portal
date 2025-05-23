@@ -185,7 +185,7 @@
                         <research-phewas-plot
                                 v-if="$parent.geneSigsData.length > 0"
                                 ref="geneSigPhewasPlot"
-                                canvas-id="geneSignaturePhewas"
+                                canvas-id="geneSignature_"
                                 :plot-name="`gene_signature_${$store.state.geneName}`"
                                 :phenotypes-data="$parent.geneSigsData"
                                 :phenotype-map="

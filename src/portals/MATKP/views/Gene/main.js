@@ -176,11 +176,16 @@ new Vue({
                 "x axis label": "Dataset",
                 "beta field": "log_fold_change",
                 "hover content": [
-                "datasetId",
-                "datasetRef"
+                    "datasetRef",
+                    "species",
+                    "log_fold_change",
+                    "p_value",
+                    "p_value_adj",
+                    "datasetType",
+                    "datasetId"
                 ],
                 "thresholds": [
-                2
+                0.01
                 ],
                 "label in black": "greater than",
                 "height": 400,
@@ -984,7 +989,6 @@ new Vue({
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.geneSigsData = contentJson.data;
-                console.log(JSON.stringify(this.geneSigsData[0]));
             }
         },
 
