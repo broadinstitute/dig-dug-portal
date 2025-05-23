@@ -991,9 +991,13 @@ new Vue({
                 // Renaming fields so it shows up on hover in phewas plot
                 for (let i = 0; i < geneSigs.length; i++){
                     for (let f = 0; f < this.geneSigsFields.length; f++){
-                        let oldName = this.geneSigsFields[f].key;
-                        let newName = this.geneSigsFields[f].label;
-                        geneSigs[i][newName] = geneSigs[i][oldName];
+                        let field = this.geneSigsFields[f];
+                        let fieldData = geneSigs[i][field.key];
+                        let newName = field.label;
+                        if (field.formatter !== undefined){
+                            fieldData = field.formatter(fieldData);
+                        }
+                        geneSigs[i][newName] = fieldData;
                     }
                 }
             }
