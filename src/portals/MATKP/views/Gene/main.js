@@ -164,38 +164,6 @@ new Vue({
                 bottomMargin: 100,
                 bump: 11,
             },
-            geneSigRenderConfig: {
-                "label": "PPA",
-                "type": "phewas plot",
-                "group by": "datasetId",
-                "y axis field": "p_value_adj",
-                "convert y -log10": "true",
-                "y ticks decimal point": "2",
-                "render by": "datasetRef",
-                "y axis label": "-log10(P)",
-                "x axis label": "Dataset",
-                "beta field": "log_fold_change",
-                "hover content": [
-                    "datasetRef",
-                    "species",
-                    "log_fold_change",
-                    "p_value",
-                    "p_value_adj",
-                    "datasetType",
-                    "datasetId"
-                ],
-                "thresholds": [
-                0.01
-                ],
-                "label in black": "greater than",
-                "height": 400,
-                "plot margin": {
-                "top": 250,
-                "bottom": 250,
-                "left": 150,
-                "right": 150
-                }
-            },
             hugeScoreRenderConfig: {
                 type: "phewas plot",
                 "render by": "phenotype",
@@ -267,17 +235,21 @@ new Vue({
                     sortable: true,
                 },{
                     key: 'species',
+                    label: "Species",
                     sortable: true,
                 },{
                     key: 'log_fold_change',
+                    label: "Log Fold Change",
                     sortable: true,
                     formatter: (value) => value ? value.toFixed(2) : ""
                 },{
                     key: 'p_value',
+                    label: "P-value",
                     sortable: true,
                     formatter: (value) => value ? value.toExponential(2) : ""
                 },{
                     key: 'p_value_adj',
+                    label: "P-value(adj)",
                     sortable: true,
                     formatter: (value) => value ? value.toExponential(2) : ""
                 },{
@@ -693,6 +665,32 @@ new Vue({
                     object: "biolink:MolecularActivity",
                 }),
             ];
+        },
+        geneSigRenderConfig() { 
+            return {
+                "label": "PPA",
+                "type": "phewas plot",
+                "group by": "datasetId",
+                "y axis field": "p_value_adj",
+                "convert y -log10": "true",
+                "y ticks decimal point": "2",
+                "render by": "datasetRef",
+                "y axis label": "-log10(P)",
+                "x axis label": "Dataset",
+                "beta field": "log_fold_change",
+                "hover content": this.geneSigsFields.map(field => field.label),
+                "thresholds": [
+                0.01
+                ],
+                "label in black": "greater than",
+                "height": 400,
+                "plot margin": {
+                "top": 250,
+                "bottom": 250,
+                "left": 150,
+                "right": 150
+                }
+            };
         },
 
         region() {
