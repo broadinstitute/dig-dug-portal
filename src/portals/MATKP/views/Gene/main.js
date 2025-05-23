@@ -883,7 +883,7 @@ new Vue({
         this.checkGeneName(this.$store.state.geneName);
         this.getGTExdata();
         this.getGTExdata2();
-        this.getGeneSigs();
+        this.geneSigsData = await this.getGeneSigs();
     },
 
     methods: {
@@ -985,11 +985,21 @@ new Vue({
         },
 
         async getGeneSigs(){
+            let geneSigs = [];
             const dataUrl = "https://matkp.hugeampkpnbi.org/api/bio/query/single-cell-gene?q="+this.$store.state.geneName;
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
-                this.geneSigsData = contentJson.data;
+                geneSigs = contentJson.data;
+                // Renaming fields so it shows up on hover in phewas plot
+                for (let i = 0; i < geneSigs.length; i++){
+                    for (let f = 0; f < this.geneSigsFields.length; f++){
+                        let oldName = this.geneSigsFields[f].key;
+                        let newName = this.geneSigsFields[f].label;
+                        geneSigs[i][newName] = geneSigs[i][oldName];
+                    }
+                }
             }
+            return geneSigs;
         },
 
         buildGeneSigUrl(item){
