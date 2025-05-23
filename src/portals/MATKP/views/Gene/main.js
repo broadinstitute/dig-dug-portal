@@ -164,6 +164,33 @@ new Vue({
                 bottomMargin: 100,
                 bump: 11,
             },
+            geneSigRenderConfig: {
+                "label": "PPA",
+                "type": "phewas plot",
+                "group by": "datasetId",
+                "y axis field": "p_value_adj",
+                "convert y -log10": "true",
+                "y ticks decimal point": "2",
+                "render by": "datasetRef",
+                "y axis label": "-log10(P)",
+                "x axis label": "Dataset",
+                "beta field": "log_fold_change",
+                "hover content": [
+                "datasetId",
+                "datasetRef"
+                ],
+                "thresholds": [
+                2
+                ],
+                "label in black": "greater than",
+                "height": 400,
+                "plot margin": {
+                "top": 250,
+                "bottom": 250,
+                "left": 150,
+                "right": 150
+                }
+            },
             hugeScoreRenderConfig: {
                 type: "phewas plot",
                 "render by": "phenotype",
@@ -226,7 +253,7 @@ new Vue({
                 },
             },
 
-            geneSigsData: null,
+            geneSigsData: [],
             geneSigsPage: 1,
             geneSigsFields: [
                 {
@@ -837,7 +864,6 @@ new Vue({
 
     async created() {
         this.tooltips = await getTextContent(this.byor_tooltips_id);
-        console.log(JSON.stringify(this.tooltips.map(item => item["ID"])));
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
@@ -958,7 +984,7 @@ new Vue({
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.geneSigsData = contentJson.data;
-                console.log('geneSigsData', this.geneSigsData);
+                console.log(JSON.stringify(this.geneSigsData[0]));
             }
         },
 
@@ -973,7 +999,6 @@ new Vue({
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
             if (contentJson.error == null) {
                 this.GTExData = contentJson.data;
-                console.log("GTExData", this.GTExData)
             }
         },
         async getGTExdata2(){
@@ -982,13 +1007,11 @@ new Vue({
             if (contentJson.error == null) {
                 const filtered = this.checkPreFilters(contentJson.data);
                 this.GTExData2 = filtered;
-                console.log("GTExData2", this.GTExData2)
             }
         },
         renderGTEx(REF) {
             this.activeTab = REF;
             let refComponent = this.$children[0].$refs[REF];
-            console.log(this.activeTab, refComponent)
             setTimeout(function () {
                 refComponent.renderBoxPlot();
             }, 500);

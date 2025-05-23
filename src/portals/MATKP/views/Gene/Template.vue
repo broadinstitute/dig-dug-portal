@@ -188,6 +188,25 @@
                             :filename="`${$store.state.geneName.toUpperCase()}_tissue_specificity`"
                             style="width: 125px; align-self: flex-end;"
                             ></data-download>
+                        <research-phewas-plot
+                                v-if="$parent.geneSigsData.length > 0"
+                                ref="geneSigPhewasPlot"
+                                canvas-id="geneSignaturePhewas"
+                                :plot-name="`gene_signature_${$store.state.geneName}`"
+                                :phenotypes-data="$parent.geneSigsData"
+                                :phenotype-map="
+                                    $store.state.bioPortal.phenotypeMap
+                                "
+                                :colors="$parent.plotColors"
+                                :plot-margin="$parent.phewasPlotMargin"
+                                :render-config="
+                                    $parent.geneSigRenderConfig
+                                "
+                                :pkg-data="null"
+                                :pkg-data-selected="null"
+                                :utils="$parent.utilsBox"
+                        >
+                        </research-phewas-plot>
                         <b-table
                             v-if="$parent.geneSigsData"
                             small
