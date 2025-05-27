@@ -165,7 +165,41 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>   
+                                </div>
+                                <div class="flex-gap" id="enrichr">
+                                    <div class="tabs-group wide-group">
+                                        <div class="tabs-wrapper">
+                                            <div class="tab">
+                                                ENRICHR Downregulated Genes
+                                            </div>
+                                        </div>
+                                        <div class="tabs-section-wrapper">
+                                            <div class="tab-section" >
+                                                <div class="flex-gap">
+                                                    <div class="wide-block">
+                                                        Coming soon
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tabs-group wide-group">
+                                        <div class="tabs-wrapper">
+                                            <div class="tab">
+                                                ENRICHR Upregulated Genes
+                                            </div>
+                                        </div>
+                                        <div class="tabs-section-wrapper">
+                                            <div class="tab-section" >
+                                                <div class="flex-gap">
+                                                    <div class="wide-block">
+                                                        Coming soon
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div id="table-wrapper" class="flex-gap flex-column">
                                     <div class="flex-gap flex-column">
                                         <bulk-table
@@ -265,7 +299,8 @@
   .wide-group {
     width: 670px;
   }
-  #visualizers {
+  #enrichr {
     margin-bottom: 25px;
+    margin-top: 25px;
   }
 </style>
