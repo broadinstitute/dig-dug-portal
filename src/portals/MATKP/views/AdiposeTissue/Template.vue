@@ -6,6 +6,14 @@
             <!-- BODY -->
             <template>
                 <div class="mat-body f-col">
+                <h2 class="matkp-static-content-title">
+                            {{ $parent.tissueFormatter(
+                                $store.state.tissueName) }}
+                        </h2>
+                        <div v-if="$parent.byorDocumentation !== null"
+                            class="matkp-tool-documentation"
+                            v-html="$parent.byorDocumentation.body">
+                        </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4>
