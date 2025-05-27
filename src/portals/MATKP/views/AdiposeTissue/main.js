@@ -3,6 +3,7 @@ import Template from "./Template.vue";
 import store from "./store.js";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
+import { getTextContent } from "@/portals/MATKP/utils/content";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -16,6 +17,8 @@ import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
+import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -42,6 +45,8 @@ new Vue({
         C2ctTable,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
+        Documentation,
+        TooltipDocumentation
     },
     mixins: [matkpMixin],
     data() {
@@ -84,6 +89,8 @@ new Vue({
                 ],
             },
             annotation: "",
+            byor_page_id: "matkp_functionalannotations",
+            documentation: null,
         };
     },
     computed: {
@@ -126,7 +133,7 @@ new Vue({
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
     },
-    created() {
+    async created() {
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -135,6 +142,8 @@ new Vue({
         this.$store.dispatch("getTissue");
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
+        this.documentation = await getTextContent(this.byor_page_id);
+        console.log(this.documentation.map(d => d["Section"]));
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,

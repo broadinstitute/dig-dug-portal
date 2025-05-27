@@ -18,6 +18,14 @@
             {
                 "label": "Differential Gene Expression Browser",
                 "path": "/bulkbrowser.html"
+            },
+            {
+                "label": "Functional Annotations",
+                "path": "/tissue.html"
+            },
+            {
+                "label": "Phenotype Browser",
+                "path": "/phenotype.html" 
             }
         ]
     },
