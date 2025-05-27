@@ -14,10 +14,12 @@ import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
+import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot"
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
@@ -36,6 +38,7 @@ new Vue({
         BulkViolinPlot,
         GeneSelectPicker,
         MouseGeneSelect,
+        ResearchBarPlot,
         CriterionFunctionGroup,
         FilterGreaterThan,
         ResearchSingleCellBrowser,
@@ -58,7 +61,8 @@ new Vue({
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
             utils: {
-                uiUtils: uiUtils
+                uiUtils: uiUtils,
+                plotUtils: plotUtils
             },
             colors: [
                 "#007bff",
@@ -118,7 +122,32 @@ new Vue({
             upGenes: [],
             downGenes: [],
             enrichrUp: [],
-            enrichrDown: []
+            enrichrDown: [],
+            enrichrPlotConfig: {
+                type: "bar plot",
+                label: "Enrichr Results",
+                "group by": "Rank",
+                "y axis field": "Combined score",
+                "convert y -log10": null,
+                "y ticks decimal point": "2",
+                "render by": "Term name",
+                "y axis label": "Combined score",
+                "x axis label": "Term name",
+                "beta field": null,
+                "hover content": [
+                    "Combined score",
+                    "P-value",
+                    "Adjusted p-value"
+                ],
+                thresholds: [],
+                height: 300,
+                "plot margin": {
+                    top: 200,
+                    bottom: 200,
+                    left: 150,
+                    right: 175
+                }
+            },
         };
     },
     computed: {
@@ -327,6 +356,7 @@ new Vue({
         },
         async upGenes(genes){
             this.enrichrUp = await this.getEnrichr(genes);
+            console.log(JSON.stringify(this.enrichrUp[0]));
         },
         async downGenes(genes){
             this.enrichrDown = await this.getEnrichr(genes);

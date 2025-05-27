@@ -177,7 +177,19 @@
                                             <div class="tab-section" >
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
-                                                        Coming soon
+                                                        <research-bar-plot
+                                                            v-if="$parent.enrichrDown.length > 0"
+                                                            ref="DownregulatedGenes"
+                                                            :phenotypesData="$parent.enrichrDown"
+                                                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                                            :colors="$parent.colors"
+                                                            :plotMargin="$parent.margin"
+                                                            :renderConfig="$parent.enrichrPlotConfig"
+                                                            :pkgData="null"
+                                                            :pkgDataSelected="null"
+                                                            canvasId="DownregulatedGenes"
+                                                            :utils="$parent.utils"
+                                                        ></research-bar-plot>
                                                     </div>
                                                 </div>
                                             </div>
@@ -193,7 +205,19 @@
                                             <div class="tab-section" >
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
-                                                        Coming soon
+                                                        <research-bar-plot
+                                                            v-if="$parent.enrichrUp.length > 0"
+                                                            ref="UpregulatedGenes"
+                                                            :phenotypesData="$parent.enrichrUp"
+                                                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                                            :colors="$parent.colors"
+                                                            :plotMargin="$parent.margin"
+                                                            :renderConfig="$parent.enrichrPlotConfig"
+                                                            :pkgData="null"
+                                                            :pkgDataSelected="null"
+                                                            canvasId="UpregulatedGenes"
+                                                            :utils="$parent.utils"
+                                                        ></research-bar-plot>
                                                     </div>
                                                 </div>
                                             </div>
@@ -210,6 +234,7 @@
                                             :scatterConfig="$parent.scatterplotConfig"
                                             :highlightedGene="$store.state.selectedGene"
                                             :regulationConditions="$parent.regulationConditions"
+                                            @downGenes="genes => $parent.setEnrichrGenes(genes, false)"
                                             @upGenes="genes => $parent.setEnrichrGenes(genes, true)">
                                         </bulk-table>
                                     </div>
