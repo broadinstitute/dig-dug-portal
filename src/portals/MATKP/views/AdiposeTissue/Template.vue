@@ -7,13 +7,13 @@
             <template>
                 <div class="mat-body f-col">
                 <h2 class="matkp-static-content-title">
-                            {{ $parent.tissueFormatter(
-                                $store.state.tissueName) }}
-                        </h2>
-                        <div v-if="$parent.byorDocumentation !== null"
-                            class="matkp-tool-documentation"
-                            v-html="$parent.byorDocumentation.body">
-                        </div>
+                    {{ $parent.tissueFormatter(
+                        $store.state.tissueName) }}
+                </h2>
+                <div v-if="$parent.byorDocumentation !== null"
+                    class="matkp-tool-documentation"
+                    v-html="$parent.byorDocumentation.body">
+                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4>
@@ -273,5 +273,8 @@ div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
 .blue-search {
     background-color: #66bbff30 !important;
     border: solid 1px #3399ff30 !important;
+}
+.matkp-tool-documentation {
+    font-size: 16px;
 }
 </style>
