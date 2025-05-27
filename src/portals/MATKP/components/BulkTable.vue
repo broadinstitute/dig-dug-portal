@@ -179,6 +179,7 @@ export default Vue.component("bulk-table", {
     mounted(){
         this.findGene(this.highlightedGene);
         this.$emit("upGenes", this.upregulatedGenes);
+        this.$emit("downGenes", this.downregulatedGenes);
     },
     computed: {
         utilsBox() {
@@ -228,6 +229,11 @@ export default Vue.component("bulk-table", {
         },
         upregulatedGenes(){
             let genesList = this.tableData.filter(item => this.showRegulation(item) === this.up)
+                .map(item => item.gene);
+            return genesList;
+        },
+        downregulatedGenes(){
+            let genesList = this.tableData.filter(item => this.showRegulation(item) === this.down)
                 .map(item => item.gene);
             return genesList;
         },
@@ -363,6 +369,9 @@ export default Vue.component("bulk-table", {
         },
         upregulatedGenes(newGenes){
             this.$emit("upGenes", newGenes);
+        },
+        downregulatedGenes(newGenes){
+            this.$emit("downGenes", newGenes);
         }
     }
 });

@@ -116,7 +116,9 @@ new Vue({
             volcanoXConditionGreater: 1.5,
             volcanoXConditionLower: -1.5,
             upGenes: [],
-            downGenes: []
+            downGenes: [],
+            enrichrUp: [],
+            enrichrDown: []
         };
     },
     computed: {
@@ -324,8 +326,10 @@ new Vue({
             }
         },
         async upGenes(genes){
-            let enrichrUp = await this.getEnrichr(genes);
-            console.log(JSON.stringify(enrichrUp[0]));
+            this.enrichrUp = await this.getEnrichr(genes);
+        },
+        async downGenes(genes){
+            this.enrichrDown = await this.getEnrichr(genes);
         }
     },
 
