@@ -90,6 +90,7 @@ new Vue({
             },
             annotation: "",
             byor_page_id: "matkp_functionalannotations",
+            byorDocumentation: null,
             documentation: null,
         };
     },
@@ -142,8 +143,9 @@ new Vue({
         this.$store.dispatch("getTissue");
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
-        this.documentation = await getTextContent(this.byor_page_id);
-        console.log(this.documentation.map(d => d["Section"]));
+        this.byorDocumentation = await getTextContent(this.byor_page_id, false, true);
+        this.documentation = dataConvert.csv2Json(this.byorDocumentation.field_data_points);
+        console.log(this.byorDocumentation.body);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
