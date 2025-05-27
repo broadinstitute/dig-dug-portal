@@ -225,6 +225,10 @@ export default Vue.component("bulk-table", {
             }
             return data;
         },
+        upregulatedGenes(){
+            return this.tableData.filter(item => item.showRegulation === this.up)
+                .map(item => item.gene);
+        },
         allGenes(){
             return this.tableData.map(t => t.gene);
         }

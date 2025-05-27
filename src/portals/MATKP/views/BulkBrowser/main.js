@@ -251,6 +251,24 @@ new Vue({
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
+        },
+        async getEnrichr(genesList){
+            let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
+            let enrichrRequest = {
+                "gene_set_library": "KEGG_2015",
+                "gene_list": genesList,
+                "gene_list_desc": "my_list"
+            }
+            const response = await fetch(enrichrEndpoint, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+                        'accept': 'application/json'
+
+					},
+					body: JSON.stringify(enrichrRequest),
+				});
+            return response.json();
         }
 
     },
