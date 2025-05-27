@@ -115,6 +115,8 @@ new Vue({
             volcanoYCondition: 1.3,
             volcanoXConditionGreater: 1.5,
             volcanoXConditionLower: -1.5,
+            upGenes: [],
+            downGenes: []
         };
     },
     computed: {
@@ -252,6 +254,13 @@ new Vue({
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
         },
+        setEnrichrGenes(genes, upregulated=true){
+            if (upregulated){
+                this.upGenes = genes;
+                return;
+            }
+            this.downGenes = genes;
+        },
         async getEnrichr(genesList){
             let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
             let enrichrRequest = {
@@ -313,6 +322,10 @@ new Vue({
             if (newData !== oldData) {
                 this.$store.state.selectedGene = newData;
             }
+        },
+        async upGenes(genes){
+            let enrichrUp = await this.getEnrichr(genes);
+            console.log(JSON.stringify(enrichrUp[0]));
         }
     },
 

@@ -175,7 +175,8 @@
                                             :config="$parent.tableConfig"
                                             :scatterConfig="$parent.scatterplotConfig"
                                             :highlightedGene="$store.state.selectedGene"
-                                            :regulationConditions="$parent.regulationConditions">
+                                            :regulationConditions="$parent.regulationConditions"
+                                            @upGenes="genes => $parent.setEnrichrGenes(genes, true)">
                                         </bulk-table>
                                     </div>
                                 </div>
