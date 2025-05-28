@@ -24,13 +24,14 @@
                                     </div>
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" >
-                                            <div  class="flex-gap">
+                                            <div class="flex-gap">
                                                 <div class="top-block">
                                                     <select v-model="$store.state.selectedDataset">
                                                         <option value="">Select a dataset</option>
                                                         <option v-for="dataset in $parent.datasets"
                                                             :value="dataset">
-                                                            {{ dataset }}
+                                                            {{ dataset.slice(0,30) }}
+                                                            {{`${dataset.length > 30 ? '...':''}`}}
                                                         </option>
                                                     </select>
                                                 </div>
@@ -38,7 +39,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- <div class="tabs-group">
+                                <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
                                             Select a comparison
@@ -59,7 +60,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div> -->
+                                </div>
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
@@ -241,7 +242,7 @@
   .top-block {
     display:flex;
     flex-direction: column;
-    min-width: 285px;
+    min-width: 200px;
   }
   .wide-block {
     display:flex;

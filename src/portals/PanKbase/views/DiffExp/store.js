@@ -45,6 +45,11 @@ export default new Vuex.Store({
     },
     setSelectedComparison(state, comparison) {
       state.selectedComparison = comparison;
+    },
+    setSelectedDataset(state, dataset){
+      state.selectedDataset = dataset;
+      keyParams.set({dataset: dataset});
+
     }
 
   },
@@ -56,12 +61,10 @@ export default new Vuex.Store({
     async queryBulk(context) {
       let compQueryParam = context.state.currentComparisons[context.state.selectedComparison];
       let singleBulkZNormObject = {};
-      console.log("compQueryParam", compQueryParam);
       if (context.state.selectedDataset !== "") {
         const query = `${context.state.singleBulkZNormUrl}${context.state.selectedDataset},${compQueryParam}&limit=${context.state.limit}`
         const response = await fetch(query);
         singleBulkZNormObject = await response.json();
-        console.log(query, response, singleBulkZNormObject);
       }
       context.commit("setSingleBulkZNormData", singleBulkZNormObject.data);
       /*
@@ -92,6 +95,9 @@ export default new Vuex.Store({
     },
     resetComparison(context) {
       context.commit("setSelectedComparison", context.state.defaultComparison);
+    },
+    selectDataset(context, dataset){
+      context.commit("setSelectedDataset", dataset);
     }
 
   },

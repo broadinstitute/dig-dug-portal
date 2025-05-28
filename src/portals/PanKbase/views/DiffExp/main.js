@@ -213,13 +213,14 @@ new Vue({
     },
     methods: {
         async init() {
+            this.datasets = await this.getParams();
             if (!keyParams.dataset) {
-                keyParams.set({ dataset: this.$store.state.selectedDataset });
+                this.$store.dispatch("selectDataset", this.datasets[0]);
             }
             if (!keyParams.gene) {
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
-            this.datasets = await this.getParams();
+            
             console.log(JSON.stringify(this.datasets));
             await this.getBulkMetadata();
             if (!keyParams.comparison) {
