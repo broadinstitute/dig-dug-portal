@@ -171,7 +171,7 @@ new Vue({
                 //combination for condition can be "greater than", "lower than", "or" and "and."
                 "y condition": { 
                     "combination": "greater than", 
-                    "greater than": -Math.log(parseFloat(this.volcanoYCondition)) },
+                    "greater than": -Math.log10(parseFloat(this.volcanoYCondition)) },
                 "dot label score": 2
                 //number of conditions that the value of each dot to meet to have labeled
             };
