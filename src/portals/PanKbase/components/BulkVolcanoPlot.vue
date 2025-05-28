@@ -214,17 +214,18 @@ export default Vue.component("bulk-volcano-plot", {
 			let xVals = [...new Set(sumstat.map(s => s.value.x))],
 				yVals = [...new Set(sumstat.map(s => s.value.y))];
 
-			let xMaxVal = xVals.reduce((prev, next) => prev > next ? prev : next),
-				xMinVal = xVals.reduce((prev, next) => prev < next ? prev : next),
-				yMaxVal = yVals.reduce((prev, next) => prev > next ? prev : next),
-				yMinVal = yVals.reduce((prev, next) => prev < next ? prev : next),
+			let xMaxVal = this.findExtreme(xVals, false),
+				xMinVal = this.findExtreme(xVals),
+				yMaxVal = this.findExtreme(yVals, false),
+				yMinVal =this.findExtreme(yVals),
 				vals = [xMaxVal, xMinVal, yMaxVal, yMinVal];
 
 				vals.map(v=>{
 					v = Math.round(v*100)/100;
 				})
 
-				
+			
+			console.log(JSON.stringify(vals));
 
 			this.x = d3.scaleLinear().domain([(xMinVal-(xMaxVal*.05)), xMaxVal + (xMaxVal * .05)]).range([margin.left, width + margin.left]);
 			this.y = d3.scaleLinear().domain([(yMinVal - (yMaxVal * .05)), yMaxVal + (yMaxVal * .05)]).range([height + margin.top, margin.top]);
@@ -467,8 +468,20 @@ export default Vue.component("bulk-volcano-plot", {
       xVal = xVal.replace(valueFlag, "").replace("dot", ".");
       yVal = yVal.replace(valueFlag, "").replace("dot", ".");
       return [xVal, yVal];
-
-    }
+    },
+		findExtreme(values, minimum=true){
+			let extreme = values.find(e => !Number.isNaN(e));
+			for (let i = 0; i < values.length; i++){
+				let current = values[i];
+				if (Number.isNaN(current)){ continue; }
+				if (minimum && current < extreme){
+						extreme = current;
+				} else if (!minimum && current > extreme){
+						extreme = current;
+				}
+			}
+			return extreme;
+		}
 	},
 });
 
