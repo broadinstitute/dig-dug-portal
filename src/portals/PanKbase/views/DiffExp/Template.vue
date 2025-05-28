@@ -28,10 +28,13 @@
                                                 <div class="top-block">
                                                     <select v-model="$store.state.selectedDataset">
                                                         <option value="">Select a dataset</option>
-                                                        <option v-for="dataset in $parent.datasets"
+                                                        <!-- <option v-for="dataset in $parent.datasets"
                                                             :value="dataset">
                                                             {{ dataset.slice(0,30) }}
                                                             {{`${dataset.length > 30 ? '...':''}`}}
+                                                        </option> -->
+                                                        <option v-for="dataset in $parent.datasets">
+                                                            {{ dataset }}
                                                         </option>
                                                     </select>
                                                 </div>
@@ -242,7 +245,10 @@
   .top-block {
     display:flex;
     flex-direction: column;
-    min-width: 200px;
+    min-width: 213px;
+  }
+  .top-block select {
+    max-width: 213px;
   }
   .wide-block {
     display:flex;
