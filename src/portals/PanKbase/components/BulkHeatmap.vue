@@ -55,7 +55,8 @@ export default Vue.component("bulk-heatmap", {
           chart: null,
           chartWidth: 0,
           colorWeak: "rgb(249 249 249)", // colorblind safe gray
-          colorStrong: "rgb(116 040 129)", // colorblind safe purple
+          colorStrong: "rgb(179 021 041)", // colorblind safe red
+          colorNegative: "rgb(016 101 171)", // colorblind safe blue
           fontSize: "13px",
           minExp: null,
           maxExp: null,
@@ -131,9 +132,16 @@ export default Vue.component("bulk-heatmap", {
                   .attr('font-size', this.fontSize);
           
           // Build color scale
-          let colorScale = d3.scaleLinear(
-            [this.minExp, this.maxExp],
-            [this.colorWeak, this.colorStrong]);
+          let scaleDomain, scaleRange;
+
+          if (this.minExp < 0 && this.maxExp > 0){
+            scaleDomain = [this.minExp, 0, this.maxExp];
+            scaleRange = [this.colorNegative, this.colorWeak, this.colorStrong];
+          } else {
+            scaleDomain = [this.minExp, this.maxExp];
+            scaleRange = [this.colorWeak, this.colorStrong];
+          }
+          let colorScale = d3.scaleLinear(scaleDomain, scaleRange);
           let step = 0.01 * (this.maxExp - this.minExp);
           this.colorScaleArray = d3.range(this.minExp, this.maxExp, step).map(t => colorScale(t)).join(', ');
 
