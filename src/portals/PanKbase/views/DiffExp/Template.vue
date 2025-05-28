@@ -130,20 +130,19 @@
                                             <div class="tab-section" >
                                                 <div  class="flex-gap">
                                                     <div class="wide-block">
-                                                        <div v-if="$parent.zNormData.length > 0">
-                                                            <bulk-heatmap
-                                                                :zNormData="$parent.zNormData"
-                                                                :samplesColumns="$parent.samplesColumns"
-                                                                :comparisonId="$parent.selectedComparison"
-                                                                :margin="$parent.margin"
-                                                                :sampleColors="$parent.colors"
-                                                                :plotHeight="$parent.plotHeight"
-                                                                :selectedGene="$parent.selectedGene"
-                                                                @highlight="gene => $parent.highlight(gene)"
-                                                                :plotId="$parent.kpDataset"
-                                                            >
-                                                            </bulk-heatmap>
-                                                        </div>
+                                                        <bulk-heatmap
+                                                            v-if="$parent.zNormData.length > 0"
+                                                            :zNormData="$parent.zNormData"
+                                                            :samplesColumns="$parent.samplesColumns"
+                                                            :comparisonId="$parent.selectedComparison"
+                                                            :margin="$parent.margin"
+                                                            :sampleColors="$parent.colors"
+                                                            :plotHeight="$parent.plotHeight"
+                                                            :selectedGene="$parent.selectedGene"
+                                                            @highlight="gene => $parent.highlight(gene)"
+                                                            :plotId="$store.state.selectedDataset"
+                                                        >
+                                                        </bulk-heatmap>
                                                         <div v-else>
                                                             Heatmap coming soon
                                                         </div>

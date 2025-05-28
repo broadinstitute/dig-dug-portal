@@ -48,8 +48,6 @@ export default new Vuex.Store({
     },
     setSelectedDataset(state, dataset){
       state.selectedDataset = dataset;
-      keyParams.set({dataset: dataset});
-
     }
 
   },

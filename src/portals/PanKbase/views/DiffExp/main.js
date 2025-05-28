@@ -134,7 +134,17 @@ new Vue({
         },
         zNormData() {
             let outputData = structuredClone(this.$store.state.singleBulkZNormData);
-            outputData.forEach(item => item["-log10P"] = item.log10FDR);
+            console.log(JSON.stringify(outputData[0]));
+            outputData.forEach(item => {
+                console.log(Object.keys(item))
+                item["-log10P"] = item.log10FDR;
+                for (let i = 0; i < this.samplesColumns.length; i++){
+                    let expressionDataPoint = item.expression[i];
+                    let sampleLabel = this.samplesColumns[i];
+                    item[sampleLabel] = expressionDataPoint;
+                }
+            });
+            // This is going to be weird and messy for a minute
             return outputData;
         },
         bulkData19K() {
@@ -194,12 +204,12 @@ new Vue({
             }
         },
         samplesColumns(){
-            if(this.zNormData.length === 0){
-                return [];
+            let samples = [];
+            let expression = this.$store.state.singleBulkZNormData[0].expression;
+            for (let i = 0; i < expression.length; i++){
+                samples.push(`sample_${i}`);
             }
-            let item = this.zNormData[0];
-            let columns = Object.keys(item).filter(i => i !== 'gene');
-            return columns;
+            return samples;
         },
         datasetMetadata(){
             return this.allMetadata.find(x => x.datasetId === this.selectedDataset);
@@ -207,10 +217,6 @@ new Vue({
     },
     async mounted() {
         this.init();
-        this.getDocumentation();
-        let content = await getPankbaseContent(this.sampleDataId);
-        this.sampleData = this.processData(content);
-        this.heatmapSampleData = await getPankbaseContent(this.heatmapSampleDataId);
     },
     created() {
     },
@@ -218,7 +224,9 @@ new Vue({
         async init() {
             this.datasets = await this.getParams();
             if (!keyParams.dataset) {
-                this.$store.dispatch("selectDataset", this.datasets[0]);
+                let defaultDataset = this.datasets[0];
+                this.$store.dispatch("selectDataset", defaultDataset);
+                keyParams.set({dataset: defaultDataset});
             }
             if (!keyParams.gene) {
                 keyParams.set({ gene: this.$store.state.selectedGene });
@@ -228,8 +236,14 @@ new Vue({
                 this.$store.dispatch("resetComparison");
                 keyParams.set({ comparison: this.$store.state.selectedComparison });
             }
-            //await this.$store.dispatch("queryBulkFile");
-            //await this.$store.dispatch("queryBulk");
+            await this.$store.dispatch("queryBulkFile");
+            await this.$store.dispatch("queryBulk");
+
+            this.getDocumentation();
+            let content = await getPankbaseContent(this.sampleDataId);
+            this.sampleData = this.processData(content);
+            this.heatmapSampleData = await getPankbaseContent(this.heatmapSampleDataId);
+            console.log("Heatmap sample data", JSON.stringify(this.heatmapSampleData[0]));
             this.dataReady = true;
 
         },
