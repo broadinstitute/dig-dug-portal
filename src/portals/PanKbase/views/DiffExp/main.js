@@ -212,7 +212,9 @@ new Vue({
             return samples;
         },
         datasetMetadata(){
-            return this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+            let metadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+            console.log("Dataset metadata", JSON.stringify(metadata));
+            return metadata;
         }
     },
     async mounted() {
