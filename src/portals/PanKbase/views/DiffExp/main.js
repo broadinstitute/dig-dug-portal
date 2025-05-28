@@ -143,7 +143,6 @@ new Vue({
                     item[sampleLabel] = expressionDataPoint;
                 }
             });
-            // This is going to be weird and messy for a minute
             return outputData;
         },
         bulkData19K() {
@@ -257,7 +256,8 @@ new Vue({
             this.documentation = jsonContent[0];
         },
         getTop20(data) {
-            let processedData = data.sort((a, b) => b.minusLog10P - a.minusLog10P).slice(0, 20);
+            let field = "-log10P";
+            let processedData = data.sort((a, b) => b[field] - a[field]).slice(0, 20);
             return processedData;
         },
         async getParams() {
@@ -297,6 +297,7 @@ new Vue({
                 keyParams.set({ dataset: newData });
                 await this.$store.dispatch("queryBulkFile");
                 await this.$store.dispatch("queryBulk");
+                this.sampleMetadata = await this.getSampleIds(newData);
             }
         },
         selectedComparison(newData, oldData) {
