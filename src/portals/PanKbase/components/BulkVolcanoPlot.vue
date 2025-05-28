@@ -171,18 +171,19 @@ export default Vue.component("bulk-volcano-plot", {
 			this.yAxisField = this.renderConfig['y axis field'];
 			this.xAxisField = this.renderConfig['x axis field'];
 			let renderField = this.renderConfig['render by'];
-
-
-
 			let sumstat = [];
-			this.plotData.map((v) => {
-					let tempObj = { key: v[renderField], value: {} };
-
-					tempObj.value['x'] = v[this.xAxisField];
-					tempObj.value['y'] = v[this.yAxisField];
-
-					sumstat.push(tempObj);
-				})
+			let plotDataBackup = structuredClone(this.plotData);
+			for (let i = 0; i < plotDataBackup.length; i++){
+				let v = plotDataBackup[i];
+				let tempObj = { 
+					key: v[renderField], 
+					value: {
+						x: v[this.xAxisField],
+						y: v[this.yAxisField]
+					}
+				};
+				sumstat.push(tempObj);
+			}
 			
 			//render axis labels
 
@@ -403,7 +404,6 @@ export default Vue.component("bulk-volcano-plot", {
 						fillColor = xFieldVal > 0 ? this.red: this.blue;
 						break;
 				}
-
 				this.svg.select("#axisGroup")
 					.append('circle')
 					.attr('cx', this.x(d.value.x))

@@ -98,7 +98,7 @@ new Vue({
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
                     {
-                        key: "log2FoldChange",
+                        key: "logFoldChange",
                         label: "log2 Fold Change",
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
@@ -134,9 +134,7 @@ new Vue({
         },
         zNormData() {
             let outputData = structuredClone(this.$store.state.singleBulkZNormData);
-            console.log(JSON.stringify(outputData[0]));
             outputData.forEach(item => {
-                console.log(Object.keys(item))
                 item["-log10P"] = item.log10FDR;
                 for (let i = 0; i < this.samplesColumns.length; i++){
                     let expressionDataPoint = item.expression[i];
@@ -148,12 +146,11 @@ new Vue({
             return outputData;
         },
         bulkData19K() {
-            if (this.selectedDataset === 'sample'){
-                return this.sampleData;
-            }
-            return this.$store.state.bulkData19K.filter(
+            let bulkData = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
                     && item.comparison_id === this.$store.state.selectedComparison);
+            console.log("Current bulk data", JSON.stringify(bulkData[0]));
+            return bulkData;
         },
         volcanoConfig() {
             let config = {
@@ -161,9 +158,9 @@ new Vue({
                 "label": "This is a Test",
                 "legend": "This is a Test",
                 "render by": "gene",
-                "x axis field": "log2FoldChange",
+                "x axis field": "logFoldChange",
                 "x axis label": "log2 Fold Change",
-                "y axis field": "minusLog10P",
+                "y axis field": "-log10P",
                 "y axis label": "-log10 (P adj.)",
                 "width": 600,
                 "height": this.plotHeight,
@@ -213,7 +210,6 @@ new Vue({
         },
         datasetMetadata(){
             let metadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-            console.log("Dataset metadata", JSON.stringify(metadata));
             return metadata;
         }
     },
@@ -243,9 +239,7 @@ new Vue({
 
             this.getDocumentation();
             let content = await getPankbaseContent(this.sampleDataId);
-            this.sampleData = this.processData(content);
             this.heatmapSampleData = await getPankbaseContent(this.heatmapSampleDataId);
-            console.log("Heatmap sample data", JSON.stringify(this.heatmapSampleData[0]));
             this.dataReady = true;
 
         },
@@ -283,19 +277,7 @@ new Vue({
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
-        },
-        processData(inputData){
-            let data = inputData.filter(d => d.padj !== 'NA');
-            for (let i = 0; i < data.length; i++){
-                let padj = data[i]["padj"];
-                if (Number.isNaN(-Math.log10(padj))){
-                    console.log(data[i].gene, padj);
-                }
-                data[i]["minusLog10P"] = -Math.log10(data[i]["padj"]);
-            }
-            return data;
         }
-
     },
     watch: {
         async selectedDataset(newData, oldData) {

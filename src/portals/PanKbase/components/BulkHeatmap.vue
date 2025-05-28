@@ -303,7 +303,6 @@ export default Vue.component("bulk-heatmap", {
         }
     },
     mounted(){
-        console.log(this.plotId);
         this.chart = document.getElementById(this.plotId);
         this.chartWidth = this.chart.clientWidth;
         this.drawHeatMap();

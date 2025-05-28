@@ -164,7 +164,6 @@
                                                         <div v-if="$parent.bulkData19K.length> 0">
                                                             <bulk-volcano-plot
                                                                 :renderData="$parent.bulkData19K"
-                                                                
                                                                 :renderConfig="$parent.volcanoConfig"
                                                                 :margin="$parent.margin"
                                                                 sectionId="bulk"
