@@ -29,7 +29,7 @@
 <script>
 import Vue from "vue";
 import * as d3 from 'd3';
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 import sortUtils from "@/utils/sortUtils";
 import "../assets/pkb-styles.css";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
@@ -176,62 +176,6 @@ export default Vue.component("bulk-heatmap", {
 
         this.loading = false;
       },
-      async getSampleIds(dataset){
-        let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
-            dataset}/fields.json.gz`;
-        try {
-            const response = await fetch(queryUrl);
-            const data = await(response.json());
-            
-            if(!!data) {
-
-                const metaData = data.metadata[this.comparisonId]
-                const metaLabel = data.metadata_labels[this.comparisonId]
-
-                let tempDataArr = [];
-
-                data.sample_id.map( (id, idIndex) => {
-                    tempDataArr.push({
-                        id: id,
-                        sampleIndex: idIndex,
-                        group: metaLabel[metaData[idIndex]],
-                        groupIndex: metaData[idIndex]
-                    })
-                })
-
-                let sortedArr = sortUtils.sortArrOfObjects(tempDataArr, 'group', 'alphabetical', 'asc')
-
-                //Not the best way to do but required to render legend
-                let tempMetaLabel = [];
-
-                metaLabel.map((m,mIndex) => {
-                    tempMetaLabel.push({
-                        label: m,
-                        index: mIndex
-                    })
-                })
-
-                this.sampleGroups = sortUtils.sortArrOfObjects(tempMetaLabel, 'label', 'alphabetical', 'asc');
-                
-                let samples = {
-                    samples:[],
-                    sampleGroups: {}
-                }
-
-                sortedArr.map(s => {
-                    samples.samples.push(s.id);
-                    samples.sampleGroups[s.id] = s
-                })
-
-                return samples;//data.sample_id;
-            }
-            
-        }
-        catch(error) {
-            console.error("Error: ", error);
-            return [];
-        }
-        },
       collateData(rawData, samplesColumns){
             let outputData = [];
             let minExp = null;

@@ -63,6 +63,7 @@ new Vue({
             datasets: [],
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
+            sampleMetadata: {},
             utils: {
                 uiUtils: uiUtils
             },
@@ -201,12 +202,9 @@ new Vue({
             }
         },
         samplesColumns(){
-            let samples = [];
-            let expression = this.$store.state.singleBulkZNormData[0].expression;
-            for (let i = 0; i < expression.length; i++){
-                samples.push(`sample_${i}`);
-            }
-            return samples;
+            let sampleIds = this.sampleMetadata["ID"];
+            return sampleIds === undefined ? [] : sampleIds;
+
         },
         datasetMetadata(){
             let metadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
@@ -241,7 +239,7 @@ new Vue({
             let content = await getPankbaseContent(this.sampleDataId);
             this.heatmapSampleData = await getPankbaseContent(this.heatmapSampleDataId);
             this.dataReady = true;
-
+            this.sampleMetadata = await this.getSampleIds(this.$store.state.selectedDataset);
         },
         async getBulkMetadata() {
             let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
@@ -277,7 +275,21 @@ new Vue({
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
+        },
+
+      async getSampleIds(dataset){
+        let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
+            dataset}/fields.json.gz`;
+        try {
+            const response = await fetch(queryUrl);
+            const data = await(response.json());
+            return data;
         }
+        catch(error) {
+            console.error("Error: ", error);
+            return [];
+        }
+        },
     },
     watch: {
         async selectedDataset(newData, oldData) {
