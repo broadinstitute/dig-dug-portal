@@ -26,7 +26,6 @@
                 <template v-for="option in contextOptions">
                     <div :key="option['context id']" class="row">
                         <div class="col-md-10">
-                            {{ option["context id"] }}
                             <div><strong v-html="option.label"></strong></div>
                             <div v-html="option.description"></div>
                         </div>
