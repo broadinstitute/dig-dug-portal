@@ -200,6 +200,9 @@ new Vue({
             let item = this.zNormData[0];
             let columns = Object.keys(item).filter(i => i !== 'gene');
             return columns;
+        },
+        datasetMetadata(){
+            return this.allMetadata.find(x => x.datasetId === this.selectedDataset);
         }
     },
     async mounted() {
@@ -220,9 +223,7 @@ new Vue({
             if (!keyParams.gene) {
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
-            
-            console.log(JSON.stringify(this.datasets));
-            await this.getBulkMetadata();
+            this.allMetadata = await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
                 keyParams.set({ comparison: this.$store.state.selectedComparison });
@@ -233,13 +234,9 @@ new Vue({
 
         },
         async getBulkMetadata() {
-            if (!this.allMetadata) {
-                let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
-                let myMetadata = await scUtils.fetchMetadata(metadataUrl);
-                this.allMetadata = myMetadata;
-            }
-
-            this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+            let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
+            let myMetadata = await scUtils.fetchMetadata(metadataUrl);
+            return myMetadata;
         },
         async getDocumentation() {
             const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=pankbase_differentialexpressionbrowser";
@@ -290,9 +287,6 @@ new Vue({
                 keyParams.set({ dataset: newData });
                 await this.$store.dispatch("queryBulkFile");
                 await this.$store.dispatch("queryBulk");
-                if (newData !== "") {
-                    this.getBulkMetadata();
-                }
             }
         },
         selectedComparison(newData, oldData) {
