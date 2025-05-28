@@ -25,7 +25,7 @@ import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
 import { isNull } from "lodash";
 
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 
 
 new Vue({
@@ -133,9 +133,6 @@ new Vue({
             return this.$store.state.selectedGene;
         },
         zNormData() {
-            if (this.heatmapSampleData.length > 0){
-                return this.heatmapSampleData;
-            }
             let outputData = structuredClone(this.$store.state.singleBulkZNormData);
             outputData.forEach(item => item["-log10P"] = item.log10FDR);
             return outputData;
@@ -222,8 +219,9 @@ new Vue({
             if (!keyParams.gene) {
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
-            //this.getParams();
-            //await this.getBulkMetadata();
+            this.datasets = await this.getParams();
+            console.log(JSON.stringify(this.datasets));
+            await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
                 keyParams.set({ comparison: this.$store.state.selectedComparison });
@@ -258,14 +256,16 @@ new Vue({
         },
         async getParams() {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
+            let datasets = [];
             try {
                 const response = await fetch(url);
                 const data = await (response.json());
                 let allKeys = data.keys;
-                this.datasets = Array.from(new Set(allKeys.map(item => item[0])));
+                datasets = Array.from(new Set(allKeys.map(item => item[0])));
             } catch (error) {
                 console.error("Error: ", error);
             }
+            return datasets;
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
