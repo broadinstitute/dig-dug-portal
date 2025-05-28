@@ -568,25 +568,19 @@ export default Vue.component("research-section", {
 			//filter_c2ct_phenotype_annotationppo
 			if(!!this.sectionConfig.filters) {
 
-				//console.log("this.sectionConfig.filters",this.sectionConfig.filters)
+				
 
 			let filters = [];
 
 				this.sectionConfig.filters.map( f => {
-
-					//console.log("f",f)
 					
 					const fItem = f.type == 'checkbox'? '.filter-' + this.sectionID + f.field.replace(/\W/g, "").toLowerCase():'#filter_' + this.sectionID + f.field.replace(/\W/g, "").toLowerCase();
 					const fItems = document.querySelectorAll(fItem);
-
-					//console.log("fItem",fItem);
-					//console.log("fItems",fItems);
 					
 					if(f.type == 'checkbox') {
 						fItems.forEach(node => {
 							if(node.checked) {
 								filters.push(node.value)
-								//console.log(node.id + " is checked");
 							}
 						})
 					} else {
@@ -599,7 +593,6 @@ export default Vue.component("research-section", {
 					}
 				})
 
-				//console.log("filtes", filters);
 				this.filterValues = filters;
 					
 			} else {
@@ -961,8 +954,6 @@ export default Vue.component("research-section", {
 
 		getParamString(PARAMS_TYPE) {
 
-			//console.log("PARAMS_TYPE",PARAMS_TYPE)
-
 			let queryParams = {}; // collect search parameters
 			let queryParamsString = []; // search parameters into one string
 			let queryParamsSet = true; // if search requirements don't meet set it null
@@ -971,6 +962,9 @@ export default Vue.component("research-section", {
 			//1. collect all parameters and put them in queryParams
 
 			if (!!this.dataPoint.parameters && (!PARAMS_TYPE || (!!PARAMS_TYPE && PARAMS_TYPE != 'replace or'))) {
+
+				//console.log("falls in this");
+
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
 						/// !! incomplete: This part is to add multiple query functionality
@@ -990,12 +984,14 @@ export default Vue.component("research-section", {
 							
 							region = chr +":"+posStart+"-"+posEnd;
 
-							//console.log("region",region)
-
 							queryParams[p] = region.toString().split(",");
 
 						} else {
 							queryParams[p] = this.utils.keyParams[p].toString().split(","); 
+
+							//console.log("p",this.utils.keyParams[p]);
+							//console.log("p2",queryParams[p]);
+
 						}
 						
 					} else {
@@ -1040,7 +1036,6 @@ export default Vue.component("research-section", {
 				}
 			}
 
-			//console.log("queryParams",queryParams)
 			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
 			if (!!this.sectionConfig["pre filters"]) {
 				this.sectionConfig["pre filters"].map(f => {
@@ -1056,8 +1051,6 @@ export default Vue.component("research-section", {
 
 
 				let paramsLength = queryParams[this.dataPoint.parameters[0]].length;
-
-				//console.log("paramsLength",paramsLength);
 
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
@@ -1081,9 +1074,10 @@ export default Vue.component("research-section", {
 			}
 
 			//5. Check if return the first item in the queryParamsString
-			//console.log("queryParamsString", queryParamsString)
-			if (queryParamsString.length > 0) {
+			if (queryParamsString.length > 0 && !this.dataPoint['is value array']) {
 				return queryParamsString[0];
+			} else if(queryParamsString.length > 0 && !!this.dataPoint['is value array']) {
+				return queryParamsString.join(';'); // this case is only for 'BYOGL'
 			} else {
 				if (!!this.dataPoint.parameters) {
 					return "invalid";
@@ -1100,7 +1094,6 @@ export default Vue.component("research-section", {
 		},
 
 		queryData(FROM) {
-			//console.log("here");
 			const queryType = this.dataPoint["type"];
 			const paramsType = this.dataPoint["parameters type"];
 			const params = this.dataPoint["parameters"];
@@ -1111,6 +1104,8 @@ export default Vue.component("research-section", {
 				this.searched = [lastSearched];
 			}
 			let paramsString = this.getParamString(paramsType );
+
+			//console.log("getParamString",paramsString);
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
@@ -1158,19 +1153,23 @@ export default Vue.component("research-section", {
 						break;
 					case "openApi":
 
-						let header = this.dataPoint["header"];
-						let body = this.dataPoint["body"];
+						
+
+						const header = this.dataPoint["header"];
+						let body = JSON.parse(JSON.stringify(this.dataPoint["body"]));
 
 						let paramStrArr = paramsString.split(",");
 
-						//console.log("paramStrArr",paramsString);
-						//console.log("searchParams",this.searchParameters);
+						//console.log("paramsString here",paramsString);
 
 						params.map((param, pIndex) => {
 
 							for (const [key, value] of Object.entries(body)) {
-								if(value == '$'+param) {
 
+								//console.log("value",value);
+
+								if(value == '$'+param) { // Here is the bug
+									
 									let paramType;
 									this.searchParameters.map( p => {
 										if(p.parameter == key) {
@@ -1179,10 +1178,13 @@ export default Vue.component("research-section", {
 									})
 
 									if(paramType == "string to array") {
-										//console.log("paramStrArr[pIndex]",paramStrArr[pIndex].replaceAll("\n",";"));
+										
 										paramStrArr[pIndex] = paramStrArr[pIndex].replaceAll("\n",";");
 										body[key] = paramStrArr[pIndex].split(";");
+
+										//console.log("body[key]",body[key]);
 									} else {
+										
 										body[key] = paramStrArr[pIndex];
 									}
 								}
@@ -1237,6 +1239,8 @@ export default Vue.component("research-section", {
 
 		queryOpenApi(HEADER,BODY, URL, PARAM, TYPE, PARAMS) {
 
+			//console.log("BODY",BODY['genes']);
+
 			async function fetchApi(header,body) {
 				const response = await fetch(URL, {
 					method: 'POST',
@@ -1259,14 +1263,11 @@ export default Vue.component("research-section", {
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
-			//console.log("here2",QUERY, TYPE, PARAMS);
-
 			this.searched.push(QUERY);
 
 			let dataUrl = this.dataPoint.url;
 
 			if (TYPE == "replace") {
-				//console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
@@ -1277,11 +1278,9 @@ export default Vue.component("research-section", {
 					}
 				})
 
-				//console.log("dataUrl",dataUrl);
 
 			} else if(TYPE == "replace or") {
 
-				//console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
@@ -1291,8 +1290,6 @@ export default Vue.component("research-section", {
 						dataUrl = dataUrl.replace("$" + param, '');
 					}
 				})
-
-				//console.log("dataUrl",dataUrl);
 
 			} else {
 				dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
@@ -1724,8 +1721,6 @@ export default Vue.component("research-section", {
 
 						data = mergedData;
 
-						//console.log("CONTENT data",data);
-
 					} else {
 						data = CONTENT;
 					}
@@ -1750,7 +1745,7 @@ export default Vue.component("research-section", {
 					break;
 
 				case "object to array":
-					//console.log("CONTENT",CONTENT);
+
 					let objKey = this.dataPoint.object.key, objValue = this.dataPoint.object.value;
 
 					if (!!dataWrapper) {
@@ -1877,6 +1872,8 @@ export default Vue.component("research-section", {
 		},
 
 		completeDataLoad(QUERY) {
+
+			//console.log("complete",QUERY,this.sectionID,this.sectionData.length);
 
 			if (this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
 				let sortBy = this.sectionConfig["table format"]["initial sort by"]
