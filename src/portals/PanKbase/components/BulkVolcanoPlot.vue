@@ -172,9 +172,15 @@ export default Vue.component("bulk-volcano-plot", {
 			this.xAxisField = this.renderConfig['x axis field'];
 			let renderField = this.renderConfig['render by'];
 			let sumstat = [];
-			let plotDataBackup = structuredClone(this.plotData);
+			console.log(this.plotData.length);
+			let plotDataBackup = this.plotData.filter(d => 
+				d[this.yAxisField] !== 'NA');
+			console.log("Filtered down to", plotDataBackup.length);
 			for (let i = 0; i < plotDataBackup.length; i++){
 				let v = plotDataBackup[i];
+				if (v[this.yAxisField] === "NA"){
+					console.log("found one!");
+				}
 				let tempObj = { 
 					key: v[renderField], 
 					value: {
