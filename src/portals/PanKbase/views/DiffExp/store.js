@@ -5,9 +5,8 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
-import bioIndexUtils from "@/utils/bioIndexUtils";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import dataConvert from "@/utils/dataConvert";
+const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 
 Vue.use(Vuex);
 
@@ -17,12 +16,14 @@ export default new Vuex.Store({
     bioPortal,
     kp4cd,
     singleBulkZNorm: bioIndex("single-cell-bulk-z-norm"),
+    singleBulkMelted: bioIndex("single-cell-bulk-melted")
+
   },
   state: {
     limit: 20,
     singleBulkZNormData: [],
     bulkData19K: [],
-    selectedDataset: keyParams.dataset || 'sample',
+    selectedDataset: keyParams.dataset || '',
     defaultComparison: "",
     selectedComparison: keyParams.comparison || "",
     selectedGene: keyParams.gene || "",
@@ -44,6 +45,9 @@ export default new Vuex.Store({
     },
     setSelectedComparison(state, comparison) {
       state.selectedComparison = comparison;
+    },
+    setSelectedDataset(state, dataset){
+      state.selectedDataset = dataset;
     }
 
   },
@@ -55,12 +59,10 @@ export default new Vuex.Store({
     async queryBulk(context) {
       let compQueryParam = context.state.currentComparisons[context.state.selectedComparison];
       let singleBulkZNormObject = {};
-      console.log("compQueryParam", compQueryParam);
       if (context.state.selectedDataset !== "") {
         const query = `${context.state.singleBulkZNormUrl}${context.state.selectedDataset},${compQueryParam}&limit=${context.state.limit}`
         const response = await fetch(query);
         singleBulkZNormObject = await response.json();
-        console.log(query, response, singleBulkZNormObject);
       }
       context.commit("setSingleBulkZNormData", singleBulkZNormObject.data);
       /*
@@ -91,6 +93,9 @@ export default new Vuex.Store({
     },
     resetComparison(context) {
       context.commit("setSelectedComparison", context.state.defaultComparison);
+    },
+    selectDataset(context, dataset){
+      context.commit("setSelectedDataset", dataset);
     }
 
   },

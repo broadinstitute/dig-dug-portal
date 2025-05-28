@@ -25,7 +25,7 @@ import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
 import { isNull } from "lodash";
 
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 
 
 new Vue({
@@ -63,6 +63,7 @@ new Vue({
             datasets: [],
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
+            sampleMetadata: {},
             utils: {
                 uiUtils: uiUtils
             },
@@ -98,18 +99,18 @@ new Vue({
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
                     {
-                        key: "log2FoldChange",
+                        key: "logFoldChange",
                         label: "log2 Fold Change",
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "minusLog10P",
+                        key: "-log10P",
                         label: "-log10(P adj.)",
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
-                    //{ key: "expand", label: "Gene query" },
+                    { key: "expand", label: "Gene query" },
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "single-cell-bulk-melted",
@@ -133,20 +134,23 @@ new Vue({
             return this.$store.state.selectedGene;
         },
         zNormData() {
-            if (this.heatmapSampleData.length > 0){
-                return this.heatmapSampleData;
-            }
             let outputData = structuredClone(this.$store.state.singleBulkZNormData);
-            outputData.forEach(item => item["-log10P"] = item.log10FDR);
+            outputData.forEach(item => {
+                item["-log10P"] = item.log10FDR;
+                for (let i = 0; i < this.samplesColumns.length; i++){
+                    let expressionDataPoint = item.expression[i];
+                    let sampleLabel = this.samplesColumns[i];
+                    item[sampleLabel] = expressionDataPoint;
+                }
+            });
             return outputData;
         },
         bulkData19K() {
-            if (this.selectedDataset === 'sample'){
-                return this.sampleData;
-            }
-            return this.$store.state.bulkData19K.filter(
+            let bulkData = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
-                    && item.comparison_id === this.$store.state.selectedComparison);
+                    && item.comparison_id === this.$store.state.selectedComparison
+                    && item["-log10P"] !== 'NA');
+            return bulkData;
         },
         volcanoConfig() {
             let config = {
@@ -154,9 +158,9 @@ new Vue({
                 "label": "This is a Test",
                 "legend": "This is a Test",
                 "render by": "gene",
-                "x axis field": "log2FoldChange",
+                "x axis field": "logFoldChange",
                 "x axis label": "log2 Fold Change",
-                "y axis field": "minusLog10P",
+                "y axis field": "-log10P",
                 "y axis label": "-log10 (P adj.)",
                 "width": 600,
                 "height": this.plotHeight,
@@ -167,7 +171,7 @@ new Vue({
                 //combination for condition can be "greater than", "lower than", "or" and "and."
                 "y condition": { 
                     "combination": "greater than", 
-                    "greater than": -Math.log(parseFloat(this.volcanoYCondition)) },
+                    "greater than": -Math.log10(parseFloat(this.volcanoYCondition)) },
                 "dot label score": 2
                 //number of conditions that the value of each dot to meet to have labeled
             };
@@ -193,54 +197,53 @@ new Vue({
             return {
                 xGreater: this.volcanoXConditionGreater,
                 xLower: -this.volcanoXConditionGreater,
-                yGreater: -Math.log(this.volcanoYCondition)
+                yGreater: -Math.log10(this.volcanoYCondition)
             }
         },
         samplesColumns(){
-            if(this.zNormData.length === 0){
-                return [];
-            }
-            let item = this.zNormData[0];
-            let columns = Object.keys(item).filter(i => i !== 'gene');
-            return columns;
+            let sampleIds = this.sampleMetadata["ID"];
+            return sampleIds === undefined ? [] : sampleIds;
+
+        },
+        datasetMetadata(){
+            let metadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+            return metadata;
         }
     },
     async mounted() {
         this.init();
-        this.getDocumentation();
-        let content = await getPankbaseContent(this.sampleDataId);
-        this.sampleData = this.processData(content);
-        this.heatmapSampleData = await getPankbaseContent(this.heatmapSampleDataId);
     },
     created() {
     },
     methods: {
         async init() {
+            this.datasets = await this.getParams();
             if (!keyParams.dataset) {
-                keyParams.set({ dataset: this.$store.state.selectedDataset });
+                let defaultDataset = this.datasets[0];
+                this.$store.dispatch("selectDataset", defaultDataset);
+                keyParams.set({dataset: defaultDataset});
             }
             if (!keyParams.gene) {
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
-            //this.getParams();
-            //await this.getBulkMetadata();
+            this.allMetadata = await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
                 keyParams.set({ comparison: this.$store.state.selectedComparison });
             }
-            //await this.$store.dispatch("queryBulkFile");
-            //await this.$store.dispatch("queryBulk");
-            this.dataReady = true;
+            await this.$store.dispatch("queryBulkFile");
+            await this.$store.dispatch("queryBulk");
 
+            this.getDocumentation();
+            let content = await getPankbaseContent(this.sampleDataId);
+            this.heatmapSampleData = await getPankbaseContent(this.heatmapSampleDataId);
+            this.dataReady = true;
+            this.sampleMetadata = await this.getSampleIds(this.$store.state.selectedDataset);
         },
         async getBulkMetadata() {
-            if (!this.allMetadata) {
-                let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
-                let myMetadata = await scUtils.fetchMetadata(metadataUrl);
-                this.allMetadata = myMetadata;
-            }
-
-            this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
+            let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
+            let myMetadata = await scUtils.fetchMetadata(metadataUrl);
+            return myMetadata;
         },
         async getDocumentation() {
             const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=pankbase_differentialexpressionbrowser";
@@ -253,35 +256,40 @@ new Vue({
             this.documentation = jsonContent[0];
         },
         getTop20(data) {
-            let processedData = data.sort((a, b) => b.minusLog10P - a.minusLog10P).slice(0, 20);
+            let field = "-log10P";
+            let processedData = data.sort((a, b) => b[field] - a[field]).slice(0, 20);
             return processedData;
         },
         async getParams() {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
+            let datasets = [];
             try {
                 const response = await fetch(url);
                 const data = await (response.json());
                 let allKeys = data.keys;
-                this.datasets = Array.from(new Set(allKeys.map(item => item[0])));
+                datasets = Array.from(new Set(allKeys.map(item => item[0])));
             } catch (error) {
                 console.error("Error: ", error);
             }
+            return datasets;
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
         },
-        processData(inputData){
-            let data = inputData.filter(d => d.padj !== 'NA');
-            for (let i = 0; i < data.length; i++){
-                let padj = data[i]["padj"];
-                if (Number.isNaN(-Math.log10(padj))){
-                    console.log(data[i].gene, padj);
-                }
-                data[i]["minusLog10P"] = -Math.log10(data[i]["padj"]);
-            }
+
+      async getSampleIds(dataset){
+        let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
+            dataset}/fields.json.gz`;
+        try {
+            const response = await fetch(queryUrl);
+            const data = await(response.json());
             return data;
         }
-
+        catch(error) {
+            console.error("Error: ", error);
+            return [];
+        }
+        },
     },
     watch: {
         async selectedDataset(newData, oldData) {
@@ -289,9 +297,7 @@ new Vue({
                 keyParams.set({ dataset: newData });
                 await this.$store.dispatch("queryBulkFile");
                 await this.$store.dispatch("queryBulk");
-                if (newData !== "") {
-                    this.getBulkMetadata();
-                }
+                this.sampleMetadata = await this.getSampleIds(newData);
             }
         },
         selectedComparison(newData, oldData) {

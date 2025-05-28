@@ -29,7 +29,7 @@
 <script>
 import Vue from "vue";
 import * as d3 from 'd3';
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 import sortUtils from "@/utils/sortUtils";
 import "../assets/pkb-styles.css";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
@@ -55,7 +55,8 @@ export default Vue.component("bulk-heatmap", {
           chart: null,
           chartWidth: 0,
           colorWeak: "rgb(249 249 249)", // colorblind safe gray
-          colorStrong: "rgb(116 040 129)", // colorblind safe purple
+          colorStrong: "rgb(179 021 041)", // colorblind safe red
+          colorNegative: "rgb(016 101 171)", // colorblind safe blue
           fontSize: "13px",
           minExp: null,
           maxExp: null,
@@ -131,9 +132,16 @@ export default Vue.component("bulk-heatmap", {
                   .attr('font-size', this.fontSize);
           
           // Build color scale
-          let colorScale = d3.scaleLinear(
-            [this.minExp, this.maxExp],
-            [this.colorWeak, this.colorStrong]);
+          let scaleDomain, scaleRange;
+
+          if (this.minExp < 0 && this.maxExp > 0){
+            scaleDomain = [this.minExp, 0, this.maxExp];
+            scaleRange = [this.colorNegative, this.colorWeak, this.colorStrong];
+          } else {
+            scaleDomain = [this.minExp, this.maxExp];
+            scaleRange = [this.colorWeak, this.colorStrong];
+          }
+          let colorScale = d3.scaleLinear(scaleDomain, scaleRange);
           let step = 0.01 * (this.maxExp - this.minExp);
           this.colorScaleArray = d3.range(this.minExp, this.maxExp, step).map(t => colorScale(t)).join(', ');
 
@@ -176,62 +184,6 @@ export default Vue.component("bulk-heatmap", {
 
         this.loading = false;
       },
-      async getSampleIds(dataset){
-        let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
-            dataset}/fields.json.gz`;
-        try {
-            const response = await fetch(queryUrl);
-            const data = await(response.json());
-            
-            if(!!data) {
-
-                const metaData = data.metadata[this.comparisonId]
-                const metaLabel = data.metadata_labels[this.comparisonId]
-
-                let tempDataArr = [];
-
-                data.sample_id.map( (id, idIndex) => {
-                    tempDataArr.push({
-                        id: id,
-                        sampleIndex: idIndex,
-                        group: metaLabel[metaData[idIndex]],
-                        groupIndex: metaData[idIndex]
-                    })
-                })
-
-                let sortedArr = sortUtils.sortArrOfObjects(tempDataArr, 'group', 'alphabetical', 'asc')
-
-                //Not the best way to do but required to render legend
-                let tempMetaLabel = [];
-
-                metaLabel.map((m,mIndex) => {
-                    tempMetaLabel.push({
-                        label: m,
-                        index: mIndex
-                    })
-                })
-
-                this.sampleGroups = sortUtils.sortArrOfObjects(tempMetaLabel, 'label', 'alphabetical', 'asc');
-                
-                let samples = {
-                    samples:[],
-                    sampleGroups: {}
-                }
-
-                sortedArr.map(s => {
-                    samples.samples.push(s.id);
-                    samples.sampleGroups[s.id] = s
-                })
-
-                return samples;//data.sample_id;
-            }
-            
-        }
-        catch(error) {
-            console.error("Error: ", error);
-            return [];
-        }
-        },
       collateData(rawData, samplesColumns){
             let outputData = [];
             let minExp = null;
@@ -303,8 +255,7 @@ export default Vue.component("bulk-heatmap", {
         }
     },
     mounted(){
-
-      this.chart = document.getElementById(this.plotId);
+        this.chart = document.getElementById(this.plotId);
         this.chartWidth = this.chart.clientWidth;
         this.drawHeatMap();
     }

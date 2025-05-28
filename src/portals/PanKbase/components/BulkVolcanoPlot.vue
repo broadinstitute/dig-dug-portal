@@ -171,18 +171,20 @@ export default Vue.component("bulk-volcano-plot", {
 			this.yAxisField = this.renderConfig['y axis field'];
 			this.xAxisField = this.renderConfig['x axis field'];
 			let renderField = this.renderConfig['render by'];
-
-
-
 			let sumstat = [];
-			this.plotData.map((v) => {
-					let tempObj = { key: v[renderField], value: {} };
-
-					tempObj.value['x'] = v[this.xAxisField];
-					tempObj.value['y'] = v[this.yAxisField];
-
-					sumstat.push(tempObj);
-				})
+			let plotDataBackup = this.plotData.filter(d => 
+				d[this.yAxisField] !== 'NA');
+			for (let i = 0; i < plotDataBackup.length; i++){
+				let v = plotDataBackup[i];
+				let tempObj = { 
+					key: v[renderField], 
+					value: {
+						x: v[this.xAxisField],
+						y: v[this.yAxisField]
+					}
+				};
+				sumstat.push(tempObj);
+			}
 			
 			//render axis labels
 
@@ -213,17 +215,15 @@ export default Vue.component("bulk-volcano-plot", {
 			let xVals = [...new Set(sumstat.map(s => s.value.x))],
 				yVals = [...new Set(sumstat.map(s => s.value.y))];
 
-			let xMaxVal = xVals.reduce((prev, next) => prev > next ? prev : next),
-				xMinVal = xVals.reduce((prev, next) => prev < next ? prev : next),
-				yMaxVal = yVals.reduce((prev, next) => prev > next ? prev : next),
-				yMinVal = yVals.reduce((prev, next) => prev < next ? prev : next),
+			let xMaxVal = this.findExtreme(xVals, false),
+				xMinVal = this.findExtreme(xVals),
+				yMaxVal = this.findExtreme(yVals, false),
+				yMinVal =this.findExtreme(yVals),
 				vals = [xMaxVal, xMinVal, yMaxVal, yMinVal];
 
 				vals.map(v=>{
 					v = Math.round(v*100)/100;
-				})
-
-				
+				});
 
 			this.x = d3.scaleLinear().domain([(xMinVal-(xMaxVal*.05)), xMaxVal + (xMaxVal * .05)]).range([margin.left, width + margin.left]);
 			this.y = d3.scaleLinear().domain([(yMinVal - (yMaxVal * .05)), yMaxVal + (yMaxVal * .05)]).range([height + margin.top, margin.top]);
@@ -278,7 +278,6 @@ export default Vue.component("bulk-volcano-plot", {
 
 			if (!!renderConfig["y condition"]) {
 				if (!!renderConfig["y condition"]["greater than"]) {
-
 					this.svg.select("#axisGroup")
 						.append('line')
 						.attr('style', "stroke-dasharray: 3,3")
@@ -403,7 +402,6 @@ export default Vue.component("bulk-volcano-plot", {
 						fillColor = xFieldVal > 0 ? this.red: this.blue;
 						break;
 				}
-
 				this.svg.select("#axisGroup")
 					.append('circle')
 					.attr('cx', this.x(d.value.x))
@@ -438,6 +436,9 @@ export default Vue.component("bulk-volcano-plot", {
 				.selectAll(".highlightCircle")
 				.remove();
 			let dataItem = this.plotData.find(d => d.gene === gene);
+			if (dataItem === undefined){
+				return;
+			}
 			let geneVal = {
 				x: dataItem[this.xAxisField],
 				y: dataItem[this.yAxisField]
@@ -467,8 +468,20 @@ export default Vue.component("bulk-volcano-plot", {
       xVal = xVal.replace(valueFlag, "").replace("dot", ".");
       yVal = yVal.replace(valueFlag, "").replace("dot", ".");
       return [xVal, yVal];
-
-    }
+    },
+		findExtreme(values, minimum=true){
+			let extreme = values.find(e => !Number.isNaN(e));
+			for (let i = 0; i < values.length; i++){
+				let current = values[i];
+				if (Number.isNaN(current)){ continue; }
+				if (minimum && current < extreme){
+						extreme = current;
+				} else if (!minimum && current > extreme){
+						extreme = current;
+				}
+			}
+			return extreme;
+		}
 	},
 });
 

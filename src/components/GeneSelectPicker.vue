@@ -1,8 +1,6 @@
 <template>
 	<autocomplete
-		:placeholder="
-			!$store.state.geneToQuery ? 'Search gene' : $store.state.geneToQuery
-		"
+		:placeholder="'Search gene'"
 		:matches="matchingGenes"
 		ref="geneSelect"
 		@input-change="lookupGenes($event)"

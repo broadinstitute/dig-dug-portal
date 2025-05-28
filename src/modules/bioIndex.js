@@ -6,7 +6,7 @@ import {
 } from "@/components/Alert";
 
 import { merge } from "lodash";
-import { BIO_INDEX_HOST } from '@/utils/bioIndexUtils'
+const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.

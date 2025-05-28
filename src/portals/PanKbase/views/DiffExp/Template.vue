@@ -24,13 +24,11 @@
                                     </div>
                                     <div class="tabs-section-wrapper">
                                         <div class="tab-section" >
-                                            <div  class="flex-gap">
+                                            <div class="flex-gap">
                                                 <div class="top-block">
-                                                    <select v-model="$store.state.selectedDataset" disabled>
+                                                    <select v-model="$store.state.selectedDataset">
                                                         <option value="">Select a dataset</option>
-                                                        <option value="sample">Sample dataset</option>
-                                                        <option v-for="dataset in $parent.datasets"
-                                                            :value="dataset">
+                                                        <option v-for="dataset in $parent.datasets">
                                                             {{ dataset }}
                                                         </option>
                                                     </select>
@@ -39,7 +37,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- <div class="tabs-group">
+                                <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
                                             Select a comparison
@@ -60,7 +58,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div> -->
+                                </div>
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
@@ -86,7 +84,7 @@
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
-                                            Set p (adj.) threshold
+                                            Set P-value threshold
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
@@ -132,20 +130,19 @@
                                             <div class="tab-section" >
                                                 <div  class="flex-gap">
                                                     <div class="wide-block">
-                                                        <div v-if="$parent.zNormData.length > 0">
-                                                            <bulk-heatmap
-                                                                :zNormData="$parent.zNormData"
-                                                                :samplesColumns="$parent.samplesColumns"
-                                                                :comparisonId="$parent.selectedComparison"
-                                                                :margin="$parent.margin"
-                                                                :sampleColors="$parent.colors"
-                                                                :plotHeight="$parent.plotHeight"
-                                                                :selectedGene="$parent.selectedGene"
-                                                                @highlight="gene => $parent.highlight(gene)"
-                                                                :plotId="$parent.kpDataset"
-                                                            >
-                                                            </bulk-heatmap>
-                                                        </div>
+                                                        <bulk-heatmap
+                                                            v-if="$parent.zNormData.length > 0"
+                                                            :zNormData="$parent.zNormData"
+                                                            :samplesColumns="$parent.samplesColumns"
+                                                            :comparisonId="$parent.selectedComparison"
+                                                            :margin="$parent.margin"
+                                                            :sampleColors="$parent.colors"
+                                                            :plotHeight="$parent.plotHeight"
+                                                            :selectedGene="$parent.selectedGene"
+                                                            @highlight="gene => $parent.highlight(gene)"
+                                                            :plotId="$store.state.selectedDataset"
+                                                        >
+                                                        </bulk-heatmap>
                                                         <div v-else>
                                                             Heatmap coming soon
                                                         </div>
@@ -167,7 +164,6 @@
                                                         <div v-if="$parent.bulkData19K.length> 0">
                                                             <bulk-volcano-plot
                                                                 :renderData="$parent.bulkData19K"
-                                                                
                                                                 :renderConfig="$parent.volcanoConfig"
                                                                 :margin="$parent.margin"
                                                                 sectionId="bulk"
@@ -242,7 +238,10 @@
   .top-block {
     display:flex;
     flex-direction: column;
-    min-width: 285px;
+    min-width: 213px;
+  }
+  .top-block select {
+    max-width: 213px;
   }
   .wide-block {
     display:flex;
