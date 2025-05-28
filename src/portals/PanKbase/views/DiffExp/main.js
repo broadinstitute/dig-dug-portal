@@ -104,12 +104,12 @@ new Vue({
                         formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "minusLog10P",
+                        key: "-log10P",
                         label: "-log10(P adj.)",
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
-                    //{ key: "expand", label: "Gene query" },
+                    { key: "expand", label: "Gene query" },
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "single-cell-bulk-melted",
@@ -148,8 +148,8 @@ new Vue({
         bulkData19K() {
             let bulkData = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
-                    && item.comparison_id === this.$store.state.selectedComparison);
-            console.log("Current bulk data", JSON.stringify(bulkData[0]));
+                    && item.comparison_id === this.$store.state.selectedComparison
+                    && item["-log10P"] !== 'NA');
             return bulkData;
         },
         volcanoConfig() {
@@ -197,7 +197,7 @@ new Vue({
             return {
                 xGreater: this.volcanoXConditionGreater,
                 xLower: -this.volcanoXConditionGreater,
-                yGreater: -Math.log(this.volcanoYCondition)
+                yGreater: -Math.log10(this.volcanoYCondition)
             }
         },
         samplesColumns(){

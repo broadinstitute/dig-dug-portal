@@ -142,7 +142,8 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+
+const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 export default Vue.component("bulk-table", {
     components: {
         DataDownload,
@@ -167,8 +168,8 @@ export default Vue.component("bulk-table", {
             contField: null,
             catField: null,
             currentData: [],
-            tableYField: "minusLog10P",
-            tableXField: "log2FoldChange",
+            tableYField: "-log10P",
+            tableXField: "logFoldChange",
             up: "upregulated",
             down: "downregulated"
         };

@@ -223,10 +223,7 @@ export default Vue.component("bulk-volcano-plot", {
 
 				vals.map(v=>{
 					v = Math.round(v*100)/100;
-				})
-
-			
-			console.log(JSON.stringify(vals));
+				});
 
 			this.x = d3.scaleLinear().domain([(xMinVal-(xMaxVal*.05)), xMaxVal + (xMaxVal * .05)]).range([margin.left, width + margin.left]);
 			this.y = d3.scaleLinear().domain([(yMinVal - (yMaxVal * .05)), yMaxVal + (yMaxVal * .05)]).range([height + margin.top, margin.top]);
@@ -281,7 +278,6 @@ export default Vue.component("bulk-volcano-plot", {
 
 			if (!!renderConfig["y condition"]) {
 				if (!!renderConfig["y condition"]["greater than"]) {
-					console.log(renderConfig["y condition"]["greater than"]);
 					this.svg.select("#axisGroup")
 						.append('line')
 						.attr('style', "stroke-dasharray: 3,3")
@@ -440,6 +436,9 @@ export default Vue.component("bulk-volcano-plot", {
 				.selectAll(".highlightCircle")
 				.remove();
 			let dataItem = this.plotData.find(d => d.gene === gene);
+			if (dataItem === undefined){
+				return;
+			}
 			let geneVal = {
 				x: dataItem[this.xAxisField],
 				y: dataItem[this.yAxisField]

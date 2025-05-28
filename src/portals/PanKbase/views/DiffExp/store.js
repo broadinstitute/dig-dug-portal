@@ -83,7 +83,6 @@ export default new Vuex.Store({
         const response = await fetch(datasetFile);
         const bulkDataText = await response.text();
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
-        console.log(bulkDataObject[0]);
         let bulkDataComparisons = bulkDataObject
           .filter(item => !!item.comparison)
           .map(item => [item.comparison_id, item.comparison]);
