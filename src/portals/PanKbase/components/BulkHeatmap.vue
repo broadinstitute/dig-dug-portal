@@ -67,7 +67,7 @@ export default Vue.component("bulk-heatmap", {
           colorScaleArray: [],
           sampleCharacters: ["▒", "█"], // for additional visual data besides color
           sampleColors: [
-                "rgb(027 121 057)",
+                "rgb(092 174 000)",
                 "rgb(116 040 129)"], // Green and purple sample labels for colorblind accessibility
           
         
