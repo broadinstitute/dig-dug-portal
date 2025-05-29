@@ -79,7 +79,7 @@ export default Vue.component("scatterplot", {
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .attr("id", `chart-${this.plotId}`)
-          .on("mouseleave", () => this.hideTooltip())
+          .on("mouseleave", () => mouseTooltip.hide())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
@@ -226,9 +226,9 @@ export default Vue.component("scatterplot", {
   }
 });
 </script>
-<style>
+<style scoped>
   @import url("/css/effectorGenes.css");
-  .tooltip span {
-      display: block;
+  .download-chart {
+    margin-right: 10px;
   }
 </style>

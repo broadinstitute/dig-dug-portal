@@ -99,7 +99,8 @@
                             :config="scatterConfig"
                             :plotId="`bulk_${row.item.gene}`"
                             :hideDownload="true"
-                            :tightenLeft="true">
+                            :tightenLeft="true"
+                            :plotName="`${dataset}_${row.item.gene}_bulk`">
 
                         </scatterplot>
                         </div>
