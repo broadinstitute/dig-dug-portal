@@ -232,18 +232,24 @@ export default Vue.component("bulk-heatmap", {
             this.minExp = minExp;
             this.maxExp = maxExp;
 
+            outputData.sort((a,b) => a.groupIndex - b.groupIndex);
+
             return outputData;
         },
       showTooltip(event){
         let gene = d3.event.target.id;
         let tooltipHtml = `<strong>${gene}</strong>`;
         let classes = d3.event.target.classList;
+        let sample = classes[0];
         tooltipHtml = tooltipHtml.concat(
-          `<div>Sample: ${classes[0]}</div>`)
+          `<div>Sample: ${sample}</div>`);
+        let condition = this.diseaseMap[sample].group;
+        tooltipHtml = tooltipHtml.concat(
+            `<div>Condition: ${condition}<div>`);
         let expression = classes[1].replace("expr_", "");
         expression = expression.replace("dot", ".");
         tooltipHtml = tooltipHtml.concat(
-          `<div>Expression: ${expression}</div>`)
+          `<div>Expression: ${expression}</div>`);
         mouseTooltip.show(tooltipHtml);
       },
       clickSquare(event){
