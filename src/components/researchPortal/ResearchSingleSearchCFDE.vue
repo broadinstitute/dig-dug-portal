@@ -56,7 +56,7 @@
 				</span>
 			</template>
 
-			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
+			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && singleSearchMethod == 'ss_keyword'">
 				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="anyResults() > 0">
 					
 					<div class="byor-ss-results-section" v-if="singleSearchResult.genes.length > 0">
@@ -167,7 +167,7 @@
 				</div>
 			</div>
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
-				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="meaningSearchOptions.length > 0">
+				<div id="byor_single_search_results" style="top: 75px;" class="byor-single-search-results-groups" v-if="meaningSearchOptions.length > 0">
 					<div class="byor-ss-results-section">
 						<div class="byor-ss-results-section-title">{{  }}</div>
 							<div v-for="item in meaningSearchOptions">
@@ -292,7 +292,7 @@ export default Vue.component("research-single-search-cfde", {
 			this.updateSummary();
 		},
 		singleSearchParam(PARAM) {
-			if(!!this.singleSearchMethod == 'ss_keyword') {
+			if(this.singleSearchMethod == 'ss_keyword') {
 				if (!!PARAM && PARAM.length >= 2) {
 
 					let paramWords = PARAM.split(" ");
@@ -588,6 +588,7 @@ export default Vue.component("research-single-search-cfde", {
 
 			this.summaryPopup = false;
 			this.summaryAll = [];
+			this.meaningSearchOptions = [];
 		},
 
 		async getTissues() {
