@@ -3,9 +3,10 @@
     <download-chart
         :chartId="`${plotId}_svg`"
         :filename="`${plotId}_differential_expression`"
-    ></download-chart>
+        >
+    </download-chart>
     <div style="display:flex; gap:5px" class="legends">
-        <div style="display:inline-block; width:35%;" class="legend">
+        <div style="display:inline-block; width:65%;" class="legend">
             <strong>Expression</strong>
             <div style="display:flex; margin-top:10px" class="marks">
               <span>{{ this.minExp }}</span>
@@ -13,11 +14,14 @@
               <span>{{ this.maxExp }}</span>
             </div>
         </div>
-        <div style="display:inline-block; width:65%;" class="legend" v-if="sampleGroups.length > 0">
+        <div style="display:inline-block; width:35%;" class="legend" v-if="sampleGroups.length > 0">
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
               <template v-for="(sample, sIndex) in sampleGroups" >
-                <span class="group-legend-box" :style="'background-color:'+sampleColors[sample.index]">&nbsp;</span><span class="group-legend-name">{{ (sample.label == "")? 'N/A':sample.label  }}</span>
+                <span class="group-legend-box" :style="'color:'+sampleColors[sIndex]">
+                    {{ sampleCharacters[sIndex] }}
+                </span>
+                <span class="group-legend-name">{{ sample }}</span>
               </template>
             </div>
         </div>
@@ -44,11 +48,11 @@ export default Vue.component("bulk-heatmap", {
         "comparisonId",
         "margin",
         "plotHeight",
-        "sampleColors",
         "selectedGene",
         "filter",
         "samplesColumns",
-        "plotId"
+        "plotId",
+        "diseaseData",
     ],
     data() {
         return {
@@ -61,7 +65,12 @@ export default Vue.component("bulk-heatmap", {
           minExp: null,
           maxExp: null,
           colorScaleArray: [],
-          sampleGroups:[],
+          sampleCharacters: ["▒", "█"], // for additional visual data besides color
+          sampleColors: [
+                "rgb(027 121 057)",
+                "rgb(116 040 129)"], // Green and purple sample labels for colorblind accessibility
+          
+        
         };
     },
     computed: {
@@ -70,6 +79,28 @@ export default Vue.component("bulk-heatmap", {
                 return this.zNormData.filter(this.filter);
             }
             return this.zNormData;
+        },
+        sampleGroups(){
+            return this.diseaseData.diseaseLabels;
+        },
+        sortedSamples(){
+            let samples = structuredClone(this.samplesColumns);
+            samples.sort((a,b) => this.diseaseMap[a].groupIndex - this.diseaseMap[b].groupIndex);
+            return samples;
+        },
+        diseaseMap(){
+            let indices = this.diseaseData.diseaseConditions;
+            let output = {};
+            for (let i = 0; i < this.samplesColumns.length; i++){
+                let sample = this.samplesColumns[i];
+                let groupInfo = {
+                    sample: sample,
+                    groupIndex: indices[i],
+                    group: this.sampleGroups[indices[i]]
+                }
+                output[sample] = groupInfo;
+            }
+            return output;
         }
     },
     methods: {
@@ -100,23 +131,22 @@ export default Vue.component("bulk-heatmap", {
                   .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
 
           let genesRows = this.plotData.map(d => d.gene);
-          
-          let dataset = this.plotData[0].dataset;
           let collatedData = this.collateData(this.plotData, this.samplesColumns)
           let sampleColors = this.sampleColors
 
           // Build X scales and axis:
           let x = d3.scaleBand()
               .range([ 0, width ])
-              .domain(this.samplesColumns)
+              .domain(this.sortedSamples) // Pass sorted samples so the domain comes out sorted
               .padding(0.01);
           this.svg.append("g")
               .attr("transform", "translate(0," + height + ")")
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
-                      .style("text-anchor", "end")
+                      .style("text-anchor", "start")
+                      .style("fill", d => this.getColor(d))
                       .attr('font-size', this.fontSize)
-                      .attr("transform", "rotate(-35) translate(-5, 0)");
+                      .text(d => this.getCharacter(d));
 
           // Build Y scales and axis:
           let selectedGene = this.selectedGene
@@ -170,8 +200,8 @@ export default Vue.component("bulk-heatmap", {
 			this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
-				.attr("y", (height + this.margin.bottom - 5))
-				.text("Sample ID");
+				.attr("y", (height + 50))
+				.text("Sample group");
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")
@@ -184,6 +214,14 @@ export default Vue.component("bulk-heatmap", {
 
         this.loading = false;
       },
+      getColor(sample){
+        let index = this.diseaseMap[sample].groupIndex;
+        return this.sampleColors[index];
+      },
+      getCharacter(sample){
+        let index = this.diseaseMap[sample].groupIndex;
+        return this.sampleCharacters[index];
+      },
       collateData(rawData, samplesColumns){
             let outputData = [];
             let minExp = null;
@@ -193,7 +231,8 @@ export default Vue.component("bulk-heatmap", {
                 ///DK: Modified to add group
                 samplesColumns.map(sample =>{
 
-                    //let groupInfo = samplesColumns.sampleGroups[sample]
+                    let groupInfo = this.diseaseMap[sample]
+
                     let currentExp = item[sample];
                     minExp = (currentExp < minExp) || minExp === null ? currentExp : minExp;
                     maxExp = (currentExp > maxExp) || maxExp === null ? currentExp : maxExp;
@@ -201,9 +240,10 @@ export default Vue.component("bulk-heatmap", {
                     let expressionEntry = {
                         gene: item.gene,
                         sample: sample,
+                        condition: sample.split("_")[0],
                         expression: currentExp,
-                        //group: groupInfo.group,
-                        //groupIndex: groupInfo.groupIndex
+                        group: groupInfo.group,
+                        groupIndex: groupInfo.groupIndex
                     };
 
                     outputData.push(expressionEntry);
@@ -219,12 +259,16 @@ export default Vue.component("bulk-heatmap", {
         let gene = d3.event.target.id;
         let tooltipHtml = `<strong>${gene}</strong>`;
         let classes = d3.event.target.classList;
+        let sample = classes[0];
         tooltipHtml = tooltipHtml.concat(
-          `<div>Sample: ${classes[0]}</div>`)
+          `<div>Sample: ${sample}</div>`);
+        let condition = this.diseaseMap[sample].group;
+        tooltipHtml = tooltipHtml.concat(
+            `<div>Condition: ${condition}<div>`);
         let expression = classes[1].replace("expr_", "");
         expression = expression.replace("dot", ".");
         tooltipHtml = tooltipHtml.concat(
-          `<div>Expression: ${expression}</div>`)
+          `<div>Expression: ${expression}</div>`);
         mouseTooltip.show(tooltipHtml);
       },
       clickSquare(event){
@@ -252,7 +296,7 @@ export default Vue.component("bulk-heatmap", {
             if (newGene !== oldGene && geneInMap){
                 this.drawHeatMap();
             }
-        }
+        },
     },
     mounted(){
         this.chart = document.getElementById(this.plotId);
@@ -289,10 +333,11 @@ export default Vue.component("bulk-heatmap", {
     width: 15px;
     height: 15px;
     padding: 0 !important;
+    text-align: right;
 }
 
 .group-legend-name {
-    padding-left: 5px !important;
+    padding-left: 3px !important;
     padding-right: 15px !important;
     vertical-align: text-bottom;
 }

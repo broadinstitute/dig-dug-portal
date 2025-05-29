@@ -201,13 +201,39 @@ new Vue({
             }
         },
         samplesColumns(){
+            let comparison = this.$store.state.selectedComparison;
             let sampleIds = this.sampleMetadata["ID"];
-            return sampleIds === undefined ? [] : sampleIds;
+            if (sampleIds === undefined){
+                sampleIds = [];
+            }
+            /* let metadataLabels = this.sampleMetadata.metadata_labels;
+            let individualSamples;
+            let diseaseLabels;
+            if (metadataLabels !== undefined){
+                diseaseLabels = metadataLabels[comparison];
+                individualSamples = this.sampleMetadata.metadata[comparison];
+                for (let i = 0; i < sampleIds.length; i++){
+                    let prefix = diseaseLabels[individualSamples[i]];
+                    sampleIds[i] = `${prefix}_${sampleIds[i]}`;
+                }
+            } */
+            return sampleIds;
 
         },
         datasetMetadata(){
             let metadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
             return metadata;
+        },
+        diseaseData(){
+            let metadataLabels = this.sampleMetadata.metadata_labels;
+            let comparison = this.$store.state.selectedComparison;
+            let info = {};
+            if (metadataLabels !== undefined && comparison !== ""){
+                info["diseaseLabels"] = metadataLabels[comparison];
+                info["diseaseConditions"] = 
+                    this.sampleMetadata.metadata[comparison];
+            }
+            return info;
         }
     },
     async mounted() {
@@ -226,7 +252,6 @@ new Vue({
             if (!keyParams.gene) {
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
-            this.allMetadata = await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
                 keyParams.set({ comparison: this.$store.state.selectedComparison });
@@ -235,10 +260,8 @@ new Vue({
             await this.$store.dispatch("queryBulk");
 
             this.getDocumentation();
-            let content = await getPankbaseContent(this.sampleDataId);
-            this.heatmapSampleData = await getPankbaseContent(this.heatmapSampleDataId);
-            this.dataReady = true;
             this.sampleMetadata = await this.getSampleIds(this.$store.state.selectedDataset);
+            this.dataReady = true;
         },
         async getBulkMetadata() {
             let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
