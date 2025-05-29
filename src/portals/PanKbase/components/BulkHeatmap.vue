@@ -1,12 +1,10 @@
 <template>
   <div>
-    <div id="downloadChart">
-        <download-chart
-            :chartId="`${plotId}_svg`"
-            :filename="`${plotId}_differential_expression`"
-            >
-        </download-chart>
-    </div>
+    <download-chart
+        :chartId="`${plotId}_svg`"
+        :filename="`${plotId}_differential_expression`"
+        >
+    </download-chart>
     <div style="display:flex; gap:5px" class="legends">
         <div style="display:inline-block; width:65%;" class="legend">
             <strong>Expression</strong>
@@ -20,7 +18,10 @@
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
               <template v-for="(sample, sIndex) in sampleGroups" >
-                <span class="group-legend-box" :style="'background-color:'+sampleColors[sIndex]">&nbsp;</span><span class="group-legend-name">{{ sample }}</span>
+                <span class="group-legend-box" :style="'color:'+sampleColors[sIndex]">
+                    {{ sampleCharacters[sIndex] }}
+                </span>
+                <span class="group-legend-name">{{ sample }}</span>
               </template>
             </div>
         </div>
@@ -64,9 +65,12 @@ export default Vue.component("bulk-heatmap", {
           minExp: null,
           maxExp: null,
           colorScaleArray: [],
+          sampleCharacters: ["▒", "█"], // for additional visual data besides color
           sampleColors: [
-            "rgb(027 121 057)",
-            "rgb(116 040 129)"] // Green and purple sample labels for colorblind friendly
+                "rgb(027 121 057)",
+                "rgb(116 040 129)"], // Green and purple sample labels for colorblind accessibility
+          
+        
         };
     },
     computed: {
@@ -142,7 +146,7 @@ export default Vue.component("bulk-heatmap", {
                       .style("text-anchor", "start")
                       .style("fill", d => this.getColor(d))
                       .attr('font-size', this.fontSize)
-                      .text("█");
+                      .text(d => this.getCharacter(d));
 
           // Build Y scales and axis:
           let selectedGene = this.selectedGene
@@ -196,8 +200,8 @@ export default Vue.component("bulk-heatmap", {
 			this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
-				.attr("y", (height + this.margin.bottom - 5))
-				.text("Sample condition");
+				.attr("y", (height + 50))
+				.text("Sample group");
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")
@@ -213,6 +217,10 @@ export default Vue.component("bulk-heatmap", {
       getColor(sample){
         let index = this.diseaseMap[sample].groupIndex;
         return this.sampleColors[index];
+      },
+      getCharacter(sample){
+        let index = this.diseaseMap[sample].groupIndex;
+        return this.sampleCharacters[index];
       },
       collateData(rawData, samplesColumns){
             let outputData = [];
@@ -325,10 +333,11 @@ export default Vue.component("bulk-heatmap", {
     width: 15px;
     height: 15px;
     padding: 0 !important;
+    text-align: right;
 }
 
 .group-legend-name {
-    padding-left: 5px !important;
+    padding-left: 3px !important;
     padding-right: 15px !important;
     vertical-align: text-bottom;
 }
