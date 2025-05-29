@@ -7,7 +7,7 @@
                   filename="bulk_gene"
               ></data-download>
           </div>
-          <div class="show-inline">
+          <div class="show-inline" id="radio-buttons">
             <div class="table-total-rows">Total rows:{{ rows }}</div>
             <b-form-radio-group v-if="!isSubtable" class="show-inline"
                 v-model="showGenes">
@@ -25,7 +25,7 @@
                 </b-form-radio>
             </b-form-radio-group>
           </div>
-          <div v-if="tableData.length > 0">
+          <div v-if="tableData.length > 0" id="bulk-table">
             <b-table v-model="currentData"
                 :hover="isSubtable"
                 small
@@ -391,5 +391,8 @@ button {
 }
 .show-inline {
     display: inline;
+}
+#bulk-table {
+    margin-top: 10px;
 }
 </style>
