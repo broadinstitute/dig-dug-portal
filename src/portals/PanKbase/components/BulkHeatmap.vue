@@ -1,9 +1,12 @@
 <template>
   <div>
-    <!-- <download-chart
-        :chartId="`${plotId}_svg`"
-        :filename="`${plotId}_differential_expression`"
-    ></download-chart> -->
+    <div id="downloadChart">
+        <download-chart
+            :chartId="`${plotId}_svg`"
+            :filename="`${plotId}_differential_expression`"
+            >
+        </download-chart>
+    </div>
     <div style="display:flex; gap:5px" class="legends">
         <div style="display:inline-block; width:65%;" class="legend">
             <strong>Expression</strong>
@@ -136,7 +139,7 @@ export default Vue.component("bulk-heatmap", {
               .attr("transform", "translate(0," + height + ")")
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
-                      .style("text-anchor", "end")
+                      .style("text-anchor", "start")
                       .style("fill", d => this.getColor(d))
                       .attr('font-size', this.fontSize)
                       .text("█");
