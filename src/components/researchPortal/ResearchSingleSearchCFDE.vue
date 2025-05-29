@@ -7,16 +7,56 @@
 				@click="summaryPopup = !summaryPopup ? true : null;">Toggle quick view <b-icon
 					icon="arrow-up-right-square"></b-icon></span>
 
-			<input class="form-control byor-single-search" type="text" id="byor_single_search" v-model="singleSearchParam"
-				:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction'] ? singleSearchConfig['search instruction']
-				: 'Search gene, variant, region, phenotype, or tissue'" @keyup.enter="onSearch" @focus="onFocus" @blur="onBlur"
-				autocomplete="off" />
-			<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()">
-				Clear search <b-icon icon="x-circle-fill"></b-icon>
+			<span class="ss-search-methods" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled']">
+				<span>Search by: </span>
+				<span>
+					<input type="radio" id="ss_keyword" name="ssSearchMethods" value="ss_keyword" v-model="singleSearchMethod" checked />
+					<label for="ss_keyword">Keyword</label>
+				</span>
+				<span>
+					<input type="radio" id="ss_meaning" name="ssSearchMethods" value="ss_meaning" v-model="singleSearchMethod" />
+					<label for="ss_meaning">Meaning</label>
+				</span>
 			</span>
+			<template v-if="singleSearchMethod == 'ss_keyword'">
+				<input class="form-control byor-single-search" type="text" id="byor_single_search" v-model="singleSearchParam"
+					:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction'] ? singleSearchConfig['search instruction']
+					: 'Search gene, variant, region, phenotype, or tissue'" @keyup.enter="onSearch" @focus="onFocus" @blur="onBlur"
+					autocomplete="off" />
+				<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()">
+					Clear search <b-icon icon="x-circle-fill"></b-icon>
+				</span>
+			</template>
+			<template v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
+				<select v-model="meaningSearchParam" id="ss_meaning_param" class="form-control ss-meaning-params">
+					<option v-for="(param, paramIndex) in singleSearchConfig['search by meaning parameters']"
+					:value="param.parameter">{{ param.label }}</option>
+				</select>
+				<select v-model="meaningSearchScore" id="ss_meaning_score" class="form-control ss-meaning-sim-score" title="Similarity score" >
+					<option value="0.01">0.01</option>
+					<option value="0.1">0.1</option>
+					<option value="0.2">0.2</option>
+					<option value="0.3">0.3</option>
+					<option value="0.4">0.4</option>
+					<option value="0.5" selected>0.5</option>
+					<option value="0.6">0.6</option>
+					<option value="0.7">0.7</option>
+					<option value="0.8">0.8</option>
+					<option value="0.9">0.9</option>
+					<option value="1">1</option>
+				</select>
+				<input class="form-control byor-single-search meaning-search" type="text" id="byor_single_search" v-model="singleSearchParam"
+					:placeholder="'Search by meaning'" @focus="onFocus" @blur="onBlur"
+					autocomplete="off" />
+				<span v-if="!!singleSearchParam" class="btn btn-default get-meaning-options" @click="getMeaningOptions()">
+					Search <b-icon icon="search"></b-icon>
+				</span>
+				<span v-if="!!singleSearchParam" class="btn btn-default reset-search meaning-reset-search" @click="resetSearch()">
+					<b-icon icon="x-circle-fill"></b-icon>
+				</span>
+			</template>
 
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
-
 				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="anyResults() > 0">
 					
 					<div class="byor-ss-results-section" v-if="singleSearchResult.genes.length > 0">
@@ -124,7 +164,42 @@
 							</template>
 						</template>
 					</template>
+				</div>
+			</div>
+			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
+				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="meaningSearchOptions.length > 0">
+					<div class="byor-ss-results-section">
+						<div class="byor-ss-results-section-title">{{  }}</div>
+							<div v-for="item in meaningSearchOptions">
 
+								<div class="single-search-option">
+									{{item.label}} {{ item.value }} {{ item.score }}
+									<!--
+									<span class="more-options">
+										<div class="ss-options-wrapper">
+											<div v-for="option in isParameterActive(param['parameter']).options">
+												<span>
+													<a :href="(option.url) ? option.url + item.value : 'javascript:;'"
+														class="ss-explore"
+													>
+													{{ option['url label'] }}
+													</a>
+													<span v-if="!!option.url && !!option.sections"> | </span>
+													<a href="javascript:;" 
+														class="ss-generate-summary"
+														@click="generateSummary(item.value, option['summary id'], option['summary label'], option.sections)"
+													>
+														{{option['summary label'] }}
+													</a>
+												</span>
+											</div>
+										</div>
+									</span>-->
+								</div>
+
+								<!--<span class="search-word-group">{{param['parameter']}}</span>-->
+							</div>
+						</div>
 				</div>
 			</div>
 
@@ -157,6 +232,7 @@ export default Vue.component("research-single-search-cfde", {
 	data() {
 		return {
 			singleSearchParam: null,
+			singleSearchMethod: 'ss_keyword',
 			singleSearchResult: {
 				genes: [],
 				phenotypes: [],
@@ -171,6 +247,9 @@ export default Vue.component("research-single-search-cfde", {
 			summaryPopup: null,
 			summaryPopupContent: "",
 			hasFocus: false,
+			meaningSearchScore: 0.5,
+			meaningSearchParam: null,
+			meaningSearchOptions: []
 		};
 	},
 	created() {
@@ -192,6 +271,10 @@ export default Vue.component("research-single-search-cfde", {
 		} else {
 			this.getTissues();
 		}
+
+		if(!!this.singleSearchConfig && !!this.singleSearchConfig["search by meaning parameters"]) {
+			this.meaningSearchParam = this.singleSearchConfig["search by meaning parameters"][0]['parameter'];
+		}
 	},
 	mounted() { 
 		//listens for search event from nav component
@@ -209,103 +292,150 @@ export default Vue.component("research-single-search-cfde", {
 			this.updateSummary();
 		},
 		singleSearchParam(PARAM) {
-			if (!!PARAM && PARAM.length >= 2) {
+			if(!!this.singleSearchMethod == 'ss_keyword') {
+				if (!!PARAM && PARAM.length >= 2) {
 
-				let paramWords = PARAM.split(" ");
-				// in case there is custom searchConfig, make sure kp gene search is there. Otherwise, gene search is active in default.
-				if (!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
+					let paramWords = PARAM.split(" ");
+					// in case there is custom searchConfig, make sure kp gene search is there. Otherwise, gene search is active in default.
+					if (!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
 
-					let isKpGenes = null;
+						let isKpGenes = null;
 
-					this.singleSearchConfig["search parameters"].map(S => {
-						if (!!S["values"] && S["values"] == "kp genes") {
-							isKpGenes = true
-						}
-					})
+						this.singleSearchConfig["search parameters"].map(S => {
+							if (!!S["values"] && S["values"] == "kp genes") {
+								isKpGenes = true
+							}
+						})
 
-					if (!!isKpGenes) { this.lookupGenes(PARAM); }
+						if (!!isKpGenes) { this.lookupGenes(PARAM); }
 
-					let isKpPhenotypes = null;
+						let isKpPhenotypes = null;
 
-					this.singleSearchConfig["search parameters"].map(S => {
-						if (!!S["values"] && S["values"] == "kp phenotypes") {
-							isKpPhenotypes = true
-						}
-					})
+						this.singleSearchConfig["search parameters"].map(S => {
+							if (!!S["values"] && S["values"] == "kp phenotypes") {
+								isKpPhenotypes = true
+							}
+						})
 
-					if (!!isKpPhenotypes) {
+						if (!!isKpPhenotypes) {
 
-						let searchPhenotypes = [];
+							let searchPhenotypes = [];
 
-						this.phenotypes.map((p) => {
-							let isInPhenotype = 0;
-							paramWords.map((w) => {
-								if (
-									!!p.description
-										.toLowerCase()
-										.includes(w.toLowerCase())
-								) {
-									isInPhenotype++;
+							this.phenotypes.map((p) => {
+								let isInPhenotype = 0;
+								paramWords.map((w) => {
+									if (
+										!!p.description
+											.toLowerCase()
+											.includes(w.toLowerCase())
+									) {
+										isInPhenotype++;
+									}
+								});
+
+								if (isInPhenotype == paramWords.length) {
+									searchPhenotypes.push(p);
 								}
 							});
 
-							if (isInPhenotype == paramWords.length) {
-								searchPhenotypes.push(p);
-							}
-						});
+							let shorterFirst = searchPhenotypes.sort((a, b) => a.name.length - b.name.length);
 
-						let shorterFirst = searchPhenotypes.sort((a, b) => a.name.length - b.name.length);
+							this.singleSearchResult.phenotypes = shorterFirst;
+						}
 
-						this.singleSearchResult.phenotypes = shorterFirst;
+					} else {
+
+						this.lookupGenes(PARAM);
 					}
 
-				} else {
 
-					this.lookupGenes(PARAM);
-				}
-
-
-				/// for custom parameters
-				let searchFields = Object.keys(this.customList);
+					/// for custom parameters
+					let searchFields = Object.keys(this.customList);
 
 
 
-				searchFields.map(P => {
+					searchFields.map(P => {
 
-					let searchItems = [];
-					this.customList[P].map(item => {
-						let isInList = 0;
+						let searchItems = [];
+						this.customList[P].map(item => {
+							let isInList = 0;
 
-						paramWords.map((w) => {
-							if (
-								!!item.label
-									.toLowerCase()
-									.includes(w.toLowerCase())
-							) {
-								isInList++;
+							paramWords.map((w) => {
+								if (
+									!!item.label
+										.toLowerCase()
+										.includes(w.toLowerCase())
+								) {
+									isInList++;
+								}
+							});
+
+							if (isInList == paramWords.length) {
+								searchItems.push(item);
 							}
-						});
-
-						if (isInList == paramWords.length) {
-							searchItems.push(item);
-						}
+						})
+						this.singleSearchResult[P] = searchItems;
 					})
-					this.singleSearchResult[P] = searchItems;
-				})
-			} else {
-				this.singleSearchResult.genes = [];
-				this.singleSearchResult.phenotypes = [];
-				let searchFields = Object.keys(this.customList);
-				this.summaryAll = [];
-				this.summaryPopup = false;
-				searchFields.map(P => {
-					this.singleSearchResult[P] = [];
-				})
+					} else {
+					this.singleSearchResult.genes = [];
+					this.singleSearchResult.phenotypes = [];
+					let searchFields = Object.keys(this.customList);
+					this.summaryAll = [];
+					this.summaryPopup = false;
+					searchFields.map(P => {
+						this.singleSearchResult[P] = [];
+					})
+				}
 			}
+			
 		},
 	},
 	methods: {
 		...alertUtils,
+		getMeaningOptions() {
+
+			const dataPoint = this.singleSearchConfig["search by meaning parameters"].filter( P => P.parameter == this.meaningSearchParam )[0]['data point'];
+
+			let queryString = dataPoint.url;
+			queryString += dataPoint.parameters['search phrase']+'='+this.singleSearchParam;
+			queryString += (!!dataPoint.parameters['similarity score'])? '&'+dataPoint.parameters['similarity score']+'='+this.meaningSearchScore:'';
+
+			async function getOptions(query) {
+
+				const response = await fetch(query).then(resp => resp.json());
+
+				if (!response.error) {
+					return response;
+				} else {
+					throw new Error(`Request failed with status ${response.status}`);
+				}
+			}
+
+			getOptions(queryString)
+				.then(data => {
+
+					let options = data;
+					if(!!dataPoint['data wrapper']) {
+						dataPoint['data wrapper'].map(M => {
+							options = options[M]
+						})
+					}
+
+					let displayOptions = [];
+					const val = dataPoint.display.value, label = dataPoint.display.label, score = dataPoint.display.score;
+
+					options.map(O => {
+						displayOptions.push({
+							'value':O[val],
+							'label':O[label],
+							'score':O[score]
+						})
+					})
+
+					this.meaningSearchOptions = displayOptions;
+				})
+				.catch(error => console.error('Error fetching options:', error));
+		},
 		updateSummary() {
 			//First get the list of keys searched
 
@@ -819,7 +949,7 @@ export default Vue.component("research-single-search-cfde", {
 
 .reset-search {
 	position: absolute;
-	top: 50%;
+	top: 65%;
     transform: translateY(-50%);
 	right: 4px;
 	color: #999999;
@@ -1071,5 +1201,64 @@ a.ss-generate-summary {
 	background-color: #ffffff;
 	padding: 2px 10px;
 	border-radius: 15px;
+}
+
+/* meaning search styles */
+.ss-search-methods {
+	display: block;
+    width: 100%;
+    text-align: left;
+}
+
+select.ss-meaning-params {
+	width: 25%;
+	height: 54px;
+	background-color:  #ff6600;
+	color: #ffffff;
+	border: solid 2px #ff6600;
+	border-radius: 0;
+	border-top-left-radius: 10px;
+	border-bottom-left-radius: 10px;
+    float: left;
+}
+
+select.ss-meaning-sim-score {
+	width: 8%;
+	height: 54px;
+	background-color:  #ff6600;
+	color: #ffffff;
+	border: solid 2px #ff6600;
+	border-left: solid 1px #ff9966;
+	border-radius: 0;
+    float: left;
+}
+
+.byor-single-search.meaning-search {
+	width: 67%;
+    margin-left: 0;
+    float: left;
+    border-radius: 0 !important;
+    border-top-right-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+}
+
+.reset-search.meaning-reset-search {
+	transform: translateY(55%);
+}
+
+.get-meaning-options {
+	position: absolute;
+    white-space: nowrap;
+    background-color: #ff6600;
+    color: #ffffff;
+    font-size: 0.75em;
+    border-radius: 4em;
+	top: 75%;
+    transform: translateY(65%);
+    right: 40px;
+}
+
+.get-meaning-options:hover {
+	background-color: #aa3300;
 }
 </style>
