@@ -60,19 +60,11 @@ export default new Vuex.Store({
       let compQueryParam = context.state.currentComparisons[context.state.selectedComparison];
       let singleBulkZNormObject = {};
       if (context.state.selectedDataset !== "") {
-        const query = `${context.state.singleBulkZNormUrl}${context.state.selectedDataset},${compQueryParam}&limit=${context.state.limit}`
+        const query = `${context.state.singleBulkZNormUrl}${context.state.selectedDataset},${compQueryParam}`;
         const response = await fetch(query);
         singleBulkZNormObject = await response.json();
       }
       context.commit("setSingleBulkZNormData", singleBulkZNormObject.data);
-      /*
-      await context.dispatch("singleBulkZNorm/query",
-        {
-          q: `${context.state.selectedDataset},${compQueryParam}`,
-          limit: context.state.limit
-        });
-      context.commit("setSingleBulkZNormData", context.state.singleBulkZNorm.data);
-      */
     },
     async queryBulkFile(context) {
       let bulkDataObject = [];

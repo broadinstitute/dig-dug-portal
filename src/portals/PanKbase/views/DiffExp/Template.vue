@@ -94,6 +94,7 @@
                                             <div  class="flex-gap">
                                                 <div class="top-block">
                                                     <input type="number" step="0.01"
+                                                        class="form-control"
                                                         v-model="$parent.volcanoYCondition"/>
                                                 </div>
                                             </div>
@@ -111,6 +112,7 @@
                                             <div  class="flex-gap">
                                                 <div class="top-block">
                                                     <input type="number" step="0.1"
+                                                        class="form-control"
                                                         v-model="$parent.volcanoXConditionGreater"/>
                                                 </div>
                                             </div>

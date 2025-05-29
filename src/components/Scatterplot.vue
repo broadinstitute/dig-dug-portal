@@ -15,9 +15,7 @@
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-import DownloadChart from "./DownloadChart.vue";
-import plotUtils from "@/utils/plotUtils";
-import Formatters from "@/utils/formatters";
+import mouseTooltip from "@/components/researchPortal/singleCellBrowser/mouseTooltip.js";
 export default Vue.component("scatterplot", {
   components: {
   },
@@ -81,7 +79,7 @@ export default Vue.component("scatterplot", {
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .attr("id", `chart-${this.plotId}`)
-          .on("mouseleave", () => this.hideTooltip())
+          .on("mouseleave", () => mouseTooltip.hide())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       
@@ -180,32 +178,9 @@ export default Vue.component("scatterplot", {
     },
     hoverDot(dotString) {
       this.unHoverDot();
-
-      let xcoord = d3.event.layerX;
-      let ycoord = d3.event.layerY;
-
-      // Tooltip content
-      this.tooltip
-        .style("opacity", 1)
-        .html(this.getTooltipContent(dotString));
-
-      let leftOffset = this.tooltipElement.clientWidth;
-      let hoverLeft = this.dotHoverLeft(dotString);
-
-      if (hoverLeft){
-        xcoord = xcoord - leftOffset - 20;
-      } else {
-        xcoord = xcoord + 20;
-      }
-      this.tooltip
-        .style("left", `${xcoord}px`)
-        .style("top", `${ycoord}px`);
-    },
-    dotHoverLeft(dotString){
-      let dot = JSON.parse(dotString);
-      return this.hoverBoxPosition === "both"
-        ? dot[this.config.xField] > this.xMedian 
-        : this.hoverBoxPosition === "left";
+      let content = this.getTooltipContent(dotString);
+      mouseTooltip.show(content);
+      return;
     },
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);
@@ -213,23 +188,18 @@ export default Vue.component("scatterplot", {
       if (this.config.hoverFields){
         this.config.hoverFields.forEach(field => {
           tooltipText = tooltipText.concat(
-            `<span>${field.label}: ${
+            `<div>${field.label}: ${
               field.formatter === undefined
                 ? dot[field.key] 
                 : field.formatter(dot[field.key])
-            }</span>`
+            }</div>`
           );
         });
       }
       return tooltipText;
     },
     unHoverDot() {
-      this.hideTooltip();
-    },
-    hideTooltip(){
-      if (!!this.tooltip){
-        this.tooltip.style("opacity", 0);
-      }
+      mouseTooltip.hide();
     },
     getHoverFields(){
       let fields = [];
@@ -256,9 +226,9 @@ export default Vue.component("scatterplot", {
   }
 });
 </script>
-<style>
+<style scoped>
   @import url("/css/effectorGenes.css");
-  .tooltip span {
-      display: block;
+  .download-chart {
+    margin-right: 10px;
   }
 </style>
