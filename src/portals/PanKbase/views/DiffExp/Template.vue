@@ -4,7 +4,7 @@
           <!-- NAV -->
           <pkb-header></pkb-header>
           <!-- BODY -->
-          <div class="mat-body f-col">
+          <div class="pkb-body f-col">
             <h2 class="static-content-title">Differential Gene Expression Browser</h2>
             <div class="tool-documentation" v-if="$parent.documentation?.body" v-html="$parent.documentation.body"></div>
               <div class="flex-column flex-small-gap">
@@ -26,7 +26,8 @@
                                         <div class="tab-section" >
                                             <div class="flex-gap">
                                                 <div class="top-block">
-                                                    <select v-model="$store.state.selectedDataset">
+                                                    <select class="form-control"
+                                                        v-model="$store.state.selectedDataset">
                                                         <option value="">Select a dataset</option>
                                                         <option v-for="dataset in $parent.datasets">
                                                             {{ dataset }}
@@ -47,7 +48,8 @@
                                         <div class="tab-section" >
                                             <div  class="flex-gap">
                                                 <div class="top-block">
-                                                    <select v-model="$store.state.selectedComparison">
+                                                    <select class="form-control"
+                                                        v-model="$store.state.selectedComparison">
                                                         <option value="">Select a comparison</option>
                                                         <option v-for="comp in $parent.comparisons"
                                                             :value="comp">
@@ -122,7 +124,9 @@
                                     <div class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                Top 20 Differentially Expressed Genes
+                                                <strong>
+                                                    Top 20 Differentially Expressed Genes
+                                                </strong>
                                             </div>
                                         </div>
                                         
@@ -154,7 +158,9 @@
                                     <div id="bottom-group" class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                Differentially Expressed Genes
+                                                <strong>
+                                                    Differentially Expressed Genes
+                                                </strong>
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">
@@ -230,10 +236,11 @@
       border-bottom: white;
       font-weight: bold;
   }
-  .mat-body {
-    max-width: 1400px; 
+  .pkb-body {
+    max-width: 1400px;
+    padding: 40px;
     margin: 0 auto; 
-    width: -webkit-fill-available;
+    width: 100%;
   }
   .top-block {
     display:flex;
