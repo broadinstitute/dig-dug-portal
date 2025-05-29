@@ -44,7 +44,6 @@ export default Vue.component("bulk-heatmap", {
         "comparisonId",
         "margin",
         "plotHeight",
-        "sampleColors",
         "selectedGene",
         "filter",
         "samplesColumns",
@@ -62,6 +61,7 @@ export default Vue.component("bulk-heatmap", {
           minExp: null,
           maxExp: null,
           colorScaleArray: [],
+          sampleColors: ["green", "purple"]
         };
     },
     computed: {
@@ -73,6 +73,11 @@ export default Vue.component("bulk-heatmap", {
         },
         sampleGroups(){
             return this.diseaseData.diseaseLabels;
+        },
+        sortedSamples(){
+            let samples = structuredClone(this.samplesColumns);
+            samples.sort((a,b) => this.diseaseMap[a].groupIndex - this.diseaseMap[b].groupIndex);
+            return samples;
         },
         diseaseMap(){
             let indices = this.diseaseData.diseaseConditions;
@@ -117,15 +122,13 @@ export default Vue.component("bulk-heatmap", {
                   .attr("transform",  `translate(${this.margin.left},${this.margin.top})`);
 
           let genesRows = this.plotData.map(d => d.gene);
-          
-          let dataset = this.plotData[0].dataset;
           let collatedData = this.collateData(this.plotData, this.samplesColumns)
           let sampleColors = this.sampleColors
 
           // Build X scales and axis:
           let x = d3.scaleBand()
               .range([ 0, width ])
-              .domain(this.samplesColumns)
+              .domain(this.sortedSamples) // Pass sorted samples so the domain comes out sorted
               .padding(0.01);
           this.svg.append("g")
               .attr("transform", "translate(0," + height + ")")
@@ -232,8 +235,6 @@ export default Vue.component("bulk-heatmap", {
             this.minExp = minExp;
             this.maxExp = maxExp;
 
-            outputData.sort((a,b) => a.groupIndex - b.groupIndex);
-
             return outputData;
         },
       showTooltip(event){
@@ -286,7 +287,6 @@ export default Vue.component("bulk-heatmap", {
         this.chart = document.getElementById(this.plotId);
         this.chartWidth = this.chart.clientWidth;
         this.drawHeatMap();
-        console.log(JSON.stringify(this.diseaseData));
     }
 });
 </script>
