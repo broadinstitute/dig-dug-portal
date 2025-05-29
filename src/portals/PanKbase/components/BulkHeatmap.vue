@@ -18,8 +18,8 @@
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
               <template v-for="(sample, sIndex) in sampleGroups" >
-                <span class="group-legend-box" :style="'color:'+sampleColors[sIndex]">
-                    {{ sampleCharacters[sIndex] }}
+                <span class="group-legend-box" :style="`background-color:${sampleColors[sIndex]}`">
+                    &nbsp;
                 </span>
                 <span class="group-legend-name">{{ sample }}</span>
               </template>
@@ -172,7 +172,7 @@ export default Vue.component("bulk-heatmap", {
                 this.svg.append('rect')
                     .attr('x', x(startSample))
                     .attr('y', height + 1)
-                    .attr("height", 20)
+                    .attr("height", 15)
                     .attr("width", endPoint - x(startSample))
                     .attr("fill", this.sampleColors[i]);
             }
