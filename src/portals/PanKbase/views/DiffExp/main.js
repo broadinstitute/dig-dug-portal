@@ -143,13 +143,15 @@ new Vue({
                     item[sampleLabel] = expressionDataPoint;
                 }
             });
-            return outputData;
+            console.log(outputData.length);
+            return this.getTop20(outputData);
         },
         bulkData19K() {
             let bulkData = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
                     && item.comparison_id === this.$store.state.selectedComparison
                     && item["-log10P"] !== 'NA');
+            console.log(JSON.stringify(bulkData[0]));
             return bulkData;
         },
         volcanoConfig() {
@@ -268,8 +270,11 @@ new Vue({
         },
         getTop20(data) {
             let field = "-log10P";
-            let processedData = data.sort((a, b) => b[field] - a[field]).slice(0, 20);
-            return processedData;
+            let top10Up = data.filter(d => d.logFoldChange > 0);
+            let top10Down = data.filter(d => d.logFoldChange < 0);
+            top10Up = top10Up.sort((a, b) => b[field] - a[field]).slice(0, 10);
+            top10Down = top10Down.sort((a, b) => b[field] - a[field]).slice(0, 10);
+            return top10Down.concat(top10Up);
         },
         async getParams() {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
