@@ -69,10 +69,8 @@ export default Vue.component("bulk-volcano-plot", {
 		this.chart = document.getElementById(`vector_wrapper_${this.sectionId}`);
 		this.chartWidth = this.chart.clientWidth;
 		this.renderPlot();
-		if (this.selectedGene){
-			this.highlightDot(this.selectedGene);
-			//this.$emit("highlight", this.selectedGene);
-		}
+		this.highlightDot(this.selectedGene);
+		
 	},
 	computed: {
 		canvasId() {
@@ -90,6 +88,9 @@ export default Vue.component("bulk-volcano-plot", {
 		plotData(newData, oldData) {
 			if(newData !== oldData){
 				this.renderPlot();
+				if (this.selectedGene){
+					this.highlightDot(this.selectedGene);
+				}
 			}
 		},
 		selectedGene(newData, oldData){
@@ -432,6 +433,9 @@ export default Vue.component("bulk-volcano-plot", {
 			this.$emit("highlight", gene);
 		},
 		highlightDot(gene){
+			if (!gene){
+				return;
+			}
 			this.svg.select("#axisGroup")
 				.selectAll(".highlightCircle")
 				.remove();
