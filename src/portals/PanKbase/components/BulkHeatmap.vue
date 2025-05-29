@@ -61,7 +61,7 @@ export default Vue.component("bulk-heatmap", {
           minExp: null,
           maxExp: null,
           colorScaleArray: [],
-          sampleColors: ["green", "purple"]
+          sampleColors: ["blue", "red"]
         };
     },
     computed: {
@@ -135,9 +135,9 @@ export default Vue.component("bulk-heatmap", {
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
                       .style("text-anchor", "end")
+                      .style("fill", d => this.getColor(d))
                       .attr('font-size', this.fontSize)
-                      .attr("hidden", true)
-                      .attr("transform", "rotate(-35) translate(-5, 0)");
+                      .text("_");
 
           // Build Y scales and axis:
           let selectedGene = this.selectedGene
@@ -191,8 +191,7 @@ export default Vue.component("bulk-heatmap", {
 			this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
-				//.attr("y", (height + this.margin.bottom - 5))
-                .attr("y", (height + 20))
+				.attr("y", (height + this.margin.bottom - 5))
 				.text("Sample condition");
 
             this.svg.select("#axisLabelsGroup")
@@ -205,6 +204,10 @@ export default Vue.component("bulk-heatmap", {
 				.text("Gene");
 
         this.loading = false;
+      },
+      getColor(sample){
+        let index = this.diseaseMap[sample].groupIndex;
+        return this.sampleColors[index];
       },
       collateData(rawData, samplesColumns){
             let outputData = [];
