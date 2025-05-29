@@ -60,9 +60,7 @@ export default new Vuex.Store({
       let compQueryParam = context.state.currentComparisons[context.state.selectedComparison];
       let singleBulkZNormObject = {};
       if (context.state.selectedDataset !== "") {
-        //const query = `${context.state.singleBulkZNormUrl}${context.state.selectedDataset},${compQueryParam}&limit=${context.state.limit}`
         const query = `${context.state.singleBulkZNormUrl}${context.state.selectedDataset},${compQueryParam}`;
-        console.log(query);
         const response = await fetch(query);
         singleBulkZNormObject = await response.json();
       }

@@ -143,7 +143,6 @@ new Vue({
                     item[sampleLabel] = expressionDataPoint;
                 }
             });
-            console.log(outputData.length);
             return this.getTop20(outputData);
         },
         bulkData19K() {
@@ -151,7 +150,6 @@ new Vue({
                 item => item.gene !== undefined
                     && item.comparison_id === this.$store.state.selectedComparison
                     && item["-log10P"] !== 'NA');
-            console.log(JSON.stringify(bulkData[0]));
             return bulkData;
         },
         volcanoConfig() {
