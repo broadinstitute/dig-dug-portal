@@ -132,7 +132,6 @@
 </template>
 <script>
 import Vue from "vue";
-import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
@@ -200,7 +199,7 @@ export default Vue.component("bulk-table", {
                 yField: "norm_counts",
                 yAxisLabel: "Norm counts",
                 dotKey: "sample_id",
-                hoverBoxPosition: "both",
+                hoverBoxPosition: "left",
                 plotHeight: 350,
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},

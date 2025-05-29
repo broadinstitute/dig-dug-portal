@@ -15,9 +15,7 @@
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-import DownloadChart from "./DownloadChart.vue";
-import plotUtils from "@/utils/plotUtils";
-import Formatters from "@/utils/formatters";
+import mouseTooltip from "@/components/researchPortal/singleCellBrowser/mouseTooltip.js";
 export default Vue.component("scatterplot", {
   components: {
   },
@@ -180,6 +178,9 @@ export default Vue.component("scatterplot", {
     },
     hoverDot(dotString) {
       this.unHoverDot();
+      let content = this.getTooltipContent(dotString);
+      mouseTooltip.show(content);
+      return;
 
       let xcoord = d3.event.layerX;
       let ycoord = d3.event.layerY;
@@ -193,7 +194,8 @@ export default Vue.component("scatterplot", {
       let hoverLeft = this.dotHoverLeft(dotString);
 
       if (hoverLeft){
-        xcoord = xcoord - leftOffset - 20;
+        //xcoord = xcoord - leftOffset - 20;
+        console.log(xcoord);
       } else {
         xcoord = xcoord + 20;
       }
@@ -213,18 +215,19 @@ export default Vue.component("scatterplot", {
       if (this.config.hoverFields){
         this.config.hoverFields.forEach(field => {
           tooltipText = tooltipText.concat(
-            `<span>${field.label}: ${
+            `<div>${field.label}: ${
               field.formatter === undefined
                 ? dot[field.key] 
                 : field.formatter(dot[field.key])
-            }</span>`
+            }</div>`
           );
         });
       }
       return tooltipText;
     },
     unHoverDot() {
-      this.hideTooltip();
+      //this.hideTooltip();
+      mouseTooltip.hide();
     },
     hideTooltip(){
       if (!!this.tooltip){
