@@ -12,7 +12,7 @@
               <div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`"></div>
               <span>{{ this.maxExp }}</span>
             </div>
-        </div>
+        </div><!-- 
         <div style="display:inline-block; width:65%;" class="legend" v-if="sampleGroups.length > 0">
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
@@ -20,7 +20,7 @@
                 <span class="group-legend-box" :style="'background-color:'+sampleColors[sample.index]">&nbsp;</span><span class="group-legend-name">{{ (sample.label == "")? 'N/A':sample.label  }}</span>
               </template>
             </div>
-        </div>
+        </div> -->
     </div>
     <div :id="plotId">
     </div>
@@ -136,6 +136,7 @@ export default Vue.component("bulk-heatmap", {
               .selectAll("text")
                       .style("text-anchor", "end")
                       .attr('font-size', this.fontSize)
+                      .attr("hidden", true)
                       .attr("transform", "rotate(-35) translate(-5, 0)");
 
           // Build Y scales and axis:
@@ -190,8 +191,9 @@ export default Vue.component("bulk-heatmap", {
 			this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
-				.attr("y", (height + this.margin.bottom - 5))
-				.text("Sample ID");
+				//.attr("y", (height + this.margin.bottom - 5))
+                .attr("y", (height + 20))
+				.text("Sample condition");
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")
@@ -279,9 +281,6 @@ export default Vue.component("bulk-heatmap", {
                 this.drawHeatMap();
             }
         },
-        diseaseData(newData){
-            console.log(JSON.stringify(newData));
-        }
     },
     mounted(){
         this.chart = document.getElementById(this.plotId);
