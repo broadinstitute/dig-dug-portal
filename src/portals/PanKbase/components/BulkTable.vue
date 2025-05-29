@@ -205,7 +205,7 @@ export default Vue.component("bulk-table", {
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},
                     {key: this.contField.key, label: this.contField.label},
-                    {key: "norm_counts", label: "Norm"}
+                    {key: "norm_counts", label: "Norm counts"}
                 ],
             };
             return config;
