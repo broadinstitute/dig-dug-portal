@@ -135,7 +135,7 @@
                                                 <div  class="flex-gap">
                                                     <div class="wide-block">
                                                         <bulk-heatmap
-                                                            v-if="$parent.zNormData.length > 0"
+                                                            v-if="$parent.dataReady"
                                                             :zNormData="$parent.zNormData"
                                                             :samplesColumns="$parent.samplesColumns"
                                                             :comparisonId="$parent.selectedComparison"
@@ -145,6 +145,7 @@
                                                             :selectedGene="$parent.selectedGene"
                                                             @highlight="gene => $parent.highlight(gene)"
                                                             :plotId="$store.state.selectedDataset"
+                                                            :diseaseData="$parent.diseaseData"
                                                         >
                                                         </bulk-heatmap>
                                                         <div v-else>

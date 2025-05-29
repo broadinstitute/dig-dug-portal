@@ -48,7 +48,8 @@ export default Vue.component("bulk-heatmap", {
         "selectedGene",
         "filter",
         "samplesColumns",
-        "plotId"
+        "plotId",
+        "diseaseData",
     ],
     data() {
         return {
@@ -201,6 +202,7 @@ export default Vue.component("bulk-heatmap", {
                     let expressionEntry = {
                         gene: item.gene,
                         sample: sample,
+                        condition: sample.split("_")[0],
                         expression: currentExp,
                         //group: groupInfo.group,
                         //groupIndex: groupInfo.groupIndex
@@ -213,6 +215,10 @@ export default Vue.component("bulk-heatmap", {
             this.minExp = minExp;
             this.maxExp = maxExp;
 
+            // Sort by sample name right here?
+            outputData.sort((a,b) => {
+
+            })
             return outputData;
         },
       showTooltip(event){
@@ -252,12 +258,16 @@ export default Vue.component("bulk-heatmap", {
             if (newGene !== oldGene && geneInMap){
                 this.drawHeatMap();
             }
+        },
+        diseaseData(newData){
+            console.log(JSON.stringify(newData));
         }
     },
     mounted(){
         this.chart = document.getElementById(this.plotId);
         this.chartWidth = this.chart.clientWidth;
         this.drawHeatMap();
+        console.log(JSON.stringify(this.diseaseData));
     }
 });
 </script>
