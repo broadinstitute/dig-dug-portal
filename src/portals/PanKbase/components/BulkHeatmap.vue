@@ -62,7 +62,6 @@ export default Vue.component("bulk-heatmap", {
           minExp: null,
           maxExp: null,
           colorScaleArray: [],
-          sampleGroups:[],
         };
     },
     computed: {
@@ -71,6 +70,23 @@ export default Vue.component("bulk-heatmap", {
                 return this.zNormData.filter(this.filter);
             }
             return this.zNormData;
+        },
+        sampleGroups(){
+            return this.diseaseData.diseaseLabels;
+        },
+        diseaseMap(){
+            let indices = this.diseaseData.diseaseConditions;
+            let output = {};
+            for (let i = 0; i < this.samplesColumns.length; i++){
+                let sample = this.samplesColumns[i];
+                let groupInfo = {
+                    sample: sample,
+                    groupIndex: indices[i],
+                    group: this.sampleGroups[indices[i]]
+                }
+                output[sample] = groupInfo;
+            }
+            return output;
         }
     },
     methods: {
@@ -194,7 +210,8 @@ export default Vue.component("bulk-heatmap", {
                 ///DK: Modified to add group
                 samplesColumns.map(sample =>{
 
-                    //let groupInfo = samplesColumns.sampleGroups[sample]
+                    let groupInfo = this.diseaseMap[sample]
+
                     let currentExp = item[sample];
                     minExp = (currentExp < minExp) || minExp === null ? currentExp : minExp;
                     maxExp = (currentExp > maxExp) || maxExp === null ? currentExp : maxExp;
@@ -204,8 +221,8 @@ export default Vue.component("bulk-heatmap", {
                         sample: sample,
                         condition: sample.split("_")[0],
                         expression: currentExp,
-                        //group: groupInfo.group,
-                        //groupIndex: groupInfo.groupIndex
+                        group: groupInfo.group,
+                        groupIndex: groupInfo.groupIndex
                     };
 
                     outputData.push(expressionEntry);
@@ -215,10 +232,6 @@ export default Vue.component("bulk-heatmap", {
             this.minExp = minExp;
             this.maxExp = maxExp;
 
-            // Sort by sample name right here?
-            outputData.sort((a,b) => {
-
-            })
             return outputData;
         },
       showTooltip(event){
