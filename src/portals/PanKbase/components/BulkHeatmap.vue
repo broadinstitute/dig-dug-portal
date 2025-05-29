@@ -146,7 +146,7 @@ export default Vue.component("bulk-heatmap", {
                       .style("text-anchor", "start")
                       .style("fill", d => this.getColor(d))
                       .attr('font-size', this.fontSize)
-                      .text(d => this.getCharacter(d));
+                      .text("");
 
           // Build Y scales and axis:
           let selectedGene = this.selectedGene
@@ -160,7 +160,23 @@ export default Vue.component("bulk-heatmap", {
                 .style('fill',function(d) {
                     return ( d == selectedGene)? "#FF8800":"black"}) //set colors by group
                   .attr('font-size', this.fontSize);
-          
+            
+            // There may be > 2 conditions in some datasets;
+            // using a loop to account for any number
+            for (let i = 0; i < this.sampleGroups.length; i++){
+                let startSample = this.sortedSamples.find(
+                    s => this.diseaseMap[s].groupIndex === i);
+                let endSample = this.sortedSamples.find(
+                    s => this.diseaseMap[s].groupIndex > i);
+                let endPoint = endSample === undefined ? width : x(endSample);
+                this.svg.append('rect')
+                    .attr('x', x(startSample))
+                    .attr('y', height + 1)
+                    .attr("height", 20)
+                    .attr("width", endPoint - x(startSample))
+                    .attr("fill", this.sampleColors[i]);
+            }
+
           // Build color scale
           let scaleDomain, scaleRange;
 

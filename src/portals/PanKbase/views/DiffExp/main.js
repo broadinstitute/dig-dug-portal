@@ -201,22 +201,10 @@ new Vue({
             }
         },
         samplesColumns(){
-            let comparison = this.$store.state.selectedComparison;
             let sampleIds = this.sampleMetadata["ID"];
             if (sampleIds === undefined){
                 sampleIds = [];
             }
-            /* let metadataLabels = this.sampleMetadata.metadata_labels;
-            let individualSamples;
-            let diseaseLabels;
-            if (metadataLabels !== undefined){
-                diseaseLabels = metadataLabels[comparison];
-                individualSamples = this.sampleMetadata.metadata[comparison];
-                for (let i = 0; i < sampleIds.length; i++){
-                    let prefix = diseaseLabels[individualSamples[i]];
-                    sampleIds[i] = `${prefix}_${sampleIds[i]}`;
-                }
-            } */
             return sampleIds;
 
         },
