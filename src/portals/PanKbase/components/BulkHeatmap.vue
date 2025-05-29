@@ -1,26 +1,26 @@
 <template>
   <div>
-    <download-chart
+    <!-- <download-chart
         :chartId="`${plotId}_svg`"
         :filename="`${plotId}_differential_expression`"
-    ></download-chart>
+    ></download-chart> -->
     <div style="display:flex; gap:5px" class="legends">
-        <div style="display:inline-block; width:35%;" class="legend">
+        <div style="display:inline-block; width:65%;" class="legend">
             <strong>Expression</strong>
             <div style="display:flex; margin-top:10px" class="marks">
               <span>{{ this.minExp }}</span>
               <div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`"></div>
               <span>{{ this.maxExp }}</span>
             </div>
-        </div><!-- 
-        <div style="display:inline-block; width:65%;" class="legend" v-if="sampleGroups.length > 0">
+        </div>
+        <div style="display:inline-block; width:35%;" class="legend" v-if="sampleGroups.length > 0">
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
               <template v-for="(sample, sIndex) in sampleGroups" >
-                <span class="group-legend-box" :style="'background-color:'+sampleColors[sample.index]">&nbsp;</span><span class="group-legend-name">{{ (sample.label == "")? 'N/A':sample.label  }}</span>
+                <span class="group-legend-box" :style="'background-color:'+sampleColors[sIndex]">&nbsp;</span><span class="group-legend-name">{{ sample }}</span>
               </template>
             </div>
-        </div> -->
+        </div>
     </div>
     <div :id="plotId">
     </div>
@@ -61,7 +61,9 @@ export default Vue.component("bulk-heatmap", {
           minExp: null,
           maxExp: null,
           colorScaleArray: [],
-          sampleColors: ["blue", "red"]
+          sampleColors: [
+            "rgb(027 121 057)",
+            "rgb(116 040 129)"] // Green and purple sample labels for colorblind friendly
         };
     },
     computed: {
@@ -137,7 +139,7 @@ export default Vue.component("bulk-heatmap", {
                       .style("text-anchor", "end")
                       .style("fill", d => this.getColor(d))
                       .attr('font-size', this.fontSize)
-                      .text("_");
+                      .text("█");
 
           // Build Y scales and axis:
           let selectedGene = this.selectedGene
