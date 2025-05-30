@@ -12,6 +12,7 @@ import BulkTable from "../../components/BulkTable.vue";
 import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
 import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
+import EnrichrPlot from "../../components/EnrichrPlot.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -24,6 +25,7 @@ import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCe
 import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
 import { isNull } from "lodash";
+import { padStart } from "lodash";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
@@ -38,6 +40,7 @@ new Vue({
         BulkViolinPlot,
         GeneSelectPicker,
         MouseGeneSelect,
+        EnrichrPlot,
         ResearchBarPlot,
         CriterionFunctionGroup,
         FilterGreaterThan,
@@ -123,31 +126,6 @@ new Vue({
             downGenes: [],
             enrichrUp: [],
             enrichrDown: [],
-            enrichrPlotConfig: {
-                type: "bar plot",
-                label: "Enrichr Results",
-                "group by": "Rank",
-                "y axis field": "Combined score",
-                "convert y -log10": null,
-                "y ticks decimal point": "2",
-                "render by": "Term name",
-                "y axis label": "Combined score",
-                "x axis label": "Term name",
-                "beta field": null,
-                "hover content": [
-                    "Combined score",
-                    "P-value",
-                    "Adjusted p-value"
-                ],
-                thresholds: [],
-                height: 300,
-                "plot margin": {
-                    top: 200,
-                    bottom: 200,
-                    left: 150,
-                    right: 175
-                }
-            },
         };
     },
     computed: {
@@ -308,7 +286,12 @@ new Vue({
 					},
 					body: JSON.stringify(enrichrRequest),
 				});
-            return response.json();
+            let jsonData = await response.json();
+            jsonData.forEach(d => {
+                let rank = `${d["Rank"]}`.padStart(3, "0");
+                d.rankLabel = `${rank}_${d["Term name"]}`;
+            })
+            return jsonData;
         }
 
     },
