@@ -630,7 +630,7 @@ export default Vue.component("enrichr-plot", {
 
 				let groupsArr = Object.keys(bars).sort();
 
-				let dotIndex = 0;
+				let dotIndex = -0.5;
 
 				let barWidth = ((canvasWidth - (plotMargin.left + plotMargin.right))/totalNum) - 10;
 				barWidth = barWidth <= 4 ? 4 : barWidth >= 80? 80 : barWidth;
