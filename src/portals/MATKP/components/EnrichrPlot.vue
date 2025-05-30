@@ -572,7 +572,7 @@ export default Vue.component("enrichr-plot", {
 					null,
 					null,
 					null,
-					this.renderConfig["x axis label"]
+					`${this.renderConfig["x axis label"]} (${this.canvasId})`
 				);
 
 				this.renderTicksByGroup(

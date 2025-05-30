@@ -192,11 +192,6 @@
                                 </div>
                                 <div class="flex-gap" id="enrichr">
                                     <div class="tabs-group wide-group">
-                                        <div class="tabs-wrapper">
-                                            <div class="tab">
-                                                ENRICHR: Top 10 Downregulated Genes
-                                            </div>
-                                        </div>
                                         <div class="tabs-section-wrapper">
                                             <div class="tab-section" >
                                                 <div class="flex-gap">
@@ -207,7 +202,7 @@
                                                             :phenotypesData="$parent.enrichrDown"
                                                             :colors="$parent.colors"
                                                             :colorScale="$parent.enrichrColorScale"
-                                                            canvasId="DownregulatedGenes"
+                                                            canvasId="Downregulated"
                                                             :utils="$parent.utils"
                                                         ></enrichr-plot>
                                                     </div>
@@ -216,11 +211,6 @@
                                         </div>
                                     </div>
                                     <div class="tabs-group wide-group">
-                                        <div class="tabs-wrapper">
-                                            <div class="tab">
-                                                ENRICHR: Top 10 Upregulated Genes
-                                            </div>
-                                        </div>
                                         <div class="tabs-section-wrapper">
                                             <div class="tab-section" >
                                                 <div class="flex-gap">
@@ -231,7 +221,7 @@
                                                             :phenotypesData="$parent.enrichrUp"
                                                             :colors="$parent.colors"
                                                             :colorScale="$parent.enrichrColorScale"
-                                                            canvasId="UpregulatedGenes"
+                                                            canvasId="Upregulated"
                                                             :utils="$parent.utils"
                                                         ></enrichr-plot>
                                                     </div>
