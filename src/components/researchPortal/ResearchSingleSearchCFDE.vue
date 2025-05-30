@@ -173,11 +173,11 @@
 							<div v-for="item in meaningSearchOptions">
 
 								<div class="single-search-option">
-									{{item.label}} {{ item.value }} {{ item.score }}
-									<!--
+									{{item.label}}{{ ' (' + item.score + ')' }}
+									
 									<span class="more-options">
 										<div class="ss-options-wrapper">
-											<div v-for="option in isParameterActive(param['parameter']).options">
+											<div v-for="option in isParameterActive(meaningSearchParam).options">
 												<span>
 													<a :href="(option.url) ? option.url + item.value : 'javascript:;'"
 														class="ss-explore"
@@ -194,7 +194,7 @@
 												</span>
 											</div>
 										</div>
-									</span>-->
+									</span>
 								</div>
 
 								<!--<span class="search-word-group">{{param['parameter']}}</span>-->
@@ -738,7 +738,7 @@ export default Vue.component("research-single-search-cfde", {
 
 			let returnParam = { active: null, url: '', options: null };
 
-			if (!!this.singleSearchConfig) {
+			if (!!this.singleSearchConfig && this.singleSearchMethod == 'ss_keyword') {
 				this.singleSearchConfig["search parameters"].map(param => {
 					if (param.values == PARAM) {
 						returnParam.active = true;
@@ -789,6 +789,33 @@ export default Vue.component("research-single-search-cfde", {
 							if (!!param.options) {
 								returnParam.options = param.options;
 							}
+						}
+					}
+				})
+			} else if(!!this.singleSearchConfig && this.singleSearchMethod == 'ss_meaning') {
+				this.singleSearchConfig["search by meaning parameters"].map(param => {
+					if (param.parameter == PARAM) {
+						returnParam.active = true;
+
+						if (!!param['target page']) {
+							if (!!param['target page']['page id']) {
+								returnParam.url = '/research.html?pageid='
+									+ param['target page']['page id'];
+							} else if (!!param['target page']['url']) {
+								returnParam.url = param['target page']['url'];
+							}
+
+							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
+
+							if (!!param['target page']['page id']) {
+								returnParam.url += '&' + param['parameter'] + '=';
+							} else if (!!param['target page']['url']) {
+								returnParam.url += param['parameter'] + '=';
+							}
+						}
+
+						if (!!param.options) {
+							returnParam.options = param.options;
 						}
 					}
 				})
