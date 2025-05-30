@@ -637,7 +637,7 @@ export default Vue.component("enrichr-plot", {
 
 				if (totalNum >0) {
 					for (const [key, value] of Object.entries(renderData)) {
-						let colorKey = -Math.log10(value["Adjusted p-value"]);
+						let colorKey = -Math.log10(value[0]["Adjusted p-value"]);
 						let fillColor = this.colorScale(colorKey);
 
 
@@ -731,7 +731,6 @@ export default Vue.component("enrichr-plot", {
 
 					let previousGroup = 0;
 					for (const [key, value] of Object.entries(GROUPS)) {
-						console.log(JSON.stringify(value));
 						let tickXPos = MARGIN.left + previousGroup * xTickDistance;
 							let adjTickXPos = Math.floor(tickXPos);
 							CTX.moveTo(
@@ -745,7 +744,6 @@ export default Vue.component("enrichr-plot", {
 							CTX.stroke();
 							let adjP = value["Adjusted p-value"];
 							let color = this.colorScale(-Math.log10(adjP));
-							console.log(color);
 							CTX.fillStyle = color;
 							CTX.save();
 							CTX.translate(
