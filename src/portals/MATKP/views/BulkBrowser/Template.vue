@@ -179,10 +179,10 @@
                                                 <div style="display:inline-block" class="legend">
                                                    <strong>-log10(P adj.)</strong>
                                                     <div style="display:flex; margin-top:10px" class="marks">
-                                                        <span>{{ $parent.colorScaleEndpoints[0].toFixed(3) }}</span>
+                                                        <span>{{ $parent.colorScaleEndpoints[0].toFixed(4) }}</span>
                                                         <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
                                                         </div>
-                                                        <span>{{ $parent.colorScaleEndpoints[1].toFixed(3) }}</span>
+                                                        <span>{{ $parent.colorScaleEndpoints[1].toFixed(4) }}</span>
                                                     </div>
                                                 </div>
                                             </div>
