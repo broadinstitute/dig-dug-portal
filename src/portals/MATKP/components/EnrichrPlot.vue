@@ -114,6 +114,7 @@ import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPlotVector.vue";
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 Vue.use(BootstrapVueIcons);
 
@@ -121,7 +122,7 @@ export default Vue.component("enrichr-plot", {
 	props: [
 		"canvasId",
 		"phenotypeMap",
-		"phenotypesData",
+		"genes",
 		"pkgData",
 		"pkgDataSelected",
 		"colors",
@@ -139,6 +140,7 @@ export default Vue.component("enrichr-plot", {
 			trigger: 0,
 			hoverItems: {},
 			showCanvas: true,
+			phenotypesData: [],
 			renderConfig: {
                 type: "bar plot",
                 label: "Enrichr Results",
@@ -171,11 +173,13 @@ export default Vue.component("enrichr-plot", {
 	components: {
 		barPlotVector,
 	},
-	created: function () {
-		this.renderBarPlot();
+	async created() {
+		//this.renderBarPlot();
 	},
-	mounted: function () {
+	async mounted() {
+		this.phenotypesData = await this.getEnrichr(this.genes);
 		window.addEventListener("resize", this.onResize);
+		if (this.phenotypesD)
 		this.renderBarPlot();
 	},
 	beforeDestroy() {
@@ -887,6 +891,29 @@ export default Vue.component("enrichr-plot", {
 				action: "remove",
 			});
 		},
+		async getEnrichr(genesList){
+            let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
+            let enrichrRequest = {
+                "gene_set_library": "KEGG_2015",
+                "gene_list": genesList,
+                "gene_list_desc": "my_list"
+            }
+            const response = await fetch(enrichrEndpoint, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+                        'accept': 'application/json'
+
+					},
+					body: JSON.stringify(enrichrRequest),
+				});
+            let jsonData = await response.json();
+            jsonData.forEach(d => {
+                let rank = `${d["Rank"]}`.padStart(3, "0");
+                d.rankLabel = `${rank}_${d["Term name"]}`;
+            })
+            return jsonData;
+        }
 	},
 });
 

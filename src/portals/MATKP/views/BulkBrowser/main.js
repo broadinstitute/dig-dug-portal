@@ -270,29 +270,6 @@ new Vue({
             }
             this.downGenes = genes;
         },
-        async getEnrichr(genesList){
-            let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
-            let enrichrRequest = {
-                "gene_set_library": "KEGG_2015",
-                "gene_list": genesList,
-                "gene_list_desc": "my_list"
-            }
-            const response = await fetch(enrichrEndpoint, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-                        'accept': 'application/json'
-
-					},
-					body: JSON.stringify(enrichrRequest),
-				});
-            let jsonData = await response.json();
-            jsonData.forEach(d => {
-                let rank = `${d["Rank"]}`.padStart(3, "0");
-                d.rankLabel = `${rank}_${d["Term name"]}`;
-            })
-            return jsonData;
-        }
 
     },
     watch: {
@@ -337,13 +314,6 @@ new Vue({
                 this.$store.state.selectedGene = newData;
             }
         },
-        async upGenes(genes){
-            this.enrichrUp = await this.getEnrichr(genes);
-            console.log(JSON.stringify(this.enrichrUp[0]));
-        },
-        async downGenes(genes){
-            this.enrichrDown = await this.getEnrichr(genes);
-        }
     },
 
     render(createElement, context) {
