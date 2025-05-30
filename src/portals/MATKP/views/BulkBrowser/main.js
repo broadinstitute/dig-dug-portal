@@ -122,8 +122,6 @@ new Vue({
             volcanoYCondition: 1.3,
             volcanoXConditionGreater: 1.5,
             volcanoXConditionLower: -1.5,
-            upGenes: [],
-            downGenes: [],
             enrichrUp: [],
             enrichrDown: [],
         };
@@ -195,6 +193,12 @@ new Vue({
                 xLower: this.volcanoXConditionLower,
                 yGreater: this.volcanoYCondition
             }
+        },
+        upGenes(){
+            return this.getTopGenes(true);
+        },
+        downGenes(){
+            return this.getTopGenes(false);
         }
     },
     async mounted() {
@@ -245,10 +249,6 @@ new Vue({
 
             console.log("this.pageContent", this.documentation);
         },
-        getTop20(data) {
-            let processedData = data.sort((a, b) => b.log10FDR - a.log10FDR).slice(0, 20);
-            return processedData;
-        },
         async getParams() {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
             try {
@@ -260,15 +260,18 @@ new Vue({
                 console.error("Error: ", error);
             }
         },
+        getTopGenes(up=true){
+            let data = structuredClone(this.bulkData19K);
+            data = data.filter(d => 
+                up ? d.logFoldChange > 0
+                : d.logFoldChange < 0 );
+            data.sort((a,b) => b["-log10P"] - a["-log10P"]);
+            data = data.slice(0,10).map(d => d.gene);
+            console.log(JSON.stringify(data));
+            return data;
+        },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
-        },
-        setEnrichrGenes(genes, upregulated=true){
-            if (upregulated){
-                this.upGenes = genes;
-                return;
-            }
-            this.downGenes = genes;
         },
 
     },

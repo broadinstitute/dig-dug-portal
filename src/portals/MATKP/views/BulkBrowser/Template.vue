@@ -181,10 +181,7 @@
                                                             v-if="$parent.downGenes.length > 0"
                                                             ref="DownregulatedGenes"
                                                             :genes="$parent.downGenes"
-                                                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                                             :colors="$parent.colors"
-                                                            :pkgData="null"
-                                                            :pkgDataSelected="null"
                                                             canvasId="DownregulatedGenes"
                                                             :utils="$parent.utils"
                                                         ></enrichr-plot>
@@ -207,10 +204,7 @@
                                                             v-if="$parent.upGenes.length > 0"
                                                             ref="UpregulatedGenes"
                                                             :genes="$parent.upGenes"
-                                                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                                             :colors="$parent.colors"
-                                                            :pkgData="null"
-                                                            :pkgDataSelected="null"
                                                             canvasId="UpregulatedGenes"
                                                             :utils="$parent.utils"
                                                         ></enrichr-plot>
@@ -229,9 +223,7 @@
                                             :config="$parent.tableConfig"
                                             :scatterConfig="$parent.scatterplotConfig"
                                             :highlightedGene="$store.state.selectedGene"
-                                            :regulationConditions="$parent.regulationConditions"
-                                            @downGenes="genes => $parent.setEnrichrGenes(genes, false)"
-                                            @upGenes="genes => $parent.setEnrichrGenes(genes, true)">
+                                            :regulationConditions="$parent.regulationConditions">
                                         </bulk-table>
                                     </div>
                                 </div>
