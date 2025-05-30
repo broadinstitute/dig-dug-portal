@@ -170,19 +170,19 @@
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                ENRICHR plot legend
+                                                ENRICHR: Pathways containing top 10 most regulated genes in up/down directions.
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">
                                           <div class="tab-section" >
                                             <div style="display:flex; gap:5px" class="legends">
                                                 <div style="display:inline-block" class="legend">
-                                                    -log10(P adj.)
+                                                   <strong>-log10(P adj.)</strong>
                                                     <div style="display:flex; margin-top:10px" class="marks">
-                                                        <span>{{ $parent.colorScaleEndpoints[0] }}</span>
+                                                        <span>{{ $parent.colorScaleEndpoints[0].toFixed(3) }}</span>
                                                         <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
                                                         </div>
-                                                        <span>{{ $parent.colorScaleEndpoints[1] }}</span>
+                                                        <span>{{ $parent.colorScaleEndpoints[1].toFixed(3) }}</span>
                                                     </div>
                                                 </div>
                                             </div>

@@ -27,7 +27,7 @@
 						><br />
 						<span v-for="(dValue, dKey) in ptValue.data">
 							<span>{{ dKey + ": " }}</span
-							><span>{{ dValue }}</span> <br
+							><span>{{ typeof dValue === "number" ? dValue.toFixed(3) : dValue }}</span> <br
 						/></span>
 						<template
 							v-if="
