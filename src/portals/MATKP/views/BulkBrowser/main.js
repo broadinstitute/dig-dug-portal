@@ -5,6 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
+import { getEnrichr } from "../../utils/content.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -12,16 +13,20 @@ import BulkTable from "../../components/BulkTable.vue";
 import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
 import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
+import EnrichrPlot from "../../components/EnrichrPlot.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
+import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot"
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
 import { isNull } from "lodash";
+import { padStart } from "lodash";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
@@ -36,6 +41,8 @@ new Vue({
         BulkViolinPlot,
         GeneSelectPicker,
         MouseGeneSelect,
+        EnrichrPlot,
+        ResearchBarPlot,
         CriterionFunctionGroup,
         FilterGreaterThan,
         ResearchSingleCellBrowser,
@@ -55,10 +62,13 @@ new Vue({
             chart: null,
             chartWidth: 0,
             datasets: [],
+            enrichrUp: [],
+            enrichrDown: [],
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
             utils: {
-                uiUtils: uiUtils
+                uiUtils: uiUtils,
+                plotUtils: plotUtils
             },
             colors: [
                 "#007bff",
@@ -115,9 +125,31 @@ new Vue({
             volcanoYCondition: 1.3,
             volcanoXConditionGreater: 1.5,
             volcanoXConditionLower: -1.5,
+            enrichrColorScale: null,
         };
     },
     computed: {
+        colorScaleEndpoints(){
+            let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
+            let field = "Adjusted p-value";
+            let min = allEnrichr[0][field];
+            let max = allEnrichr[0][field];
+            allEnrichr.forEach(item => {
+                let newValue = item[field];
+                if (newValue < min) { min = newValue; }
+                if (newValue > max) { max = newValue; }
+            });
+            min = -Math.log10(min);
+            max = -Math.log10(max);
+            return [max, min];
+        },
+        colorScaleArray(){
+            if (this.enrichrColorScale === null) { return []; }
+            let lo = this.colorScaleEndpoints[0];
+            let hi = this.colorScaleEndpoints[1];
+            let step = 0.01 * (hi - lo);
+            return d3.range(lo, hi, step).map(t => this.enrichrColorScale(t)).join(', ');
+        },
         selectedDataset() {
             return this.$store.state.selectedDataset;
         },
@@ -184,6 +216,11 @@ new Vue({
                 xLower: this.volcanoXConditionLower,
                 yGreater: this.volcanoYCondition
             }
+        },
+        async downGenes(){
+            let genesList = this.getTopGenes(false);
+            let enrichrData = await getEnrichr(genesList);
+            return enrichrData;
         }
     },
     async mounted() {
@@ -208,8 +245,11 @@ new Vue({
             }
             await this.$store.dispatch("queryBulkFile");
             await this.$store.dispatch("queryBulk");
-            this.dataReady = true;
 
+            this.enrichrUp = await getEnrichr(this.getTopGenes(true));
+            this.enrichrDown = await getEnrichr(this.getTopGenes(false));
+            this.enrichrColorScale = this.createColorScale();
+            this.dataReady = true;
         },
         async getBulkMetadata() {
             if (!this.allMetadata) {
@@ -219,7 +259,6 @@ new Vue({
             }
 
             this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-            console.log(this.bulkMetadata.species);
         },
         async getDocumentation() {
             const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=matkp_differentialgeneexpressionbrowser";
@@ -231,12 +270,6 @@ new Vue({
             }
 
             this.documentation = jsonContent[0];
-
-            console.log("this.pageContent", this.documentation);
-        },
-        getTop20(data) {
-            let processedData = data.sort((a, b) => b.log10FDR - a.log10FDR).slice(0, 20);
-            return processedData;
         },
         async getParams() {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
@@ -249,10 +282,24 @@ new Vue({
                 console.error("Error: ", error);
             }
         },
+        getTopGenes(up=true){
+            let data = structuredClone(this.bulkData19K);
+            data = data.filter(d => 
+                up ? d.logFoldChange > 0
+                : d.logFoldChange < 0 );
+            data.sort((a,b) => b["-log10P"] - a["-log10P"]);
+            data = data.slice(0,10).map(d => d.gene);
+            return data;
+        },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
+        },
+        createColorScale(){
+            let ends = this.colorScaleEndpoints;
+            return d3.scaleLinear()
+              .range(["blue", "red"])
+              .domain(ends);
         }
-
     },
     watch: {
         async selectedDataset(newData, oldData) {
@@ -295,7 +342,7 @@ new Vue({
             if (newData !== oldData) {
                 this.$store.state.selectedGene = newData;
             }
-        }
+        },
     },
 
     render(createElement, context) {

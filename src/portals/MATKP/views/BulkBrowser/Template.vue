@@ -165,7 +165,74 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>   
+                                </div>
+                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.dataReady">
+                                    <div class="tabs-group">
+                                        <div class="tabs-wrapper">
+                                            <div class="tab">
+                                                ENRICHR: Pathways containing top 10 most regulated genes in up/down directions.
+                                            </div>
+                                        </div>
+                                        <div class="tabs-section-wrapper">
+                                          <div class="tab-section" >
+                                            <div style="display:flex; gap:5px" class="legends">
+                                                <div style="display:inline-block" class="legend">
+                                                   <strong>-log10(P adj.)</strong>
+                                                    <div style="display:flex; margin-top:10px" class="marks">
+                                                        <span>{{ $parent.colorScaleEndpoints[0].toFixed(4) }}</span>
+                                                        <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
+                                                        </div>
+                                                        <span>{{ $parent.colorScaleEndpoints[1].toFixed(4) }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="note">
+                                                Combined score = log(p) * z, where z represents deviation from expected rank.
+                                            </div>
+                                          </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="enrichr">
+                                    <div class="tabs-group">
+                                        <div class="tabs-section-wrapper">
+                                            <div class="tab-section" >
+                                                <div class="flex-gap">
+                                                    <div class="wide-block">
+                                                        <enrichr-plot
+                                                            v-if="$parent.dataReady"
+                                                            ref="DownregulatedGenes"
+                                                            :phenotypesData="$parent.enrichrDown"
+                                                            :colors="$parent.colors"
+                                                            :colorScale="$parent.enrichrColorScale"
+                                                            canvasId="Downregulated"
+                                                            :utils="$parent.utils"
+                                                        ></enrichr-plot>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tabs-group">
+                                        <div class="tabs-section-wrapper">
+                                            <div class="tab-section" >
+                                                <div class="flex-gap">
+                                                    <div class="wide-block">
+                                                        <enrichr-plot
+                                                            v-if="$parent.dataReady"
+                                                            ref="UpregulatedGenes"
+                                                            :phenotypesData="$parent.enrichrUp"
+                                                            :colors="$parent.colors"
+                                                            :colorScale="$parent.enrichrColorScale"
+                                                            canvasId="Upregulated"
+                                                            :utils="$parent.utils"
+                                                        ></enrichr-plot>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div id="table-wrapper" class="flex-gap flex-column">
                                     <div class="flex-gap flex-column">
                                         <bulk-table
@@ -264,7 +331,54 @@
   .wide-group {
     width: 670px;
   }
-  #visualizers {
+  #enrichr {
     margin-bottom: 25px;
+    display: flex;
   }
+  #enrichr .tabs-group{
+    width: 680px;
+    height: 345px;
+  }
+
+.legends {
+    gap: 20px;
+}
+
+.legend {
+    margin: 0 10px 0 0;
+    gap:1px;
+}
+.legend .label {
+    font-size: 11px !important;
+    line-height: 11px;
+}
+.legend .gradient {
+    height: 20px;
+    width: 200px;
+    border-radius: 20px;
+}
+.legend span {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.group-legend-box {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    padding: 0 !important;
+}
+
+.group-legend-name {
+    padding-left: 5px !important;
+    padding-right: 15px !important;
+    vertical-align: text-bottom;
+}
+#enrichr-legend {
+    margin-top: 25px;
+    width: 100%;
+}
+#enrichr-legend .tabs-group {
+    width: 100%;
+}
 </style>
