@@ -186,7 +186,10 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                          </div>  
+                                            <div id="note">
+                                                Combined score = log(p) * z, where z represents deviation from expected rank.
+                                            </div>
+                                          </div>
                                         </div>
                                     </div>
                                 </div>
