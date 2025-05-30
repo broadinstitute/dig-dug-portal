@@ -167,7 +167,7 @@
                                     </div>
                                 </div>
                                 <div class="flex-gap" id="enrichr-legend" v-if="$parent.dataReady">
-                                    <div class="tabs-group wide-group">
+                                    <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
                                                 ENRICHR plot legend
@@ -190,7 +190,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex-gap" id="enrichr">
+                                <div id="enrichr">
                                     <div class="tabs-group wide-group">
                                         <div class="tabs-section-wrapper">
                                             <div class="tab-section" >
@@ -330,7 +330,7 @@
   }
   #enrichr {
     margin-bottom: 25px;
-    margin-top: 25px;
+    display: flex;
   }
 
 .legends {
@@ -366,5 +366,12 @@
     padding-left: 5px !important;
     padding-right: 15px !important;
     vertical-align: text-bottom;
+}
+#enrichr-legend {
+    margin-top: 25px;
+    width: 100%;
+}
+#enrichr-legend .tabs-group {
+    width: 100%;
 }
 </style>
