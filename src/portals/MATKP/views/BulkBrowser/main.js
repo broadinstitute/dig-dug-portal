@@ -5,6 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
+import { getEnrichr } from "../../utils/content.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -61,6 +62,8 @@ new Vue({
             chart: null,
             chartWidth: 0,
             datasets: [],
+            enrichrUp: [],
+            enrichrDown: [],
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
             utils: {
@@ -122,8 +125,6 @@ new Vue({
             volcanoYCondition: 1.3,
             volcanoXConditionGreater: 1.5,
             volcanoXConditionLower: -1.5,
-            enrichrUp: [],
-            enrichrDown: [],
         };
     },
     computed: {
@@ -194,11 +195,10 @@ new Vue({
                 yGreater: this.volcanoYCondition
             }
         },
-        upGenes(){
-            return this.getTopGenes(true);
-        },
-        downGenes(){
-            return this.getTopGenes(false);
+        async downGenes(){
+            let genesList = this.getTopGenes(false);
+            let enrichrData = await getEnrichr(genesList);
+            return enrichrData;
         }
     },
     async mounted() {
@@ -223,8 +223,10 @@ new Vue({
             }
             await this.$store.dispatch("queryBulkFile");
             await this.$store.dispatch("queryBulk");
-            this.dataReady = true;
 
+            this.enrichrUp = await getEnrichr(this.getTopGenes(true));
+            this.enrichrDown = await getEnrichr(this.getTopGenes(false));
+            this.dataReady = true;
         },
         async getBulkMetadata() {
             if (!this.allMetadata) {

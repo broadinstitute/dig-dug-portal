@@ -178,9 +178,9 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.downGenes.length > 0"
+                                                            v-if="$parent.enrichrDown.length > 0"
                                                             ref="DownregulatedGenes"
-                                                            :genes="$parent.downGenes"
+                                                            :phenotypesData="$parent.enrichrDown"
                                                             :colors="$parent.colors"
                                                             canvasId="DownregulatedGenes"
                                                             :utils="$parent.utils"
@@ -201,9 +201,9 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.upGenes.length > 0"
+                                                            v-if="$parent.enrichrUp.length > 0"
                                                             ref="UpregulatedGenes"
-                                                            :genes="$parent.upGenes"
+                                                            :phenotypesData="$parent.enrichrUp"
                                                             :colors="$parent.colors"
                                                             canvasId="UpregulatedGenes"
                                                             :utils="$parent.utils"
