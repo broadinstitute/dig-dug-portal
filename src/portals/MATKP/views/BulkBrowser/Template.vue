@@ -191,7 +191,7 @@
                                     </div>
                                 </div>
                                 <div id="enrichr">
-                                    <div class="tabs-group wide-group">
+                                    <div class="tabs-group">
                                         <div class="tabs-section-wrapper">
                                             <div class="tab-section" >
                                                 <div class="flex-gap">
@@ -210,7 +210,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="tabs-group wide-group">
+                                    <div class="tabs-group">
                                         <div class="tabs-section-wrapper">
                                             <div class="tab-section" >
                                                 <div class="flex-gap">
@@ -331,6 +331,10 @@
   #enrichr {
     margin-bottom: 25px;
     display: flex;
+  }
+  #enrichr .tabs-group{
+    width: 680px;
+    height: 345px;
   }
 
 .legends {
