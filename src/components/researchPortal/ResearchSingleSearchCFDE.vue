@@ -9,11 +9,11 @@
 
 			<span class="ss-search-methods" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled']">
 				<span>Search by: </span>
-				<span>
+				<span class="search-method">
 					<input type="radio" id="ss_keyword" name="ssSearchMethods" value="ss_keyword" v-model="singleSearchMethod" checked />
 					<label for="ss_keyword">Keyword</label>
 				</span>
-				<span>
+				<span class="search-method">
 					<input type="radio" id="ss_meaning" name="ssSearchMethods" value="ss_meaning" v-model="singleSearchMethod" />
 					<label for="ss_meaning">Meaning</label>
 				</span>
@@ -168,13 +168,11 @@
 			</div>
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
 				<div id="byor_single_search_results" style="top: 75px;" class="byor-single-search-results-groups" v-if="meaningSearchOptions.length > 0">
-					<div class="byor-ss-results-section">
+					<div class="byor-ss-results-section ss-meaning-search">
 						<div class="byor-ss-results-section-title">{{  }}</div>
 							<div v-for="item in meaningSearchOptions">
-
 								<div class="single-search-option">
 									{{item.label}}{{ ' (' + item.score + ')' }}
-									
 									<span class="more-options">
 										<div class="ss-options-wrapper">
 											<div v-for="option in isParameterActive(meaningSearchParam).options">
@@ -1057,6 +1055,11 @@ export default Vue.component("research-single-search-cfde", {
 	padding: 10px;
 	border-radius: 10px;
 }
+
+.byor-ss-results-section.ss-meaning-search {
+	width: auto !important;
+}
+
 .byor-ss-results-section:only-child{
 	width: -webkit-fill-available;
 	max-width: unset;
@@ -1236,6 +1239,23 @@ a.ss-generate-summary {
 	display: block;
     width: 100%;
     text-align: left;
+    padding-left: 10px;
+    margin-top: -10px;
+    color: #FF6600;
+}
+
+.ss-search-methods .search-method {
+	display:inline-block;
+	margin-right: 10px;
+}
+
+.ss-search-methods .search-method input[type=radio] {
+	vertical-align: middle;
+	/* accent-color: #FF6600;*/
+	margin-right: 5px;
+}
+
+.ss-search-methods .search-method label {
 }
 
 select.ss-meaning-params {
@@ -1261,8 +1281,8 @@ select.ss-meaning-sim-score {
     float: left;
 }
 
-.byor-single-search.meaning-search {
-	width: 67%;
+.byor-single-search.meaning-search, #byor_single_search.meaning-search {
+	width: 67% !important;
     margin-left: 0;
     float: left;
     border-radius: 0 !important;
@@ -1289,4 +1309,6 @@ select.ss-meaning-sim-score {
 .get-meaning-options:hover {
 	background-color: #aa3300;
 }
+
+
 </style>
