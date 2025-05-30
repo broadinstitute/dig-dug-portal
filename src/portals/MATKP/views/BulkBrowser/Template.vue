@@ -170,7 +170,7 @@
                                     <div class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                ENRICHR Downregulated Genes
+                                                ENRICHR: Top 10 Downregulated Genes
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">
@@ -193,7 +193,7 @@
                                     <div class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                ENRICHR Upregulated Genes
+                                                ENRICHR: Top 10 Upregulated Genes
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">

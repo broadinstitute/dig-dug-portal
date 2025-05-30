@@ -234,7 +234,6 @@ new Vue({
             }
 
             this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-            console.log(this.bulkMetadata.species);
         },
         async getDocumentation() {
             const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=matkp_differentialgeneexpressionbrowser";
@@ -246,8 +245,6 @@ new Vue({
             }
 
             this.documentation = jsonContent[0];
-
-            console.log("this.pageContent", this.documentation);
         },
         async getParams() {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
@@ -267,7 +264,6 @@ new Vue({
                 : d.logFoldChange < 0 );
             data.sort((a,b) => b["-log10P"] - a["-log10P"]);
             data = data.slice(0,10).map(d => d.gene);
-            console.log(JSON.stringify(data));
             return data;
         },
         highlight(highlightedGene) {

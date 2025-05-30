@@ -155,13 +155,14 @@ export default Vue.component("enrichr-plot", {
                 "hover content": [
                     "Combined score",
                     "P-value",
-                    "Adjusted p-value"
+                    "Adjusted p-value",
+										"Overlapping genes"
                 ],
                 thresholds: [],
                 height: 300,
                 "plot margin": {
-                    top: 200,
-                    bottom: 200,
+                    top: 50,
+                    bottom: 250,
                     left: 150,
                     right: 175
                 }
@@ -652,13 +653,6 @@ export default Vue.component("enrichr-plot", {
 						let fillColor = this.colors[keyIndex];
 						let strokeColor = "#00000075"; //this.colors[keyIndex];
 
-						let labelIndex = 0;
-						let labelOrigin = 0;
-						let maxWidthPerGroup =
-							plotMargin.left +
-							xStep * dotIndex +
-							xStep * value.length -
-							24;
 
 						let yPos0 = canvasHeight - plotMargin.bottom - (-minY * yStep);
 						value.map((p) => {
@@ -726,44 +720,6 @@ export default Vue.component("enrichr-plot", {
 									this.barPosData[yRange] = [];
 								}
 								this.barPosData[yRange].push(xRange);
-
-								///add labels if p-value above 2.5e-6
-								if (labelIndex == 0) {
-									labelOrigin = xPos;
-								}
-
-								//if (labelIndex == 0 || p.pValue <= 2.5e-6) {
-								let labelXpos = labelOrigin + 24 * labelIndex;
-
-								labelXpos = xPos > labelXpos ? xPos : labelXpos;
-
-								if (
-									labelIndex == 0 ||
-									labelXpos < maxWidthPerGroup
-								) {
-									ctx.font = "22px Arial";
-
-									ctx.fillStyle = "#000000"
-
-									let labelYPos = yPos < yPos0? yPos : yPos0;
-
-									ctx.save();
-									ctx.translate(labelXpos + (barWidth / 2) + 10, labelYPos - 24);
-									ctx.rotate((90 * -Math.PI) / 180);
-									ctx.textAlign = "start";
-									ctx.fillText(pName, 0, 0);
-									ctx.restore();
-
-
-									ctx.lineWidth = 1;
-									ctx.moveTo((xPos + (barWidth/2)), labelYPos - 5);
-									ctx.lineTo(labelXpos + (barWidth / 2), labelYPos - 20);
-									ctx.strokeStyle = "#00000080";
-									ctx.stroke();
-								}
-
-								labelIndex++;
-								//}
 								dotIndex++;
 							}
 						});
@@ -851,8 +807,7 @@ export default Vue.component("enrichr-plot", {
 							);
 							CTX.rotate((45 * Math.PI) / 180);
 							CTX.textAlign = "start";
-							CTX.fillText(key, 0, 15);
-							//CTX.rotate((45 * Math.PI) / 180);
+							CTX.fillText(key.substring(4), 0, 15); // 3 digit numerical prefix plus underscore
 							CTX.restore();
 
 							previousGroup += value;
@@ -892,13 +847,14 @@ export default Vue.component("enrichr-plot", {
 			});
 		},
 		async getEnrichr(genesList){
-            let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
-            let enrichrRequest = {
-                "gene_set_library": "KEGG_2015",
-                "gene_list": genesList,
-                "gene_list_desc": "my_list"
-            }
-            const response = await fetch(enrichrEndpoint, {
+			let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
+			let enrichrRequest = {
+					"gene_set_library": "KEGG_2015",
+					"gene_list": genesList,
+					"gene_list_desc": "my_list"
+			}
+			try {
+				const response = await fetch(enrichrEndpoint, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
@@ -907,13 +863,18 @@ export default Vue.component("enrichr-plot", {
 					},
 					body: JSON.stringify(enrichrRequest),
 				});
-            let jsonData = await response.json();
-            jsonData.forEach(d => {
-                let rank = `${d["Rank"]}`.padStart(3, "0");
-                d.rankLabel = `${rank}_${d["Term name"]}`;
-            })
-            return jsonData;
-        }
+				let jsonData = await response.json();
+				jsonData.forEach(d => {
+						let rank = `${d["Rank"]}`.padStart(3, "0");
+						d.rankLabel = `${rank}_${d["Term name"]}`;
+				})
+				console.log(jsonData[0]);
+				return jsonData;
+			} catch (error){
+				console.error(error.message);
+				return [];
+			}
+		}
 	},
 });
 
