@@ -166,6 +166,30 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.dataReady">
+                                    <div class="tabs-group wide-group">
+                                        <div class="tabs-wrapper">
+                                            <div class="tab">
+                                                ENRICHR plot legend
+                                            </div>
+                                        </div>
+                                        <div class="tabs-section-wrapper">
+                                          <div class="tab-section" >
+                                            <div style="display:flex; gap:5px" class="legends">
+                                                <div style="display:inline-block" class="legend">
+                                                    -log10(P adj.)
+                                                    <div style="display:flex; margin-top:10px" class="marks">
+                                                        <span>{{ $parent.colorScaleEndpoints[0] }}</span>
+                                                        <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
+                                                        </div>
+                                                        <span>{{ $parent.colorScaleEndpoints[1] }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                          </div>  
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="flex-gap" id="enrichr">
                                     <div class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
@@ -318,4 +342,39 @@
     margin-bottom: 25px;
     margin-top: 25px;
   }
+
+.legends {
+    gap: 20px;
+}
+
+.legend {
+    margin: 0 10px 0 0;
+    gap:1px;
+}
+.legend .label {
+    font-size: 11px !important;
+    line-height: 11px;
+}
+.legend .gradient {
+    height: 20px;
+    width: 200px;
+    border-radius: 20px;
+}
+.legend span {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.group-legend-box {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    padding: 0 !important;
+}
+
+.group-legend-name {
+    padding-left: 5px !important;
+    padding-right: 15px !important;
+    vertical-align: text-bottom;
+}
 </style>

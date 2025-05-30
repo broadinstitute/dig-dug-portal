@@ -129,6 +129,27 @@ new Vue({
         };
     },
     computed: {
+        colorScaleEndpoints(){
+            let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
+            let field = "Adjusted p-value";
+            let min = allEnrichr[0][field];
+            let max = allEnrichr[0][field];
+            allEnrichr.forEach(item => {
+                let newValue = item[field];
+                if (newValue < min) { min = newValue; }
+                if (newValue > max) { max = newValue; }
+            });
+            min = -Math.log10(min);
+            max = -Math.log10(max);
+            return [max, min];
+        },
+        colorScaleArray(){
+            if (this.enrichrColorScale === null) { return []; }
+            let lo = this.colorScaleEndpoints[0];
+            let hi = this.colorScaleEndpoints[1];
+            let step = 0.01 * (hi - lo);
+            return d3.range(lo, hi, step).map(t => this.enrichrColorScale(t)).join(', ');
+        },
         selectedDataset() {
             return this.$store.state.selectedDataset;
         },
@@ -273,22 +294,8 @@ new Vue({
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
         },
-        colorScaleEndpoints(){
-            let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
-            let field = "Adjusted p-value";
-            let min = allEnrichr[0][field];
-            let max = allEnrichr[0][field];
-            allEnrichr.forEach(item => {
-                let newValue = item[field];
-                if (newValue < min) { min = newValue; }
-                if (newValue > max) { max = newValue; }
-            });
-            min = -Math.log10(min);
-            max = -Math.log10(max);
-            return [min, max];
-        },
         createColorScale(){
-            let ends = this.colorScaleEndpoints();
+            let ends = this.colorScaleEndpoints;
             return d3.scaleLinear()
               .range(["blue", "red"])
               .domain(ends);
