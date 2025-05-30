@@ -126,11 +126,12 @@ export default Vue.component("enrichr-plot", {
 		"pkgData",
 		"pkgDataSelected",
 		"colors",
+		"colorScale",
 		"plotMargin",
 		"filter",
 		"options",
 		"sectionId",
-		"utils"
+		"utils",
 	],
 	data() {
 		return {
@@ -290,14 +291,6 @@ export default Vue.component("enrichr-plot", {
 					...new Set(
 						DATA.data.map((p) => p[this.renderConfig["group by"]])
 					),
-				].sort();
-			} else {
-				for (const [key, value] of Object.entries(this.phenotypeMap)) {
-					phenotypeGroups.push(value);
-				}
-
-				phenotypeGroups = [
-					...new Set(phenotypeGroups.map((p) => p.group)),
 				].sort();
 			}
 
@@ -506,14 +499,14 @@ export default Vue.component("enrichr-plot", {
 
 				let renderData = this.groupData(this.renderData);
 
-				let groups = {};
+				let bars = {};
 				let totalNum = 0;
 
 				let minY = null;
 				let maxY = null;
 
 				for (const [key, value] of Object.entries(renderData)) {
-					groups[key] = value.length;
+					bars[key] = value[0];
 					totalNum += value.length;
 					value.map((p) => {
 						let yValue =
@@ -587,8 +580,7 @@ export default Vue.component("enrichr-plot", {
 					canvasWidth,
 					canvasHeight,
 					plotMargin,
-					"x",
-					groups
+					bars
 				);
 
 				let xStep =
@@ -636,7 +628,7 @@ export default Vue.component("enrichr-plot", {
 
 				ctx.setLineDash([]); // Set annoying line dash back to normal
 
-				let groupsArr = Object.keys(groups).sort();
+				let groupsArr = Object.keys(bars).sort();
 
 				let dotIndex = 0;
 
@@ -645,10 +637,8 @@ export default Vue.component("enrichr-plot", {
 
 				if (totalNum >0) {
 					for (const [key, value] of Object.entries(renderData)) {
-						let keyIndex =
-							groupsArr.indexOf(key) % this.colors.length;
-						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#00000075"; //this.colors[keyIndex];
+						let colorKey = -Math.log10(value["Adjusted p-value"]);
+						let fillColor = this.colorScale(colorKey);
 
 
 						let yPos0 = canvasHeight - plotMargin.bottom - (-minY * yStep);
@@ -694,7 +684,7 @@ export default Vue.component("enrichr-plot", {
 								
 								ctx.fillStyle = fillColor;
 								ctx.lineWidth = 1;
-								ctx.strokeStyle = strokeColor;
+								ctx.strokeStyle = "1px solid black";
 
 								ctx.fillRect(xPos, yPos, barWidth, yPos0-yPos);
 
@@ -720,51 +710,14 @@ export default Vue.component("enrichr-plot", {
 								dotIndex++;
 							}
 						});
-						keyIndex++;
 					}
 				} 
 			}
 		},
 
-		renderDot(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR) {
-			CTX.beginPath();
-			CTX.arc(XPOS, YPOS, 10, 0, 2 * Math.PI);
-
-			CTX.fillStyle = DOT_COLOR;
-			CTX.fill();
-			CTX.lineWidth = 1;
-			CTX.strokeStyle = STROKE_COLOR;
-			CTX.stroke();
-			//
-		},
-
-		renderTriangle(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR, EFFECT) {
-			CTX.beginPath();
-			if (EFFECT == 1) {
-				CTX.moveTo(XPOS - 10, YPOS + 10);
-				CTX.lineTo(XPOS + 10, YPOS + 10);
-				CTX.lineTo(XPOS, YPOS - 10);
-			}
-			if (EFFECT == -1) {
-				CTX.moveTo(XPOS - 10, YPOS - 10);
-				CTX.lineTo(XPOS, YPOS + 10);
-				CTX.lineTo(XPOS + 10, YPOS - 10);
-			}
-			CTX.closePath();
-
-			CTX.fillStyle = DOT_COLOR;
-			CTX.fill();
-			CTX.lineWidth = 1;
-			CTX.strokeStyle = STROKE_COLOR;
-			CTX.stroke();
-		},
-
-		renderTicksByGroup(CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, GROUPS) {
+		renderTicksByGroup(CTX, WIDTH, HEIGHT, MARGIN, GROUPS) {
 			let groupsArr = Object.keys(GROUPS).sort();
-			let totalNum = 0;
-			for (const [key, value] of Object.entries(GROUPS)) {
-				totalNum += value;
-			}
+			let totalNum = groupsArr.length;
 
 			CTX.beginPath();
 			CTX.lineWidth = 1;
@@ -773,16 +726,13 @@ export default Vue.component("enrichr-plot", {
 			CTX.fillStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
-			switch (DIRECTION) {
-				case "x":
-					let xTickDistance =
+			let xTickDistance =
 						(WIDTH - MARGIN.left - MARGIN.right) / totalNum;
 
 					let previousGroup = 0;
 					for (const [key, value] of Object.entries(GROUPS)) {
-						if (value > 0) {
-							let tickXPos =
-								MARGIN.left + previousGroup * xTickDistance;
+						console.log(JSON.stringify(value));
+						let tickXPos = MARGIN.left + previousGroup * xTickDistance;
 							let adjTickXPos = Math.floor(tickXPos);
 							CTX.moveTo(
 								adjTickXPos,
@@ -793,10 +743,10 @@ export default Vue.component("enrichr-plot", {
 								HEIGHT - MARGIN.bottom + MARGIN.bump * 2
 							);
 							CTX.stroke();
-
-							let keyIndex =
-								groupsArr.indexOf(key) % this.colors.length;
-							CTX.fillStyle = this.colors[keyIndex];
+							let adjP = value["Adjusted p-value"];
+							let color = this.colorScale(-Math.log10(adjP));
+							console.log(color);
+							CTX.fillStyle = color;
 							CTX.save();
 							CTX.translate(
 								adjTickXPos,
@@ -807,15 +757,8 @@ export default Vue.component("enrichr-plot", {
 							CTX.fillText(key.substring(4), 0, 15); // 3 digit numerical prefix plus underscore
 							CTX.restore();
 
-							previousGroup += value;
-						}
+							previousGroup += 1;
 					}
-
-					break;
-				case "y":
-					/// leave it empty in case we need it later
-					break;
-			}
 		},
 
 		checkStared(ITEM) {

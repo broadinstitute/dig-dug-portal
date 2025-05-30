@@ -125,6 +125,7 @@ new Vue({
             volcanoYCondition: 1.3,
             volcanoXConditionGreater: 1.5,
             volcanoXConditionLower: -1.5,
+            enrichrColorScale: null,
         };
     },
     computed: {
@@ -226,6 +227,7 @@ new Vue({
 
             this.enrichrUp = await getEnrichr(this.getTopGenes(true));
             this.enrichrDown = await getEnrichr(this.getTopGenes(false));
+            this.enrichrColorScale = this.createColorScale();
             this.dataReady = true;
         },
         async getBulkMetadata() {
@@ -271,7 +273,26 @@ new Vue({
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
         },
-
+        colorScaleEndpoints(){
+            let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
+            let field = "Adjusted p-value";
+            let min = allEnrichr[0][field];
+            let max = allEnrichr[0][field];
+            allEnrichr.forEach(item => {
+                let newValue = item[field];
+                if (newValue < min) { min = newValue; }
+                if (newValue > max) { max = newValue; }
+            });
+            min = -Math.log10(min);
+            max = -Math.log10(max);
+            return [min, max];
+        },
+        createColorScale(){
+            let ends = this.colorScaleEndpoints();
+            return d3.scaleLinear()
+              .range(["blue", "red"])
+              .domain(ends);
+        }
     },
     watch: {
         async selectedDataset(newData, oldData) {

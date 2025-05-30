@@ -178,10 +178,11 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.enrichrDown.length > 0"
+                                                            v-if="$parent.dataReady"
                                                             ref="DownregulatedGenes"
                                                             :phenotypesData="$parent.enrichrDown"
                                                             :colors="$parent.colors"
+                                                            :colorScale="$parent.enrichrColorScale"
                                                             canvasId="DownregulatedGenes"
                                                             :utils="$parent.utils"
                                                         ></enrichr-plot>
@@ -201,10 +202,11 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.enrichrUp.length > 0"
+                                                            v-if="$parent.dataReady"
                                                             ref="UpregulatedGenes"
                                                             :phenotypesData="$parent.enrichrUp"
                                                             :colors="$parent.colors"
+                                                            :colorScale="$parent.enrichrColorScale"
                                                             canvasId="UpregulatedGenes"
                                                             :utils="$parent.utils"
                                                         ></enrichr-plot>
