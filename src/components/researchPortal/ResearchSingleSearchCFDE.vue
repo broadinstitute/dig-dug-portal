@@ -167,7 +167,7 @@
 				</div>
 			</div>
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
-				<div id="byor_single_search_results" style="top: 75px;" class="byor-single-search-results-groups" v-if="meaningSearchOptions.length > 0">
+				<div id="byor_single_search_results" style="top: 75px;" class="byor-single-search-results-groups" v-if="meaningSearchOptions.length > 0 && meaningSearchOptions[0].value != ''">
 					<div :id="meaningSearchParam+'_meaning_options'" class="byor-ss-results-section ss-meaning-search">
 						<div class="byor-ss-results-section-title">{{  }}</div>
 							<div v-for="(item,itemIndex) in meaningSearchOptions">
@@ -198,6 +198,17 @@
 								<!--<span class="search-word-group">{{param['parameter']}}</span>-->
 							</div>
 						</div>
+				</div>
+				<div v-else-if="meaningSearchOptions.length === 1 && meaningSearchOptions[0].value == ''">
+					<div id="byor_single_search_results" style="top: 75px;" class="byor-single-search-results-groups">
+						<div class="byor-ss-results-section ss-meaning-search">
+							<div> 
+								<div class="single-search-option">
+									{{ meaningSearchOptions[0].label }}
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -434,6 +445,14 @@ export default Vue.component("research-single-search-cfde", {
 							'score':O[score]
 						})
 					})
+
+					if(options.length === 0) {
+						displayOptions.push({
+							'value':'',
+							'label':'No results found. Please try adjusting the similarity score or searching for a different term.',
+							'score':''
+						})
+					}
 
 					this.meaningSearchOptions = displayOptions;
 				})
