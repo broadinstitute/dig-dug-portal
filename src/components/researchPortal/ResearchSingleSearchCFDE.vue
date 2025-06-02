@@ -59,15 +59,15 @@
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && singleSearchMethod == 'ss_keyword'">
 				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="anyResults() > 0">
 					
-					<div class="byor-ss-results-section" v-if="singleSearchResult.genes.length > 0">
+					<div class="byor-ss-results-section" id="kp_gene_options" v-if="singleSearchResult.genes.length > 0">
 						<div class="byor-ss-results-section-title">GENES</div>
-						<div v-for="gene in singleSearchResult.genes" :key="gene" class="">
+						<div v-for="(gene, gIndex) in singleSearchResult.genes" :key="gene" class="">
 							<div v-if="!!isParameterActive('kp genes').active && !!isParameterActive('kp genes').options"
-								class="single-search-option search-gene-link"
+								class="single-search-option search-gene-link" @mouseover="getVerticalPos('kp_gene_options','kp_gene_option_'+gIndex)"
 							>
 								{{ gene }}
 								<span class="more-options">
-									<div class="ss-options-wrapper">
+									<div class="ss-options-wrapper" :id="'kp_gene_option_'+gIndex">
 										<div v-for="option in isParameterActive('kp genes').options">
 											<span>
 												<a :href="(option.url) ? option.url + gene : 'javascript:;'" 
@@ -93,16 +93,16 @@
 					<template
 						v-if="!!isParameterActive('kp phenotypes').active && !!isParameterActive('kp phenotypes').options && singleSearchResult.phenotypes.length>0"
 						>
-						<div class="byor-ss-results-section">
+						<div id="kp_phenotypes_options" class="byor-ss-results-section">
 							<div class="byor-ss-results-section-title">GENE SET PHENOTYPES</div>
-							<div v-for="phenotype in singleSearchResult.phenotypes" 
+							<div v-for="(phenotype, pIndex) in singleSearchResult.phenotypes" 
 								:value="phenotype.name"
 								:key="phenotype.name"
 							>
-								<div class="single-search-option">
+								<div class="single-search-option" @mouseover="getVerticalPos('kp_phenotypes_options','kp_phenotypes_option_'+pIndex)">
 									{{phenotype.description}}
 									<span class="more-options">
-										<div class="ss-options-wrapper">
+										<div class="ss-options-wrapper" :id="'kp_phenotypes_option_'+pIndex">
 											<div v-for="option in isParameterActive('kp phenotypes').options">
 												<span>
 													<a :href="(option.url) ? option.url + phenotype.name : 'javascript:;'"
@@ -130,14 +130,14 @@
 					<template v-for="param in singleSearchConfig['search parameters']">
 						<template v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes')">
 							<template v-if="!!isParameterActive(param['parameter']).active && singleSearchResult[param['parameter']].length>0">
-								<div class="byor-ss-results-section">
+								<div :id="param['parameter']+'_options'" class="byor-ss-results-section">
 									<div class="byor-ss-results-section-title">{{ param['label'] }}</div>
-									<div v-for="item in singleSearchResult[param['parameter']]">
+									<div v-for="(item,itemIndex) in singleSearchResult[param['parameter']]">
 
-										<div class="single-search-option">
+										<div class="single-search-option" @mouseover="getVerticalPos(param['parameter']+'_options',param['parameter']+'_option_'+itemIndex)">
 											{{item.label}}
 											<span class="more-options">
-												<div class="ss-options-wrapper">
+												<div class="ss-options-wrapper" :id="param['parameter']+'_option_'+itemIndex">
 													<div v-for="option in isParameterActive(param['parameter']).options">
 														<span>
 															<a :href="(option.url) ? option.url + item.value : 'javascript:;'"
@@ -168,13 +168,13 @@
 			</div>
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
 				<div id="byor_single_search_results" style="top: 75px;" class="byor-single-search-results-groups" v-if="meaningSearchOptions.length > 0">
-					<div class="byor-ss-results-section ss-meaning-search">
+					<div :id="meaningSearchParam+'_meaning_options'" class="byor-ss-results-section ss-meaning-search">
 						<div class="byor-ss-results-section-title">{{  }}</div>
-							<div v-for="item in meaningSearchOptions">
-								<div class="single-search-option">
+							<div v-for="(item,itemIndex) in meaningSearchOptions">
+								<div class="single-search-option" @mouseover="getVerticalPos(meaningSearchParam+'_meaning_options',meaningSearchParam+'_'+itemIndex)">
 									{{item.label}}{{ ' (' + item.score + ')' }}
 									<span class="more-options">
-										<div class="ss-options-wrapper">
+										<div class="ss-options-wrapper" :id="meaningSearchParam+'_'+itemIndex">
 											<div v-for="option in isParameterActive(meaningSearchParam).options">
 												<span>
 													<a :href="(option.url) ? option.url + item.value : 'javascript:;'"
@@ -390,6 +390,11 @@ export default Vue.component("research-single-search-cfde", {
 	},
 	methods: {
 		...alertUtils,
+		getVerticalPos(WRAPPER,TARGET) {
+			let wrapper = document.getElementById(WRAPPER);
+			let vPos = (wrapper)? wrapper.scrollTop * -1 : 0;
+			document.getElementById(TARGET).style.setProperty('top', vPos+'px');
+		},
 		getMeaningOptions() {
 
 			const dataPoint = this.singleSearchConfig["search by meaning parameters"].filter( P => P.parameter == this.meaningSearchParam )[0]['data point'];
@@ -1058,6 +1063,7 @@ export default Vue.component("research-single-search-cfde", {
 
 .byor-ss-results-section.ss-meaning-search {
 	width: auto !important;
+	margin: auto;
 }
 
 .byor-ss-results-section:only-child{
