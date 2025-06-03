@@ -121,8 +121,8 @@
             const yKeyLabels = Array.from(new Set(this.data.map(d => d[yKey])));
             const allMeans = this.data.map(d => d.mean_expression);
 
-            llog('   xKeyLabels', xKey, this.xKey, xKeyLabels); 
-            llog('   yKeyLabels', yKey, this.yKey, yKeyLabels);
+            //llog('   xKeyLabels', xKey, this.xKey, xKeyLabels); 
+            //llog('   yKeyLabels', yKey, this.yKey, yKeyLabels);
 
             //pre-calc axis label dimentions
             const tempsvg = d3.select(this.$refs.plot)
@@ -152,7 +152,7 @@
 
             //calc dimentions
             const parentWidth = this.$refs.plotWrapper.parentElement.offsetWidth;
-            llog("   parentWidth", parentWidth);
+            //llog("   parentWidth", parentWidth);
 
             const margin = {
                 top: this.showXLabels ? labelsHeight + this.marginTop : 0, 
@@ -178,7 +178,7 @@
                 }
                 plotHeight = yKeyLabels.length * cellWidth;
                 height = plotHeight + margin.top + margin.bottom;
-                llog('--------', plotWidth, cellWidth, plotHeight, yKeyLabels.length)
+                //llog('--------', plotWidth, cellWidth, plotHeight, yKeyLabels.length)
             }else{
                 cellWidth = this.cellWidth;
                 plotWidth = xKeyLabels.length * cellWidth;
@@ -189,7 +189,7 @@
 
             this.$refs.plotWrapper.style.height = height+'px';
 
-            llog('   dimentions', {margin, width, height});
+            //llog('   dimentions', {margin, width, height});
     
             //calc scale domains
             const yScale = d3.scaleBand()
@@ -298,10 +298,12 @@
 
                     // Tooltip mouseover
                     outerCircle.addEventListener('mouseover', function(e){
-                        const tooltipContent = `<div style="display:flex"><div style="width:100px; font-weight:bold">${xKey}</div>${d[xKey]}</div>
-                                                <div style="display:flex"><div style="width:100px; font-weight:bold">${yKey}</div>${d[yKey]}</div>
-                                                <div style="display:flex"><div style="width:100px; font-weight:bold">Mean Expr.</div>${d.mean_expression.toFixed(4)}</div>
-                                                <div style="display:flex"><div style="width:100px; font-weight:bold">% Expr.</div>${(d.pct_nz_group*100).toFixed(4)}</div>`;
+                        const tooltipContent = `<div style="display: grid; grid-template-columns: 1fr max-content; gap:5px; row-gap:2px; font-size:12px;">
+                            <div style="font-weight:bold">${xKey}</div>     <div>${d[xKey]}</div>
+                            <div style="font-weight:bold">${yKey}</div>     <div>${d[yKey]}</div>
+                            <div style="font-weight:bold">Mean Expr.</div>  <div>${d.mean_expression.toFixed(4)}</div>
+                            <div style="font-weight:bold">% Expr.</div>     <div>${(d.pct_nz_group*100).toFixed(4)}</div>
+                        </div>`;
                         mouseTooltip.show(tooltipContent);
                     })
                     // Tooltip mouseout to hide it
