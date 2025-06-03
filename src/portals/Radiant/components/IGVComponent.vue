@@ -23,8 +23,8 @@ export default Vue.component("igv-card",{
                 locus: "chr"+this.variantId,
                 tracks: [
                     {
-                        url: "https://s3.amazonaws.com/1000genomes/data/HG00103/alignment/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram",
-                        indexURL:"https://s3.amazonaws.com/1000genomes/data/HG00103/alignment/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram.crai",
+                        url: "https://igv-radiant-data.s3.us-east-1.amazonaws.com/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram",
+                        indexURL:"https://igv-radiant-data.s3.us-east-1.amazonaws.com/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram.crai",
                         format: "cram",
                         type: "alignment",
                         
