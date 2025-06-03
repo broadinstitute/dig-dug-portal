@@ -1,16 +1,16 @@
 <template>
     <div v-if="data" style="height:100%; display:flex; width:100%; flex-direction:column; gap:10px; margin:0 0 10px 0;"">
-        <div style="display:flex; gap:20px; background: #f8f8f8; padding: 20px;">
-            <div style="display:flex; flex-direction:column; flex:1">
-                <strong style="font-size:20px">{{ data["datasetName"] }}</strong>
-                <em>{{ data["authors"] || '' }}</em>
+        <div style="display:flex; gap:20px; background: #f8f8f8; padding: 20px; flex-wrap: wrap;">
+            <div style="display:flex; flex-direction:column; flex:1; min-width: 300px;">
+                <strong style="font-size:20px; line-height: 22px;">{{ data["datasetName"] }}</strong>
                 <div style="flex:1; position: relative;">
-                    <div style="position: absolute; top:0; right:0; bottom:0; left:0; max-height:-webkit-fill-available; overflow:scroll; text-overflow: ellipsis; margin:10px 0 0">
-                        {{ data["summary"] || '' }}
+                    <div style="display:flex; flex-direction: column; gap:10px; position: absolute; top:0; right:0; bottom:0; left:0; max-height:-webkit-fill-available; overflow:scroll; text-overflow: ellipsis; margin:10px 0 0">
+                        <em style="font-size:13px;">{{ data["authors"] || '' }}</em>
+                        <div>{{ data["summary"] || '' }}</div>
                     </div>
                 </div>
             </div>
-            <div style="display:flex; flex-direction: column; border-left: 1px solid #ccc; padding-left: 20px; width:25%;">
+            <div style="display:flex; flex-direction: column; border-left: 1px solid #ccc; padding-left: 20px; width:25%; min-width: 300px;">
                 <div class="metadata-item">
                     <div style="font-weight: bold; min-width: 100px;">Species</div>
                     <div>{{ data["species"] }}</div>
@@ -55,11 +55,11 @@
                 </div>
                 <div  class="metadata-item" v-if="data['doi']">
                     <div style="font-weight: bold; min-width: 100px;">DOI</div>
-                    <div style="overflow: hidden; overflow-wrap: break-word;"><a :href="data['doi']">{{ data["doi"] }}</a></div>
+                    <div style="overflow: hidden; overflow-wrap: break-word;"><a :href="data['doi']">{{ data["doi"].replace('https://doi.org/', '') }}</a></div>
                 </div>
                 <div  class="metadata-item" v-if="data['download']">
                     <div style="font-weight: bold; min-width: 100px;">Download</div>
-                    <div style="overflow: hidden; overflow-wrap: break-word;"><a :href="data['download']">click here</a></div>
+                    <div style="overflow: hidden; overflow-wrap: break-word;"><a :href="data['download']">here</a></div>
                 </div>
             </div>
             
@@ -102,7 +102,8 @@ export default Vue.component('research-single-cell-info', {
 <style scoped>
 .metadata-item{
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: .7fr 1.3fr;
+    font-size: 13px;
 }
 </style>
   

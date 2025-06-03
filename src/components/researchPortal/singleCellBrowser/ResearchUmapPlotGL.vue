@@ -28,6 +28,9 @@
                         fill="#000" />
                 </svg>
             </button>
+            <button @click="download" v-b-tooltip.hover.bottom title="Download">
+                <svg style="width:24px;" fill="#000000" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M512 666.5L367.2 521.7l36.2-36.2 83 83V256h51.2v312.5l83-83 36.2 36.2L512 666.5zm-204.8 50.3V768h409.6v-51.2H307.2z"></path></g></svg>
+            </button>
         </div>
         <!-- 1) WebGL canvas for points -->
         <canvas ref="umapCanvas" class="umap-canvas" @click="onClick"></canvas>
@@ -196,6 +199,7 @@ export default Vue.component('research-umap-plot-gl', {
             canvas.height = this.height * window.devicePixelRatio;
             canvas.style.width = `${parentWidth}px`;
             canvas.style.height = `${this.height}px`;
+            canvas.getContext("webgl", { preserveDrawingBuffer: true });
 
             const labelCanvas = this.$refs.umapLabelCanvas;
             labelCanvas.width = parentWidth * window.devicePixelRatio;
@@ -214,7 +218,7 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         cleanUp() {
-            llog("   cleanUp");
+            //llog("   cleanUp");
             const gl = this.gl;
             if (!gl) return;
 
@@ -236,7 +240,7 @@ export default Vue.component('research-umap-plot-gl', {
 
 
         calculatePointBounds() {
-            llog("   calculatePointBounds");
+            //llog("   calculatePointBounds");
             this.pointBounds = { n: 0, s: 0, e: 0, w: 0 };
             this.points.forEach(({ X, Y }) => {
                 if (X > this.pointBounds.e) this.pointBounds.e = X;
@@ -266,7 +270,7 @@ export default Vue.component('research-umap-plot-gl', {
 
         // build cluster center info { label, x, y }
         calculateClusterCenters() {
-            llog("   calculateClusterCenters");
+            //llog("   calculateClusterCenters");
             this.clusterCenters = [];
             const labelField = this.cellTypeField || Object.keys(this.labels.metadata_labels)[0];
             const metadata = this.labels.metadata[labelField];
@@ -292,7 +296,7 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         initializeWebGL() {
-            llog("   initializeWebGL");
+            //llog("   initializeWebGL");
             const canvas = this.$refs.umapCanvas;
             const gl = canvas.getContext('webgl');
             if (!gl) {
@@ -352,7 +356,7 @@ export default Vue.component('research-umap-plot-gl', {
 
         // --- THE KEY PART: Decide whether to color by expression or by label
         setupBuffers() {
-            llog("   setupBuffers");
+            //llog("   setupBuffers");
             const gl = this.gl;
             if (!gl) return;
 
@@ -363,7 +367,7 @@ export default Vue.component('research-umap-plot-gl', {
 
             // Positions
             if (!this.buffers.position) {
-                llog("      positions")
+                //llog("      positions")
                 const positionBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, sharedUmapData.getPositions(this.group), gl.STATIC_DRAW);
@@ -371,7 +375,7 @@ export default Vue.component('research-umap-plot-gl', {
             }
 
             if (!this.buffers.color) {
-                llog("      colors")
+                //llog("      colors")
 
                 const colors = new Uint8Array(this.points.length * 4);
                 if(this.expression){
@@ -415,7 +419,7 @@ export default Vue.component('research-umap-plot-gl', {
                 this.buffers.color = colorBuffer;
             }
 
-            llog("      highlight")
+            //llog("      highlight")
             // Highlight array
             const highlightArray = new Float32Array(this.points.length);
             if (!this.highlightLabel && this.highlightLabels.length === 0) {
@@ -658,6 +662,42 @@ export default Vue.component('research-umap-plot-gl', {
                 return null;
             }
             return program;
+        },
+
+        download(){
+            const canvas1 = this.$refs.umapCanvas;
+            const canvas2 = this.$refs.umapLabelCanvas;
+
+            const width = canvas1.width;
+            const height = canvas1.height;
+
+            const scaleFactor = 2;
+
+            const combinedCanvas = document.createElement('canvas');
+            combinedCanvas.width = width * scaleFactor;
+            combinedCanvas.height = height * scaleFactor;
+            const ctx = combinedCanvas.getContext('2d');
+
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            ctx.drawImage(canvas1, 0, 0, combinedCanvas.width, combinedCanvas.height);
+            ctx.drawImage(canvas2, 0, 0, combinedCanvas.width, combinedCanvas.height);
+
+            /*
+            const combinedCanvas = document.createElement('canvas');
+            combinedCanvas.width = width;
+            combinedCanvas.height = height;
+            const ctx = combinedCanvas.getContext('2d');
+
+            ctx.drawImage(canvas1, 0, 0);
+            ctx.drawImage(canvas2, 0, 0);
+            */
+
+            const link = document.createElement('a');
+            link.download = 'umap.png';
+            link.href = combinedCanvas.toDataURL('image/png');
+            link.click();
         },
     },
 });
