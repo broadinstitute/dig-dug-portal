@@ -208,7 +208,7 @@
                                         </template>
                                         <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cont'">
                                             <div style="font-size: 12px;">
-                                                Each point represents the average {{isATACseq ? 'nuclei' : 'cell'}} {{ isNormalized ? 'proportion' : 'distribution' }} per donor
+                                                Each point represents the average {{isATACseq ? 'nuclei' : 'cell'}} {{ isNormalized ? 'proportion' : 'distribution' }} per {{ this.aggregateType }}
                                             </div>
                                         </template>
                                     </div>
@@ -300,7 +300,7 @@
                                         </template>
                                         <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cont'">
                                             <div style="font-size: 12px;">
-                                                Each point represents the average {{ isATACseq ? 'chromatin accessibility' : 'gene expression' }} per donor
+                                                Each point represents the average {{ isATACseq ? 'chromatin accessibility' : 'gene expression' }} per {{ this.aggregateType }}
                                             </div>
                                         </template>
                                         <div v-if="!coordinates" style="display:flex; flex-direction: column; gap:5px">
@@ -552,186 +552,6 @@
                     </div>
                 </div>
             </div>
-            <!-- layout 2 -->
-            <div v-if="layout===999" style="display:flex; flex-direction:column; width:100%; background: #f8f8f8; padding: 20px; gap: 20px;">
-                <!--
-                <research-single-cell-info 
-                    :data="metadata"
-                />
-                -->
-                <div v-if="this.fieldsDisplayList" style="display:flex; gap:10px">
-                    <div>Count</div>
-                    <div style="display:flex; flex-direction: column;">
-                        <div>across</div>
-                        <select v-model="cellCompositionVars.displayByLabel" @change="selectSegmentBy2(cellCompositionVars.displayByLabel, cellCompositionVars.segmentByLabel, cellCompositionVars.facetByLabel)">
-                            <optgroup label="">
-                                <option value="">--Select--</option>
-                                <option v-for="(value, key) in fields['metadata_labels']" :value="key">
-                                    {{ displayLabel(key) }}
-                                </option>
-                            </optgroup>
-                            <optgroup label="removed < 1">
-                                <option v-for="(value, key) in fields['metadata_removed']" :value="key" disabled>
-                                    {{ displayLabel(key) }}
-                                </option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    <div style="display:flex; flex-direction: column;">
-                        <div>group by</div>
-                        <select v-model="cellCompositionVars.segmentByLabel" @change="selectSegmentBy2(cellCompositionVars.displayByLabel, cellCompositionVars.segmentByLabel, cellCompositionVars.facetByLabel)">
-                            <optgroup label="">
-                                <option value="">--Select--</option>
-                                <option v-for="(value, key) in fields['metadata_labels']" :value="key">
-                                    {{ displayLabel(key) }}
-                                </option>
-                            </optgroup>
-                            <optgroup label="removed < 1">
-                                <option v-for="(value, key) in fields['metadata_removed']" :value="key" disabled>
-                                    {{ displayLabel(key) }}
-                                </option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    <div style="display:flex; flex-direction: column;">
-                        <div>facet by</div>
-                        <select v-model="cellCompositionVars.facetByLabel" @change="selectSegmentBy2(cellCompositionVars.displayByLabel, cellCompositionVars.segmentByLabel, cellCompositionVars.facetByLabel)">
-                            <optgroup label="">
-                                <option value="">--Select--</option>
-                                <option v-for="(value, key) in fields['metadata_labels']" :value="key">
-                                    {{ displayLabel(key) }}
-                                </option>
-                            </optgroup>
-                            <optgroup label="removed < 1">
-                                <option v-for="(value, key) in fields['metadata_removed']" :value="key" disabled>
-                                    {{ displayLabel(key) }}
-                                </option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    <div style="display:flex; flex-direction: column;">
-                        <div>gene search</div>
-                        <div style="display:flex; gap:5px;">
-                            <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:100%; position:relative;"/>
-                            <button @click="searchGene(geneToSearch)">
-                                <svg :style="`display:${!geneLoading?'block':'none'}`" style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
-                                <div :style="`display:${geneLoading?'block':'none'}`" class="geneLoader"></div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div v-if="dataReady" style="display:flex; flex-direction: column; gap:20px; max-width: 800px;">
-                    <div style="font-weight: bold;">Cell Type Abundance</div>
-                    <div v-if="!cellCompositionVars.facetByLabel" style="flex:1">
-                        <research-stacked-bar-plot
-                            :data="cellCompositionVars.segmentByCounts2"
-                            :primaryKey="cellCompositionVars.displayByLabel"
-                            :subsetKey="cellCompositionVars.segmentByLabel"
-                            :xAxisLabel="displayLabel(cellCompositionVars.displayByLabel)"
-                            :yAxisLabel="`${cellCompositionVars.segmentByLabel?'Percent of Cells':'Number of Cells'}`"
-                            :highlightKey="cellCompositionVars.highlightLabel"
-                            :normalize="cellCompositionVars.segmentByLabel?true:false"
-                            :stack="cellCompositionVars.segmentByLabel?true:false"
-                        />
-                    </div>
-                    <div v-else  style="flex:1">
-                        <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.facetByLabel) }}</div>
-                        <div v-for="value in fields['metadata_labels'][cellCompositionVars.facetByLabel]">
-                            <div style="display:flex; gap:3px; align-items: baseline;">
-                                <div style="font-weight: bold;">{{ value }}</div>
-                            </div>
-                            <research-stacked-bar-plot
-                                :data="getStatsByPropValue(cellCompositionVars.segmentByCounts2, cellCompositionVars.facetByLabel, value)"
-                                :primaryKey="cellCompositionVars.displayByLabel"
-                                :subsetKey="cellCompositionVars.segmentByLabel"
-                                :xAxisLabel="displayLabel(cellCompositionVars.displayByLabel)"
-                                :yAxisLabel="`${true?'Percent of Cells':'Number of Cells'}`"
-                                :highlightKey="cellCompositionVars.highlightLabel"
-                                :normalize="true"
-                                :stack="true"
-                                :range="[0, maxCountValue()]"
-                            />
-                        </div>
-                    </div>
-                    <div v-if="cellCompositionVars.segmentByLabel" style="display:flex; flex-direction: column; min-width: min-content;">
-                        <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
-                        <research-single-cell-selector 
-                            :data="fields['metadata_labels']"
-                            layout="list"
-                            listDirection="vertical"
-                            listAlignment="start"
-                            :colors="labelColors"
-                            :selectedField="cellCompositionVars.segmentByLabel"
-                            @on-update="handleSelectorUpdate($event)"
-                            @on-hover="handleSelectorHover($event)"
-                        />
-                    </div>
-                </div>
-                <div v-if="dataReady" style="display:flex; flex-direction:column; gap:10px;">
-                    <div style="font-weight: bold;">Cell Type Proportion across Donors by Age</div>
-                    <div style="display:flex; gap:20px;">
-                        <research-stacked-bar-plot-2
-                            :proportions="testCellProportions"
-                            :colors="labelColors"
-                        />
-                        <research-single-cell-selector 
-                            :data="fields['metadata_labels']"
-                            layout="list"
-                            listDirection="vertical"
-                            listAlignment="start"
-                            :colors="labelColors"
-                            :selectedField="renderConfig.format.default.annotationGroups.cellType"
-                            @on-update="handleSelectorUpdate($event)"
-                            @on-hover="handleSelectorHover($event)"
-                        />
-                    </div>
-                    
-                </div>
-                <div v-if="dataReady">
-                    <div style="font-weight: bold;">Cell Type Proportion across Samples by Condition</div>
-                    <div style="display:flex">
-                        <div style="display:flex; flex-direction: column; gap:10px; width: 800px;">
-                            <research-violin-plot
-                                :data="testCellStats"
-                                :primaryKey="renderConfig.format.default.annotationGroups.cellType"
-                                :subsetKey="renderConfig.format.default.annotationGroups.conditions[2]"
-                                :highlightKey="cellCompositionVars.highlightLabel"
-                                :colors="labelColors[renderConfig.format.default.annotationGroups.conditions[2]]"
-                                :height="300"
-                                xAxisLabel="Percent of Cells"
-                                :yAxisLabel="displayLabel(renderConfig.format.default.annotationGroups.cellType)"
-                                :range="[0,1]"
-                                :showViolins="false"
-                            />
-                            <div v-for="value in fields['metadata_labels'][renderConfig.format.default.annotationGroups.cellType]" style="max-width: 800px;">
-                                <div style="display:flex; gap:3px; align-items: baseline;">
-                                    <div style="font-weight: bold;">{{ value }}</div>
-                                </div>
-                                <research-violin-plot
-                                    :data="testCellStats.filter(d => d[renderConfig.format.default.annotationGroups.cellType] === value)"
-                                    :primaryKey="renderConfig.format.default.annotationGroups.conditions[2]"
-                                    :highlightKey="cellCompositionVars.highlightLabel"
-                                    :height="300"
-                                    xAxisLabel="Percent of Cells"
-                                    :yAxisLabel="renderConfig.format.default.annotationGroups.conditions[2]"
-                                    :range="[0, 1]"
-                                    :showViolins="false"
-                                />
-                            </div>
-                        </div>
-                        <research-single-cell-selector 
-                            :data="fields['metadata_labels']"
-                            layout="list"
-                            listDirection="vertical"
-                            listAlignment="start"
-                            :colors="labelColors"
-                            :selectedField="renderConfig.format.default.annotationGroups.conditions[2]"
-                            @on-update="handleSelectorUpdate($event)"
-                            @on-hover="handleSelectorHover($event)"
-                        />
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </template>
@@ -797,12 +617,10 @@
                     define the columns in your data for a few default categories
                     used for selecting the appropriate fields for display and visualizations
                 ///
-                "annotationGroups":{
+                "groups":{
                     "cellType": "cell_type__author",
                     "cellSubType": "custom__author_cell_substype",
                     "donors": this.donorsField,
-                    "conditions": ["disease__ontology_label", "bmi", "bmi__group", "custom__development_stage__ontology_label", "custom__organism_age", "custom__organism_age__group"],
-                    "experimental": ["custom__cell_cycle__phase"],
                     "samples": "biosample_id"
                 }
             }
@@ -905,6 +723,8 @@
                 cellTypeField: null,
                 donorsField: null,
                 samplesField: null,
+                aggregateField: null,
+                aggregateType: null,
 
                 displayFields: null,
                 displayGroups: null,
@@ -1132,6 +952,8 @@
                 this.cellTypeField = null;
                 this.donorsField = null;
                 this.samplesField = null;
+                this.aggregateField = null;
+                this.aggregateType = null;
 
                 this.displayFields = null;
                 this.displayGroups = null;
@@ -1335,13 +1157,36 @@
                 }
                 llog("cellTypeField:", this.cellTypeField);
 
+                const givenSamplesLabel = this.displayGroups?.samples;
+                if(!givenSamplesLabel || !fieldsList.includes(givenSamplesLabel)){
+                    this.samplesField = this.findSamplesField(fieldsList);
+                }else{
+                    this.samplesField = givenSamplesLabel;
+                    //aggregate field is used for continuous variable results
+                    //set as sample first
+                    this.aggregateField = this.samplesField;
+                    this.aggregateType = 'sample';
+                }
+                llog("samplesField:", this.samplesField);
+
                 const givenDonorsLabel = this.displayGroups?.donors;
                 if(!givenDonorsLabel || !fieldsList.includes(givenDonorsLabel)){
                     this.donorsField = this.findDonorsField(fieldsList);
                 }else{
                     this.donorsField = givenDonorsLabel;
+                    //if we have donors use that for aggregate instead
+                    if(this.fields.metadata_labels[this.donorsField].length>1){
+                        //assuming theres more than 1 donor
+                        this.aggregateField = this.donorsField;
+                        this.aggregateType = 'donor';
+                    }   
                 }
                 llog("donorsField:", this.donorsField);
+
+                llog("aggregates", {
+                    field: this.aggregateField,
+                    type: this.aggregateType
+                })
 
                 llog('++++++++++++ PLOTTING')
                 
@@ -1502,6 +1347,16 @@
                                   (normalizedStr.includes("participant") ? 1 : 0) +
                                   (normalizedStr.includes("patient") ? 1 : 0) +
                                   (normalizedStr.includes("library") ? 1 : 0) +
+                                  (normalizedStr.includes("id") ? 0.5 : 0);
+                    return score > bestMatch.score ? { string: str, score } : bestMatch;
+                }, { string: null, score: 0 }).string;
+            },
+
+            findSamplesField(list){
+                return list.reduce((bestMatch, str) => {
+                    const normalizedStr = str.toLowerCase();
+                    const score = (normalizedStr.includes("sample") ? 2 : 0) +
+                                  (normalizedStr.includes("specimen") ? 1 : 0) + 
                                   (normalizedStr.includes("id") ? 0.5 : 0);
                     return score > bestMatch.score ? { string: str, score } : bestMatch;
                 }, { string: null, score: 0 }).string;
