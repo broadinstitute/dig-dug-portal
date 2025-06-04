@@ -42,7 +42,7 @@
                         <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
                             <div style="font-size:16px; font-weight:bold">Contribute Your Data</div>
                             <div>Simply upload through our Data Registry.</div>
-                            <a class="yes-events" href="/">Try it here</a>
+                            <a class="yes-events" target="_blank" href="https://uploads.matkp.org">Try it here</a>
                         </div>
                         <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
                             <div style="font-size:16px; font-weight:bold">Browse Datasets</div>
