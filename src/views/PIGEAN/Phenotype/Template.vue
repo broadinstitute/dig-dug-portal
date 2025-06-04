@@ -123,7 +123,8 @@
                         </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$parent.plotReady"
+                                v-if="$store.state.pigeanPhenotype.data.length > 0 &&
+                                    Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
@@ -131,10 +132,12 @@
                             >
                             </pigean-plot>
                             <pigean-table
-                                v-if="$parent.plotReady"
+                                v-if="$store.state.pigeanPhenotype.data.length > 0 &&
+                                    Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.tableConfig"
                                 :filter="filter"
+                                :phenotypeMap="$parent.pigeanMap"
                             >
                             </pigean-table>
                         </template>
@@ -176,7 +179,8 @@
 
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$parent.plotReady"
+                                v-if="$store.state.genesetPhenotype.data.length > 0 &&
+                                    Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
@@ -184,9 +188,11 @@
                             >
                             </pigean-plot>
                             <pigean-table
-                                v-if="$parent.plotReady"
+                                v-if="$store.state.genesetPhenotype.data.length > 0 &&
+                                    Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetTableConfig"
+                                :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
                             >
                             </pigean-table>
@@ -265,7 +271,8 @@
                         </div>
                     </div>
                     <pigean-table
-                        v-if="$parent.plotReady"
+                        v-if="$store.state.pigeanFactor.data.length > 0 &&
+                            Object.keys($parent.pigeanMap).length > 0"
                         :pigeanData="$store.state.pigeanFactor.data"
                         :config="$parent.factorTableConfig"
                         :phewasRenderConfig="$parent.renderConfig"

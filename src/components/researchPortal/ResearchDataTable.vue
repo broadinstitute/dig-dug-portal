@@ -257,6 +257,22 @@
 											</button>
 										</span>
 								</span>
+
+								<span v-else-if="!!ifByoglSectionColumn(tdKey)"
+									class="dynamic-subsection-options">
+										<span class="btns-wrapper">
+											<button class="btn btn-sm show-evidence-btn set-search-btn" 
+												:data-id="getRowID(tdKey+tdValue+index)"
+												:class="{
+													'loaded-subsection' : !!ifSubsectionData(sanitizeKey(tdKey+tdValue+index)),
+													'loading-subsection' : !!ifSubsectionLoading(sanitizeKey(tdKey+tdValue+index))
+												}"
+												@click="getSubsectionData(tdValue, tdKey, index)" 
+											>
+												<span>{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</span>
+											</button>
+										</span>
+								</span>
 								
 								<span v-else v-html="formatValue(tdValue, tdKey, value)"></span>
 
@@ -292,6 +308,15 @@
 										</span>
 									</span>
 									<span v-else-if="!!ifSubsectionColumn(tdKey)"
+											class="dynamic-subsection-options">
+											<span class="btns-wrapper">
+												<button class="btn btn-sm show-evidence-btn set-search-btn"
+													:class="!!ifSubsectionData(sanitizeKey(tdKey + tdValue + index))?'loaded-subsection':''"
+													@click="getSubsectionData(tdValue, tdKey, index)" >
+												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+											</span>
+									</span>
+									<span v-else-if="!!ifByoglSectionColumn(tdKey)"
 											class="dynamic-subsection-options">
 											<span class="btns-wrapper">
 												<button class="btn btn-sm show-evidence-btn set-search-btn"
@@ -356,7 +381,25 @@
 						</research-sub-section>
 					</td>
 					</tr>
-
+					<!-- testing BYOGL table-->
+					<tr v-if="itemValue.type.includes('byogl section') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
+					>
+						<td :colspan="topRowNumber">
+							<research-byogl-section
+							:sectionId="sectionId"
+							:rowId="getRowID(itemKey + value[itemKey] + index)"
+							:colors="colors"
+							:starItems="starItems"
+							:multiSectionPage="multiSectionPage"
+							:plotMargin="plotMargin"
+							:subSectionConfig="itemValue['subsection']"
+							:subSectionData="collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
+							:phenotypeMap="phenotypeMap"
+							:utils="utils"
+							>
+							</research-byogl-section>
+						</td>
+					</tr>
 					</template>
 				</template>
 			</tbody>
@@ -386,6 +429,7 @@ import EventBus from "@/utils/eventBus";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
+import ResearchByoglSection from "@/components/researchPortal/ResearchByoglSection.vue";
 
 export default Vue.component("research-data-table", {
 	props: [
@@ -425,7 +469,7 @@ export default Vue.component("research-data-table", {
 		};
 	},
 	modules: {},
-	components: { ResearchDataTableFeatures, ResearchSummaryPlot, ResearchSubSection },
+	components: { ResearchDataTableFeatures, ResearchSummaryPlot, ResearchSubSection, ResearchByoglSection },
 	created() {},
 	beforeMount() {},
 
@@ -718,7 +762,7 @@ export default Vue.component("research-data-table", {
 	},
 	watch: {
 		subSectionData(DATA){
-			//console.log("cont data",DATA);
+			
 		},
 		featureRowsNumber(NUMBER) {
 			this.$emit('on-feature-rows-change', NUMBER);
@@ -790,12 +834,9 @@ export default Vue.component("research-data-table", {
 					paramsNewValues[p] = values[pIndex];
 				})
 
-				//console.log("paramsCurrentValues", paramsCurrentValues)
-
 				if(!!COMPARE) {
-					//console.log("Compare 1")
+					
 					Object.keys(COMPARE).map( p => {
-						//console.log("Compare 1-1", COMPARE[p], COMPARE[p]["parameter type"] )
 
 						let oldVal = paramsCurrentValues[p],
 						newVal = paramsNewValues[p],
@@ -803,17 +844,17 @@ export default Vue.component("research-data-table", {
 
 						switch(COMPARE[p]["parameter type"]) {
 							case "region":
-								//console.log("Compare 2")
+								
 								let newRegion = '';
 								let chr, start = [], end = [];
 
 								let regions = [oldVal,newVal,compareVal];
 
 								regions.map( r => {
-									//console.log("Compare 3")
+									
 									if(!!r && r != "") {
 										r.split(':').map((pVal, pIndex) => {
-											//console.log("Compare 4")
+											
 											if (pIndex == 0) {
 												chr = pVal
 											} else {
@@ -827,14 +868,10 @@ export default Vue.component("research-data-table", {
 									
 								})
 
-								//console.log("chr, start, end", chr, start, end)
-
 								switch (COMPARE[p]["compare type"]) {
 									case "set wider":
 
 									let newChr = chr, newStart = Math.min(...start), newEnd = Math.max(...end);
-
-									//console.log("newChr, start, end", newChr, newStart, newEnd)
 
 									paramsNewValues[p] = newChr+":"+ newStart+"-"+newEnd;
 
@@ -844,7 +881,6 @@ export default Vue.component("research-data-table", {
 								break;
 						}
 
-						//console.log(p, paramsNewValues[p])
 					});
 				}
 
@@ -920,7 +956,6 @@ export default Vue.component("research-data-table", {
 						break;
 					case "api":
 
-					//console.log(paramsString, paramsType, params, dataPoint, tableFormat,KEY)
 						this.queryApi(paramsString, paramsType, params, dataPoint, tableFormat,INDEX, KEY);
 						break;
 					/*case "file":
@@ -941,9 +976,8 @@ export default Vue.component("research-data-table", {
 				}
 			}
 		},
+		
 		async queryBioindex(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
-
-			//console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl = DATA_POINT.url;
 			let fKEY = this.getRowID(KEY + QUERY + INDEX);
@@ -972,13 +1006,11 @@ export default Vue.component("research-data-table", {
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
 				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 			} else {
-				//console.log("No data is returned. Please check query parameters.");
 			}
 		},
 
 		async queryBiContinue(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
 
-			//console.log(TOKEN, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl;
 			let PARAMS = DATA_POINT["parameters"];
@@ -996,7 +1028,7 @@ export default Vue.component("research-data-table", {
 				this.processLoadedBI(contentJson, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 			} else {
 				// fetch failed
-				//console.log("fetch failed");
+				console.log("fetch failed");
 			}
 		},
 		processLoadedBI(CONTENT, QUERY, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
@@ -1009,7 +1041,7 @@ export default Vue.component("research-data-table", {
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 			}
 
 			// Apply pre-filters
@@ -1047,8 +1079,6 @@ export default Vue.component("research-data-table", {
 		},
 
 		async queryApi(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY) {
-
-			//console.log(QUERY, TYPE, PARAMS, DATA_POINT, TABLE_FORMAT, INDEX, KEY);
 
 			let dataUrl = DATA_POINT.url;
 			let fKEY = this.getRowID(KEY + QUERY + INDEX);
@@ -1108,14 +1138,12 @@ export default Vue.component("research-data-table", {
 
 			let data = CONTENT.data;
 
-			//console.log("data",data);
-
 			// if loaded data is processed
 			let tableFormat = TABLE_FORMAT;
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 			}
 
 			// Apply pre-filters
@@ -1171,8 +1199,16 @@ export default Vue.component("research-data-table", {
 				return null;
 			}
 		},
+		ifByoglSectionColumn(KEY) {
+			if (!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+				&& !!this.tableFormat['column formatting'][KEY]['type'].includes('byogl section')) {
+				return true;
+			} else {
+				return null;
+			}
+		},
 		getParameterColumnLabel(KEY){
-			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY)) {
+			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY) || !!this.ifByoglSectionColumn(KEY)) {
 				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
 				return label;
 			} else {
