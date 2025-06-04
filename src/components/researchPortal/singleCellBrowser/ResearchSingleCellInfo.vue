@@ -53,14 +53,21 @@
                     <div style="font-weight: bold; min-width: 100px;">Contact</div>
                     <div style="overflow: hidden; overflow-wrap: break-word;">{{ data["contact"] }}</div>
                 </div>
-                <div  class="metadata-item" v-if="data['doi']">
+                <div  class="metadata-item" v-if="data['doi'] && data['doi']!=='NA'">
                     <div style="font-weight: bold; min-width: 100px;">DOI</div>
                     <div style="overflow: hidden; overflow-wrap: break-word;"><a :href="data['doi']">{{ data["doi"].replace('https://doi.org/', '') }}</a></div>
+                </div>
+                <div  class="metadata-item" v-if="data['previous_versions']">
+                    <div style="font-weight: bold; min-width: 100px; opacity:0.7">Prev. Versions</div>
+                    <div style="display:flex; flex-direction: column;">
+                        <div v-for="(value, key) in data['previous_versions']" style="overflow: hidden; overflow-wrap: break-word;"><a :href="value">{{ key }}</a></div>
+                    </div>
                 </div>
                 <div  class="metadata-item" v-if="data['download']">
                     <div style="font-weight: bold; min-width: 100px;">Download</div>
                     <div style="overflow: hidden; overflow-wrap: break-word;"><a :href="data['download']">here</a></div>
                 </div>
+                
             </div>
             
         </div>
@@ -84,7 +91,6 @@ export default Vue.component('research-single-cell-info', {
     },
     data() {
         return {
-            
         }
     },
     watch: {
