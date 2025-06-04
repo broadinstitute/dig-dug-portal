@@ -15,7 +15,6 @@
 					<div class="label">
 						<span v-html="parameter.label"></span>
 					</div>
-
 					<select v-if="parameter.type == 'api list'"
 							:id="'section_search_param_' + parameter.parameter"  class="custom-select custom-select-search"
 							@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
@@ -191,7 +190,7 @@ export default Vue.component("research-in-section-search", {
 		return {
 			paramSearch:{1:"",2:"",3:"",4:"",5:"",6:"",7:"",8:"",9:"",10:"", 
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: "" },
-				parameterOptions: {
+			parameterOptions: {
 				0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: []
 			},
 			searchingValues:{},
@@ -332,7 +331,7 @@ export default Vue.component("research-in-section-search", {
 			}
 		},
 		getListOptions(event, PARAM) {
-console.log("PARAM", PARAM)
+//console.log("PARAM", PARAM)
 			let options = [];
 			if (event.target.value.length >= 2) {
 				//let optionChrLength = 0;
@@ -387,11 +386,11 @@ console.log("PARAM", PARAM)
 			this.searchParameters.map(s => {
 				let paramValue = document.getElementById("section_search_param_" + s.parameter).value;
 
-				//console.log(s.parameter, paramValue)
+				console.log(s.parameter, paramValue)
 
-				if (!!this.utils.keyParams[s.parameter]) {
+				//if (!!this.utils.keyParams[s.parameter]) {
 					//paramValue = (!!this.utils.keyParams[s.parameter]) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];
-				}
+				//}
 				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 			})
 			this.utils.keyParams.set(paramsObj);

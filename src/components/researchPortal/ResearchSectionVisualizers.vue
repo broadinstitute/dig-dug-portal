@@ -50,6 +50,16 @@
 				:canvasId="sectionId"
 				:utils="utils"
 			></research-bar-plot>
+			<!-- CFDE Xing plot-->
+			<research-cfde-xing
+				v-if="plotConfig['type'] == 'cfde xing'"
+				:data="plotData"
+				:colors="colors"
+				:plotMargin="plotMargin"
+				:renderConfig="plotConfig"
+				:canvasId="sectionId"
+				:utils="utils"
+			></research-cfde-xing>
 			<!-- Bar in cell plot-->
 			<research-bar-in-cell-plot
 				v-if="plotConfig['type'] == 'bar in cell plot'"
@@ -218,6 +228,7 @@ import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfdePhenotypeXing.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
@@ -239,7 +250,8 @@ export default Vue.component("research-section-visualizers", {
 		ResearchBoxPlot,
 		ResearchRegionTrack,
 		ResearchRegionDotsTrack,
-		ResearchSingleCellBrowser
+		ResearchSingleCellBrowser,
+		cfdePhenotypeXing
     },
 	data() {
 		return {

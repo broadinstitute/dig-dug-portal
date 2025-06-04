@@ -5,6 +5,7 @@ import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import PigeanTable from "./PigeanTable.vue";
+import PigeanLocusZoom from "./PigeanLocusZoom.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
@@ -16,6 +17,7 @@ export default Vue.component("pigean-table", {
     components: {
         DataDownload,
         PigeanTable,
+        PigeanLocusZoom,
     },
     props: [
         "pigeanData",
@@ -184,7 +186,9 @@ export default Vue.component("pigean-table", {
             return a / (1 + a);
         },
         computeProbabilities() {
-            let data = structuredClone(this.pigeanData);
+            let data = this.isSubtable 
+                ? this.pigeanData 
+                : this.describePhenotypes(this.pigeanData);
             for (let i = 0; i < this.config.fields.length; i++) {
                 let fieldConfig = this.config.fields[i];
                 if (!fieldConfig.showProbability) {
@@ -214,6 +218,28 @@ export default Vue.component("pigean-table", {
             });
             return allFields;
         },
+        describePhenotypes(data){
+            let inputData = structuredClone(data);
+            for (let i = 0; i < inputData.length; i++){
+                if (!inputData[i].phenotype){
+                    continue;
+                }
+                let desc = this.phenotypeMap[inputData[i].phenotype];
+                if (desc === undefined){
+                    desc = { phenotype_name : inputData[i].phenotype}
+                }
+                let phenotypeDesc = desc.phenotype_name.trim();
+                inputData[i]["phenotypeDesc"] = phenotypeDesc;
+            }
+            return inputData;
+        },
+        hideLocusButton(phenotype){
+            if (!!this.phenotypeMap){
+                return this.phenotypeMap[phenotype] === undefined 
+                    || this.phenotypeMap[phenotype].trait_group !== "portal";
+            }
+            return this.traitGroup !== "portal";
+        }
     },
 });
 </script>
@@ -237,6 +263,7 @@ export default Vue.component("pigean-table", {
                 :current-page="currentPage"
                 :sort-by="sortBy"
                 :sort-desc="true"
+                :sort-null-last="true"
             >
                 <template #cell(label)="r">
                     <span v-if="!!r.item.label">
@@ -252,12 +279,12 @@ export default Vue.component("pigean-table", {
                         {{ r.item.gene }}
                     </a>
                 </template>
-                <template #cell(phenotype)="r">
+                <template #cell(phenotypeDesc)="r">
                     <a
                         v-if="!!phenotypeMap[r.item.phenotype]"
                         :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
                     >
-                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+                        {{ r.item.phenotypeDesc }}
                     </a>
                     <span v-else>{{ r.item.phenotype }}</span>
                 </template>
@@ -283,7 +310,7 @@ export default Vue.component("pigean-table", {
                         size="sm"
                         @click="showDetails(row, 1)"
                     >
-                        {{ row.detailsShowing ? "Hide" : "Show" }}
+                        {{ row.detailsShowing && row.item.subtableActive !== 3 ? "Hide" : "Show" }}
                     </b-button>
                 </template>
                 <template #cell(expand1)="row">
@@ -340,6 +367,16 @@ export default Vue.component("pigean-table", {
                         </b-dropdown-item>
                     </b-dropdown>
                 </template>
+                <template #cell(expand3)="row">
+                    <b-button
+                        variant="outline-primary"
+                        size="sm"
+                        :disabled="hideLocusButton(row.item.phenotype)"
+                        @click="showDetails(row, 3)"
+                    >
+                        {{ row.detailsShowing && row.item.subtableActive === 3  ? "Hide" : "Show" }}
+                    </b-button>
+                </template>
                 <template #row-details="row">
                     <research-phewas-plot
                         v-if="
@@ -385,6 +422,12 @@ export default Vue.component("pigean-table", {
                         :isSubtable="true"
                     >
                     </pigean-table>
+                    <div v-if="row.item.subtableActive === 3">
+                        <pigean-locus-zoom
+                            :phenotype="row.item.phenotype"
+                            :gene="row.item.gene"
+                        ></pigean-locus-zoom>
+                    </div>
                 </template>
             </b-table>
             <b-pagination

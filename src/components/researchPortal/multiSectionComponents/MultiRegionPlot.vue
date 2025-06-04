@@ -64,7 +64,7 @@
 			</div>
 
 			<div v-if="!!renderConfig.legend" class="mbm-plot-legend" v-html="renderConfig.legend"></div>
-			<div class="region-plot-default-legend">
+			<div v-if="!!renderConfig['ld server']" class="region-plot-default-legend">
 				<span class="plot-legend-dot" style="background-color: #824099cc"></span>
 				<span>Reference variant</span>
 				<span class="plot-legend-dot" style="background-color: #d0363360"></span><span>1 > r2 >= 0.8</span>
@@ -76,7 +76,7 @@
 				<span class="plot-legend-dot" style="background-color: #33333320"></span>
 				<span>No data</span>
 			</div>
-			<div class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + sectionId)">View P-Value / LD plot(s)</div>
+			<div  v-if="!!renderConfig['ld server']" class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + sectionId)">View P-Value / LD plot(s)</div>
 			<div :id="'ldPlotsWrapper' + sectionId" class="ld-plots-wrapper hidden">
 				<template v-for="(item, itemIndex) in plotsList">
 					<h6 v-html="item != 'default'
@@ -250,7 +250,7 @@ export default Vue.component("multi-region-plot", {
 		plotsList() {
 			//used rebuild
 			let newRegion = false;
-			let variantField = this.renderConfig['ld server']['ref variant field'],
+			let variantField = (!!this.renderConfig['ld server'])? this.renderConfig['ld server']['ref variant field']:null,
 				renderByField = this.renderConfig["render by"],
 				yAxField = this.renderConfig["y axis field"];
 
@@ -301,11 +301,8 @@ export default Vue.component("multi-region-plot", {
 				this.assoPos = {};
 				this.ldPos = {};
 
-				//feed assoData + set initial reference variant
-				//let yAxField = this.renderConfig["y axis field"];
-				let populationsType =
-					this.renderConfig["ld server"]["populations type"];
-				//let variantField = this.renderConfig['ld server']['ref variant field'];
+				let populationsType = (!!this.renderConfig["ld server"])?
+					this.renderConfig["ld server"]["populations type"]:null;
 
 				plotsKeys.map((group) => {
 
@@ -368,6 +365,8 @@ export default Vue.component("multi-region-plot", {
 										this.ldData[group].population.push(
 											population
 										);
+									} else {
+										this.ldData[group].population = null;
 									}
 
 									// set initial refVarint
@@ -388,6 +387,8 @@ export default Vue.component("multi-region-plot", {
 											group
 											];
 									}
+
+									console.log("this.ldData[group].refVariant",this.ldData[group].refVariant);
 
 									// set high / low values of the group
 									this.assoData[group].yAxHigh =
@@ -463,6 +464,8 @@ export default Vue.component("multi-region-plot", {
 									this.ldData[group].population.push(
 										population
 									);
+								} else {
+									this.ldData[group].population = null;
 								}
 
 								//let dKey = dValue[this.renderConfig["render by"]];
@@ -540,9 +543,9 @@ export default Vue.component("multi-region-plot", {
 					this.ldData[group].population =
 						uniqPopulations.length > 1
 							? "ALL"
-							: this.renderConfig["ld server"].populations[
+							: (this.renderConfig["ld server"])? this.renderConfig["ld server"].populations[
 							uniqPopulations[0]
-							];
+							]:null;
 				});
 
 				if (plotsKeys.includes("Combined") == true) {
@@ -1016,7 +1019,7 @@ export default Vue.component("multi-region-plot", {
 				}
 			}
 
-			if (plotID != null) {
+			if (plotID != null && !!this.ldData[plotID].population && !!this.ldData[plotID].refVariant) {
 
 				let ldURL;
 
@@ -1073,8 +1076,8 @@ export default Vue.component("multi-region-plot", {
 								? this.plotData[k]["LDS"]
 								: {};
 
-							this.plotData[k]["LDS"][plotID] =
-								this.ldData[plotID].data[k];
+							this.plotData[k]["LDS"][plotID] = (!!this.renderConfig["ld server"])?
+								this.ldData[plotID].data[k]:null;
 						});
 
 						break;
@@ -1280,7 +1283,7 @@ export default Vue.component("multi-region-plot", {
 				yStart = this.adjPlotMargin.top + HEIGHT,
 				xPosByPixel = WIDTH / (xMax - xMin),
 				yPosByPixel = HEIGHT / (yMax - yMin),
-				variantField = this.renderConfig['ld server']['ref variant field'],
+				variantField = (!!this.renderConfig["ld server"])?this.renderConfig['ld server']['ref variant field']:null,
 				renderByField = this.renderConfig["render by"],
 				starField = this.renderConfig["star key"],
 				xField = this.renderConfig["x axis field"],
@@ -1360,9 +1363,9 @@ export default Vue.component("multi-region-plot", {
 							let ldKey = value[variantField];
 							let starKey = value[starField];
 
-							let dotColor = this.getDotColor(
+							let dotColor = (!!ldKey)?this.getDotColor(
 								this.ldData[GROUP].data[ldKey]
-							);
+							):'#00000030';
 
 							if (ldKey == this.ldData[GROUP].refVariant) {
 								if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
@@ -1377,13 +1380,15 @@ export default Vue.component("multi-region-plot", {
 										dotColor,
 										dotColor
 									);
-								} else {
+								} else if(!!ldKey) {
 									this.renderDiamond(
 										CTX,
 										xPos,
 										yPos,
 										dotColor
 									);
+								} else {
+									this.renderDot(CTX, xPos, yPos, dotColor);
 								}
 							} else {
 								if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
@@ -1464,8 +1469,15 @@ export default Vue.component("multi-region-plot", {
 												dotColor,
 												dotColor
 											);
-										} else {
+										} else if(!!this.ldData[pGroup].refVariant){
 											this.renderDiamond(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										} else {
+											this.renderDot(
 												CTX,
 												xPos,
 												yPos,
@@ -1512,7 +1524,7 @@ export default Vue.component("multi-region-plot", {
 
 			}
 
-			if (TYPE == "LD") {
+			if (TYPE == "LD" && !!this.renderConfig["ld server"]) {
 				this.ldPos[GROUP] = {};
 				if (GROUP != "Combined") {
 					if (Object.keys(this.ldData[GROUP].data).length == 0) {
