@@ -106,11 +106,11 @@ new Vue({
                         title: "Differential Expression",
                         body: "",
                         linkLabel: "Learn More",
-                        linkUrl: "/",
+                        linkUrl: "/diff-exp.html",
                         bgImage:
                             "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
                         type: "medium",
-                        comingSoon: true,
+                        comingSoon: false,
                     },
                     {
                         title: "eQTLs",

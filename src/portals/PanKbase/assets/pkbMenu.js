@@ -1,7 +1,7 @@
 export const pkbMenu = {
     highlightItems: [
         { label: "PanKgraph", path: "https://pankgraph.org/" },
-        { label: "Integrated Cell Browser", path: "/single-cell.html" },
+        { label: "Integrated Cell Browser", path: "/single-cell.html" }
     ],
     menuItems: [
         {
@@ -21,6 +21,7 @@ export const pkbMenu = {
             path: "",
             subMenuItems: [
                 { label: "Integrated Cell Browser", path: "/single-cell.html" },
+                { label: "Differential Gene Expression Browser", path: "/diff-exp.html" },
                 {
                     label: "Analytical Library",
                     path: "/analytical-library.html",
