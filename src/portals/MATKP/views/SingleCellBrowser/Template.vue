@@ -10,10 +10,11 @@
             >
                 <!-- CONTENT -->
                  <div v-if="$parent.info">
-                    <h2>{{ $parent.info.title }}</h2>
-                    <div v-html="$parent.info.body"></div>
+                    <h2>{{ $parent.title }}</h2>
+                    <div v-html="$parent.info"></div>
                  </div>
                 <research-single-cell-browser 
+                    v-if="$parent.scbConfig"
                     sectionId="matkp"
                     :renderConfig="$parent.scbConfig"
                     :utils="$parent.utils"
