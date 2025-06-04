@@ -56,6 +56,16 @@ new Vue({
                             comingSoon: false,
                         },
                         {
+                            title: "Differential Expression Browser",
+                            body: "Interactive visualizations of differentially expressed genes in bulk and pseudobulk RNA-seq datasets from human islet donors.",
+                            linkLabel: "Learn More",
+                            linkUrl: "/diff-exp.html",
+                            bgImage:
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
+                            type: "medium",
+                            comingSoon: false,
+                        },
+                        {
                             title: "Genetic Associations",
                             body: "",
                             linkLabel: "Learn More",
@@ -132,7 +142,7 @@ new Vue({
                         title: "Pancreatic islet all donor single cell map",
                         linkLabel: "Explore",
                         linkUrl:
-                            "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA",
+                            "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA_v3-3",
                     },
                     {
                         title: "Identify quantitative trait loci for a gene",
@@ -150,6 +160,11 @@ new Vue({
                         linkLabel: "Explore",
                         linkUrl: "https://pankbase.org/donor-metadata.html",
                     },
+                    {
+                        title: "Differential expression analyses from human pancreatic islets",
+                        linkLabel: "Explore",
+                        linkUrl: "/diff-exp.html"
+                    }
                 ],
             },
             external: {
