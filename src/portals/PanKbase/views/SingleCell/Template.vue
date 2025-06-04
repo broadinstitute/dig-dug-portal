@@ -37,7 +37,7 @@
               </template>
           </b-table>
           <research-single-cell-browser 
-            v-if="true"
+            v-if="$parent.scbConfig"
             sectionId="scb"
             :renderConfig="$parent.scbConfig"
             :utils="$parent.utils"

@@ -33,7 +33,8 @@ new Vue({
             allMetadata: null,
             tableColumns: [{ key: 'viewDataset', label: 'View' }, "datasetName", "tissue", "method", "totalCells", { key: 'download', label: 'Download' }],
             selectedDataset: null,
-            scbConfig: {
+            scbConfig: null,
+            blah: {
                 "type": "cell browser",
                 "label": "Single Cell Browser",
                 "parameters":{
@@ -53,8 +54,9 @@ new Vue({
     },
     watch: {},
     async created() {
-        let content = await getPankbaseContent(this.pageId, true);
-        this.info = content;
+        let content = await getPankbaseContent(this.pageId, false, true);
+        this.info = content.body;
+        this.scbConfig = JSON.parse(content.field_data_table_format);
 
         if(keyParams[this.scbConfig["parameters"].datasetId]){
           this.selectedDataset = keyParams[this.scbConfig["parameters"].datasetId];
