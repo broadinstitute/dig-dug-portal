@@ -389,6 +389,275 @@ export function computeCellStats(metadata, metadataLabels, groupBy, sampleKey, c
         return 0;
     });
 }
+
+export function parseCellCountScatterData(
+  metadata,
+  metadataLabels,
+  groupKey,      // e.g. "cell_type"
+  contKey,       // e.g. "custom__organism_age"
+  aggregateKey   // e.g. "donor_id"
+) {
+  const groupIndices = metadata[groupKey];
+  const contIndices = metadata[contKey];
+  const aggIndices = metadata[aggregateKey];
+
+  const groupLabels = metadataLabels[groupKey];
+  const contLabels = metadataLabels[contKey];
+  const aggLabels = metadataLabels[aggregateKey];
+
+  // Step 1: Count cells per (groupKey, aggregateKey), and store age
+  const counts = {}; // { "B cell|TP01": { cell_count, age } }
+  const totalPerAggregate = {};
+
+  for (let i = 0; i < groupIndices.length; i++) {
+    const group = groupLabels[groupIndices[i]] ?? "unknown";
+    const donor = aggLabels[aggIndices[i]];
+    let age = contLabels[contIndices[i]];
+
+    if (
+      donor === null || donor === undefined ||
+      age === null || age === undefined || isNaN(Number(age))
+    ) continue;
+
+    age = Number(age);
+
+    // Count total cells per donor
+    if (!totalPerAggregate[donor]) totalPerAggregate[donor] = 0;
+    totalPerAggregate[donor] += 1;
+
+    const key = `${group}|${donor}`;
+    if (!counts[key]) {
+      counts[key] = {
+        [groupKey]: group,
+        [aggregateKey]: donor,
+        [contKey]: age,
+        cell_count: 0,
+      };
+    }
+
+    counts[key].cell_count += 1;
+  }
+
+  for (const key in counts) {
+      const entry = counts[key];
+      const donor = entry[aggregateKey];
+      const total = totalPerAggregate[donor];
+      entry.cell_proportion = entry.cell_count / total;
+    }
+
+  // Step 2: Group by groupKey for faceted output
+  const groupedByGroupKey = {};
+
+  for (const entry of Object.values(counts)) {
+    const group = entry[groupKey];
+    if (!groupedByGroupKey[group]) groupedByGroupKey[group] = [];
+    groupedByGroupKey[group].push(entry);
+  }
+
+  // Step 3: Convert to { groupKey, data } format
+  return Object.entries(groupedByGroupKey).map(([group, data]) => ({
+    groupKey: group,
+    data
+  }));
+}
+
+export function preprocessBoxPlotData(metadata, metadataLabels, groupKey, contKey) {
+  const groupIndices = metadata[groupKey];
+  const contIndices = metadata[contKey];
+  const groupLabels = metadataLabels[groupKey];
+  const contLabels = metadataLabels[contKey];
+
+  // 1. Flatten data
+  const records = [];
+  for (let i = 0; i < groupIndices.length; i++) {
+    const group = groupLabels[groupIndices[i]] ?? "unknown";
+     //let cont = contValues[i];
+     let cont = contLabels[contIndices[i]] ?? null;
+
+        if (typeof cont === "string") cont = cont.trim().toLowerCase();
+
+        if (
+            cont === null || cont === undefined ||
+            cont === "na" || cont === "n/a" || cont === "" ||
+            isNaN(Number(cont))
+        ) {
+            continue;
+        }
+
+        cont = Number(cont); // Now safe
+
+        records.push({ [groupKey]: group, [contKey]: cont });
+  }
+
+  // 2. Manual groupBy
+  const groupBy = (array, keyFn) => {
+    const map = {};
+    array.forEach(item => {
+      const key = keyFn(item);
+      if (!map[key]) map[key] = [];
+      map[key].push(item);
+    });
+    return map;
+  };
+
+  const grouped = groupBy(records, d => d[groupKey]);
+
+  // 3. Compute boxplot stats per group
+  const summary = Object.entries(grouped).map(([group, rows]) => {
+    const conts = rows.map(r => r[contKey]);
+    return {
+      [groupKey]: group,
+      ...calculateBoxPlotStats(conts),
+    };
+  });
+
+  return summary;
+}
+
+function calculateBoxPlotStats(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const q1 = d3.quantile(sorted, 0.25);
+  const median = d3.quantile(sorted, 0.5);
+  const q3 = d3.quantile(sorted, 0.75);
+  const iqr = q3 - q1;
+  const lowerWhisker = d3.max([d3.min(sorted), q1 - 1.5 * iqr]);
+  const upperWhisker = d3.min([d3.max(sorted), q3 + 1.5 * iqr]);
+
+  // Optional: identify outliers
+  const outliers = sorted.filter(d => d < lowerWhisker || d > upperWhisker);
+
+  return {
+    min: sorted[0] || 0,
+    q1,
+    median,
+    q3,
+    max: sorted[sorted.length-1] || 0,
+    outliers,
+    exprValues: sorted,
+  };
+}
+
+export function parseFacetedScatterData(
+  metadata,
+  metadataLabels,
+  groupKey,
+  contKey,
+  expression,
+  expressionKey,
+  aggregateKey = null
+) {
+  const exprValues = expression;
+  const contIndices = metadata[contKey];
+  const contLabels = metadataLabels[contKey];
+  const groupIndices = metadata[groupKey];
+  const groupLabels = metadataLabels[groupKey];
+
+  const aggregateIndices = aggregateKey ? metadata[aggregateKey] : null;
+  const aggregateLabels = aggregateKey ? metadataLabels[aggregateKey] : null;
+
+  const records = [];
+
+  for (let i = 0; i < exprValues.length; i++) {
+    const expr = exprValues[i];
+    const cont = contLabels[contIndices[i]];
+    const group = groupLabels[groupIndices[i]];
+    const aggregate = aggregateKey ? aggregateLabels[aggregateIndices[i]] : null;
+
+    if (
+      expr === null || expr === undefined || isNaN(expr) ||
+      cont === null || cont === undefined || isNaN(cont)
+    ) {
+      continue;
+    }
+
+    records.push({
+      [groupKey]: group,
+      [contKey]: Number(cont),
+      [expressionKey]: Number(expr),
+      ...(aggregateKey ? { [aggregateKey]: aggregate } : {})
+    });
+  }
+
+  // Group by groupKey and optionally aggregateKey
+  const grouped = {};
+  for (const r of records) {
+    const group = r[groupKey];
+    const aggregate = aggregateKey ? r[aggregateKey] : null;
+    const subKey = aggregateKey ? `${group}|${aggregate}` : group;
+
+    if (!grouped[subKey]) grouped[subKey] = { group, aggregate, values: [] };
+    grouped[subKey].values.push({ [contKey]: r[contKey], [expressionKey]: r[expressionKey] });
+  }
+
+  // Aggregate within each (group, aggregateKey)
+  const groupedByGroupKey = {};
+
+  for (const [compositeKey, { group, aggregate, values }] of Object.entries(grouped)) {
+    const avgCont = values.reduce((sum, v) => sum + v[contKey], 0) / values.length;
+    const avgExpr = values.reduce((sum, v) => sum + v[expressionKey], 0) / values.length;
+
+    if (!groupedByGroupKey[group]) groupedByGroupKey[group] = [];
+
+    groupedByGroupKey[group].push({
+      ...(aggregateKey ? { [aggregateKey]: aggregate } : {}),
+      [contKey]: avgCont,
+      [expressionKey]: avgExpr
+    });
+  }
+
+  // Output in faceted format
+  return Object.entries(groupedByGroupKey).map(([group, data]) => ({
+    groupKey: group,
+    data
+  }));
+}
+
+
+
+export function parseFacetedScatterDataA(metadata, metadataLabels, groupKey, contKey, expression, expressionKey) {
+  const exprValues = expression;
+  const contIndices = metadata[contKey];
+  const contLabels = metadataLabels[contKey];
+  const groupIndices = metadata[groupKey];
+  const groupLabels = metadataLabels[groupKey];
+
+  const records = [];
+
+  for (let i = 0; i < exprValues.length; i++) {
+    let cont = contLabels[contIndices[i]];
+    const expr = exprValues[i];
+    const group = groupLabels[groupIndices[i]];
+
+    if (
+      expr === null || expr === undefined || isNaN(expr) ||
+      cont === null || cont === undefined || isNaN(cont)
+    ) {
+      continue;
+    }
+
+    records.push({
+      [groupKey]: group,
+      [contKey]: Number(cont),
+      [expressionKey]: Number(expr)
+    });
+  }
+
+  // Group by cell_type
+  const grouped = {};
+  for (const r of records) {
+    if (!grouped[r[groupKey]]) grouped[r[groupKey]] = [];
+    grouped[r[groupKey]].push({ [contKey]: r[contKey], [expressionKey]: r[expressionKey] });
+  }
+
+  //console.log(records, grouped);
+
+  // Output in faceted format
+  return Object.entries(grouped).map(([group, data]) => ({
+    groupKey: group,
+    data
+  }));
+}
+
   
   
 
@@ -495,8 +764,25 @@ export function groupByKey(arr, key){
     const totalCount = cleaned.length;
     const uniqueCount = unique.length;
     const uniqueRatio = uniqueCount / totalCount;
+
+    let inference = "";
+
+    const isLikelyContinuous = (values) => {
+        const ignore = ["NA", "na", "", null, undefined];
+        const minUniqueNumeric = 5;
+
+        const numericValues = [...new Set(
+            values.filter(v => !ignore.includes(v)).filter(v => !isNaN(v) && isFinite(v))
+        )];
+
+        return numericValues.length >= minUniqueNumeric;
+    }
+
+    inference = isLikelyContinuous(values) ? 'cont' : 'cat';
+
+    return inference;
   
-    const isNumeric = v => !isNaN(parseFloat(v)) && isFinite(v);
+    //const isNumeric = v => !isNaN(parseFloat(v)) && isFinite(v);
   
     // Pattern checkers
     const isBinnedCategory = v => {
@@ -508,22 +794,22 @@ export function groupByKey(arr, key){
   
     // Force categorical if any values look like binned ranges or mixed alphanum
     if (cleaned.some(isBinnedCategory) || cleaned.some(isMixedAlphaNumeric)) {
-      return "categorical";
+      return "cat";
     }
   
     const allNumbers = cleaned.every(isNumeric);
     if (allNumbers) {
       const allIntegers = cleaned.every(v => Number.isInteger(Number(v)));
-      if (uniqueCount <= 10 && allIntegers) return "categorical";
-      return "continuous";
+      if (uniqueCount <= 10 && allIntegers) return "cat";
+      return "cont";
     }
   
     // Default heuristics
     if (uniqueCount <= 20 || uniqueRatio < 0.2) {
-      return "categorical";
+      return "cat";
     }
   
-    return "continuous";
+    return "cont";
   }
   
   

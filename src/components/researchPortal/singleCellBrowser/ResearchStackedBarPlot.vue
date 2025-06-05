@@ -79,7 +79,7 @@
         },
         highlightKey(newVal, oldVal) {
             //this.drawChart();
-            llog("do highlight", newVal);
+            //llog("do highlight", newVal);
             this.doHighlight(newVal);
         }
     },
@@ -119,7 +119,7 @@
                 this.eventElements = [];
             }
 
-            llog('settings',{isStacked:this.isStacked, isNormalized:this.isNormalized})
+            llog('   settings',{isStacked:this.isStacked, isNormalized:this.isNormalized})
             
             const primaryKey = this.primaryKey;
             const subsetKey = this.subsetKey;
@@ -164,7 +164,7 @@
 
             this.$refs.chartWrapper.style.height = height+'px';
 
-            llog('dimentions', {width, height, plotWidth, plotHeight, margin, labels});
+            //llog('dimentions', {width, height, plotWidth, plotHeight, margin, labels});
 
             //if we have subsetKey
             //calculate the totals for each primaryKey
@@ -182,8 +182,8 @@
 
             const primarySum = d3.sum(primaryCounts, (d) => d.count);
 
-            llog('primaryCounts', primaryCounts);
-            llog('primarySum', primarySum);
+            //llog('primaryCounts', primaryCounts);
+            //llog('primarySum', primarySum);
 
             const min = 0;
             const max = this.range ? this.range[1] : d3.max(this.data, (d) => d.count);
@@ -436,17 +436,26 @@
             }
         },
         removeAllListeners(elsArr){
-            llog(`removing event listeners for ${elsArr.length} elements`);
+            //llog(`removing event listeners for ${elsArr.length} elements`);
             elsArr.forEach(el=>{
                 this.removeListener(el);
             });
         },
         mouseOverHandler(entry){
+            /*
             const tooltipContent = `<div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.primaryKey}:</div> ${entry[this.primaryKey]}</div>
                                 <div style="display:${entry[this.subsetKey]?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.subsetKey}:</div> ${entry[this.subsetKey]}</div>
                                 <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Count:</div> ${entry.count.toLocaleString()}</div>
                                 <div style="display:${entry.pct?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Pct.:</div> ${entry.pct}</div>
                                 `;
+            */
+            const tooltipContent = `<div style="display: grid; grid-template-columns: 1fr max-content; gap:5px; row-gap:2px; font-size:12px;">
+                <div style="font-weight:bold;">${this.primaryKey}:</div>                        <div>${entry[this.primaryKey]}</div>
+                <div style="display:${entry[this.subsetKey]?'block':'none'};font-weight:bold;">${this.subsetKey}:</div> 
+                                                                                                <div style="display:${entry[this.subsetKey]?'block':'none'};">${entry[this.subsetKey]}</div>
+                <div style="font-weight:bold">Count:</div>                                      <div>${entry.count.toLocaleString()}</div>
+                <div style="display:${entry.pct?'block':'none'};font-weight:bold">Pct.:</div>   <div style="display:${entry.pct?'block':'none'};">${entry.pct}</div>
+            </div>`;
             mouseTooltip.show(tooltipContent);
         },
         mouseMoveHandler(e){

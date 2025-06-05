@@ -137,7 +137,7 @@
 
             //calculate sizes and margins
             const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
-            llog("parentWidth", parentWidth);
+            //llog("parentWidth", parentWidth);
 
             const labels = { xAxis: this.xAxisLabel?20:0, yAxis: this.yAxisLabel?20:0 }
             const margin = { top: 10, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
@@ -269,11 +269,14 @@
                 const boxNode = box.node();
                 this.addListener(boxNode, entry);
 
-                if(this.showViolins){
+                if(this.showViolins && entry.exprValues){
                     
                     // kde
                     const bandwidth = 0.4;
-                    const [minVal, maxVal] = d3.extent(entry.exprValues);
+                    //const [minVal, maxVal] = d3.extent(entry.exprValues);
+                    const minVal = entry.exprValues[0] || 0;
+                    const maxVal = entry.exprValues[entry.exprValues.length-1] || 0;
+                    //console.log(minVal, maxVal)
                     const thresholds = d3.ticks(minVal, maxVal, 50);
                     const density = this.kde(this.epanechnikovKernel(bandwidth), thresholds, entry.exprValues);
 
@@ -317,7 +320,7 @@
                     .attr("y", y(entry.q3))
                     .attr("width", rectWidth)
                     .attr("height", Math.max(0, y(entry.q1) - y(entry.q3))) // Avoid negative heights
-                    .attr("fill", this.colors ? this.colors[entry[subsetKey]] : "transparent")
+                    .attr("fill", this.colors ? this.colors[entry[primaryKey]] : "transparent")
                     .attr("stroke", "black")
 
                 // Median line
@@ -401,15 +404,17 @@
             });
         },
         mouseOverHandler(entry){
-            const tooltipContent = `<div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.primaryKey}:</div> ${entry[this.primaryKey]}</div>
-                                        <div style="display:${entry[this.subsetKey]?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.subsetKey}:</div> ${entry[this.subsetKey]}</div>
-                                        <div style="display:${entry.gene?'flex':'none'};gap:5px"><div style="width:50px;font-weight:bold">Gene:</div> ${entry.gene}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Max:</div> ${entry.max.toFixed(4)}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q3:</div> ${entry.q3.toFixed(4)}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Median:</div> ${entry.median.toFixed(4)}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Q1:</div> ${entry.q1.toFixed(4)}</div>
-                                        <div style="display:flex;gap:5px"><div style="width:50px;font-weight:bold">Min:</div> ${entry.min.toFixed(4)}</div>
-                                `;
+            const tooltipContent = `<div style="display: grid; grid-template-columns: 1fr max-content; gap:5px; row-gap:2px; font-size:12px;">
+                <div style="font-weight:bold;">${this.primaryKey}:</div>    <div>${entry[this.primaryKey]}</div>
+                <div style="display:${this.subsetKey?'block':'none'};font-weight:bold;">${this.subsetKey}:</div>     
+                                                                            <div style="display:${this.subsetKey?'block':'none'};">${entry[this.subsetKey]}</div>
+                <div style="font-weight:bold">Gene:</div>                   <div>${entry.gene}</div>
+                <div style="font-weight:bold">Max:</div>                    <div>${entry.max.toFixed(4)}</div>
+                <div style="font-weight:bold">Q3:</div>                     <div>${entry.q3.toFixed(4)}</div>
+                <div style="font-weight:bold">Median:</div>                 <div>${entry.median.toFixed(4)}</div>
+                <div style="font-weight:bold">Q1:</div>                     <div>${entry.q1.toFixed(4)}</div>
+                <div style="font-weight:bold">Min:</div>                    <div>${entry.min.toFixed(4)}</div>
+            </div>`;
             mouseTooltip.show(tooltipContent);
         },
         mouseOutHandler(e){
