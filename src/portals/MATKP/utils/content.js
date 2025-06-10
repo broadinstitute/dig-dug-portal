@@ -2,6 +2,9 @@ import dataConvert from "@/utils/dataConvert";
 
 const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id="
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+export const ACCESSIBLE_RED = "rgb(191 044 035)"; // colorblind safe red
+export const ACCESSIBLE_BLUE = "rgb(047 103 177)"; // colorblind safe blue,
+export const ACCESSIBLE_GRAY = "rgb(249 249 249)";
 
 export async function getTextContent(contentId, getBody=false, getAll=false){
   let resourceUrl = `${CONTENT_URL}${contentId}`;

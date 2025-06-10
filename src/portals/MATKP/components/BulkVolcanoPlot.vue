@@ -27,6 +27,7 @@ import * as d3 from "d3";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
+import { ACCESSIBLE_RED, ACCESSIBLE_BLUE } from "../utils/content.js";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 
 Vue.use(BootstrapVueIcons);
@@ -394,7 +395,7 @@ export default Vue.component("bulk-volcano-plot", {
 						fillColor = renderConfig["dot label score"] > 1 ? "#00000050" :"#09910980";
 						break;
 					case 2:
-						fillColor = xFieldVal > 0 ? "red":"blue";
+						fillColor = xFieldVal > 0 ? ACCESSIBLE_RED : ACCESSIBLE_BLUE;
 						break;
 				}
 

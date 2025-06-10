@@ -103,7 +103,7 @@
 					:ref="canvasId + '_barPlot'"
 				>
 				</research-bar-plot-vector>
-				<div v-if="renderData === null">
+				<div v-if="renderData === null" class="error">
 					The ENRICHR server has encountered an error.
 				</div>
 			</div>
@@ -823,6 +823,10 @@ $(function () {});
 .label {
 	font-weight: bold;
 	margin-left: 20px;
+}
+.error {
+	min-height: 310px;
+	margin-top: 25px;
 }
 </style>
 

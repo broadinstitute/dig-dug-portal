@@ -28,6 +28,7 @@ import * as d3 from 'd3';
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import sortUtils from "@/utils/sortUtils";
 import "../assets/matkp-styles.css";
+import { ACCESSIBLE_RED, ACCESSIBLE_BLUE, ACCESSIBLE_GRAY } from "../utils/content.js";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 export default Vue.component("bulk-heatmap", {
@@ -47,8 +48,9 @@ export default Vue.component("bulk-heatmap", {
           plotId: "bulk_heatmap",
           chart: null,
           chartWidth: 0,
-          color1: "blue",
-          color2: "red",
+          color1: ACCESSIBLE_BLUE,
+          color2: ACCESSIBLE_RED,
+          colorMid: ACCESSIBLE_GRAY,
           fontSize: "13px",
           minExp: null,
           maxExp: null,
@@ -126,8 +128,8 @@ export default Vue.component("bulk-heatmap", {
           
           // Build color scale
           var colorScale = d3.scaleLinear()
-              .range([this.color1, this.color2])
-              .domain([this.minExp,this.maxExp]);
+              .range([this.color1, this.colorMid, this.color2])
+              .domain([this.minExp, 0, this.maxExp]);
           let step = 0.01 * (this.maxExp - this.minExp);
           this.colorScaleArray = d3.range(this.minExp, this.maxExp, step).map(t => colorScale(t)).join(', ');
           // Building the heatmap
