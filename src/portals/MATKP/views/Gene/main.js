@@ -227,6 +227,7 @@ new Vue({
             },
 
             geneSigsData: [],
+            convertedField: "minusLog10",
             geneSigsPage: 1,
             geneSigsFields: [
                 {
@@ -672,12 +673,12 @@ new Vue({
                 "label": "PPA",
                 "type": "phewas plot",
                 "group by": "datasetId",
-                "y axis field": "p_value_adj",
-                "convert y -log10": "true",
+                "y axis field": this.convertedField,
+                "convert y -log10": null,
                 "y ticks decimal point": "2",
                 "render by": "datasetRef",
                 "y axis label": "-log10(P)",
-                "x axis label": "Dataset",
+                "x axis label": "",
                 "beta field": "log_fold_change",
                 "hover content": this.geneSigsFields.map(field => field.label),
                 "thresholds": [
@@ -1010,6 +1011,10 @@ new Vue({
                         geneSigs[i][newName] = fieldData;
                     }
                 }
+            }
+            for (let i = 0; i < geneSigs.length; i++){
+                let pVal = geneSigs[i]["p_value_adj"];
+                geneSigs[i][this.convertedField] = -Math.log10(pVal);
             }
             return geneSigs;
         },

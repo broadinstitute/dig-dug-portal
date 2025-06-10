@@ -45,6 +45,9 @@ export default new Vuex.Store({
     },
     setSelectedComparison(state, comparison) {
       state.selectedComparison = comparison;
+    },
+    setSelectedGene(state, gene){
+      state.selectedGene = gene;
     }
 
   },
@@ -78,11 +81,16 @@ export default new Vuex.Store({
         comparisons = Object.fromEntries(bulkDataComparisons);
       }
       context.commit("setBulkData19K", bulkDataObject);
+      context.dispatch("firstGene", bulkDataObject[0].gene); // Default to viewing first gene in table
       context.commit("setCurrentComparisons", comparisons);
     },
     resetComparison(context) {
       context.commit("setSelectedComparison", context.state.defaultComparison);
+    },
+    firstGene(context, gene){
+      if (context.state.selectedGene === ""){
+        context.commit("setSelectedGene", gene);
+      }
     }
-
   },
 });

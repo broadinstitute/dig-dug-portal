@@ -6,9 +6,9 @@
 				<strong>Regulation of gene expression</strong>
 				<div style="display:flex; margin-top:10px">
 				
-					<span class="group-legend-box" style="background-color:#ff0000">&nbsp;</span><span class="group-legend-name">up-regulated genes</span>
+					<span class="group-legend-box" :style="`background-color:${accessibleRed}`">&nbsp;</span><span class="group-legend-name">up-regulated genes</span>
 
-					<span class="group-legend-box" style="background-color:#0000ff">&nbsp;</span><span class="group-legend-name">down-regulated genes</span>
+					<span class="group-legend-box" :style="`background-color:${accessibleBlue}`">&nbsp;</span><span class="group-legend-name">down-regulated genes</span>
 
 					<span class="group-legend-box" style="background-color:#FF9900">&nbsp;</span><span class="group-legend-name">highlighted gene</span>
 				</div>
@@ -27,6 +27,7 @@ import * as d3 from "d3";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
+import { ACCESSIBLE_RED, ACCESSIBLE_BLUE } from "../utils/content.js";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 
 Vue.use(BootstrapVueIcons);
@@ -50,7 +51,9 @@ export default Vue.component("bulk-volcano-plot", {
 			x: null,
 			y: null,
 			yAxisField: null,
-			xAxisField: null
+			xAxisField: null,
+			accessibleRed: ACCESSIBLE_RED,
+			accessibleBlue: ACCESSIBLE_BLUE
 		};
 	},
 	modules: {
@@ -394,7 +397,7 @@ export default Vue.component("bulk-volcano-plot", {
 						fillColor = renderConfig["dot label score"] > 1 ? "#00000050" :"#09910980";
 						break;
 					case 2:
-						fillColor = xFieldVal > 0 ? "red":"blue";
+						fillColor = xFieldVal > 0 ? ACCESSIBLE_RED : ACCESSIBLE_BLUE;
 						break;
 				}
 

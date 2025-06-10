@@ -176,8 +176,11 @@ export default Vue.component("bulk-table", {
             down: "downregulated"
         };
     },
-    mounted(){
-        this.findGene(this.highlightedGene);
+    async mounted(){
+        if (this.isSubtable){
+            return;
+        }
+        await this.findGene(this.highlightedGene);
         this.$emit("upGenes", this.upregulatedGenes);
         this.$emit("downGenes", this.downregulatedGenes);
     },
@@ -219,11 +222,17 @@ export default Vue.component("bulk-table", {
         },
         tableData() {
             let data = structuredClone(this.bulkData);
+            data[0]._showDetails = !this.isSubtable;
             if (this.filter) {
                 data = data.filter(this.filter);
             }
             if (!!this.showGenes && !this.isSubtable){
                 data = data.filter(item => this.showRegulation(item) === this.showGenes);
+            }
+            // Open subtable for the highlighted gene
+            if (!!this.highlightedGene){
+                let highlightRow = data.find(g => g.gene === this.highlightedGene);
+                highlightRow._showDetails = true;
             }
             return data;
         },
@@ -249,8 +258,8 @@ export default Vue.component("bulk-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        async getSubtable(row) {
-            let queryKey = this.subtableKey(row.item);
+        async getSubtable(item) {
+            let queryKey = this.subtableKey(item);
             if (!this.subtableData[queryKey]) {
                 let data = await this.query(this.config.subtableEndpoint, queryKey);
                 let fields = this.getFields(data[0]);
@@ -260,7 +269,7 @@ export default Vue.component("bulk-table", {
         },
         async showDetails(row) {
             row.toggleDetails();
-            await this.getSubtable(row);
+            await this.getSubtable(row.item);
         },
         async query(endPoint, key){
             const query = `${BIO_INDEX_HOST}/api/bio/query/${endPoint}?q=${key}`
@@ -350,22 +359,24 @@ export default Vue.component("bulk-table", {
             }
             return "";
         },
-        findGene(gene){
+        async findGene(gene){
+            // Populate the subtable before toggling it open
+            let dataItem = this.bulkData.find(g => g.gene === gene);
+            await this.getSubtable(dataItem);
             let location = this.allGenes.indexOf(gene);
             if (location === -1){
                 return;
             }
             let page = Math.floor(location / this.perPage) + 1;
             this.currentPage = page;
-
         }
     },
     watch: {
-        highlightedGene(newGene){
-            if (!!newGene){this.findGene(newGene)};
+        async highlightedGene(newGene){
+            if (!!newGene){await this.findGene(newGene)};
         },
-        tableData(){
-            this.findGene(this.highlightedGene);
+        async tableData(data){
+            await this.findGene(this.highlightedGene);
         },
         upregulatedGenes(newGenes){
             this.$emit("upGenes", newGenes);

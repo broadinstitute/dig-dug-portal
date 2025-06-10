@@ -1,6 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
-		
+		<div class="label">{{ canvasId }} gene pathways</div>
 		<div class="col-md-12 bar-plot-wrapper">
 			<div
 				class="col-md-12"
@@ -93,7 +93,7 @@
 					</ul>
 				</div>
 				<research-bar-plot-vector
-				v-if="!!renderData"
+					v-if="!!renderData"
 					:renderData="groupData(renderData)"
 					:renderConfig="renderConfig"
 					:colors="colors"
@@ -103,6 +103,9 @@
 					:ref="canvasId + '_barPlot'"
 				>
 				</research-bar-plot-vector>
+				<div v-if="renderData === null" class="error">
+					The ENRICHR server has encountered an error.
+				</div>
 			</div>
 		</div>
 	</div>
@@ -150,7 +153,7 @@ export default Vue.component("enrichr-plot", {
                 "y ticks decimal point": "2",
                 "render by": "Term name",
                 "y axis label": "Combined score",
-                "x axis label": "Pathway",
+                "x axis label": "",
                 "beta field": null,
                 "hover content": [
                     "Combined score",
@@ -285,6 +288,9 @@ export default Vue.component("enrichr-plot", {
 			
 			let phenotypeGroups = [];
 			let phenotypeGroupsObj = {};
+			if (DATA === null){
+				return phenotypeGroupsObj;
+			}
 
 			if (this.phenotypeMapConfig == null) {
 				phenotypeGroups = [
@@ -308,16 +314,6 @@ export default Vue.component("enrichr-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
-			/*
-			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
-				value.sort((a, b) =>
-					a[this.renderConfig["y axis field"]] >
-					b[this.renderConfig["y axis field"]]
-						? 1
-						: -1
-				);
-			}*/
-
 			return phenotypeGroupsObj;
 		},
 		onResize() {
@@ -572,7 +568,7 @@ export default Vue.component("enrichr-plot", {
 					null,
 					null,
 					null,
-					`${this.renderConfig["x axis label"]} (${this.canvasId})`
+					this.renderConfig["x axis label"] // We don't need an x-axis label under this plot
 				);
 
 				this.renderTicksByGroup(
@@ -790,7 +786,7 @@ export default Vue.component("enrichr-plot", {
 $(function () {});
 </script>
 
-<style>
+<style scoped>
 .fixed-info-box-close {
 	position: absolute;
 	top: 0;
@@ -816,6 +812,14 @@ $(function () {});
 	display: block;
 	/* padding: 1px 5px; */
 	margin-bottom: 3px;
+}
+.label {
+	font-weight: bold;
+	margin-left: 20px;
+}
+.error {
+	min-height: 310px;
+	margin-top: 25px;
 }
 </style>
 
