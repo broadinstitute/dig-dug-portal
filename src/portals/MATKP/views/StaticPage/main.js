@@ -7,7 +7,7 @@ import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 import matkpHero from "@/portals/MATKP/components/matkp-hero.vue";
 import matkpAnatomogram from "@/portals/MATKP/components/matkp-anatomogram.vue";
-import { getTextContent } from "@/portals/MATKP/utils/content.js";
+import { getTextContent, getNewsFeed, getNewsItem } from "@/portals/MATKP/utils/content.js";
 import keyParams from "../../../../utils/keyParams.js";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
@@ -24,34 +24,46 @@ new Vue({
     data() {
         return {
             config: null,
-            pageContent: {},
+            pageType: null,
+            pageContent: null,
             fallbackId: "matkp_help",
             pages: {
               news: { 
                 title: "News", 
-                page_id: "matkp_news", 
-                node: 682
+                page_id: "matkp", 
+                node: 682,
+                type: 'list'
               },
               help: {
                 title: "Help",
                 page_id: "matkp_help",
-                node: 683
+                node: 683,
+                type: 'content'
               },
               collaborate: {
                 title: "Collaborate with MATKP",
                 page_id: "matkp_collaborate",
-                node: 684
+                node: 684,
+                type: 'content'
               },
               about: {
                 title: "About MATKP",
                 page_id: "matkp_aboutproject",
-                node: 685
+                node: 685,
+                type: 'content'
               },
               adipose: {
                 title: "About Adipose Tissue",
                 page_id: "matkp_aboutadipose",
-                node: 688
-              }
+                node: 688,
+                type: 'content'
+              },
+              policies: {
+                title: "Policies",
+                page_id: "matkp_policies",
+                node: 783,
+                type: 'content'
+              },
             }
         };
     },
@@ -80,16 +92,28 @@ new Vue({
 
     methods: {
         async getConfig() {
-            const dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=matkp_config";
+            const dataPoint = "https://hugeampkpncms.org/rest/data?pageid=matkp_config";
             const result = await fetch(dataPoint).then((resp) => resp.json());
             const json = JSON.parse(result[0]["field_data_points"]);
             this.config = json;
         },
         async getContent(pageLabel){
-          let byorPageId = this.pages[pageLabel]?.page_id || this.fallbackId;
-          let allContent = await getTextContent(byorPageId, false, true);
-          this.pageContent = allContent;
+          const page = this.pages[pageLabel];
+          this.pageType = page?.type;
+          if(this.pageType === 'content'){
+            let byorPageId = page?.page_id || this.fallbackId;
+            let allContent = await getTextContent(byorPageId, false, true);
+            this.pageContent = allContent;
+          }else if(this.pageType==='list'){
+            const listItem = keyParams.id;
+            console.log(listItem);
+            if(listItem){
+              this.pageContent = await getNewsItem(listItem);
+            }else{
+              this.pageContent = await getNewsFeed(page?.page_id);
+            }
+          }
+          
         }
     },
 

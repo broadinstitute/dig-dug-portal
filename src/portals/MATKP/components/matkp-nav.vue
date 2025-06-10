@@ -124,7 +124,6 @@ export default Vue.component("matkp-nav", {
     background: #ffffff50;
     backdrop-filter: blur(10px);
     position: fixed;
-    width: 100vw;
     z-index: 100;
     box-shadow: 0 0 10px 0 #42424220;
 }

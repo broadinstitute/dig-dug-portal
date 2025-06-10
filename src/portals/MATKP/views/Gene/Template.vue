@@ -148,6 +148,7 @@
                     </h4>
                     <div>
                         <research-single-cell-browser 
+                            v-if="$parent.scbConfig"
                             sectionId="matkp"
                             :renderConfig="$parent.scbConfig"
                             :utils="$parent.utilsBox"

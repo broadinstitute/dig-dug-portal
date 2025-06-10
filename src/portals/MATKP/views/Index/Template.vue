@@ -37,30 +37,40 @@
                     </div>
                 </div>
 
-                <div class="f-row align-v-center grow-children" style="gap:20px; flex-wrap: wrap;">
+                <div class="f-col align-v-center grow-children" style="gap:20px; width: min-content">
                     <div class="f-row fill-width grow-children" style="gap:20px;">
                         <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
-                            <div style="font-size:16px; font-weight:bold">Contribute Your Data</div>
-                            <div>Simply upload through our Data Registry.</div>
-                            <a class="yes-events" target="_blank" href="https://uploads.matkp.org">Try it here</a>
-                        </div>
-                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
-                            <div style="font-size:16px; font-weight:bold">Browse Datasets</div>
-                            <a class="yes-events" href="/datasets.html?data_type=single_cell">Single cell RNA-seq</a>
-                            <a class="yes-events" href="/datasets.html?data_type=bulk_rna">Bulk RNA-seq</a>
+                            <div style="font-size:16px; font-weight:bold">Browse Data</div>
+                            <div style="flex:1">Single-cell, bulk, and pseudobulk datasets for human and mouse models.</div>
+                            <a class="yes-events" href="/datasets.html">Browse</a>
                         </div>
                         <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
                             <div style="font-size:16px; font-weight:bold">Explore Data</div>
                             <div class="f-row" style="gap:5px;">
-                                <a class="yes-events" href="/cellbrowser.html?dataset=SingleCell_Emont2022_Humans_SCP1376_SN_SAT">Single cell </a> Emont, M. (2022)
+                                <a class="yes-events" href="/cellbrowser.html">Single Cell Browser</a>
                             </div>
                             <div class="f-row" style="gap:5px">
-                                <a class="yes-events" href="/bulkbrowser.html?dataset=bulkRNA_Emont2022_Humans_SAT">Bulk</a> Emont, M. (2022)
+                                <a class="yes-events" href="/bulkbrowser.html">Differential Expression Browser</a>
+                            </div>
+                            <div class="f-row" style="gap:5px">
+                                <a class="yes-events" href="/tissue.html">Functional Annotations</a>
+                            </div>
+                            <div class="f-row" style="gap:5px">
+                                <a class="yes-events" href="/phenotype.html">Phenotype Browser</a>
                             </div>
                         </div>
+                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
+                            <div style="font-size:16px; font-weight:bold">Contribute Your Data</div>
+                            <div style="flex:1">Simply upload through our Data Registry.</div>
+                            <a class="yes-events" target="_blank" href="https://uploads.matkp.org">Try it here</a>
+                        </div>
+                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
+                            <div style="font-size:16px; font-weight:bold">Related Resources</div>
+                            <div style="flex:1">MATKP and ATKP provide complementary views on adipose tissue biology.</div>
+                            <a class="yes-events" target="_blank" href="https://hugeamp.org/r/eat_bio">Learn More</a>
+                        </div>
                     </div>
-
-                    <div v-if="$parent.newsFeed && $parent.newsFeed.length>0" style="width: 350px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
+                    <div v-if="$parent.newsFeed && $parent.newsFeed.length>0" style="padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
                         <div class="news-items">
                             <div class="news-item f-row">
                                 <div class="news-thumbnail contain" style="height:70px; min-width:100px"
