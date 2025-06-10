@@ -1001,7 +1001,7 @@ new Vue({
                     }
                 }
             }
-            return geneSigs;
+            return geneSigs.reverse();
         },
 
         buildGeneSigUrl(item){
