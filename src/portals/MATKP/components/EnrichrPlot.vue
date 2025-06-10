@@ -1,6 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
-		
+		<strong>{{ canvasId }} gene pathways</strong>
 		<div class="col-md-12 bar-plot-wrapper">
 			<div
 				class="col-md-12"
