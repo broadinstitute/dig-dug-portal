@@ -392,7 +392,8 @@ new Vue({
             GTExPage2: 1,
 
             scbData: [],
-            scbConfig: {
+            scbConfig: null,
+            barf: {
                 "type": "cell browser",
                 "label": "Single Cell Browser",
                 "parameters": {
@@ -880,6 +881,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.pushCriterionPhenotype("T2D");
         this.checkGeneName(this.$store.state.geneName);
+        this.getSingleCellConfig();
         this.getGTExdata();
         this.getGTExdata2();
         this.geneSigsData = await this.getGeneSigs();
@@ -981,6 +983,14 @@ new Vue({
                 this.$store.state.selectedAncestry = "";
                 return;
             }
+        },
+
+        async getSingleCellConfig(){
+            const pageId = 'matkp_singlecellbrowser';
+            const content = await getTextContent(pageId, false, true);
+            const json = JSON.parse(content.field_data_table_format);
+            json.presets.layout = 1;
+            this.scbConfig = json;
         },
 
         async getGeneSigs(){
