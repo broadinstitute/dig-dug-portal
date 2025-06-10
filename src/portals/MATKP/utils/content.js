@@ -5,6 +5,8 @@ const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 export const ACCESSIBLE_RED = "rgb(191 044 035)"; // colorblind safe red
 export const ACCESSIBLE_BLUE = "rgb(047 103 177)"; // colorblind safe blue,
 export const ACCESSIBLE_GRAY = "rgb(249 249 249)";
+export const ACCESSIBLE_PURPLE = "rgb(116 040 129)";
+export const ACCESSIBLE_DARK_GRAY = "rgb(170 170 170)";
 
 export async function getTextContent(contentId, getBody=false, getAll=false){
   let resourceUrl = `${CONTENT_URL}${contentId}`;

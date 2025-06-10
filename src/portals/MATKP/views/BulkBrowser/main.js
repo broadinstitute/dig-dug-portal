@@ -5,7 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { getEnrichr } from "../../utils/content.js";
+import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr } from "../../utils/content.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -299,7 +299,7 @@ new Vue({
         createColorScale(){
             let ends = this.colorScaleEndpoints;
             return d3.scaleLinear()
-              .range(["blue", "red"])
+              .range([ACCESSIBLE_DARK_GRAY, ACCESSIBLE_PURPLE])
               .domain(ends);
         }
     },
