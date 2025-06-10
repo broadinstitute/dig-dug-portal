@@ -1,6 +1,6 @@
 <template>
 	<div class="mbm-plot-content row">
-		<strong>{{ canvasId }} gene pathways</strong>
+		<div class="label">{{ canvasId }} gene pathways</div>
 		<div class="col-md-12 bar-plot-wrapper">
 			<div
 				class="col-md-12"
@@ -93,7 +93,7 @@
 					</ul>
 				</div>
 				<research-bar-plot-vector
-				v-if="!!renderData"
+					v-if="!!renderData"
 					:renderData="groupData(renderData)"
 					:renderConfig="renderConfig"
 					:colors="colors"
@@ -103,6 +103,9 @@
 					:ref="canvasId + '_barPlot'"
 				>
 				</research-bar-plot-vector>
+				<div v-if="renderData === null">
+					The ENRICHR server has encountered an error.
+				</div>
 			</div>
 		</div>
 	</div>
@@ -790,7 +793,7 @@ export default Vue.component("enrichr-plot", {
 $(function () {});
 </script>
 
-<style>
+<style scoped>
 .fixed-info-box-close {
 	position: absolute;
 	top: 0;
@@ -816,6 +819,10 @@ $(function () {});
 	display: block;
 	/* padding: 1px 5px; */
 	margin-bottom: 3px;
+}
+.label {
+	font-weight: bold;
+	margin-left: 20px;
 }
 </style>
 
