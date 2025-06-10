@@ -7,6 +7,7 @@ export const ACCESSIBLE_BLUE = "rgb(047 103 177)"; // colorblind safe blue,
 export const ACCESSIBLE_GRAY = "rgb(249 249 249)";
 export const ACCESSIBLE_PURPLE = "rgb(116 040 129)";
 export const ACCESSIBLE_DARK_GRAY = "rgb(170 170 170)";
+export const ACCESSIBLE_GREEN = "rgb(092 174 000)"
 
 export async function getTextContent(contentId, getBody=false, getAll=false){
   let resourceUrl = `${CONTENT_URL}${contentId}`;
@@ -47,7 +48,6 @@ export async function getEnrichr(genesList){
 						let rank = `${d["Rank"]}`.padStart(3, "0");
 						d.rankLabel = `${rank}_${d["Term name"]}`;
 				})
-				console.log(jsonData[0]);
 				return jsonData;
 			} catch (error){
 				console.error(error.message);

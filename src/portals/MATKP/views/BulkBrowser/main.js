@@ -244,7 +244,6 @@ new Vue({
                 keyParams.set({ comparison: this.$store.state.selectedComparison });
             }
             await this.$store.dispatch("queryBulkFile");
-            console.log("made it this far");
             await this.$store.dispatch("queryBulk");
             
 

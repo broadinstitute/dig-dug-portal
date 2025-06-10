@@ -6,9 +6,9 @@
 				<strong>Regulation of gene expression</strong>
 				<div style="display:flex; margin-top:10px">
 				
-					<span class="group-legend-box" style="background-color:#ff0000">&nbsp;</span><span class="group-legend-name">up-regulated genes</span>
+					<span class="group-legend-box" :style="`background-color:${accessibleRed}`">&nbsp;</span><span class="group-legend-name">up-regulated genes</span>
 
-					<span class="group-legend-box" style="background-color:#0000ff">&nbsp;</span><span class="group-legend-name">down-regulated genes</span>
+					<span class="group-legend-box" :style="`background-color:${accessibleBlue}`">&nbsp;</span><span class="group-legend-name">down-regulated genes</span>
 
 					<span class="group-legend-box" style="background-color:#FF9900">&nbsp;</span><span class="group-legend-name">highlighted gene</span>
 				</div>
@@ -51,7 +51,9 @@ export default Vue.component("bulk-volcano-plot", {
 			x: null,
 			y: null,
 			yAxisField: null,
-			xAxisField: null
+			xAxisField: null,
+			accessibleRed: ACCESSIBLE_RED,
+			accessibleBlue: ACCESSIBLE_BLUE
 		};
 	},
 	modules: {

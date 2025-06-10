@@ -288,6 +288,9 @@ export default Vue.component("enrichr-plot", {
 			
 			let phenotypeGroups = [];
 			let phenotypeGroupsObj = {};
+			if (DATA === null){
+				return phenotypeGroupsObj;
+			}
 
 			if (this.phenotypeMapConfig == null) {
 				phenotypeGroups = [
@@ -311,16 +314,6 @@ export default Vue.component("enrichr-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
-			/*
-			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
-				value.sort((a, b) =>
-					a[this.renderConfig["y axis field"]] >
-					b[this.renderConfig["y axis field"]]
-						? 1
-						: -1
-				);
-			}*/
-
 			return phenotypeGroupsObj;
 		},
 		onResize() {
