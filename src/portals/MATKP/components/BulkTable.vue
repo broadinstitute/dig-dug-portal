@@ -178,9 +178,6 @@ export default Vue.component("bulk-table", {
     },
     async mounted(){
         this.findGene(this.highlightedGene);
-        if (!this.isSubtable){
-            await this.getSubtable(this.bulkData[0]);
-        }
         this.$emit("upGenes", this.upregulatedGenes);
         this.$emit("downGenes", this.downregulatedGenes);
     },
