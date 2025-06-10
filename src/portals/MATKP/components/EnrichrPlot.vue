@@ -150,7 +150,7 @@ export default Vue.component("enrichr-plot", {
                 "y ticks decimal point": "2",
                 "render by": "Term name",
                 "y axis label": "Combined score",
-                "x axis label": "Pathway",
+                "x axis label": "",
                 "beta field": null,
                 "hover content": [
                     "Combined score",
@@ -572,7 +572,7 @@ export default Vue.component("enrichr-plot", {
 					null,
 					null,
 					null,
-					`${this.renderConfig["x axis label"]} (${this.canvasId})`
+					this.renderConfig["x axis label"] // We don't need an x-axis label under this plot
 				);
 
 				this.renderTicksByGroup(
