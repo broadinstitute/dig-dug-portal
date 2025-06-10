@@ -177,7 +177,10 @@ export default Vue.component("bulk-table", {
         };
     },
     async mounted(){
-        this.findGene(this.highlightedGene);
+        if (this.isSubtable){
+            return;
+        }
+        await this.findGene(this.highlightedGene);
         this.$emit("upGenes", this.upregulatedGenes);
         this.$emit("downGenes", this.downregulatedGenes);
     },
@@ -225,6 +228,11 @@ export default Vue.component("bulk-table", {
             }
             if (!!this.showGenes && !this.isSubtable){
                 data = data.filter(item => this.showRegulation(item) === this.showGenes);
+            }
+            // Open subtable for the highlighted gene
+            if (!!this.highlightedGene){
+                let highlightRow = data.find(g => g.gene === this.highlightedGene);
+                highlightRow._showDetails = true;
             }
             return data;
         },
@@ -351,22 +359,24 @@ export default Vue.component("bulk-table", {
             }
             return "";
         },
-        findGene(gene){
+        async findGene(gene){
+            // Populate the subtable before toggling it open
+            let dataItem = this.bulkData.find(g => g.gene === gene);
+            await this.getSubtable(dataItem);
             let location = this.allGenes.indexOf(gene);
             if (location === -1){
                 return;
             }
             let page = Math.floor(location / this.perPage) + 1;
             this.currentPage = page;
-
         }
     },
     watch: {
-        highlightedGene(newGene){
-            if (!!newGene){this.findGene(newGene)};
+        async highlightedGene(newGene){
+            if (!!newGene){await this.findGene(newGene)};
         },
         async tableData(data){
-            this.findGene(this.highlightedGene);
+            await this.findGene(this.highlightedGene);
         },
         upregulatedGenes(newGenes){
             this.$emit("upGenes", newGenes);
