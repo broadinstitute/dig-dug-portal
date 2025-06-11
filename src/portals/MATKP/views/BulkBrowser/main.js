@@ -245,12 +245,16 @@ new Vue({
             }
             await this.$store.dispatch("queryBulkFile");
             await this.$store.dispatch("queryBulk");
-            
-
+        
+            await this.populateEnrichr();
+            this.dataReady = true;
+        },
+        async populateEnrichr(){
+            this.enrichrUp = [];
+            this.enrichrDown = [];
             this.enrichrUp = await getEnrichr(this.getTopGenes(true));
             this.enrichrDown = await getEnrichr(this.getTopGenes(false));
             this.enrichrColorScale = this.createColorScale();
-            this.dataReady = true;
         },
         async getBulkMetadata() {
             if (!this.allMetadata) {
@@ -305,12 +309,15 @@ new Vue({
     watch: {
         async selectedDataset(newData, oldData) {
             if (newData !== oldData) {
+                this.dataReady = false;
                 keyParams.set({ dataset: newData });
                 await this.$store.dispatch("queryBulkFile");
                 await this.$store.dispatch("queryBulk");
                 if (newData !== "") {
                     this.getBulkMetadata();
                 }
+                await this.populateEnrichr();
+                this.dataReady = true;
             }
         },
         selectedComparison(newData, oldData) {
