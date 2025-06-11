@@ -138,8 +138,8 @@
                             `${$store.state.geneName.toUpperCase()} Expression by Cell Type`
                         }}
                         <tooltip-documentation
-                            name="cell_type_expression"
-                            :supply-text="$parent.getTooltip('cell_type_expression')"
+                            name="expression_by_cell_type"
+                            :supply-text="$parent.getTooltip('expression_by_cell_type')"
                             :is-hover="true"
                             :no-icon="false"
                             :content-map="$store.state.bioPortal.documentations"
