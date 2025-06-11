@@ -260,6 +260,9 @@ export default Vue.component("bulk-table", {
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(item) {
+            if (this.isSubtable){
+                return;
+            }
             let queryKey = this.subtableKey(item);
             if (!this.subtableData[queryKey]) {
                 let data = await this.query(this.config.subtableEndpoint, queryKey);
@@ -363,6 +366,9 @@ export default Vue.component("bulk-table", {
         async findGene(gene){
             // Populate the subtable before toggling it open
             let dataItem = this.bulkData.find(g => g.gene === gene);
+            if (!dataItem){
+                return;
+            }
             await this.getSubtable(dataItem);
             let location = this.allGenes.indexOf(gene);
             if (location === -1){
