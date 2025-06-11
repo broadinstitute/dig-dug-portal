@@ -26,11 +26,9 @@
             <a href="https://www.linkedin.com/groups/13287084/" target="_blank" title="LinkedIn">
                 <img src="https://hugeampkpncms.org/sites/default/files/images/logos/external/linkedin-white.svg">
             </a>
-            <!--
-            <a href="" target="_blank" title="GitHub">
-                <img src="https://hugeampkpncms.org/sites/default/files/images/logos/external/github-white.svg">
-            </a>
-            -->
+        </div>
+        <div class="f-row align-v-center" style="font-size: 12px;">
+            Supported by US National Institute of Diabetes and Digestive and Kidney Diseases grant RC2 DK116691.
         </div>
     </div>
 </template>
