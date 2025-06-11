@@ -232,7 +232,8 @@ export default Vue.component("bulk-table", {
             // Open subtable for the highlighted gene
             if (!!this.highlightedGene){
                 let highlightRow = data.find(g => g.gene === this.highlightedGene);
-                highlightRow._showDetails = true;
+                if (!!highlightRow){ highlightRow._showDetails = true
+                };
             }
             return data;
         },
