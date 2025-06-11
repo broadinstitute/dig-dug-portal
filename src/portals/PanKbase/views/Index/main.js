@@ -39,7 +39,7 @@ new Vue({
                             linkLabel: "Learn More",
                             linkUrl: "/single-cell.html",
                             bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap2.png",
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap3.png",
                             type: "large",
                             comingSoon: false,
                         },
@@ -98,7 +98,7 @@ new Vue({
                         linkLabel: "Learn More",
                         linkUrl: "/single-cell.html",
                         bgImage:
-                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap2.png",
+                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap3.png",
                         type: "medium",
                         comingSoon: false,
                     },

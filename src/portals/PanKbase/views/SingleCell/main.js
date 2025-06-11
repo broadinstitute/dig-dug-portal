@@ -31,7 +31,15 @@ new Vue({
                 dataConvert: dataConvert
             },
             allMetadata: null,
-            tableColumns: [{ key: 'viewDataset', label: 'View' }, "datasetName", "tissue", "method", "totalCells", { key: 'download', label: 'Download' }],
+            tableColumns: [
+              { key: 'viewDataset', label: 'View' }, 
+              "datasetName", 
+              "tissue", 
+              "method", 
+              { key: 'totalDonors', label: 'Donors' }, 
+              "totalCells", 
+              { key: 'download', label: 'Download' }
+            ],
             selectedDataset: null,
             scbConfig: null,
             blah: {
