@@ -435,6 +435,9 @@ export default Vue.component("bulk-volcano-plot", {
 				.selectAll(".highlightCircle")
 				.remove();
 			let dataItem = this.plotData.find(d => d.gene === gene);
+			if (!dataItem){
+				return;
+			}
 			let geneVal = {
 				x: dataItem[this.xAxisField],
 				y: dataItem[this.yAxisField]

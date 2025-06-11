@@ -311,6 +311,8 @@ new Vue({
             if (newData !== oldData) {
                 this.dataReady = false;
                 keyParams.set({ dataset: newData });
+                // Reset highlighted gene upon changing dataset
+                await this.$store.dispatch("firstGene");
                 await this.$store.dispatch("queryBulkFile");
                 await this.$store.dispatch("queryBulk");
                 if (newData !== "") {

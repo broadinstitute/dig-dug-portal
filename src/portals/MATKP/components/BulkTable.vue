@@ -88,23 +88,29 @@
                     </div>
                     <div class="row subtable-plots">
                         <div class="col-md-6">
-                            <bulk-violin-plot 
+                            <bulk-violin-plot
+                                v-if="catFields.length > 0"
                                 :data="subtableData[subtableKey(row.item)]"
                                 :gene="row.item.gene"
                                 :xField="catField?.key || catFields[0].key"
                                 :xLabel="catField?.label || catFields[0].label"
                             />
+                            <div v-else class="no-fields">
+                                No categorical fields available for this dataset.
+                            </div>
                         </div>
                         <div class="col-md-6">
-                        <scatterplot
-                            :plotData="subtableData[subtableKey(row.item)]"
-                            :config="scatterConfig"
-                            :plotId="`bulk_${row.item.gene}`"
-                            :hideDownload="true"
-                            :tightenLeft="true">
-
-                        </scatterplot>
-                        </div>
+                            <scatterplot
+                                v-if="contFields.length > 0"
+                                :plotData="subtableData[subtableKey(row.item)]"
+                                :config="scatterConfig"
+                                :plotId="`bulk_${row.item.gene}`"
+                                :hideDownload="true"
+                                :tightenLeft="true">
+                            </scatterplot>
+                            <div v-else class="no-fields">
+                                No continuous fields available for this dataset.</div>
+                            </div>
                     </div>
                     <bulk-table              
                         :bulkData="subtableData[subtableKey(row.item)]"
@@ -169,6 +175,8 @@ export default Vue.component("bulk-table", {
             subtableFields: {},
             contField: null,
             catField: null,
+            contFields: [],
+            catFields: [],
             currentData: [],
             tableYField: "-log10P",
             tableXField: "logFoldChange",
@@ -222,7 +230,7 @@ export default Vue.component("bulk-table", {
         },
         tableData() {
             let data = structuredClone(this.bulkData);
-            data[0]._showDetails = !this.isSubtable;
+            //data[0]._showDetails = !this.isSubtable;
             if (this.filter) {
                 data = data.filter(this.filter);
             }
@@ -232,7 +240,8 @@ export default Vue.component("bulk-table", {
             // Open subtable for the highlighted gene
             if (!!this.highlightedGene){
                 let highlightRow = data.find(g => g.gene === this.highlightedGene);
-                highlightRow._showDetails = true;
+                if (!!highlightRow){ highlightRow._showDetails = true
+                };
             }
             return data;
         },
@@ -259,6 +268,10 @@ export default Vue.component("bulk-table", {
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(item) {
+            console.log(JSON.stringify(item));
+            if (this.isSubtable){
+                return;
+            }
             let queryKey = this.subtableKey(item);
             if (!this.subtableData[queryKey]) {
                 let data = await this.query(this.config.subtableEndpoint, queryKey);
@@ -318,6 +331,8 @@ export default Vue.component("bulk-table", {
             if (!this.catField || !catFields.includes(this.catField)){
                 this.catField = catFields[0];
             }
+            this.catFields = catFields;
+            this.contFields = contFields;
             fields = fields.concat(catFields);
             fields = fields.concat(contFields);
             return fields;
@@ -362,6 +377,9 @@ export default Vue.component("bulk-table", {
         async findGene(gene){
             // Populate the subtable before toggling it open
             let dataItem = this.bulkData.find(g => g.gene === gene);
+            if (!dataItem){
+                return;
+            }
             await this.getSubtable(dataItem);
             let location = this.allGenes.indexOf(gene);
             if (location === -1){
@@ -422,5 +440,8 @@ button {
 }
 .show-inline {
     display: inline;
+}
+.no-fields {
+    text-align: center;
 }
 </style>
