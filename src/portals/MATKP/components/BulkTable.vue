@@ -86,7 +86,7 @@
                         </div>
                         <div class="col-md-1"></div>
                     </div>
-                    <div class="row subtable-plots">
+                    <div class="row subtable-plots" v-if="false">
                         <div class="col-md-6">
                             <bulk-violin-plot 
                                 :data="subtableData[subtableKey(row.item)]"
@@ -222,7 +222,7 @@ export default Vue.component("bulk-table", {
         },
         tableData() {
             let data = structuredClone(this.bulkData);
-            data[0]._showDetails = !this.isSubtable;
+            //data[0]._showDetails = !this.isSubtable;
             if (this.filter) {
                 data = data.filter(this.filter);
             }
@@ -260,6 +260,7 @@ export default Vue.component("bulk-table", {
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(item) {
+            console.log(JSON.stringify(item));
             if (this.isSubtable){
                 return;
             }
