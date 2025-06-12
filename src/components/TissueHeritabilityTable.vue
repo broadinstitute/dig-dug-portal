@@ -27,9 +27,7 @@
             :current-page="currentPage"
         >
             <template #cell(phenotype)="r">
-                <a :href="`/phenotype.html?phenotype=${r.item.phenotype}`">
-                    {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
-                </a>
+                {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
             </template>
             <template #cell(biosample)="r"
                 ><b-button
