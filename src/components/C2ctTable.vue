@@ -45,9 +45,7 @@
                     
                 </template>
                 <template #cell(overlapLeadSNP)="r">
-                    <a :href="`/variant.html?variant=${r.item.overlapLeadSNP}`">
-                        {{ r.item.overlapLeadSNP }}
-                    </a>
+                    {{ r.item.overlapLeadSNP }}
                 </template>
                 <template #cell(variantSifter)="r">
                     <a :href="exploreVariantSifter(r.item)">
