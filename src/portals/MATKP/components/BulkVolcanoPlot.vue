@@ -200,6 +200,19 @@ export default Vue.component("bulk-volcano-plot", {
 
 			this.svg.select("#axisLabelsGroup")
 				.append("text")
+				.attr("x", margin.left + 50)
+				.attr("y", (height + margin.bottom))
+				.text(`← down-regulated in ${this.upregulatedIn}`);
+			
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("x", margin.left + width)
+				.attr("y", (height + margin.bottom))
+				.attr("text-anchor", "end")
+				.text(`up-regulated in ${this.upregulatedIn} →`)
+
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
 				.attr("transform", function (d) {
 					return "translate("+(margin.bump + margin.legendSpacing)+"," + (margin.top+(height/2)) + ")rotate(-90)";
 				})
