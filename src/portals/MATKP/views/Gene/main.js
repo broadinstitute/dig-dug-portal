@@ -107,6 +107,8 @@ new Vue({
     data() {
         return {
             counter: 0,
+            pageId: "matkp_gene",
+            info: {},
             byor_tooltips_id: "matkp_tooltips",
             tooltips: [],
             genePageSearchCriterion: [],
@@ -868,6 +870,8 @@ new Vue({
     },
 
     async created() {
+        const content = await getTextContent(this.pageId, false, true);
+        this.info = content.body;
         this.tooltips = await getTextContent(this.byor_tooltips_id);
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
