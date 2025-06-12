@@ -57,7 +57,7 @@
         "subMenuItems": [
             {
                 "label": "Contact",
-                "path": "/info.html?page=collaborate"
+                "path": "/info.html?page=help"
             },
             {
                 "label": "News",
