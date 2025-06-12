@@ -23,7 +23,9 @@ export default Vue.component("documentation", {
                     contentFill,
                     this.name
                 );
-                return converter.makeHtml(content);
+                let textContent = converter.makeHtml(content)
+                    .replaceAll('href="/', 'href="https://hugeamp.org/');
+                return textContent;
             }
             return "";
         }
