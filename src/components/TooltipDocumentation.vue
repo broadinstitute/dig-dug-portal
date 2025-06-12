@@ -81,9 +81,8 @@ export default Vue.component("tooltip-documentation", {
                     this.name
                 );
                 let textContent = converter.makeHtml(content);
-                console.log(textContent);
-                return textContent.replaceAll('href="/', 'href="https://hugeamp.org/')
-                    .replaceAll('href="(/', 'href="https://hugeamp.org/');
+                return textContent.replaceAll('href="/', 'href="https://a2f.hugeamp.org/')
+                    .replaceAll('href="(/', 'href="https://a2f.hugeamp.org/');
             }
             return "";
         },

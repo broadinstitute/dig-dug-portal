@@ -33,7 +33,7 @@
                         item['Page ID'] != 'undefined' &&
                         item['Page ID'] != undefined &&
                         item['Page ID'] != ''
-                            ? '<a class=\'btn btn-sm btn-primary view-genes\' target=\'_blank\'href=\'https://hugeamp.org/research.html?pageid=' +
+                            ? '<a class=\'btn btn-sm btn-primary view-genes\' target=\'_blank\'href=\'https://a2f.hugeamp.org/research.html?pageid=' +
                               item['Page ID'] +
                               '\' style=\'color: #ffffff !important;\'>View genes</a>'
                             : ''

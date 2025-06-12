@@ -24,7 +24,7 @@ export default Vue.component("documentation", {
                     this.name
                 );
                 let textContent = converter.makeHtml(content)
-                    .replaceAll('href="/', 'href="https://hugeamp.org/');
+                    .replaceAll('href="/', 'href="https://a2f.hugeamp.org/');
                 return textContent;
             }
             return "";
