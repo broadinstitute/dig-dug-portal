@@ -162,7 +162,7 @@ new Vue({
         zNormData() {
             let outputData = structuredClone(this.$store.state.singleBulkZNormData);
             outputData.forEach(item => item["-log10P"] = item.log10FDR);
-            return outputData;
+            return outputData.sort((a,b) => a.logFoldChange - b.logFoldChange);
         },
         bulkData19K() {
             return this.$store.state.bulkData19K.filter(
