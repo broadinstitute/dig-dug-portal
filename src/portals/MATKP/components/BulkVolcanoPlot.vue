@@ -39,7 +39,8 @@ export default Vue.component("bulk-volcano-plot", {
 		"margin",
 		"sectionId",
 		"selectedGene",
-		"filter"
+		"filter",
+		"upregulatedIn"
 	],
 	data() {
 		return {
@@ -196,6 +197,19 @@ export default Vue.component("bulk-volcano-plot", {
 				.attr("x", (margin.left + (width / 2)))
 				.attr("y", (height + margin.bottom - margin.legendSpacing))
 				.text(this.renderConfig['x axis label']);
+
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("x", margin.left + 50)
+				.attr("y", (height + margin.bottom))
+				.text(`← down-regulated in ${this.upregulatedIn}`);
+			
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("x", margin.left + width)
+				.attr("y", (height + margin.bottom))
+				.attr("text-anchor", "end")
+				.text(`up-regulated in ${this.upregulatedIn} →`)
 
 			this.svg.select("#axisLabelsGroup")
 				.append("text")

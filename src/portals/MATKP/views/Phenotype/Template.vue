@@ -6,6 +6,10 @@
 
         <!-- Body -->
         <div class="mat-body f-col" style="width: -webkit-fill-available">
+            <div v-if="$parent.info">
+                <h2>Phenotype Browser</h2>
+                <div v-html="$parent.info" class="page-info"></div>
+            </div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">

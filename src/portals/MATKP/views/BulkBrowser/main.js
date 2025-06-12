@@ -162,7 +162,7 @@ new Vue({
         zNormData() {
             let outputData = structuredClone(this.$store.state.singleBulkZNormData);
             outputData.forEach(item => item["-log10P"] = item.log10FDR);
-            return outputData;
+            return outputData.sort((a,b) => a.logFoldChange - b.logFoldChange);
         },
         bulkData19K() {
             return this.$store.state.bulkData19K.filter(
@@ -197,6 +197,14 @@ new Vue({
         comparisons() {
             let items = Object.keys(this.$store.state.currentComparisons);
             return items;
+        },
+        upregulatedIn(){
+            if (this.$store.state.selectedDataset === 'bulkRNA_Emont2022_Humans_SAT'){
+                return 'insulin resistant';
+            }
+            let comparisonText = this.$store.state.currentComparisons[this.$store.state.selectedComparison];
+            let versus = /[^w]vs/;
+            return Formatters.snakeFormatter(comparisonText.split(versus)[0]);
         },
         kpDataset() {
             return keyParams.dataset;

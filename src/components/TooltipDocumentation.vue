@@ -80,7 +80,9 @@ export default Vue.component("tooltip-documentation", {
                     contentFill,
                     this.name
                 );
-                return converter.makeHtml(content);
+                let textContent = converter.makeHtml(content);
+                return textContent.replaceAll('href="/', 'href="https://a2f.hugeamp.org/')
+                    .replaceAll('href="(/', 'href="https://a2f.hugeamp.org/');
             }
             return "";
         },

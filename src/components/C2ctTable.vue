@@ -36,9 +36,7 @@
                     Open Variant Sifter (region: lead SNP &plusmn; 200kb)
                 </template>
                 <template #cell(tissue)="r">
-                    <a :href="`/tissue.html?tissue=${r.item.tissue}`">
-                        {{ tissueFormatter(r.item.tissue) }}
-                    </a>
+                    {{ tissueFormatter(r.item.tissue) }}
                 </template>
                 <template #cell(chromosome)="r">
                         {{
@@ -174,7 +172,7 @@ export default Vue.component("c2ct-table", {
             let start = center - expanded;
             start = start < minimum ? minimum : start;
             let end  = center + expanded;
-            return '/research.html?pageid=kp_variant_sifter&phenotype=' +
+            return 'https://a2f.hugeamp.org/research.html?pageid=kp_variant_sifter&phenotype=' +
 				item.phenotype + '&region=' +
                 chr + ':' +
                 start + '-' +

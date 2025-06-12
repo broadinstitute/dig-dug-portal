@@ -113,15 +113,6 @@
                                     $store.state.selectedAnnotation
                                 )
                             }})
-                            <tooltip-documentation
-                                name="phenotype.cs2ct.tooltip"
-                                :content-fill="$parent.docDetails"
-                                :is-hover="true"
-                                :no-icon="false"
-                                :content-map="
-                                    $store.state.bioPortal.documentations
-                                "
-                            ></tooltip-documentation>
                         </h4>
                         <div v-if="$parent.documentation !== null">
                             {{ $parent.documentation[1]["Documentation"] }}

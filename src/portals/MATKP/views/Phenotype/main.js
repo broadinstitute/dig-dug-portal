@@ -69,11 +69,12 @@ new Vue({
     mixins: [pageMixin, matkpMixin],
     data() {
         return {
+            pageId: "matkp_phenotypes",
+            info: {},
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
             annotation: "",
-            byor_phenotype_page: "matkp_phenotypes",
             matkpPhenotypes: [],
             defaultPhenotype: "BMI"
         };
@@ -266,6 +267,10 @@ new Vue({
     },
 
     async created() {
+        const content = await getTextContent(this.pageId, false, true);
+        this.info = content.body;
+        this.title = content.title;
+        this.tooltips = await getTextContent(this.byor_tooltips_id);
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
@@ -285,7 +290,7 @@ new Vue({
         ancestryFormatter: Formatters.ancestryFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         async getPhenotypes(){
-            let rawContent = await getTextContent(this.byor_phenotype_page, false, true);
+            let rawContent = await getTextContent(this.pageId, false, true);
             return JSON.parse(rawContent.field_data_points);
         },
         maFormatter(value) {

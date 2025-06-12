@@ -37,13 +37,7 @@
                     </b-th>
                 </template>
                 <template #cell(tissue)="r">
-                    <a
-                        :href="`/tissue.html?tissue=${toSnakeFormatter(
-                            r.item.tissue
-                        )}`"
-                    >
-                        {{ tissueFormatter(r.item.tissue) }}
-                    </a>
+                    {{ tissueFormatter(r.item.tissue) }}
                 </template>
             </b-table>
             <b-pagination

@@ -45,24 +45,13 @@
                     </b-th>
                 </template>
                 <template #cell(position)="r">
-                    <a
-                        :href="`/region.html?phenotype=${
-                            phenotypes[0].name
-                        }&chr=${r.item.chromosome}&start=${
-                            r.item.position - 50000
-                        }&end=${r.item.position + 50000}`"
-                        >{{ locusFormatter(r.item) }}</a
-                    >
+                    {{ locusFormatter(r.item) }}
                 </template>
                 <template #cell(allele)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">
-                        {{ alleleFormatter(r.item) }}
-                    </a>
+                    {{ alleleFormatter(r.item) }}
                 </template>
                 <template #cell(dbSNP)="r">
-                    <a :href="`/variant.html?variant=${r.item.dbSNP}`">
-                        {{ dbSNPFormatter(r.item) }}
-                    </a>
+                    {{ dbSNPFormatter(r.item) }}
                 </template>
                 <template #cell(consequence)="r">
                     {{ consequenceFormatter(r.item.consequence) }}

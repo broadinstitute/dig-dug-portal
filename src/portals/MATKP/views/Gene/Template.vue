@@ -26,6 +26,10 @@
         <div class="mat-body f-col" style="width: -webkit-fill-available">
 
             <matkp-search style="width: 33.33%; align-self: flex-end; margin:-20px 0 20px;"/>
+            <div v-if="$parent.info">
+                    <h2>Gene Browser</h2>
+                    <div v-html="$parent.info" class="page-info"></div>
+                 </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
@@ -868,5 +872,8 @@
 .pseudoFilter a {
     color: inherit !important;
     text-decoration: inherit !important;
+}
+.page-info {
+    font-size: 18px;
 }
 </style>

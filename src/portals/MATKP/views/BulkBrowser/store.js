@@ -72,6 +72,8 @@ export default new Vuex.Store({
       if (context.state.selectedDataset !== "") {
         let datasetFile = `${context.state.bulkFileUrl
           }${context.state.selectedDataset}/dea.tsv.gz`;
+        console.log(datasetFile);
+        
         const response = await fetch(datasetFile);
         const bulkDataText = await response.text();
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
