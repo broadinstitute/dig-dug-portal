@@ -132,12 +132,6 @@ export default Vue.component("c2ct-table", {
                     label: "Combined score",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
-                },
-                {
-                    key: "variantSifter",
-                    label: "variantSifter",
-                    sortable: false,
-                    tdClass: "text-center"
                 }
             ],
         };
