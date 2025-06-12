@@ -43,7 +43,7 @@
             >
                 <template #cell(gene)="r">
                     <!-- Link to where? -->
-                    <a>
+                    <a :href='`/gene.html?gene=${r.item.gene}`'>
                         {{ r.item.gene }}
                     </a>
                 </template>
