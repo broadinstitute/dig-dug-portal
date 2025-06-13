@@ -22,7 +22,7 @@ export const pkbMenu = {
             subMenuItems: [
                 { label: "Integrated Cell Browser", path: "/single-cell.html" },
                 { label: "Differential Gene Expression Browser", path: "/diff-exp.html" },
-                { label: "PCA Explorer", path: "https://tools.cmdga.org/PCA_explorer/" },
+                { label: "PCA Explorer", path: "/pca-explorer.html" },
                 {
                     label: "Analytical Library",
                     path: "/analytical-library.html",

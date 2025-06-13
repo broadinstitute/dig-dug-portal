@@ -171,6 +171,13 @@ let pages = {
         title: "Donor Metadata",
         chunks: ["chunk-vendors", "chunk-common", "donormetadata"]
     },
+    pcaexplorer: {
+        entry: "src/portals/PanKbase/views/PCAExplorer/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "pca-explorer.html",
+        title: "PCA Explorer",
+        chunks: ["chunk-vendors", "chunk-common", "pcaexplorer"]
+    },
     diffexp: {
         entry: "src/portals/PanKbase/views/DiffExp/main.js",
         template: "src/portals/PanKbase/index.html",

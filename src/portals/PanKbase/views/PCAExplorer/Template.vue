@@ -8,7 +8,7 @@
                 <div v-html="$parent.info"></div>
                 <iframe
                     id="meta-embed"
-                    src="https://tools.cmdga.org/metadata_analysis_assays/"
+                    src="https://tools.cmdga.org/PCA_explorer/"
                 ></iframe>
             </div>
         </div>
@@ -19,7 +19,7 @@
 <style>
 #meta-embed {
     width: 100%;
-    height: 1000px;
+    height: 1300px;
     border: none;
     margin: 40px 0 0;
 }
