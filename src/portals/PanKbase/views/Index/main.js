@@ -24,16 +24,6 @@ new Vue({
                 rows: [
                     [
                         {
-                            title: "PanKgraph",
-                            body: "Identifying quantitative trait loci (QTLs) for genes in pancreatic and islet tissues",
-                            linkLabel: "Learn More",
-                            linkUrl: "https://pankgraph.org/",
-                            bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph-ctfr.png",
-                            type: "large",
-                            comingSoon: false,
-                        },
-                        {
                             title: "Integrated Maps of Pancreatic Islets",
                             body: "Single cell maps of gene expression and chromatin accessibility with data from >100 human donors from <a href='/hpap-program.html'>HPAP</a>, <a href='/iidp-program.html'>IIDP</a>, and <a target='_blank' href='https://prodolabs.com/'>Prodo</a>",
                             linkLabel: "Learn More",
@@ -43,8 +33,28 @@ new Vue({
                             type: "large",
                             comingSoon: false,
                         },
+                        {
+                            title: "PanKgraph",
+                            body: "Identifying quantitative trait loci (QTLs) for genes in pancreatic and islet tissues",
+                            linkLabel: "Learn More",
+                            linkUrl: "https://pankgraph.org/",
+                            bgImage:
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph-ctfr.png",
+                            type: "large",
+                            comingSoon: false,
+                        },
                     ],
                     [
+                        {
+                            title: "Data Library",
+                            body: "Harmonized meta-data and data of human donors, biosamples, assays, and more all standardized using Common Data Elements.",
+                            linkLabel: "Learn More",
+                            linkUrl: "https://data.pankbase.org/",
+                            bgImage:
+                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-datalibrary.png",
+                            type: "medium",
+                            comingSoon: false,
+                        },
                         {
                             title: "Donor Summary",
                             body: "Summarized metadata of ~3500 donors from <a href='/hpap-program.html'>HPAP</a>, <a href='/iidp-program.html'>IIDP</a>, <a target='_blank' href='https://prodolabs.com/'>Prodo</a>, <a href='/adi-program.html'>ADI IsletCore</a>, <a href='/npod-program.html'>nPOD</a>, and <a href='/pancreatlas-program.html'>Pancreatlas</a>",
@@ -64,7 +74,8 @@ new Vue({
                                 "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
                             type: "medium",
                             comingSoon: false,
-                        },
+                        }
+                        /*
                         {
                             title: "Genetic Associations",
                             body: "",
@@ -85,6 +96,7 @@ new Vue({
                             type: "medium",
                             comingSoon: true,
                         },
+                        */
                     ],
                 ],
             },
@@ -227,7 +239,7 @@ new Vue({
                 return resp.json();
             });
             //trim feed to 5 items
-            if (newsFeed.length > 5) newsFeed.length = 5;
+            if (newsFeed.length > 5) newsFeed.length = 3;
             newsFeed.forEach((item) => {
                 //extract only the img element frforom thumbnail, wysiwyg html can be polluted sometimes
                 item.field_thumbnail_image =
