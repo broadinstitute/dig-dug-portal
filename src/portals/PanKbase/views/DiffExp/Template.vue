@@ -178,8 +178,8 @@
                                                                 sectionId="bulk"
                                                                 :selectedGene="$parent.selectedGene"
                                                                 @highlight="gene => $parent.highlight(gene)"
-                                                                :plotId="$parent.kpDataset">
-
+                                                                :plotId="$parent.kpDataset"
+                                                                :upregulatedIn="$parent.upregulatedIn">
                                                             </bulk-volcano-plot>
                                                         </div>
                                                         <div v-else>
