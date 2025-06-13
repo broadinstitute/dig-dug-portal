@@ -198,14 +198,14 @@ export default Vue.component("bulk-table", {
                 xField: this.contField.key,
                 xAxisLabel: this.contField.label,
                 yField: "norm_counts",
-                yAxisLabel: "Norm counts",
+                yAxisLabel: "Gene expression (CPM)",
                 dotKey: "sample_id",
                 hoverBoxPosition: "left",
                 plotHeight: 350,
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},
                     {key: this.contField.key, label: this.contField.label},
-                    {key: "norm_counts", label: "Norm counts"}
+                    {key: "norm_counts", label: "Gene expression (CPM)"}
                 ],
             };
             return config;
@@ -270,7 +270,7 @@ export default Vue.component("bulk-table", {
                 },
                 {
                     key: "norm_counts",
-                    label: "Norm counts",
+                    label: "Gene expression (CPM)",
                     sortable: true,
                 },
             ];

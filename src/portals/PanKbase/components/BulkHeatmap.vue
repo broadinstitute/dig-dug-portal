@@ -7,7 +7,7 @@
     </download-chart>
     <div style="display:flex; gap:5px" class="legends">
         <div style="display:inline-block; width:65%;" class="legend">
-            <strong>Expression</strong>
+            <strong>RUV-normalized counts</strong>
             <div style="display:flex; margin-top:10px" class="marks">
               <span>{{ this.minExp }}</span>
               <div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`"></div>
@@ -284,7 +284,7 @@ export default Vue.component("bulk-heatmap", {
         let expression = classes[1].replace("expr_", "");
         expression = expression.replace("dot", ".");
         tooltipHtml = tooltipHtml.concat(
-          `<div>Expression: ${expression}</div>`);
+          `<div>RUV-normalized counts: ${expression}</div>`);
         mouseTooltip.show(tooltipHtml);
       },
       clickSquare(event){

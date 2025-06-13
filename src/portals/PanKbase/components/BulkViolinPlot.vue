@@ -189,7 +189,7 @@ import { truncate } from 'lodash';
 				.attr("transform", "rotate(-90)")
                 .attr("y", -35)
                 .attr("x", - height / 2)
-				.text("Norm counts");
+				.text("Gene expression (CPM)");
         },
         truncateLabel(label){
             if (!this.xField === "cat__custom__surgery"){
