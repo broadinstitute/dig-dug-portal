@@ -1,5 +1,12 @@
 <template>
-    <div class="plot" :id="`violinChart_${gene}`">
+    <div>
+        <download-chart
+            :filename="`${gene}_expression_cpm_by_${xField.split('__')[1]}`"
+            :chartId="`violinChart_${gene}_svg`"
+            >
+        </download-chart>
+        <div class="plot" :id="`violinChart_${gene}`">
+        </div>
     </div>
 </template>
   
@@ -102,6 +109,7 @@ import { truncate } from 'lodash';
                 .append("svg")
                     .attr("width", width + this.margin.left + this.margin.right)
                     .attr("height", height + this.margin.top + this.margin.bottom)
+                    .attr("id", `${this.plotId}_svg`)
                 .append("g")
                     .attr("transform", 
                         `translate(${this.margin.left},${this.margin.top})`);
