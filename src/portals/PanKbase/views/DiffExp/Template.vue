@@ -86,7 +86,7 @@
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
-                                            Set P-value threshold
+                                            Set adj. P-value threshold
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
@@ -178,8 +178,8 @@
                                                                 sectionId="bulk"
                                                                 :selectedGene="$parent.selectedGene"
                                                                 @highlight="gene => $parent.highlight(gene)"
-                                                                :plotId="$parent.kpDataset">
-
+                                                                :plotId="$parent.kpDataset"
+                                                                :upregulatedIn="$parent.upregulatedIn">
                                                             </bulk-volcano-plot>
                                                         </div>
                                                         <div v-else>

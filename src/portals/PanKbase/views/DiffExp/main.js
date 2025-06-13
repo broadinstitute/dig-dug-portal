@@ -222,6 +222,10 @@ new Vue({
                     this.sampleMetadata.metadata[comparison];
             }
             return info;
+        },
+        upregulatedIn(){
+            let label = this.$store.state.currentComparisons[this.$store.state.selectedComparison];
+            return label.split(/[^w]vs/)[0];
         }
     },
     async mounted() {
