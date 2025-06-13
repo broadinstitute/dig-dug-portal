@@ -86,7 +86,7 @@
                                 <div class="tabs-group">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
-                                            Set P-value threshold
+                                            Set adj. P-value threshold
                                         </div>
                                     </div>
                                     <div class="tabs-section-wrapper">
