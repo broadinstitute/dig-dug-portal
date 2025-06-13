@@ -52,7 +52,10 @@
                                                         <option value="">Select a comparison</option>
                                                         <option v-for="comp in $parent.comparisons"
                                                             :value="comp">
-                                                            {{ $store.state.currentComparisons[comp] }}
+                                                            {{ comp === "dea_comp_1" 
+                                                                ? "insulin resistant vs. insulin sensitive"
+                                                                :$store.state.currentComparisons[comp] 
+                                                            }}
                                                         </option>
                                                     </select>
                                                 </div>
