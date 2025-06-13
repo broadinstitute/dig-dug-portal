@@ -1,5 +1,5 @@
 <template>
-    <div class="plot" :id="`violinChart_${gene}`">
+    <div class="plot" :id="`violinChart_${gene.replaceAll('.', '_')}`">
     </div>
 </template>
   
@@ -57,7 +57,7 @@ import { truncate } from 'lodash';
         }
     },
     mounted() {
-        this.plotId = `violinChart_${this.gene}`;
+        this.plotId = `violinChart_${this.gene.replaceAll(".", "_")}`;
         if(this.data){
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;
