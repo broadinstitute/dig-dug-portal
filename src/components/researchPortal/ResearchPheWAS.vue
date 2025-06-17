@@ -160,6 +160,7 @@ import Vue from "vue";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import bioIndexUtils from "@/utils/bioIndexUtils";
+import { evaluate } from 'mathjs';
 import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";
 Vue.use(BootstrapVueIcons);
 
@@ -533,7 +534,8 @@ export default Vue.component("ResearchPhewasPlot", {
                         calcString += eValue;
                     });
 
-                    let threshold = eval(calcString);
+                    //let threshold = eval(calcString);
+                    let threshold = evaluate(calcString);
 
                     threshholds.push(threshold);
                 });

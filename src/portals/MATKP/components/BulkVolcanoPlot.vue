@@ -28,6 +28,7 @@ import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 import { ACCESSIBLE_RED, ACCESSIBLE_BLUE } from "../utils/content.js";
+import { evaluate } from 'mathjs';
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 
 Vue.use(BootstrapVueIcons);
@@ -129,7 +130,8 @@ export default Vue.component("bulk-volcano-plot", {
 					calcString += eValue;
 				});
 
-				let threshold = eval(calcString);
+				//let threshold = eval(calcString);
+				let threshold = evaluate(calcString);
 
 				return threshold;
 			}

@@ -444,8 +444,6 @@ export default Vue.component("research-bar-plot", {
 
 						calcString += eValue;
 					});
-					//let threshold = eval(calcString);
-					//let threshold = Function('"use strict";return (' + calcString + ')')();
 					let threshold = evaluate(calcString);
 					
 					threshholds.push(threshold);

@@ -55,6 +55,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import { evaluate } from 'mathjs';
 import volcanoPlotVector from "@/components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
@@ -233,7 +234,8 @@ export default Vue.component("research-volcano-plot", {
 
 				console.log("calcString",calcString);
 
-				let threshold = eval(calcString);
+				//let threshold = eval(calcString);
+				let threshold = evaluate(calcString);
 				return threshold;
 			}
 

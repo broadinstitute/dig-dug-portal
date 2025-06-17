@@ -1,3 +1,5 @@
+import { evaluate } from 'mathjs';
+
 let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
 
     let convertedData = [];
@@ -214,7 +216,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
                                 calcString += eValue;
                             });
 
-                            tempObj[c["field name"]] = eval(calcString);
+                            //tempObj[c["field name"]] = eval(calcString);
+                            tempObj[c["field name"]] = evaluate(calcString);
 
 
                             if ((!!c['min number'] || c['min number'] === 0) && tempObj[c["field name"]] < c['min number']) {
