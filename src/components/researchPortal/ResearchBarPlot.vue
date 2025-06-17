@@ -113,6 +113,7 @@ import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import { evaluate } from 'mathjs';
 import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
@@ -443,7 +444,10 @@ export default Vue.component("research-bar-plot", {
 
 						calcString += eValue;
 					});
-					let threshold = eval(calcString);
+					//let threshold = eval(calcString);
+					//let threshold = Function('"use strict";return (' + calcString + ')')();
+					let threshold = evaluate(calcString);
+					
 					threshholds.push(threshold);
 				})
 				this.renderConfig["thresholds"] = threshholds;
