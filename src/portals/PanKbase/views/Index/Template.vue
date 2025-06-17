@@ -166,14 +166,12 @@
 
             <div class="section" style="flex-direction: row">
                 <div class="f-col" style="flex: 1; gap:20px">
-                    <div class="collab f-col" style="gap: 10px">
-                        <div class="section-title">Available Funding</div>
-                        <div v-html="$parent.content.funding"></div>
-                    </div>
-
-                    <div class="collab f-col" style="gap: 10px">
-                        <div class="section-title">Collaborate</div>
-                        <div v-html="$parent.content.collaborate"></div>
+                    <div v-for="item in $parent.content.extras" class="collab f-col" style="gap: 10px">
+                        <div class="section-title">{{item.title}}</div>
+                        <div class="f-row" style="gap:20px">
+                            <div v-if="item.icon"><img :src="item.icon" style="height: 80px;"/></div>
+                            <div v-html="item.body"></div>
+                        </div>
                     </div>
                 </div>
 
