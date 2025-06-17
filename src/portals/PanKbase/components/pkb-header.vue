@@ -285,6 +285,5 @@ a:hover {
     bottom: -20px;
     left: 19px;
     mix-blend-mode: multiply;
-    display:none;
 }
 </style>
