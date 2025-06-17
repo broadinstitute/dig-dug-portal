@@ -31,7 +31,6 @@
                 "x axis label": "Position",
                 "y axis label": "NaturalLog(HugeScore)",
                 "height": 300,
-                "link to": "/region.html",
                 "hover content": ["huge"]
             }
         }

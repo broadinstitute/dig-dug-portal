@@ -137,7 +137,6 @@ export default Vue.component("GeneFinderTable", {
                 "x axis label": "Position",
                 "y axis label": "-log10(p-value)",
                 height: 300,
-                "link to": "/region.html",
                 "hover content": ["p"],
             },
         };
