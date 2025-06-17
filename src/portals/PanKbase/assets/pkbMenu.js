@@ -39,10 +39,10 @@ export const pkbMenu = {
             label: "About",
             path: "",
             subMenuItems: [
-                { label: "Project", path: "/projects.html" },
+                { label: "PanKbase Program", path: "/projects.html" },
                 { label: "People", path: "/people.html" },
                 { label: "Policies", path: "/policies.html" },
-                { label: "Programs", path: "/programs.html" },
+                { label: "Related Programs", path: "/programs.html" },
                 { label: "Collaborate", path: "/collaborate.html" },
             ],
         },

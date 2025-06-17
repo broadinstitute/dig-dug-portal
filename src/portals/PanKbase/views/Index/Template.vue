@@ -165,9 +165,16 @@
             </div>
 
             <div class="section" style="flex-direction: row">
-                <div class="collab f-col" style="flex: 1; gap: 10px">
-                    <div class="section-title">Collaborate</div>
-                    <div v-html="$parent.content.collaborate"></div>
+                <div class="f-col" style="flex: 1; gap:20px">
+                    <div class="collab f-col" style="gap: 10px">
+                        <div class="section-title">Available Funding</div>
+                        <div v-html="$parent.content.funding"></div>
+                    </div>
+
+                    <div class="collab f-col" style="gap: 10px">
+                        <div class="section-title">Collaborate</div>
+                        <div v-html="$parent.content.collaborate"></div>
+                    </div>
                 </div>
 
                 <div class="news f-col" style="flex: 1; gap: 10px">

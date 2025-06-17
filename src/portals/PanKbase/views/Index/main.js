@@ -205,6 +205,8 @@ new Vue({
                 ],
             },
 
+            funding:"PanKbase plans to offer annual pilot funding opportunities to support the timely adoption of rapid advancements in artificial intelligence (AI) and data science into the PanKbase platform.<br>See <a href='https://hugeampkpncms.org/sites/default/files/images/pankbase/PanKbase_OpportunityFund.pdf' target='_blank'>here</a> for more information.",
+
             collaborate:
                 "PanKbase is a growing resource that is actively under development. If you have new data, analysis tools, features, or visualizations that you'd like us to incorporate, please contact us at <a href='mailto:help@pankbase.org'>help@pankbase.org</a>",
 
