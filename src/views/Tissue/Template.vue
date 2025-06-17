@@ -117,6 +117,69 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <div
+                    v-if="
+                        $parent.deployment !== 'production'
+                    "
+                    class="card mdkp-card"
+                >
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Differential gene expression in
+                            {{ $parent.tissueFormatter($parent.tissue) }}, in
+                            mouse founder strains
+                            <tooltip-documentation
+                                name="tissue.mice-diff-exp.tooltip"
+                                :content-fill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
+                            >
+                            </tooltip-documentation>
+                        </h4>
+                        <documentation
+                            name="tissue.mice-diff-exp.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </documentation>
+                        <criterion-function-group>
+                            <filter-pvalue-control
+                                field="P_adj_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: sex (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: strain (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: strain and sex (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <mouse-summary-table
+                                    :items="$store.state.mouseSummary.data"
+                                    :filter="filter"
+                                >
+                                </mouse-summary-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
@@ -235,70 +298,6 @@
                                     :phenotype="$store.state.selectedPhenotype"
                                 >
                                 </c2ct-table>
-                            </template>
-                        </criterion-function-group>
-                    </div>
-                </div>
-                <div
-                    v-if="
-                        $parent.deployment !== 'production' &&
-                        $store.state.mouseSummary.data.length > 0
-                    "
-                    class="card mdkp-card"
-                >
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Differential gene expression in
-                            {{ $parent.tissueFormatter($parent.tissue) }}, in
-                            mouse founder strains
-                            <tooltip-documentation
-                                name="tissue.mice-diff-exp.tooltip"
-                                :content-fill="$parent.docDetails"
-                                :is-hover="true"
-                                :no-icon="false"
-                                :content-map="
-                                    $store.state.bioPortal.documentations
-                                "
-                            >
-                            </tooltip-documentation>
-                        </h4>
-                        <documentation
-                            name="tissue.mice-diff-exp.subheader"
-                            :content-fill="$parent.docDetails"
-                            :content-map="$store.state.bioPortal.documentations"
-                        >
-                        </documentation>
-                        <criterion-function-group>
-                            <filter-pvalue-control
-                                field="P_adj_sex"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: sex (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <filter-pvalue-control
-                                field="P_adj_strain"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: strain (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <filter-pvalue-control
-                                field="P_adj_strain_sex"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: strain and sex (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <mouse-summary-table
-                                    :items="$store.state.mouseSummary.data"
-                                    :filter="filter"
-                                >
-                                </mouse-summary-table>
                             </template>
                         </criterion-function-group>
                     </div>
