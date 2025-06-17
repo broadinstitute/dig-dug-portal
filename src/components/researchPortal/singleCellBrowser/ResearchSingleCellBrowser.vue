@@ -8,7 +8,7 @@
                         {{ bi.name }}
                     </option>
                 </select>
-                <b-pagination
+                <b-pagination 
                     v-model="currentDatasetsPage"
                     class="pagination justify-content-center"
                     :total-rows="totalDatasets"
@@ -39,6 +39,42 @@
                 </select>
             </div>
         </template>
+
+        <template v-if="false">
+            <div style="font-weight: bold;">Select Tissue</div>
+            <!-- datasets dropdown -->
+            <select @change="selectDataset(data.item.datasetId)" v-model="datasetId">
+                <option :value="null">--Select--</option>
+                <option v-for="item in singleCellMetadata" :value="item.datasetId">{{ item.tissue }} ({{ item.totalCells.toLocaleString() }} cells)</option>
+            </select>
+        </template>
+
+        <div v-if="showDatasetSelect" style="display:flex; flex-direction: column; gap:10px;">
+            <div>
+                <div style="font-weight: bold; font-size:16px;">Select Tissue</div>
+                <div>Click on a row to select</div>
+            </div>
+            <!-- datasets table -->
+            <b-table v-if="singleCellMetadata"
+                :items="singleCellMetadata"
+                :fields="tableColumns"
+                small
+                striped
+                hover
+                responsive="sm"
+                head-variant="light"
+                sticky-header="300px"
+                :per-page="datasetsPerPage"
+                :current-page="currentDatasetsPage"
+                :tbody-tr-class="datasetsRowClass"
+                @row-clicked="item => selectDataset(item.datasetId)"
+            >
+                <template #cell(datasetId)="data">
+                    <button v-if="data.item.datasetId !== datasetId" @click="selectDataset(data.item.datasetId)">Select</button>
+                    <div v-else>Selected</div>
+                </template>
+            </b-table>
+        </div>
 
 
         <div v-if="!datasetId" style="color:red; margin:0 auto">
@@ -450,17 +486,20 @@
                                 <research-dot-plot
                                     style="display:flex; align-self: center"
                                     :data="markerGenes || expressionStatsAll"
+                                    data-blah="pct_nz_group"
                                     yKey="cell_type"
                                     xKey="gene"
                                     yLabel="Cell Type"
                                     xLabel="Gene"
+                                    fillKey="mean_expression"
+                                    :sizeKey="markerGenesSizeKey"
                                     :fitToSize="true"
                                     :cellWidth="30"
                                     highlightKey=""
                                 />
                             </div>
                             <b-table v-if="markerGenesTable"
-                                    style="font-size:12px"
+                                    style="font-size:12px;"
                                     :items="markerGenesTable"
                                     :fields="markerTableColumns"
                                     striped
@@ -711,6 +750,7 @@
                 },
 
                 allMetadata: null, //raw metadata for all datasets
+                singleCellMetadata: null, //raw metadata for single-cell datasets
                 metadata: null, //raw metadata for current dataset
                 fields: null,   //raw fields
                 coordinates: null,  //raw coordinates
@@ -736,13 +776,17 @@
 
                 viewType: 1,
                 
-                tableColumns: ["datasetName", "tissue", "method", "totalCells", { key: 'datasetId', label: 'View' }],
+                tableColumns: [
+                    {key: "tissue", label: "Tissue", class:"capitalize"}, 
+                    {key: "totalCells", label: "Total Cells", formatter: (val) => val.toLocaleString()}
+                ],
                 currentDatasetsPage: 1,
                 totalDatasets: null,
-                datasetsPerPage: 3,
+                datasetsPerPage: null,
 
-                componentsConfig: null,
                 presetsConfig: null,
+
+                showDatasetSelect: false,
 
                 //colorIndex: 0,
                 //colorScaleIndex: d3.scaleOrdinal(colors),
@@ -907,8 +951,18 @@
 
                 return bi;
             },
+            markerGenesSizeKey(){
+                //todo: remove this after marker_genes endpoint data struct is standardized
+                if(!this.markerGenes) return null;
+                if(this.markerGenes[0].pct_nz_group) return 'pct_nz_group';
+                if(this.markerGenes[0].pct_cells_expression) return 'pct_cells_expression';
+            }
         },
         methods: {
+            datasetsRowClass(item){
+                if (!item) return ''; // For header/footer rows
+                return item.datasetId === this.datasetId ? 'selected-dataset-row' : 'dataset-row';
+            },
             preprocessBoxPlotData(groupKey, contKey){
                 return scUtils.preprocessBoxPlotData(this.fields.metadata, this.fields.metadata_labels, groupKey, contKey)
             },
@@ -964,15 +1018,9 @@
                 this.contExprResults = null;
             },
             async init(){
-                //check which components to enable based on config options
-                //all are enabled by default if not set
-                this.componentsConfig = this.renderConfig["components"];
-                this.showCellInfo = this.componentsConfig?.["cell info"]?.enabled ?? true;
-                this.showCellProportion = this.componentsConfig?.["cell proportion"]?.enabled ?? true;
-                this.showGeneExpression = this.componentsConfig?.["gene expression"]?.enabled ?? true;
-                this.showMarkerGenes = this.componentsConfig?.["marker genes"]?.enabled ?? true;
-
                 this.presetsConfig = this.renderConfig["presets"];
+
+                this.showDatasetSelect = this.presetsConfig?.["showDatasetSelect"] || false;
 
                 this.layout = keyParams["layout"] || this.presetsConfig?.["layout"] || 0;
                 llog('LAYOUT', this.layout)
@@ -1850,5 +1898,19 @@ button:hover {
     ::v-deep .download.show .dropdown-item{
         text-align: center;
     }
+
+    ::v-deep .b-table-sticky-header th.position-relative {
+        position: sticky !important;
+    }
+
+    ::v-deep .dataset-row {
+        cursor:pointer;
+    }
+    ::v-deep .selected-dataset-row {
+        background-color: #d0ebff !important;
+    }
+
+    ::v-deep .capitalize{
+        text-transform: capitalize;
+    }
 </style>
-  
