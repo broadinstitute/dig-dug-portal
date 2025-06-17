@@ -302,6 +302,25 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <div
+                            class="filtering-ui-wrapper container-fluid temporary-card"
+                        >
+                            <div class="row filtering-ui-content">
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">
+                                            Search by ancestry
+                                        </div>
+                                    </span>
+                                    <ancestry-selectpicker
+                                        :ancestries="
+                                            $store.state.ancestryOptions
+                                        "
+                                    >
+                                    </ancestry-selectpicker>
+                                </div>
+                            </div>
+                        </div>
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
                             :phenotype-map="$store.state.bioPortal.phenotypeMap"
