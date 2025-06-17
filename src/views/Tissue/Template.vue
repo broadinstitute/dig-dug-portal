@@ -117,6 +117,67 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <div
+                    v-if="$parent.showDiffExp"
+                    class="card mdkp-card"
+                >
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Differential gene expression in
+                            {{ $parent.tissueFormatter($parent.tissue) }}, in
+                            mouse founder strains
+                            <tooltip-documentation
+                                name="tissue.mice-diff-exp.tooltip"
+                                :content-fill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
+                            >
+                            </tooltip-documentation>
+                        </h4>
+                        <documentation
+                            name="tissue.mice-diff-exp.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </documentation>
+                        <criterion-function-group>
+                            <filter-pvalue-control
+                                field="P_adj_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: sex (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: strain (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: strain and sex (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <mouse-summary-table
+                                    :items="$store.state.mouseSummary.data"
+                                    :filter="filter"
+                                >
+                                </mouse-summary-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
@@ -239,72 +300,40 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <div
-                    v-if="
-                        $parent.deployment !== 'production' &&
-                        $store.state.mouseSummary.data.length > 0
-                    "
-                    class="card mdkp-card"
-                >
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Differential gene expression in
-                            {{ $parent.tissueFormatter($parent.tissue) }}, in
-                            mouse founder strains
-                            <tooltip-documentation
-                                name="tissue.mice-diff-exp.tooltip"
-                                :content-fill="$parent.docDetails"
-                                :is-hover="true"
-                                :no-icon="false"
-                                :content-map="
-                                    $store.state.bioPortal.documentations
-                                "
-                            >
-                            </tooltip-documentation>
-                        </h4>
-                        <documentation
-                            name="tissue.mice-diff-exp.subheader"
-                            :content-fill="$parent.docDetails"
-                            :content-map="$store.state.bioPortal.documentations"
-                        >
-                        </documentation>
-                        <criterion-function-group>
-                            <filter-pvalue-control
-                                field="P_adj_sex"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: sex (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <filter-pvalue-control
-                                field="P_adj_strain"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: strain (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <filter-pvalue-control
-                                field="P_adj_strain_sex"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: strain and sex (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <mouse-summary-table
-                                    :items="$store.state.mouseSummary.data"
-                                    :filter="filter"
-                                >
-                                </mouse-summary-table>
-                            </template>
-                        </criterion-function-group>
-                    </div>
-                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <h4>
+                            Global enrichment for {{ $parent.tissueFormatter($parent.tissue) }} (Ancestry:
+                            {{
+                                $store.state.selectedAncestry === ""
+                                    ? "Mixed meta-analysis"
+                                    : $parent.ancestryFormatter($store.state.selectedAncestry)
+                            }})
+                        </h4>
+                        <documentation
+                            name="tissue.global-enrichment.subheader"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        ></documentation>
+                        <div
+                            class="filtering-ui-wrapper container-fluid temporary-card"
+                        >
+                            <div class="row filtering-ui-content">
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">
+                                            Search by ancestry
+                                        </div>
+                                    </span>
+                                    <ancestry-selectpicker
+                                        :ancestries="
+                                            $store.state.ancestryOptions
+                                        "
+                                    >
+                                    </ancestry-selectpicker>
+                                </div>
+                            </div>
+                        </div>
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
                             :phenotype-map="$store.state.bioPortal.phenotypeMap"
