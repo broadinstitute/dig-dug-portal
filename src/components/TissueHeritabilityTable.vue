@@ -1,33 +1,5 @@
 <template>
     <div>
-        <h4>
-            Global enrichment for {{ tissueFormatter(tissue) }} (Ancestry:
-            {{
-                ancestry === "Mixed"
-                    ? "Mixed meta-analysis"
-                    : ancestryFormatter(ancestry)
-            }})
-        </h4>
-        <!-- <div class="filtering-ui-wrapper container-fluid">
-            <div class="row filtering-ui-content">
-                <div class="col filter-col-md">
-                    <div class="label">Ancestry</div>
-                    <ancestry-selectpicker
-                        :defaultMixed="true"
-                        :ancestries="
-                            $store.state.bioPortal.datasets.map(
-                                (dataset) => dataset.ancestry
-                            )
-                        "
-                    ></ancestry-selectpicker>
-                </div>
-            </div>
-        </div> -->
-        <documentation
-            name="tissue.global-enrichment.subheader"
-            :contentFill="$parent.docDetails"
-            :contentMap="$store.state.bioPortal.documentations"
-        ></documentation>
         <div v-if="itemData.length > 0">
             <div
                 v-html="'Total rows: ' + itemData.length"

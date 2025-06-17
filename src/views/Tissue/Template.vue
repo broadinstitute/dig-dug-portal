@@ -302,6 +302,19 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <h4>
+                            Global enrichment for {{ $parent.tissueFormatter($parent.tissue) }} (Ancestry:
+                            {{
+                                $store.state.selectedAncestry === ""
+                                    ? "Mixed meta-analysis"
+                                    : $parent.ancestryFormatter($store.state.selectedAncestry)
+                            }})
+                        </h4>
+                        <documentation
+                            name="tissue.global-enrichment.subheader"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        ></documentation>
                         <div
                             class="filtering-ui-wrapper container-fluid temporary-card"
                         >
