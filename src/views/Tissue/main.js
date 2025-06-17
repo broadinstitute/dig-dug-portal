@@ -136,6 +136,10 @@ new Vue({
             });
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
+        showDiffExp(){
+            return this.deployment !== 'production' &&
+                this.$store.state.mouseSummary.data.length > 0;
+        }
     },
     created() {
         // get the disease group and set of phenotypes available

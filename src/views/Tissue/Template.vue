@@ -118,9 +118,7 @@
                     </div>
                 </div>
                 <div
-                    v-if="
-                        $parent.deployment !== 'production'
-                    "
+                    v-if="$parent.showDiffExp"
                     class="card mdkp-card"
                 >
                     <div class="card-body">
