@@ -16,9 +16,6 @@
               responsive="sm"
               head-variant="light"
           >
-              <template #cell(totalCells)="data">
-                {{data.item.totalCells.toLocaleString()}}
-              </template>
               <template #cell(viewDataset)="data">
                   <button @click="$parent.selectDataset(data.item.datasetId)" 
                     class="pkb" 
@@ -37,7 +34,7 @@
               </template>
           </b-table>
           <research-single-cell-browser 
-            v-if="$parent.scbConfig"
+            v-if="$parent.scbConfig" 
             sectionId="scb"
             :renderConfig="$parent.scbConfig"
             :utils="$parent.utils"

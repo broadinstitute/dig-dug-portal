@@ -37,8 +37,8 @@ new Vue({
               "tissue", 
               "method", 
               { key: 'totalDonors', label: 'Donors' }, 
-              "totalCells", 
-              { key: 'download', label: 'Download' }
+              { key: "totalCells", label: 'Total Cells', formatter: (val) => val.toLocaleString()}, 
+              { key: 'download', label: 'Download'}
             ],
             selectedDataset: null,
             scbConfig: null,
@@ -92,7 +92,10 @@ new Vue({
             //returns line json
             const text = await response.text();
             const lines = text.split('\n').filter(line => line.trim() !== '');
-            const metadata = lines.map(line => JSON.parse(line));
+            let metadata = lines.map(line => JSON.parse(line));
+            if (metadata[0]?.data_type) {
+                metadata = metadata.filter(item => item.data_type === 'single_cell');
+            }
             return metadata;
         } catch (error) {
             console.error('Error fetching metadata:', error);
