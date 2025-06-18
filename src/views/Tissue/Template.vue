@@ -117,6 +117,45 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4>
+                            {{
+                                `Cell type clusters for ${$parent.tissueFormatter(
+                                    $parent.tissue
+                                )}`
+                            }}
+                        </h4>
+                        <documentation
+                            name="tissue.single-cell.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        ></documentation>
+                        
+                        <template v-if="$parent.hasMatchingSingleCellTissue">
+                            <div>
+                                See <strong>more</strong> interactive plots for 
+                                {{ $parent.tissueFormatter($parent.tissue) }} 
+                                cell type clusters, gene expression by trait, cell type abundance, 
+                                and marker gene expression on the 
+                                <a :href="`/r/scb?datasetId=${$parent.scbConfig.presets.datasetId}`">Single Cell Browser</a>.
+                            </div>
+                            <research-single-cell-browser 
+                                v-if="$parent.scbConfig"
+                                style="margin:40px 0 0"
+                                sectionId="scb"
+                                :renderConfig="$parent.scbConfig"
+                                :utils="$parent.utilsBox"
+                                :data="[]">
+                            </research-single-cell-browser>
+                        </template>
+                        <template v-else>
+                            <b-alert show variant="warning" class="text-center">
+                                <b-icon icon="exclamation-triangle"></b-icon>  No data available for this query.
+                            </b-alert>
+                        </template>
+                    </div>
+                </div>
                 <div
                     v-if="$parent.showDiffExp"
                     class="card mdkp-card"
