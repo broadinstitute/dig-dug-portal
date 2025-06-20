@@ -32,6 +32,14 @@
             type: String,
             required: false,
         },
+        sizeKey:{
+            type: String,
+            required: true,
+        },
+        fillKey:{
+            type: String,
+            required: true,
+        },
         width:{
             type: Number,
             default: 300,
@@ -119,7 +127,9 @@
             const yKey = this.yKey;
             const xKeyLabels = Array.from(new Set(this.data.map(d => d[xKey])));
             const yKeyLabels = Array.from(new Set(this.data.map(d => d[yKey])));
-            const allMeans = this.data.map(d => d.mean_expression);
+            const fillKey = this.fillKey;
+            const sizeKey = this.sizeKey;
+            const allMeans = this.data.map(d => d[fillKey]);
 
             //llog('   xKeyLabels', xKey, this.xKey, xKeyLabels); 
             //llog('   yKeyLabels', yKey, this.yKey, yKeyLabels);
@@ -290,8 +300,8 @@
                     cells.append('circle')
                         .attr('cx', xScale(d[xKey]) + xScale.bandwidth() / 2 )
                         .attr('cy', yScale(d[yKey]) + yScale.bandwidth() / 2 )
-                        .attr('r', cellScale(d.pct_nz_group*100))
-                        .style('fill', colorScale(d.mean_expression))
+                        .attr('r', cellScale(d[sizeKey]*100))
+                        .style('fill', colorScale(d[fillKey]))
                         .style('pointer-events', 'none')
                         .attr('data-key', d[yKey])
                         .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d[yKey] ? '1' : '0.1')
@@ -301,8 +311,8 @@
                         const tooltipContent = `<div style="display: grid; grid-template-columns: 1fr max-content; gap:5px; row-gap:2px; font-size:12px;">
                             <div style="font-weight:bold">${xKey}</div>     <div>${d[xKey]}</div>
                             <div style="font-weight:bold">${yKey}</div>     <div>${d[yKey]}</div>
-                            <div style="font-weight:bold">Mean Expr.</div>  <div>${d.mean_expression.toFixed(4)}</div>
-                            <div style="font-weight:bold">% Expr.</div>     <div>${(d.pct_nz_group*100).toFixed(4)}</div>
+                            <div style="font-weight:bold">Mean Expr.</div>  <div>${d[fillKey].toFixed(4)}</div>
+                            <div style="font-weight:bold">% Expr.</div>     <div>${(d[sizeKey]*100).toFixed(4)}</div>
                         </div>`;
                         mouseTooltip.show(tooltipContent);
                     })

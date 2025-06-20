@@ -6,7 +6,16 @@
         <div v-if="points"
             style="display:flex; align-items: center; justify-content: flex-end; gap:5px; position: absolute; right: 5px; top: 5px; z-index: 1">
             <!--<div><span style="font-family: monospace;">{{ points.length.toLocaleString() }}</span> cells</div>-->
-            <button @click="showLabels = !showLabels" v-b-tooltip.hover.bottom title="toggle labels">
+            <button @click="showTooltips = !showTooltips" v-b-tooltip.hover.bottom title="toggle cell info" :style="!showTooltips?'background:#ddd':'background:white'">
+                <svg style="width:12px;margin:0 4px;" viewBox="0 0 15.098 18.794" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(-.27 -.301)">
+                        <path d="M.77 14.361V.801h14.098v13.56H10.51l-2.853 4.234-2.605-4.234z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="7.845" cy="4.296" r=".979"/>
+                        <path d="M7.094 5.928h1.501v5.876H7.094z"/>
+                    </g>
+                </svg>
+            </button>
+            <button @click="showLabels = !showLabels" v-b-tooltip.hover.bottom title="toggle labels" :style="!showLabels?'background:#ddd':'background:white'">
                 <svg style="width:20px;" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
                     transform="rotate(270)">
                     <path
@@ -29,7 +38,13 @@
                 </svg>
             </button>
             <button @click="download" v-b-tooltip.hover.bottom title="Download">
-                <svg style="width:24px;" fill="#000000" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M512 666.5L367.2 521.7l36.2-36.2 83 83V256h51.2v312.5l83-83 36.2 36.2L512 666.5zm-204.8 50.3V768h409.6v-51.2H307.2z"></path></g></svg>
+                <svg style="width:24px;" fill="#000000" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M512 666.5L367.2 521.7l36.2-36.2 83 83V256h51.2v312.5l83-83 36.2 36.2L512 666.5zm-204.8 50.3V768h409.6v-51.2H307.2z"></path>
+                    </g>
+                </svg>
             </button>
         </div>
         <!-- 1) WebGL canvas for points -->
@@ -107,6 +122,7 @@ export default Vue.component('research-umap-plot-gl', {
             program: null,
             buffers: {},
             showLabels: true,
+            showTooltips: true,
             scale: 1.0,
             translate: { x: 0.0, y: 0.0 },
             resetScale: 1.0,
@@ -238,10 +254,9 @@ export default Vue.component('research-umap-plot-gl', {
             sharedUmapData.release(this.group);
         },
 
-
         calculatePointBounds() {
-            //llog("   calculatePointBounds");
-            this.pointBounds = { n: 0, s: 0, e: 0, w: 0 };
+            this.pointBounds = { n: Infinity, s: -Infinity, e: -Infinity, w: Infinity };
+
             this.points.forEach(({ X, Y }) => {
                 if (X > this.pointBounds.e) this.pointBounds.e = X;
                 if (X < this.pointBounds.w) this.pointBounds.w = X;
@@ -249,21 +264,25 @@ export default Vue.component('research-umap-plot-gl', {
                 if (Y < this.pointBounds.n) this.pointBounds.n = Y;
             });
 
-            const boundsWidth = Math.abs(this.pointBounds.e - this.pointBounds.w);
-            const boundsHeight = Math.abs(this.pointBounds.s - this.pointBounds.n);
-            const largestDim = Math.max(boundsWidth, boundsHeight);
+            const boundsWidth = this.pointBounds.e - this.pointBounds.w;
+            const boundsHeight = this.pointBounds.s - this.pointBounds.n;
 
-            // scale so it roughly fills 80% of the canvas
-            const pixelWidth = this.$refs.umapCanvas.width; // in GL pixels
-            this.scale = (pixelWidth * 0.8) / largestDim;
+            const canvasWidth = this.$refs.umapCanvas.width;
+            const canvasHeight = this.$refs.umapCanvas.height;
+
+            const shorterCanvasDim = Math.min(canvasWidth, canvasHeight);
+            const largestDataDim = Math.max(boundsWidth, boundsHeight);
+
+            // Scale so the data fits into 90% of the shorter canvas side
+            this.scale = (shorterCanvasDim * 0.8) / largestDataDim;
             this.resetScale = this.scale;
 
-            // center bounding box in canvas
+            // Center data on canvas
             const xCenterData = 0.5 * (this.pointBounds.w + this.pointBounds.e);
             const yCenterData = 0.5 * (this.pointBounds.n + this.pointBounds.s);
 
-            this.translate.x = (pixelWidth * 0.5) / this.scale - xCenterData;
-            this.translate.y = (this.$refs.umapCanvas.height * 0.5) / this.scale - yCenterData;
+            this.translate.x = (canvasWidth * 0.5) / this.scale - xCenterData;
+            this.translate.y = (canvasHeight * 0.5) / this.scale - yCenterData;
             this.resetTranslate.x = this.translate.x;
             this.resetTranslate.y = this.translate.y;
         },
@@ -554,7 +573,7 @@ export default Vue.component('research-umap-plot-gl', {
                 this.updateViewTransform();
                 this.renderUMAP();
             }
-            if (this.isHovering) {
+            if (this.isHovering && this.showTooltips) {
                 // Convert to data coords
                 const rect = this.$refs.umapCanvas.getBoundingClientRect();
                 const canvasWidth = this.$refs.umapCanvas.width;
@@ -572,7 +591,7 @@ export default Vue.component('research-umap-plot-gl', {
 
                 if (nearestPt) {
                     let hoverHTML = '<div style="display:grid; grid-template-columns: max-content 1fr; grid-column-gap: 5px; font-size: 12px;">';
-                    hoverHTML += `<div style="font-weight:bold">Cell ID</div><div>${this.labels.NAME[nearestPtIdx]}</div>`;
+                    hoverHTML += `<div style="font-weight:bold">Cell ID</div><div>${(this.labels.NAME || this.labels.ID)[nearestPtIdx]}</div>`;
                     if (this.expression) hoverHTML += `<div style="font-weight:bold">Expression</div><div>${this.expression[nearestPtIdx]} ${this.expressionGene ? '(' + this.expressionGene + ')' : ''}</div>`;
                     Object.keys(this.labels.metadata_labels).forEach(field => {
                         if (!this.isHoverField(field)) return;
