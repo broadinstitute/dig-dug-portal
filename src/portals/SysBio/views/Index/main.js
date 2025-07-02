@@ -19,8 +19,7 @@ new Vue({
         newsFeed: null,
         content: {
             news: {
-                feedUrl:
-                    "https://hugeampkpncms.org/rest/news_list?project=sysbio",
+                feedUrl: "https://hugeampkpncms.org/rest/news_list?project=sysbio",
                 newsUrl: "/about.html?page=news",
                 newsItemUrl: "/about.html?page=news&id=",
             },
@@ -118,7 +117,7 @@ new Vue({
                         logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/northwestern.png"
                     }, {
                         url: "",
-                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/vanderbilt.png"
+                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/victr.png"
                     },
                 ],
             },
