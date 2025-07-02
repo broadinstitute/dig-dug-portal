@@ -329,9 +329,65 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
 
                     break;
 
+                case "translate to categories":
+
+
+                    let cellValue = d[c["raw field"]],
+                        categories = c["categories"]
+
+                    tempObj[c["field name"]] = translateTo(categories, cellValue);
+
+                    break;
+
             }
         })
         return tempObj;
+    }
+
+    let translateTo = (CATEGORIES, VALUE) => {
+
+        let translated = "";
+
+        CATEGORIES.map(C => {
+
+            switch (C.condition) {
+                case "less than":
+
+                    if (VALUE < C.range) {
+                        translated = C.name
+                    }
+
+                    break;
+
+                case "greater than":
+
+                    if (VALUE >= C.range) {
+                        translated = C.name
+                    }
+
+                    break;
+
+                case "and":
+
+                    if (C.range[0] <= VALUE && VALUE < C.range[1]) {
+                        translated = C.name
+                    }
+
+                    break;
+
+                case "or":
+
+                    if (C.range[0] >= VALUE || VALUE >= C.range[1]) {
+                        translated = C.name
+                    }
+
+                    break;
+
+            }
+        })
+
+        return translated;
+
     }
 
     let flatten = (obj, path = '') => {
