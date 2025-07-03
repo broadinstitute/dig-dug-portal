@@ -610,9 +610,12 @@ export default Vue.component("research-data-table", {
 				rawData.map((d) => {
 					let tempObj = {};
 					
+					/* tried to minimize the data pushed to the table by collecting only the columns visible to users 
 					this.tableFormat["top rows"].map((t) => {
 						tempObj[t] = d[t];
-					});
+					});*/
+
+					tempObj = d; 
 
 					if(!!this.tableFormat["star column"] && !tempObj[this.tableFormat["star column"]]) {
 						tempObj[this.tableFormat["star column"]] = d[this.tableFormat["star column"]]
