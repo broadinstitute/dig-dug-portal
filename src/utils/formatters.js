@@ -476,7 +476,6 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
 
             case "map name":
 
-                console.log("called");
                 let tempValue = cellValue;
 
                 if (columnKeyObj["map"] == "shared resource") {
