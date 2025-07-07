@@ -65,9 +65,9 @@ new Vue({
             enrichrByor: "matkp_enrichrlibraries",
             enrichrUp: [],
             enrichrDown: [],
-            enrichrLibraries: null,
-            enrichrDefaultLibrary: "",
-            enrichrLibrary: "",
+            enrichrLibraries: [],
+            enrichrDefaultLibrary: "KEGG_2015",
+            enrichrLibrary: "KEGG_2015",
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
             utils: {
@@ -251,7 +251,6 @@ new Vue({
             }
             this.getParams();
             this.enrichrLibraries = await getTextContent(this.enrichrByor);
-            console.log(JSON.stringify(this.enrichrLibraries));
             await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
@@ -266,8 +265,8 @@ new Vue({
         async populateEnrichr(){
             this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.getTopGenes(true));
-            this.enrichrDown = await getEnrichr(this.getTopGenes(false));
+            this.enrichrUp = await getEnrichr(this.getTopGenes(true), this.enrichrLibrary);
+            this.enrichrDown = await getEnrichr(this.getTopGenes(false), this.enrichrLibrary);
             this.enrichrColorScale = this.createColorScale();
         },
         async getBulkMetadata() {
@@ -332,6 +331,14 @@ new Vue({
                 if (newData !== "") {
                     this.getBulkMetadata();
                 }
+                await this.populateEnrichr();
+                this.dataReady = true;
+            }
+        },
+        async enrichrLibrary(newData, oldData){
+            console.log(newData, oldData);
+            if(newData != oldData){
+                this.dataReady = false;
                 await this.populateEnrichr();
                 this.dataReady = true;
             }

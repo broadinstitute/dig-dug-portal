@@ -192,6 +192,17 @@
                                             <div id="note">
                                                 Combined score = log(p) * z, where z represents deviation from expected rank.
                                             </div>
+                                            <div id="select-library">
+                                                <select v-model="$parent.enrichrLibrary">
+                                                    <option :value="$parent.enrichrDefaultLibrary">
+                                                        {{ $parent.enrichrDefaultLibrary }}
+                                                    </option>
+                                                    <option v-for="library in $parent.enrichrLibraries"
+                                                        :value="library['Gene-set Library']">
+                                                        {{ library['Gene-set Library'] }}
+                                                    </option>
+                                                </select>
+                                            </div>
                                           </div>
                                         </div>
                                     </div>
