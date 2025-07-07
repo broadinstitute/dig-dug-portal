@@ -5,7 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr } from "../../utils/content.js";
+import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -62,8 +62,12 @@ new Vue({
             chart: null,
             chartWidth: 0,
             datasets: [],
+            enrichrByor: "matkp_enrichrlibraries",
             enrichrUp: [],
             enrichrDown: [],
+            enrichrLibraries: null,
+            enrichrDefaultLibrary: "",
+            enrichrLibrary: "",
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
             utils: {
@@ -246,6 +250,8 @@ new Vue({
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
             this.getParams();
+            this.enrichrLibraries = await getTextContent(this.enrichrByor);
+            console.log(JSON.stringify(this.enrichrLibraries));
             await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");

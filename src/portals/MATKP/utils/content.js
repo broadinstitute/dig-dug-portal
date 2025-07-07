@@ -60,10 +60,10 @@ export async function getNewsItem(itemId){
 	
 }
 
-export async function getEnrichr(genesList){
+export async function getEnrichr(genesList, library="KEGG_2015"){
 			let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
 			let enrichrRequest = {
-					"gene_set_library": "KEGG_2015",
+					"gene_set_library": library,
 					"gene_list": genesList,
 					"gene_list_desc": "my_list"
 			}
