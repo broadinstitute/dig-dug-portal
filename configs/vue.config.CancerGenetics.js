@@ -164,7 +164,6 @@ let pages = {
         title: "HuGe Calculator",
         chunks: ["chunk-vendors", "chunk-common", "hugecalculator"],
     },
-
     genefinder: {
         entry: "src/views/GeneFinder/main.js",
         template: "public/index.html",
@@ -186,7 +185,6 @@ let pages = {
         title: "Complications Viewer",
         chunks: ["chunk-vendors", "chunk-common", "complicationsviewer"],
     },
-
     page404: {
         entry: "src/views/404/main.js",
         template: "public/index.html",
@@ -229,19 +227,19 @@ let pages = {
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"],
     },
-    egggenerator: {
-        entry: "src/views/EggGenerator/main.js",
-        template: "public/index.html",
-        filename: "egggenerator.html",
-        title: "Exome Gene-Level Group-file Generator",
-        chunks: ["chunk-vendors", "chunk-common", "egggenerator"],
-    },
     help: {
         entry: "src/views/Help/main.js",
         template: "public/index.html",
         filename: "help.html",
         title: "Help",
         chunks: ["chunk-vendors", "chunk-common", "help"],
+    },
+    tissue: {
+        entry: "src/views/Tissue/main.js",
+        template: "public/index.html",
+        filename: "tissue.html",
+        title: "Tissue",
+        chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
 };
 
