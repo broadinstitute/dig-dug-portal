@@ -332,8 +332,10 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
                 case "translate to categories":
 
 
-                    let cellValue = d[c["raw field"]],
-                        categories = c["categories"]
+                    let cellValue = d[c["raw field"]];
+                    cellValue = (typeof cellValue == 'string') ? Number(cellValue) : cellValue;
+
+                    let categories = c["categories"]
 
                     tempObj[c["field name"]] = translateTo(categories, cellValue);
 
@@ -347,6 +349,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
     let translateTo = (CATEGORIES, VALUE) => {
 
         let translated = "";
+
 
         CATEGORIES.map(C => {
 

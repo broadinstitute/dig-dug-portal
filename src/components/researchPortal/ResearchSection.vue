@@ -1540,8 +1540,6 @@ export default Vue.component("research-section", {
 
 		processLoadedApi(CONTENT, QUERY, TYPE, PARAMS) {
 
-
-
 			// remote table format
 			if (!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"]
 				&& this.sectionConfig["table format"]["type"] == "remote") {

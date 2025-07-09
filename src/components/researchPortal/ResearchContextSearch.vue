@@ -9,7 +9,7 @@
                             :value="item.parameter">{{ item.label }}</option>
                 </select>
             </div>
-            <div class="input">
+            <div class="input" v-if="searchParameterType == 'input' || !searchParameterType">
                 <input class="form-control multi-options-search-input" 
                     name="multi-options-search-input"
                     v-model="parent.paramSearch[paramIndex]"
@@ -17,7 +17,19 @@
                     :id="'search_param_' + parameterFocused"
                     autoComplete="off" />
             </div>
+            <div class="input textarea" v-if="searchParameterType == 'string to array'">
+                <textarea
+                    rows="4" cols="50"
+                    class="form-control multi-options-search-input" 
+                    name="multi-options-search-input"
+                    v-model="parent.paramSearch[paramIndex]"
+                    @keyup="(parameterFocused != '')?getValue($event):''" 
+                    :id="'search_param_' + parameterFocused"
+                    autoComplete="off">
+                </textarea>
+            </div>
         </div>
+        
         <div>
             <div class="research-narrative-options hidden">
                 <div class="reset-button-container">
@@ -183,6 +195,14 @@ export default {
         searchParameters() {
             return this.sectionsConfig["search parameters"]["parameters"];
         },
+        searchParameterType() {
+            if(this.parameterFocused != '') {
+                let type = this.sectionsConfig["search parameters"]["parameters"]
+                    .filter(P => P.parameter == this.parameterFocused)[0]['type'];
+                return type;
+            }
+            return null;
+        },
         contextOptions() {
             if(this.parameterFocused != '') {
                 let context = this.sectionsConfig["search parameters"]["parameters"]
@@ -229,6 +249,14 @@ export default {
 }
 
 .multi-options-search-ui > div.search-ui-wrapper > div.input > input {
+    border-radius: 0 3px 3px 0;
+    width: auto;
+    background-color: #ffffff;
+    padding: 0 15px 0;
+    border-left: none;
+}
+
+.multi-options-search-ui > div.search-ui-wrapper > div.input.textarea > textarea {
     border-radius: 0 3px 3px 0;
     width: auto;
     background-color: #ffffff;
