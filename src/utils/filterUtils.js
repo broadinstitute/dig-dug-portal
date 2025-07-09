@@ -14,16 +14,34 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
                 switch (filter.type) {
                     case 'search':
 
-                        if (!!d[filter.field] && typeof d[filter.field] == 'string') {
-                            meetFilters = !!d[filter.field].toLowerCase().includes(filterValue.toLowerCase()) ? true : false;
-                        } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
+                        if (!!filter.value) {
+                            if (!!d[filter.field] && typeof d[filter.field] == 'string') {
+                                meetFilters = !!d[filter.field].toLowerCase().includes(filterValue.toLowerCase()) ? true : false;
+                            } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
 
-                            let valuesInColumn = [...new Set(d[filter.field].map(c => c.toLowerCase()))];
+                                let valuesInColumn = [...new Set(d[filter.field].map(c => c.toLowerCase()))];
 
-                            meetFilters = !!valuesInColumn.includes(filterValue.toLowerCase()) ? true : false;
+                                meetFilters = !!valuesInColumn.includes(filterValue.toLowerCase()) ? true : false;
 
+                            }
+                        } else if (!!filter.values) {
+                            meetFilters = false;
+
+                            if (!!d[filter.field] && typeof d[filter.field] == 'string') {
+
+                                filterValue.map(fV => {
+                                    meetFilters = !!d[filter.field].toLowerCase().includes(fV.toLowerCase()) ? true : meetFilters;
+                                })
+
+                            } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
+
+                                let valuesInColumn = d[filter.field].toString().toLowerCase();
+
+                                filterValue.map(fV => {
+                                    meetFilters = !!d[filter.field].toLowerCase().includes(fV.toLowerCase()) ? true : meetFilters;
+                                })
+                            }
                         }
-
                         break;
 
                     case "search greater than":
@@ -53,7 +71,7 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
 
                         if (!!d[filter.field] && typeof d[filter.field] == 'string') {
 
-                            meetFilters = !!filterValue.includes(d[filter.field]) ? false : true;
+                            meetFilters = !!filterValue.includes(d[filter.field]) || !!d[filter.field].includes(filterValue) ? false : true;
 
                         } else {
                             meetFilters = false;
@@ -62,8 +80,6 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
                         break;
 
                     case 'contains':
-
-
 
                         if (!!d[filter.field] && typeof d[filter.field] == 'string') {
 

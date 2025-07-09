@@ -92,6 +92,7 @@ new Vue({
                     },
                     { key: "n", label: "Number of gene sets", sortable: true },
                     { key: "expand", label: "Gene sets" },
+                    { key: "expand3", label: "View locus plot"}
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
@@ -305,13 +306,6 @@ new Vue({
         },
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
-        },
-        plotReady() {
-            return (
-                this.$store.state.genesetPhenotype.data.length > 0 &&
-                this.$store.state.pigeanPhenotype.data.length > 0 &&
-                Object.keys(this.pigeanPhenotypeMap).length > 0
-            );
         },
         heatmapData() {
             return this.filterHeatmapData(this.heatmapMaxP);

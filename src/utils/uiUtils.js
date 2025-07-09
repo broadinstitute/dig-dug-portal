@@ -100,12 +100,6 @@ let getToolTipPosition = function (ELEMENT) {
             : "1.0em";
 
     viewer.style.setProperty("left", elementLeft);
-    /*
-        console.log(ELEMENT);
-        console.log(" intViewportWidth: " + intViewportWidth);
-        console.log(" elementWidth: " + elementWidth);
-        console.log(" locatin.left: " + location.left);
-        */
 };
 
 let getOffset = function (ELEMENT) {
@@ -832,7 +826,7 @@ let moveElement = function (element, destinationDivId) {
     // Check if the element is already a child of the destination div
     if (ELEMENT.parentNode === destinationDiv) {
         console.warn("Element is already in the destination div.");
-        return; // Or you could optionally move it back to the source
+        //return; // Or you could optionally move it back to the source
     }
 
     // Remove the element from its current parent (if it has one)

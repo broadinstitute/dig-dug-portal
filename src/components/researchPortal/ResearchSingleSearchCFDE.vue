@@ -382,6 +382,11 @@ export default Vue.component("research-single-search-cfde", {
 									filteredData = filteredData.filter(i => i[filter['field']] != value);
 								})
 								break;
+
+							case 'search':
+								filteredData = filteredData.filter(i => !!filter['values'].includes(i[filter['field']]));
+
+								break;
 						}
 					})
 				}

@@ -48,7 +48,8 @@ new Vue({
             ],
             tableConfig: {
                 fields: [
-                    { key: "phenotype", label: "Phenotype", sortable: true },
+                    { key: "phenotypeDesc", label: "Phenotype", sortable: true },
+                    { key: "label", label: "Factor label", sortable: true},
                     {
                         key: "beta_uncorrected",
                         label: "Effect (uncorrected)",

@@ -3,7 +3,7 @@
 		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
 	<div
-		:class="(!!sectionConfig.display && sectionConfig.display == 'false') ? 'multi-section-card hidden' : 'multi-section-card'">
+		:class="(!!sectionConfig.display && sectionConfig.display == 'false') ? 'multi-section-card hidden' : 'multi-section-card'" :id="'section_wrapper_' + sectionID">
 		<div v-if="dataPoint.type == 'component'">
 			<research-section-components :component="dataPoint.name" :phenotypesInUse="phenotypesInUse" :utilsBox="utils"
 				:sectionConfigs="sectionConfig">
@@ -22,23 +22,7 @@
 						title="Show / hide section"><b-icon icon="eye"></b-icon></button>
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-
-						<!--
-						<small :class="!!utils.keyParams[parameter] ? '' : 'no-search-value'"
-							v-for="parameter in dataPoint['parameters']" :key="parameter"
-							style="font-size:0.7em"
-							v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] + '  ' : parameter + ' not set. '"></small>
-
 						
-						<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
-						<span class="required-parameters-wrapper">
-							<small
-								:class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
-								v-for="parameter in dataPoint['parameters']" :key="parameter"
-								v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
-						</span>-->
-						<!--<small :class="(loadingDataFlag == 'down') ? 'data-loading-flag hidden' : 'data-loading-flag'"
-							:id="'flag_' + sectionID">Loading data...</small>-->
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
 							colorStyle="color"></research-loading-spinner>
 						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
@@ -52,15 +36,6 @@
 						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-						
-						<!--<small style="font-size: 0.7em;" class="required-parameters-label">Required parameters: </small>
-						<span class="required-parameters-wrapper">
-							<small
-								:class="!!utils.keyParams[parameter] ? 'required-parameter' : 'required-parameter no-search-value'"
-								v-for="parameter in dataPoint['parameters']" :key="parameter"
-								v-html="!!utils.keyParams[parameter] ? utils.keyParams[parameter] : parameter"></small>
-
-						</span>-->
 
 						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
 							colorStyle="color"></research-loading-spinner>
@@ -343,7 +318,7 @@ import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
 		"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils", "starItems", "regionZoom",
-		"regionViewArea", "isInTab", "pageParams"],
+		"regionViewArea", "isInTab", "pageParams","searchParameters"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionFiltersVertical,
@@ -984,8 +959,9 @@ export default Vue.component("research-section", {
 			this.$store.dispatch("capturedData", { action: 'add', title: title, data: this.sectionData });
 		},
 
-		getParamString() {
+		getParamString(PARAMS_TYPE) {
 
+			//console.log("PARAMS_TYPE",PARAMS_TYPE)
 
 			let queryParams = {}; // collect search parameters
 			let queryParamsString = []; // search parameters into one string
@@ -994,7 +970,7 @@ export default Vue.component("research-section", {
 			/// check if all required search parameters are there. If not set queryParamsSet null.
 			//1. collect all parameters and put them in queryParams
 
-			if (!!this.dataPoint.parameters) {
+			if (!!this.dataPoint.parameters && (!PARAMS_TYPE || (!!PARAMS_TYPE && PARAMS_TYPE != 'replace or'))) {
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
 						/// !! incomplete: This part is to add multiple query functionality
@@ -1028,6 +1004,43 @@ export default Vue.component("research-section", {
 				})
 			}
 
+			if (!!this.dataPoint.parameters && !!PARAMS_TYPE && (PARAMS_TYPE == 'replace')) {
+
+				let pWithValue = 0;
+				this.dataPoint.parameters.map(p => {
+
+					if (!!this.utils.keyParams[p]) {
+						pWithValue++;
+						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+					} else {
+						queryParams[p] = [];
+					}
+				})
+
+				if(pWithValue === 0) {
+					queryParamsSet = null;
+				}
+			}
+
+			if (!!this.dataPoint.parameters && !!PARAMS_TYPE && PARAMS_TYPE == 'replace or') {
+
+				let pWithValue = 0;
+				this.dataPoint.parameters.map(p => {
+
+					if (!!this.utils.keyParams[p]) {
+						pWithValue++;
+						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+					} else {
+						queryParams[p] = [];
+					}
+				})
+
+				if(pWithValue === 0) {
+					queryParamsSet = null;
+				}
+			}
+
+			//console.log("queryParams",queryParams)
 			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
 			if (!!this.sectionConfig["pre filters"]) {
 				this.sectionConfig["pre filters"].map(f => {
@@ -1040,16 +1053,21 @@ export default Vue.component("research-section", {
 			//2. build parameters sets from queryParams and put them in queryParamsString
 
 			if (!!queryParamsSet && !!this.dataPoint.parameters) {
+
+
 				let paramsLength = queryParams[this.dataPoint.parameters[0]].length;
+
+				//console.log("paramsLength",paramsLength);
 
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
+
 					this.dataPoint.parameters.map(p => {
 						// Don't forget to resolve this.
 						if (!queryParams[p][i]) { queryParams[p][i] = queryParams[p][i - 1] }
 
 						if (queryParams[p][i] != "" && queryParams[p][i] != "*") {
-							pramsString += queryParams[p][i].trim() + ",";
+							pramsString += (!!queryParams[p][i])? queryParams[p][i].trim() + ",":"";
 						} else if (queryParams[p][i] == "*") {
 							pramsString += ""; ///wild key
 						}
@@ -1075,27 +1093,31 @@ export default Vue.component("research-section", {
 			}
 		},
 		getData(FROM) {
+			
 			this.loadingDataFlag = "up";
 			this.noLoadedData = null;
 			this.queryData(FROM);
 		},
 
 		queryData(FROM) {
-			let queryType = this.dataPoint["type"];
-			let paramsType = this.dataPoint["parameters type"];
-			let params = this.dataPoint["parameters"];
-			let dataType = this.dataPoint["data type"]
+			//console.log("here");
+			const queryType = this.dataPoint["type"];
+			const paramsType = this.dataPoint["parameters type"];
+			const params = this.dataPoint["parameters"];
+			const dataType = this.dataPoint["data type"]
 			// if data isn't getting cumulated, remove older search params other than the last one
 			if (!this.dataPoint["cumulate data"] && this.searched.length > 1) {
 				let lastSearched = this.searched[this.searched.length - 1]
 				this.searched = [lastSearched];
 			}
-			let paramsString = this.getParamString();
+			let paramsString = this.getParamString(paramsType );
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
+					//raise the data loading flag up.
 					document.getElementById('tabUi' + this.sectionID).classList.add("loading");
 				}
+
 				let urlString, query, autoToken;
 				switch (queryType) {
 					case "bioindex":
@@ -1141,10 +1163,28 @@ export default Vue.component("research-section", {
 
 						let paramStrArr = paramsString.split(",");
 
+						//console.log("paramStrArr",paramsString);
+						//console.log("searchParams",this.searchParameters);
+
 						params.map((param, pIndex) => {
+
 							for (const [key, value] of Object.entries(body)) {
 								if(value == '$'+param) {
-									body[key] = paramStrArr[pIndex];
+
+									let paramType;
+									this.searchParameters.map( p => {
+										if(p.parameter == key) {
+											paramType = p.type
+										}
+									})
+
+									if(paramType == "string to array") {
+										//console.log("paramStrArr[pIndex]",paramStrArr[pIndex].replaceAll("\n",";"));
+										paramStrArr[pIndex] = paramStrArr[pIndex].replaceAll("\n",";");
+										body[key] = paramStrArr[pIndex].split(";");
+									} else {
+										body[key] = paramStrArr[pIndex];
+									}
 								}
 							}
 						})
@@ -1162,6 +1202,10 @@ export default Vue.component("research-section", {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
 			}
+
+			//if(paramsString == "invalid") {
+				//document.getElementById('section_wrapper_' + this.sectionID).classList.add('hidden');
+			//}
 		},
 
 		queryGraphQl(QUERY, URL, PARAM, TYPE, PARAMS) {
@@ -1215,11 +1259,14 @@ export default Vue.component("research-section", {
 		},
 		async queryBioindex(QUERY, TYPE, PARAMS) {
 
+			//console.log("here2",QUERY, TYPE, PARAMS);
+
 			this.searched.push(QUERY);
 
 			let dataUrl = this.dataPoint.url;
 
 			if (TYPE == "replace") {
+				//console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
@@ -1230,9 +1277,28 @@ export default Vue.component("research-section", {
 					}
 				})
 
+				//console.log("dataUrl",dataUrl);
+
+			} else if(TYPE == "replace or") {
+
+				//console.log("here3");
+				PARAMS.map((param, pIndex) => {
+					if (!!QUERY.split(",")[pIndex]) {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					} else {
+						dataUrl = dataUrl.replace("$" + param + ",", '');
+						dataUrl = dataUrl.replace(",$" + param, '');
+						dataUrl = dataUrl.replace("$" + param, '');
+					}
+				})
+
+				//console.log("dataUrl",dataUrl);
+
 			} else {
 				dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
 			}
+
+			
 
 			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
@@ -1409,7 +1475,7 @@ export default Vue.component("research-section", {
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 			}
 
 			let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
@@ -1476,6 +1542,7 @@ export default Vue.component("research-section", {
 		},
 
 		processLoadedApi(CONTENT, QUERY, TYPE, PARAMS) {
+
 
 
 			// remote table format
@@ -1575,6 +1642,7 @@ export default Vue.component("research-section", {
 
 					break;
 				case "json lines":
+
 					if (!!dataWrapper) {
 
 						let tempData = []
@@ -1656,6 +1724,8 @@ export default Vue.component("research-section", {
 
 						data = mergedData;
 
+						//console.log("CONTENT data",data);
+
 					} else {
 						data = CONTENT;
 					}
@@ -1678,6 +1748,41 @@ export default Vue.component("research-section", {
 					}
 
 					break;
+
+				case "object to array":
+					//console.log("CONTENT",CONTENT);
+					let objKey = this.dataPoint.object.key, objValue = this.dataPoint.object.value;
+
+					if (!!dataWrapper) {
+						let dataEntity = CONTENT;
+
+						dataWrapper.map(w => {
+							dataEntity = dataEntity[w];
+						})
+
+						data =[];
+
+						Object.keys(dataEntity).map(d => {
+							let tempObj = {};
+							tempObj[objKey] = d;
+							tempObj[objValue] = dataEntity[d];
+
+							data.push(tempObj);
+						})
+
+					} else {
+						data =[];
+
+						Object.keys(CONTENT).map(d => {
+							let tempObj = {};
+							tempObj[objKey] = d;
+							tempObj[objValue] = CONTENT[d];
+
+							data.push(tempObj);
+						})
+					}
+
+					break;
 			}
 
 
@@ -1693,7 +1798,7 @@ export default Vue.component("research-section", {
 				if (!!tableFormat && !!tableFormat["data convert"]) {
 					let convertConfig = tableFormat["data convert"];
 
-					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 				}
 
 				let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
@@ -1776,6 +1881,7 @@ export default Vue.component("research-section", {
 			if (this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
 				let sortBy = this.sectionConfig["table format"]["initial sort by"]
 				let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
+				
 				/* implement sort direction */
 
 				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);

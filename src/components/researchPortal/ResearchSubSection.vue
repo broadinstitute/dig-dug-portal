@@ -88,7 +88,7 @@
 					</td>
 					<td  v-for="head in getTopRows()">
 						
-						<span v-html="formatValue(row[head],head)"></span>
+						<span v-html="formatValue(row[head],head,row)"></span>
 						<!-- column formatting contains copy to clipboard -->
 
 						<b-btn class="copy-to-clipboard" v-if="tableFormat['column formatting'] && tableFormat['column formatting'][head] &&
@@ -165,7 +165,6 @@ export default Vue.component("research-sub-section", {
 	modules: {
 	},
 	created() {
-		console.log("from mount");
 		this.currentData = this.subSectionData;
 
 		if(!!this.subSectionConfig["share parent filters"]) {
@@ -204,7 +203,6 @@ export default Vue.component("research-sub-section", {
 	},
 	watch: {
 		'$parent.$parent.filterValues'(FILTERS) {
-			console.log("from watch");
 
 			this.currentData = this.subSectionData;
 
@@ -571,7 +569,7 @@ export default Vue.component("research-sub-section", {
 			}
 			return topRows;
 		},
-		formatValue(tdValue, tdKey) {
+		formatValue(tdValue, tdKey, rowValue) {
 			let content;
 			let tableFormat = this.subSectionConfig['table format']
 
@@ -597,7 +595,8 @@ export default Vue.component("research-sub-section", {
 						tdKey,
 						tableFormat,
 						null,
-						null
+						null,
+						rowValue
 					);
 				}
 

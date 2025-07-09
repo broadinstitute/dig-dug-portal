@@ -1,10 +1,21 @@
 <template>
-    <div ref="umapContainer" class="umap-container" @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"
-        @mouseover="onMouseOver" @mouseout="onMouseOut" @wheel.prevent="onWheel">
+    <div ref="umapContainer" class="umap-container" 
+        @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"
+        @mouseover="onMouseOver" @mouseout="onMouseOut" @wheel.prevent="onWheel"
+        style="width:100%; position:relative; overflow-x:hidden;">
         <div v-if="points"
             style="display:flex; align-items: center; justify-content: flex-end; gap:5px; position: absolute; right: 5px; top: 5px; z-index: 1">
             <!--<div><span style="font-family: monospace;">{{ points.length.toLocaleString() }}</span> cells</div>-->
-            <button @click="showLabels = !showLabels" v-b-tooltip.hover.bottom title="toggle labels">
+            <button @click="showTooltips = !showTooltips" v-b-tooltip.hover.bottom title="toggle cell info" :style="!showTooltips?'background:#ddd':'background:white'">
+                <svg style="width:12px;margin:0 4px;" viewBox="0 0 15.098 18.794" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(-.27 -.301)">
+                        <path d="M.77 14.361V.801h14.098v13.56H10.51l-2.853 4.234-2.605-4.234z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="7.845" cy="4.296" r=".979"/>
+                        <path d="M7.094 5.928h1.501v5.876H7.094z"/>
+                    </g>
+                </svg>
+            </button>
+            <button @click="showLabels = !showLabels" v-b-tooltip.hover.bottom title="toggle labels" :style="!showLabels?'background:#ddd':'background:white'">
                 <svg style="width:20px;" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
                     transform="rotate(270)">
                     <path
@@ -26,6 +37,15 @@
                         fill="#000" />
                 </svg>
             </button>
+            <button @click="download" v-b-tooltip.hover.bottom title="Download">
+                <svg style="width:24px;" fill="#000000" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M512 666.5L367.2 521.7l36.2-36.2 83 83V256h51.2v312.5l83-83 36.2 36.2L512 666.5zm-204.8 50.3V768h409.6v-51.2H307.2z"></path>
+                    </g>
+                </svg>
+            </button>
         </div>
         <!-- 1) WebGL canvas for points -->
         <canvas ref="umapCanvas" class="umap-canvas" @click="onClick"></canvas>
@@ -43,6 +63,7 @@ import Vue from 'vue';
 import EventBus from "@/utils/eventBus";
 import sharedUmapData from "@/components/researchPortal/singleCellBrowser/sharedUmapData.js"
 import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
+import {llog} from "./llog.js";
 
 export default Vue.component('research-umap-plot-gl', {
     props: {
@@ -101,6 +122,7 @@ export default Vue.component('research-umap-plot-gl', {
             program: null,
             buffers: {},
             showLabels: true,
+            showTooltips: true,
             scale: 1.0,
             translate: { x: 0.0, y: 0.0 },
             resetScale: 1.0,
@@ -115,6 +137,8 @@ export default Vue.component('research-umap-plot-gl', {
 
             // For coloring expression, define a plasma scale
             expressionScale: null,
+
+            resizeTimeout: null,
         };
     },
     watch: {
@@ -160,30 +184,43 @@ export default Vue.component('research-umap-plot-gl', {
         },
     },
     mounted() {
-        EventBus.$on('view-transform-change', this.handleUpdateViewTransform)
+        EventBus.$on('view-transform-change', this.handleUpdateViewTransform);
+        window.addEventListener('resize', this.handleResize);
         this.init();
     },
     beforeDestroy() {
         EventBus.$off('view-transform-change', this.handleUpdateViewTransform);
+        window.removeEventListener('resize', this.handleResize);
         this.cleanUp();
     },
     methods: {
+        handleResize(){
+            clearTimeout(this.resizeTimeout);
+            d3.select(this.$refs.umapCanvas).style('position', 'absolute');
+            this.resizeTimeout = setTimeout(() => {
+                this.init();
+            }, 100);
+        },
         init() {
-            console.log("---glUMAP init");
+            llog("---glUMAP init");
 
             sharedUmapData.initPoints(this.group, this.points);
 
+            const parentWidth = this.$refs.umapContainer.parentElement.offsetWidth;
+            this.$refs.umapContainer.style.height = this.height+'px';
+
             // 1) Setup canvases
             const canvas = this.$refs.umapCanvas;
-            canvas.width = this.width * window.devicePixelRatio;
+            canvas.width = parentWidth * window.devicePixelRatio;
             canvas.height = this.height * window.devicePixelRatio;
-            canvas.style.width = `${this.width}px`;
+            canvas.style.width = `${parentWidth}px`;
             canvas.style.height = `${this.height}px`;
+            canvas.getContext("webgl", { preserveDrawingBuffer: true });
 
             const labelCanvas = this.$refs.umapLabelCanvas;
-            labelCanvas.width = this.width * window.devicePixelRatio;
+            labelCanvas.width = parentWidth * window.devicePixelRatio;
             labelCanvas.height = this.height * window.devicePixelRatio;
-            labelCanvas.style.width = `${this.width}px`;
+            labelCanvas.style.width = `${parentWidth}px`;
             labelCanvas.style.height = `${this.height}px`;
 
             // 2) Calculate bounds & cluster centers
@@ -197,7 +234,7 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         cleanUp() {
-            console.log("   cleanUp");
+            //llog("   cleanUp");
             const gl = this.gl;
             if (!gl) return;
 
@@ -214,14 +251,12 @@ export default Vue.component('research-umap-plot-gl', {
                 this.buffers.highlight = null;
             }
 
-
             sharedUmapData.release(this.group);
         },
 
-
         calculatePointBounds() {
-            console.log("   calculatePointBounds");
-            this.pointBounds = { n: 0, s: 0, e: 0, w: 0 };
+            this.pointBounds = { n: Infinity, s: -Infinity, e: -Infinity, w: Infinity };
+
             this.points.forEach(({ X, Y }) => {
                 if (X > this.pointBounds.e) this.pointBounds.e = X;
                 if (X < this.pointBounds.w) this.pointBounds.w = X;
@@ -229,28 +264,32 @@ export default Vue.component('research-umap-plot-gl', {
                 if (Y < this.pointBounds.n) this.pointBounds.n = Y;
             });
 
-            const boundsWidth = Math.abs(this.pointBounds.e - this.pointBounds.w);
-            const boundsHeight = Math.abs(this.pointBounds.s - this.pointBounds.n);
-            const largestDim = Math.max(boundsWidth, boundsHeight);
+            const boundsWidth = this.pointBounds.e - this.pointBounds.w;
+            const boundsHeight = this.pointBounds.s - this.pointBounds.n;
 
-            // scale so it roughly fills 80% of the canvas
-            const pixelWidth = this.$refs.umapCanvas.width; // in GL pixels
-            this.scale = (pixelWidth * 0.8) / largestDim;
+            const canvasWidth = this.$refs.umapCanvas.width;
+            const canvasHeight = this.$refs.umapCanvas.height;
+
+            const shorterCanvasDim = Math.min(canvasWidth, canvasHeight);
+            const largestDataDim = Math.max(boundsWidth, boundsHeight);
+
+            // Scale so the data fits into 90% of the shorter canvas side
+            this.scale = (shorterCanvasDim * 0.8) / largestDataDim;
             this.resetScale = this.scale;
 
-            // center bounding box in canvas
+            // Center data on canvas
             const xCenterData = 0.5 * (this.pointBounds.w + this.pointBounds.e);
             const yCenterData = 0.5 * (this.pointBounds.n + this.pointBounds.s);
 
-            this.translate.x = (pixelWidth * 0.5) / this.scale - xCenterData;
-            this.translate.y = (this.$refs.umapCanvas.height * 0.5) / this.scale - yCenterData;
+            this.translate.x = (canvasWidth * 0.5) / this.scale - xCenterData;
+            this.translate.y = (canvasHeight * 0.5) / this.scale - yCenterData;
             this.resetTranslate.x = this.translate.x;
             this.resetTranslate.y = this.translate.y;
         },
 
         // build cluster center info { label, x, y }
         calculateClusterCenters() {
-            console.log("   calculateClusterCenters");
+            //llog("   calculateClusterCenters");
             this.clusterCenters = [];
             const labelField = this.cellTypeField || Object.keys(this.labels.metadata_labels)[0];
             const metadata = this.labels.metadata[labelField];
@@ -276,7 +315,7 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         initializeWebGL() {
-            console.log("   initializeWebGL");
+            //llog("   initializeWebGL");
             const canvas = this.$refs.umapCanvas;
             const gl = canvas.getContext('webgl');
             if (!gl) {
@@ -336,7 +375,7 @@ export default Vue.component('research-umap-plot-gl', {
 
         // --- THE KEY PART: Decide whether to color by expression or by label
         setupBuffers() {
-            console.log("   setupBuffers");
+            //llog("   setupBuffers");
             const gl = this.gl;
             if (!gl) return;
 
@@ -347,7 +386,7 @@ export default Vue.component('research-umap-plot-gl', {
 
             // Positions
             if (!this.buffers.position) {
-                console.log("      positions")
+                //llog("      positions")
                 const positionBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, sharedUmapData.getPositions(this.group), gl.STATIC_DRAW);
@@ -355,9 +394,12 @@ export default Vue.component('research-umap-plot-gl', {
             }
 
             if (!this.buffers.color) {
-                console.log("      colors")
+                //llog("      colors")
 
                 const colors = new Uint8Array(this.points.length * 4);
+                if(this.expression){
+                    this.expressionScale = d3.scaleLinear().domain([0, d3.max(this.expression)]).range(["lightgrey", "blue"]);
+                }
 
                 for (let i = 0; i < this.points.length; i++) {
                     let r, g, b, a;
@@ -396,7 +438,7 @@ export default Vue.component('research-umap-plot-gl', {
                 this.buffers.color = colorBuffer;
             }
 
-            console.log("      highlight")
+            //llog("      highlight")
             // Highlight array
             const highlightArray = new Float32Array(this.points.length);
             if (!this.highlightLabel && this.highlightLabels.length === 0) {
@@ -423,7 +465,7 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         renderPoints() {
-            //console.log("   renderPoints");
+            //llog("   renderPoints");
             const gl = this.gl;
             if (!gl) return;
 
@@ -531,7 +573,7 @@ export default Vue.component('research-umap-plot-gl', {
                 this.updateViewTransform();
                 this.renderUMAP();
             }
-            if (this.isHovering) {
+            if (this.isHovering && this.showTooltips) {
                 // Convert to data coords
                 const rect = this.$refs.umapCanvas.getBoundingClientRect();
                 const canvasWidth = this.$refs.umapCanvas.width;
@@ -549,7 +591,7 @@ export default Vue.component('research-umap-plot-gl', {
 
                 if (nearestPt) {
                     let hoverHTML = '<div style="display:grid; grid-template-columns: max-content 1fr; grid-column-gap: 5px; font-size: 12px;">';
-                    hoverHTML += `<div style="font-weight:bold">Cell ID</div><div>${this.labels.NAME[nearestPtIdx]}</div>`;
+                    hoverHTML += `<div style="font-weight:bold">Cell ID</div><div>${(this.labels.NAME || this.labels.ID)[nearestPtIdx]}</div>`;
                     if (this.expression) hoverHTML += `<div style="font-weight:bold">Expression</div><div>${this.expression[nearestPtIdx]} ${this.expressionGene ? '(' + this.expressionGene + ')' : ''}</div>`;
                     Object.keys(this.labels.metadata_labels).forEach(field => {
                         if (!this.isHoverField(field)) return;
@@ -639,6 +681,42 @@ export default Vue.component('research-umap-plot-gl', {
                 return null;
             }
             return program;
+        },
+
+        download(){
+            const canvas1 = this.$refs.umapCanvas;
+            const canvas2 = this.$refs.umapLabelCanvas;
+
+            const width = canvas1.width;
+            const height = canvas1.height;
+
+            const scaleFactor = 2;
+
+            const combinedCanvas = document.createElement('canvas');
+            combinedCanvas.width = width * scaleFactor;
+            combinedCanvas.height = height * scaleFactor;
+            const ctx = combinedCanvas.getContext('2d');
+
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            ctx.drawImage(canvas1, 0, 0, combinedCanvas.width, combinedCanvas.height);
+            ctx.drawImage(canvas2, 0, 0, combinedCanvas.width, combinedCanvas.height);
+
+            /*
+            const combinedCanvas = document.createElement('canvas');
+            combinedCanvas.width = width;
+            combinedCanvas.height = height;
+            const ctx = combinedCanvas.getContext('2d');
+
+            ctx.drawImage(canvas1, 0, 0);
+            ctx.drawImage(canvas2, 0, 0);
+            */
+
+            const link = document.createElement('a');
+            link.download = 'umap.png';
+            link.href = combinedCanvas.toDataURL('image/png');
+            link.click();
         },
     },
 });

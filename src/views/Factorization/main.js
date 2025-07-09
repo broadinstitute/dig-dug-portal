@@ -87,6 +87,12 @@ new Vue({
                     sortable: true
                 },
                 {
+                    key: "gene_set_score",
+                    label: "Gene set score",
+                    sortable: true,
+                    formatter: Formatters.tpmFormatter
+                },
+                {
                     key: "p_value",
                     label: "P-value",
                     formatter: Formatters.pValueFormatter,
@@ -98,6 +104,12 @@ new Vue({
                     key: "gene",
                     label: "Gene",
                     sortable: true
+                },
+                {
+                    key: "gene_score",
+                    label: "Gene score",
+                    sortable: true,
+                    formatter: Formatters.tpmFormatter
                 },
                 {
                     key: "inQuery",
@@ -181,11 +193,19 @@ new Vue({
         },
         geneFactor() {
             let data = this.flatData(this.$store.state.geneFactor);
+            data.forEach(item => {
+                let gene = item.gene;
+                item.gene_score = this.$store.state.geneScores[gene];
+            })
             return this.formatLabels(this.inputQueryMembership(data));
         },
         genesetFactor() {
             let data = this.flatData(this.$store.state.genesetFactor);
-            data.forEach(item => item["p_value"] = this.pValueLookup[item.gene_set]);
+            data.forEach(item => { 
+                let geneSet = item.gene_set
+                item["p_value"] = this.pValueLookup[geneSet];
+                item["gene_set_score"] = this.$store.state.genesetScores[geneSet];
+            });
             return this.formatLabels(data);
         },
         genesetFields(){
@@ -229,6 +249,7 @@ new Vue({
                 let geneSets = this.genesetParam;
                 let query = {
                     "max_number_phenotypes": this.maxPhenotypes,
+                    "calculate_gene_scores": true,
                     "genes": genes,
                 };
                 this.$store.dispatch("queryBayesPhenotypes", JSON.stringify(query));
