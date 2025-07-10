@@ -1105,7 +1105,7 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString(paramsType );
 
-			//console.log("getParamString",paramsString);
+			console.log("getParamString",paramsString);
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
@@ -1382,6 +1382,8 @@ export default Vue.component("research-section", {
 					dataUrl = dataUrl.replace("$" + param, paramValue);
 				})
 			}
+
+			console.log("dataUrl",dataUrl);
 
 			let contentJson;
 			if(DATATYPE && DATATYPE === "line json"){

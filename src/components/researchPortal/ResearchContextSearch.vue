@@ -1,67 +1,84 @@
 <template>
+    <div>
     <div class="multi-options-search-ui col-md-12">
         <div class="search-ui-wrapper">
             <div class="type">
-                <select id="parameter_type" v-model="parameterFocused" @change="resetInput(paramIndex)">
+                <select id="parameter_type" v-model="parameterFocused"
+                :class="(searchParameterType == 'string to array' || searchParameterType == 'meaning search')? 'meaning-search':''">
                     <option value="">{{ 'Set parameter' }}</option>
                     <option v-for="item in searchParameters" 
                             :key="item.parameter"
                             :value="item.parameter">{{ item.label }}</option>
                 </select>
+
+                <select v-if="searchParameterType == 'meaning search'"
+                id="search_param_similarityThreshold" class="form-control ss-meaning-sim-score meaning-search sim-score" title="Similarity score" >
+					<option value="0.01">0.01</option>
+					<option value="0.1">0.1</option>
+					<option value="0.2">0.2</option>
+					<option value="0.3">0.3</option>
+					<option value="0.4">0.4</option>
+					<option value="0.5" selected>0.5</option>
+					<option value="0.6">0.6</option>
+					<option value="0.7">0.7</option>
+					<option value="0.8">0.8</option>
+					<option value="0.9">0.9</option>
+					<option value="1">1</option>
+				</select>
             </div>
-            <div class="input" v-if="searchParameterType == 'input' || !searchParameterType">
+            <div class="input" v-if="searchParameterType == 'list' || searchParameterType == 'input' || !searchParameterType">
                 <input class="form-control multi-options-search-input" 
                     name="multi-options-search-input"
                     v-model="parent.paramSearch[paramIndex]"
+                    @focus="resetInput(paramIndex)"
                     @keyup="(parameterFocused != '')?getValue($event):''" 
                     :id="'search_param_' + parameterFocused"
                     autoComplete="off" />
             </div>
-            <div class="input textarea" v-if="searchParameterType == 'string to array'">
+            <div class="input textarea" v-if="searchParameterType == 'string to array' || searchParameterType == 'meaning search'">
                 <textarea
                     rows="4" cols="50"
                     class="form-control multi-options-search-input" 
                     name="multi-options-search-input"
                     v-model="parent.paramSearch[paramIndex]"
+                    @focus="resetInput(paramIndex)"
                     @keyup="(parameterFocused != '')?getValue($event):''" 
                     :id="'search_param_' + parameterFocused"
                     autoComplete="off">
                 </textarea>
             </div>
         </div>
-        
-        <div>
-            <div class="research-narrative-options hidden">
-                <div class="reset-button-container">
-                    <button class="btn btn-sm btn-warning context-search-btn" @click="parent.resetSearch()">Reset search</button>
-                </div>
-                <template v-for="option in contextOptions">
-                    <div :key="option['context id']" class="row">
-                        <div class="col-md-10">
-                            <div><strong v-html="option.label"></strong></div>
-                            <div v-html="option.description"></div>
-                        </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-sm btn-primary context-search-btn" @click="cleanUpKeyParams(parameterFocused,option.sections,option['context id']); parent.updateSearch(parameterFocused,option.sections)">Search</button>
-                        </div>
-                    </div>
-                </template>
-            </div>
-            <div :id="'listOptions' + parameterFocused" 
-                 class="custom-select custom-select-search long-list"
-                 :size="listOptions.length >= 5 ? 5 : 'auto'"
-                 :style="listOptions.length == 0 ? 'display:none !important;' : ''"
-                 style="float:right">
-                <template v-for="option in listOptions">
-                    <a :key="option.value"
-                       href="javascript:;" 
-                       v-html="option.label"
-                       @click="parent.setListValue(option.value, parameterFocused, paramIndex, true); listOptions = [];"
-                       class="custom-select-a-option"></a>
-                </template>
-            </div>
-        </div>
     </div>
+    <div id="research_narrative_options" class="research-narrative-options hidden" :class="(searchParameterType == 'string to array' || searchParameterType == 'meaning search')? 'text-area':''">
+        <div class="reset-button-container">
+            <button class="btn btn-sm btn-warning context-search-btn" @click="parent.resetSearch()">Reset search</button>
+        </div>
+        <template v-for="option in contextOptions">
+            <div :key="option['context id']" class="row">
+                <div class="col-md-10">
+                    <div><strong v-html="option.label"></strong></div>
+                    <div v-html="option.description"></div>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-sm btn-primary context-search-btn" @click="cleanUpKeyParams(parameterFocused,option.sections,option['context id']); parent.updateSearch(parameterFocused,option.sections)">Search</button>
+                </div>
+            </div>
+        </template>
+    </div>
+    <div :id="'listOptions' + parameterFocused" 
+            class="custom-select custom-select-search long-list"
+            :size="listOptions.length >= 5 ? 5 : 'auto'"
+            :style="listOptions.length == 0 ? 'display:none !important;' : ''"
+            style="right: 0;">
+        <template v-for="option in listOptions">
+            <a :key="option.value"
+                href="javascript:;" 
+                v-html="option.label"
+                @click="parent.setListValue(option.value, parameterFocused, paramIndex, true); listOptions = [];"
+                class="custom-select-a-option"></a>
+        </template>
+    </div>
+</div>
 </template>
 
 <script>
@@ -108,6 +125,10 @@ export default {
                 paramsObj[P] = false;
             })
 
+            if(this.searchParameterType == 'meaning search') {
+                paramsObj["similarityThreshold"] = document.getElementById('search_param_similarityThreshold').value
+            }
+            
             this.utils.keyParams.set(paramsObj);
             
         },
@@ -149,7 +170,7 @@ export default {
             });
         },
         resetInput(PARAM_INDEX) {
-            this.utils.uiUtils.showElement("research-narrative-options");
+            this.utils.uiUtils.showElement("research_narrative_options");
             this.parent.paramSearch[PARAM_INDEX] = "";
         },
         getValue(EVENT) {
@@ -236,32 +257,51 @@ export default {
     display: inline-flex;
 }
 
-.multi-options-search-ui > div > select, 
-.multi-options-search-ui > div > input {
+.multi-options-search-ui > div.search-ui-wrapper > div {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.multi-options-search-ui div select, 
+.multi-options-search-ui div input,
+.multi-options-search-ui div textarea {
     border: solid 1px #ced4da;
 }
 
 .multi-options-search-ui > div.search-ui-wrapper > div.type > select {
-    border-radius: 3px 0 0 3px;
+    border-radius: 5px;
     width: auto;
     background-color: #ffffff;
     padding: 0 0 0 5px;
+    margin-right: 15px;
+    border: solid 1px #ced4da;
+    display: inline-block;
+}
+
+select.meaning-search {
+    background-color: #FF7F00 !important;
+    color: #ffffff !important;
+}
+
+select.meaning-search.sim-score {
+    margin-left: -15px;
 }
 
 .multi-options-search-ui > div.search-ui-wrapper > div.input > input {
-    border-radius: 0 3px 3px 0;
-    width: auto;
+    border-radius: 5px;
+    width: 400px;
     background-color: #ffffff;
     padding: 0 15px 0;
-    border-left: none;
+    border: solid 1px #ced4da;
 }
 
 .multi-options-search-ui > div.search-ui-wrapper > div.input.textarea > textarea {
-    border-radius: 0 3px 3px 0;
-    width: auto;
+    width: 400px;
+    height: 150px;
     background-color: #ffffff;
-    padding: 0 15px 0;
-    border-left: none;
+    padding: 15px;
+    border-radius: 5px;
+    border: solid 1px #ced4da;
 }
 
 .research-narrative-options {
@@ -272,8 +312,8 @@ export default {
     border-radius: 3px;
     padding: 10px 15px;
     text-align: left;
-    margin: auto -25%;
-    top: 40px;
+    margin: auto -20%;
+    margin-top: 5px;
     z-index: 100;
 }
 </style>

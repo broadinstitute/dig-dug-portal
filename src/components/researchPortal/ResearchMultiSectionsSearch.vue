@@ -131,9 +131,10 @@
 						Reset
 					</div>
 				</div>
-				<div class="col narrative-opener" :class="(containsContextSearch() == 'hidden')? '':'hidden'">
+				<!-- <div class="col narrative-opener" :class="(containsContextSearch() == 'hidden')? '':'hidden'">
 					<span><b-icon icon="view-list" @click="utils.uiUtils.showHideElement('research-narrative-options')"></b-icon></span>
 				</div>
+				-->
 			</div>
 		</div>
 	</div>
