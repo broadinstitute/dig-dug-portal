@@ -4,7 +4,7 @@
         <div class="search-ui-wrapper">
             <div class="type">
                 <select id="parameter_type" v-model="parameterFocused"
-                :class="(searchParameterType == 'string to array' || searchParameterType == 'meaning search')? 'meaning-search':''">
+                :class="(searchParameterType == 'meaning search')? 'meaning-search':''">
                     <option value="">{{ 'Set parameter' }}</option>
                     <option v-for="item in searchParameters" 
                             :key="item.parameter"
@@ -50,9 +50,6 @@
         </div>
     </div>
     <div id="research_narrative_options" class="research-narrative-options hidden" :class="(searchParameterType == 'string to array' || searchParameterType == 'meaning search')? 'text-area':''">
-        <div class="reset-button-container">
-            <button class="btn btn-sm btn-warning context-search-btn" @click="parent.resetSearch()">Reset search</button>
-        </div>
         <template v-for="option in contextOptions">
             <div :key="option['context id']" class="row">
                 <div class="col-md-10">
@@ -64,6 +61,9 @@
                 </div>
             </div>
         </template>
+        <div class="reset-button-container">
+            <button class="btn btn-sm btn-success context-search-btn" @click="parent.resetSearch()">Reset search</button>
+        </div>
     </div>
     <div :id="'listOptions' + parameterFocused" 
             class="custom-select custom-select-search long-list"
@@ -171,7 +171,7 @@ export default {
         },
         resetInput(PARAM_INDEX) {
             this.utils.uiUtils.showElement("research_narrative_options");
-            this.parent.paramSearch[PARAM_INDEX] = "";
+            //this.parent.paramSearch[PARAM_INDEX] = "";
         },
         getValue(EVENT) {
             const paramType = this.parameterFocused;
@@ -281,10 +281,7 @@ export default {
 select.meaning-search {
     background-color: #FF7F00 !important;
     color: #ffffff !important;
-}
-
-select.meaning-search.sim-score {
-    margin-left: -15px;
+    transition: all 1s ease-out;
 }
 
 .multi-options-search-ui > div.search-ui-wrapper > div.input > input {
