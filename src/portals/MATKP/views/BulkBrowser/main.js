@@ -135,6 +135,9 @@ new Vue({
     computed: {
         colorScaleEndpoints(){
             let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
+            if (allEnrichr.length === 0){
+                return[null, null];
+            }
             let field = "Adjusted p-value";
             let min = allEnrichr[0][field];
             let max = allEnrichr[0][field];
