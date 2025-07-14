@@ -93,15 +93,6 @@
 			<template v-for="(item, itemIndex) in plotsList">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId" class="asso-plots-wrapper">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
-					
-					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
-						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
-						@mousemove="checkPosition($event, item, 'asso', 'move')"
-						@mouseleave="resetPosMarker()"
-						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
-					
-					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
-
 					<div class="download-images-setting">
 						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
 						<ul class="options" >
@@ -115,6 +106,13 @@
 							</li>
 						</ul>
 					</div>
+					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
+						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
+						@mousemove="checkPosition($event, item, 'asso', 'move')"
+						@mouseleave="resetPosMarker()"
+						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
+					
+					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
 	        
 					<div :id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId" class="asso-info-box hidden"></div>
 				</div>
@@ -2209,7 +2207,11 @@ canvas {
     border-left:solid 1px #ff0000;
 	height: 0;
 }
-
+.download-images-setting {
+	position: relative !important;
+	float: right;
+	margin-bottom: 5px;
+}
 </style>
 
 
