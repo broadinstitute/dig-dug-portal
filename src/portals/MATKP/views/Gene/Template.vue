@@ -244,7 +244,7 @@
                 <div class="card-body">
                     <h4>
                         {{
-                            `Gene-level associations for ${$store.state.geneName.toUpperCase()}`
+                            `GTEx tissue specificity and gene expression levels for ${$store.state.geneName.toUpperCase()}`
                         }}
                         <tooltip-documentation
                             name="gtex_geneassociations"
@@ -408,7 +408,7 @@
                 <div class="card-body">
                     <h4>
                         {{
-                            `Gene-level associations for ${$store.state.geneName.toUpperCase()}`
+                            `Genetic support for gene-level phenotype associations for ${$store.state.geneName.toUpperCase()}`
                         }}
                         <tooltip-documentation
                             name="huge_geneassociations"
