@@ -774,7 +774,7 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
-	vertical-align: middle !important;
+	/*vertical-align: middle !important;*/
 }
 
 .autocomplete-options {
