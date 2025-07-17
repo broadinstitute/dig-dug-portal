@@ -320,7 +320,7 @@
                                 >
                                     <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
                                         <h4 class="card-title">
-                                            Common variant gene-level associations
+                                            Absolute gene expression levels in GTEx tissues
                                             <tooltip-documentation
                                                 name="gtex_geneassociations_commonvariant"
                                                 :supplyText="
