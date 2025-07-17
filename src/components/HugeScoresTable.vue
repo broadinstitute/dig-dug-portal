@@ -34,9 +34,10 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
-            <!--
+            
             <template #cell(phenotype)="r">
-                <a href="javascript:;" class="phenotype-gene-association">
+                {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+                <!-- <a href="javascript:;" class="phenotype-gene-association">
                     {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
                     <div class="options-4-actions">
                         <div>
@@ -54,10 +55,10 @@
                             >
                         </div>
                     </div>
-                </a>
+                </a> -->
                 &nbsp;
             </template>
-            -->
+           
             <template #cell(gene)="r">
                 <a :href="`/gene.html?gene=${r.item.gene}`">
                     {{ r.item.gene }}

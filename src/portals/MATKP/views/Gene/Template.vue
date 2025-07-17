@@ -375,26 +375,6 @@
                                                 :per-page="10"
                                             ></b-pagination>
                                         </template>
-                                        <!--
-                                        <unauthorized-message
-                                            :restricted="
-                                                $store.state.varassociations
-                                                    .restricted
-                                            "
-                                        >
-                                        </unauthorized-message>
-                                        
-                                        <gene-associations-table
-                                            v-if="$store.state.gene.data.length > 0"
-                                            :gene="$store.state.gene.data[0]"
-                                            :associations="$parent.geneassociations"
-                                            :phenotype-map="
-                                                $store.state.bioPortal.phenotypeMap
-                                            "
-                                            :filter="filter"
-                                        >
-                                        </gene-associations-table>
-                                        -->
                                     </div>
                                 </b-tab>
                             </b-tabs>
