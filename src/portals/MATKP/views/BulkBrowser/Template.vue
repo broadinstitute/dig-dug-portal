@@ -192,26 +192,38 @@
                                             <div id="note">
                                                 Combined score = log(p) * z, where z represents deviation from expected rank.
                                             </div>
-                                            <div id="select-library">
-                                                <select v-model="$parent.selectedLibraryType">
-                                                    <option :value="''">
-                                                        Select a library type
-                                                    </option>
-                                                    <option v-for="libraryType in $parent.enrichrLibraryTypes"
-                                                        :value="libraryType">
-                                                        {{ libraryType }}
-                                                    </option>
-                                                </select>
-                                                <select v-model="$parent.enrichrLibrary"
-                                                    :disabled="$parent.selectedLibraryType === ''">
-                                                    <option :value="''">
-                                                        Select a library
-                                                    </option>
-                                                    <option v-for="library in $parent.librariesForType"
-                                                        :value="library['Gene-set Library']">
-                                                        {{ library['Gene-set Library'] }}
-                                                    </option>
-                                                </select>
+                                            <div class="row select-library">
+                                                <div class="col-md-2"></div>
+                                                <div class="col-md-4">
+                                                    <div class="label">Select a library type</div>
+                                                    <select v-model="$parent.selectedLibraryType">
+                                                        <option :value="''">
+                                                            Select a library type
+                                                        </option>
+                                                        <option v-for="libraryType in $parent.enrichrLibraryTypes"
+                                                            :value="libraryType">
+                                                            {{ libraryType }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="label">Select a library
+                                                        <span v-if="!!$parent.selectedLibraryType">
+                                                            ({{ $parent.selectedLibraryType }})
+                                                        </span>
+                                                    </div>
+                                                    <select v-model="$parent.enrichrLibrary"
+                                                        :disabled="$parent.selectedLibraryType === ''">
+                                                        <option :value="'placeholder'">
+                                                            Select a library
+                                                        </option>
+                                                        <option v-for="library in $parent.librariesForType"
+                                                            :value="library['Gene-set Library']">
+                                                            {{ library['Gene-set Library'] }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2"></div>
                                             </div>
                                           </div>
                                         </div>

@@ -67,7 +67,7 @@ new Vue({
             enrichrDown: [],
             enrichrLibraries: [],
             enrichrDefaultLibrary: "KEGG_2015",
-            enrichrLibrary: "",
+            enrichrLibrary: "placeholder",
             selectedLibraryType: "",
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
@@ -277,7 +277,7 @@ new Vue({
             this.dataReady = true;
         },
         async populateEnrichr(){
-            let libraryToUse = this.enrichrLibrary === '' 
+            let libraryToUse = this.enrichrLibrary === 'placeholder' 
                 ? this.enrichrDefaultLibrary 
                 : this.enrichrLibrary;
             this.enrichrUp = [];
@@ -285,6 +285,7 @@ new Vue({
             this.enrichrUp = await getEnrichr(this.getTopGenes(true), libraryToUse);
             this.enrichrDown = await getEnrichr(this.getTopGenes(false), libraryToUse);
             this.enrichrColorScale = this.createColorScale();
+            this.enrichrLibrary = 'placeholder';
         },
         async getBulkMetadata() {
             if (!this.allMetadata) {
@@ -353,8 +354,7 @@ new Vue({
             }
         },
         async enrichrLibrary(newData, oldData){
-            console.log(newData, oldData);
-            if(newData != oldData){
+            if(newData != oldData && newData != 'placeholder'){
                 this.dataReady = false;
                 await this.populateEnrichr();
                 this.dataReady = true;
