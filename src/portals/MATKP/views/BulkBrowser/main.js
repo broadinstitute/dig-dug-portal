@@ -63,6 +63,7 @@ new Vue({
             chartWidth: 0,
             datasets: [],
             enrichrByor: "matkp_enrichrlibraries",
+            truncateEnrichr: 10,
             enrichrUp: [],
             enrichrDown: [],
             enrichrLibraries: [],
@@ -233,11 +234,6 @@ new Vue({
                 yGreater: this.volcanoYCondition
             }
         },
-        async downGenes(){
-            let genesList = this.getTopGenes(false);
-            let enrichrData = await getEnrichr(genesList);
-            return enrichrData;
-        },
         enrichrLibraryTypes(){
             let libraryTypes = new Set(this.enrichrLibraries.map(l => l["Type"]));
             return Array.from(libraryTypes);
@@ -282,8 +278,8 @@ new Vue({
                 : this.enrichrLibrary;
             this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.getTopGenes(true), libraryToUse);
-            this.enrichrDown = await getEnrichr(this.getTopGenes(false), libraryToUse);
+            this.enrichrUp = await getEnrichr(this.getTopGenes(true), libraryToUse, this.truncateEnrichr);
+            this.enrichrDown = await getEnrichr(this.getTopGenes(false), libraryToUse, this.truncateEnrichr);
             this.enrichrColorScale = this.createColorScale();
             this.enrichrLibrary = 'placeholder';
         },

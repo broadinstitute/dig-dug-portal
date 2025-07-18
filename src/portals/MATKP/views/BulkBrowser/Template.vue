@@ -193,8 +193,7 @@
                                                 Combined score = log(p) * z, where z represents deviation from expected rank.
                                             </div>
                                             <div class="row select-library">
-                                                <div class="col-md-2"></div>
-                                                <div class="col-md-4">
+                                                <div class="col-md-6">
                                                     <div class="label">Select a library type</div>
                                                     <select v-model="$parent.selectedLibraryType">
                                                         <option :value="''">
@@ -206,7 +205,7 @@
                                                         </option>
                                                     </select>
                                                 </div>
-                                                <div class="col-md-4">
+                                                <div class="col-md-6">
                                                     <div class="label">Select a library
                                                         <span v-if="!!$parent.selectedLibraryType">
                                                             ({{ $parent.selectedLibraryType }})
@@ -223,7 +222,6 @@
                                                         </option>
                                                     </select>
                                                 </div>
-                                                <div class="col-md-2"></div>
                                             </div>
                                           </div>
                                         </div>
@@ -243,6 +241,7 @@
                                                             :colorScale="$parent.enrichrColorScale"
                                                             canvasId="Downregulated"
                                                             :utils="$parent.utils"
+                                                            :truncate="$parent.truncateEnrichr"
                                                         ></enrichr-plot>
                                                     </div>
                                                 </div>
@@ -262,6 +261,7 @@
                                                             :colorScale="$parent.enrichrColorScale"
                                                             canvasId="Upregulated"
                                                             :utils="$parent.utils"
+                                                            :truncate="$parent.truncateEnrichr"
                                                         ></enrichr-plot>
                                                     </div>
                                                 </div>
