@@ -182,10 +182,10 @@
                                                 <div style="display:inline-block" class="legend">
                                                    <strong>-log10(P adj.)</strong>
                                                     <div style="display:flex; margin-top:10px" class="marks">
-                                                        <span>{{ $parent.colorScaleEndpoints[0].toFixed(4) }}</span>
+                                                        <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
                                                         <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
                                                         </div>
-                                                        <span>{{ $parent.colorScaleEndpoints[1].toFixed(4) }}</span>
+                                                        <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -193,11 +193,21 @@
                                                 Combined score = log(p) * z, where z represents deviation from expected rank.
                                             </div>
                                             <div id="select-library">
-                                                <select v-model="$parent.enrichrLibrary">
-                                                    <option :value="$parent.enrichrDefaultLibrary">
-                                                        {{ $parent.enrichrDefaultLibrary }}
+                                                <select v-model="$parent.selectedLibraryType">
+                                                    <option :value="''">
+                                                        Select a library type
                                                     </option>
-                                                    <option v-for="library in $parent.enrichrLibraries"
+                                                    <option v-for="libraryType in $parent.enrichrLibraryTypes"
+                                                        :value="libraryType">
+                                                        {{ libraryType }}
+                                                    </option>
+                                                </select>
+                                                <select v-model="$parent.enrichrLibrary"
+                                                    :disabled="$parent.selectedLibraryType === ''">
+                                                    <option :value="''">
+                                                        Select a library
+                                                    </option>
+                                                    <option v-for="library in $parent.librariesForType"
                                                         :value="library['Gene-set Library']">
                                                         {{ library['Gene-set Library'] }}
                                                     </option>

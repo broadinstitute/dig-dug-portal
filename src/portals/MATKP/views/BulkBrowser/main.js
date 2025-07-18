@@ -67,7 +67,8 @@ new Vue({
             enrichrDown: [],
             enrichrLibraries: [],
             enrichrDefaultLibrary: "KEGG_2015",
-            enrichrLibrary: "KEGG_2015",
+            enrichrLibrary: "",
+            selectedLibraryType: "",
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
             utils: {
@@ -236,6 +237,16 @@ new Vue({
             let genesList = this.getTopGenes(false);
             let enrichrData = await getEnrichr(genesList);
             return enrichrData;
+        },
+        enrichrLibraryTypes(){
+            let libraryTypes = new Set(this.enrichrLibraries.map(l => l["Type"]));
+            return Array.from(libraryTypes);
+        },
+        librariesForType(){
+            if (this.selectedLibraryType === ""){
+                return [];
+            }
+            return this.enrichrLibraries.filter(l => l["Type"] === this.selectedLibraryType);
         }
     },
     async mounted() {
@@ -266,10 +277,13 @@ new Vue({
             this.dataReady = true;
         },
         async populateEnrichr(){
+            let libraryToUse = this.enrichrLibrary === '' 
+                ? this.enrichrDefaultLibrary 
+                : this.enrichrLibrary;
             this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.getTopGenes(true), this.enrichrLibrary);
-            this.enrichrDown = await getEnrichr(this.getTopGenes(false), this.enrichrLibrary);
+            this.enrichrUp = await getEnrichr(this.getTopGenes(true), libraryToUse);
+            this.enrichrDown = await getEnrichr(this.getTopGenes(false), libraryToUse);
             this.enrichrColorScale = this.createColorScale();
         },
         async getBulkMetadata() {
