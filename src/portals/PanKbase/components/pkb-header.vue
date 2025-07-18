@@ -13,15 +13,22 @@
             <div style="display:flex; gap:10px; align-items: center;">
                 <div class="menu-wrapper">
                     <div class="topmenu">
-                        <a class="topmenu-item">
+                        <a class="topmenu-item" href="/funding.html">
+                            Funding Opportunities
+                            <img
+                                style="height: 15px; width: 15px"
+                                src="https://hugeampkpncms.org/sites/default/files/images/pankbase/icons/funding_icon_black.svg"
+                            />
+                        </a>
+                        <a class="topmenu-item disabled">
                             Search
                             <img
                                 style="height: 15px; width: 15px"
                                 src="https://hugeampkpncms.org/sites/default/files/users/user32/pankbase/search-icon.svg"
                             />
                         </a>
-                        <a class="topmenu-item"> Analysis </a>
-                        <a class="topmenu-item">
+                        <a class="topmenu-item disabled"> Analysis </a>
+                        <a class="topmenu-item disabled">
                             Login
                             <img
                                 style="height: 15px; width: 15px"
@@ -202,6 +209,10 @@ a:hover {
 }
 .topmenu-item:hover svg * {
     stroke: var(--pkb-secondary-green) !important;
+}
+.topmenu-item.disabled{
+    opacity: 0.5;
+    pointer-events: none;
 }
 .menu {
     display: flex;

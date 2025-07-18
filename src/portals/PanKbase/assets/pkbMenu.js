@@ -44,6 +44,7 @@ export const pkbMenu = {
                 { label: "Policies", path: "/policies.html" },
                 { label: "Related Programs", path: "/programs.html" },
                 { label: "Collaborate", path: "/collaborate.html" },
+                { label: "Funding Opportunities", path: "/funding.html" },
             ],
         },
         {

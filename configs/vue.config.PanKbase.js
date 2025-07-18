@@ -184,6 +184,13 @@ let pages = {
         filename: "diff-exp.html",
         title: "Differential Expression",
         chunks: ["chunk-vendors", "chunk-common", "diffexp"]    
+    },
+    funding: {
+        entry: "src/portals/PanKbase/views/Funding/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "funding.html",
+        title: "Funding Opportunities",
+        chunks: ["chunk-vendors", "chunk-common", "funding"]    
     }
 };
 
