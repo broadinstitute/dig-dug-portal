@@ -69,6 +69,7 @@ new Vue({
             enrichrLibraries: [],
             enrichrDefaultLibrary: "KEGG_2015",
             enrichrLibrary: "placeholder",
+            displayLibrary: "KEGG_2015",
             selectedLibraryType: "",
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
@@ -281,6 +282,7 @@ new Vue({
             this.enrichrUp = await getEnrichr(this.getTopGenes(true), libraryToUse, this.truncateEnrichr);
             this.enrichrDown = await getEnrichr(this.getTopGenes(false), libraryToUse, this.truncateEnrichr);
             this.enrichrColorScale = this.createColorScale();
+            this.displayLibrary = libraryToUse;
             this.enrichrLibrary = 'placeholder';
         },
         async getBulkMetadata() {

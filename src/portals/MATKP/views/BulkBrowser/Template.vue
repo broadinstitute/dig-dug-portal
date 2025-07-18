@@ -224,6 +224,7 @@
                                                 </div>
                                             </div>
                                           </div>
+                                            <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
                                         </div>
                                     </div>
                                 </div>
@@ -416,5 +417,10 @@
 }
 #enrichr-legend .tabs-group {
     width: 100%;
+}
+#enrichrResults {
+    background-color: white;
+    margin-bottom: 0;
+    padding-left: 25px;
 }
 </style>
