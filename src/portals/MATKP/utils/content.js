@@ -9,7 +9,71 @@ export const ACCESSIBLE_BLUE = "rgb(047 103 177)"; // colorblind safe blue,
 export const ACCESSIBLE_GRAY = "rgb(249 249 249)";
 export const ACCESSIBLE_PURPLE = "rgb(116 040 129)";
 export const ACCESSIBLE_DARK_GRAY = "rgb(170 170 170)";
-export const ACCESSIBLE_GREEN = "rgb(092 174 000)"
+export const ACCESSIBLE_GREEN = "rgb(092 174 000)";
+
+export async function getMotrpac(gene){
+	let config = {
+		"type": "openApi",
+		"url": "https://search.motrpac-data.org/api/beta/differential-abundance",
+		"index": "huge",
+		"parameters": [
+			"gene"
+		],
+		"header": {
+			"Content-Type": "application/json",
+			"Authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb3RycGFjX2RhdGFfaHViIiwiZXhwIjoxNzM5NTc4MDY3fQ.ezIAP3qa_FGg0ZI5uoC79ay0xWwg6rmHrgEnxa6bvaU"
+		},
+		"body": {
+			"ktype": "gene",
+			"keys": gene,
+			"omics": [
+				"transcriptomics",
+				"proteomics"
+			],
+			"filters": {
+				"assay": [],
+				"tissue": []
+			},
+			"fields": [
+				"gene_symbol",
+				"feature_ID",
+				"tissue",
+				"assay",
+				"sex",
+				"comparison_group",
+				"logFC",
+				"logFC_se",
+				"p_value",
+				"adj_p_value",
+				"p_value_male",
+				"p_value_female"
+			],
+			"unique_fields": [
+				"tissue",
+				"assay"
+			],
+			"size": 10000,
+			"start": 0,
+			"save": false
+		},
+	};
+	let currentRequest = new Request (config.url, {
+		method: "POST",
+		headers: new Headers(config.header),
+		body: JSON.stringify(config.body),
+	});
+	try {
+		const response = await fetch(currentRequest);
+		if (!response.ok){
+			throw new Error(`Response status: ${response.status}`);
+		}
+		const json = await response.json();
+		return json;
+	} catch(error){
+		console.error(error.message);
+	}
+	return {};
+}
 
 export async function getTextContent(contentId, getBody=false, getAll=false){
   let resourceUrl = `${CONTENT_URL}${contentId}`;

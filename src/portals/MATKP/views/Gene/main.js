@@ -6,7 +6,7 @@ import _ from "lodash";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { getTextContent } from "@/portals/MATKP/utils/content";
+import { getTextContent, getMotrpac } from "@/portals/MATKP/utils/content";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -864,8 +864,11 @@ new Vue({
                 });
             }
         },
-        "$store.state.geneName"(NAME) {
+        async "$store.state.geneName"(NAME) {
+            let motrpac = await getMotrpac(NAME);
+            console.log(JSON.stringify(motrpac));
             this.$store.dispatch("getHugeScoresData");
+
         },
     },
 
@@ -889,6 +892,9 @@ new Vue({
         this.getGTExdata();
         this.getGTExdata2();
         this.geneSigsData = await this.getGeneSigs();
+        let motrpac = await getMotrpac(this.$store.state.geneName);
+        console.log(JSON.stringify(motrpac));
+
     },
 
     methods: {
