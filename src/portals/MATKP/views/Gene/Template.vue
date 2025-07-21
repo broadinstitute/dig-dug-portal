@@ -760,6 +760,26 @@
                     </criterion-function-group>
                 </div>
             </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>MOTRPAC results for {{ $store.state.geneName }}</h4>
+                    <div>
+                        <b-tabs>
+                            <b-tab>
+                                <b-table
+                                    small
+                                    responsive="sm"
+                                    :items="$parent.motrpacData['proteomics_targeted_training']"
+                                    :per-page="10"
+                                    :current-page="$parent.motrpacPage"
+                                    :sort-icon-left="true"
+                                >
+                                </b-table>
+                            </b-tab>
+                        </b-tabs>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- FOOTER -->

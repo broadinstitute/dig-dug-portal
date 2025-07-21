@@ -60,6 +60,7 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import filterUtils from "@/utils/filterUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
+import { result } from "lodash";
 
 Vue.config.productionTip = false;
 
@@ -439,7 +440,9 @@ new Vue({
                         "enabled": true
                     }
                 },
-            }
+            },
+            motrpacData: [],
+            motrpacPage: 1,
         };
     },
 
@@ -865,8 +868,7 @@ new Vue({
             }
         },
         async "$store.state.geneName"(NAME) {
-            let motrpac = await getMotrpac(NAME);
-            console.log(JSON.stringify(motrpac));
+            await this.getMotrpacResult(NAME);
             this.$store.dispatch("getHugeScoresData");
 
         },
@@ -892,9 +894,7 @@ new Vue({
         this.getGTExdata();
         this.getGTExdata2();
         this.geneSigsData = await this.getGeneSigs();
-        let motrpac = await getMotrpac(this.$store.state.geneName);
-        console.log(JSON.stringify(motrpac));
-
+        await this.getMotrpacResult(this.$store.state.geneName);
     },
 
     methods: {
@@ -903,7 +903,25 @@ new Vue({
         ...filterUtils,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
-
+        async getMotrpacResult(gene){
+            let motrpac = await getMotrpac(gene);
+            let collatedResults = {};
+            for (let topLevelKey in motrpac.result){
+                let topLevelItem = motrpac.result[topLevelKey];
+                let resultsTab = []
+                for (let i = 0; i < topLevelItem.data.length; i++){
+                    let singleEntry = topLevelItem.data[i];
+                    let singleEntryList = 
+                        topLevelItem.headers.map((header,index) => 
+                        [header, singleEntry[index]]);
+                    let singleResult = Object.fromEntries(singleEntryList)
+                    resultsTab.push(singleResult);
+                }
+                collatedResults[topLevelKey] = resultsTab;
+            }
+            console.log(JSON.stringify(collatedResults));
+            return collatedResults;
+        },
         async checkGeneName(KEY) {
             let gene = await regionUtils.geneSymbol(KEY);
 
