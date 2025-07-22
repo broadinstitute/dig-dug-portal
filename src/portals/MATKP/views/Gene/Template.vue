@@ -765,11 +765,11 @@
                     <h4>MOTRPAC results for {{ $store.state.geneName }}</h4>
                     <div>
                         <b-tabs>
-                            <b-tab>
+                            <b-tab v-for="item in Object.keys($parent.motrpacData)" :title="item">
                                 <b-table
                                     small
                                     responsive="sm"
-                                    :items="$parent.motrpacData['proteomics_targeted_training']"
+                                    :items="$parent.motrpacData[item]"
                                     :per-page="10"
                                     :current-page="$parent.motrpacPage"
                                     :sort-icon-left="true"

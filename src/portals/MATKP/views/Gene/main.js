@@ -868,7 +868,7 @@ new Vue({
             }
         },
         async "$store.state.geneName"(NAME) {
-            await this.getMotrpacResult(NAME);
+            this.motrpacData = await this.getMotrpacResult(NAME);
             this.$store.dispatch("getHugeScoresData");
 
         },
@@ -894,7 +894,7 @@ new Vue({
         this.getGTExdata();
         this.getGTExdata2();
         this.geneSigsData = await this.getGeneSigs();
-        await this.getMotrpacResult(this.$store.state.geneName);
+        this.motrpacData = await this.getMotrpacResult(this.$store.state.geneName);
     },
 
     methods: {
@@ -919,7 +919,6 @@ new Vue({
                 }
                 collatedResults[topLevelKey] = resultsTab;
             }
-            console.log(JSON.stringify(collatedResults));
             return collatedResults;
         },
         async checkGeneName(KEY) {
