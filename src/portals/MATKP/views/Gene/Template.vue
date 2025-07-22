@@ -770,9 +770,9 @@
                                     small
                                     responsive="sm"
                                     :items="$parent.motrpacData[item]"
+                                    :fields="$parent.motrpacRows"
                                     :per-page="10"
                                     :current-page="$parent.motrpacPage"
-                                    :sort-icon-left="true"
                                 >
                                 </b-table>
                             </b-tab>

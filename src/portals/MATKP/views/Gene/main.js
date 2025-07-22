@@ -442,6 +442,48 @@ new Vue({
                 },
             },
             motrpacData: [],
+            motrpacRows: [
+          {
+            "sortable": true,
+            "label": "Gene",
+            "key": "gene_symbol"
+          },
+          {
+            "sortable": true,
+            "label": "Feature",
+            "key": "feature_ID"
+          },
+          {
+            "sortable": true,
+            "label": "Tissue",
+            "key": "tissue"
+          },
+          {
+            "sortable": true,
+            "label": "Assay",
+            "key": "assay"
+          },
+          {
+            "sortable": true,
+            "label": "P-value",
+            "key": "p_value"
+          },
+          {
+            "sortable": true,
+            "label": "Adjusted p-value",
+            "key": "adj_p_value"
+          },
+          {
+            "sortable": true,
+            "label": "P-value (male)",
+            "key": "p_value_male"
+          },
+          {
+            "sortable": true,
+            "label": "P-value (female)",
+            "key": "p_value_female"
+          },
+        ],
             motrpacPage: 1,
         };
     },
