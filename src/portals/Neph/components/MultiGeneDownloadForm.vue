@@ -146,31 +146,60 @@
 						<b-th><span class="sr-only">View VEP Data</span></b-th>
 					</b-tr>
 				</template>
-				<template #cell(varId)="data">
-					<a :href="`/variant.html?variant=${data.item.varId}`" target="_blank">{{
-						data.item.varId
+				<template #cell(varid)="data">
+					<a :href="`/variant.html?variant=${data.item.varid}`" target="_blank">{{
+						data.item.varid
 					}}</a> </template
 				><template #cell(dbSNP)="data">
 					<a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
 						data.item.dbSNP
 					}}</a>
 				</template>
-				<template #cell(consequence)="data">
+				<template #cell(max_consequence)="data">
 					<div
-						v-if="data.item.impact"
+						v-if="data.item.Max_Impact"
 						class="border-color"
-						:class="data.item.impact"
+						:class="data.item.Max_Impact"
 					>
-						{{ consequenceFormatter(data.item.consequence) }}
+						{{ consequenceFormatter(data.item.max_consequence) }}
 					</div>
 					<div v-else class="border-color NONE"></div>
 				</template>
-				<template #cell(hgvsc)="data">
-					<span>{{ hgvscFormmater(data.item.hgvsc) }}</span>
+				<template #cell(HGVSc)="data">
+					<span>{{ hgvscFormmater(data.item.HGVSc) }}</span>
 				</template>
-				<template #cell(hgvsp)="data">
-					<span>{{ hgvscFormmater(data.item.hgvsp) }}</span>
+				<template #cell(HGVSp)="data">
+					<span>{{ hgvscFormmater(data.item.HGVSp) }}</span>
 				</template>
+				<template #cell(allelecount)="data">
+                    <div align="right">{{ data.item.allelecount }}</div>
+                </template>
+                <template #cell(allelnumber)="data">
+                    <div align="right">{{ data.item.allelnumber }}</div>
+                </template>
+                <template #cell(allelefrequency)="data">
+                    <div align="right">
+                        {{ formatAlleleFrequency(data.item.allelefrequency) }}
+                    </div>
+                </template>
+                <template #cell(homozygouscount)="data">
+                    <div align="right">{{ data.item.homozygouscount }}</div>
+                </template>
+                <template #cell(gnomAD_exomes_AC)="row">
+                    <div align="right">
+                        {{ row.item.gnomAD_exomes_AC }}
+                    </div>
+                </template>
+                <template #cell(gnomAD_exomes_AN)="row">
+                    <div align="right">
+                        {{ row.item.gnomAD_exomes_AN }}
+                    </div>
+                </template>
+                <template #cell(gnomAD_exomes_AF)="row">
+                    <div align="right">
+                        {{ format_freq(row.item.gnomAD_exomes_AF) }}
+                    </div>
+                </template>
 			</b-table>
 			<b-pagination
 				size="sm"
@@ -267,81 +296,18 @@ export default Vue.component("multi-gene-download-form", {
 				
             },
 			HPOTerms: {
-				"HP-0000009":"Functional abnormality of the bladder",
-                "HP-0000020":"Urinary incontinence",
-                "HP-0000079":"Abnormality of the urinary system",
-                "HP-0000095":"Abnormal renal glomerulus morphology",
-                "HP-0000118":"Phenotypic abnormality",
-                "HP-0000119":"Abnormality of the genitourinary system",
-                "HP-0000152":"Abnormality of head or neck",
-                "HP-0000359":"Abnormality of the inner ear",
-                "HP-0000407":"Sensorineural hearing impairment",
-                "HP-0000478":"Abnormality of the eye",
-                "HP-0000486":"Strabismus",
-                "HP-0000598":"Abnormality of the ear",
-                "HP-0000707":"Abnormality of the nervous system",
-                "HP-0000709":"Psychosis",
-                "HP-0000716":"Depressivity",
-                "HP-0000717":"Autism",
-                "HP-0000725":"Psychotic episodes",
-                "HP-0000738":"Hallucinations",
-                "HP-0000769":"Abnormality of the breast",
-                "HP-0000787":"Nephrolithiasis",
-                "HP-0000795":"Abnormality of the urethra",
-                "HP-0000818":"Abnormality of the endocrine system",
-                "HP-0000826":"Precocious puberty",
-                "HP-0001197":"Abnormality of prenatal development or birth",
-                "HP-0001388":"Joint laxity",
-                "HP-0001507":"Growth abnormality",
-                "HP-0001574":"Abnormality of the integument",
-                "HP-0001608":"Abnormality of the voice",
-                "HP-0001622":"Premature birth",
-                "HP-0001626":"Abnormality of the cardiovascular system",
-                "HP-0001679":"Abnormal aortic morphology",
-                "HP-0001699":"Sudden death",
-                "HP-0001871":"Abnormality of blood and blood-forming tissues",
-                "HP-0001877":"Abnormal erythrocyte morphology",
-                "HP-0001903":"Anemia",
-                "HP-0001939":"Abnormality of metabolism/homeostasis",
-                "HP-0001945":"Fever",
-                "HP-0002028":"Chronic diarrhea",
-                "HP-0002032":"Esophageal atresia",
-                "HP-0002086":"Abnormality of the respiratory system",
-                "HP-0002088":"Abnormal lung morphology",
-                "HP-0002110":"Bronchiectasis",
-                "HP-0002186":"Apraxia",
-                "HP-0002197":"Generalized-onset seizure",
-                "HP-0002533":"Abnormal posturing",
-                "HP-0002589":"Gastrointestinal atresia",
-                "HP-0002664":"Neoplasm",
-                "HP-0002715":"Abnormality of the immune system",
-                "HP-0002836":"Bladder exstrophy",
-                "HP-0003011":"Abnormality of the musculature",
-                "HP-0004322":"Short stature",
-                "HP-0004386":"Gastrointestinal inflammation",
-                "HP-0005341":"Autonomic bladder dysfunction",
-                "HP-0005528":"Bone marrow hypocellularity",
-                "HP-0007018":"Attention deficit hyperactivity disorder",
-                "HP-0008373":"Puberty and gonadal disorders",
-                "HP-0008443":"Spinal deformities",
-                "HP-0009826":"Limb undergrowth",
-                "HP-0011035":"Abnormal renal cortex morphology",
-                "HP-0012639":"Abnormal nervous system morphology",
-                "HP-0020110":"Bone fracture",
-                "HP-0025031":"Abnormality of the digestive system",
-                "HP-0025142":"Constitutional symptom",
-                "HP-0025354":"Abnormal cellular phenotype",
-                "HP-0031263":"Abnormal renal corpuscle morphology",
-                "HP-0033127":"Abnormality of the musculoskeletal system",
-                "HP-0040064":"Abnormality of limbs",
-                "HP-0040069":"Abnormal lower limb bone morphology",
-                "HP-0045027":"Abnormality of the thoracic cavity",
-                "HP-0100021":"Cerebral palsy",
-                "HP-0100280":"Crohn's disease",
-                "HP-0100820":"Glomerulopathy",
-                "HP-0200134":"Epileptic encephalopathy",
-				"isControl": "Controls",
-				"isUnknown": "Unknown phenotype",
+				"Sensitive": "Steroid Sensitive Nephrotic Syndrome",
+                "AdultSensitive": "Steroid Sensitive Nephrotic Syndrome (Adult)",
+                "PediatricSensitive":
+                    "Steroid Sensitive Nephrotic Syndrome (Pediatric)",
+                "Uncategorized": "Uncategorized Nephrotic Syndrome",
+                "AdultUncategorized": "Uncategorized Nephrotic Syndrome (Adult)",
+                "PediatricUncategorized":
+                    "Uncategorized Nephrotic Syndrome (Pediatric)",
+                "Resistant": "Steroid Resistant Nephrotic Syndrome",
+                "AdultResistant": "Steroid Resistant Nephrotic Syndrome (Adult)",
+                "PediatricResistant":
+                    "Steroid Resistant Nephrotic Syndrome (Pediatric)",
 			},
 
 			perPage: 100,
@@ -356,15 +322,16 @@ export default Vue.component("multi-gene-download-form", {
 			currentSortDir: "desc",
 			fields: [
 				{
-					key: "varId",
+					key: "varid",
 					label: "Variant (HG38)",
 				},
 				{
 					key: "gene",
+					//key: "NEAREST",
 					label: "Gene",
 				},
 				{
-					key: "consequence",
+					key: "max_consequence",
 					label: "Consequence",
 					tdClass: "border-color",
 				},
@@ -380,28 +347,28 @@ export default Vue.component("multi-gene-download-form", {
 				{
 					key: "Amino_Acids",
 					label: "Amino Acids",
-				},*/
+				},
 				{
 					key: "trioinfo2",
 					label: "Inheritance",
-				},
+				},*/
 				{
-					key: "hgvsc",
+					key: "HGVSc",
 					label: "HGVSc",
 				},
 				{
-					key: "hgvsp",
+					key: "HGVSp",
 					label: "HGVSp",
 				},
 				{
-					key: "allelecount",
+					key: "c_allelecount",
 					label: "Count",
 					sortable: true,
 					thClass: 'text-right',
     				tdClass: 'text-right',
 				},
 				{
-					key: "allelnumber",
+					key: "c_allelnumber",
 					label: "Number",
 					thClass: 'text-right',
     				tdClass: 'text-right',
@@ -423,7 +390,7 @@ export default Vue.component("multi-gene-download-form", {
 				},
 				{
 					//key: "gnomAD_exomes_AC",
-					key: "gnomADg_AC",
+					key: "gnomAD_exomes_AC",
 					label: "Count",
 					sortable: true,
 					thClass: 'text-right',
@@ -431,7 +398,7 @@ export default Vue.component("multi-gene-download-form", {
 				},
 				{
 					//key: "gnomAD_exomes_AN",
-					key: "gnomADg_AN",
+					key: "gnomAD_exomes_AN",
 					label: "Number",
 					sortable: true,
 					thClass: 'text-right',
@@ -439,7 +406,7 @@ export default Vue.component("multi-gene-download-form", {
 				},
 				{
 					//key: "gnomAD_exomes_AF",
-					key: "gnomADg_AF",
+					key: "gnomAD_exomes_AF",
 					label: "Frequency",
 					sortable: true,
 					thClass: 'text-right',
@@ -487,8 +454,8 @@ export default Vue.component("multi-gene-download-form", {
 			uiUtils.showHideElement(ELEMENT);
 		},
 		downloadData() {
-			let printColumns = ["varId","gene","impact","consequence","hgvsc","hgvsp","allelecount","allelnumber","allelefrequency",
-				"homozygouscount","gnomADg_AC","gnomADg_AN","gnomADg_AF"];
+			let printColumns = ["varid","gene","Max_Impact","max_consequence","HGVSc","HGVSp","c_allelecount","c_allelnumber","allelefrequency",
+				"homozygouscount","gnomAD_exomes_AC","gnomAD_exomes_AN","gnomAD_exomes_AF"];
 			if (this.variantData && this.variantData.length) {
 				let downloadData = [];
 				for(let i = 0;i<this.variantData.length; i++){
@@ -519,38 +486,6 @@ export default Vue.component("multi-gene-download-form", {
 				
 			}
 		},
-		/*async updateFeatures() {
-			console.log("update features: " + this.selectedFeature);
-			if (this.selectedFeature != "Default"){
-				let searchquery = this.genes+"+"+this.selectedFeature;
-				let selectedVep = await query("transcript-consequences-gene",searchquery,{},true);
-				//console.log(JSON.stringify(selectedVep));
-				//console.log(this.variantData2.length);
-				//console.log(this.variantData.length);
-
-				let dataRows = structuredClone(this.variants);
-				
-				for (let i=0; i< dataRows.length; i++){
-					let varId = dataRows[i]['varId'];
-					for (let j=0;j<selectedVep.length; j++){
-						let varId2 = selectedVep[j]['varId'];
-						//console.log(varId+"|"+varId2);
-						if (varId == varId2){
-							//console.log(varId);
-							dataRows[i]['consequence'] = selectedVep[j]['consequenceTerms'];
-							dataRows[i]['impact'] = selectedVep[j]['impact'];
-							dataRows[i]['hgvsc'] = selectedVep[j]['hgvsc'];
-							dataRows[i]['hgvsp'] = selectedVep[j]['hgvsp'];
-							//dataRows[i]['hgvsp'] = 'testteststestsetse:testteststestsetse';
-						}
-					}
-				}
-				this.variantData2 = dataRows;
-			} else {
-				this.variantData2 = structuredClone(this.variants);
-			}
-			this.addfilter();
-		},*/
 		async searchVariants() {
 			console.log("varient search");
 			this.currentPage = 1;
@@ -560,158 +495,204 @@ export default Vue.component("multi-gene-download-form", {
 			this.variants = [];
 			for (var i = 0; i< genes.length; i++) {
 				var gene = genes[i];
-				vs[i] = await query("gene-variants2",gene,{},true);
+				vs[i] = await query("variants",gene,{},true);
 				console.log(gene + " variants "+ i + ": "+ vs[i].length);
 				if (vs[i] && vs[i].length){
 					this.variants = this.variants.concat(vs[i]);
 				}
 			}
-			//console.log("variants: "+this.variants.length);
+			console.log("variants: "+this.variants.length);
+			
 			if (this.variants && this.variants.length) {
-				for (let i = 0; i < this.variants.length; i++) {
-					for (let x in Object.keys(this.variants[i])){
-						let idx = Object.keys(this.variants[i])[x];
-						if (this.variants[i][idx] =='NA'){
-							this.variants[i][idx] = "-";
-						}
-					}
-					this.variants[i].varId = this.variants[i].varId.replaceAll("_", ":")
-					this.variants[i].varId = this.variants[i].varId.replaceAll("/", ":")
-					//"HOM_REF_CT":"1419","GHET_REF_ALT_CTS":"0","TWO_ALT_GENO_CTS":"0","MISSING_CT":"4868"
-					this.variants[i].allelecount =2 * parseInt(this.variants[i].twoAlterGenoCount) +parseInt(this.variants[i].herterozygousAltCount);
-					this.variants[i].allelnumber =2 *(parseInt(this.variants[i].homozygousCount) +parseInt(this.variants[i].herterozygousAltCount) +parseInt(this.variants[i].twoAlterGenoCount));
-					this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
-					this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
-					this.variants[i].homozygouscount = parseInt(this.variants[i].twoAlterGenoCount);
-					if (this.variants[i].gnomADInfo) {
-						for (let x in Object.keys(this.variants[i].gnomADInfo)){
-							let idx = Object.keys(this.variants[i].gnomADInfo)[x];
-							if (this.variants[i].gnomADInfo[idx] =='NA'){
-								this.variants[i].gnomADInfo[idx] = "-";
-							}
-						}
-						
-						this.variants[i].gnomADg_AC = this.variants[i].gnomADInfo.gnomADg_AC;
-						this.variants[i].gnomADg_AN = this.variants[i].gnomADInfo.gnomADg_AN;
-						this.variants[i].gnomADg_AF = this.variants[i].gnomADInfo.gnomADg_AF;
-						//alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
-					}
-					
-					//disablebtn
-					if (this.variants[i].impact == 'LOWEST'){
-						this.variants[i].impact = 'MODIFIER';
-					}
-					this.disablebtn[this.variants[i].impact] = false;
+                this.variantData = structuredClone(this.variants); //copy data
 
-					//masksbtn
-					if (this.variants[i].masks != ""){
-						let masks = [];
-						if (typeof masks ==="string"){
-							masks = this.variants[i].masks.split(";");
-						}
-						this.variants[i].masks = masks;
-						for(let n = 0; n < masks.length;n++){
-							//if (!masks[n].includes("noLoF") && (!masks[n].includes("LoF_LC"))){
-								this.masksbtn[masks[n]]=false;
-							//}
-							
-						}
-					} else {
-						this.variants[i].masks = [];
-					}
-					//trioinfo
-					//console.log(this.variants[i]);
-					if ("trioinfo" in this.variants[i] && this.variants[i].trioinfo != ""){
-						//console.log(this.variants[i].trioinfo[0]);
-						let ts =[];
-						if (typeof this.variants[i].trioinfo === "string"){
-							ts= this.variants[i].trioinfo.split(",");
-						}
-						//console.log(ts);
-						this.variants[i].trioinfo2 = this.variants[i].trioinfo;
-						this.variants[i].trioinfo = ts;
-						for(let n = 0; n < ts.length;n++){
-							//if (!masks[n].includes("noLoF") && (!masks[n].includes("LoF_LC"))){
-								this.trioinfobtn[ts[n]]=false;
-							//}
-							
-						}
-					} else {
-						this.variants[i].trioinfo = [];
-					}
-					
-					
-					if (this.variants[i].hprecords.length > 0) {
-						let hpdisplay = [];
-						let j = 0;
-						for (let k = 0;k < this.variants[i].hprecords.length;k++) {
-							let hp = this.variants[i].hprecords[k];
-							//let allelecount = 2 * parseInt(hp.TWO_ALT_GENO_CTS) +parseInt(hp.HET_REF_ALT_CTS);
-							//if (allelecount > 0) {
-								hpdisplay[j] = {};
-								//hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
-								hpdisplay[j].hp = hp.phenotype;
-								//console.log(hpdisplay[j].hp);
-								//hp.HP = hp.HP.replace("-","");
-								hpdisplay[j].hpoterms =
-									Formatters.snakeFormatter(
-										this.HPOTerms[hp.phenotype]
-									);
-								hpdisplay[j].allelecount =2 * parseInt(hp.twoAlterGenoCount) +parseInt(hp.herterozygousAltCount);
-								hpdisplay[j].allelnumber =2 *(parseInt(hp.homozygousCount) +parseInt(hp.herterozygousAltCount) +parseInt(hp.twoAlterGenoCount));
-								hpdisplay[j].allelefrequency =
-									this.formatAlleleFrequency(
-										parseInt(hpdisplay[j].allelecount),
-										parseInt(hpdisplay[j].allelnumber)
-									);
+                //add showButton property to each variant
+                this.variantData.map((variant) => {
+                    variant.showButton = 0;
+                });
 
-								hpdisplay[j].twoAlterGenoCount =
-									hp.twoAlterGenoCount;
-								j++;
-							//}
-						}
-						hpdisplay = hpdisplay.sort(function (a, b) {
-							//console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
-							if (a.allelecount > b.allelecount) {
-								return -1;
-							} else if (a.allelecount < b.allelecount) {
-								return 1;
-							}
-							return 0;
-						});
-						hpdisplay = hpdisplay.filter((item) =>
-							item.allelecount > 0
-						);
-						this.variants[i].hpdisplay2 = hpdisplay;
-						this.variants[i].hpdisplay = hpdisplay;
-						this.variants[i].hpdisplay = this.variants[i].hpdisplay.filter((item) =>
-							item.allelecount > 0
-						);
-					}
-					
-				}
-				
-				//alert(this.variants.length);
-				//filter out allele count = 0 
-				//20241205 temper block
-				this.variants = this.variants.filter((item) =>
-					item.allelecount > 0
-				); 
-				//alert(this.variants.length);
+                for (let i = 0; i < this.variants.length; i++) {
+                    //get data from HP record AllSamples
+                    let AllSamples = this.variants[i].hprecords.find(
+                        (x) => x.HP === "AllSamples"
+                    );
+                    //copy all properties from AllSamples to variants[i]
+                    for (let prop in AllSamples) {
+                        this.variants[i][prop] = AllSamples[prop];
+                    }
+
+                    this.variants[i].allelecount =
+                        2 * parseInt(AllSamples.n_hom_var_case) +
+                        parseInt(AllSamples.n_het_case);
+                    this.variants[i].allelnumber =
+                        2 *
+                        (parseInt(AllSamples.n_hom_ref_case) +
+                            parseInt(AllSamples.n_het_case) +
+                            parseInt(AllSamples.n_hom_var_case));
+                    //this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
+                    //this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
+                    if (this.variants[i].gnomAD_info) {
+                        this.variants[i].gnomAD_exomes_AC =
+                            this.variants[i].gnomAD_info.gnomADg_AC;
+                        this.variants[i].gnomAD_exomes_AN =
+                            this.variants[i].gnomAD_info.gnomADg_AN;
+                        this.variants[i].gnomAD_exomes_AF =
+                            this.variants[i].gnomAD_info.gnomADg_AF;
+                        //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
+                    }
+
+                    for (
+                        let m = 0;
+                        m < this.variants[i].hprecords.length;
+                        m++
+                    ) {
+                        let hp = this.variants[i].hprecords[m];
+                        if (hp.HP == "AllSamples") {
+                            this.variants[i].c_allelecount =
+                                2 * parseInt(hp.n_hom_var_case) +
+                                parseInt(hp.n_het_case);
+                            this.variants[i].allelecount +=
+                                this.variants[i].c_allelecount;
+                            this.variants[i].c_allelnumber =
+                                2 *
+                                (parseInt(hp.n_hom_ref_case) +
+                                    parseInt(hp.n_het_case) +
+                                    parseInt(hp.n_hom_var_case));
+                            this.variants[i].allelnumber +=
+                                this.variants[i].c_allelnumber;
+                            this.variants[i].allelefrequency =
+                                this.variants[i].c_allelecount /
+                                this.variants[i].c_allelnumber;
+                            // this.variants[i].allelefrequency =
+                            //     this.variants[i].allelefrequency.toExponential(
+                            //         2
+                            //     );
+                            //this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
+                            //this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
+                            //this.variants[i].c_TWO_ALT_GENO_CTS =hp.n_hom_var_case;
+                            this.variants[i].homozygouscount = parseInt(
+                                hp.n_hom_var_case
+                                //this.variants[i].n_hom_var_case
+                            );
+                        }
+                    }
+                    //do we need vep count?
+                    //this.variants[i].vep = this.variants[i].veprecords.length;
+                    if (this.variants[i].veprecords.length > 0) {
+                        let varrecords = this.variants[i].veprecords;
+
+                        for (let j = 0; j < varrecords.length; j++) {
+                            if (varrecords[j].PICK === true) {
+                                this.variants[i].Gene_Symbol =
+                                    varrecords[j].Gene_Symbol;
+                                this.variants[i].Max_Impact =
+                                    varrecords[j].IMPACT;
+                                if (this.variants[i].Max_Impact == "LOWEST") {
+                                    this.variants[i].Max_Impact = "MODIFIER";
+                                }
+
+                                this.variants[i].max_consequence =
+                                    varrecords[j].Consequence;
+                                this.variants[i].Protein_Position =
+                                    varrecords[j].Protein_position;
+                                this.variants[i].Amino_Acids =
+                                    varrecords[j].Amino_acids;
+
+								this.variants[i].gene =
+                                    varrecords[j].NEAREST;
+
+                                this.disablebtn[
+                                    this.variants[i].Max_Impact
+                                ] = false;
+
+                                this.variants[i].HGVSc = varrecords[j].HGVSc;
+                                this.variants[i].HGVSp = varrecords[j].HGVSp;
+                            }
+                        }
+                        //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
+                    }
+
+                    if (this.variants[i].hprecords.length > 0) {
+                        let hpdisplay = [];
+                        let j = 0;
+
+                        for (
+                            let k = 0;
+                            k < this.variants[i].hprecords.length;
+                            k++
+                        ) {
+                            let hp = this.variants[i].hprecords[k];
+                            //if (hp.HP != "AllControl") {
+                            hpdisplay[j] = {};
+                            //hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
+                            hpdisplay[j].hp = hp.HP;
+                            hpdisplay[j].HP = Formatters.snakeFormatter(
+                                this.HPOTerms[hp.HP]
+                            );
+                            hpdisplay[j].allelecount =
+                                2 * hp.n_hom_var_case + hp.n_het_case;
+                            hpdisplay[j].allelnumber =
+                                2 *
+                                (hp.n_hom_ref_case +
+                                    hp.n_het_case +
+                                    hp.n_hom_var_case);
+                            hpdisplay[j].allelefrequency =
+                                this.calculateAlleleFrequency(
+                                    hpdisplay[j].allelecount,
+                                    hpdisplay[j].allelnumber
+                                );
+
+                            hpdisplay[j].n_hom_var_case = hp.n_hom_var_case;
+                            j++;
+                            //}
+                        }
+                        //no longer sort by allelecount
+                        // hpdisplay = hpdisplay.sort(function (a, b) {
+                        //     //console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
+                        //     if (a.allelecount > b.allelecount) {
+                        //         return -1;
+                        //     } else if (a.allelecount < b.allelecount) {
+                        //         return 1;
+                        //     }
+                        //     return 0;
+                        // });
+                        let sortOrder = [
+                            "AllSamples",
+                            "Resistant",
+                            "PediatricResistant",
+                            "AdultResistant",
+                            "Sensitive",
+                            "PediatricSensitive",
+                            "AdultSensitive",
+                            "Uncategorized",
+                            "PediatricUncategorized",
+                            "AdultUncategorized",
+                            "Healthy",
+                            "AllNephroticSyndCases",
+                        ];
+                        hpdisplay = hpdisplay.sort(function (a, b) {
+                            return (
+                                sortOrder.indexOf(a.hp) -
+                                sortOrder.indexOf(b.hp)
+                            );
+                        });
+                        this.variants[i].hpdisplay2 = hpdisplay;
+                        this.variants[i].hpdisplay = hpdisplay;
+                    }
+                }
+				console.log("before clone: "+this.variants.length);
 				this.variantData2 = structuredClone(this.variants);
 				this.variantData = structuredClone(this.variants);
-				
-			}
+                //if default filters are set, filter the variants
+                /*if (
+                    this.filters.impacts.length > 0 ||
+                    this.filters.phenotypes.length > 0
+                ) {
+                    this.addfilter();
+                }*/
+            }
 			this.addfilter();
-			//this.disablebtn[this.variants[i].Max_Impact] = false;
-			/*if (this.filters["impacts"].length > 0) {
-				for(let i=this.filters["impacts"].length-1 ; i>=0;i--){
-					if (this.disablebtn[this.filters["impacts"][i]] == true) {
-						//console.log("delete");
-						this.filters["impacts"].splice(i, 1);
-					}
-				}
-			} */
+			
 			console.log("variant search done");
 		},
 		async getTranscriptConsequences(varId) {
@@ -738,7 +719,7 @@ export default Vue.component("multi-gene-download-form", {
 			return;
 		},
 		hgvscFormmater(hgvsc){
-			if (hgvsc.length > 18) {
+			if (hgvsc != null && hgvsc.length > 18) {
 				let strs = hgvsc.split(":");
 				//return strs[1];
 				hgvsc = decodeURIComponent(strs[1]);
@@ -753,6 +734,9 @@ export default Vue.component("multi-gene-download-form", {
 		siftFormatter(name) {
 			return Formatters.snakeFormatter(name);
 		},
+		format_freq(frequency) {
+            return frequency?.toFixed(5) || "";
+        },
 		async showVariantData(varId) {
 			//alert("showVariantData");
             let escapedVarID = this.escapedVarID(varId);
@@ -806,7 +790,11 @@ export default Vue.component("multi-gene-download-form", {
 			if (!item || type !== "row") return;
 			if (item.pick === 1) return "row-pick";
 		},
-		formatAlleleFrequency(count, number) {
+		calculateAlleleFrequency(count, number) {
+            if (count === 0 || number === 0) return "";
+            else return count / number;
+        },
+        formatAlleleFrequency(count, number) {
 			if (count === 0 || number === 0) return 0;
 			else return Number.parseFloat(count / number).toExponential(2);
 		},
@@ -825,23 +813,16 @@ export default Vue.component("multi-gene-download-form", {
 
 		addfilter: function () {
 			console.log("addfilter");
-			//let dataRows = this.variants;
-			//this.variantData = this.variantData2;
-			//alert(this.filters["trioinfos"]);
-			
-			//console.log(this.variantData2.length);
 			let dataRows = structuredClone(this.variantData2);
-			//let dataRows = [];
-			/*for (let i = 0 ; i < this.variantData2.length; i++){
-				dataRows[i]=this.variantData2[i];
-			}*/
 			console.log(dataRows.length);
+			
 			if (this.filters["impacts"].length > 0) {
+				console.log("filter impacts: "+ this.filters["impacts"]);
 				dataRows = dataRows.filter((item) =>
-					this.filters["impacts"].includes(item.impact)
+					this.filters["impacts"].includes(item.Max_Impact)
 				);
 			}
-			if (this.filters["masks"].length > 0) {
+			/*if (this.filters["masks"].length > 0) {
 				for(let m = 0; m < this.filters["masks"].length;m++){
 					let mask = this.filters["masks"][m];
 					dataRows = dataRows.filter((item) =>
@@ -860,7 +841,7 @@ export default Vue.component("multi-gene-download-form", {
 					);
 				}
 				
-			}
+			}*/
 			if (this.filters["phenotypes"].length > 0) {
 				console.log("phenotypes: "+ this.filters["phenotypes"]);
 				for (let i = dataRows.length - 1; i >=0; i--) {
