@@ -42,7 +42,7 @@ import Alert, {
     closeAlert,
 } from "@/components/Alert";
 
-import {SignIn,CheckSignInStatus} from "@/portals/Neph/components/LoginComponent.js";
+//import {SignIn,CheckSignInStatus} from "@/portals/Neph/components/LoginComponent.js";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -583,7 +583,11 @@ new Vue({
     },
 
     async created() {
-        this.CheckSignInStatus();
+        //this.CheckSignInStatus();
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+
         /// disease systems
         /*this.$store.dispatch("bioPortal/getDiseaseSystems");
 
@@ -620,7 +624,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        CheckSignInStatus,
+        //CheckSignInStatus,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
 
