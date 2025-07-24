@@ -107,7 +107,14 @@ let pages = {
         filename: "research.html",
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"]
-    }
+    },
+    multigenedownloader: {
+        entry: "src/portals/Neph/views/MultiGeneDownload/main.js",
+        template: "public/index.html",
+        filename: "multigenedownloader.html",
+        title: "MultiGene Downloader",
+        chunks: ["chunk-vendors", "chunk-common", "multigenedownloader"]
+    },
 };
 
 module.exports = {
