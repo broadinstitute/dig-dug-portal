@@ -70,6 +70,7 @@ new Vue({
             enrichrDefaultLibrary: "KEGG_2015",
             enrichrLibrary: "placeholder",
             displayLibrary: "KEGG_2015",
+            libraryPage: 1,
             selectedLibraryType: "",
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
@@ -315,6 +316,10 @@ new Vue({
             } catch (error) {
                 console.error("Error: ", error);
             }
+        },
+        selectLibrary(library){
+            this.enrichrLibrary = library;
+            this.libraryPage = 1;
         },
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);

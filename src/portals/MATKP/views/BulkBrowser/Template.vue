@@ -193,7 +193,7 @@
                                                 Combined score = log(p) * z, where z represents deviation from expected rank.
                                             </div>
                                             <div class="row select-library">
-                                                <div class="col-md-6">
+                                                <div class="col-md-3">
                                                     <div class="label">Select a library type</div>
                                                     <select v-model="$parent.selectedLibraryType">
                                                         <option :value="''">
@@ -205,12 +205,27 @@
                                                         </option>
                                                     </select>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <div class="label">Select a library
-                                                        <span v-if="!!$parent.selectedLibraryType">
-                                                            ({{ $parent.selectedLibraryType }})
-                                                        </span>
-                                                    </div>
+                                                <div class="col-md-9"></div>
+                                            </div>
+                                            <div class="row" v-if="!!$parent.selectedLibraryType">
+                                                <b-table
+                                                    small
+                                                    :items="$parent.librariesForType"
+                                                    :per-page="5"
+                                                    :current-page="$parent.libraryPage"
+                                                >
+                                                    <template #cell(type)="item">
+                                                        <button @click="$parent.selectLibrary(item['Gene-set Library'])">
+                                                            Select library
+                                                        </button>
+                                                    </template>
+                                                    <b-pagination
+                                                        v-model="$parent.libraryPage"
+                                                        class="pagination-sm justify-content-center"
+                                                        :total-rows="$parent.librariesForType.length"
+                                                        :per-page="5"
+                                                    ></b-pagination>
+                                                </b-table><!-- 
                                                     <select v-model="$parent.enrichrLibrary"
                                                         :disabled="$parent.selectedLibraryType === ''">
                                                         <option :value="'placeholder'">
@@ -218,11 +233,10 @@
                                                         </option>
                                                         <option v-for="library in $parent.librariesForType"
                                                             :value="library['Gene-set Library']">
-                                                            {{ library['Gene-set Library'] }}
+                                                            
                                                         </option>
-                                                    </select>
+                                                    </select> -->
                                                 </div>
-                                            </div>
                                           </div>
                                             <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
                                         </div>
