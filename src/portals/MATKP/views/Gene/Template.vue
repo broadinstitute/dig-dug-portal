@@ -766,14 +766,13 @@
                     <criterion-function-group>
                         <template slot="filtered" slot-scope="{ filter }">
                             <b-tabs>
-                                <b-tab v-for="item in Object.keys($parent.motrpacData)" :title="item">
+                                <b-tab v-for="item, index in $parent.motrpacTables" :title="item">
                                     <b-table
                                         small
                                         responsive="sm"
                                         :items="$parent.motrpacData[item]"
                                         :fields="$parent.motrpacRows"
                                         :per-page="10"
-                                        :current-page="$parent.motrpacPage"
                                     >
                                     </b-table>
                                 </b-tab>

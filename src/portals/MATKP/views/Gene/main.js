@@ -484,7 +484,13 @@ new Vue({
             "key": "p_value_female"
           },
         ],
-            motrpacPage: 1,
+        motrpacTables: [
+            'proteomics_targeted_training',
+            'proteomics_targeted_timewise',
+            'transcriptomics_training',
+            'transcriptomics_timewise'
+        ],
+        motrpacPages: [1,1,1,1]
         };
     },
 
