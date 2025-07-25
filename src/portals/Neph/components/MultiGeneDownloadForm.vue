@@ -487,10 +487,10 @@ export default Vue.component("multi-gene-download-form", {
 			}
 		},
 		async searchVariants() {
-			console.log("varient search");
+			//console.log("varient search");
 			this.currentPage = 1;
 			var genes = this.$refs.selectedgenes.getValue();
-			console.log("genes: "+ genes);
+			//console.log("genes: "+ genes);
 			var vs = [];
 			this.variants = [];
 			for (var i = 0; i< genes.length; i++) {
@@ -501,7 +501,7 @@ export default Vue.component("multi-gene-download-form", {
 					this.variants = this.variants.concat(vs[i]);
 				}
 			}
-			console.log("variants: "+this.variants.length);
+			//console.log("variants: "+this.variants.length);
 			
 			if (this.variants && this.variants.length) {
                 this.variantData = structuredClone(this.variants); //copy data
@@ -560,6 +560,7 @@ export default Vue.component("multi-gene-download-form", {
                                     parseInt(hp.n_hom_var_case));
                             this.variants[i].allelnumber +=
                                 this.variants[i].c_allelnumber;
+							//console.log("calculate frequency:"+this.variants[i].c_allelecount+"|"+this.variants[i].c_allelnumber);
                             this.variants[i].allelefrequency =
                                 this.variants[i].c_allelecount /
                                 this.variants[i].c_allelnumber;
@@ -680,7 +681,7 @@ export default Vue.component("multi-gene-download-form", {
                         this.variants[i].hpdisplay = hpdisplay;
                     }
                 }
-				console.log("before clone: "+this.variants.length);
+				//console.log("before clone: "+this.variants.length);
 				this.variantData2 = structuredClone(this.variants);
 				this.variantData = structuredClone(this.variants);
                 //if default filters are set, filter the variants
@@ -693,7 +694,7 @@ export default Vue.component("multi-gene-download-form", {
             }
 			this.addfilter();
 			
-			console.log("variant search done");
+			//console.log("variant search done");
 		},
 		async getTranscriptConsequences(varId) {
 			//alert(varID);
@@ -794,9 +795,17 @@ export default Vue.component("multi-gene-download-form", {
             if (count === 0 || number === 0) return "";
             else return count / number;
         },
-        formatAlleleFrequency(count, number) {
+        /*formatAlleleFrequency(count, number) {
 			if (count === 0 || number === 0) return 0;
-			else return Number.parseFloat(count / number).toExponential(2);
+			else return Number.parseFloat(count / number).toExponential(8);
+		},*/
+		formatAlleleFrequency(frequency) {
+			if (!frequency) return "";
+            if (frequency < 0.0001) {
+                return parseFloat(frequency).toExponential(5);
+            } else {
+                return parseFloat(frequency).toFixed(5);
+            }
 		},
 		toToggle(isShowing, buttonClicked) {
 			if (isShowing) {
@@ -812,12 +821,12 @@ export default Vue.component("multi-gene-download-form", {
 		},
 
 		addfilter: function () {
-			console.log("addfilter");
+			//console.log("addfilter");
 			let dataRows = structuredClone(this.variantData2);
-			console.log(dataRows.length);
+			//console.log(dataRows.length);
 			
 			if (this.filters["impacts"].length > 0) {
-				console.log("filter impacts: "+ this.filters["impacts"]);
+				//console.log("filter impacts: "+ this.filters["impacts"]);
 				dataRows = dataRows.filter((item) =>
 					this.filters["impacts"].includes(item.Max_Impact)
 				);
@@ -843,7 +852,7 @@ export default Vue.component("multi-gene-download-form", {
 				
 			}*/
 			if (this.filters["phenotypes"].length > 0) {
-				console.log("phenotypes: "+ this.filters["phenotypes"]);
+				//console.log("phenotypes: "+ this.filters["phenotypes"]);
 				for (let i = dataRows.length - 1; i >=0; i--) {
 					dataRows[i].hpdisplay = dataRows[i].hpdisplay2;
 					/*dataRows[i].hpdisplay = dataRows[i].hpdisplay.filter((v) =>
@@ -868,8 +877,8 @@ export default Vue.component("multi-gene-download-form", {
 				}
 			}
 			this.variantData = dataRows;
-			console.log(dataRows.length);
-			console.log(this.variantData.length+'|'+this.variantData2.length);
+			//console.log(dataRows.length);
+			//console.log(this.variantData.length+'|'+this.variantData2.length);
 			return this.tableData;
 		},
 		sort: function (s) {
