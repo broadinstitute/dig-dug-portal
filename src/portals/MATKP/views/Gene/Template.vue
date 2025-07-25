@@ -760,6 +760,28 @@
                     </criterion-function-group>
                 </div>
             </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>MOTRPAC results for {{ $store.state.geneName }}</h4>
+                    <criterion-function-group>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <b-tabs>
+                                <b-tab v-for="item in Object.keys($parent.motrpacData)" :title="item">
+                                    <b-table
+                                        small
+                                        responsive="sm"
+                                        :items="$parent.motrpacData[item]"
+                                        :fields="$parent.motrpacRows"
+                                        :per-page="10"
+                                        :current-page="$parent.motrpacPage"
+                                    >
+                                    </b-table>
+                                </b-tab>
+                            </b-tabs>
+                        </template>
+                    </criterion-function-group>
+                </div>
+            </div>
         </div>
 
         <!-- FOOTER -->
