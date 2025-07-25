@@ -208,37 +208,29 @@
                                                 <div class="col-md-9"></div>
                                             </div>
                                             <div class="row" v-if="!!$parent.selectedLibraryType">
-                                                <b-table
+                                                <div class="col-md-12">
+                                                    <b-table
                                                     small
                                                     :items="$parent.librariesForType"
                                                     :per-page="5"
                                                     :current-page="$parent.libraryPage"
                                                 >
                                                     <template #cell(type)="item">
-                                                        <button @click="$parent.selectLibrary(item['Gene-set Library'])">
+                                                        <button class="btn btn-sm btn-primary"
+                                                            @click="$parent.selectLibrary(item['Gene-set Library'])">
                                                             Select library
                                                         </button>
                                                     </template>
                                                     <b-pagination
                                                         v-model="$parent.libraryPage"
-                                                        class="pagination-sm justify-content-center"
                                                         :total-rows="$parent.librariesForType.length"
                                                         :per-page="5"
                                                     ></b-pagination>
-                                                </b-table><!-- 
-                                                    <select v-model="$parent.enrichrLibrary"
-                                                        :disabled="$parent.selectedLibraryType === ''">
-                                                        <option :value="'placeholder'">
-                                                            Select a library
-                                                        </option>
-                                                        <option v-for="library in $parent.librariesForType"
-                                                            :value="library['Gene-set Library']">
-                                                            
-                                                        </option>
-                                                    </select> -->
+                                                </b-table>
                                                 </div>
+                                            </div>
                                           </div>
-                                            <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
+                                        <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
                                         </div>
                                     </div>
                                 </div>
