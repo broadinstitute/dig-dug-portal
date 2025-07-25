@@ -771,8 +771,7 @@
                                         small
                                         responsive="sm"
                                         :items="$parent.motrpacData[item]"
-                                        :fields="$parent.motrpacRows"
-                                        :per-page="10"
+                                        :fields="$parent.motrpacRows(item)"
                                     >
                                     </b-table>
                                 </b-tab>

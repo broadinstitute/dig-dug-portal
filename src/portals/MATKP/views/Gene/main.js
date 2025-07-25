@@ -442,55 +442,13 @@ new Vue({
                 },
             },
             motrpacData: [],
-            motrpacRows: [
-          {
-            "sortable": true,
-            "label": "Gene",
-            "key": "gene_symbol"
-          },
-          {
-            "sortable": true,
-            "label": "Feature",
-            "key": "feature_ID"
-          },
-          {
-            "sortable": true,
-            "label": "Tissue",
-            "key": "tissue"
-          },
-          {
-            "sortable": true,
-            "label": "Assay",
-            "key": "assay"
-          },
-          {
-            "sortable": true,
-            "label": "P-value",
-            "key": "p_value"
-          },
-          {
-            "sortable": true,
-            "label": "Adjusted p-value",
-            "key": "adj_p_value"
-          },
-          {
-            "sortable": true,
-            "label": "P-value (male)",
-            "key": "p_value_male"
-          },
-          {
-            "sortable": true,
-            "label": "P-value (female)",
-            "key": "p_value_female"
-          },
-        ],
-        motrpacTables: [
-            'proteomics_targeted_training',
-            'proteomics_targeted_timewise',
-            'transcriptomics_training',
-            'transcriptomics_timewise'
-        ],
-        motrpacPages: [1,1,1,1]
+            motrpacTables: [
+                'proteomics_targeted_training',
+                'proteomics_targeted_timewise',
+                'transcriptomics_training',
+                'transcriptomics_timewise'
+            ],
+            motrpacPage: 1
         };
     },
 
@@ -968,6 +926,72 @@ new Vue({
                 collatedResults[topLevelKey] = resultsTab;
             }
             return collatedResults;
+        },
+        motrpacRows(table){
+            let motrpacRows = [
+            {
+                "sortable": true,
+                "label": "Feature",
+                "key": "feature_ID"
+            },
+            {
+                "sortable": true,
+                "label": "Tissue",
+                "key": "tissue"
+            },
+            {
+                "sortable": true,
+                "label": "Assay",
+                "key": "assay"
+            },
+            {
+                "sortable": true,
+                "label": "P-value",
+                "key": "p_value"
+            },
+            {
+                "sortable": true,
+                "label": "Adjusted p-value",
+                "key": "adj_p_value"
+            },
+            {
+                "sortable": true,
+                "label": "P-value (male)",
+                "key": "p_value_male"
+            },
+            {
+                "sortable": true,
+                "label": "P-value (female)",
+                "key": "p_value_female"
+            },
+            ];
+            if (table.includes("training")){
+                return motrpacRows;
+            }
+            motrpacRows = motrpacRows.slice(0,-2);
+            let addRows = [
+                {
+                    "sortable": true,
+                    "label": "Sex",
+                    "key": "sex"
+                },
+                {
+                    "sortable": true,
+                    "label": "Comparison group",
+                    "key": "comparison_group"
+                },
+                {
+                    "sortable": true,
+                    "label": "LogFC",
+                    "key": "logFC"
+                },
+                {
+                    "sortable": true,
+                    "label": "LogFC se",
+                    "key": "logFC_se"
+                }
+            ]
+            return motrpacRows.slice(0,3).concat(addRows).concat(motrpacRows.slice(3));
         },
         async checkGeneName(KEY) {
             let gene = await regionUtils.geneSymbol(KEY);
