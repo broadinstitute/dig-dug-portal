@@ -2,15 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
-
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
-import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
@@ -27,30 +19,14 @@ import { isEqual } from "lodash";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
-
 import sessionUtils from "@/utils/sessionUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert
-} from "@/components/Alert";
-
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
-    modules: {},
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
-        Documentation,
         ManhattanPlot,
         ClumpedAssociationsTable,
         UnauthorizedMessage,
@@ -60,84 +36,23 @@ new Vue({
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
-        FilterGreaterThan
+        FilterGreaterThan,
     },
-
+    mixins: [pageMixin],
     data() {
         return {
             filterList: [],
-            displayedFilterList: {}
+            displayedFilterList: {},
         };
     },
 
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        ancestryFormatter: Formatters.ancestryFormatter,
-        ...sessionUtils,
-
-        removePhenotype(index) {
-            this.$store.commit("removePhenotype", index);
-        },
-
-        phenotypeColor(index) {
-            return Colors[index];
-        },
-        setPhenotypeParams(phenotypes) {
-            // keyParams.set({
-            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
-            // });
-            //console.log(Object.entries(this.displayedFilterList));
-            //console.log("set", phenotypes);
-        },
-        unsetFilter(filterList, filter) {
-            if (!filterList) return {};
-
-            const _filterList = filterList.filter(
-                el =>
-                    !(
-                        el.field === filter.field &&
-                        el.threshold === filter.threshold
-                    )
-            );
-            return _filterList;
-        },
-        alignedBeta(row) {
-            return row.beta * (row.alignment || 1);
-        }
-    },
-
     computed: {
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
         // don't allow selection of the lead phenotype in dropdowns
         phenotypes() {
-            return this.$store.state.phenotypes.map(p => p.phenotype.name);
+            return this.$store.state.phenotypes.map((p) => p.phenotype.name);
         },
 
         //return only the phenotypes that haven't been selected yet, guard against duplicate selections
@@ -145,14 +60,18 @@ new Vue({
             let all = this.$store.state.bioPortal.phenotypes;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                all = sessionUtils.getInSession(all, this.phenotypesInSession, 'name');
+                all = sessionUtils.getInSession(
+                    all,
+                    this.phenotypesInSession,
+                    "name"
+                );
             }
 
             const selected = this.$store.state.phenotypes;
             if (selected.length) {
-                return all.filter(array =>
+                return all.filter((array) =>
                     selected.every(
-                        filter => filter.phenotype.name !== array.name
+                        (filter) => filter.phenotype.name !== array.name
                     )
                 );
             } else {
@@ -164,8 +83,8 @@ new Vue({
             let n = this.$store.state.phenotypes.length;
             let clumps = {};
 
-            this.$store.state.phenotypes.forEach(p => {
-                p.associations.forEach(r => {
+            this.$store.state.phenotypes.forEach((p) => {
+                p.associations.forEach((r) => {
                     if (p.filter(r)) {
                         if (r.clump in clumps) {
                             clumps[r.clump].push(r);
@@ -177,7 +96,7 @@ new Vue({
             });
 
             // drop all clumps that do not contain all phenotypes
-            let clumped = Object.values(clumps).filter(rs => rs.length == n);
+            let clumped = Object.values(clumps).filter((rs) => rs.length == n);
             let flattened = [].concat.apply([], clumped);
 
             return flattened;
@@ -199,7 +118,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-
     },
 
     watch: {
@@ -212,17 +130,71 @@ new Vue({
                     this.setPhenotypeParams(newData);
                 }
             },
-            deep: true
+            deep: true,
         },
         async "$store.state.ancestry"(ancestry) {
             let selectedPhenotypes = this.$store.state.phenotypes;
             this.$store.commit("removePhenotype", 0);
             if (selectedPhenotypes.length) {
-                await this.$store.dispatch("fetchLeadPhenotypeAssociations", selectedPhenotypes[0].phenotype);
-                selectedPhenotypes.slice(1).forEach(p =>
-                    this.$store.dispatch("fetchAssociationsMatrix", p.phenotype)
+                await this.$store.dispatch(
+                    "fetchLeadPhenotypeAssociations",
+                    selectedPhenotypes[0].phenotype
                 );
+                selectedPhenotypes
+                    .slice(1)
+                    .forEach((p) =>
+                        this.$store.dispatch(
+                            "fetchAssociationsMatrix",
+                            p.phenotype
+                        )
+                    );
             }
-        }
-    }
+        },
+    },
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+    },
+
+    methods: {
+        ...uiUtils,
+        ancestryFormatter: Formatters.ancestryFormatter,
+        ...sessionUtils,
+
+        removePhenotype(index) {
+            this.$store.commit("removePhenotype", index);
+        },
+
+        phenotypeColor(index) {
+            return Colors[index];
+        },
+        setPhenotypeParams(phenotypes) {
+            // keyParams.set({
+            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
+            // });
+            //console.log(Object.entries(this.displayedFilterList));
+            //console.log("set", phenotypes);
+        },
+        unsetFilter(filterList, filter) {
+            if (!filterList) return {};
+
+            const _filterList = filterList.filter(
+                (el) =>
+                    !(
+                        el.field === filter.field &&
+                        el.threshold === filter.threshold
+                    )
+            );
+            return _filterList;
+        },
+        alignedBeta(row) {
+            return row.beta * (row.alignment || 1);
+        },
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
 }).$mount("#app");

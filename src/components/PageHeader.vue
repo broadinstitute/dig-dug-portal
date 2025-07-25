@@ -41,13 +41,12 @@
                 <div :class="diseaseGroup.name + 'kp-logo-wrapper col-md-4'">
                     <a href="/">
                         <img
-                            v-if="frontContents.field_banner_logo"
-                            :src="
-                                '//kp4cd.org/sites/default/files/vueportal/' +
-                                frontContents.field_banner_logo
-                            "
-                            :class="diseaseGroup.name + 'kp-logo'"
-                        />
+                                v-if="frontContents.field_banner_logo"
+                                :src="'//kp4cd.org/sites/default/files/vueportal/' +
+                                    frontContents.field_banner_logo
+                                    "
+                                :class="diseaseGroup.name + 'kp-logo'"
+                            />
                         <img
                             v-else
                             src="//kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
@@ -105,6 +104,7 @@
                         v-if="!!diseaseGroup.name"
                         :group="diseaseGroup.name"
                         name="header.menu"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></menu-item>
                     <div class="login-menu-wrapper">
                         <ul>
@@ -206,6 +206,8 @@ export default Vue.component("page-header", {
             );
         }
         if (BIO_INDEX_HOST.indexOf("dev") != -1) this.bioindex_dev = true;
+
+        this.$store.dispatch("bioPortal/getDocumentations");
     },
 });
 </script>

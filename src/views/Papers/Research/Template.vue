@@ -24,19 +24,33 @@
 					: $parent.headerLogo
 			"
 			:sectionConfig="$parent.sectionConfigs['header menu']"
+			:phenotypes="$parent.phenotypesInSession"
 			:utils="$parent.utilsBox"
 		></research-page-header>
 	<div class="single-search-wrapper" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['single search']">
 		<research-single-search
+			v-if="!$parent.sectionConfigs['single search']['version']"
 			:single-search-config="$parent.sectionConfigs['single search']"
 			:phenotypes="$parent.phenotypesInSession"
 			:utils="$parent.utilsBox"
-		></research-single-search>   
+		></research-single-search>
+		<research-single-search-v2
+				v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == '2.0'"
+				:single-search-config="$parent.sectionConfigs['single search']"
+				:phenotypes="$parent.phenotypesInSession"
+				:utils="$parent.utilsBox"
+			></research-single-search-v2>     
+			<research-single-search-cfde
+				v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == 'cfde'"
+				:single-search-config="$parent.sectionConfigs['single search']"
+				:phenotypes="$parent.phenotypesInSession" 
+				:utils="$parent.utilsBox"
+			></research-single-search-cfde>    
 		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
 			<span v-html="'examples: '"></span>
-			<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
+			<!--<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"
 			v-html="$parent.getExampleLink(example)">
-			</span>
+			</span>-->
 		</div> 
 		<!-- KC Set context -->
 		<div v-if="!!$parent.sectionConfigs['context']" class="context-btns-wrapper">
@@ -244,7 +258,7 @@
 			</div>
 			<!-- tabs content -->
 
-			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':''" id="rp_tabs_contents">
+			<div :class="(!$parent.sectionConfigs['is front page'])?'kp-tabs-contents':'kp-tabs-contents not-active'" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
 					<div class="row">
 						<template
@@ -624,14 +638,36 @@
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								>
 							</research-multi-sections-search>
+
+							<!--  To test canvas collection -->
+							<div v-if="!!$parent.sectionConfigs['visualizer collection']" class="viz-collect-btns-wrapper">
+								<button id="viz_collect_btn" class="btn btn-sm btn-primary btn-collect" @click="$parent.copyOverPlots('from')">Collect visualizers</button>
+								<button id="viz_return_btn" class="btn btn-sm btn-success btn-return hidden-btn" @click="$parent.copyOverPlots('to')">Return visualizers</button>
+							</div>
+							<div  class="" id="canvas_collect" style="overflow:hidden" v-if="!!$parent.sectionConfigs['visualizer collection']">
+								<template v-for="section in $parent.sectionConfigs['visualizer collection']">
+									<h6 v-html="section.label"></h6>
+									<template  v-for="sId in section.sections">
+										<div :id="sId + '_wrapper'" 
+											>
+										</div>
+									</template>
+									
+							  </template>
+							</div>
+							<!-- canvas collection end -->
+
+							<div id="custom_sections_list_wrapper">
+
+							</div>
 							
-								<!-- multi section tab groups -->
+							<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
 									  v-for="group, groupIndex in $parent.getTabGroups($parent.sectionConfigs['tab groups'])" >
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
 									style="position:relative"
 								>
-									
+									<h4 v-if="!!group.label && (group.type && group.type !== 'fixed bottom')">{{ group.label }}</h4>
 									<button v-if="!group.type"
 										class="btn btn-sm show-tabs-btn show-hide-section" :id="'tabsOpener' + groupIndex" :targetId="'tabUiGroup' + groupIndex"
 										@click="$parent.utilsBox.uiUtils.showHideSvg('tabUiGroup' + groupIndex); 
@@ -650,17 +686,18 @@
 										</button>
 									</div>
 
-									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
-										<div v-for="tab, tabIndex in group.sections" 
-											:id="'tabUi'+tab.section" 
-											class="tab-ui-tab" 
-											:class="tabIndex == 0?'active':''"
-											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
-												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
-											{{ tab.label }} <span class="flag"><b-icon
-												icon="circle-fill"></b-icon></span>
+									<div class="tab-ui-wrapper" :id="'tabUiGroup' + groupIndex">
+											<div v-for="tab, tabIndex in group.sections" 
+												:id="'tabUi' + tab.section" 
+												class="tab-ui-tab" 
+												:class="tabIndex == 0 ? 'active' : ''"
+												@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
+													'tabContent' + tab.section, 'tabContentGroup' + groupIndex);">
+													<span v-html="$parent.utilsBox.Formatters.replaceWithParams(tab.label, $parent.pageParams)+'&nbsp;'"></span>
+												 <span class="flag"><b-icon
+													icon="circle-fill"></b-icon></span>
+											</div>
 										</div>
-									</div>
 									
 									<div :id="'tabContentGroup'+groupIndex" class="tab-content-group">
 										<template v-for="tab, tabIndex in group.sections">
@@ -671,7 +708,7 @@
 												:class="(tabIndex == 0)?'':'hidden-content'"
 												>
 												<research-section
-													v-if="!config['is summary section']"
+													v-if="!config['is summary section'] && !!$parent.rawSearchParameters"
 													:sectionIndex="'section-' + index"
 													:uId="$parent.uid"
 													:sectionConfig="config"
@@ -690,9 +727,13 @@
 													:regionZoom="$parent.regionZoom"
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
+													:pageParams="$parent.pageParams"
+													:searchParameters="$parent.rawSearchParameters"
+													
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
-													@on-zoom="$parent.setZoom">
+													@on-zoom="$parent.setZoom"
+													@on-checkPosition="$parent.setHoverPos">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
@@ -709,8 +750,10 @@
 													:regionZoom="$parent.regionZoom"
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
+													
 													@on-star="$parent.starColumn"
-													@on-zoom="$parent.setZoom">
+													@on-zoom="$parent.setZoom"
+													@on-checkPosition="$parent.setHoverPos">
 												</research-sections-summary>
 										</div>
 										</template>
@@ -719,7 +762,7 @@
 							</template>
 							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">	
 								<research-section
-									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
+									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section'] && !!$parent.rawSearchParameters"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:sectionConfig="config"
@@ -737,9 +780,13 @@
 									:starItems="$parent.starItems"
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
+									:pageParams="$parent.pageParams"
+									:searchParameters="$parent.rawSearchParameters"
+									
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
-									@on-zoom="$parent.setZoom">
+									@on-zoom="$parent.setZoom"
+									@on-checkPosition="$parent.setHoverPos">
 								</research-section>	
 								<research-sections-summary
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
@@ -755,8 +802,10 @@
 									:starItems="$parent.starItems"
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
+									
 									@on-star="$parent.starColumn"
 									@on-zoom="$parent.setZoom"
+									@on-checkPosition="$parent.setHoverPos"
 									>
 								</research-sections-summary>
 							</template>
@@ -832,6 +881,7 @@ html, body, #app {
     min-height: 100vh;
     position: relative;
 }
+
 #app {
     display:flex;
 	flex-direction: column;
@@ -852,6 +902,19 @@ html, body, #app {
 	overflow-y: hidden;
 }
 
+/* canvas collect */
+
+#canvas_collect {
+	height: 1px;
+}
+
+.viz-collect-btns-wrapper {
+	text-align: right;
+}
+
+.hidden-btn {
+	display: none !important;
+}
 
 label {
 	margin: 0 !important;

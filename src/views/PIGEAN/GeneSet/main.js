@@ -2,16 +2,10 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSelectPicker from "@/components/GenesetSelectPicker.vue";
-import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
+import TraitGroupSelectPicker from "@/components/TraitGroupSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -24,40 +18,38 @@ import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
+import pigeanUtils from "@/utils/pigeanUtils.js";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
-
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
-    modules: {},
     components: {
-        PageHeader,
-        PageFooter,
         SearchHeaderWrapper,
         PigeanTable,
         PigeanPlot,
         ResearchPheWAS,
         GenesetSelectPicker,
-        SigmaSelectPicker,
         GenesetSizeSelectPicker,
+        TraitGroupSelectPicker,
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
     },
+    mixins: [pageMixin],
 
     data() {
         return {
+            pigeanPhenotypeMap: {},
             filterFields: [
                 { key: "beta_uncorrected", label: "Effect (uncorrected)" },
                 { key: "beta", label: "Effect (joint)" },
             ],
             tableConfig: {
                 fields: [
-                    { key: "phenotype", label: "Phenotype", sortable: true },
+                    { key: "phenotypeDesc", label: "Phenotype", sortable: true },
+                    { key: "label", label: "Factor label", sortable: true},
                     {
                         key: "beta_uncorrected",
                         label: "Effect (uncorrected)",
@@ -83,7 +75,7 @@ new Vue({
                     },
                     {
                         key: "prior",
-                        label: "Gene set evidence",
+                        label: "Indirect support",
                         sortable: true,
                     },
                 ],
@@ -120,16 +112,6 @@ new Vue({
         };
     },
     computed: {
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -144,14 +126,12 @@ new Vue({
         },
         plotReady() {
             return (
-                this.$store.state.pigeanGeneset.data.length > 0 &&
-                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
+                this.phewasAllData.length > 0 &&
+                Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
         phewasAdjustedData() {
-            let adjustedData = JSON.parse(
-                JSON.stringify(this.$store.state.pigeanGeneset.data)
-            ); // Deep copy
+            let adjustedData = structuredClone(this.phewasAllData);
             for (let i = 0; i < adjustedData.length; i++) {
                 if (adjustedData[i].beta_uncorrected < 0) {
                     adjustedData[i].beta_uncorrected = 0;
@@ -159,20 +139,26 @@ new Vue({
             }
             return adjustedData;
         },
+        pigeanMap(){
+            return this.pigeanPhenotypeMap;
+        },
+        phewasAllData(){
+            return this.$store.state.phewasData;
+        }
     },
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
     },
-
-    created() {
+    async created() {
         this.$store.dispatch("queryGeneset", this.$store.state.geneset);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = 
+            pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
-
-    methods: {},
 
     render(createElement, context) {
         return createElement(Template);

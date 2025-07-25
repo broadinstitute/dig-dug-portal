@@ -55,9 +55,10 @@ a:hover {
 }
 
 .front-top-banner-mdkp {
-    background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
-        linear-gradient(#0097d6, #8ed8f8);
-    background-position: 120% 100px, top left;
+    /*background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
+        linear-gradient(#0097d6, #8ed8f8);*/
+    background-image: linear-gradient(#0077b6, #5ec8e8);
+    background-position: 120% 0px, top left;
 }
 
 .front-top-banner-cvdkp {
@@ -76,6 +77,11 @@ a:hover {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/t2dkp_front_bg.png),
         linear-gradient(#55aaee, #3c80bd);
     background-position: 120% 100px, top left;
+}
+
+.front-top-banner-skinkp {
+    background-image: linear-gradient(#286FB7, #61C2EE);
+    background-position: 120% 0px, top left;
 }
 
 .front-top-banner-cdkp {
@@ -159,6 +165,13 @@ a:hover {
     float: left;
 }
 
+.front-top-banner-mdkp .front-logo-img {
+    width: 490px;
+    margin-left: -20px;
+    border-right: solid 1px #5ec8e8;
+    padding: 0 20px 20px 0;
+}
+
 .front-top-banner-cvdkp .front-logo-img {
     width: 430px;
 }
@@ -172,6 +185,10 @@ a:hover {
 }
 
 .front-top-banner-t2dkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-skinkp .front-logo-img {
     width: 430px;
 }
 
@@ -245,11 +262,15 @@ a:hover {
 }
 
 .front-logo-tagline-mdkp {
-    transform: translate(0%, 23%);
+    transform: translate(0%, 65%);
 }
 
 .front-logo-tagline-t2dkp {
     transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-skinkp {
+    transform: translate(0%, 80%);
 }
 
 .front-logo-tagline-cvdkp {
@@ -383,6 +404,10 @@ a:hover {
     height: 50px;
 }
 
+.skinkp-logo {
+    height: 50px;
+}
+
 .cvdkp-logo {
     height: 50px;
 }
@@ -472,7 +497,7 @@ a:hover {
 
 .mdkp-header,
 .mdkp-footer {
-    background-color: #0097d6;
+    background-color: #0077b6;
     height: 50px;
 }
 
@@ -497,6 +522,12 @@ a:hover {
 .t2dkp-header,
 .t2dkp-footer {
     background-color: #55aaee;
+    height: 50px;
+}
+
+.skinkp-header,
+.skinkp-footer {
+    background-color: #286fb7;
     height: 50px;
 }
 
@@ -656,6 +687,7 @@ a:hover {
 .cvdkp-footer,
 .sleepkp-footer,
 .t2dkp-footer,
+.skinkp-footer,
 .cdkp-footer,
 .v2fkp-footer,
 .a2fkp-footer,
@@ -683,6 +715,7 @@ a:hover {
 .cvdkp-body,
 .sleekp-body,
 .t2dkp-body,
+.skinkp-body,
 .cdkp-body,
 .v2fkp-body,
 .a2fkp-body,
@@ -709,6 +742,7 @@ a:hover {
 .cvdkp-card,
 .sleepkp-card,
 .t2dkp-card,
+.skinkp-card,
 .cdkp-card,
 .v2fkp-card,
 .a2fkp-card,
@@ -2263,6 +2297,12 @@ span.volcano-score-2 {
     padding: 1.25em;
     border-radius: 5px;
     border: solid 1px #ddd;
+}
+
+.kp-tabs-contents.not-active {
+    background: none;
+    padding: 1.25em;
+    border: none;
 }
 
 .kp-tab-content {

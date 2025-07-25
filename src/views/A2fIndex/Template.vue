@@ -148,9 +148,10 @@
                                                 >
                                                     <documentation
                                                         name="home.example"
-                                                        :group="
-                                                            $parent.diseaseGroup
-                                                                .name
+                                                        :contentMap="
+                                                            $store.state
+                                                                .bioPortal
+                                                                .documentations
                                                         "
                                                     ></documentation>
                                                 </div>
@@ -197,8 +198,9 @@
                                         >
                                             <documentation
                                                 name="home.example"
-                                                :group="
-                                                    $parent.diseaseGroup.name
+                                                :contentMap="
+                                                    $store.state.bioPortal
+                                                        .documentations
                                                 "
                                             ></documentation>
                                         </div>
@@ -312,7 +314,7 @@
                         </h2>
                         <p>
                             <a
-                                href="https://docs.google.com/forms/d/e/1FAIpQLSdZXVbAT7YG0cQmCRXWDgCEBfMiCZ5r3DxGmhqYlL7f2jTqcw/viewform?usp=sf_link"
+                                href="https://docs.google.com/forms/d/e/1FAIpQLSdA8Wn6QDLNLoUejq-BJrPW7SFAM7DsFggu8iPOIhOP0WS2Tw/viewform"
                                 target="_blank"
                                 >Sign up</a
                             >
@@ -325,13 +327,32 @@
             <!-- end -->
         </div>
         <!-- Footer-->
-        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+        <page-footer
+            :disease-group="$parent.diseaseGroup || 'cd'"
+        ></page-footer>
+        <!-- Only for CDKP -->
+        <div
+            v-if="$parent.diseaseGroup && $parent.diseaseGroup.name == 'cd'"
+            style="
+                position: sticky;
+                bottom: 0;
+                padding: 10px;
+                z-index: 50;
+                background: #38942d;
+                text-align: center;
+                color: #fff;
+            "
+        >
+            This repository is under review for potential modification in
+            compliance with Administration directives.
+        </div>
     </div>
 </template>
 <style>
 p[id="home.example"] {
     white-space: break-spaces;
 }
+
 .a2f-front-logo-wrapper {
     margin-left: auto;
     margin-right: auto;
@@ -342,6 +363,7 @@ p[id="home.example"] {
 .a2f-front-logo-img {
     width: 500px;
 }
+
 .a2f-front-tagline {
     font-size: 28px;
     font-weight: 100;
@@ -427,6 +449,7 @@ p[id="home.example"] {
 .k-portal img {
     height: 110px;
 }
+
 .a2fkp-footer {
     margin-top: 50px;
 }
@@ -437,30 +460,37 @@ p[id="home.example"] {
     justify-content: center;
     margin-top: 40px;
 }
+
 .stats {
     display: flex;
     color: white;
     font-family: sans-serif;
     gap: 40px;
 }
+
 .stats .stat {
     display: flex;
     gap: 10px;
 }
+
 .stats .icon {
     height: 70px;
     width: fit-content;
 }
+
 .stats .icon img {
     height: 100%;
 }
+
 .stats .info {
     padding: 5px 0 0;
 }
+
 .stats .count {
     font-size: 22px;
     font-weight: bold;
 }
+
 .stats .label {
     font-size: 12px;
     max-width: 70px;

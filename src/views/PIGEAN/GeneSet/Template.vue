@@ -16,8 +16,8 @@
                     <geneset-selectpicker></geneset-selectpicker>
                 </div>
                 <div class="col filter-col-md">
-                    <div class="label">Gene set size preference</div>
-                    <sigma-selectpicker></sigma-selectpicker>
+                    <div class="label">Trait group</div>
+                    <trait-group-selectpicker></trait-group-selectpicker>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Number of gene sets included</div>
@@ -69,9 +69,14 @@
             <div class="card mdkp-card">
                 <div class="card-body pigean-title">
                     <h4 class="card-title">
-                        Gene set
-                        {{ $store.state.geneset }}
+                        Traits in which gene set affects genetic support
                     </h4>
+                    <div>
+                        Gene sets affect the log-odds of the probability that a
+                        gene is involved in a trait. Effect sizes are calculated
+                        for the gene set in isolation (marginal) and in a joint
+                        model with all gene sets together (joint).
+                    </div>
                 </div>
                 <div class="card-body">
                     <criterion-function-group>
@@ -79,19 +84,14 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $store.state.pigeanGeneset.data.map(
-                                    (d) => d.phenotype
-                                )
+                                $parent.phewasAllData.map((d) => d.phenotype)
                             "
                             :label-formatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
+                                    ($parent.pigeanMap[phenotype] &&
+                                        $parent.pigeanMap[phenotype]
+                                            .description) ||
+                                    phenotype
                             "
                             :multiple="true"
                         >
@@ -115,9 +115,9 @@
                                         :phenotypes-data="
                                             $parent.phewasAdjustedData
                                         "
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
+                                        :linkPhenotypes="true"
+                                        :isPigean="true"
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
                                         :utils="$parent.utilsBox"
@@ -129,13 +129,9 @@
                                 <div class="col-md-4">
                                     <pigean-plot
                                         v-if="$parent.plotReady"
-                                        :pigean-data="
-                                            $store.state.pigeanGeneset.data
-                                        "
+                                        :pigean-data="$parent.phewasAllData"
                                         :config="$parent.pigeanPlotConfig"
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
                                         :filter="filter"
                                     >
                                     </pigean-plot>
@@ -143,12 +139,8 @@
                                 <div class="card-body pigean-table">
                                     <pigean-table
                                         v-if="$parent.plotReady"
-                                        :pigean-data="
-                                            $store.state.pigeanGeneset.data
-                                        "
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :pigean-data="$parent.phewasAllData"
+                                        :phenotype-map="$parent.pigeanMap"
                                         :config="$parent.tableConfig"
                                         :filter="filter"
                                     >

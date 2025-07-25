@@ -22,7 +22,7 @@
                     <div class="region-search col filter-col-md">
                         <div class="label">Set Ancestry</div>
                         <ancestry-selectpicker
-                            :pageLevel="true"
+                            :page-level="true"
                             :ancestries="
                                 $store.state.bioPortal.datasets.map(
                                     (dataset) => dataset.ancestry
@@ -50,7 +50,7 @@
                 <div class="card-body temporary-card">
                     <documentation
                         name="phenotype.page.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :content-map="$store.state.bioPortal.documentations"
                     ></documentation>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                                         alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
                                         :content-fill="
-                                            $store.getters['documentationMap']
+                                            $store.getters['docDetails']
                                         "
                                         :custom-failure-msg="'No Manhattan plot available for this query.'"
                                     />
@@ -98,7 +98,7 @@
                                         alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
                                         :content-fill="
-                                            $store.getters['documentationMap']
+                                            $store.getters['docDetails']
                                         "
                                         :custom-failure-msg="'No Q-Q plot available for this query.'"
                                     />
@@ -123,9 +123,12 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.topvariants.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
 
@@ -167,7 +170,9 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <documentation
                                     name="pheno.top_assoc.subheader"
-                                    :content-fill="$parent.documentationMap"
+                                    :content-map="
+                                        $store.state.bioPortal.documentations
+                                    "
                                 ></documentation>
                                 <meta-analysis-bar-graph
                                     :graph-data="
@@ -190,7 +195,7 @@
                                     "
                                     :filter="filter"
                                     :per-page="10"
-                                    :showBottomLine="true"
+                                    :show-bottom-line="true"
                                 ></associations-table>
                             </template>
                         </criterion-function-group>
@@ -202,47 +207,69 @@
                             Credible Sets to Cell Type (CS2CT) results for
                             {{ $store.state.phenotype.description }}
                             (Ancestry:
-                            {{
-                                $store.state.ancestry == ""
+                            {{ $store.state.selectedAncestry == ""
                                     ? "All"
                                     : $parent.ancestryFormatter(
-                                          $store.state.ancestry
-                                      )
+                                        $store.state.selectedAncestry
+                                      )}}, Annotation: 
+                            {{ 
+                                $parent.tissueFormatter($store.state.selectedAnnotation)
                             }})
                             <tooltip-documentation
                                 name="phenotype.cs2ct.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
+                        <documentation
+                            name="phenotype.cs2ct.subheader"
+                            :content-map="$store.state.bioPortal.documentations"
+                        ></documentation>
+                        <div
+                            class="filtering-ui-wrapper container-fluid temporary-card"
+                        >
+                            <div class="row filtering-ui-content">
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">Search by annotation</div>
+                                    </span>
+                                    <select v-model="$parent.annotation"
+                                        class="form-control"
+                                        @change="$parent.onAnnotationSelected()">
+                                        <option v-for="anno in $store.state.annotationOptions"
+                                            :value="anno">
+                                            {{ anno }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                         <criterion-function-group>
                             <filter-enumeration-control
-                                :field="'annotation'"
-                                :options="
-                                    $store.state.c2ct.data.map(
-                                        (d) => d.annotation
-                                    )
-                                "
+                                :field="'source'"
+                                :multiple="true"
+                                :options="$parent.c2ctData.map(d => d.source)"
                             >
-                                <div class="label">Annotation</div>
+                                <div class="label">Source</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'tissue'"
+                                :multiple="true"
                                 :options="
-                                    $store.state.c2ct.data.map((d) => d.tissue)
+                                    $parent.c2ctData.map((d) => d.tissue)
                                 "
                             >
                                 <div class="label">Tissue</div>
                             </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'biosample'"
-                                :options="
-                                    $parent.c2ctData.map((d) => d.biosample)
-                                "
+                            <filter-greater-control
+                                :field="'varTotal'"
                             >
-                                <div class="label">Biosample</div>
-                            </filter-enumeration-control>
+                                <div class="label">Variants (&ge;)</div>
+                            </filter-greater-control>
                             <filter-less-control
                                 :field="'totalEntropy'"
                                 :pill-formatter="
@@ -255,7 +282,7 @@
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <c2ct-table
-                                    :c2ctData="$parent.c2ctData"
+                                    :c2ct-data="$parent.c2ctData"
                                     :filter="filter"
                                     :phenotype="$store.state.phenotype"
                                 >
@@ -280,7 +307,7 @@
                         </h4>
                         <documentation
                             name="pheno.assocdatasets.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
 
                         <criterion-function-group>
@@ -316,9 +343,12 @@
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
 
@@ -352,7 +382,7 @@
                                                 $store.state.hugePhenotype.data
                                             "
                                             :filter="filter"
-                                            :phenotypeMap="
+                                            :phenotype-map="
                                                 $store.state.bioPortal
                                                     .phenotypeMap
                                             "
@@ -429,9 +459,12 @@
                                       )
                             }})&nbsp;<tooltip-documentation
                                 name="phenotype.pathway.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
                         <pathway-table
@@ -455,14 +488,17 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.correlation.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="phenotype.correlation.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
                         <criterion-function-group>
                             <filter-enumeration-control
@@ -527,14 +563,17 @@
                             }})
                             <tooltip-documentation
                                 name="phenotype.annot.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="pheno.globalenrich.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
 
                         <criterion-function-group>
@@ -585,9 +624,12 @@
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="phenotype.effector-gene.tooltip"
-                                :content-fill="$parent.documentationMap"
+                                :content-fill="$parent.docDetails"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
 

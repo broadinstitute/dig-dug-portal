@@ -35,8 +35,8 @@
                     <gene-selectpicker></gene-selectpicker>
                 </div>
                 <div class="col filter-col-md">
-                    <div class="label">Gene set size preference</div>
-                    <sigma-selectpicker></sigma-selectpicker>
+                    <div class="label">Trait group</div>
+                    <trait-group-selectpicker></trait-group-selectpicker>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Number of gene sets included</div>
@@ -89,10 +89,13 @@
 
             <div class="card mdkp-card">
                 <div class="card-body pigean-title">
-                    <h4 class="card-title">
-                        Gene
-                        {{ $store.state.geneName }}
-                    </h4>
+                    <h4 class="card-title">Traits with genetic support</h4>
+                    <div>
+                        Combined genetic support is composed of direct support
+                        (from GWAS associations near the gene) and indirect
+                        support (membership in gene sets with genetic support).
+                        Units are log-odds of probability.
+                    </div>
                 </div>
                 <div class="card-body">
                     <criterion-function-group>
@@ -100,19 +103,14 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $store.state.pigeanGene.data.map(
-                                    (d) => d.phenotype
-                                )
+                                $parent.phewasAllData.map((d) => d.phenotype)
                             "
                             :label-formatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
+                                    ($parent.pigeanMap[phenotype] &&
+                                        $parent.pigeanMap[phenotype]
+                                            .description) ||
+                                    phenotype
                             "
                             :multiple="true"
                         >
@@ -136,14 +134,21 @@
                                         :phenotypes-data="
                                             $parent.phewasAdjustedData
                                         "
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
+                                        :linkPhenotypes="true"
+                                        :isPigean="true"
                                         :colors="$parent.plotColors"
                                         :render-config="$parent.renderConfig"
                                         :utils="$parent.utilsBox"
                                         :filter="filter"
                                         :native-dl-btn="false"
+                                        @dotsHovered="
+                                            (dots) =>
+                                                $parent.hoverDots(dots, true)
+                                        "
+                                        :matchingHoverDots="
+                                            $parent.hoverDotsToPhewas
+                                        "
                                     >
                                     </research-phewas-plot>
                                 </div>
@@ -151,13 +156,17 @@
                                     <pigean-plot
                                         v-if="$parent.plotReady"
                                         :pigean-data="
-                                            $store.state.pigeanGene.data
+                                            $parent.pigeanFilteredData
                                         "
                                         :config="$parent.pigeanPlotConfig"
-                                        :phenotype-map="
-                                            $store.state.bioPortal.phenotypeMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
                                         :filter="filter"
+                                        @dotsHovered="
+                                            (dots) => $parent.hoverDots(dots)
+                                        "
+                                        :matchingHoverDots="
+                                            $parent.hoverDotsToPigean
+                                        "
                                     >
                                     </pigean-plot>
                                 </div>
@@ -165,10 +174,8 @@
                             <div class="card-body pigean-table">
                                 <pigean-table
                                     v-if="$parent.plotReady"
-                                    :pigean-data="$store.state.pigeanGene.data"
-                                    :phenotype-map="
-                                        $store.state.bioPortal.phenotypeMap
-                                    "
+                                    :pigean-data="$parent.pigeanFilteredData"
+                                    :phenotype-map="$parent.pigeanMap"
                                     :config="$parent.tableConfig"
                                     :filter="filter"
                                 >
@@ -244,5 +251,9 @@
 
 .card-body.pigean-table {
     padding-top: 0;
+}
+
+#pigean-hover-link {
+    padding-left: 25px;
 }
 </style>

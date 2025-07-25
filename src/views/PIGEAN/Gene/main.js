@@ -2,16 +2,10 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
-import SigmaSelectPicker from "@/components/SigmaSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
+import TraitGroupSelectPicker from "@/components/TraitGroupSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
@@ -26,21 +20,17 @@ import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
-
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
+import pigeanUtils from "@/utils/pigeanUtils.js";
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
     modules: {},
     components: {
-        PageHeader,
-        PageFooter,
         SearchHeaderWrapper,
         GeneSelectPicker,
-        SigmaSelectPicker,
         GenesetSizeSelectPicker,
+        TraitGroupSelectPicker,
         PigeanTable,
         PigeanPlot,
         ResearchPheWAS,
@@ -48,22 +38,27 @@ new Vue({
         FilterEnumeration,
         FilterGreaterLess,
     },
+    mixins: [pageMixin],
 
     data() {
         return {
+            pigeanPhenotypeMap: {},
             filterFields: [
                 { key: "combined", label: "Combined genetic support" },
-                { key: "huge_score", label: "GWAS unweighted" },
-                { key: "log_bf", label: "GWAS weighted" },
-                { key: "prior", label: "Gene set evidence" },
+                { key: "huge_score", label: "Direct support w/o gene sets" },
+                { key: "log_bf", label: "Direct support w/ gene sets" },
+                { key: "prior", label: "Indirect support" },
             ],
             tableConfig: {
                 fields: [
-                    { key: "phenotype", label: "Phenotype", sortable: true },
-                    { key: "combined", 
-                        label: "Combined genetic support", 
+                    { key: "phenotypeDesc", label: "Phenotype", sortable: true },
+                    { key: "label", label: "Factor label", sortable: true},
+                    {
+                        key: "combined",
+                        label: "Combined genetic support",
                         showProbability: true,
-                        sortable: true },
+                        sortable: true,
+                    },
                     {
                         key: "huge_score",
                         label: "Direct support (w/o gene sets)",
@@ -76,10 +71,11 @@ new Vue({
                     },
                     {
                         key: "prior",
-                        label: "Gene set evidence",
+                        label: "Indirect support",
                         sortable: true,
                     },
                     { key: "expand", label: "Gene sets" },
+                    { key: "expand3", label: "View locus plot"}
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
@@ -90,7 +86,7 @@ new Vue({
             },
             pigeanPlotConfig: {
                 xField: "prior",
-                xAxisLabel: "Gene set evidence",
+                xAxisLabel: "Indirect support",
                 yField: "log_bf",
                 yAxisLabel: "Direct support (w/ gene sets)",
                 dotKey: "phenotype",
@@ -118,6 +114,8 @@ new Vue({
                     bottom: 300,
                 },
             },
+            dotsToPhewas: "",
+            dotsToPigean: ""
         };
     },
     computed: {
@@ -151,14 +149,12 @@ new Vue({
         },
         plotReady() {
             return (
-                this.$store.state.pigeanGene.data.length > 0 &&
-                Object.keys(this.$store.state.bioPortal.phenotypeMap).length > 0
+                this.pigeanFilteredData.length > 0 &&
+                Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
         phewasAdjustedData() {
-            let adjustedData = JSON.parse(
-                JSON.stringify(this.$store.state.pigeanGene.data)
-            ); // Deep copy
+            let adjustedData = structuredClone(this.pigeanFilteredData); // Deep copy
             for (let i = 0; i < adjustedData.length; i++) {
                 if (adjustedData[i].combined < 0) {
                     adjustedData[i].combined = 0;
@@ -166,6 +162,23 @@ new Vue({
             }
             return adjustedData;
         },
+        pigeanFilteredData(){
+            let rawData = structuredClone(this.phewasAllData);
+            let filteredData = rawData.filter(item => item.log_bf > 0 || item.prior > 0);
+            return filteredData;
+        },
+        pigeanMap(){
+            return this.pigeanPhenotypeMap;
+        },
+        phewasAllData(){
+            return this.$store.state.phewasData;
+        },
+        hoverDotsToPigean(){
+            return this.dotsToPigean;
+        },
+        hoverDotsToPhewas(){
+            return this.dotsToPhewas;
+        }
     },
     watch: {
         diseaseGroup(group) {
@@ -173,10 +186,13 @@ new Vue({
         },
     },
 
-    created() {
+    async created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        await this.$store.dispatch("getPigeanPhenotypes");
+        this.pigeanPhenotypeMap = 
+            pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
     methods: {
         // go to region page
@@ -189,6 +205,13 @@ new Vue({
                 }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
+        hoverDots(dots, fromPhewas=false){
+            if (fromPhewas){
+                this.dotsToPigean = dots;
+            } else {
+                this.dotsToPhewas = dots;
+            }
+        }
     },
 
     render(createElement, context) {

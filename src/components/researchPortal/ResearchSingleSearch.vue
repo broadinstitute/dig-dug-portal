@@ -1,73 +1,47 @@
 <template>
 	<div class="byor-single-search-wrapper">
-		<input
-			class="form-control byor-single-search"
-			type="text"
-			id="byor_single_search"
-			v-model="singleSearchParam"
-			:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction']? singleSearchConfig['search instruction'] 
-			:'Search gene, variant, region, phenotype, or tissue'"
-			@keyup.enter="onSearch"
-		/>
-		<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()"><b-icon icon="x-circle-fill"></b-icon></span>
-		
+		<input class="form-control byor-single-search" type="text" id="byor_single_search" v-model="singleSearchParam"
+			:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction'] ? singleSearchConfig['search instruction']
+				: 'Search gene, variant, region, phenotype, or tissue'" @keyup.enter="onSearch" />
+		<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()"><b-icon
+				icon="x-circle-fill"></b-icon></span>
+
 		<!-- BYOR front page templates -->
 		<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig">
 
-			<div
-				id="byor_single_search_results"
-				class="byor-single-search-results"
-				v-if="anyResults() > 0"
-			>
+			<div id="byor_single_search_results" class="byor-single-search-results" v-if="anyResults() > 0">
 				<div v-for="gene in singleSearchResult.genes" :key="gene" class="single-search-option">
 					{{ gene
-					}}<span class="search-word-group"
-						><a v-if="!!isParameterActive('kp genes').active"
-							class="search-gene-link"
-							@click="searchGene(gene)"
-							href="javascript:;"
-							>{{ "Search gene"
-							}}<span class="gene-link-tip"
-								>Alias names are converted to gene symbols</span
-							></a
-						>
+					}}<span class="search-word-group"><a v-if="!!isParameterActive('kp genes').active"
+							class="search-gene-link" @click="searchGene(gene)" href="javascript:;">{{ "Search gene"
+							}}<span class="gene-link-tip">Alias names are converted to gene symbols</span></a>
 						<span v-if="!!isParameterActive('kp region').active">|</span>
-						<a v-if="!!isParameterActive('kp region').active" 
-							@click="searchRegion(gene)" href="javascript:;">{{
+						<a v-if="!!isParameterActive('kp region').active" @click="searchRegion(gene)" href="javascript:;">{{
 							"Search region"
-						}}</a></span
-					>
+						}}</a></span>
 				</div>
 				<template v-if="!!isParameterActive('kp phenotypes').active">
-					<div
-						v-for="phenotype in singleSearchResult.phenotypes"
-						:value="phenotype.name"
-						:key="phenotype.name"
-						 class="single-search-option"
-					>
+					<div v-for="phenotype in singleSearchResult.phenotypes" :value="phenotype.name" :key="phenotype.name"
+						class="single-search-option">
 						<a :href="isParameterActive('kp phenotypes').url + phenotype.name">{{
 							phenotype.description
-						}}</a
-						><span class="search-word-group">{{
-							phenotype.group
-						}}</span>
+						}}</a><span class="search-word-group">{{
+	phenotype.group
+}}</span>
 					</div>
 				</template>
 
 				<template v-for="param in singleSearchConfig['search parameters']">
-					<template v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes') ">
-						
+					<template
+						v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes')">
+
 						<template v-if="!!isParameterActive(param['parameter']).active">
-							<div
-								v-for="item in singleSearchResult[param['parameter']]"
-								:value="item.value"
-								:key="item.value"
-								 class="single-search-option"
-							>{{ item.label }}
-								<a :href="isParameterActive(param['parameter']).url + item.value" class="search-word-group">{{
-									'Search '+param['parameter']
-								}}</a
-								>
+							<div v-for="item in singleSearchResult[param['parameter']]" :value="item.value"
+								:key="item.value" class="single-search-option">{{ item.label }}
+								<a :href="isParameterActive(param['parameter']).url + item.value"
+									class="search-word-group">{{
+										'Search ' + param['parameter']
+									}}</a>
 							</div>
 						</template>
 					</template>
@@ -76,59 +50,37 @@
 		</div>
 		<!-- For KP front pages -->
 		<div class="byor-single-search-results-wrapper" v-if="!singleSearchConfig">
-			<div
-				id="byor_single_search_results"
-				class="byor-single-search-results"
-				v-if="
-					singleSearchResult.genes.length > 0 ||
-					singleSearchResult.phenotypes.length > 0 || 
-					singleSearchResult.tissues.length > 0
-				"
-			>
+			<div id="byor_single_search_results" class="byor-single-search-results" v-if="singleSearchResult.genes.length > 0 ||
+				singleSearchResult.phenotypes.length > 0 ||
+				singleSearchResult.tissues.length > 0
+				">
 				<div v-for="gene in singleSearchResult.genes" :key="gene" class="single-search-option">
 					{{ gene
-					}}<span class="search-word-group"
-						><a
-							class="search-gene-link"
-							@click="searchGene(gene)"
-							href="javascript:;"
-							>{{ "Search gene"
-							}}<span class="gene-link-tip"
-								>Alias names are converted to gene symbols</span
-							></a
-						>
+					}}<span class="search-word-group"><a class="search-gene-link" @click="searchGene(gene)"
+							href="javascript:;">{{ "Search gene"
+							}}<span class="gene-link-tip">Alias names are converted to gene symbols</span></a>
 						|
 						<a @click="searchRegion(gene)" href="javascript:;">{{
 							"Search region"
-						}}</a></span
-					>
+						}}</a></span>
 				</div>
 
-				<div
-						v-for="tissue in singleSearchResult.tissues"
-						:value="tissue.value"
-						:key="tissue.value"
-						 class="single-search-option"
-					>
+				<div v-for="tissue in singleSearchResult.tissues" :value="tissue.value" :key="tissue.value"
+					class="single-search-option">
 					<a :href="'/tissue.html?tissue=' + tissue.value">{{
 						tissue.label
 					}}</a><span class="search-word-group">{{
-						'Tissue'
-					}}</span>
+	'Tissue'
+}}</span>
 				</div>
 
-				<div
-					v-for="phenotype in singleSearchResult.phenotypes"
-					:value="phenotype.name"
-					:key="phenotype.name"
-					 class="single-search-option"
-				>
+				<div v-for="phenotype in singleSearchResult.phenotypes" :value="phenotype.name" :key="phenotype.name"
+					class="single-search-option">
 					<a :href="'/phenotype.html?phenotype=' + phenotype.name">{{
 						phenotype.description
-					}}</a
-					><span class="search-word-group">{{
-						phenotype.group
-					}}</span>
+					}}</a><span class="search-word-group">{{
+	phenotype.group
+}}</span>
 				</div>
 			</div>
 		</div>
@@ -143,7 +95,7 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-single-search", {
-	props: ["singleSearchConfig", "phenotypes","utils"],
+	props: ["singleSearchConfig", "phenotypes", "utils"],
 	modules: {},
 
 	data() {
@@ -155,11 +107,11 @@ export default Vue.component("research-single-search", {
 				tissues: [],
 				diseases: []
 			},
-			customList:{}
+			customList: {}
 		};
 	},
 	created() {
-		if(!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
+		if (!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
 			this.singleSearchConfig["search parameters"].map(S => {
 				if (!!S["data point"]) {
 					let listPoint = S["data point"];
@@ -175,14 +127,14 @@ export default Vue.component("research-single-search", {
 			this.getTissues();
 		}
 	},
-	mounted() {},
+	mounted() { },
 	computed: {},
 	watch: {
 		singleSearchParam(PARAM) {
 			if (!!PARAM && PARAM.length >= 2) {
 
 				// in case there is custom searchConfig, make sure kp gene search is there. Otherwise, gene search is active in default.
-				if(!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
+				if (!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
 
 					let isKpGenes = null;
 
@@ -195,7 +147,7 @@ export default Vue.component("research-single-search", {
 					if (!!isKpGenes) { this.lookupGenes(PARAM); }
 
 				} else {
-					
+
 					this.lookupGenes(PARAM);
 				}
 
@@ -228,7 +180,7 @@ export default Vue.component("research-single-search", {
 
 				searchFields.map(P => {
 					let searchItems = [];
-					this.customList[P].map(item=>{
+					this.customList[P].map(item => {
 						let isInList = 0;
 						paramWords.map((w) => {
 							if (
@@ -264,7 +216,7 @@ export default Vue.component("research-single-search", {
 
 			let keys = Object.keys(this.singleSearchResult);
 
-			keys.map(key =>{
+			keys.map(key => {
 				this.singleSearchResult[key] = [];
 			})
 		},
@@ -289,18 +241,18 @@ export default Vue.component("research-single-search", {
 						return null;
 					}
 
-					let tissues = json.keys.map(key=>key[0])
+					let tissues = json.keys.map(key => key[0].replaceAll("_", " "))
 
 					return tissues;
 				});
+
+			
 
 			//return tissues;
 			if (!!tissues1 && tissues2) {
 				let tissues = tissues1.concat(tissues2);
 
 				let uniqueList = [...new Set(tissues)];
-
-				//console.log(uniqueList);
 
 				let tissuesList = [];
 				uniqueList.map(tissue => {
@@ -309,14 +261,15 @@ export default Vue.component("research-single-search", {
 
 					tissuesList.push(tempObj)
 				});
+
 				this.customList["tissues"] = tissuesList;
 			}
 		},
 		anyResults() {
-			let parameters = Object.keys(this.singleSearchResult) 
+			let parameters = Object.keys(this.singleSearchResult)
 
 			let totalResults = 0;
-			parameters.map(p=>{
+			parameters.map(p => {
 				totalResults += this.singleSearchResult[p].length;
 			})
 
@@ -353,17 +306,17 @@ export default Vue.component("research-single-search", {
 				location.href = "/variant.html?variant=" + searchKey;
 			} else {
 				let anyResults = this.anyResults();
-				
-				if(anyResults === 0) {
+
+				if (anyResults === 0) {
 					alertUtils.popAlert("Your search term was not found. Please try again.")
 				} else if (anyResults === 1) {
-					
+
 					let reDirectUrl;
 
 					if (!this.singleSearchConfig) {
 
 						for (const [sKey, sValue] of Object.entries(this.singleSearchResult)) {
-							if(sValue.length == 1) {
+							if (sValue.length == 1) {
 								switch (sKey) {
 									case 'phenotypes':
 										reDirectUrl = "/phenotype.html?phenotype=" + sValue[0].name;
@@ -390,29 +343,29 @@ export default Vue.component("research-single-search", {
 			}
 		},
 		isParameterActive(PARAM) {
-			let returnParam = {active: null, url:''};
+			let returnParam = { active: null, url: '' };
 
-			if(!!this.singleSearchConfig) {
-				this.singleSearchConfig["search parameters"].map(param =>{
-					if(param.values == PARAM) {
+			if (!!this.singleSearchConfig) {
+				this.singleSearchConfig["search parameters"].map(param => {
+					if (param.values == PARAM) {
 						returnParam.active = true;
-						if(!!param['target page']['page id']) {
+						if (!!param['target page']['page id']) {
 							returnParam.url = '/research.html?pageid='
 								+ param['target page']['page id'];
-						} else if(!!param['target page']['url']) {
+						} else if (!!param['target page']['url']) {
 							returnParam.url = param['target page']['url'];
 						}
-						
-						returnParam.url += (!!param['target page']['entity'])? '&' + param['target page']['entity parameter'] + '='+param['target page']['entity']:"";
-						
+
+						returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
+
 						if (!!param['target page']['page id']) {
 							returnParam.url += '&' + param['parameter'] + '=';
 						} else if (!!param['target page']['url']) {
 							returnParam.url += param['parameter'] + '=';
 						}
-						
+
 					} else {
-						if(param.parameter == PARAM) {
+						if (param.parameter == PARAM) {
 							returnParam.active = true;
 							if (!!param['target page']['page id']) {
 								returnParam.url = '/research.html?pageid='
@@ -420,9 +373,9 @@ export default Vue.component("research-single-search", {
 							} else if (!!param['target page']['url']) {
 								returnParam.url = param['target page']['url'];
 							}
-							
+
 							returnParam.url += (!!param['target page']['entity']) ? '&' + param['target page']['entity parameter'] + '=' + param['target page']['entity'] : "";
-							
+
 							if (!!param['target page']['page id']) {
 								returnParam.url += '&' + param['parameter'] + '=';
 							} else if (!!param['target page']['url']) {
@@ -436,9 +389,9 @@ export default Vue.component("research-single-search", {
 			return returnParam;
 
 		},
-		async getList( PARAM,URL,TYPE,WRAPPER) {
-			if(!!URL) {
-				
+		async getList(PARAM, URL, TYPE, WRAPPER) {
+			if (!!URL) {
+
 				let paramList = await fetch(URL).then((resp) => resp.json());
 				let list;
 
@@ -465,13 +418,13 @@ export default Vue.component("research-single-search", {
 
 						if (dataEntity.length > 0) {
 							dataEntity.map(item => {
-							if(typeof item == 'string' || typeof item == 'number') {
-								values.push({"label":item, "value":item}) 
-							} else if(typeof item == 'object' && !!Array.isArray(item)) {
-								values.push({ "label": item[0], "value": item[0] })
-							} else if(typeof item == 'object' && !Array.isArray(item)) {
-								values.push(item);
-							}
+								if (typeof item == 'string' || typeof item == 'number') {
+									values.push({ "label": item, "value": item })
+								} else if (typeof item == 'object' && !!Array.isArray(item)) {
+									values.push({ "label": item[0], "value": item[0] })
+								} else if (typeof item == 'object' && !Array.isArray(item)) {
+									values.push(item);
+								}
 							})
 						}
 
@@ -489,15 +442,15 @@ export default Vue.component("research-single-search", {
 					console.log("there is an error");
 				}
 			}
-			
+
 		},
 		async searchGene(KEY) {
-			
+
 			let geneSymbol = await this.utils.regionUtils.geneSymbol(KEY);
 			let isCustomGene = this.isParameterActive('kp genes');
 
 			if (geneSymbol) {
-				
+
 				let genePageUrl;
 
 				if (!isCustomGene.active) {
@@ -517,7 +470,7 @@ export default Vue.component("research-single-search", {
 			if (region) {
 				let regionPageUrl;
 
-				if(!isCustomRegion.active) {
+				if (!isCustomRegion.active) {
 					regionPageUrl =
 						"/region.html?chr=" +
 						region.chr +
@@ -525,7 +478,7 @@ export default Vue.component("research-single-search", {
 						region.end +
 						"&start=" +
 						region.start;
-				} else if(!!isCustomRegion.active) {
+				} else if (!!isCustomRegion.active) {
 					regionPageUrl = isCustomRegion.url +=
 						region.chr +
 						":" +
@@ -552,8 +505,8 @@ export default Vue.component("research-single-search", {
 
 .reset-search {
 	position: absolute;
-    top: 4px;
-    right: 4px;
+	top: 4px;
+	right: 4px;
 	color: #999999;
 	font-size: 14px;
 }
@@ -561,9 +514,11 @@ export default Vue.component("research-single-search", {
 .reset-search:hover {
 	color: #333333;
 }
+
 .byor-single-search-wrapper {
 	width: 100%;
 }
+
 .byor-single-search {
 	width: 100%;
 	margin-left: auto;

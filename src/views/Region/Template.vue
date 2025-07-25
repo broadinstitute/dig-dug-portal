@@ -10,14 +10,12 @@
         <!-- body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-
                 <div>
                     <div class="region-search col filter-col-md">
                         <div class="label">Begin new search</div>
                         <research-single-search
                             :single-search-config="null"
-                            :phenotypes="$parent.phenotypesInSession
-                                "
+                            :phenotypes="$parent.phenotypesInSession"
                             :utils="$parent.utilsBox"
                         ></research-single-search>
                     </div>
@@ -32,27 +30,6 @@
                             "
                         ></ancestry-selectpicker>
                     </div>
-                    <!--
-                    <div class="region-search col filter-col-md">
-                        <div class="label">Search</div>
-                        <button
-                            id="regionSearchGo"
-                            class="btn btn-light btn-sm go"
-                            type="button"
-                            @click="$store.dispatch('queryRegion')"
-                        >
-                            GO
-                        </button>
-                    </div>
-                    -->
-                    <!-- <div class="region-search col filter-col-md">
-                        <div class="label">Search phenotype</div>
-                        <phenotype-selectpicker
-                            v-if="$store.state.phenotype"
-                            :phenotypes="$store.state.bioPortal.phenotypes"
-                            :clearOnSelected="true"
-                        ></phenotype-selectpicker>
-                    </div>-->
                 </div>
             </search-header-wrapper>
 
@@ -66,13 +43,6 @@
                         <div class="viewing-region">
                             {{ $parent.regionString }}
                         </div>
-                        <!--<button
-                            class="btn btn-primary text-nowrap text-right explore-region-btn"
-                            style="margin-left: 20px"
-                            @click="$parent.exploreExpanded()"
-                        >
-                            Expand &plusmn; 50 kb
-                        </button>-->
                         <expand-region> </expand-region>
                     </div>
                     <div class="col-md-2 text-right">
@@ -81,22 +51,19 @@
                             <b-img
                                 src="/images/bioindex_logo.svg"
                                 alt="BioIndex logo"
-                                style="height: 34px"
+                                style="height: 24px"
                             ></b-img
                         ></b-link>
                     </div>
-                    <!-- <div class="col-md-4 gene-page-header-body">
-                        <span v-if="$store.state.phenotype">
-                            {{
-                            $store.state.phenotype.description
-                            }}
-                        </span>
-                    </div>-->
                 </div>
             </div>
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <documentation name="region.trait.info"></documentation>
+                    <documentation
+                        name="region.trait.info"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
                 </div>
             </div>
             <div class="card mdkp-card">
@@ -107,6 +74,7 @@
                             name="region.genesoverlapping.header.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
 
@@ -141,10 +109,12 @@
                             name="region.mostsignificantassoc.header.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
                     <documentation
                         name="region.phenos_w_signal.subheader"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <template v-if="$parent.topAssociations.length > 0">
@@ -269,10 +239,12 @@
                             name="region.ancestrytopassoc.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
                     <documentation
                         name="region.ancestrytopassoc.subheader"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                     <a
                         v-if="
@@ -296,12 +268,14 @@
                 <div class="card-body test-original">
                     <documentation
                         name="region.lz.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <documentation
                         name="region.igv.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <div class="filtering-ui-wrapper container-fluid">
@@ -315,6 +289,10 @@
                                         name="region.add.phenotypes.tooltip"
                                         :is-hover="true"
                                         :no-icon="false"
+                                        :contentMap="
+                                            $store.state.bioPortal
+                                                .documentations
+                                        "
                                     ></tooltip-documentation>
                                 </div>
                                 <template
@@ -346,19 +324,6 @@
                         </div>
                     </div>
                     <pre />
-                    <!--<h5 v-if="$parent.selectedPhenotypes.length > 0">
-						Add tracks &nbsp;<tooltip-documentation
-							name="region.add.phenotypes.tooltip"
-							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
-						| Filter tracks and table &nbsp;
-						<tooltip-documentation
-							name="region.filter.topassoc.tooltip"
-							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
-					</h5>-->
 
                     <b-alert
                         class="text-center my-3"
@@ -525,10 +490,14 @@
                                 name="region.topassoc.tooltip"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="region.variantassociation.subheader"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
                         <associations-table
                             id="associations-table"

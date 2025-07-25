@@ -13,10 +13,12 @@
 							<input type="checkbox" class="chkbox"
 							:id="sectionId + 'GenesTrackAll'"
 							@click="checkAll()"
+							:checked = "(!!plotConfig['genes track']['show all biotypes'])? true:false"
 							/><label> Show all biotypes</label>
 						</li>
 						<li v-for="geneType in localGeneTypes"
 							:key="geneType">
+							<!--
 							<input type="checkbox" class="chkbox"
 								v-if="geneType == 'protein_coding'"
 								:id="sectionId + geneType"
@@ -24,10 +26,11 @@
 								checked
 								@click="renderTrack(localGenesData)"
 							/>
+							-->
 							<input type="checkbox" class="chkbox"
-									v-else
 									:id="sectionId + geneType"
 									:value="geneType"
+									:checked = "(geneType == 'protein_coding' || !!plotConfig['genes track']['show all biotypes'])? true:false"
 									@click="renderTrack(localGenesData)"
 								/>
 							<label :for="geneType">{{ geneType.replaceAll("_"," ") }}</label>
@@ -88,7 +91,8 @@ export default Vue.component("multi-genes-track", {
 		"regionViewArea",
 		"utils",
 		"sectionId",
-		"starItems"
+		"starItems",
+		"hoverPos"
 	],
 	data() {
 		return {
@@ -273,7 +277,7 @@ export default Vue.component("multi-genes-track", {
 								let lastGene = t[t.length - 1];
 
 								//measuring if the regioon of the last gene is bigger than the gene label
-								console.log("t", t);
+								//console.log("t", t);
 								let lastGeneWidth = lastGene.xEndPos - lastGene.xStartPos;
 								let newGeneWidth = g.xEndPos - g.xStartPos;
 								
@@ -313,9 +317,11 @@ export default Vue.component("multi-genes-track", {
 
 		renderTrack(GENES) {
 
+			let canvasRenderWidth, canvasRenderHeight;
+
 			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
 
-				let canvasRenderWidth, canvasRenderHeight;
+				
 				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
 
 				canvasRenderWidth = !!this.plotConfig.width
@@ -460,7 +466,9 @@ export default Vue.component("multi-genes-track", {
 						this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
 					})
 				}
-			}
+
+			}			
+			
 		},
 		async getGenesInRegion(region) {
 

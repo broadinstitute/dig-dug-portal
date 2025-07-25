@@ -171,14 +171,6 @@ let pages = {
         title: "HuGe Calculator",
         chunks: ["chunk-vendors", "chunk-common", "hugecalculator"],
     },
-
-    /*genefinder: {
-        entry: "src/views/GeneFinder/main.js",
-        template: "public/index.html",
-        filename: "genefinder.html",
-        title: "Gene Finder",
-        chunks: ["chunk-vendors", "chunk-common", "genefinder"]
-    },*/
     genesifter: {
         entry: "src/views/GeneSifter/main.js",
         template: "public/index.html",
@@ -264,27 +256,6 @@ let pages = {
         title: "Tissue",
         chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
-    matkp: {
-        entry: "src/views/MATKP/Index/main.js",
-        template: "public/index.html",
-        filename: "matkp/index.html",
-        title: "MATKP",
-        chunks: ["chunk-vendors", "chunk-common", "matkp"],
-    },
-    matkp_cellbrowser: {
-        entry: "src/views/MATKP/CellBrowser/main.js",
-        template: "public/index.html",
-        filename: "matkp/cellbrowser.html",
-        title: "MATKP | Cell Browser",
-        chunks: ["chunk-vendors", "chunk-common", "matkp_cellbrowser"],
-    },
-    matkp_datasets: {
-        entry: "src/views/MATKP/Datasets/main.js",
-        template: "public/index.html",
-        filename: "matkp/datasets.html",
-        title: "MATKP | Datasets",
-        chunks: ["chunk-vendors", "chunk-common", "matkp_datasets"],
-    },
     pigean_index: {
         entry: "src/views/PIGEAN/Index/main.js",
         template: "public/index.html",
@@ -313,16 +284,41 @@ let pages = {
         title: "PIGEAN Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "pigean_phenotype"],
     },
+    network_graph: {
+        entry: "src/views/PIGEAN/NetworkGraph/main.js",
+        template: "public/index.html",
+        filename: "pigean/network_graph.html",
+        title: "Network Graph",
+        chunks: ["chunk-vendors", "chunk-common", "network_graph"],
+    },
+    factorization: {
+        entry: "src/views/Factorization/main.js",
+        template: "public/index.html",
+        filename: "factorization.html",
+        title: "Gene Set Factorization Server",
+        chunks: ["chunk-vendors", "chunk-common", "factorization"],
+    },
+    mouse_diff_exp: {
+        entry: "src/views/MouseDiffExp/main.js",
+        template: "public/index.html",
+        filename: "mouse_diff_exp.html",
+        title: "Mouse Differential Expression",
+        chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
+    },
 };
 
 // remove the debug page in production
 if (process.env.NODE_ENV === "production") {
     delete pages.debug;
+    delete pages.mouse_diff_exp;
 }
 
 module.exports = {
     devServer: {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+        },
     },
     configureWebpack: (config) => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
@@ -332,7 +328,7 @@ module.exports = {
         let bioindex_host_private =
             process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
 
-        if (!!bioindex_dev) {
+        if (!!bioindex_dev && !process.env.BIOINDEX_HOST) {
             bioindex_host =
                 bioindex_dev == "localhost"
                     ? "localhost:5000"
@@ -356,7 +352,6 @@ module.exports = {
         });
 
         // add the transform rule for bioindex
-        // Helen 2021-06-17
         config.module.rules.push({
             test: /bioIndexUtils\.js$/,
             loader: "string-replace-loader",
@@ -367,6 +362,23 @@ module.exports = {
             },
         });
 
+        // Add the rule for handling .js files with babel-loader
+        config.module.rules.push({
+            test: /\.js$/,
+            include: [/node_modules\/vis-network/, /node_modules\/vis-data/],
+            use: {
+                loader: "babel-loader",
+                options: {
+                    presets: ["@babel/preset-env"],
+                    plugins: ["@babel/plugin-transform-runtime"],
+                },
+            },
+        });
+        config.resolve.alias = {
+            ...config.resolve.alias,
+            "vis-network": "vis-network/standalone/umd/vis-network.min.js",
+            "vis-data": "vis-data/standalone/umd/vis-data.min.js",
+        };
         // create inline maps for dev builds
         if (process.env.NODE_ENV !== "production") {
             //config.devtool = "inline-source-map";

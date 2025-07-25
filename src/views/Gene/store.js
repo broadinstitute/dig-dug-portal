@@ -24,6 +24,7 @@ export default new Vuex.Store({
         transcriptAssoc: bioIndex("transcript-associations"),
         hugeScores: bioIndex("huge"),
         geneExpression: bioIndex("gene-expression"),
+        mouseSummary: bioIndex("diff-exp-summary-gene"),
         uniprot,
     },
     state: {
@@ -184,6 +185,10 @@ export default new Vuex.Store({
         async getHugeScoresData(context) {
             let name = context.state.geneName;
             context.dispatch("hugeScores/query", { q: name });
+        },
+        async getMouseData(context) {
+            let name = context.state.geneName;
+            context.dispatch("mouseSummary/query", { q: name });
         },
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);

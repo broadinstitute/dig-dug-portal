@@ -30,7 +30,8 @@
                     <div class="card-body temporary-card">
                         <documentation
                             name="tissue.explore.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
                     </div>
                 </div>
@@ -46,22 +47,26 @@
                         </h4>
                         <documentation
                             name="tissue.gene-expression.subheader"
-                            :content-fill="$parent.documentationMap"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
                         ></documentation>
                         <criterion-function-group>
                             <div class="col filter-col-md">
                                 <div class="label">Plot Scale</div>
-                                <select v-model="$parent.logScale" class="form-control">
+                                <select
+                                    v-model="$parent.logScale"
+                                    class="form-control"
+                                >
                                     <option :value="false">Linear</option>
-                                    <option :value="true">Logarithmic: log10(TPM+1)</option>
+                                    <option :value="true">
+                                        Logarithmic: log10(TPM+1)
+                                    </option>
                                 </select>
                             </div>
                             <filter-enumeration-control
                                 field="gene"
                                 placeholder="Select a gene ..."
-                                :options="
-                                    $parent.tissueData.map(d => d.gene)
-                                "
+                                :options="$parent.tissueData.map((d) => d.gene)"
                                 :multiple="true"
                             >
                                 <div class="label">Filter by Genes</div>
@@ -79,25 +84,31 @@
                                 field="H"
                                 :pill-formatter="
                                     (filterDefinition) =>
-                                        `genericity ≤ ${filterDefinition.threshold}`
+                                        `genericity &le; ${filterDefinition.threshold}`
                                 "
                             >
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <scatterplot
-                                    v-if="$parent.tissueData.length > 0"
-                                    :logScale="$parent.logScale"
-                                    :plotData="$parent.tissueData"
-                                    :config="$parent.plotConfig"
-                                    :plotName="`${$parent.tissue}_gene_expression`"
-                                    :filter="filter"
-                                    :translucentDots="true"
-                                >
-                                </scatterplot>
+                                <div class="row">
+                                    <div class="col-md-2"></div>
+                                    <div class="col-md-8">
+                                        <scatterplot
+                                            v-if="$parent.tissueData.length > 0"
+                                            :log-scale="$parent.logScale"
+                                            :plot-data="$parent.tissueData"
+                                            :config="$parent.plotConfig"
+                                            :plot-name="`${$parent.tissue}_gene_expression`"
+                                            :filter="filter"
+                                            :translucent-dots="true"
+                                        >
+                                        </scatterplot>
+                                    </div>
+                                    <div class="col-md-2"></div>
+                                </div>
                                 <div class="mt-4"></div>
                                 <tissue-expression-table
-                                    :tissueData="$parent.tissueData"
+                                    :tissue-data="$parent.tissueData"
                                     :tissue="$parent.tissue"
                                     :filter="filter"
                                 >
@@ -108,9 +119,266 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <h4>
+                            {{
+                                `Cell type clusters for ${$parent.tissueFormatter(
+                                    $parent.tissue
+                                )}`
+                            }}
+                        </h4>
+                        <documentation
+                            name="tissue.single-cell.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        ></documentation>
+                        
+                        <template v-if="$parent.hasMatchingSingleCellTissue">
+                            <div>
+                                See <strong>more</strong> interactive plots for 
+                                {{ $parent.tissueFormatter($parent.tissue) }} 
+                                cell type clusters, gene expression by trait, cell type abundance, 
+                                and marker gene expression on the 
+                                <a :href="`/r/scb?datasetId=${$parent.scbConfig.presets.datasetId}`">Single Cell Browser</a>.
+                            </div>
+                            <research-single-cell-browser 
+                                v-if="$parent.scbConfig"
+                                style="margin:40px 0 0"
+                                sectionId="scb"
+                                :renderConfig="$parent.scbConfig"
+                                :utils="$parent.utilsBox"
+                                :data="[]">
+                            </research-single-cell-browser>
+                        </template>
+                        <template v-else>
+                            <b-alert show variant="warning" class="text-center">
+                                <b-icon icon="exclamation-triangle"></b-icon>  No data available for this query.
+                            </b-alert>
+                        </template>
+                    </div>
+                </div>
+                <div
+                    v-if="$parent.showDiffExp"
+                    class="card mdkp-card"
+                >
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Differential gene expression in
+                            {{ $parent.tissueFormatter($parent.tissue) }}, in
+                            mouse founder strains
+                            <tooltip-documentation
+                                name="tissue.mice-diff-exp.tooltip"
+                                :content-fill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
+                            >
+                            </tooltip-documentation>
+                        </h4>
+                        <documentation
+                            name="tissue.mice-diff-exp.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </documentation>
+                        <criterion-function-group>
+                            <filter-pvalue-control
+                                field="P_adj_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: sex (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: strain (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: strain and sex (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <mouse-summary-table
+                                    :items="$store.state.mouseSummary.data"
+                                    :filter="filter"
+                                >
+                                </mouse-summary-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Credible Sets to Cell Type (CS2CT) results
+                            {{ !$store.state.selectedPhenotype 
+                                        ? ''
+                                        : `for ${$store.state.selectedPhenotype.description}` }}
+                            (Ancestry:
+                            {{
+                                $store.state.selectedAncestry == ""
+                                    ? "All"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.selectedAncestry
+                                      )
+                            }}, Annotation:
+                            {{
+                                $parent.tissueFormatter(
+                                    $store.state.selectedAnnotation
+                                )
+                            }})
+                            <tooltip-documentation
+                                name="phenotype.cs2ct.tooltip"
+                                :content-fill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
+                            ></tooltip-documentation>
+                        </h4>
+                        <documentation
+                            name="tissue.cs2ct.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        ></documentation>
+                        <div
+                            class="filtering-ui-wrapper container-fluid temporary-card"
+                        >
+                            <div class="row filtering-ui-content">
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">
+                                            Search by phenotype
+                                        </div>
+                                    </span>
+                                    <phenotype-selectpicker
+                                        :phenotypes="
+                                            $store.state.bioPortal.phenotypes
+                                        "
+                                    >
+                                    </phenotype-selectpicker>
+                                </div>
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">
+                                            Search by ancestry
+                                        </div>
+                                    </span>
+                                    <ancestry-selectpicker
+                                        :ancestries="
+                                            $store.state.ancestryOptions
+                                        "
+                                    >
+                                    </ancestry-selectpicker>
+                                </div>
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">
+                                            Search by annotation
+                                        </div>
+                                    </span>
+                                    <select
+                                        v-model="$parent.annotation"
+                                        class="form-control"
+                                        @change="$parent.onAnnotationSelected()"
+                                    >
+                                        <option
+                                            v-for="anno in $store.state
+                                                .annotationOptions"
+                                            :value="anno"
+                                        >
+                                            {{ anno }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'source'"
+                                :multiple="true"
+                                :options="
+                                    $parent.cs2ctData.map((d) => d.source)
+                                "
+                            >
+                                <div class="label">Source</div>
+                            </filter-enumeration-control>
+                            <filter-less-control
+                                :field="'totalEntropy'"
+                                :pill-formatter="
+                                    (filterDefinition) =>
+                                        `genericity ≤ ${filterDefinition.threshold}`
+                                "
+                            >
+                                <div class="label">Genericity (&le;)</div>
+                            </filter-less-control>
+                            <filter-greater-control :field="'varTotal'">
+                                <div class="label">Variants (&ge;)</div>
+                            </filter-greater-control>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <c2ct-table
+                                    :c2ct-data="$parent.cs2ctData"
+                                    :filter="filter"
+                                    :isTissuePage="true"
+                                    :phenotype="$store.state.selectedPhenotype"
+                                >
+                                </c2ct-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4>
+                            Global enrichment for {{ $parent.tissueFormatter($parent.tissue) }} (Ancestry:
+                            {{
+                                $store.state.selectedAncestry === ""
+                                    ? "Mixed meta-analysis"
+                                    : $parent.ancestryFormatter($store.state.selectedAncestry)
+                            }})
+                        </h4>
+                        <documentation
+                            name="tissue.global-enrichment.subheader"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        ></documentation>
+                        <div
+                            class="filtering-ui-wrapper container-fluid temporary-card"
+                        >
+                            <div class="row filtering-ui-content">
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">
+                                            Search by ancestry
+                                        </div>
+                                    </span>
+                                    <ancestry-selectpicker
+                                        :ancestries="
+                                            $store.state.ancestryOptions
+                                        "
+                                    >
+                                    </ancestry-selectpicker>
+                                </div>
+                            </div>
+                        </div>
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                            @topPhenotypeFound="
+                                (d) => $parent.getTopPhenotype(d)
+                            "
                         ></tissue-heritability-table>
                     </div>
                 </div>
@@ -142,5 +410,9 @@ tr.b-table-details > td {
 
 div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
     background-color: #14a433;
+}
+.blue-search {
+    background-color: #66bbff30 !important;
+    border: solid 1px #3399ff30 !important;
 }
 </style>

@@ -244,7 +244,7 @@ export default Vue.component("cfde-eco-system", {
 		};
 	},
 	mounted() {
-		
+		//console.log('this.sectionConfigs', this.sectionConfigs);
 		this.loadScript('https://cdn.jsdelivr.net/npm/leader-line@1.0.7/leader-line.min.js', async () => {
 			const data = await this.loadFile(this.sectionConfigs["content"]["custom"]["viz data"])
 			this.parsedData = await this.parseEntities(data);
@@ -388,7 +388,7 @@ export default Vue.component("cfde-eco-system", {
                                     e.target,
                                     document.querySelector(`[data-value="${key}"]`),
                                     {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', endPlug: 'behind', endSocketGravity: 100, 
-                                    path: 'fluid', gradient: {endColor: '#ff7f5090', startColor:'#ff7f5090'}, dash: {len: 2, gap: 1, animation: true},  size: 1}
+                                    path: 'fluid', gradient: {endColor: '#ff7f5090', startColor:'#ff7f5090'}, dash: {len: 2, gap: 1, animation: false},  size: 1}
                                 );
                             }
                         }
@@ -398,7 +398,7 @@ export default Vue.component("cfde-eco-system", {
                                     e.target,
                                     document.querySelector(`[data-value="${key}"]`),
                                     {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', endPlug: 'behind', endSocketGravity: 80, 
-                                    path: 'fluid', gradient: {endColor: '#ff7f5090', startColor:'#ff7f5090'}, dash: {len: 4, gap: 2, animation: true},  size: 2}
+                                    path: 'fluid', gradient: {endColor: '#ff7f5090', startColor:'#ff7f5090'}, dash: {len: 4, gap: 2, animation: false},  size: 2}
                                 );
                             }
                         }
@@ -408,7 +408,7 @@ export default Vue.component("cfde-eco-system", {
                                     e.target,
                                     document.querySelector(`[data-value="${key}"]`),
                                     {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', endPlug: 'behind', endSocketGravity: 60, 
-                                    path: 'fluid', gradient: {endColor: '#ff7f5090', startColor:'#ff7f5090'}, dash: {len: 6, gap: 3, animation: true},  size: 3}
+                                    path: 'fluid', gradient: {endColor: '#ff7f5090', startColor:'#ff7f5090'}, dash: {len: 6, gap: 3, animation: false},  size: 3}
                                 );
                             }
                         }
@@ -447,7 +447,7 @@ export default Vue.component("cfde-eco-system", {
                                 document.querySelector(`[data-value="${key}"]`),
                                 e.target,
                                 {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', startPlugColor: '#34679a', endPlug: 'behind', endSocketGravity: 100, 
-                                path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 2, gap: 1, animation: true},  size: 1}
+                                path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 2, gap: 1, animation: false},  size: 1}
                             );
 						//}
                     }else{
@@ -465,7 +465,7 @@ export default Vue.component("cfde-eco-system", {
                                 document.querySelector(`[data-value="${key}"]`),
                                 e.target,
                                 {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', startPlugColor: '#34679a', endPlug: 'behind', endSocketGravity: 80, 
-                                path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 4, gap: 2, animation: true},  size: 2}
+                                path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 4, gap: 2, animation: false},  size: 2}
                             );
                         //}
                     }else{
@@ -481,7 +481,7 @@ export default Vue.component("cfde-eco-system", {
                                 document.querySelector(`[data-value="${key}"]`),
                                 e.target,
                                 {startSocket: 'top', endSocket: 'bottom', startPlug: 'behind', startPlugColor: '#34679a', endPlug: 'behind', endSocketGravity: 60, 
-                                path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 6, gap: 3, animation: true},  size: 3}
+                                path: 'fluid', gradient: {startColor: '#ff7f5090', endColor:'#ff7f5090'}, dash: {len: 6, gap: 3, animation: false},  size: 3}
                             );
                         //}
                     }else{

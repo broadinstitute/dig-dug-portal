@@ -34,27 +34,31 @@
                         v-if="!!$parent.phenotypeSearchKey"
                         class="page-phenotypes-list"
                     >
-                        <template v-for="item in $parent.phenotypesInSession">
+                        <template
+                            v-for="item in $store.state.pigeanAllPhenotypes
+                                .data"
+                        >
                             <li
                                 v-if="
                                     !!$parent.ifPhenotypeInSearch(
-                                        item.description
+                                        item.phenotype_name
                                     )
                                 "
-                                :key="item.name"
+                                :key="item.phenotype"
                             >
                                 <a
                                     href="javascript:;"
                                     @click="$parent.setSelectedPhenotype(item)"
-                                    v-html="item.description"
+                                    v-html="item.phenotype_name"
                                 ></a>
+                                <span class="trait-group">
+                                    ({{
+                                        $parent.traitGroups[item.trait_group]
+                                    }})</span
+                                >
                             </li>
                         </template>
                     </ul>
-                </div>
-                <div class="col filter-col-md">
-                    <div class="label">Gene set size preference</div>
-                    <sigma-selectpicker></sigma-selectpicker>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Number of gene sets included</div>
@@ -89,6 +93,13 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">Genes with genetic support</h4>
+                    <div style="margin-bottom: 1rem">
+                        Combined genetic support is composed of direct support
+                        (from GWAS associations near the gene) and indirect
+                        support (membership in gene sets with genetic support).
+                        Units are log-odds of probability.
+                    </div>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene"
@@ -112,20 +123,21 @@
                         </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$parent.phewasPlotReady"
+                                v-if="$store.state.pigeanPhenotype.data.length > 0 &&
+                                    Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
-                                :phenotypeMap="
-                                    $store.state.bioPortal.phenotypeMap
-                                "
+                                :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
                             >
                             </pigean-plot>
                             <pigean-table
-                                v-if="$parent.plotReady"
+                                v-if="$store.state.pigeanPhenotype.data.length > 0 &&
+                                    Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.tableConfig"
                                 :filter="filter"
+                                :phenotypeMap="$parent.pigeanMap"
                             >
                             </pigean-table>
                         </template>
@@ -134,6 +146,15 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">
+                        Gene sets that affect genetic support
+                    </h4>
+                    <div style="margin-bottom: 1rem">
+                        Gene sets affect the log-odds of the probability that a
+                        gene is involved in a trait. Effect sizes are calculated
+                        for the gene set in isolation (marginal) and in a joint
+                        model with all gene sets together (joint).
+                    </div>
                     <criterion-function-group>
                         <filter-enumeration-control
                             field="gene_set"
@@ -158,19 +179,20 @@
 
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$parent.plotReady"
+                                v-if="$store.state.genesetPhenotype.data.length > 0 &&
+                                    Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
-                                :phenotypeMap="
-                                    $store.state.bioPortal.phenotypeMap
-                                "
+                                :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
                             >
                             </pigean-plot>
                             <pigean-table
-                                v-if="$parent.plotReady"
+                                v-if="$store.state.genesetPhenotype.data.length > 0 &&
+                                    Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetTableConfig"
+                                :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
                             >
                             </pigean-table>
@@ -180,14 +202,81 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 v-if="$parent.phewasPlotData.length > 0">
-                        {{$store.state.phenotype.name}}, {{ $parent.phewasPlotLabel }}
+                    <h4 class="card-title">
+                        Biological mechanisms underlying the trait
+                        <tooltip-documentation
+                            name="gene.translator.tooltip.hover"
+                            :content-fill="$parent.documentationMap"
+                            :is-hover="true"
+                            :no-icon="false"
+                            :supplyText="$parent.mechanismTooltip"
+                        >
+                        </tooltip-documentation>
                     </h4>
+                    <div>
+                        Mechanisms are determined by latent factorization of the
+                        membership matrix of significant genes and gene sets.
+                    </div>
+                    <criterion-function-group>
+                        <div class="col filter-col-md">
+                            <div class="label">P-value (<=)</div>
+                            <input
+                                type="number"
+                                class="form-control"
+                                v-model.lazy="$parent.heatmapMaxP"
+                            />
+                        </div>
+                    </criterion-function-group>
+                    <div class="row mb-4">
+                        <div id="mechanism-graph-outer" class="col-md-4">
+                            <div class="label">
+                                <strong>Mechanism Graph</strong>
+                            </div>
+                            <div id="mechanism-graph-inner">
+                                <template
+                                    v-if="
+                                        $store.state.phenotype &&
+                                        $store.state.genesetSize
+                                    "
+                                >
+                                    <div class="text-right mb-2">
+                                        <b-button
+                                            size="sm"
+                                            variant="outline-primary"
+                                            :to="`/pigean/network_graph.html?phenotype=${$store.state.phenotype.name}&genesetSize=${$store.state.genesetSize}`"
+                                            target="_blank"
+                                            ><b-icon icon="node-plus"></b-icon>
+                                            View Detailed Graph
+                                        </b-button>
+                                    </div>
+
+                                    <network-graph
+                                        :phenotype="$store.state.phenotype"
+                                        :geneset-size="$store.state.genesetSize"
+                                        :is-embed="true"
+                                    ></network-graph>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <heatmap
+                                v-if="
+                                    $store.state.pigeanTopPhewas.data.length > 0
+                                "
+                                :heatmapData="$parent.heatmapData"
+                                :renderConfig="$parent.heatmapConfig"
+                                :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                            >
+                            </heatmap>
+                        </div>
+                    </div>
                     <pigean-table
-                        v-if="$parent.plotReady"
+                        v-if="$store.state.pigeanFactor.data.length > 0 &&
+                            Object.keys($parent.pigeanMap).length > 0"
                         :pigeanData="$store.state.pigeanFactor.data"
                         :config="$parent.factorTableConfig"
                         :phewasRenderConfig="$parent.renderConfig"
+                        :phenotypeMap="$parent.pigeanMap"
                     >
                     </pigean-table>
                 </div>
@@ -236,4 +325,28 @@
     padding: 3px 12px;
     border-bottom: solid 1px #eeeeee;
 }
+
+.mechanism-info {
+    font-size: 0.75em;
+    color: #007bff;
+}
+.b-tooltip {
+    color: green !important;
+}
+span.trait-group {
+    color: #495057;
+}
+a.btn-outline-primary:hover {
+    color: #ffffff !important;
+    border-color: #007bff;
+}
+#mechanism-graph-outer {
+    padding: 10px;
+}
+#mechanism-graph-inner {
+    padding-top: 20px;
+}
+/* .network-container >>> div.vis-network {
+    border: none;
+} */
 </style>
