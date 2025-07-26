@@ -1,6 +1,9 @@
 <template>
 	<div class="mbm-plot-content row">
-		<div class="label">{{ canvasId }} gene pathways</div>
+		<div class="label">
+			{{ canvasId }} gene pathways
+			<span v-if="phenotypesData.length > truncate > 0">(Top {{ truncate }} of {{ phenotypesData.length }} results)</span>
+		</div>
 		<div class="col-md-12 bar-plot-wrapper">
 			<div
 				class="col-md-12"
@@ -136,6 +139,7 @@ export default Vue.component("enrichr-plot", {
 		"options",
 		"sectionId",
 		"utils",
+		"truncate"
 	],
 	data() {
 		return {
@@ -228,6 +232,9 @@ export default Vue.component("enrichr-plot", {
 
 			if (!!this.phenotypesData) {
 				let phenotypesData = cloneDeep(this.phenotypesData);
+				if (this.truncate > 0){
+					phenotypesData = phenotypesData.slice(0, this.truncate);
+				}
 
 				phenotypesData.map((d) => {
 					let pValue =
@@ -315,6 +322,7 @@ export default Vue.component("enrichr-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
+			console.log(JSON.stringify(Object.keys(phenotypeGroupsObj)));
 			return phenotypeGroupsObj;
 		},
 		onResize() {

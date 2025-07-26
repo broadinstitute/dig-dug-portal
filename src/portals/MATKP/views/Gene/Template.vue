@@ -244,7 +244,7 @@
                 <div class="card-body">
                     <h4>
                         {{
-                            `Gene-level associations for ${$store.state.geneName.toUpperCase()}`
+                            `GTEx tissue specificity and gene expression levels for ${$store.state.geneName.toUpperCase()}`
                         }}
                         <tooltip-documentation
                             name="gtex_geneassociations"
@@ -320,7 +320,7 @@
                                 >
                                     <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
                                         <h4 class="card-title">
-                                            Common variant gene-level associations
+                                            Absolute gene expression levels in GTEx tissues
                                             <tooltip-documentation
                                                 name="gtex_geneassociations_commonvariant"
                                                 :supplyText="
@@ -375,26 +375,6 @@
                                                 :per-page="10"
                                             ></b-pagination>
                                         </template>
-                                        <!--
-                                        <unauthorized-message
-                                            :restricted="
-                                                $store.state.varassociations
-                                                    .restricted
-                                            "
-                                        >
-                                        </unauthorized-message>
-                                        
-                                        <gene-associations-table
-                                            v-if="$store.state.gene.data.length > 0"
-                                            :gene="$store.state.gene.data[0]"
-                                            :associations="$parent.geneassociations"
-                                            :phenotype-map="
-                                                $store.state.bioPortal.phenotypeMap
-                                            "
-                                            :filter="filter"
-                                        >
-                                        </gene-associations-table>
-                                        -->
                                     </div>
                                 </b-tab>
                             </b-tabs>
@@ -408,7 +388,7 @@
                 <div class="card-body">
                     <h4>
                         {{
-                            `Gene-level associations for ${$store.state.geneName.toUpperCase()}`
+                            `Genetic support for gene-level phenotype associations for ${$store.state.geneName.toUpperCase()}`
                         }}
                         <tooltip-documentation
                             name="huge_geneassociations"
@@ -774,6 +754,28 @@
                                         >
                                         </gene-associations-masks>
                                     </div>
+                                </b-tab>
+                            </b-tabs>
+                        </template>
+                    </criterion-function-group>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4>MOTRPAC results for {{ $store.state.geneName }}</h4>
+                    <criterion-function-group>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <b-tabs>
+                                <b-tab v-for="item in Object.keys($parent.motrpacData)" :title="item">
+                                    <b-table
+                                        small
+                                        responsive="sm"
+                                        :items="$parent.motrpacData[item]"
+                                        :fields="$parent.motrpacRows"
+                                        :per-page="10"
+                                        :current-page="$parent.motrpacPage"
+                                    >
+                                    </b-table>
                                 </b-tab>
                             </b-tabs>
                         </template>

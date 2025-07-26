@@ -182,17 +182,49 @@
                                                 <div style="display:inline-block" class="legend">
                                                    <strong>-log10(P adj.)</strong>
                                                     <div style="display:flex; margin-top:10px" class="marks">
-                                                        <span>{{ $parent.colorScaleEndpoints[0].toFixed(4) }}</span>
+                                                        <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
                                                         <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
                                                         </div>
-                                                        <span>{{ $parent.colorScaleEndpoints[1].toFixed(4) }}</span>
+                                                        <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div id="note">
                                                 Combined score = log(p) * z, where z represents deviation from expected rank.
                                             </div>
+                                            <div class="row select-library">
+                                                <div class="col-md-6">
+                                                    <div class="label">Select a library type</div>
+                                                    <select v-model="$parent.selectedLibraryType">
+                                                        <option :value="''">
+                                                            Select a library type
+                                                        </option>
+                                                        <option v-for="libraryType in $parent.enrichrLibraryTypes"
+                                                            :value="libraryType">
+                                                            {{ libraryType }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="label">Select a library
+                                                        <span v-if="!!$parent.selectedLibraryType">
+                                                            ({{ $parent.selectedLibraryType }})
+                                                        </span>
+                                                    </div>
+                                                    <select v-model="$parent.enrichrLibrary"
+                                                        :disabled="$parent.selectedLibraryType === ''">
+                                                        <option :value="'placeholder'">
+                                                            Select a library
+                                                        </option>
+                                                        <option v-for="library in $parent.librariesForType"
+                                                            :value="library['Gene-set Library']">
+                                                            {{ library['Gene-set Library'] }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                           </div>
+                                            <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
                                         </div>
                                     </div>
                                 </div>
@@ -210,6 +242,7 @@
                                                             :colorScale="$parent.enrichrColorScale"
                                                             canvasId="Downregulated"
                                                             :utils="$parent.utils"
+                                                            :truncate="$parent.truncateEnrichr"
                                                         ></enrichr-plot>
                                                     </div>
                                                 </div>
@@ -229,6 +262,7 @@
                                                             :colorScale="$parent.enrichrColorScale"
                                                             canvasId="Upregulated"
                                                             :utils="$parent.utils"
+                                                            :truncate="$parent.truncateEnrichr"
                                                         ></enrichr-plot>
                                                     </div>
                                                 </div>
@@ -383,5 +417,10 @@
 }
 #enrichr-legend .tabs-group {
     width: 100%;
+}
+#enrichrResults {
+    background-color: white;
+    margin-bottom: 0;
+    padding-left: 25px;
 }
 </style>

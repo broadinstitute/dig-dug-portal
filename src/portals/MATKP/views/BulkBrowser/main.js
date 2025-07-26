@@ -5,7 +5,7 @@ import store from "./store.js";
 import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr } from "../../utils/content.js";
+import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -62,8 +62,15 @@ new Vue({
             chart: null,
             chartWidth: 0,
             datasets: [],
+            enrichrByor: "matkp_enrichrlibraries",
+            truncateEnrichr: 10,
             enrichrUp: [],
             enrichrDown: [],
+            enrichrLibraries: [],
+            enrichrDefaultLibrary: "KEGG_2015",
+            enrichrLibrary: "placeholder",
+            displayLibrary: "KEGG_2015",
+            selectedLibraryType: "",
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
             utils: {
@@ -131,6 +138,9 @@ new Vue({
     computed: {
         colorScaleEndpoints(){
             let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
+            if (allEnrichr.length === 0){
+                return[null, null];
+            }
             let field = "Adjusted p-value";
             let min = allEnrichr[0][field];
             let max = allEnrichr[0][field];
@@ -225,10 +235,15 @@ new Vue({
                 yGreater: this.volcanoYCondition
             }
         },
-        async downGenes(){
-            let genesList = this.getTopGenes(false);
-            let enrichrData = await getEnrichr(genesList);
-            return enrichrData;
+        enrichrLibraryTypes(){
+            let libraryTypes = new Set(this.enrichrLibraries.map(l => l["Type"]));
+            return Array.from(libraryTypes);
+        },
+        librariesForType(){
+            if (this.selectedLibraryType === ""){
+                return [];
+            }
+            return this.enrichrLibraries.filter(l => l["Type"] === this.selectedLibraryType);
         }
     },
     async mounted() {
@@ -246,6 +261,7 @@ new Vue({
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
             this.getParams();
+            this.enrichrLibraries = await getTextContent(this.enrichrByor);
             await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
@@ -258,11 +274,16 @@ new Vue({
             this.dataReady = true;
         },
         async populateEnrichr(){
+            let libraryToUse = this.enrichrLibrary === 'placeholder' 
+                ? this.enrichrDefaultLibrary 
+                : this.enrichrLibrary;
             this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.getTopGenes(true));
-            this.enrichrDown = await getEnrichr(this.getTopGenes(false));
+            this.enrichrUp = await getEnrichr(this.getTopGenes(true), libraryToUse, this.truncateEnrichr);
+            this.enrichrDown = await getEnrichr(this.getTopGenes(false), libraryToUse, this.truncateEnrichr);
             this.enrichrColorScale = this.createColorScale();
+            this.displayLibrary = libraryToUse;
+            this.enrichrLibrary = 'placeholder';
         },
         async getBulkMetadata() {
             if (!this.allMetadata) {
@@ -326,6 +347,13 @@ new Vue({
                 if (newData !== "") {
                     this.getBulkMetadata();
                 }
+                await this.populateEnrichr();
+                this.dataReady = true;
+            }
+        },
+        async enrichrLibrary(newData, oldData){
+            if(newData != oldData && newData != 'placeholder'){
+                this.dataReady = false;
                 await this.populateEnrichr();
                 this.dataReady = true;
             }
