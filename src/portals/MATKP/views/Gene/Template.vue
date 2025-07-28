@@ -771,7 +771,7 @@
                                         small
                                         responsive="sm"
                                         :items="$parent.motrpacData[item]"
-                                        :fields="$parent.motrpacRows(item)"
+                                        overflow="scroll"
                                     >
                                     </b-table>
                                 </b-tab>

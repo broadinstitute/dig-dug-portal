@@ -221,7 +221,7 @@
                                                             Select library
                                                         </button>
                                                     </template>
-                                                    <b-pagination
+                                                    <b-pagination :style="{color:red}"
                                                         v-model="$parent.libraryPage"
                                                         :total-rows="$parent.librariesForType.length"
                                                         :per-page="5"
