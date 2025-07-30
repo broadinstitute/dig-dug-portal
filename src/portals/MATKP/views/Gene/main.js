@@ -910,6 +910,7 @@ new Vue({
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
         async getMotrpacResult(gene){
+            const MOTRPAC_TISSUES = ["brown adipose", "white adipose", "plasma"];
             let motrpac = await getMotrpac(gene);
             let collatedResults = {};
             for (let topLevelKey in motrpac.result){
@@ -923,7 +924,8 @@ new Vue({
                     let singleResult = Object.fromEntries(singleEntryList)
                     resultsTab.push(singleResult);
                 }
-                collatedResults[topLevelKey] = resultsTab;
+                collatedResults[topLevelKey] = resultsTab.filter(
+                    item => MOTRPAC_TISSUES.includes(item.tissue));
             }
             return collatedResults;
         },
