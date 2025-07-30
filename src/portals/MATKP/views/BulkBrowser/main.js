@@ -324,10 +324,11 @@ new Vue({
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);
             data = data.filter(d => 
-                up ? d.logFoldChange > 0
-                : d.logFoldChange < 0 );
-            data.sort((a,b) => b["-log10P"] - a["-log10P"]);
-            data = data.slice(0,10).map(d => d.gene);
+                up ? d.logFoldChange >= this.volcanoXConditionGreater
+                : d.logFoldChange <= this.volcanoXConditionLower );
+            data = data.filter(d=> d["-log10P"] >= this.volcanoYCondition)
+                .map(d => d.gene);
+            console.log(JSON.stringify(data));
             return data;
         },
         highlight(highlightedGene) {

@@ -173,7 +173,7 @@
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                ENRICHR: Pathways containing top 10 most regulated genes in up/down directions.
+                                                ENRICHR: Pathways for upregulated/downregulated genes.
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">
