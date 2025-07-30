@@ -762,7 +762,7 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4>MOTRPAC results for {{ $store.state.geneName }}</h4>
+                    <h4>Changes in gene expression with exercise</h4>
                     <criterion-function-group>
                         <template slot="filtered" slot-scope="{ filter }">
                             <b-tabs>
