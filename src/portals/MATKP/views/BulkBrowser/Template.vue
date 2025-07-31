@@ -217,11 +217,11 @@
                                                 >
                                                     <template #cell(type)="item">
                                                         <button class="btn btn-sm btn-primary"
-                                                            @click="$parent.selectLibrary(item['Gene-set Library'])">
+                                                            @click="$parent.selectLibrary(item)">
                                                             Select library
                                                         </button>
                                                     </template>
-                                                    <b-pagination :style="{color:red}"
+                                                    <b-pagination style="{color:red}"
                                                         v-model="$parent.libraryPage"
                                                         :total-rows="$parent.librariesForType.length"
                                                         :per-page="5"

@@ -318,7 +318,7 @@ new Vue({
             }
         },
         selectLibrary(library){
-            this.enrichrLibrary = library;
+            this.enrichrLibrary = library.item["Gene-set Library"];
             this.libraryPage = 1;
         },
         getTopGenes(up=true){
@@ -358,6 +358,7 @@ new Vue({
             }
         },
         async enrichrLibrary(newData, oldData){
+            console.log("new library is:", newData);
             if(newData != oldData && newData != 'placeholder'){
                 this.dataReady = false;
                 await this.populateEnrichr();
