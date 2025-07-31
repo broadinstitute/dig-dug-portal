@@ -173,7 +173,8 @@
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                ENRICHR: Pathways for upregulated/downregulated genes.
+                                                ENRICHR: Pathways for {{ $parent.upGenes.length }} upregulated
+                                                and {{ $parent.downGenes.length}} downregulated genes.
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">
@@ -210,13 +211,14 @@
                                             <div class="row" v-if="!!$parent.selectedLibraryType">
                                                 <div class="col-md-12">
                                                     <b-table
+                                                    id="select-library-table"
                                                     small
                                                     :items="$parent.librariesForType"
                                                     :per-page="5"
                                                     :current-page="$parent.libraryPage"
                                                 >
                                                     <template #cell(type)="item">
-                                                        <button class="btn btn-sm btn-primary"
+                                                        <button class="btn btn-sm btn-primary select-library"
                                                             @click="$parent.selectLibrary(item)">
                                                             Select library
                                                         </button>
@@ -428,5 +430,15 @@
     background-color: white;
     margin-bottom: 0;
     padding-left: 25px;
+}
+button.select-library {
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+#select-library-table td {
+    padding: 0.2rem;
+}
+#select-library-table {
+    background: #efefef;
 }
 </style>

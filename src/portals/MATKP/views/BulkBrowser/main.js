@@ -245,6 +245,12 @@ new Vue({
                 return [];
             }
             return this.enrichrLibraries.filter(l => l["Type"] === this.selectedLibraryType);
+        },
+        upGenes(){
+            return this.getTopGenes(true);
+        },
+        downGenes(){
+            return this.getTopGenes(false);
         }
     },
     async mounted() {
@@ -280,8 +286,8 @@ new Vue({
                 : this.enrichrLibrary;
             this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.getTopGenes(true), libraryToUse, this.truncateEnrichr);
-            this.enrichrDown = await getEnrichr(this.getTopGenes(false), libraryToUse, this.truncateEnrichr);
+            this.enrichrUp = await getEnrichr(this.upGenes, libraryToUse, this.truncateEnrichr);
+            this.enrichrDown = await getEnrichr(this.downGenes, libraryToUse, this.truncateEnrichr);
             this.enrichrColorScale = this.createColorScale();
             this.displayLibrary = libraryToUse;
             this.enrichrLibrary = 'placeholder';
@@ -328,7 +334,6 @@ new Vue({
                 : d.logFoldChange <= this.volcanoXConditionLower );
             data = data.filter(d=> d["-log10P"] >= this.volcanoYCondition)
                 .map(d => d.gene);
-            console.log(JSON.stringify(data));
             return data;
         },
         highlight(highlightedGene) {
@@ -358,7 +363,6 @@ new Vue({
             }
         },
         async enrichrLibrary(newData, oldData){
-            console.log("new library is:", newData);
             if(newData != oldData && newData != 'placeholder'){
                 this.dataReady = false;
                 await this.populateEnrichr();
