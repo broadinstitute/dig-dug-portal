@@ -344,6 +344,16 @@ new Vue({
             return d3.scaleLinear()
               .range([ACCESSIBLE_DARK_GRAY, ACCESSIBLE_PURPLE])
               .domain(ends);
+        },
+        async setVolcano(newYVal){
+            if (newYVal === this.volcanoYCondition) {
+                return;
+            }
+            this.dataReady = false;
+            // If any change, refire Enrichr
+            this.volcanoYCondition = newYVal;
+            await this.populateEnrichr();
+            this.dataReady = true;
         }
     },
     watch: {

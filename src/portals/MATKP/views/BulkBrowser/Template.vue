@@ -96,7 +96,8 @@
                                             <div  class="flex-gap">
                                                 <div class="top-block">
                                                     <input type="number" step="0.1"
-                                                        v-model="$parent.volcanoYCondition"/>
+                                                        :value=$parent.volcanoYCondition
+                                                        @change="event => $parent.setVolcano(event.target.value)"/>
                                                 </div>
                                             </div>
                                         </div>
