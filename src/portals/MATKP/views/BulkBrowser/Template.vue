@@ -432,6 +432,7 @@
     margin-bottom: 0;
     padding-left: 25px;
 }
+<<<<<<< HEAD
 button.select-library {
     padding-top: 1px;
     padding-bottom: 1px;
@@ -442,4 +443,6 @@ button.select-library {
 #select-library-table {
     background: #efefef;
 }
+=======
+>>>>>>> matkp-main
 </style>
