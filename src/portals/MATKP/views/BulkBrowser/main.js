@@ -70,6 +70,7 @@ new Vue({
             enrichrDefaultLibrary: "KEGG_2015",
             enrichrLibrary: "placeholder",
             displayLibrary: "KEGG_2015",
+            libraryPage: 1,
             selectedLibraryType: "",
             endpoint: "single-cell-bulk-z-norm",
             documentation: null,
@@ -244,6 +245,12 @@ new Vue({
                 return [];
             }
             return this.enrichrLibraries.filter(l => l["Type"] === this.selectedLibraryType);
+        },
+        upGenes(){
+            return this.getTopGenes(true);
+        },
+        downGenes(){
+            return this.getTopGenes(false);
         }
     },
     async mounted() {
@@ -279,8 +286,8 @@ new Vue({
                 : this.enrichrLibrary;
             this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.getTopGenes(true), libraryToUse, this.truncateEnrichr);
-            this.enrichrDown = await getEnrichr(this.getTopGenes(false), libraryToUse, this.truncateEnrichr);
+            this.enrichrUp = await getEnrichr(this.upGenes, libraryToUse, this.truncateEnrichr);
+            this.enrichrDown = await getEnrichr(this.downGenes, libraryToUse, this.truncateEnrichr);
             this.enrichrColorScale = this.createColorScale();
             this.displayLibrary = libraryToUse;
             this.enrichrLibrary = 'placeholder';
@@ -316,13 +323,17 @@ new Vue({
                 console.error("Error: ", error);
             }
         },
+        selectLibrary(library){
+            this.enrichrLibrary = library.item["Gene-set Library"];
+            this.libraryPage = 1;
+        },
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);
             data = data.filter(d => 
-                up ? d.logFoldChange > 0
-                : d.logFoldChange < 0 );
-            data.sort((a,b) => b["-log10P"] - a["-log10P"]);
-            data = data.slice(0,10).map(d => d.gene);
+                up ? d.logFoldChange >= this.volcanoXConditionGreater
+                : d.logFoldChange <= this.volcanoXConditionLower );
+            data = data.filter(d=> d["-log10P"] >= this.volcanoYCondition)
+                .map(d => d.gene);
             return data;
         },
         highlight(highlightedGene) {
@@ -333,6 +344,16 @@ new Vue({
             return d3.scaleLinear()
               .range([ACCESSIBLE_DARK_GRAY, ACCESSIBLE_PURPLE])
               .domain(ends);
+        },
+        async setVolcano(newYVal){
+            if (newYVal === this.volcanoYCondition) {
+                return;
+            }
+            this.dataReady = false;
+            // If any change, refire Enrichr
+            this.volcanoYCondition = newYVal;
+            await this.populateEnrichr();
+            this.dataReady = true;
         }
     },
     watch: {
