@@ -215,21 +215,23 @@
                                                     id="select-library-table"
                                                     small
                                                     :items="$parent.librariesForType"
-                                                    :per-page="5"
                                                     :current-page="$parent.libraryPage"
-                                                >
-                                                    <template #cell(type)="item">
-                                                        <button class="btn btn-sm btn-primary select-library"
-                                                            @click="$parent.selectLibrary(item)">
-                                                            Select library
-                                                        </button>
-                                                    </template>
-                                                    <b-pagination style="{color:red}"
+                                                    :per-page="5"
+                                                    >
+                                                        <template #cell(type)="item">
+                                                            <button class="btn btn-sm btn-primary select-library"
+                                                                @click="$parent.selectLibrary(item)">
+                                                                Select library
+                                                            </button>
+                                                        </template>
+                                                    </b-table>
+                                                    <b-pagination
+                                                        small
                                                         v-model="$parent.libraryPage"
                                                         :total-rows="$parent.librariesForType.length"
                                                         :per-page="5"
+                                                        aria-controls="select-library-table"
                                                     ></b-pagination>
-                                                </b-table>
                                                 </div>
                                             </div>
                                           </div>
@@ -432,7 +434,6 @@
     margin-bottom: 0;
     padding-left: 25px;
 }
-<<<<<<< HEAD
 button.select-library {
     padding-top: 1px;
     padding-bottom: 1px;
@@ -443,6 +444,4 @@ button.select-library {
 #select-library-table {
     background: #efefef;
 }
-=======
->>>>>>> matkp-main
 </style>
