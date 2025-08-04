@@ -1160,7 +1160,8 @@ export default Vue.component("research-section", {
 
 						let paramStrArr = paramsString.split(",");
 
-						//console.log("paramsString here",paramsString);
+						console.log("paramsString here",paramsString);
+						
 
 						params.map((param, pIndex) => {
 
@@ -1172,17 +1173,23 @@ export default Vue.component("research-section", {
 									
 									let paramType;
 									this.searchParameters.map( p => {
+
+										console.log("searchParameter",p);
 										if(p.parameter == key) {
 											paramType = p.type
 										}
 									})
+
+									
+
+									console.log("paramType",paramType);
 
 									if(paramType == "string to array") {
 										
 										paramStrArr[pIndex] = paramStrArr[pIndex].replaceAll("\n",";");
 										body[key] = paramStrArr[pIndex].split(";");
 
-										//console.log("body[key]",body[key]);
+										console.log("body[key]",body[key]);
 									} else {
 										
 										body[key] = paramStrArr[pIndex];
@@ -1239,7 +1246,7 @@ export default Vue.component("research-section", {
 
 		queryOpenApi(HEADER,BODY, URL, PARAM, TYPE, PARAMS) {
 
-			//console.log("BODY",BODY['genes']);
+			console.log("BODY",BODY['genes']);
 
 			async function fetchApi(header,body) {
 				const response = await fetch(URL, {
