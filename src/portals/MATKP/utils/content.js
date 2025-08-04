@@ -12,7 +12,7 @@ export const ACCESSIBLE_PURPLE = "rgb(116 040 129)";
 export const ACCESSIBLE_DARK_GRAY = "rgb(170 170 170)";
 export const ACCESSIBLE_GREEN = "rgb(092 174 000)";
 
-export async function getMotrpac(gene){
+export async function getMotrpac(gene) {
 	let config = {
 		"type": "openApi",
 		"url": "https://search.motrpac-data.org/api/beta/differential-abundance",
@@ -58,45 +58,45 @@ export async function getMotrpac(gene){
 			"save": false
 		},
 	};
-	let currentRequest = new Request (config.url, {
+	let currentRequest = new Request(config.url, {
 		method: "POST",
 		headers: new Headers(config.header),
 		body: JSON.stringify(config.body),
 	});
 	try {
 		const response = await fetch(currentRequest);
-		if (!response.ok){
+		if (!response.ok) {
 			throw new Error(`Response status: ${response.status}`);
 		}
 		const json = await response.json();
 		return json;
-	} catch(error){
+	} catch (error) {
 		console.error(error.message);
 	}
 	return {};
 }
 
-export async function getTextContent(contentId, getBody=false, getAll=false){
-  let resourceUrl = `${CONTENT_URL}${contentId}`;
-  let jsonContent = await fetch(resourceUrl).then(
-    resp => resp.json());
-  if (jsonContent.length === 0){
-    return null;
-  }
-  if (getBody){
-    return jsonContent[0].body;
-  }
-  if (getAll){
-    return jsonContent[0];
-  }
-  let csvContent = jsonContent[0].field_data_points;
-  return dataConvert.csv2Json(csvContent);
+export async function getTextContent(contentId, getBody = false, getAll = false) {
+	let resourceUrl = `${CONTENT_URL}${contentId}`;
+	let jsonContent = await fetch(resourceUrl).then(
+		resp => resp.json());
+	if (jsonContent.length === 0) {
+		return null;
+	}
+	if (getBody) {
+		return jsonContent[0].body;
+	}
+	if (getAll) {
+		return jsonContent[0];
+	}
+	let csvContent = jsonContent[0].field_data_points;
+	return dataConvert.csv2Json(csvContent);
 }
 
 export async function getNewsFeed(feedId) {
-	const newsFeedUrl = NEWSFEED_URL+feedId;
-	const newsFeed = await fetch(newsFeedUrl).then((resp) => { return resp.json();});
-	console.log({newsFeedUrl, newsFeed});
+	const newsFeedUrl = NEWSFEED_URL + feedId;
+	const newsFeed = await fetch(newsFeedUrl).then((resp) => { return resp.json(); });
+	console.log({ newsFeedUrl, newsFeed });
 	//trim feed to 5 items
 	if (newsFeed.length > 5) newsFeed.length = 5;
 	newsFeed.forEach((item) => {
@@ -112,44 +112,48 @@ export async function getNewsFeed(feedId) {
 	return newsFeed;
 }
 
-export async function getNewsItem(itemId){
-	const itemUrl = NEWSITEM_URL+itemId;
+export async function getNewsItem(itemId) {
+	const itemUrl = NEWSITEM_URL + itemId;
 	const newsItem = await fetch(itemUrl).then(resp => { return resp.json(); });
-	console.log({itemUrl, newsItem});
-	if(newsItem.length===0){
+	console.log({ itemUrl, newsItem });
+	if (newsItem.length === 0) {
 		console.log('no news data for id', id);
 		return null;
-	}else{
+	} else {
 		return newsItem;
 	}
-	
+
 }
 
-export async function getEnrichr(genesList, library){
-			let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
-			let enrichrRequest = {
-					"gene_set_library": library,
-					"gene_list": genesList,
-					"gene_list_desc": "my_list"
-			}
-			try {
-				const response = await fetch(enrichrEndpoint, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-                        'accept': 'application/json'
+export async function getEnrichr(genesList, library) {
+	let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
+	console.log("enrichrEndpoint", enrichrEndpoint);
+	console.log("genesList", genesList);
+	let enrichrRequest = {
+		"gene_set_library": library,
+		"gene_list": genesList,
+		"gene_list_desc": "my_list"
+	}
+	try {
+		const response = await fetch(enrichrEndpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'accept': 'application/json'
 
-					},
-					body: JSON.stringify(enrichrRequest),
-				});
-				let jsonData = await response.json();
-				jsonData.forEach(d => {
-						let rank = `${d["Rank"]}`.padStart(3, "0");
-						d.rankLabel = `${rank}_${d["Term name"]}`;
-				})
-				return jsonData;
-			} catch (error){
-				console.error(error.message);
-				return [];
-			}
-		}
+			},
+			body: JSON.stringify(enrichrRequest),
+		});
+		let jsonData = await response.json();
+		jsonData.forEach(d => {
+			let rank = `${d["Rank"]}`.padStart(3, "0");
+			d.rankLabel = `${rank}_${d["Term name"]}`;
+		})
+
+		console.log("jsonData", jsonData);
+		return jsonData;
+	} catch (error) {
+		console.error(error.message);
+		return [];
+	}
+}
