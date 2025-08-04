@@ -96,7 +96,8 @@
                                             <div  class="flex-gap">
                                                 <div class="top-block">
                                                     <input type="number" step="0.1"
-                                                        v-model="$parent.volcanoYCondition"/>
+                                                        :value=$parent.volcanoYCondition
+                                                        @change="event => $parent.setVolcano(event.target.value)"/>
                                                 </div>
                                             </div>
                                         </div>
@@ -173,7 +174,8 @@
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                ENRICHR: Pathways containing top 10 most regulated genes in up/down directions.
+                                                ENRICHR: Pathways for {{ $parent.upGenes.length }} upregulated
+                                                and {{ $parent.downGenes.length}} downregulated genes.
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">
@@ -193,7 +195,7 @@
                                                 Combined score = log(p) * z, where z represents deviation from expected rank.
                                             </div>
                                             <div class="row select-library">
-                                                <div class="col-md-6">
+                                                <div class="col-md-3">
                                                     <div class="label">Select a library type</div>
                                                     <select v-model="$parent.selectedLibraryType">
                                                         <option :value="''">
@@ -205,26 +207,35 @@
                                                         </option>
                                                     </select>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <div class="label">Select a library
-                                                        <span v-if="!!$parent.selectedLibraryType">
-                                                            ({{ $parent.selectedLibraryType }})
-                                                        </span>
-                                                    </div>
-                                                    <select v-model="$parent.enrichrLibrary"
-                                                        :disabled="$parent.selectedLibraryType === ''">
-                                                        <option :value="'placeholder'">
-                                                            Select a library
-                                                        </option>
-                                                        <option v-for="library in $parent.librariesForType"
-                                                            :value="library['Gene-set Library']">
-                                                            {{ library['Gene-set Library'] }}
-                                                        </option>
-                                                    </select>
+                                                <div class="col-md-9"></div>
+                                            </div>
+                                            <div class="row" v-if="!!$parent.selectedLibraryType">
+                                                <div class="col-md-12">
+                                                    <b-table
+                                                    id="select-library-table"
+                                                    small
+                                                    :items="$parent.librariesForType"
+                                                    :current-page="$parent.libraryPage"
+                                                    :per-page="5"
+                                                    >
+                                                        <template #cell(type)="item">
+                                                            <button class="btn btn-sm btn-primary select-library"
+                                                                @click="$parent.selectLibrary(item)">
+                                                                Select library
+                                                            </button>
+                                                        </template>
+                                                    </b-table>
+                                                    <b-pagination
+                                                        small
+                                                        v-model="$parent.libraryPage"
+                                                        :total-rows="$parent.librariesForType.length"
+                                                        :per-page="5"
+                                                        aria-controls="select-library-table"
+                                                    ></b-pagination>
                                                 </div>
                                             </div>
                                           </div>
-                                            <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
+                                        <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
                                         </div>
                                     </div>
                                 </div>
@@ -422,5 +433,15 @@
     background-color: white;
     margin-bottom: 0;
     padding-left: 25px;
+}
+button.select-library {
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+#select-library-table td {
+    padding: 0.2rem;
+}
+#select-library-table {
+    background: #efefef;
 }
 </style>
