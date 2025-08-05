@@ -308,6 +308,10 @@ a:hover {
     transform: translate(0%, 8%);
 }
 
+.front-logo-tagline-radiantkp {
+    transform: translate(0%, 8%);
+}
+
 .front-banner-ui-tabs {
     width: 800px;
     margin-left: auto;
@@ -439,6 +443,10 @@ a:hover {
     height: 50px;
 }
 
+.radiantkp-logo {
+    height: 50px;
+}
+
 .registered-mark {
     display: none;
 }
@@ -563,6 +571,12 @@ a:hover {
     height: 50px;
 }
 
+.radiantkp-header,
+.radiantkp-footer {
+    background-color: #789B9B;
+    height: 50px;
+}
+
 .kp-menu-wrapper {
     text-align: right;
 }
@@ -673,7 +687,8 @@ a:hover {
 .alskp-footer,
 .nephkp-footer,
 .ndkpkp-footer,
-.nagekp-footer {
+.nagekp-footer,
+.radiantkp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -700,7 +715,8 @@ a:hover {
 .alskp-body,
 .nephkp-body,
 .ndkpkp-body,
-.nagekp-body {
+.nagekp-body,
+.radiantkp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -726,7 +742,8 @@ a:hover {
 .alskp-card,
 .nephkp-card,
 .ndkpkp-card,
-.nagekp-card {
+.nagekp-card,
+.radiantkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
