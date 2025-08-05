@@ -3,6 +3,7 @@
   "version": "4.0.1",
   "private": true,
   "scripts": {
+    "serve:radiant": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.radiant.js env BIOINDEX_HOST_PRIVATE=https://radiant.hugeampkpnbi.org vue-cli-service serve",
     "watch": "vue-cli-service build --mode development --watch",
     "build": "vue-cli-service build --mode development",
     "deploy": "vue-cli-service build --mode production"
