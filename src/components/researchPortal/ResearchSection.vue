@@ -1105,7 +1105,7 @@ export default Vue.component("research-section", {
 			}
 			let paramsString = this.getParamString(paramsType );
 
-			console.log("getParamString",paramsString);
+			//console.log("getParamString",paramsString);
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
@@ -1160,7 +1160,7 @@ export default Vue.component("research-section", {
 
 						let paramStrArr = paramsString.split(",");
 
-						console.log("paramsString here",paramsString);
+						//console.log("paramsString here",paramsString);
 						
 
 						params.map((param, pIndex) => {
@@ -1174,22 +1174,32 @@ export default Vue.component("research-section", {
 									let paramType;
 									this.searchParameters.map( p => {
 
-										console.log("searchParameter",p);
-										if(p.parameter == key) {
-											paramType = p.type
+										//console.log("searchParameter",p);
+
+										if(p.type != "context search") {
+											if(p.parameter == key) {
+												paramType = p.type
+											}
+										} else {
+											p.parameters.map(p2 => {
+												if(p2.parameter == key) {
+													paramType = p2.type
+												}
+											})
 										}
 									})
 
 									
 
-									console.log("paramType",paramType);
+									//console.log("paramType",paramType);
 
 									if(paramType == "string to array") {
 										
 										paramStrArr[pIndex] = paramStrArr[pIndex].replaceAll("\n",";");
 										body[key] = paramStrArr[pIndex].split(";");
 
-										console.log("body[key]",body[key]);
+										//console.log("body[key]",body[key]);
+
 									} else {
 										
 										body[key] = paramStrArr[pIndex];
@@ -1246,7 +1256,7 @@ export default Vue.component("research-section", {
 
 		queryOpenApi(HEADER,BODY, URL, PARAM, TYPE, PARAMS) {
 
-			console.log("BODY",BODY['genes']);
+			//console.log("BODY",BODY['genes']);
 
 			async function fetchApi(header,body) {
 				const response = await fetch(URL, {
@@ -1390,7 +1400,7 @@ export default Vue.component("research-section", {
 				})
 			}
 
-			console.log("dataUrl",dataUrl);
+			//console.log("dataUrl",dataUrl);
 
 			let contentJson;
 			if(DATATYPE && DATATYPE === "line json"){
