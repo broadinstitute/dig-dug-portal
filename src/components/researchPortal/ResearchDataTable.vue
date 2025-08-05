@@ -726,7 +726,19 @@ export default Vue.component("research-data-table", {
 
 				for (let i = startIndex; i < endIndex; i++) {
 					if (!!formattedData[i]) {
-						paged.push(formattedData[i]);
+						//paged.push(formattedData[i]);
+						let tempObj = {};
+						this.tableFormat["top rows"].map((t) => {
+							tempObj[t] = formattedData[i][t];
+						});
+
+						Object.keys(formattedData[i]).map((f) => {
+							if(this.tableFormat["top rows"].includes(f) == false) {
+								tempObj[f] = formattedData[i][f];
+							}
+						});
+
+						paged.push(tempObj);
 					}
 				}
 
