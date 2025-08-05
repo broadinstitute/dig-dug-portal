@@ -221,9 +221,17 @@ export default Vue.component("ResearchPhewasPlot", {
             let content = {};
             content["data"] = [];
 
+            //console.log("render data");
+            /*if (this.phenotypesData.data){
+                this.phenotypesData = cloneDeep(this.phenotypesData.data);
+            }*/
+            
+            //console.log(this.phenotypesData);
+                
             if (this.phenotypesData) {
                 let phenotypesData = cloneDeep(this.phenotypesData);
                 phenotypesData.forEach((d) => {
+                    //console.log(this.getPValue(d));
                     d["rawPValue"] = this.getPValue(d);
                 });
                 phenotypesData = phenotypesData.sort(
@@ -238,6 +246,10 @@ export default Vue.component("ResearchPhewasPlot", {
                     // Shows the "significant" phenotypes first in the group.
                     phenotypesData.reverse();
                 }
+
+                //console.log(this.phenotypesData);
+                //console.log(this.phenotypeMapConfig);
+                //console.log(this.phenotypeMap);
 
                 phenotypesData.map((d) => {
                     if (
@@ -261,7 +273,8 @@ export default Vue.component("ResearchPhewasPlot", {
             if (this.filter) {
                 content.data = content.data.filter(this.filter);
             }
-
+            //console.log("content");
+            //console.log(content);
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
@@ -302,6 +315,9 @@ export default Vue.component("ResearchPhewasPlot", {
         }
     },
     created: function () {
+        //console.log("created Research PheWAS");
+        //console.log(this.canvasId);
+        
         this.renderPheWas();
     },
     mounted: function () {
@@ -313,6 +329,7 @@ export default Vue.component("ResearchPhewasPlot", {
     },
     methods: {
         getPValue(d) {
+            //console.log(this.renderConfig["y axis field"]);
             return typeof d[this.renderConfig["y axis field"]] == "string"
                 ? Number(d[this.renderConfig["y axis field"]])
                 : d[this.renderConfig["y axis field"]];
@@ -338,6 +355,7 @@ export default Vue.component("ResearchPhewasPlot", {
             window.location.href = "#associations-table";
         },
         groupData(DATA) {
+            //console.log("group data");
             let phenotypeGroups = [];
             let phenotypeGroupsObj = {};
 
@@ -360,17 +378,32 @@ export default Vue.component("ResearchPhewasPlot", {
             phenotypeGroups.map((p) => {
                 phenotypeGroupsObj[p] = [];
             });
+            //console.log(DATA);
+            //DATA.data.map((p) => {
+            if(DATA.data){
+                DATA.data.map((p) => {
+                    let group =
+                        this.phenotypeMapConfig == "kpPhenotypeMap" &&
+                        !!this.phenotypeMap[p[this.renderConfig["render by"]]]
+                            ? this.phenotypeMap[p[this.renderConfig["render by"]]]
+                                .group
+                            : p[this.renderConfig["group by"]];
 
-            DATA.data.map((p) => {
-                let group =
-                    this.phenotypeMapConfig == "kpPhenotypeMap" &&
-                    !!this.phenotypeMap[p[this.renderConfig["render by"]]]
-                        ? this.phenotypeMap[p[this.renderConfig["render by"]]]
-                              .group
-                        : p[this.renderConfig["group by"]];
+                    phenotypeGroupsObj[group].push(p);
+                });
+            } else {
+                DATA.map((p) => {
+                    let group =
+                        this.phenotypeMapConfig == "kpPhenotypeMap" &&
+                        !!this.phenotypeMap[p[this.renderConfig["render by"]]]
+                            ? this.phenotypeMap[p[this.renderConfig["render by"]]]
+                                .group
+                            : p[this.renderConfig["group by"]];
 
-                phenotypeGroupsObj[group].push(p);
-            });
+                    phenotypeGroupsObj[group].push(p);
+                });
+            }
+            
             /*
 			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
 				value.sort((a, b) =>
@@ -380,7 +413,7 @@ export default Vue.component("ResearchPhewasPlot", {
 						: -1
 				);
 			}*/
-
+            //console.log(phenotypeGroupsObj);
             return phenotypeGroupsObj;
         },
         onResize() {
@@ -511,10 +544,17 @@ export default Vue.component("ResearchPhewasPlot", {
             }
         },
         renderPheWas() {
-            if (
-                !!this.renderConfig["thresholds"] &&
-                this.renderConfig["thresholds"] == "calculate"
-            ) {
+            //console.log("resesarch PheWAS: render PheWas");
+            //if (this.phenotypesData.data){
+            //    this.phenotypesData = cloneDeep(this.phenotypesData.data);
+            //}
+            //console.log("phenotypes data");
+            //console.log(this.phenotypesData);
+            //console.log("phenotype map");
+            //console.log(this.phenotypeMap);
+            //console.log(!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate");
+            if (!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate" ) {
+                //console.log("enter if");
                 let threshholds = [];
                 this.renderConfig["thresholds calculate"].map((expression) => {
                     let calcString = "";
@@ -546,8 +586,10 @@ export default Vue.component("ResearchPhewasPlot", {
             let canvas = document.querySelector(
                 "#" + this.canvasId + "pheWasPlot"
             );
-
+            //console.log(this.canvasId);
+            //console.log(!!canvas && !!wrapper);
             if (!!canvas && !!wrapper) {
+                //console.log("enter if canvas");
                 let canvasWidth = this.renderConfig.width
                     ? this.renderConfig.width * 2
                     : wrapper.clientWidth * 2;
@@ -570,7 +612,7 @@ export default Vue.component("ResearchPhewasPlot", {
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
                 this.pheWasPosData = {};
-
+                
                 let renderData = this.groupData(this.renderData);
 
                 let groups = {};
