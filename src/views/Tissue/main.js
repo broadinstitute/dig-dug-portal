@@ -15,6 +15,7 @@ import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
+import ResearchSingleCellBrowser from "../../components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -45,6 +46,7 @@ new Vue({
         C2ctTable,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
+        ResearchSingleCellBrowser,
     },
     mixins: [pageMixin],
     data() {
@@ -88,6 +90,22 @@ new Vue({
                 ],
             },
             annotation: "",
+            scTissueDataset: null,
+            scbConfig: {
+                type: "cell browser",
+                label: "Single Cell Browser",
+                parameters:{
+                    datasetId: "datasetId",
+                    gene: "gene"
+                },
+                presets:{
+                    datasetId: null,
+                    layout: 2
+                },
+
+                bioIndex: "https://bioindex.hugeamp.org",
+                bioIndexDev: "https://bioindex-dev.hugeamp.org"
+            }
         };
     },
     computed: {
@@ -139,6 +157,20 @@ new Vue({
         showDiffExp(){
             return this.deployment !== 'production' &&
                 this.$store.state.mouseSummary.data.length > 0;
+        },
+        hasMatchingSingleCellTissue(){
+            console.log('!!', this.$store.state.singleCellDatasets);
+            if(!this.$store.state.singleCellDatasets) return false;
+            if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
+            if(!this.tissue) return false;
+            const scTissue = this.$store.state.singleCellDatasets.find(x => x.tissue_a2fkp === this.tissue);
+            if(scTissue){
+                this.scTissueDataset = scTissue;
+                this.scbConfig.presets.datasetId = scTissue.datasetId;
+                return true;
+            }else{
+                return false;
+            }
         }
     },
     created() {
@@ -152,6 +184,7 @@ new Vue({
         }
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
+        this.$store.dispatch("getSingleCellDatasets");
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,

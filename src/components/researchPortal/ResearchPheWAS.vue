@@ -32,11 +32,19 @@
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
                         <strong v-if="!linkPhenotypes">
-                            {{ phenotypeMap[ptKey]?.description || ptKey}}
+                            {{
+                                (phenotypeMap[ptKey] &&
+                                    phenotypeMap[ptKey].description) ||
+                                ptKey
+                            }}
                         </strong>
                         <strong v-else>
                             <a :href="phenotypeLink(ptKey)">
-                                {{ phenotypeMap[ptKey]?.description || ptKey}}
+                                {{
+                                    (phenotypeMap[ptKey] &&
+                                        phenotypeMap[ptKey].description) ||
+                                    ptKey
+                                }}
                             </a>
                         </strong>
                         <br />
@@ -297,9 +305,9 @@ export default Vue.component("ResearchPhewasPlot", {
         renderData(content) {
             this.renderPheWas();
         },
-        matchingHoverDots(newDots){
+        matchingHoverDots(newDots) {
             console.log("received by phewas", newDots);
-        }
+        },
     },
     created: function () {
         this.renderPheWas();
@@ -441,7 +449,7 @@ export default Vue.component("ResearchPhewasPlot", {
                             yValue.map((xPos) => {
                                 if (x >= xPos.start && x <= xPos.end) {
                                     this.hoverItems[xPos.id] = xPos;
-                                    infoContent +=`<strong>${xPos.name}</strong><br />`;
+                                    infoContent += `<strong>${xPos.name}</strong><br />`;
                                     this.renderConfig["hover content"].map(
                                         (h) => {
                                             infoContent +=
@@ -458,8 +466,14 @@ export default Vue.component("ResearchPhewasPlot", {
                 }
 
                 if (TYPE == "hover") {
-                    if (Object.keys(this.hoverItems).length > 0 && !!this.isPigean){
-                        this.$emit("dotsHovered", JSON.stringify(this.hoverItems));
+                    if (
+                        Object.keys(this.hoverItems).length > 0 &&
+                        !!this.isPigean
+                    ) {
+                        this.$emit(
+                            "dotsHovered",
+                            JSON.stringify(this.hoverItems)
+                        );
                     }
                     if (infoContent == "") {
                         if (
@@ -767,11 +781,14 @@ export default Vue.component("ResearchPhewasPlot", {
                                     canvasHeight -
                                     plotMargin.bottom -
                                     yFromMinY * yStep;
-                                let rawPhenotype = p[this.renderConfig["render by"]];
+                                let rawPhenotype =
+                                    p[this.renderConfig["render by"]];
                                 let pName =
                                     this.phenotypeMapConfig == null
                                         ? rawPhenotype
-                                        : this.phenotypeMap[rawPhenotype]["description"];
+                                        : this.phenotypeMap[rawPhenotype][
+                                              "description"
+                                          ];
                                 let passesThreshold = this.greaterThan
                                     ? p.rawPValue >=
                                       Number(this.renderConfig["thresholds"][0])
@@ -1091,13 +1108,16 @@ export default Vue.component("ResearchPhewasPlot", {
                 action: "remove",
             });
         },
-        phenotypeLink(rawPhenotype){
+        phenotypeLink(rawPhenotype) {
             let destination = `/phenotype.html?phenotype=${rawPhenotype}`;
-            if (this.isPigean){
-                let suffix = `&genesetSize=${this.$store.state.genesetSize 
-                    || bioIndexUtils.DEFAULT_GENESET_SIZE
-                    }&traitGroup=${this.$store.state.traitGroup
-                    || bioIndexUtils.DEFAULT_TRAIT_GROUP}`;
+            if (this.isPigean) {
+                let suffix = `&genesetSize=${
+                    this.$store.state.genesetSize ||
+                    bioIndexUtils.DEFAULT_GENESET_SIZE
+                }&traitGroup=${
+                    this.$store.state.traitGroup ||
+                    bioIndexUtils.DEFAULT_TRAIT_GROUP
+                }`;
                 destination = `/pigean${destination}${suffix}`;
             }
             return destination;

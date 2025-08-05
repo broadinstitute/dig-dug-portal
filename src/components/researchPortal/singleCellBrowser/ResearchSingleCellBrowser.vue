@@ -88,7 +88,7 @@
 
 
         <div v-if="dataLoaded" style="display:flex; flex-direction: column; gap:20px; width: 100%; max-width:100%; overflow-x: auto;">
-            <!-- layout 0 -->
+            <!-- layout 0 (full)-->
             <div v-if="layout===0" style="display:flex; flex-direction:column; gap:20px; background:#f8f8f8; padding:20px; width:100%; min-width: 840px;">
                 <research-single-cell-info 
                     v-if="metadata"
@@ -515,7 +515,7 @@
                 </div>
 
             </div>
-            <!-- layout 1 -->
+            <!-- layout 1 (umap-expression, violins-expression/cell type)-->
             <div v-if="layout===1" style="display:flex; flex-direction:column; width:100%; align-self:center;">
                 <research-single-cell-info 
                     :data="metadata"
@@ -590,6 +590,62 @@
                         />
                     </div>
                 </div>
+            </div>
+            <!-- layout 2 (umap clusters)-->
+            <div v-if="layout===2" style="display:flex; flex-direction:column; gap:20px; background:#f8f8f8; padding:20px; width:100%; min-width: 840px;">
+                <div v-if="dataReady" class="" style="display:flex; flex-direction: column; gap:20px;">
+                    <research-single-cell-info 
+                        v-if="metadata"
+                        :data="metadata"
+                    />
+                    <!-- UMAP feature plots-->
+                    <div style="display: flex; gap:20px;">
+                        <div v-if="coordinates" style="display:flex; gap:20px; flex:1; padding: 20px; background: white;">
+                            <div v-if="colorByFields" style="display:flex; flex-direction: column; align-self: flex-start; width:400px;">
+                                <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
+                                <div style="display:flex; flex-direction: column; height: 400px; gap:5px">
+                                    <select style="width: 100%;" @change="selectColorBy($event.target.value)" v-model="cellCompositionVars.colorByField">
+                                        <option value="">--Select--</option>
+                                        <option v-for="(value, key) of colorByFields.show" :value="key">
+                                            {{ displayLabel(key) }}
+                                        </option>
+                                    </select>
+                                    <div style="width: 100%; flex-grow:1; overflow-x: hidden; overflow-y: auto;">
+                                        <research-single-cell-selector 
+                                            :data="fields['metadata_labels']"
+                                            :displayData="displayFields"
+                                            :selectedField="cellCompositionVars.colorByField"
+                                            layout="list"
+                                            :colors="labelColors"
+                                            @on-update="handleSelectorUpdate($event)"
+                                            @on-hover="handleSelectorHover($event)"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction: column; width: min-content; flex: 1">
+                                <div style="display:flex; justify-content: space-between; align-items: baseline; margin: 0 0 5px;">
+                                    <strong style="font-size: 16px;">Cell Type Clustering</strong>
+                                    <div>UMAP {{ totalCells.toLocaleString() }} cells</div>
+                                </div>
+                                <research-umap-plot-gl 
+                                    :group="datasetId"
+                                    :points="coordinates"
+                                    :labels="fields"
+                                    :colors="labelColors"
+                                    :cellTypeField="cellTypeField"
+                                    :colorByField="cellCompositionVars.colorByField"
+                                    :hoverFields="[]"
+                                    :highlightLabel="cellCompositionVars.highlightLabel"
+                                    :highlightLabels="cellCompositionVars.highlightLabels"
+                                    :width="400"
+                                    :height="400"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -1019,7 +1075,7 @@
             },
             async init(){
                 this.presetsConfig = this.renderConfig["presets"];
-
+                llog('presets', this.presetsConfig);
                 this.showDatasetSelect = this.presetsConfig?.["showDatasetSelect"] || false;
 
                 this.layout = keyParams["layout"] || this.presetsConfig?.["layout"] || 0;
