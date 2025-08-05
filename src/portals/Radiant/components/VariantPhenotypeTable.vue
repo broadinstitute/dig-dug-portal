@@ -128,13 +128,13 @@ export default Vue.component("variant-phenotype-table", {
                     label: "Phenotype",
                 },
                 {
-                    key: "alleleCount",
+                    key: "alleleCountCases",
                     label: "Allele Count",
                     sortable: true,
                     tdClass: "text-left pr-3",
                     thClass: "text-left",
                 },
-                {
+                /*{
                     key: "alleleNumber",
                     label: "Allele Number",
                     sortable: true,
@@ -155,7 +155,7 @@ export default Vue.component("variant-phenotype-table", {
                     tdClass: "text-left pl-5",
                     thClass: "text-left pl-5",
                     formatter: "formatAlleleFrequency",
-                },
+                }, */
             ],
             hprecords: [],
             perPage: 24,
@@ -213,7 +213,7 @@ export default Vue.component("variant-phenotype-table", {
                 hpdisplay[j].hpoterms = Formatters.snakeFormatter(
                     this.HPOTerms[hp.phenotype]
                 );
-                hpdisplay[j].alleleCount = hp.alleleCount;
+                hpdisplay[j].alleleCountCases = hp.alleleCountCases;
                 hpdisplay[j].alleleNumber = hp.alleleNumber;
                 hpdisplay[j].alleleFrequency = hp.alleleFrequency;
 
@@ -265,6 +265,10 @@ export default Vue.component("variant-phenotype-table", {
             hpdisplay = hpdisplay.filter(
                 (hp) => hp.hp != "Healthy" && hp.hp != "AllNephroticSyndCases"
             );
+
+            hpdisplay = hpdisplay.filter((item) =>
+							item.alleleCountCases > 0
+				);
 
             //sort hpdisplay by sortOrder
             hpdisplay.sort(function (a, b) {
