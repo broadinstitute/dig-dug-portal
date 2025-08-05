@@ -110,7 +110,8 @@ export default Vue.component("GnominfoCard", {
         async searchVariants() {
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0] + ":" + varinfo[1];
-            this.variant = await query("variants", searchquery, {}, true);
+            //this.variant = await query("variants", searchquery, {}, true);
+            this.variant = await query("variant", searchquery, {});
             let gnomdisplay = [];
 
             gnomdisplay[0] = {
