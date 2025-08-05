@@ -32,19 +32,11 @@
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
                         <strong v-if="!linkPhenotypes">
-                            {{
-                                (phenotypeMap[ptKey] &&
-                                    phenotypeMap[ptKey].description) ||
-                                ptKey
-                            }}
+                            {{ phenotypeMap[ptKey]?.description || ptKey}}
                         </strong>
                         <strong v-else>
                             <a :href="phenotypeLink(ptKey)">
-                                {{
-                                    (phenotypeMap[ptKey] &&
-                                        phenotypeMap[ptKey].description) ||
-                                    ptKey
-                                }}
+                                {{ phenotypeMap[ptKey]?.description || ptKey}}
                             </a>
                         </strong>
                         <br />
@@ -229,17 +221,15 @@ export default Vue.component("ResearchPhewasPlot", {
             let content = {};
             content["data"] = [];
 
-            //console.log("render data");
+            console.log("render data");
             /*if (this.phenotypesData.data){
                 this.phenotypesData = cloneDeep(this.phenotypesData.data);
             }*/
-            
-            //console.log(this.phenotypesData);
-                
+            console.log(this.phenotypesData);
+
             if (this.phenotypesData) {
                 let phenotypesData = cloneDeep(this.phenotypesData);
                 phenotypesData.forEach((d) => {
-                    //console.log(this.getPValue(d));
                     d["rawPValue"] = this.getPValue(d);
                 });
                 phenotypesData = phenotypesData.sort(
@@ -254,10 +244,6 @@ export default Vue.component("ResearchPhewasPlot", {
                     // Shows the "significant" phenotypes first in the group.
                     phenotypesData.reverse();
                 }
-
-                //console.log(this.phenotypesData);
-                //console.log(this.phenotypeMapConfig);
-                //console.log(this.phenotypeMap);
 
                 phenotypesData.map((d) => {
                     if (
@@ -281,8 +267,7 @@ export default Vue.component("ResearchPhewasPlot", {
             if (this.filter) {
                 content.data = content.data.filter(this.filter);
             }
-            //console.log("content");
-            //console.log(content);
+            console.log(content);
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
@@ -318,14 +303,13 @@ export default Vue.component("ResearchPhewasPlot", {
         renderData(content) {
             this.renderPheWas();
         },
-        matchingHoverDots(newDots) {
+        matchingHoverDots(newDots){
             console.log("received by phewas", newDots);
-        },
+        }
     },
     created: function () {
-        //console.log("created Research PheWAS");
-        //console.log(this.canvasId);
-        
+        console.log("render Research PheWAS");
+        console.log(this.cavasId);
         this.renderPheWas();
     },
     mounted: function () {
@@ -337,7 +321,6 @@ export default Vue.component("ResearchPhewasPlot", {
     },
     methods: {
         getPValue(d) {
-            //console.log(this.renderConfig["y axis field"]);
             return typeof d[this.renderConfig["y axis field"]] == "string"
                 ? Number(d[this.renderConfig["y axis field"]])
                 : d[this.renderConfig["y axis field"]];
@@ -363,7 +346,7 @@ export default Vue.component("ResearchPhewasPlot", {
             window.location.href = "#associations-table";
         },
         groupData(DATA) {
-            //console.log("group data");
+            console.log("group data");
             let phenotypeGroups = [];
             let phenotypeGroupsObj = {};
 
@@ -386,7 +369,7 @@ export default Vue.component("ResearchPhewasPlot", {
             phenotypeGroups.map((p) => {
                 phenotypeGroupsObj[p] = [];
             });
-            //console.log(DATA);
+            console.log(DATA);
             //DATA.data.map((p) => {
             if(DATA.data){
                 DATA.data.map((p) => {
@@ -421,7 +404,7 @@ export default Vue.component("ResearchPhewasPlot", {
 						: -1
 				);
 			}*/
-            //console.log(phenotypeGroupsObj);
+
             return phenotypeGroupsObj;
         },
         onResize() {
@@ -482,7 +465,7 @@ export default Vue.component("ResearchPhewasPlot", {
                             yValue.map((xPos) => {
                                 if (x >= xPos.start && x <= xPos.end) {
                                     this.hoverItems[xPos.id] = xPos;
-                                    infoContent += `<strong>${xPos.name}</strong><br />`;
+                                    infoContent +=`<strong>${xPos.name}</strong><br />`;
                                     this.renderConfig["hover content"].map(
                                         (h) => {
                                             infoContent +=
@@ -499,14 +482,8 @@ export default Vue.component("ResearchPhewasPlot", {
                 }
 
                 if (TYPE == "hover") {
-                    if (
-                        Object.keys(this.hoverItems).length > 0 &&
-                        !!this.isPigean
-                    ) {
-                        this.$emit(
-                            "dotsHovered",
-                            JSON.stringify(this.hoverItems)
-                        );
+                    if (Object.keys(this.hoverItems).length > 0 && !!this.isPigean){
+                        this.$emit("dotsHovered", JSON.stringify(this.hoverItems));
                     }
                     if (infoContent == "") {
                         if (
@@ -558,17 +535,17 @@ export default Vue.component("ResearchPhewasPlot", {
             }
         },
         renderPheWas() {
-            //console.log("resesarch PheWAS: render PheWas");
+            console.log("resesarch PheWAS: render PheWas");
             //if (this.phenotypesData.data){
             //    this.phenotypesData = cloneDeep(this.phenotypesData.data);
             //}
-            //console.log("phenotypes data");
-            //console.log(this.phenotypesData);
-            //console.log("phenotype map");
-            //console.log(this.phenotypeMap);
-            //console.log(!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate");
+            console.log("phenotypes data");
+            console.log(this.phenotypesData);
+            console.log("phenotype map");
+            console.log(this.phenotypeMap);
+            console.log(!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate");
             if (!!this.renderConfig["thresholds"] && this.renderConfig["thresholds"] == "calculate" ) {
-                //console.log("enter if");
+                console.log("enter if");
                 let threshholds = [];
                 this.renderConfig["thresholds calculate"].map((expression) => {
                     let calcString = "";
@@ -600,10 +577,10 @@ export default Vue.component("ResearchPhewasPlot", {
             let canvas = document.querySelector(
                 "#" + this.canvasId + "pheWasPlot"
             );
-            //console.log(this.canvasId);
-            //console.log(!!canvas && !!wrapper);
+            console.log(this.canvasId);
+            console.log(!!canvas && !!wrapper);
             if (!!canvas && !!wrapper) {
-                //console.log("enter if canvas");
+                console.log("enter if canvas");
                 let canvasWidth = this.renderConfig.width
                     ? this.renderConfig.width * 2
                     : wrapper.clientWidth * 2;
@@ -823,14 +800,11 @@ export default Vue.component("ResearchPhewasPlot", {
                                     canvasHeight -
                                     plotMargin.bottom -
                                     yFromMinY * yStep;
-                                let rawPhenotype =
-                                    p[this.renderConfig["render by"]];
+                                let rawPhenotype = p[this.renderConfig["render by"]];
                                 let pName =
                                     this.phenotypeMapConfig == null
                                         ? rawPhenotype
-                                        : this.phenotypeMap[rawPhenotype][
-                                              "description"
-                                          ];
+                                        : this.phenotypeMap[rawPhenotype]["description"];
                                 let passesThreshold = this.greaterThan
                                     ? p.rawPValue >=
                                       Number(this.renderConfig["thresholds"][0])
@@ -1150,16 +1124,13 @@ export default Vue.component("ResearchPhewasPlot", {
                 action: "remove",
             });
         },
-        phenotypeLink(rawPhenotype) {
+        phenotypeLink(rawPhenotype){
             let destination = `/phenotype.html?phenotype=${rawPhenotype}`;
-            if (this.isPigean) {
-                let suffix = `&genesetSize=${
-                    this.$store.state.genesetSize ||
-                    bioIndexUtils.DEFAULT_GENESET_SIZE
-                }&traitGroup=${
-                    this.$store.state.traitGroup ||
-                    bioIndexUtils.DEFAULT_TRAIT_GROUP
-                }`;
+            if (this.isPigean){
+                let suffix = `&genesetSize=${this.$store.state.genesetSize 
+                    || bioIndexUtils.DEFAULT_GENESET_SIZE
+                    }&traitGroup=${this.$store.state.traitGroup
+                    || bioIndexUtils.DEFAULT_TRAIT_GROUP}`;
                 destination = `/pigean${destination}${suffix}`;
             }
             return destination;
