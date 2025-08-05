@@ -169,6 +169,10 @@ export default Vue.component("HugeScoresTable", {
             let assocs = this.hugeScores;
             let phenotypeMap = this.phenotypeMap;
 
+            console.log("Huge Score phenotype Map");
+            console.log(phenotypeMap);
+            console.log(assocs.length);
+
             if (!phenotypeMap) {
                 return [];
             }

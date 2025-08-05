@@ -132,14 +132,15 @@ export default Vue.component("GeneAssociationsMasks", {
         },
         //filter associations that only exist in the phenotypeMap
         filteredAssociations() {
-            let assocs = !this.filter
+            return this.associations;
+            /*let assocs = !this.filter
                 ? this.associations
                 : this.associations.filter(this.filter);
             return (
                 assocs.filter((row) => {
                     return this.phenotypeMap[row.phenotype];
                 }) || []
-            );
+            );*/
         },
     },
     methods: {
