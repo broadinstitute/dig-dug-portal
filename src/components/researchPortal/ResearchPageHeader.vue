@@ -14,54 +14,62 @@
 				<img class="kp-logo" :src="getLogo(sectionConfig['header logo'])">
 			</p>
 		</div>
-		<ul v-if="!!researchMenu">
-			<template v-if="addSearch">
-				<li class="menu menu-search">
-					<a @click="activateSearch">
-						<svg viewBox="0 0 24 24" fill="none" stroke="#1c5084" stroke-width=".5" xmlns="http://www.w3.org/2000/svg">
-							<path fill="#1c5084" fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z"/>
-						</svg>
-						Search
-					</a>
+		<div style="display:flex; align-items: end; gap:10px">
+			<ul v-if="!!researchMenu">
+				<template v-if="addSearch">
+					<li class="menu menu-search">
+						<a @click="activateSearch">
+							<svg viewBox="0 0 24 24" fill="none" stroke="#1c5084" stroke-width=".5" xmlns="http://www.w3.org/2000/svg">
+								<path fill="#1c5084" fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z"/>
+							</svg>
+							Search
+						</a>
+					</li>
+				</template>
+				<li
+					v-for="menu in (researchMenu.length ? researchMenu : researchMenu.menu)"
+					:key="menu.label"
+					class="menu"
+				>
+					<a :href="menu.link">{{ menu.label }}</a>
+					<ul v-if="!!menu.subMenu" class="sub-menu-wrapper">
+						<li
+							v-for="subMenu in menu.subMenu"
+							:key="subMenu.label"
+							class="sub-menu"
+						>
+							<a :href="subMenu.link">{{ subMenu.label }}</a>
+						</li>
+					</ul>
 				</li>
-			</template>
-			<li
-				v-for="menu in (researchMenu.length ? researchMenu : researchMenu.menu)"
-				:key="menu.label"
-				class="menu"
-			>
-				<a :href="menu.link">{{ menu.label }}</a>
-				<ul v-if="!!menu.subMenu" class="sub-menu-wrapper">
-					<li
-						v-for="subMenu in menu.subMenu"
-						:key="subMenu.label"
-						class="sub-menu"
-					>
-						<a :href="subMenu.link">{{ subMenu.label }}</a>
-					</li>
-				</ul>
-			</li>
-		</ul>
-		
-		<ul v-if="!!sectionConfig">
-			<li
-				v-for="menu in sectionConfig.menu.items"
-				:key="menu.label"
-				class="menu"
-			>
-				<a :href="getLink(menu.link)">{{ menu.label }}</a>
-				<ul v-if="!!menu.subMenu" class="sub-menu-wrapper">
-					<li
-						v-for="subMenu in menu.subMenu"
-						:key="subMenu.label"
-						class="sub-menu"
-					>
-						<a :href="getLink(subMenu.link)">{{ subMenu.label }}</a>
-					</li>
-				</ul>
-			</li>
-		</ul>
+			</ul>
+			
+			<ul v-if="!!sectionConfig">
+				<li
+					v-for="menu in sectionConfig.menu.items"
+					:key="menu.label"
+					class="menu"
+				>
+					<a :href="getLink(menu.link)">{{ menu.label }}</a>
+					<ul v-if="!!menu.subMenu" class="sub-menu-wrapper">
+						<li
+							v-for="subMenu in menu.subMenu"
+							:key="subMenu.label"
+							class="sub-menu"
+						>
+							<a :href="getLink(subMenu.link)">{{ subMenu.label }}</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+
+			<div class="menu-cfde-wheel" v-if="researchMenu?.['custom components']?.['cfde-wheel']" style="height:40px; cursor:pointer" @click="addCfdeWheel" title="CFDE Wheel">
+				<img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/cfde_unified_icon.png"  style="max-height: 100%;"/>
+			</div>
+		</div>
+
 		<div class="menu-search-container" ref="searchContainer"></div>
+
 	</div>
 </template>
 
@@ -69,6 +77,7 @@
 import Vue from "vue";
 import EventBus from "@/utils/eventBus";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
+import cfdeWheel from "./customComponents/cfdeWheel.vue";
 
 export default Vue.component("research-page-header", {
 	props: ["researchMenu","phenotypes", "utils", "headerLogo","sectionConfig","utils"],
@@ -238,6 +247,26 @@ export default Vue.component("research-page-header", {
 				temp.innerHTML = `<div style='position:sticky; bottom:0; width:100vw; padding:10px; z-index:50; background: #f7ab85; text-align:center;'>This repository is under review for potential modification in compliance with Administration directives.</div>`;
 				document.body.appendChild(temp.firstChild);
 			}
+		},
+		addCfdeWheel(){
+			// dynamically create and mount the component with its props
+			const CFDEwheelClass = Vue.extend({
+				render(h) {
+					return h(cfdeWheel, {
+						on: {
+							close: () => {
+								document.body.removeChild(wheelInstance.$el);
+								wheelInstance.$destroy(); // clean up
+							}
+						}
+					})
+				},
+			});
+			const wheelInstance = new CFDEwheelClass();
+
+			// mount component and append it to body
+			wheelInstance.$mount();
+			document.body.appendChild(wheelInstance.$el);
 		}
 	},
 	computed: {},
