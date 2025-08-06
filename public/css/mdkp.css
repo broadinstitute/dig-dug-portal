@@ -314,7 +314,7 @@ a:hover {
 }
 
 .front-logo-tagline-radiantkp {
-    transform: translate(0%, 8%);
+    transform: translate(0%, 65%);
 }
 
 .front-banner-ui-tabs {
@@ -578,7 +578,7 @@ a:hover {
 
 .radiantkp-header,
 .radiantkp-footer {
-    background-color: #789B9B;
+    background-color: #39626d;
     height: 50px;
 }
 
