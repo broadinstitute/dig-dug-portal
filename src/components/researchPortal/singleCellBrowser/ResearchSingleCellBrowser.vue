@@ -486,7 +486,7 @@
                                 <research-dot-plot
                                     style="display:flex; align-self: center"
                                     :data="markerGenes || expressionStatsAll"
-                                    data-blah="pct_nz_group"
+                                    data-blah="pct_cells_expression"
                                     yKey="cell_type"
                                     xKey="gene"
                                     yLabel="Cell Type"
@@ -834,7 +834,7 @@
                 
                 tableColumns: [
                     {key: "tissue", label: "Tissue", class:"capitalize"}, 
-                    {key: "totalCells", label: "Total Cells", formatter: (val) => val.toLocaleString()}
+                    {key: "totalCells", label: "Total Cells", formatter: (val) => val?.toLocaleString()}
                 ],
                 currentDatasetsPage: 1,
                 totalDatasets: null,
@@ -888,7 +888,7 @@
                         sortable: true,
                         formatter: (val) => typeof val === 'number' ? val.toPrecision(3) : ''
                     },{
-                        key: 'pct_nz_group',
+                        key: 'pct_cells_expression',
                         label: '% Expressing',
                         sortable: true,
                         formatter: (val) => typeof val === 'number' ? (val * 100).toFixed(1) + '%' : ''
@@ -1142,7 +1142,7 @@
                 this.fields = await scUtils.fetchFields(fieldsEnpoint, this.datasetId);
                 if(this.fields){
                     if(!this.totalCells){
-                        this.totalCells = this.fields.NAME.length;
+                        this.totalCells = this.fields.NAME?.length | this.fields.ID?.length;
                     }
                     llog('fields', this.fields);
                 }else{
@@ -1176,7 +1176,15 @@
                 const markersEnpoint = this.selectedBI+this.BIendpoints.markers;
                 if(markersEnpoint){
                     const url = markersEnpoint;
-                    this.markers = await scUtils.fetchMarkers(url, this.datasetId);
+                    const markersRaw = await scUtils.fetchMarkers(url, this.datasetId);
+                    //remap params to handle older/newer versions
+                    const markersNormalized = markersRaw.map(m => ({
+                        ...m,
+                        mean_expression: m.mean_expression ?? m.mean_expression_raw ?? 0,
+                        pct_cells_expression: m.pct_cells_expression ?? m.pct_nz_group ?? 0,
+                        // Add other fallback mappings here if needed
+                    }));
+                    this.markers = markersNormalized;
                     llog('markers', this.markers);
                     if(this.markers){
                         if(Array.isArray(this.markers)){
