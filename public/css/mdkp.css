@@ -138,6 +138,11 @@ a:hover {
     background-position: 120% 0px, top left;
 }
 
+.front-top-banner-radiantkp {
+    background-image: linear-gradient(#39626d, #799a9b);
+    background-position: 120% 0px, top left;
+}
+
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
