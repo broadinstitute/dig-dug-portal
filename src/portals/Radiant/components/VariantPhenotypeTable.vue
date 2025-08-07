@@ -134,20 +134,20 @@ export default Vue.component("variant-phenotype-table", {
                     tdClass: "text-left pr-3",
                     thClass: "text-left",
                 },
-                /*{
+                {
                     key: "alleleNumber",
                     label: "Allele Number",
                     sortable: true,
                     tdClass: "text-left pr-3",
                     thClass: "text-left",
                 },
-                {
+                /*{
                     key: "homozygousCount",
                     label: "Homozygotes",
                     sortable: true,
                     tdClass: "text-left pr-3",
                     thClass: "text-left",
-                },
+                },*/
                 {
                     key: "alleleFrequency",
                     label: "Allele Frequency",
@@ -155,7 +155,7 @@ export default Vue.component("variant-phenotype-table", {
                     tdClass: "text-left pl-5",
                     thClass: "text-left pl-5",
                     formatter: "formatAlleleFrequency",
-                }, */
+                },
             ],
             hprecords: [],
             perPage: 24,
@@ -195,10 +195,11 @@ export default Vue.component("variant-phenotype-table", {
             return Formatters.snakeFormatter(name);
         },
         async searchVariants() {
-            //console.log("variant id:" + this.variantId);
+            console.log("variant id:" + this.variantId);
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0] + ":" + varinfo[1];
             //this.variant = await query("variants", searchquery, {});
+            console.log("variants page: Phenotype table ->"+searchquery);
             this.variant = await query("gene-locus", searchquery, {}, true);
             console.log(this.variant);
             let hpdisplay = [];
