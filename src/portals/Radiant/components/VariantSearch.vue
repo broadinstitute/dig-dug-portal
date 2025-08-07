@@ -545,13 +545,13 @@ export default Vue.component("VariantSearch", {
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
                 },
-                /*{
+                {
                     key: "alleleNumber",
                     label: "Number",
                     sortable: true,
                     tdClass: "text-right pr-3",
                     thClass: "text-right",
-                },*/
+                },
 
                 {
                     key: "alleleFrequency",
@@ -628,20 +628,20 @@ export default Vue.component("VariantSearch", {
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
                 },
-                /*{
+                {
                     key: "alleleNumber",
                     label: "Allele Number",
                     sortable: true,
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
                 },
-                {
+                /*{
                     key: "homozygousCases",
                     label: "Homozygotes",
                     sortable: true,
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
-                },
+                },*/
                 {
                     key: "alleleFrequency",
                     label: "Allele Frequency",
@@ -649,7 +649,7 @@ export default Vue.component("VariantSearch", {
                     tdClass: "text-right pr-4",
                     thClass: "text-right",
                     formatter: "formatAlleleFrequency",
-                },*/
+                },
             ],
             variantData: null,
             loadingData: {},
