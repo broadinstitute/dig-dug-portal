@@ -111,7 +111,7 @@ export default Vue.component("GnominfoCard", {
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0] + ":" + varinfo[1];
             //this.variant = await query("variants", searchquery, {}, true);
-            this.variant = await query("variant", searchquery, {});
+            this.variant = await query("gene-locus", searchquery, {}, true);
             let gnomdisplay = [];
 
             gnomdisplay[0] = {
