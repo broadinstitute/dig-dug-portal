@@ -33,6 +33,7 @@ export default new Vuex.Store({
 
     mutations: {
         setVariant(state, variant) {
+            console.log("setVariant:"+variant.varId);
             if (variant) {
                 state.pageVariant = variant;
                 state.newVariantId = variant.varId || variant.dbSNP;
@@ -58,8 +59,10 @@ export default new Vuex.Store({
                         .then((res) => {
                             //console.log("res is ", res);
                             context.commit("setVariant", {
-                                varId: res.data.varid,
-                                dbSNP: res.data.rsid,
+                                //varId: res.data.varid,
+                                //dbSNP: res.data.rsid,
+                                varId: res.data.varId,
+                                dbSNP: res.data.dbSNP,
                             });
                         });
                 } else {
