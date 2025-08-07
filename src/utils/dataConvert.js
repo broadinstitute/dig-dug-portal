@@ -1,4 +1,4 @@
-let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
+let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
 
     let convertedData = [];
     let joinValues = function (FIELDS, jBy, fData) {
@@ -82,7 +82,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
         return decodeURIComponent(results[2].replace(/\+/g, ' '));
     }
 
-    let applyConvert = function (d, CONVERT, PHENOTYPE_MAP) {
+    let applyConvert = function (d, CONVERT, PHENOTYPE_MAP, SHARED_RESOURCE) {
         let tempObj = {};
 
         CONVERT.map(c => {
@@ -183,7 +183,6 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             loopIndex++;
                         })
 
-                        //console.log(tempObj);
                     }
 
 
@@ -248,7 +247,9 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                 case "map name":
 
-                    tempObj[c["field name"]] = c["map"][rawValue];
+                    let map = (c["map"] == "shared resource") ? SHARED_RESOURCE[c["map name"]] : c["map"];
+
+                    tempObj[c["field name"]] = map[rawValue];
 
                     break;
 
@@ -397,7 +398,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
         DATA.map(d => {
 
-            let tempObj = applyConvert(d, CONVERT, PHENOTYPE_MAP);
+            let tempObj = applyConvert(d, CONVERT, PHENOTYPE_MAP, SHARED_RESOURCE);
 
             // Apply data convert to feature data level
             let dKeys = Object.keys(tempObj);
@@ -419,7 +420,8 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             let tempFDObj = applyConvert(
                                 fd,
                                 CONVERT,
-                                PHENOTYPE_MAP
+                                PHENOTYPE_MAP,
+                                SHARED_RESOURCE
                             );
                             tempArr.push(tempFDObj);
                         }

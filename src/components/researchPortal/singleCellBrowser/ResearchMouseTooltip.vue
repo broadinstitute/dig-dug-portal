@@ -1,9 +1,9 @@
 <template>
     <div ref="tooltip" class="mouse-tooltip"></div>
 </template>
-  
+
 <script>
-import Vue from 'vue';
+import Vue from "vue";
 
 /*
 usage: mouseTooltip.js
@@ -21,35 +21,30 @@ mouseTooltip.hide();
 the tooltip will keep following mouse until hide() is called
 */
 
-export default Vue.component('research-mouse-tooltip', {
-    props: {
-        
-    },
+export default Vue.component("research-mouse-tooltip", {
+    props: {},
     data() {
         return {
             tt: null,
             content: null,
-            mousePos: {x: 0, y: 0},
+            mousePos: { x: 0, y: 0 },
             showing: false,
-        }
+        };
     },
-    watch: {
-    },
+    watch: {},
     mounted() {
         this.tt = this.$refs.tooltip;
     },
-    created() {
-    },
-    beforeDestroy(){
-    },
+    created() {},
+    beforeDestroy() {},
     methods: {
-        showTooltip(content){
+        showTooltip(content) {
             this.content = content;
             this.tt.innerHTML = this.content;
-            this.positionToolip();
-            this.tt.classList.add('show');
+            this.positionTooltip();
+            this.tt.classList.add("show");
         },
-        positionToolip(){
+        positionTooltip() {
             const tt = this.tt;
 
             // get tooltip dimentions
@@ -72,7 +67,7 @@ export default Vue.component('research-mouse-tooltip', {
 
             // avoid moving out of the top edge
             if (top < 0) {
-                top = 10; 
+                top = 10;
             }
 
             tt.style.top = `${top}px`;
@@ -80,35 +75,34 @@ export default Vue.component('research-mouse-tooltip', {
 
             this.showing = true;
         },
-        hideTooltip(){
-            this.tt.classList.remove('show');
+        hideTooltip() {
+            this.tt.classList.remove("show");
             this.tt.style.top = -10000 + "px";
             this.tt.style.left = -10000 + "px";
             this.showing = false;
         },
-        updateMousePosition(x, y){
-            this.mousePos = {x: x, y: y}
-            if(this.showing){
-                this.positionToolip();
+        updateMousePosition(x, y) {
+            this.mousePos = { x: x, y: y };
+            if (this.showing) {
+                this.positionTooltip();
             }
-        }
+        },
     },
 });
 </script>
 
 <style scoped>
-.mouse-tooltip{
-    position:fixed;
-    top:-10000px;
-    left:-10000px;
+.mouse-tooltip {
+    position: fixed;
+    top: -10000px;
+    left: -10000px;
     background: white;
     padding: 5px 10px;
     box-shadow: rgba(0, 0, 0, 0.5) -4px 9px 25px -6px;
     z-index: 5000;
-    opacity:0;
+    opacity: 0;
 }
-.mouse-tooltip.show{
+.mouse-tooltip.show {
     opacity: 1;
 }
 </style>
-  
