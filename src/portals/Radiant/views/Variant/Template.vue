@@ -93,7 +93,7 @@
                     
                     <div
                         v-if="
-                            $store.state.transcriptConsequences.data.length > 0
+                            $store.state.pageVariant.varId
                         "
                     >
                         <h4 class="card-title">
@@ -221,7 +221,7 @@
                 <div class="card-body">
                     <div
                         v-if="
-                            $store.state.transcriptConsequences.data.length > 0
+                            $store.state.pageVariant.varId
                         "
                     >
                         <h4 class="card-title">
