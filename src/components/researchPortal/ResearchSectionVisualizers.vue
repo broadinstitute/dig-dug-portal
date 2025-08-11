@@ -128,6 +128,7 @@
 				:utils="utils"
 				:starItems="starItems"
 				:colors="colors"
+				:sectionsData="sectionsData"
 				
 				@on-star="starColumn"
 			></multi-region-plot>
@@ -232,7 +233,7 @@ import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfde
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
-		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region","bigRegion"],
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region","bigRegion","sectionsData"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,

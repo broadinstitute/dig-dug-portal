@@ -160,7 +160,8 @@ export default Vue.component("multi-region-plot", {
 		"sectionId",
 		"utils",
 		"starItems",
-		"colors"
+		"colors",
+		"sectionsData"
 	],
 	data() {
 		return {

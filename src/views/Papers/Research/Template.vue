@@ -729,6 +729,7 @@
 													:isInTab="true"
 													:pageParams="$parent.pageParams"
 													:searchParameters="$parent.rawSearchParameters"
+													:sectionsData="$parent.sectionsData"
 													
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
@@ -782,6 +783,7 @@
 									:regionViewArea="$parent.regionViewArea"
 									:pageParams="$parent.pageParams"
 									:searchParameters="$parent.rawSearchParameters"
+									:sectionsData="$parent.sectionsData"
 									
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"

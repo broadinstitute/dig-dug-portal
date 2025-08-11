@@ -181,6 +181,7 @@
 											:regionViewArea="regionViewArea" :region="regionParam" 
 											:bigRegion="bigRegionParam"
 											:starItems="starItems"
+											:sectionsData="sectionsData"
 											@on-star="starColumn">
 										</research-section-visualizers>
 									</div>
@@ -205,6 +206,7 @@
 										:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
 										:regionViewArea="regionViewArea" :region="regionParam" 
 										:bigRegion="bigRegionParam" :starItems="starItems"
+										:sectionsData="sectionsData"
 										@on-star="starColumn">
 									</research-section-visualizers>
 								</div>
@@ -218,6 +220,7 @@
 								:regionZoom="regionZoom" :regionViewArea="regionViewArea" :region="regionParam"
 								:bigRegion="bigRegionParam"
 								:starItems="starItems"
+								:sectionsData="sectionsData"
 								@on-star="starColumn">
 							</research-section-visualizers>
 
@@ -318,7 +321,7 @@ import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
 		"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils", "starItems", "regionZoom",
-		"regionViewArea", "isInTab", "pageParams","searchParameters"],
+		"regionViewArea", "isInTab", "pageParams","searchParameters", "sectionsData"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionFiltersVertical,
