@@ -14,11 +14,10 @@
 					<!-- single search -->
 				<research-context-search
 					v-if="parameter.type == 'context search'"
-					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse}"
+					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse, 'sharedResource':sharedResource}"
 					:paramIndex="paramIndex"
 					:parent="parentMethods"
 					:utils="utils">
-
 				</research-context-search>
 
 					<!-- end -->
@@ -142,7 +141,7 @@
 
 <script>
 import Vue from "vue";
-import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch.vue";
+import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch2.vue";
 
 export default Vue.component("research-multi-sections-search", {
 	props: [
@@ -150,7 +149,8 @@ export default Vue.component("research-multi-sections-search", {
 		"phenotypesInUse",
 		"sections",
 		"utils",
-		"searchVisible"
+		"searchVisible",
+		"sharedResource"
 	],
 	components: {
 		ResearchContextSearch
