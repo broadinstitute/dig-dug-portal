@@ -216,12 +216,12 @@
                     </div>
                 </div>
             </div>
-
+            <!--
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
                         v-if="
-                            $store.state.pageVariant.varId
+                            $store.state.transcriptConsequences.data.length > 0
                         "
                     >
                         <h4 class="card-title">
@@ -233,7 +233,7 @@
                         </gnominfo-card>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
 
         <!-- Footer-->
