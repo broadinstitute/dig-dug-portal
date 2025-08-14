@@ -16,19 +16,19 @@ export default Vue.component("igv-card",{
         return {
             browser: null,
             mounted: true,
-            publicpath: "https://gnomad-browser-s3-test.s3.us-east-1.amazonaws.com/igv_data_bch/",
+            publicpath: "https://igv-radiant-data.s3.us-east-1.amazonaws.com/",
             config: {
-                genome: "hg38",
+                genome: "hg19",
                 //locus: "chr8:127,736,588-127,739,371",
                 locus: "chr"+this.variantId,
                 tracks: [
-                    {
+                    /*{
                         url: "https://igv-radiant-data.s3.us-east-1.amazonaws.com/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram",
                         indexURL:"https://igv-radiant-data.s3.us-east-1.amazonaws.com/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram.crai",
                         format: "cram",
                         type: "alignment",
                         
-                    },
+                    },*/
                 ],
             },
         };
@@ -52,19 +52,19 @@ export default Vue.component("igv-card",{
         async initIGV() {
             console.log("init IGV browser");
             console.log(this.variantId);
-            let results = await query("igv",this.variantId,{},true);
+            let results = await query("all-variants",this.variantId,{query_private:true},true);
             console.log(results);
             //console.log(this.$refs.igv-container);
-            /*for (let i = 0; i<results.length; i++){
+            for (let i = 0; i<results.length; i++){
                 let obj = {};
-                obj.url = this.publicpath + results[i][7]+".bam";
-                obj.indexURL = this.publicpath + results[i][7]+".bai";
+                obj.url = this.publicpath + results[i]["combined_bamout_id"]+"_hg19.sorted.bam";
+                obj.indexURL = this.publicpath + results[i]["combined_bamout_id"]+"_hg19.sorted.bam.bai";
                 obj.format = "bam";
                 obj.type = "alignment";
                 this.config.tracks[i] = obj;
             }
             
-            console.log(this.config);*/
+            console.log(this.config);
             igv.createBrowser(this.$refs.igvContainer, this.config).then((browser) => {
                 if (!this.mounted) {
                     igv.removeBrowser(browser);
