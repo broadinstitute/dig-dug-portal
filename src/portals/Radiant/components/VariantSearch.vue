@@ -179,7 +179,7 @@
                                 Acids</span
                             ></b-th
                         >
-                        <b-th colspan="2" class="text-center" variant="primary"
+                        <b-th colspan="3" class="text-center" variant="primary"
                             >RADIANT Allele</b-th
                         >
 
