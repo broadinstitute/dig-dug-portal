@@ -100,7 +100,7 @@ new Vue({
                 },
                 presets:{
                     datasetId: null,
-                    layout: 2
+                    layout: 3
                 },
 
                 bioIndex: "https://bioindex.hugeamp.org",

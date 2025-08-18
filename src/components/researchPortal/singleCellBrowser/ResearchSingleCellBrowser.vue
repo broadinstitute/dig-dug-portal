@@ -257,23 +257,6 @@
                                     />
                                 </div>
     
-                                
-                                <!--
-                                <div style="display:flex; gap:20px; align-items: center; justify-content: space-between;">
-                                    <div v-if="cellCompositionVars.segmentByLabel && displayFields && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat'" 
-                                        style="display:flex; gap:10px; height: fit-content">
-                                        <div class="plot-toggle" @click="isStacked = !isStacked">
-                                            <div class="plot-toggle-btn" :class="`${isStacked?'':'toggled'}`">group</div>
-                                            <div class="plot-toggle-btn" :class="`${isStacked?'toggled':''}`">stack</div>
-                                        </div>
-                                        <div class="plot-toggle" @click="isNormalized = !isNormalized">
-                                            <div class="plot-toggle-btn" :class="`${isNormalized?'':'toggled'}`">count</div>
-                                            <div class="plot-toggle-btn" :class="`${isNormalized?'toggled':''}`">pct.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                -->
-    
                                 <div v-if="!cellCompositionVars.segmentByLabel || (displayFields && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat')" style="display:flex; flex-direction: column; gap:5px">
                                     <research-stacked-bar-plot
                                         :data="cellCompositionVars.segmentByCounts2"
@@ -647,6 +630,158 @@
                 </div>
 
             </div>
+            <!-- layout 1 (umap-expression, violins-expression/cell type)-->
+            <div v-if="layout===3" style="display:flex; flex-direction:column; width:100%; align-self:center;">
+                <research-single-cell-info 
+                    :data="metadata"
+                />
+                <div v-if="dataReady" style="display:flex; gap:40px; flex:1">
+                    <div style="display: flex; flex-direction: column; gap:20px; flex: 1;">
+                        <!-- cell counts -->
+                        <div style="display: flex; flex-direction: column; flex:1; gap:20px; padding:20px; background: white;">
+                            <div style="display:flex; justify-content: space-between; gap:10px">
+                                <div style="font-size: 16px;">
+                                    <span style="font-weight: bold">{{isATACseq ? 'Nuclei' : 'Cell'}} {{ isNormalized ? 'Proportion' : 'Count' }}</span> 
+                                    <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat'">
+                                        by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                        per <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</span> 
+                                        </template>
+                                        <template v-else-if="cellCompositionVars.segmentByLabel">
+                                        by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</span> 
+                                        per <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                    </template>
+                                    <template v-else>
+                                        by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                    </template>
+                                    <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cont'">
+                                        <div style="font-size: 12px;">
+                                            Each point represents the average {{isATACseq ? 'nuclei' : 'cell'}} {{ isNormalized ? 'proportion' : 'distribution' }} per {{ this.aggregateType }}
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <download-chart 
+                                    class="download"
+                                    chartId="sc_stacked_bar_plot"
+                                    style="width: 125px; align-self: flex-start;"
+                                    :style="`${contCountResults?'pointer-events:none; opacity:0.5':''}`"
+                                />
+                            </div>
+
+                            <div v-if="!cellCompositionVars.segmentByLabel || (displayFields && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat')" style="display:flex; flex-direction: column; gap:5px">
+                                <research-stacked-bar-plot
+                                    :data="cellCompositionVars.segmentByCounts2"
+                                    :primaryKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.segmentByLabel : cellCompositionVars.displayByLabel"
+                                    :subsetKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.displayByLabel : cellCompositionVars.segmentByLabel"
+                                    :xAxisLabel="cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)"
+                                    :yAxisLabel="`${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
+                                    :highlightKey="cellCompositionVars.highlightLabel"
+                                    :normalize="isNormalized"
+                                    :stack="cellCompositionVars.segmentByLabel ? true : false"
+                                />
+                                <div style="font-size:12px; opacity:0.5">{{ cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.displayByLabel) : displayLabel(cellCompositionVars.segmentByLabel) }}</div>
+                                <research-single-cell-selector 
+                                    :data="fields['metadata_labels']"
+                                    layout="list"
+                                    listDirection="horizontal"
+                                    listAlignment="start"
+                                    :colors="labelColors"
+                                    :selectedField="cellCompositionVars.segmentByLabel ? cellCompositionVars.displayByLabel : cellCompositionVars.segmentByLabel"
+                                    @on-update="handleSelectorUpdate($event)"
+                                    @on-hover="handleSelectorHover($event)"
+                                />
+                            </div>
+
+                            <div v-if="contCountResults">
+                                    <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.displayByLabel) }}</div>
+                                <div style="display:flex; flex-wrap: wrap; gap: 10px;">
+                                    <div v-for="item in contCountResults" style="min-width: 250px; flex:1;">
+                                        <div>{{ item.groupKey }}</div>
+                                        <research-scatter-plot 
+                                            :data="item.data"
+                                            :width="300"
+                                            :height="150"
+                                            :xKey="cellCompositionVars.segmentByLabel"
+                                            yKey="cell_proportion"
+                                            :xLabel="displayLabel(cellCompositionVars.segmentByLabel)"
+                                            yLabel="Cell Proportion"
+                                            :yDomain="[0, 1]"
+                                            renderAs="svg"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Marker genes -->
+                        <div style="display:flex; gap:25px">
+                            <div v-if="markers && (markerGenes || expressionStatsAll.length>0)" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
+                                <div style="display:flex; flex-direction: column; gap:20px; min-width: 50%;">
+                                    <div style="display:flex; justify-content: space-between;">
+                                        <div style="display:flex; flex-direction: column;">
+                                            <strong style="font-size: 16px;">{{ dotPlotCellType!=""?`Marker Genes for ${dotPlotCellType}` : 'Top Marker Genes by Cell Type' }}</strong>
+                                            <div  style="font-size:12px; opacity:0.5">Ranked by {{markersHaveZscores ? 'z-score' : 'mean expression'}}</div>
+                                        </div>
+                                        <div style="display:flex; gap:20px">
+                                            <div style="display:flex; gap:5px" class="legends">
+                                                <div style="display:flex; flex-direction: column;" class="legend">
+                                                    <div class="label">Mean Expression</div>
+                                                    <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray});`"></div>
+                                                    <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
+                                                </div>
+                                                <div style="display:flex; flex-direction: column;" class="legend">
+                                                    <div class="label">% Cells Expressing</div>
+                                                    <div style="display:flex" class="circles">
+                                                        <div class="circleBorder"><div class="circle" style="height:20%"></div></div>
+                                                        <div class="circleBorder"><div class="circle" style="height:40%"></div></div>
+                                                        <div class="circleBorder"><div class="circle" style="height:60%"></div></div>
+                                                        <div class="circleBorder"><div class="circle" style="height:80%"></div></div>
+                                                        <div class="circleBorder"><div class="circle" style="height:100%"></div></div>
+                                                    </div>
+                                                    <div style="display:flex" class="marks"><div>0</div><div>100</div></div>
+                                                </div>
+                                            </div>
+                                            <download-chart 
+                                                class="download"
+                                                chartId="sc_dot_plot"
+                                                style="width: 125px; align-self: flex-start;"
+                                            />
+                                        </div>
+                                        
+                                    </div>
+
+                                    <research-dot-plot
+                                        style="display:flex; align-self: center"
+                                        :data="markerGenes || expressionStatsAll"
+                                        data-blah="pct_cells_expression"
+                                        yKey="cell_type"
+                                        xKey="gene"
+                                        yLabel="Cell Type"
+                                        xLabel="Gene"
+                                        fillKey="mean_expression"
+                                        :sizeKey="markerGenesSizeKey"
+                                        :fitToSize="true"
+                                        :cellWidth="30"
+                                        highlightKey=""
+                                    />
+                                </div>
+                                <b-table v-if="markerGenesTable"
+                                        style="font-size:12px;"
+                                        :items="markerGenesTable"
+                                        :fields="markerTableColumns"
+                                        striped
+                                        hover
+                                        small
+                                        responsive="sm"
+                                        head-variant="light"
+                                        sticky-header="300px" 
+                                    >
+                                </b-table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
         </div>
     </div>
 </template>
@@ -833,8 +968,11 @@
                 viewType: 1,
                 
                 tableColumns: [
-                    {key: "tissue", label: "Tissue", class:"capitalize"}, 
-                    {key: "totalCells", label: "Total Cells", formatter: (val) => val?.toLocaleString()}
+                    {key: "tissue", label: "Tissue", class:"capitalize"},
+                    {key: "depot", label: "Depot", class:"capitalize"}, 
+                    {key: "totalDonors", label: "Donors", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                    {key: "totalBiosamples", label: "Biosamples", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                    {key: "totalSamples", label: "Samples", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
                 ],
                 currentDatasetsPage: 1,
                 totalDatasets: null,
@@ -1034,11 +1172,22 @@
             clean(){
                 this.allMetadata = null;
                 this.metadata = null;
+
+                this.fields = null;
+                this.coordinates = null;
+                this.markers = null;
+
+                this.markersList = null;
+                this.markerCellTypes = null;
+                this.markerGenes = null;
+                this.markerGenesTable = null;
+                this.markersByGene = null;
+                this.markersByCellType = null;
+
                 this.dataLoaded = false;
                 this.dataReady = false;
                 this.expressionData = {};
                 this.geneNames = [];
-                this.markersList = [];
                 this.expressionStatsAll = [];
                 this.genesNotFound = [];
                 this.dotPlotCellType = "",
@@ -1150,13 +1299,15 @@
                 }
 
                 //fetch coordinates
-                this.preloadItem = 'coordinates';
-                const coordinatesEnpoint = this.selectedBI+this.BIendpoints.coordinates;
-                this.coordinates = await scUtils.fetchCoordinates(coordinatesEnpoint, this.datasetId);
-                if(this.coordinates){
-                    llog('coordinates', this.coordinates);
-                }else{
-                    llog('there was an error getting coordinates');
+                if(this.layout !== 3){
+                    this.preloadItem = 'coordinates';
+                    const coordinatesEnpoint = this.selectedBI+this.BIendpoints.coordinates;
+                    this.coordinates = await scUtils.fetchCoordinates(coordinatesEnpoint, this.datasetId);
+                    if(this.coordinates){
+                        llog('coordinates', this.coordinates);
+                    }else{
+                        llog('there was an error getting coordinates');
+                    }
                 }
 
                 //fetch markers
@@ -1961,6 +2112,10 @@ button:hover {
     }
     ::v-deep .download.show .dropdown-item{
         text-align: center;
+    }
+
+    ::v-deep .b-table-sticky-header {
+        padding: 0 10px;
     }
 
     ::v-deep .b-table-sticky-header th.position-relative {
