@@ -183,7 +183,7 @@
                                         </bulk-table>
                                     </div>
                                 </div>
-                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.dataReady">
+                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrReady && $parent.dataReady">
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
@@ -261,7 +261,7 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.dataReady"
+                                                            v-if="$parent.enrichrReady && $parent.dataReady"
                                                             ref="DownregulatedGenes"
                                                             :phenotypesData="$parent.enrichrDown"
                                                             :colors="$parent.colors"
@@ -281,7 +281,7 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.dataReady"
+                                                            v-if="$parent.enrichrReady && $parent.dataReady"
                                                             ref="UpregulatedGenes"
                                                             :phenotypesData="$parent.enrichrUp"
                                                             :colors="$parent.colors"
