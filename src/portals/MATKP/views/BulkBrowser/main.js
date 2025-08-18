@@ -55,6 +55,8 @@ new Vue({
         return {
             loading: true,
             dataReady: false,
+            enrichrReady: false,
+            tableHidden: false,
             allMetadata: null,
             bulkMetadata: null,
             plotId: "bulk_heatmap",
@@ -281,6 +283,7 @@ new Vue({
             this.dataReady = true;
         },
         async populateEnrichr(){
+            this.enrichrReady = false;
             let libraryToUse = this.enrichrLibrary === 'placeholder' 
                 ? this.enrichrDefaultLibrary 
                 : this.enrichrLibrary;
@@ -291,6 +294,7 @@ new Vue({
             this.enrichrColorScale = this.createColorScale();
             this.displayLibrary = libraryToUse;
             this.enrichrLibrary = 'placeholder';
+            this.enrichrReady = true;
         },
         async getBulkMetadata() {
             if (!this.allMetadata) {
@@ -349,11 +353,12 @@ new Vue({
             if (newYVal === this.volcanoYCondition) {
                 return;
             }
-            this.dataReady = false;
             // If any change, refire Enrichr
             this.volcanoYCondition = newYVal;
             await this.populateEnrichr();
-            this.dataReady = true;
+        },
+        hideTable(){
+            this.tableHidden = true;
         }
     },
     watch: {
@@ -374,9 +379,7 @@ new Vue({
         },
         async enrichrLibrary(newData, oldData){
             if(newData != oldData && newData != 'placeholder'){
-                this.dataReady = false;
                 await this.populateEnrichr();
-                this.dataReady = true;
             }
         },
         selectedComparison(newData, oldData) {
@@ -410,6 +413,11 @@ new Vue({
                 this.$store.state.selectedGene = newData;
             }
         },
+        selectedLibraryType(newData, oldData){
+            if (!!newData){
+                this.tableHidden = false;
+            }
+        }
     },
 
     render(createElement, context) {

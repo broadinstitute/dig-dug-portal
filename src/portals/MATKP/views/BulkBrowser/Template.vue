@@ -170,7 +170,20 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.dataReady">
+                                <div id="table-wrapper" class="flex-gap flex-column">
+                                    <div class="flex-gap flex-column">
+                                        <bulk-table
+                                            :bulkData="$parent.bulkData19K"
+                                            
+                                            :dataset="$store.state.selectedDataset"
+                                            :config="$parent.tableConfig"
+                                            :scatterConfig="$parent.scatterplotConfig"
+                                            :highlightedGene="$store.state.selectedGene"
+                                            :regulationConditions="$parent.regulationConditions">
+                                        </bulk-table>
+                                    </div>
+                                </div>
+                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrReady && $parent.dataReady">
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
@@ -180,20 +193,6 @@
                                         </div>
                                         <div class="tabs-section-wrapper">
                                           <div class="tab-section" >
-                                            <div style="display:flex; gap:5px" class="legends">
-                                                <div style="display:inline-block" class="legend">
-                                                   <strong>-log10(P adj.)</strong>
-                                                    <div style="display:flex; margin-top:10px" class="marks">
-                                                        <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
-                                                        <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
-                                                        </div>
-                                                        <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div id="note">
-                                                Combined score = log(p) * z, where z represents deviation from expected rank.
-                                            </div>
                                             <div class="row select-library">
                                                 <div class="col-md-3">
                                                     <div class="label">Select a library type</div>
@@ -207,17 +206,41 @@
                                                         </option>
                                                     </select>
                                                 </div>
-                                                <div class="col-md-9"></div>
+                                                <div class="col-md-4"></div>
+                                                <div class="col-md-5">
+                                                    <div style="display:flex; gap:5px" class="legends">
+                                                        <div style="display:inline-block" class="legend">
+                                                        <strong>-log10(P adj.)</strong>
+                                                            <div style="display:flex; margin-top:10px" class="marks">
+                                                                <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
+                                                                <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
+                                                                </div>
+                                                                <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div id="note">
+                                                        Combined score = log(p) * z, where z represents deviation from expected rank.
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="row" v-if="!!$parent.selectedLibraryType">
                                                 <div class="col-md-12">
                                                     <b-table
+                                                    :hidden="$parent.tableHidden"
                                                     id="select-library-table"
                                                     small
                                                     :items="$parent.librariesForType"
                                                     :current-page="$parent.libraryPage"
                                                     :per-page="5"
                                                     >
+                                                        <template #head(type)="item">
+                                                            Select
+                                                            <button class="btn btn-sm hide-table"
+                                                                @click="$parent.hideTable()">
+                                                                &#x2715;
+                                                            </button>
+                                                        </template>
                                                         <template #cell(type)="item">
                                                             <button class="btn btn-sm btn-primary select-library"
                                                                 @click="$parent.selectLibrary(item)">
@@ -246,7 +269,7 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.dataReady"
+                                                            v-if="$parent.enrichrReady && $parent.dataReady"
                                                             ref="DownregulatedGenes"
                                                             :phenotypesData="$parent.enrichrDown"
                                                             :colors="$parent.colors"
@@ -266,7 +289,7 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.dataReady"
+                                                            v-if="$parent.enrichrReady && $parent.dataReady"
                                                             ref="UpregulatedGenes"
                                                             :phenotypesData="$parent.enrichrUp"
                                                             :colors="$parent.colors"
@@ -279,19 +302,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div id="table-wrapper" class="flex-gap flex-column">
-                                    <div class="flex-gap flex-column">
-                                        <bulk-table
-                                            :bulkData="$parent.bulkData19K"
-                                            
-                                            :dataset="$store.state.selectedDataset"
-                                            :config="$parent.tableConfig"
-                                            :scatterConfig="$parent.scatterplotConfig"
-                                            :highlightedGene="$store.state.selectedGene"
-                                            :regulationConditions="$parent.regulationConditions">
-                                        </bulk-table>
                                     </div>
                                 </div>
                             </div>
@@ -443,5 +453,17 @@ button.select-library {
 }
 #select-library-table {
     background: #efefef;
+}
+button.hide-table {
+    background-color: red;
+    color: white;
+    float: right;
+    border-radius: 20px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight: bold;
+    font-size: smaller;
 }
 </style>

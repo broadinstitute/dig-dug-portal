@@ -168,7 +168,7 @@ export default Vue.component("bulk-table", {
     ],
     data() {
         return {
-            perPage: 20,
+            perPage: 10,
             showGenes: "",
             currentPage: 1,
             subtableData: {},
@@ -230,7 +230,6 @@ export default Vue.component("bulk-table", {
         },
         tableData() {
             let data = structuredClone(this.bulkData);
-            //data[0]._showDetails = !this.isSubtable;
             if (this.filter) {
                 data = data.filter(this.filter);
             }
@@ -238,11 +237,11 @@ export default Vue.component("bulk-table", {
                 data = data.filter(item => this.showRegulation(item) === this.showGenes);
             }
             // Open subtable for the highlighted gene
-            if (!!this.highlightedGene){
+            /* if (!!this.highlightedGene){
                 let highlightRow = data.find(g => g.gene === this.highlightedGene);
                 if (!!highlightRow){ highlightRow._showDetails = true
                 };
-            }
+            } */
             return data;
         },
         upregulatedGenes(){
