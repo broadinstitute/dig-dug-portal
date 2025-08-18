@@ -227,12 +227,20 @@
                                             <div class="row" v-if="!!$parent.selectedLibraryType">
                                                 <div class="col-md-12">
                                                     <b-table
+                                                    :hidden="$parent.tableHidden"
                                                     id="select-library-table"
                                                     small
                                                     :items="$parent.librariesForType"
                                                     :current-page="$parent.libraryPage"
                                                     :per-page="5"
                                                     >
+                                                        <template #head(type)="item">
+                                                            Select
+                                                            <button class="btn btn-sm hide-table"
+                                                                @click="$parent.hideTable()">
+                                                                &#x2715;
+                                                            </button>
+                                                        </template>
                                                         <template #cell(type)="item">
                                                             <button class="btn btn-sm btn-primary select-library"
                                                                 @click="$parent.selectLibrary(item)">
@@ -445,5 +453,17 @@ button.select-library {
 }
 #select-library-table {
     background: #efefef;
+}
+button.hide-table {
+    background-color: red;
+    color: white;
+    float: right;
+    border-radius: 20px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight: bold;
+    font-size: smaller;
 }
 </style>

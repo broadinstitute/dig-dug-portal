@@ -56,6 +56,7 @@ new Vue({
             loading: true,
             dataReady: false,
             enrichrReady: false,
+            tableHidden: false,
             allMetadata: null,
             bulkMetadata: null,
             plotId: "bulk_heatmap",
@@ -355,6 +356,9 @@ new Vue({
             // If any change, refire Enrichr
             this.volcanoYCondition = newYVal;
             await this.populateEnrichr();
+        },
+        hideTable(){
+            this.tableHidden = true;
         }
     },
     watch: {
@@ -409,6 +413,11 @@ new Vue({
                 this.$store.state.selectedGene = newData;
             }
         },
+        selectedLibraryType(newData, oldData){
+            if (!!newData){
+                this.tableHidden = false;
+            }
+        }
     },
 
     render(createElement, context) {
