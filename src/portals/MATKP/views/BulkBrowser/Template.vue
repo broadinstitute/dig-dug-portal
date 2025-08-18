@@ -193,20 +193,6 @@
                                         </div>
                                         <div class="tabs-section-wrapper">
                                           <div class="tab-section" >
-                                            <div style="display:flex; gap:5px" class="legends">
-                                                <div style="display:inline-block" class="legend">
-                                                   <strong>-log10(P adj.)</strong>
-                                                    <div style="display:flex; margin-top:10px" class="marks">
-                                                        <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
-                                                        <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
-                                                        </div>
-                                                        <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div id="note">
-                                                Combined score = log(p) * z, where z represents deviation from expected rank.
-                                            </div>
                                             <div class="row select-library">
                                                 <div class="col-md-3">
                                                     <div class="label">Select a library type</div>
@@ -220,7 +206,23 @@
                                                         </option>
                                                     </select>
                                                 </div>
-                                                <div class="col-md-9"></div>
+                                                <div class="col-md-4"></div>
+                                                <div class="col-md-5">
+                                                    <div style="display:flex; gap:5px" class="legends">
+                                                        <div style="display:inline-block" class="legend">
+                                                        <strong>-log10(P adj.)</strong>
+                                                            <div style="display:flex; margin-top:10px" class="marks">
+                                                                <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
+                                                                <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
+                                                                </div>
+                                                                <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div id="note">
+                                                        Combined score = log(p) * z, where z represents deviation from expected rank.
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="row" v-if="!!$parent.selectedLibraryType">
                                                 <div class="col-md-12">
