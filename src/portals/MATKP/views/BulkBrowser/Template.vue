@@ -170,6 +170,19 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div id="table-wrapper" class="flex-gap flex-column">
+                                    <div class="flex-gap flex-column">
+                                        <bulk-table
+                                            :bulkData="$parent.bulkData19K"
+                                            
+                                            :dataset="$store.state.selectedDataset"
+                                            :config="$parent.tableConfig"
+                                            :scatterConfig="$parent.scatterplotConfig"
+                                            :highlightedGene="$store.state.selectedGene"
+                                            :regulationConditions="$parent.regulationConditions">
+                                        </bulk-table>
+                                    </div>
+                                </div>
                                 <div class="flex-gap" id="enrichr-legend" v-if="$parent.dataReady">
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
@@ -279,19 +292,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div id="table-wrapper" class="flex-gap flex-column">
-                                    <div class="flex-gap flex-column">
-                                        <bulk-table
-                                            :bulkData="$parent.bulkData19K"
-                                            
-                                            :dataset="$store.state.selectedDataset"
-                                            :config="$parent.tableConfig"
-                                            :scatterConfig="$parent.scatterplotConfig"
-                                            :highlightedGene="$store.state.selectedGene"
-                                            :regulationConditions="$parent.regulationConditions">
-                                        </bulk-table>
                                     </div>
                                 </div>
                             </div>

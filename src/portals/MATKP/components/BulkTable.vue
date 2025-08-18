@@ -168,7 +168,7 @@ export default Vue.component("bulk-table", {
     ],
     data() {
         return {
-            perPage: 20,
+            perPage: 10,
             showGenes: "",
             currentPage: 1,
             subtableData: {},
