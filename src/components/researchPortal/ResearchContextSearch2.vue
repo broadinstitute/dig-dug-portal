@@ -1,8 +1,10 @@
 <template>
     <div>
         <div class="multi-options-search-ui col-md-12">
+            <div class="assist-me">
+                <input type="checkbox" id="assist_me" name="assistMe" value="assistMe" v-model="assistMe" style="vertical-align: -10px;" checked> <label for="assistMe">Assist me!</label>
+            </div>
             <div class="search-ui-wrapper">
-                <div class="assist-me"><input type="checkbox" id="assist_me" name="assistMe" value="assistMe" v-model="assistMe" checked> <label for="assistMe">Assist me!</label></div>
                 <div class="input textarea">
                     <textarea
                         rows="4" cols="50"
@@ -13,43 +15,65 @@
                         autoComplete="off">
                     </textarea>                    
                 </div>
-                <div v-if="!!assistMe">
-                    <div v-if="searchOptions.kpGenes.length > 0" class="kp-genes-options">
-                        <div>KP Genes</div>
-                        <select>
-                            <template v-for="gene in searchOptions.kpGenes">
-                                <option :value="gene">{{ gene }}</option>
-                            </template>
-                        </select>
+            </div>
+        </div>
+        <div class="search-parameters-and-options" v-if="!!assistMe">
+            <div v-if="searchOptions.kpGenes.length > 0" class="kp-genes-options">
+                <div>Genes</div>
+                <div class="parameter-options">
+                    <div class="first-option option">
+                        {{ searchOptions.kpGenes[0] }}
                     </div>
-                    <div v-if="searchOptions.kpPhenotypes.length > 0" class="kp-phenotypes-options">
-                        <div>KP Phenotypes</div>
-                        <select>
-                            <template v-for="phenotype in searchOptions.kpPhenotypes">
-                                <option :value="phenotype.name">{{ phenotype.description }}{{ ' (' + phenotype.group + ')' }}</option>
-                            </template>
-                        </select>
-                    </div>
-                    <div class="other-options">
-                        <template v-for="parameter in searchCategories">                           
-                            <div>{{ parameter.label }}</div>
-                            <select>
-                            <template v-for="option in searchOptions.otherOptions[parameter.parameter]">
-                                <option :value="option.value">{{ option.label }}</option>
-                            </template>
-                            </select>
-                        </template>
+                    <div class="more-options" v-if="searchOptions.kpGenes.length > 1">
+                        <div class="option" v-for="(gene, geneIndex) in searchOptions.kpGenes"
+                            v-if="geneIndex > 0">
+                            {{ gene }}
+                        </div>
                     </div>
                 </div>
             </div>
+            <div v-if="searchOptions.kpPhenotypes.length > 0" class="kp-phenotypes-options">
+                <div>Phenotypes</div>
+                <div class="parameter-options">
+                    <div class="first-option option">
+                        {{ searchOptions.kpPhenotypes[0].description }}{{ ' (' + searchOptions.kpPhenotypes[0].group + ')' }}
+                    </div>
+                    <div class="more-options" v-if="searchOptions.kpPhenotypes.length > 1">
+                        <div class="option" v-for="(phenotype, phenotypeIndex) in searchOptions.kpPhenotypes"
+                            v-if="phenotypeIndex > 0">
+                            {{ phenotype.description }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="other-options">
+                <template v-for="parameter in searchCategories">                           
+                    <div>{{ parameter.label }}</div>
+                    <div class="parameter-options">
+                        <div class="first-option option">
+                            {{ searchOptions.otherOptions[parameter.parameter][0].label }}
+                        </div>
+                        <div class="more-options" v-if="searchOptions.otherOptions[parameter.parameter].length > 1">
+                            <div class="option" v-for="(option, optionIndex) in searchOptions.otherOptions[parameter.parameter]"
+                                v-if="optionIndex > 0">
+                                {{ option.label }}
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
-        <div class="search-options-wrapper">
+        <div class="data-filters">
+            {{ filterOptions }}
+        </div>
+        <!--
+        <div class="search-plan-wrapper">
             <template v-for="parameter in sectionsConfig['search parameters'].parameters">
                 <div v-if="!!getSearchOptions(parameter)">
                     {{ getSearchOptions(parameter) }}
                 </div>
             </template>
-        </div>
+        </div>-->
     </div>
 </template>
 
@@ -84,7 +108,9 @@ export default {
             workflowInputs: [
             ],
             searchCategories: [],
-            searchOptions: {kpGenes:[],kpPhenotypes:[],otherOptions:{}}
+            searchOptions: {kpGenes:[],kpPhenotypes:[],otherOptions:{}},
+            filterCategories: [],
+            filterOptions: []
         };
     },
     mounted() {
@@ -96,8 +122,9 @@ export default {
         userInput (INPUT) {
             if(!!this.assistMe) {
 
-            
-                this.parent.paramSearch[this.paramIndex] = INPUT;
+                /* build search options */
+
+                this.parent.paramSearch[this.paramIndex] = INPUT; // this line is important to connect to the parent component.
                 this.searchCategories = [];
                 this.searchOptions = {kpGenes:[],kpPhenotypes:[],otherOptions:{}};
 
@@ -109,10 +136,8 @@ export default {
                     const geneParameter = this.sectionsConfig['search parameters'].parameters.filter(p => p.values == 'kp genes');
                     let geneInput = INPUT.split(",");
                     if (geneParameter.length > 0) {
-                        
 
                         if(geneInput[geneInput.length-1].trim().length > 2) {
-                            //console.log("geneInput[geneInput.length-1]",geneInput[geneInput.length-1].trim())
                             this.getGenes(geneInput[geneInput.length-1].trim());
                         }
                         
@@ -171,6 +196,9 @@ export default {
                                     }
 
                                     break;
+                                case 'keywords':
+                                    /* do nothing for the moment until I decide what to do */
+                                    break;
                                 default:
 
                                     parameterOptions = [...new Set(parameter.values)]
@@ -193,7 +221,6 @@ export default {
                                     }
                                 }
                             })
-                            console.log('other search filteredSearchKeys',filteredSearchKeys);
 
                             if(filteredSearchKeys.length > 0 && filteredSearchKeys[filteredSearchKeys.length-1] != 'no match') {
                                 filteredSearchKeys.map(key => {
@@ -209,15 +236,46 @@ export default {
                                 this.searchCategories.push({parameter: parameter.parameter, label: parameter.label})
                                 this.searchOptions.otherOptions[parameter.parameter] = parameterOptions.sort((a, b) => a.label.length - b.label.length);
                             }
+
+                            
                         })
                     }
-
-                
                 } else {
                     this.searchOptions.kpGenes = [];
                     this.searchOptions.kpPhenotypes = []
                     this.searchOptions.otherOptions = {}
+                }
 
+                /*build filters */
+                if (INPUT.length > 2 && !!this.sectionsConfig['search parameters']['data filters']) {
+
+                    this.filterOptions = [];
+
+                    let filters = this.sectionsConfig['search parameters']['data filters'];
+
+                    let filterInput = INPUT.split(",");
+
+                     if(filterInput[filterInput.length-1].trim().length > 2) {
+                        
+                        filters.map(filter => {
+
+                            switch (filter.type) {
+                                case 'keywords':
+
+                                   
+
+                                    filter.keywords.map(K => {
+                            
+                                        if(K.keywords.includes(filterInput[filterInput.length-1].trim())) {
+                                            this.filterOptions.push({category: filter.label, field: filter.field, filter: filter.filter, label: K.label, value: K.value })
+                                        }
+                                    })
+                                    break;
+                            }
+                        })
+                    }
+                } else {
+                    this.filterOptions = [];
                 }
             }
             
@@ -260,11 +318,56 @@ export default {
 
                     break;
             }
+        },
+        selectOption(EVENT) {
+            console.log(EVENT)
         }
     }
 }
 </script>
 <style scoped>
+/* ones used */
+
+.search-parameters-and-options {
+    position: absolute;
+    white-space: nowrap;
+}
+
+.kp-genes-options, .kp-phenotypes-options, .other-options {
+    display: inline-block;
+    vertical-align: top;
+    max-width: 300px;
+    margin: 0 15px;
+}
+
+.more-options {
+    display: none;
+}
+
+.kp-genes-options:hover .more-options, .kp-phenotypes-options:hover .more-options, .parameter-options:hover .more-options {
+    display: block;
+}
+
+.parameter-options {
+    max-width: 300px;
+    max-height: 300px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.option {
+    width: 300px;
+    max-width: 300px;
+    background: #fff;
+    border: solid 1px #dddddd;
+    border-top: solid 1px #ffffff;
+    border-bottom: solid 1px #bbbbbb;
+    padding: 3px 7px;
+    overflow-x: hidden;
+    text-align: left;
+}
+
+/* ones used */
 .context-search-btn {
     margin: 20px 0;
 }
@@ -283,8 +386,6 @@ export default {
     vertical-align: top;
 }
 
-.multi-options-search-ui div select, 
-.multi-options-search-ui div input,
 .multi-options-search-ui div textarea {
     border: solid 1px #ced4da;
 }
