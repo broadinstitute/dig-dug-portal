@@ -760,7 +760,7 @@
                     </criterion-function-group>
                 </div>
             </div>
-            <div class="card mdkp-card">
+            <div class="card mdkp-card" v-if="false">
                 <div class="card-body">
                     <h4>Changes in gene expression with exercise</h4>
                     <criterion-function-group>
