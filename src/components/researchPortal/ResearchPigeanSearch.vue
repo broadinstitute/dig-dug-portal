@@ -2,7 +2,7 @@
     <div>
         <div class="multi-options-search-ui col-md-12">
             <div class="assist-me">
-                <input type="checkbox" id="assist_me" name="assistMe" value="assistMe" v-model="assistMe" style="vertical-align: -10px;" checked> <label for="assistMe">Assist me!</label>
+                <input type="checkbox" id="assist_me" name="assistMe" value="assistMe" v-model="assistMe" style="vertical-align: -10px;"> <label for="assistMe">Assist me!</label>
             </div>
             <div class="search-ui-wrapper">
                 <div class="input textarea">
@@ -17,16 +17,16 @@
                 </div>
             </div>
         </div>
-        <div class="search-parameters-and-options" v-if="!!assistMe">
+        <div class="search-parameters-and-options" v-if="!assistMe">
             <div v-if="searchOptions.kpGenes.length > 0" class="kp-genes-options">
                 <div>Genes</div>
                 <div class="parameter-options">
-                    <div class="first-option option">
+                    <div class="first-option option" @click="buildSearch({label:searchOptions.kpGenes[0],value:searchOptions.kpGenes[0],parameter:'gene'})">
                         {{ searchOptions.kpGenes[0] }}
                     </div>
                     <div class="more-options" v-if="searchOptions.kpGenes.length > 1">
                         <div class="option" v-for="(gene, geneIndex) in searchOptions.kpGenes"
-                            v-if="geneIndex > 0">
+                            v-if="geneIndex > 0" @click="buildSearch({label:gene,value:gene,parameter:'gene'})">
                             {{ gene }}
                         </div>
                     </div>
@@ -35,12 +35,12 @@
             <div v-if="searchOptions.kpPhenotypes.length > 0" class="kp-phenotypes-options">
                 <div>Phenotypes</div>
                 <div class="parameter-options">
-                    <div class="first-option option">
+                    <div class="first-option option" @click="buildSearch({label:searchOptions.kpPhenotypes[0].description,value:searchOptions.kpPhenotypes[0].name,parameter:'phenotype'})">
                         {{ searchOptions.kpPhenotypes[0].description }}{{ ' (' + searchOptions.kpPhenotypes[0].group + ')' }}
                     </div>
                     <div class="more-options" v-if="searchOptions.kpPhenotypes.length > 1">
                         <div class="option" v-for="(phenotype, phenotypeIndex) in searchOptions.kpPhenotypes"
-                            v-if="phenotypeIndex > 0">
+                            v-if="phenotypeIndex > 0" @click="buildSearch({label:phenotype.description,value:phenotype.name,parameter:'phenotype'})">
                             {{ phenotype.description }}
                         </div>
                     </div>
@@ -50,22 +50,35 @@
                 <template v-for="parameter in searchCategories">                           
                     <div>{{ parameter.label }}</div>
                     <div class="parameter-options">
-                        <div class="first-option option">
+                        <div class="first-option option" @click="buildSearch({label:searchOptions.otherOptions[parameter.parameter][0].label,value:searchOptions.otherOptions[parameter.parameter][0].value,parameter:parameter.parameter})">
                             {{ searchOptions.otherOptions[parameter.parameter][0].label }}
                         </div>
                         <div class="more-options" v-if="searchOptions.otherOptions[parameter.parameter].length > 1">
                             <div class="option" v-for="(option, optionIndex) in searchOptions.otherOptions[parameter.parameter]"
-                                v-if="optionIndex > 0">
+                                v-if="optionIndex > 0" @click="buildSearch({label:option.label,value:option.value,parameter:parameter.parameter})">
                                 {{ option.label }}
                             </div>
                         </div>
                     </div>
                 </template>
             </div>
+            <div class="data-focus-options" v-if="filterOptions.length > 0">
+                <div>Data summary focus</div>
+                <div class="parameter-options">
+                    <div class="first-option option" @click="buildFocus(filterOptions[0])" >
+                        {{ filterOptions[0].label }}
+                    </div>
+                    <div class="more-options" v-if="filterOptions.length > 1">
+                        <div class="option" v-for="(focus,fIndex) in filterOptions"
+                            v-if="fIndex > 0" @click="buildFocus(focus)" >
+                            {{ focus.label }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="data-filters">
-            {{ filterOptions }}
-        </div>
+        {{ searchParamValues }}
+        {{ focusValues }}
         <!--
         <div class="search-plan-wrapper">
             <template v-for="parameter in sectionsConfig['search parameters'].parameters">
@@ -78,6 +91,7 @@
 </template>
 
 <script>
+import Template from '../../views/404/Template.vue';
 /*
 {{ parent.paramSearch[paramIndex] }}
  {{ sectionsConfig['search parameters'].parameters }}
@@ -98,19 +112,20 @@ Development note:
 */
 
 export default {
-	components: { },
-    name: "research-context-search",
+	components: {Template },
+    name: "research-pigean-search",
     props: ["sectionsConfig", "paramIndex", "parent", "utils"],
     data() {
         return {
             userInput: "",
-            assistMe: true,
+            assistMe: false,
             workflowInputs: [
             ],
             searchCategories: [],
             searchOptions: {kpGenes:[],kpPhenotypes:[],otherOptions:{}},
-            filterCategories: [],
-            filterOptions: []
+            filterOptions: [],
+            searchParamValues: [],
+            focusValues: []
         };
     },
     mounted() {
@@ -120,7 +135,7 @@ export default {
     },
     watch: {
         userInput (INPUT) {
-            if(!!this.assistMe) {
+            if(!this.assistMe) {
 
                 /* build search options */
 
@@ -262,13 +277,12 @@ export default {
                             switch (filter.type) {
                                 case 'keywords':
 
-                                   
-
                                     filter.keywords.map(K => {
-                            
-                                        if(K.keywords.includes(filterInput[filterInput.length-1].trim())) {
-                                            this.filterOptions.push({category: filter.label, field: filter.field, filter: filter.filter, label: K.label, value: K.value })
+                                       K.keywords.map(kWord => {
+                                        if(kWord.includes(filterInput[filterInput.length-1].trim())) {
+                                            this.filterOptions.push({category: filter.label, field: filter.field, filter: filter.filter, label: kWord + ": " + K.label, value: kWord + ": " + K.value })
                                         }
+                                       })
                                     })
                                     break;
                             }
@@ -319,8 +333,11 @@ export default {
                     break;
             }
         },
-        selectOption(EVENT) {
-            console.log(EVENT)
+        buildSearch(SEARCH) {
+            if(!assistMe) {this.searchParamValues = [SEARCH];} else {this.searchParamValues.push(SEARCH)}
+        },
+        buildFocus(FOCUS) {
+            focusValues.push(FOCUS);
         }
     }
 }
@@ -329,11 +346,10 @@ export default {
 /* ones used */
 
 .search-parameters-and-options {
-    position: absolute;
     white-space: nowrap;
 }
 
-.kp-genes-options, .kp-phenotypes-options, .other-options {
+.kp-genes-options, .kp-phenotypes-options, .other-options, .data-focus-options {
     display: inline-block;
     vertical-align: top;
     max-width: 300px;
@@ -362,9 +378,15 @@ export default {
     border: solid 1px #dddddd;
     border-top: solid 1px #ffffff;
     border-bottom: solid 1px #bbbbbb;
-    padding: 3px 7px;
-    overflow-x: hidden;
+    padding: 3px 17px 3px 7px;
     text-align: left;
+    white-space: pre-wrap;
+    text-indent: -3px;
+}
+
+.option:hover {
+    cursor: pointer;   
+    background-color: #bbdfff;
 }
 
 /* ones used */

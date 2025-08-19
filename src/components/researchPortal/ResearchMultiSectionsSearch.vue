@@ -22,6 +22,17 @@
 
 					<!-- end -->
 
+				<!-- PIGEAN search -->
+				<research-pigean-search
+					v-if="parameter.type == 'pigean search'"
+					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse, 'sharedResource':sharedResource}"
+					:paramIndex="paramIndex"
+					:parent="parentMethods"
+					:utils="utils">
+				</research-pigean-search>
+
+					<!-- end -->
+
 					
 					<select v-if="parameter.type == 'api list'"
 						:id="'search_param_' + parameter.parameter"  class="custom-select custom-select-search"
@@ -141,7 +152,8 @@
 
 <script>
 import Vue from "vue";
-import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch2.vue";
+import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch.vue";
+import ResearchPigeanSearch from "@/components/researchPortal/ResearchPigeanSearch.vue";
 
 export default Vue.component("research-multi-sections-search", {
 	props: [
@@ -153,7 +165,8 @@ export default Vue.component("research-multi-sections-search", {
 		"sharedResource"
 	],
 	components: {
-		ResearchContextSearch
+		ResearchContextSearch,
+		ResearchPigeanSearch
 	},
 	data() {
 		return {
