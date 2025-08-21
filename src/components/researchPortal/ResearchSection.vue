@@ -290,6 +290,15 @@
 							</div>
 						</template>
 					</template>
+
+					<div v-if="!!sectionConfig['ai summary'] && !!sectionData">
+						<llm-summary 
+							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+							:summaryConfig="sectionConfig['ai summary']"
+							:utils="utils">
+
+						</llm-summary>
+					</div>
 				</div>
 				<div class="vertical-filter"
 					v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'"
@@ -314,6 +323,7 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue";
+import llmSummary from "@/components/researchPortal/contextualSearch/LlmQuery.vue";
 
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
@@ -326,7 +336,8 @@ export default Vue.component("research-section", {
 		ResearchSectionComponents,
 		ResearchDataTable,
 		ResearchInfoCards,
-		ResearchInSectionSearch
+		ResearchInSectionSearch,
+		llmSummary
 	},
 	data() {
 		return {
@@ -1385,7 +1396,27 @@ export default Vue.component("research-section", {
 			} else if (!!PARAMS && TYPE == "replace") {
 
 				PARAMS.map((param, pIndex) => {
-					dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					if(!!this.dataPoint['parameter convert'] && this.dataPoint['parameter convert'][param]) {
+
+						switch(this.dataPoint['parameter convert'][param].type) {
+							case "map name":
+								//this.$root.sharedResource
+								let paramText;
+								if(this.dataPoint['parameter convert'][param].map == 'shared resource') {
+									const convertPoint = this.$root.sharedResource[this.dataPoint['parameter convert'][param]['map name']];
+									paramText = convertPoint[QUERY.split(",")[pIndex]];
+
+								}
+								
+								dataUrl = dataUrl.replace("$" + param, paramText);
+
+								break;
+						}
+
+					} else {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					}
+					
 				})
 			} else if (!!PARAMS && TYPE == "replace to field") {
 

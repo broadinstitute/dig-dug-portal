@@ -5,15 +5,23 @@
                 <input type="checkbox" id="assist_me" name="assistMe" value="assistMe" v-model="assistMe" style="vertical-align: -10px;"> <label for="assistMe">Assist me!</label>
             </div>
             <div class="search-ui-wrapper">
-                <div class="input textarea">
-                    <textarea
-                        rows="4" cols="50"
+                <div class="input parameter-search">
+                    <label for="search_param_context">Select parameter</label>
+                    <input
                         class="form-control multi-options-search-input" 
                         name="multi-options-search-input"
-                        v-model="userInput"
+                        v-model="userInputParameter"
                         :id="'search_param_context'"
-                        autoComplete="off">
-                    </textarea>                    
+                        autoComplete="off" />
+                </div>
+                <div class="input focus-search">
+                    <label for="search_param_context">Build summary focus</label>
+                    <input
+                        class="form-control multi-options-search-input" 
+                        name="multi-options-search-input"
+                        v-model="userInputFocus"
+                        :id="'search_param_context'"
+                        autoComplete="off" />
                 </div>
             </div>
         </div>
@@ -77,21 +85,34 @@
                 </div>
             </div>
         </div>
-        {{ searchParamValues }}
-        {{ focusValues }}
-        <!--
-        <div class="search-plan-wrapper">
-            <template v-for="parameter in sectionsConfig['search parameters'].parameters">
-                <div v-if="!!getSearchOptions(parameter)">
-                    {{ getSearchOptions(parameter) }}
+        <div v-if="searchParamValues.length > 0" class="search-plan-wrapper">
+            <h4>Search plan:</h4>
+            <div>
+                <div v-for="(section, sIndex) in sectionsConfig.sections" v-if="section['data point'].parameters.includes(searchParamValues[0].parameter)">
+                    {{ sIndex + 1 +'. ' }}Search will query data for [ <span class="search-key">{{ section.header }}</span> ] section with [ <span class="search-key">{{ searchParamValues[0].label }}</span> ].
                 </div>
-            </template>
-        </div>-->
+            </div>
+            <h4>Data summary</h4>
+            <div>
+                Loaded data will be summarized with focuses in: {{ userInputFocus }}
+                <!--
+                <span v-for="(focus, fIndex) in focusValues" v-html="(fIndex < focusValues.length -1)? focus.label + ', ':focus.label" class="search-key"></span>
+                -->
+            </div>
+        </div>
+        <div class="search-buttons-wrapper" v-if="searchParamValues.length > 0" >
+            <span class="btn btn-primary" @click="callSearch()" :disabled="isLoading">
+                <research-loading-spinner :isLoading="isLoading" colorStyle="color"></research-loading-spinner>
+                {{ isLoading ? 'Searching...' : 'Search' }}
+            </span>
+            <span class="btn btn-sm btn-success context-search-btn" @click="resetSearch()">Reset search</span>
+        </div>
     </div>
 </template>
 
 <script>
-import Template from '../../views/404/Template.vue';
+
+import Vue from "vue";
 /*
 {{ parent.paramSearch[paramIndex] }}
  {{ sectionsConfig['search parameters'].parameters }}
@@ -111,13 +132,15 @@ Development note:
 * sectionsConfig contains: 'search parameters', 'sections', 'phenotypes.' Phenotypes is the kp phenotypes.
 */
 
-export default {
-	components: {Template },
-    name: "research-pigean-search",
+export default Vue.component("research-pigean-search", {
     props: ["sectionsConfig", "paramIndex", "parent", "utils"],
+    components: {
+        ResearchLoadingSpinner: () => import("./ResearchLoadingSpinner.vue")
+    },
     data() {
         return {
-            userInput: "",
+            userInputParameter: "",
+            userInputFocus: "",
             assistMe: false,
             workflowInputs: [
             ],
@@ -125,7 +148,8 @@ export default {
             searchOptions: {kpGenes:[],kpPhenotypes:[],otherOptions:{}},
             filterOptions: [],
             searchParamValues: [],
-            focusValues: []
+            focusValues: [],
+            isLoading: false
         };
     },
     mounted() {
@@ -134,7 +158,7 @@ export default {
     computed: {
     },
     watch: {
-        userInput (INPUT) {
+        userInputParameter (INPUT) {
             if(!this.assistMe) {
 
                 /* build search options */
@@ -260,6 +284,11 @@ export default {
                     this.searchOptions.kpPhenotypes = []
                     this.searchOptions.otherOptions = {}
                 }
+            }
+            
+        },
+        userInputFocus (INPUT) {
+            if(!this.assistMe) {
 
                 /*build filters */
                 if (INPUT.length > 2 && !!this.sectionsConfig['search parameters']['data filters']) {
@@ -294,11 +323,38 @@ export default {
             }
             
         },
-        "searchOptions.kpGenes"(LIST) {
-            //console.log(LIST);
-        }
 	},
     methods: {
+        callSearch() {
+            this.isLoading = true;
+            
+            this.parent.setListValue(
+                this.searchParamValues[0].value, 
+                this.searchParamValues[0].parameter, 
+                this.paramIndex, true)
+
+            this.parent.setListValue(
+                this.userInputFocus, 
+                'focus', 
+                this.paramIndex + 1, true)
+
+            this.userInputParameter = "";
+            this.userInputFocus = "";
+            this.searchParamValues = [];
+            this.focusValues = [];
+            
+            // Reset loading state after a short delay to allow parent to process
+            setTimeout(() => {
+                this.isLoading = false;
+            }, 1000);
+        },
+        resetSearch() {
+            this.userInputParameter = "";
+            this.userInputFocus = "";
+            this.searchParamValues = [];
+            this.focusValues = [];
+            this.parent.resetSearch();
+        },
         async getGenes(SEARCH) {
             let searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/match/gene?q=" + SEARCH;
 
@@ -334,13 +390,24 @@ export default {
             }
         },
         buildSearch(SEARCH) {
-            if(!assistMe) {this.searchParamValues = [SEARCH];} else {this.searchParamValues.push(SEARCH)}
+            if(!this.assistMe) {
+                this.searchParamValues = [SEARCH];
+                this.userInputParameter = SEARCH.label;
+            } else {
+                this.searchParamValues.push(SEARCH)
+            }
         },
         buildFocus(FOCUS) {
-            focusValues.push(FOCUS);
+            this.focusValues.push(FOCUS);
+
+            this.userInputFocus = "";
+            this.focusValues.map(f => {
+                this.userInputFocus += f.label + ", ";
+            })
+            this.userInputFocus = this.userInputFocus.slice(0, -2);
         }
     }
-}
+})
 </script>
 <style scoped>
 /* ones used */
@@ -387,6 +454,14 @@ export default {
 .option:hover {
     cursor: pointer;   
     background-color: #bbdfff;
+}
+
+.search-plan-wrapper {
+    text-align: left;
+}
+
+.search-key {
+    background-color: #f9a857;
 }
 
 /* ones used */
@@ -456,5 +531,14 @@ select.meaning-search {
     margin: auto -20%;
     margin-top: 5px;
     z-index: 100;
+}
+</style>
+<style>
+.multi-page-search-wrapper {
+    height: auto !important;
+}
+
+.filtering-ui-wrapper.search-criteria.multi-page-search.fixed-header {
+    /*display: none !important;*/
 }
 </style>
