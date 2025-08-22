@@ -246,133 +246,117 @@
                         {{
                             `GTEx tissue specificity and gene expression levels for ${$store.state.geneName.toUpperCase()}`
                         }}
-                    </h4><!-- 
-                    <span>
-                        <documentation
-                            name="gene.level.association.subheader"
-                            :content-fill="$parent.docDetails"
-                            :content-map="$store.state.bioPortal.documentations"
-                        >
-                        </documentation>
-                    </span> -->
+                    </h4>
                     <p v-html="$parent.getTooltip('gtex_geneassociations')"></p>
-                    <criterion-function-group
-                        @update:filter-list="
-                            (newFilters) => $parent.filterPhenotype(newFilters)
-                        "
-                    >
-                        <template slot="filtered" slot-scope="{ filter }">
-                            <b-tabs>
-                                <b-tab
-                                    title="GTEx: Tissue Specificity"
-                                >
-                                    <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
-                                        <h4 class="card-title">GTEx: Tissue Specificity</h4>
-                                        <research-bar-plot
-                                            v-if="$parent.GTExData"
-                                            ref="GTExSpecificity"
-                                            :phenotypesData="$parent.GTExData"
+                        <b-tabs>
+                            <b-tab
+                                title="GTEx: Tissue Specificity"
+                            >
+                                <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
+                                    <h4 class="card-title">GTEx: Tissue Specificity</h4>
+                                    <research-bar-plot
+                                        v-if="$parent.GTExData"
+                                        ref="GTExSpecificity"
+                                        :phenotypesData="$parent.GTExData"
+                                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                        :colors="$parent.plotColors"
+                                        :plotMargin="$parent.GTExRenderConfig['plot margin']"
+                                        :renderConfig="$parent.GTExRenderConfig"
+                                        :pkgData="null"
+                                        :pkgDataSelected="null"
+                                        :canvasId="'GTEx'"
+                                        :utils="$parent.utilsBox"
+                                    ></research-bar-plot>
+                                    <data-download
+                                        v-if="$parent.GTExData"
+                                        :data="$parent.GTExData"
+                                        :filename="`${$store.state.geneName.toUpperCase()}_tissue_specificity`"
+                                        style="width: 125px; align-self: flex-end;"
+                                        ></data-download>
+                                    <b-table
+                                        v-if="$parent.GTExData"
+                                        small
+                                        :items="$parent.GTExData"
+                                        :fields="$parent.GTExDataFields"
+                                        sortBy="tissue"
+                                        :sortDesc="false"
+                                        :per-page="10"
+                                        :current-page="$parent.GTExPage"
+                                    >
+                                    </b-table>
+                                    <b-pagination
+                                        v-if="$parent.GTExData"
+                                        v-model="$parent.GTExPage"
+                                        class="pagination-sm justify-content-center"
+                                        :total-rows="$parent.GTExData.length"
+                                        :per-page="10"
+                                    ></b-pagination>
+                                </div>
+                            </b-tab>
+                            <b-tab
+                                title="GTEx: Gene Expression Levels"
+                                @click="$parent.renderGTEx('GTExExpression')"
+                            >
+                                <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
+                                    <h4 class="card-title">
+                                        Absolute gene expression levels in GTEx tissues
+                                        <tooltip-documentation
+                                            name="gtex_geneassociations_commonvariant"
+                                            :supplyText="
+                                                $parent.getTooltip('gtex_geneassociations_commonvariant')"
+                                            :is-hover="true"
+                                            :no-icon="false"
+                                            :content-map="
+                                                $store.state.bioPortal
+                                                    .documentations
+                                            "
+                                        >
+                                        </tooltip-documentation>
+                                    </h4>
+                                    <template v-if="$parent.GTExData2">
+                                        <research-box-plot
+                                            ref="GTExExpression"
+                                            :phenotypesData="$parent.GTExData2"
                                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                                             :colors="$parent.plotColors"
-                                            :plotMargin="$parent.GTExRenderConfig['plot margin']"
-                                            :renderConfig="$parent.GTExRenderConfig"
+                                            :plotMargin="$parent.GTExRenderConfig2['plot margin']"
+                                            :renderConfig="$parent.GTExRenderConfig2"
                                             :pkgData="null"
                                             :pkgDataSelected="null"
-                                            :canvasId="'GTEx'"
+                                            :canvasId="'GTEx2'"
                                             :utils="$parent.utilsBox"
-                                        ></research-bar-plot>
+                                        ></research-box-plot>
                                         <data-download
-                                            v-if="$parent.GTExData"
-                                            :data="$parent.GTExData"
-                                            :filename="`${$store.state.geneName.toUpperCase()}_tissue_specificity`"
+                                            v-if="$parent.GTExData2"
+                                            :data="$parent.GTExData2"
+                                            :filename="`${$store.state.geneName.toUpperCase()}_gene_expression`"
                                             style="width: 125px; align-self: flex-end;"
-                                         ></data-download>
+                                        ></data-download>
                                         <b-table
-                                            v-if="$parent.GTExData"
                                             small
-                                            :items="$parent.GTExData"
-                                            :fields="$parent.GTExDataFields"
+                                            :items="$parent.GTExData2"
+                                            :fields="$parent.GTExData2Fields"
                                             sortBy="tissue"
                                             :sortDesc="false"
                                             :per-page="10"
-                                            :current-page="$parent.GTExPage"
+                                            :current-page="$parent.GTExPage2"
                                         >
+                                            <template #cell(dataset)="data">
+                                                <a :href="`https://cmdga.org/search/?searchTerm=${data.value}`">
+                                                    {{ data.value }}
+                                                </a>
+                                            </template>
                                         </b-table>
                                         <b-pagination
-                                            v-if="$parent.GTExData"
-                                            v-model="$parent.GTExPage"
+                                            v-model="$parent.GTExPage2"
                                             class="pagination-sm justify-content-center"
-                                            :total-rows="$parent.GTExData.length"
+                                            :total-rows="$parent.GTExData2.length"
                                             :per-page="10"
                                         ></b-pagination>
-                                    </div>
-                                </b-tab>
-                                <b-tab
-                                    title="GTEx: Gene Expression Levels"
-                                    @click="$parent.renderGTEx('GTExExpression')"
-                                >
-                                    <div class="card-body" style="display:flex; flex-direction:column; gap:20px">
-                                        <h4 class="card-title">
-                                            Absolute gene expression levels in GTEx tissues
-                                            <tooltip-documentation
-                                                name="gtex_geneassociations_commonvariant"
-                                                :supplyText="
-                                                    $parent.getTooltip('gtex_geneassociations_commonvariant')"
-                                                :is-hover="true"
-                                                :no-icon="false"
-                                                :content-map="
-                                                    $store.state.bioPortal
-                                                        .documentations
-                                                "
-                                            >
-                                            </tooltip-documentation>
-                                        </h4>
-                                        <template v-if="$parent.GTExData2">
-                                            <research-box-plot
-                                                ref="GTExExpression"
-                                                :phenotypesData="$parent.GTExData2"
-                                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                                :colors="$parent.plotColors"
-                                                :plotMargin="$parent.GTExRenderConfig2['plot margin']"
-                                                :renderConfig="$parent.GTExRenderConfig2"
-                                                :pkgData="null"
-                                                :pkgDataSelected="null"
-                                                :canvasId="'GTEx2'"
-                                                :utils="$parent.utilsBox"
-                                            ></research-box-plot>
-                                            <data-download
-                                                v-if="$parent.GTExData2"
-                                                :data="$parent.GTExData2"
-                                                :filename="`${$store.state.geneName.toUpperCase()}_gene_expression`"
-                                                style="width: 125px; align-self: flex-end;"
-                                            ></data-download>
-                                            <b-table
-                                                small
-                                                :items="$parent.GTExData2"
-                                                :fields="$parent.GTExData2Fields"
-                                                sortBy="tissue"
-                                                :sortDesc="false"
-                                                :per-page="10"
-                                                :current-page="$parent.GTExPage2"
-                                            >
-                                                <template #cell(dataset)="data">
-                                                    <a :href="`https://cmdga.org/search/?searchTerm=${data.value}`">
-                                                        {{ data.value }}
-                                                    </a>
-                                                </template>
-                                            </b-table>
-                                            <b-pagination
-                                                v-model="$parent.GTExPage2"
-                                                class="pagination-sm justify-content-center"
-                                                :total-rows="$parent.GTExData2.length"
-                                                :per-page="10"
-                                            ></b-pagination>
-                                        </template>
-                                    </div>
-                                </b-tab>
-                            </b-tabs>
-                        </template>
-                    </criterion-function-group>
+                                    </template>
+                                </div>
+                            </b-tab>
+                        </b-tabs>
                 </div>
             </div>
 
