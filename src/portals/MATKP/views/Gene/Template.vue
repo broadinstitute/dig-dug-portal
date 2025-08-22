@@ -246,15 +246,7 @@
                         {{
                             `GTEx tissue specificity and gene expression levels for ${$store.state.geneName.toUpperCase()}`
                         }}
-                        <tooltip-documentation
-                            name="gtex_geneassociations"
-                            :supplyText="$parent.getTooltip('gtex_geneassociations')"
-                            :is-hover="true"
-                            :no-icon="false"
-                            :content-map="$store.state.bioPortal.documentations"
-                        >
-                        </tooltip-documentation>
-                    </h4>
+                    </h4><!-- 
                     <span>
                         <documentation
                             name="gene.level.association.subheader"
@@ -262,7 +254,8 @@
                             :content-map="$store.state.bioPortal.documentations"
                         >
                         </documentation>
-                    </span>
+                    </span> -->
+                    <p v-html="$parent.getTooltip('gtex_geneassociations')"></p>
                     <criterion-function-group
                         @update:filter-list="
                             (newFilters) => $parent.filterPhenotype(newFilters)
