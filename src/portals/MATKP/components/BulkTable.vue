@@ -267,7 +267,6 @@ export default Vue.component("bulk-table", {
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(item) {
-            console.log(JSON.stringify(item));
             if (this.isSubtable){
                 return;
             }

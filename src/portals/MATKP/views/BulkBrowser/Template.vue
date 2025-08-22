@@ -187,12 +187,20 @@
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                ENRICHR: Pathways for {{ $parent.upGenes.length }} upregulated
-                                                and {{ $parent.downGenes.length}} downregulated genes.
+                                                ENRICHR: Top pathways for differentially expressed genes
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">
-                                          <div class="tab-section" >
+                                          <div class="tab-section">
+                                            <div class="row">
+                                                <p id="enrichr-explain">The top 10 pathways from the selected gene set library are provided
+                                                for all differentially expressed genes from the above-selected dataset
+                                                and p-value filters (<strong>{{ $parent.upGenes.length }}</strong> upregulated,
+                                                <strong>{{ $parent.downGenes.length}}</strong> downregulated genes).
+                                                If you use data from this tool, please review our <a href="/info.html?page=policies">Citation
+                                                Policies</a> to ensure proper citation of the underlying resource(s)
+                                                used to generate these analyses.</p>
+                                            </div>
                                             <div class="row select-library">
                                                 <div class="col-md-3">
                                                     <div class="label">Select a library type</div>
@@ -466,5 +474,9 @@ button.hide-table {
     padding-right: 5px;
     font-weight: bold;
     font-size: smaller;
+}
+#enrichr-explain {
+    margin-left: 15px;
+    margin-right: 15px;
 }
 </style>
