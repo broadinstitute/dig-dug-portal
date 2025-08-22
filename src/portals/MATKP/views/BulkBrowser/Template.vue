@@ -233,6 +233,7 @@
                                                     :items="$parent.librariesForType"
                                                     :current-page="$parent.libraryPage"
                                                     :per-page="5"
+                                                    :tbody-tr-class="(library) => $parent.getClass(library)"
                                                     >
                                                         <template #head(type)="item">
                                                             Select

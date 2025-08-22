@@ -293,7 +293,7 @@ new Vue({
             this.enrichrDown = await getEnrichr(this.downGenes, libraryToUse, this.truncateEnrichr);
             this.enrichrColorScale = this.createColorScale();
             this.displayLibrary = libraryToUse;
-            this.enrichrLibrary = 'placeholder';
+            /*this.enrichrLibrary = 'placeholder';*/
             this.enrichrReady = true;
         },
         async getBulkMetadata() {
@@ -359,6 +359,10 @@ new Vue({
         },
         hideTable(){
             this.tableHidden = true;
+        },
+        getClass(library){
+            let libraryName = library["Gene-set Library"];
+            return this.enrichrLibrary === libraryName ? "selected-library" : "";
         }
     },
     watch: {

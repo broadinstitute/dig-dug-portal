@@ -273,3 +273,6 @@ tr.downregulated {
     display: inline-block !important;
     margin-bottom: 5px;
 }
+tr.selected-library {
+    background-color: #ffeeba !important;
+}
