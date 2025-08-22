@@ -47,92 +47,138 @@ export default Vue.component("llm-summary", {
                 return cleanedSummary;
             }
         },
-        
+
         jsonToHtml(jsonData) {
-            //console.log("Processing JSON data:", jsonData);
+            console.log("Processing JSON data:", jsonData);
+
+            let jsonKeys = Object.keys(jsonData);
+            let html = '<div class="analysis-summary">';
+
+            jsonKeys.map(key => {
+
+                if(key != this.summaryConfig['data in response']) {
+
+                    let itemType = (typeof jsonData[key] == "object")? (!!Array.isArray(jsonData[key]))? "array" : "object":typeof jsonData[key];
+                    
+                    switch(itemType) {
+                    case "object":
+
+                        let itemKeys = Object.keys(jsonData[key]);
+
+                        itemKeys.map(itemKey => {
+                            if(key == this.summaryConfig['data in response']) {
+                                html += `<div class="${itemKey}"><strong>${itemKey}:</strong> ${this.renderFilteredDatasetTable(jsonData[key][itemKey])}</div>`;
+                            } else {
+                                html += `<div class="${itemKey}"><strong>${itemKey}:</strong> ${jsonData[key][itemKey]}</div>`;
+                            }
+                        })
+
+                        break;
+                    case "array":
+
+                        let rowType = (typeof jsonData[key][0] == "object")? (!!Array.isArray(jsonData[key][0]))? "array" : "object":typeof jsonData[key][0];
+
+                        if(rowType == "object") {
+
+                            let itemKeys = Object.keys(jsonData[key][0]);
+
+                            jsonData[key].map(item => {
+                                itemKeys.map(itemKey => {
+                                    if(itemKey == this.summaryConfig['data in response']) {
+                                        html += `<div class="${itemKey}"><strong>${itemKey}:</strong> ${this.renderFilteredDatasetTable(item[itemKey])}</div>`;
+                                    } else {
+                                        html += `<div class="${itemKey}"><strong>${itemKey}:</strong> ${item[itemKey]}</div>`;
+                                    }
+                                })
+                            })
+
+                        } else if(rowType == "array") {
+                            let hIndex = 1;
+                            jsonData[key].map(item => {
+                                html += `<div class="${key}"><strong>${key + " " + hIndex}:</strong> ${item}</div>`;
+                            })
+                        } else {
+                            html += `<div class="${key}"><strong>${key}:</strong> ${item.toString()}</div>`;
+                        }
+
+                        break;
+                    default:
+                        html += `<div class="${key}"><strong>${key}:</strong> ${jsonData[key]}</div>`;
+                        break;
+                    }
+                    
+                } else {
+                    html += `<div class="${key}"><strong>${key}:</strong> ${this.renderFilteredDatasetTable(jsonData[key])}</div>`;
+                }
+                
+            });
+
+            html += '</div>';
+            return html;
+        },
+        
+        jsonToHtml2(jsonData) {
+            console.log("Processing JSON data:", jsonData);
             let html = '<div class="analysis-summary">';
             
-            // Handle the main structure
-            if (jsonData.analysisTitle) {
-                html += `<h2 class="analysis-title">${jsonData.analysisTitle}</h2>`;
+            // Handle the main structure - updated to match new JSON structure
+            if (jsonData['Analysis title']) {
+                html += `<h2 class="analysis-title">${jsonData['Analysis title']}</h2>`;
             }
             
-            // Handle introduction
-            if (jsonData.introduction) {
+            // Handle introduction - updated to match new JSON structure
+            if (jsonData['Introduction']) {
                 html += '<div class="introduction-section">';
-                if (jsonData.introduction.title) {
-                    html += `<h3>${jsonData.introduction.title}</h3>`;
+                if (jsonData['Introduction']['Title']) {
+                    html += `<h3>${jsonData['Introduction']['Title']}</h3>`;
                 }
-                if (jsonData.introduction.summary) {
-                    html += `<p class="introduction-summary">${jsonData.introduction.summary}</p>`;
+                if (jsonData['Introduction']['Summary']) {
+                    html += `<p class="introduction-summary">${jsonData['Introduction']['Summary']}</p>`;
                 }
                 html += '</div>';
             }
             
-            // Handle mechanistic themes
-            if (jsonData.mechanisticThemes && Array.isArray(jsonData.mechanisticThemes)) {
-                //console.log("Found mechanistic themes:", jsonData.mechanisticThemes);
+            // Handle themes - updated to match new JSON structure
+            if (jsonData['Themes'] && Array.isArray(jsonData['Themes'])) {
+                console.log("Found themes:", jsonData['Themes']);
                 html += '<div class="themes-section">';
-                jsonData.mechanisticThemes.forEach((theme, index) => {
-                    //console.log(`Processing theme ${index}:`, theme);
+                jsonData['Themes'].forEach((theme, index) => {
+                    console.log(`Processing theme ${index}:`, theme);
                     html += '<div class="theme-item">';
-                    html += `<h4 class="theme-title">${theme.title || `Theme ${index + 1}`}</h4>`;
+                    html += `<h4 class="theme-title">${theme['Title'] || `Theme ${index + 1}`}</h4>`;
                     
-                    if (theme.analysis) {
-                        html += '<div class="theme-analysis">';
-                        if (theme.analysis.relevance) {
-                            html += `<div class="analysis-item"><strong>Relevance:</strong> <span>${theme.analysis.relevance}</span></div>`;
-                        }
-                        if (theme.analysis.novelty) {
-                            html += `<div class="analysis-item"><strong>Novelty:</strong> <span>${theme.analysis.novelty}</span></div>`;
-                        }
-                        if (theme.analysis.impact) {
-                            html += `<div class="analysis-item"><strong>Impact:</strong> <span>${theme.analysis.impact}</span></div>`;
-                        }
-                        
-                        // Add supporting evidence under analysis
-                        //console.log(`Theme ${index} analysis.supportingEvidence:`, theme.analysis.supportingEvidence);
-                        if (theme.analysis.supportingEvidence && Array.isArray(theme.analysis.supportingEvidence)) {
-                            html += '<div class="supporting-evidence">';
-                            html += '<h5>Supporting Evidence:</h5>';
-                            theme.analysis.supportingEvidence.forEach((evidence, evIndex) => {
-                                html += '<div class="evidence-item">';
-                                if (evidence.topic) {
-                                    html += `<strong>${evidence.topic}:</strong> `;
-                                }
-                                if (evidence.details) {
-                                    html += `<span>${evidence.details}</span></div>`;
-                                }
-                                html += '</div>';
-                            });
-                            html += '</div>';
-                        }
-                        
+                    // Handle theme analysis - updated to match new structure
+                    html += '<div class="theme-analysis">';
+                    if (theme['Relevance']) {
+                        html += `<div class="analysis-item"><strong>Relevance:</strong> <span>${theme['Relevance']}</span></div>`;
+                    }
+                    if (theme['Novelty']) {
+                        html += `<div class="analysis-item"><strong>Novelty:</strong> <span>${theme['Novelty']}</span></div>`;
+                    }
+                    if (theme['Impact']) {
+                        html += `<div class="analysis-item"><strong>Impact:</strong> <span>${theme['Impact']}</span></div>`;
+                    }
+                    html += '</div>';
+                    
+                    // Add impact score - updated to match new structure
+                    if (theme['Impact score'] !== undefined) {
+                        html += '<div class="impact-score">';
+                        html += `<strong>Impact Score:</strong> <span class="score-value">${theme['Impact score']}</span>`;
                         html += '</div>';
                     }
                     
-                    // Add novelty score
-                    //console.log(`Theme ${index} noveltyScore:`, theme.noveltyScore);
-                    if (theme.noveltyScore !== undefined) {
+                    // Add novelty score - updated to match new structure
+                    if (theme['Novelty score'] !== undefined) {
                         html += '<div class="novelty-score">';
-                        html += `<strong>Novelty Score:</strong> <span class="score-value">${theme.noveltyScore}</span>`;
+                        html += `<strong>Novelty Score:</strong> <span class="score-value">${theme['Novelty score']}</span>`;
                         html += '</div>';
                     }
                     
-                    // Add 5 key items with filtered dataset table
-                    //console.log(`Theme ${index} 5KeyItemsInData:`, theme['5KeyItemsInData']);
-                    if (theme['5KeyItemsInData'] && Array.isArray(theme['5KeyItemsInData'])) {
-                        /*html += '<div class="key-items">';
-                        html += '<h5>5 Key Items in Data:</h5>';
-                        html += '<ul class="key-items-list">';
-                        theme['5KeyItemsInData'].forEach((item, itemIndex) => {
-                            html += `<li class="key-item">${item}</li>`;
-                        });
-                        html += '</ul>';*/
-                        
+                    // Add 5 key items with filtered dataset table - updated to match new structure
+                    console.log(`Theme ${index} 5 key items in data:`, theme['5 key items in data']);
+                    if (theme['5 key items in data'] && Array.isArray(theme['5 key items in data'])) {
                         // Add filtered dataset table
-                        html += this.renderFilteredDatasetTable(theme['5KeyItemsInData']);
-                        html += '</div>';
+                        html += this.renderFilteredDatasetTable(theme['5 key items in data']);
                     }
                     
                     html += '</div>';
@@ -141,7 +187,7 @@ export default Vue.component("llm-summary", {
             }
             
             html += '</div>';
-            //console.log("Generated HTML:", html);
+            console.log("Generated HTML:", html);
             return html;
         },
         
@@ -226,38 +272,13 @@ export default Vue.component("llm-summary", {
                 })
 
                 // 1. Define your JSON object model
-                const jsonModel = {
-                    "analysisTitle": "Title of the Overall Analysis",
-                    "introduction": {
-                        "title": "Title of the Introductory Section",
-                        "summary": "A brief, high-level summary of the emergent themes and overall findings."
-                    },
-                    "mechanisticThemes": [
-                        {
-                            "themeId": 1,
-                            "title": "Title of the Mechanistic Theme",
-                            "analysis": {
-                                "relevance": "Explain why this theme is relevant to the core subject. What fundamental process or system does it relate to?",
-                                "novelty": "Describe what is new, surprising, or unexpected about this finding. What does it add to the conventional understanding?",
-                                "impact": "Analyze the consequences, implications, or significance of this finding. What are the potential downstream effects on health, disease, or future research?"
-                            },
-                            "supportingEvidence": [
-                                {
-                                    "topic": "Key Data Point or Example 1",
-                                    "details": "Specific details, measurements, or observations that support the analysis."
-                                }
-                            ],
-                            "noveltyScore": 0.5,
-                            "5KeyItemsInData": ["Key item 1"]
-                        }
-                    ]
-                };
+                const jsonModel =  this.summaryConfig['response json']
 
                 // 2. Convert the object to a formatted string (with 2-space indentation)
                 const modelString = JSON.stringify(jsonModel, null, 2);
 
                 let prompt = this.summaryConfig['prompt']+'\n';
-                prompt += `Task: analyze the following data and provide a summary in relevance / novelty / impact. Be thorough in your analysis. Sort the themes by novelty. Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Add 5 most important items in the data to "5KeyItemsInData" field. Use this exact JSON structure:  ${modelString}\n\n`;
+                prompt += `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
 
                 prompt += "Data to analyze: "+dataCollected;
                 prompt += "Focus: "+(!!this.utils.keyParams['focus'])?this.utils.keyParams['focus']:"";
@@ -421,6 +442,14 @@ $(function () { });
 .evidence-item {
     margin: 8px 0;
     padding: 5px 0;
+}
+
+.impact-score {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #fdf2e8;
+    border-radius: 6px;
+    border-left: 4px solid #e67e22;
 }
 
 .novelty-score {
