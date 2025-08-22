@@ -69,9 +69,7 @@ new Vue({
             enrichrUp: [],
             enrichrDown: [],
             enrichrLibraries: [],
-            enrichrDefaultLibrary: "KEGG_2015",
-            enrichrLibrary: "placeholder",
-            displayLibrary: "KEGG_2015",
+            enrichrLibrary: "KEGG_2015", //hardcoding default
             libraryPage: 1,
             selectedLibraryType: "",
             endpoint: "single-cell-bulk-z-norm",
@@ -271,6 +269,8 @@ new Vue({
             }
             this.getParams();
             this.enrichrLibraries = await getTextContent(this.enrichrByor);
+            this.selectedLibraryType = this.enrichrLibraries.find(
+                l => l["Gene-set Library"] === this.enrichrLibrary)["Type"];
             await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
@@ -284,16 +284,11 @@ new Vue({
         },
         async populateEnrichr(){
             this.enrichrReady = false;
-            let libraryToUse = this.enrichrLibrary === 'placeholder' 
-                ? this.enrichrDefaultLibrary 
-                : this.enrichrLibrary;
             this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.upGenes, libraryToUse, this.truncateEnrichr);
-            this.enrichrDown = await getEnrichr(this.downGenes, libraryToUse, this.truncateEnrichr);
+            this.enrichrUp = await getEnrichr(this.upGenes, this.enrichrLibrary, this.truncateEnrichr);
+            this.enrichrDown = await getEnrichr(this.downGenes, this.enrichrLibrary, this.truncateEnrichr);
             this.enrichrColorScale = this.createColorScale();
-            this.displayLibrary = libraryToUse;
-            /*this.enrichrLibrary = 'placeholder';*/
             this.enrichrReady = true;
         },
         async getBulkMetadata() {

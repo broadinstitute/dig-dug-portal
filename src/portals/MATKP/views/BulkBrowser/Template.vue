@@ -259,7 +259,7 @@
                                                 </div>
                                             </div>
                                           </div>
-                                        <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
+                                        <h4 id="enrichrResults">Results for gene set library {{ $parent.enrichrLibrary }}</h4>
                                         </div>
                                     </div>
                                 </div>
