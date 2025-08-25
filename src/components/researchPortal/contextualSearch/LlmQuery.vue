@@ -1,6 +1,11 @@
 <template>
   <div>
-    <div @click="queryLLM()" class="btn btn-primary">Generate summary</div>
+    <div v-if="this.summaryConfig['search focus']">
+        <div class="search-focus-wrapper">
+            <input type="text" v-if="this.summaryConfig['search focus'].type == 'input'" v-model="searchFocus" placeholder="Search focus"/>
+        </div>
+    </div>
+    <div @click="queryLLM()" class="btn btn-primary">{{ (!!this.summaryConfig['button label'])?this.summaryConfig['button label']:"Generate summary" }}</div>
     <research-loading-spinner :isLoading="loading" colorStyle="color"></research-loading-spinner>
     <div v-html="processSummary(summary)"></div>
   </div>
@@ -17,6 +22,7 @@ export default Vue.component("llm-summary", {
         return {
             summary: null,
             loading: false,
+            searchFocus: ""
         }
     },
     created() {},
@@ -117,80 +123,6 @@ export default Vue.component("llm-summary", {
             return html;
         },
         
-        jsonToHtml2(jsonData) {
-            console.log("Processing JSON data:", jsonData);
-            let html = '<div class="analysis-summary">';
-            
-            // Handle the main structure - updated to match new JSON structure
-            if (jsonData['Analysis title']) {
-                html += `<h2 class="analysis-title">${jsonData['Analysis title']}</h2>`;
-            }
-            
-            // Handle introduction - updated to match new JSON structure
-            if (jsonData['Introduction']) {
-                html += '<div class="introduction-section">';
-                if (jsonData['Introduction']['Title']) {
-                    html += `<h3>${jsonData['Introduction']['Title']}</h3>`;
-                }
-                if (jsonData['Introduction']['Summary']) {
-                    html += `<p class="introduction-summary">${jsonData['Introduction']['Summary']}</p>`;
-                }
-                html += '</div>';
-            }
-            
-            // Handle themes - updated to match new JSON structure
-            if (jsonData['Themes'] && Array.isArray(jsonData['Themes'])) {
-                console.log("Found themes:", jsonData['Themes']);
-                html += '<div class="themes-section">';
-                jsonData['Themes'].forEach((theme, index) => {
-                    console.log(`Processing theme ${index}:`, theme);
-                    html += '<div class="theme-item">';
-                    html += `<h4 class="theme-title">${theme['Title'] || `Theme ${index + 1}`}</h4>`;
-                    
-                    // Handle theme analysis - updated to match new structure
-                    html += '<div class="theme-analysis">';
-                    if (theme['Relevance']) {
-                        html += `<div class="analysis-item"><strong>Relevance:</strong> <span>${theme['Relevance']}</span></div>`;
-                    }
-                    if (theme['Novelty']) {
-                        html += `<div class="analysis-item"><strong>Novelty:</strong> <span>${theme['Novelty']}</span></div>`;
-                    }
-                    if (theme['Impact']) {
-                        html += `<div class="analysis-item"><strong>Impact:</strong> <span>${theme['Impact']}</span></div>`;
-                    }
-                    html += '</div>';
-                    
-                    // Add impact score - updated to match new structure
-                    if (theme['Impact score'] !== undefined) {
-                        html += '<div class="impact-score">';
-                        html += `<strong>Impact Score:</strong> <span class="score-value">${theme['Impact score']}</span>`;
-                        html += '</div>';
-                    }
-                    
-                    // Add novelty score - updated to match new structure
-                    if (theme['Novelty score'] !== undefined) {
-                        html += '<div class="novelty-score">';
-                        html += `<strong>Novelty Score:</strong> <span class="score-value">${theme['Novelty score']}</span>`;
-                        html += '</div>';
-                    }
-                    
-                    // Add 5 key items with filtered dataset table - updated to match new structure
-                    console.log(`Theme ${index} 5 key items in data:`, theme['5 key items in data']);
-                    if (theme['5 key items in data'] && Array.isArray(theme['5 key items in data'])) {
-                        // Add filtered dataset table
-                        html += this.renderFilteredDatasetTable(theme['5 key items in data']);
-                    }
-                    
-                    html += '</div>';
-                });
-                html += '</div>';
-            }
-            
-            html += '</div>';
-            console.log("Generated HTML:", html);
-            return html;
-        },
-        
         renderFilteredDatasetTable(keyItems) {
             if (!this.dataset || !Array.isArray(this.dataset) || this.dataset.length === 0) {
                 return '<p class="no-data">No dataset available for filtering.</p>';
@@ -255,6 +187,7 @@ export default Vue.component("llm-summary", {
             
             return tableHtml;
         },
+
         async queryLLM() {
             this.summary = "Call made to LLM.";
             this.loading = true;
@@ -281,7 +214,8 @@ export default Vue.component("llm-summary", {
                 prompt += `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
 
                 prompt += "Data to analyze: "+dataCollected;
-                prompt += "Focus: "+(!!this.utils.keyParams['focus'])?this.utils.keyParams['focus']:"";
+                prompt += "Focus: " + this.searchFocus;
+                //prompt += "Focus: "+(!!this.utils.keyParams['focus'])?this.utils.keyParams['focus']:"";
 
                 // Remember to replace "YOUR_API_KEY" with your actual Google AI API key.
                 const API_KEY = this.summaryConfig['api key'];
@@ -334,12 +268,12 @@ export default Vue.component("llm-summary", {
                             return "The model responded but didn't generate any content. This might be due to content filtering.";
                         } else {
                             console.error("Unexpected API response structure:", data);
-                            return "Error: Unexpected response structure from Gemini API";
+                            return "Error: Unexpected response structure from LLM";
                         }
 
                     } catch (error) {
-                        console.error("Error calling Gemini API:", error);
-                        return "Error: Failed to get response from Gemini API";
+                        console.error("Error calling LLM:", error);
+                        return "Error: Failed to get response from LLM";
                     }
                 }
 

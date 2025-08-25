@@ -14,6 +14,7 @@
                         :id="'search_param_context'"
                         autoComplete="off" />
                 </div>
+                <!--
                 <div class="input focus-search">
                     <label for="search_param_context">Build summary focus</label>
                     <input
@@ -23,6 +24,7 @@
                         :id="'search_param_context'"
                         autoComplete="off" />
                 </div>
+                -->
             </div>
         </div>
         <div class="search-parameters-and-options" v-if="!assistMe">
@@ -70,6 +72,7 @@
                     </div>
                 </template>
             </div>
+            <!--
             <div class="data-focus-options" v-if="filterOptions.length > 0">
                 <div>Data summary focus</div>
                 <div class="parameter-options">
@@ -84,6 +87,7 @@
                     </div>
                 </div>
             </div>
+            -->
         </div>
         <div v-if="searchParamValues.length > 0" class="search-plan-wrapper">
             <h4>Search plan:</h4>
@@ -100,7 +104,7 @@
                 -->
             </div>
         </div>
-        <div class="search-buttons-wrapper" v-if="searchParamValues.length > 0" >
+        <div class="search-buttons-wrapper">
             <span class="btn btn-primary" @click="callSearch()" :disabled="isLoading">
                 <research-loading-spinner :isLoading="isLoading" colorStyle="color"></research-loading-spinner>
                 {{ isLoading ? 'Searching...' : 'Search' }}
@@ -148,7 +152,7 @@ export default Vue.component("research-pigean-search", {
             searchOptions: {kpGenes:[],kpPhenotypes:[],otherOptions:{}},
             filterOptions: [],
             searchParamValues: [],
-            focusValues: [],
+            //focusValues: [],
             isLoading: false
         };
     },
@@ -333,15 +337,15 @@ export default Vue.component("research-pigean-search", {
                 this.searchParamValues[0].parameter, 
                 this.paramIndex, true)
 
-            this.parent.setListValue(
+            /*this.parent.setListValue(
                 this.userInputFocus, 
                 'focus', 
-                this.paramIndex + 1, true)
+                this.paramIndex + 1, true)*/
 
             this.userInputParameter = "";
-            this.userInputFocus = "";
+            //this.userInputFocus = "";
             this.searchParamValues = [];
-            this.focusValues = [];
+            //this.focusValues = [];
             
             // Reset loading state after a short delay to allow parent to process
             setTimeout(() => {
@@ -350,9 +354,9 @@ export default Vue.component("research-pigean-search", {
         },
         resetSearch() {
             this.userInputParameter = "";
-            this.userInputFocus = "";
+            //this.userInputFocus = "";
             this.searchParamValues = [];
-            this.focusValues = [];
+            //this.focusValues = [];
             this.parent.resetSearch();
         },
         async getGenes(SEARCH) {
@@ -397,6 +401,7 @@ export default Vue.component("research-pigean-search", {
                 this.searchParamValues.push(SEARCH)
             }
         },
+        /*
         buildFocus(FOCUS) {
             this.focusValues.push(FOCUS);
 
@@ -405,7 +410,7 @@ export default Vue.component("research-pigean-search", {
                 this.userInputFocus += f.label + ", ";
             })
             this.userInputFocus = this.userInputFocus.slice(0, -2);
-        }
+        }*/
     }
 })
 </script>
