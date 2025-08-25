@@ -1,30 +1,35 @@
 <template>
     <div>
         <div class="multi-options-search-ui col-md-12">
-            <div class="assist-me">
-                <input type="checkbox" id="assist_me" name="assistMe" value="assistMe" v-model="assistMe" style="vertical-align: -10px;"> <label for="assistMe">Assist me!</label>
+            <div class="assist-me" v-if="!!assistMeConfig">
+                <input type="checkbox" id="assist_me" name="assistMe" value="assistMe" v-model="assistMe" style="vertical-align: -10px;"> <label for="assistMe" class="assist-me-label">Assist me!</label>
             </div>
-            <div class="search-ui-wrapper">
+            <div class="search-ui-wrapper" v-if="!assistMe">
                 <div class="input parameter-search">
-                    <label for="search_param_context">Select parameter</label>
                     <input
                         class="form-control multi-options-search-input" 
                         name="multi-options-search-input"
                         v-model="userInputParameter"
                         :id="'search_param_context'"
-                        autoComplete="off" />
+                        autoComplete="off"
+                        style="display: inline-block; height: 36px; margin-right: 15px; vertical-align: middle;" />
+                        <span class="btn btn-primary" @click="callSearch()" :disabled="isLoading" style="margin-right: 8px;">
+                        Search</span>
+                        <span class="btn btn-warning" @click="resetSearch()" style="display: inline-block; height: 34px;">Reset search</span>
                 </div>
-                <!--
-                <div class="input focus-search">
-                    <label for="search_param_context">Build summary focus</label>
+            </div>
+            <div class="search-ui-wrapper" v-else>
+                <div class="input parameter-search">
                     <input
                         class="form-control multi-options-search-input" 
                         name="multi-options-search-input"
-                        v-model="userInputFocus"
+                        v-model="userInputParameter"
                         :id="'search_param_context'"
-                        autoComplete="off" />
+                        autoComplete="off"
+                        style="display: inline-block; height: 36px; margin-right: 15px; vertical-align: middle;" />
+                        <span class="btn btn-primary" @click="buildSearch()" :disabled="isLoading" style="margin-right: 8px;">
+                        Build search</span>
                 </div>
-                -->
             </div>
         </div>
         <div class="search-parameters-and-options" v-if="!assistMe">
@@ -72,22 +77,6 @@
                     </div>
                 </template>
             </div>
-            <!--
-            <div class="data-focus-options" v-if="filterOptions.length > 0">
-                <div>Data summary focus</div>
-                <div class="parameter-options">
-                    <div class="first-option option" @click="buildFocus(filterOptions[0])" >
-                        {{ filterOptions[0].label }}
-                    </div>
-                    <div class="more-options" v-if="filterOptions.length > 1">
-                        <div class="option" v-for="(focus,fIndex) in filterOptions"
-                            v-if="fIndex > 0" @click="buildFocus(focus)" >
-                            {{ focus.label }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            -->
         </div>
         <div v-if="searchParamValues.length > 0" class="search-plan-wrapper">
             <h4>Search plan:</h4>
@@ -96,20 +85,15 @@
                     {{ sIndex + 1 +'. ' }}Search will query data for [ <span class="search-key">{{ section.header }}</span> ] section with [ <span class="search-key">{{ searchParamValues[0].label }}</span> ].
                 </div>
             </div>
-            <h4>Data summary</h4>
-            <div>
+           <!-- <div>
                 Loaded data will be summarized with focuses in: {{ userInputFocus }}
-                <!--
+                
                 <span v-for="(focus, fIndex) in focusValues" v-html="(fIndex < focusValues.length -1)? focus.label + ', ':focus.label" class="search-key"></span>
-                -->
-            </div>
+               
+            </div> -->
         </div>
         <div class="search-buttons-wrapper">
-            <span class="btn btn-primary" @click="callSearch()" :disabled="isLoading">
-                <research-loading-spinner :isLoading="isLoading" colorStyle="color"></research-loading-spinner>
-                {{ isLoading ? 'Searching...' : 'Search' }}
-            </span>
-            <span class="btn btn-sm btn-success context-search-btn" @click="resetSearch()">Reset search</span>
+            
         </div>
     </div>
 </template>
@@ -117,24 +101,6 @@
 <script>
 
 import Vue from "vue";
-/*
-{{ parent.paramSearch[paramIndex] }}
- {{ sectionsConfig['search parameters'].parameters }}
-Development note:
-1. Search options get processed at once so any options in any search categories appear at once like Single Search.
-2. Find best matching options and display default workflow options
-3. Workflow option requirements:
-    a. Rawdata load
-    b. Filter suggestions for the loaded data
-    c. additional information from LLM
-        i. prompt
-        ii. LLM query
-        iii. LLM response formatter
-    d. following step options
-
-* parent.paramSearch[paramIndex] is to save initial user search input to page level. 
-* sectionsConfig contains: 'search parameters', 'sections', 'phenotypes.' Phenotypes is the kp phenotypes.
-*/
 
 export default Vue.component("research-pigean-search", {
     props: ["sectionsConfig", "paramIndex", "parent", "utils"],
@@ -146,6 +112,7 @@ export default Vue.component("research-pigean-search", {
             userInputParameter: "",
             userInputFocus: "",
             assistMe: false,
+            assistMeContents: null,
             workflowInputs: [
             ],
             searchCategories: [],
@@ -157,9 +124,17 @@ export default Vue.component("research-pigean-search", {
         };
     },
     mounted() {
-        console.log("sectionsConfig",this.sectionsConfig);
+        console.log("sectionsConfig",this.sectionsConfig['search parameters']);
     },
     computed: {
+        assistMeConfig() {
+            let pigeanSearchConfig = this.sectionsConfig['search parameters']
+            if(!!pigeanSearchConfig['assist me']) {
+                return pigeanSearchConfig['assist me'];
+            } else {
+                return null;
+            }
+        }
     },
     watch: {
         userInputParameter (INPUT) {
@@ -291,42 +266,9 @@ export default Vue.component("research-pigean-search", {
             }
             
         },
-        userInputFocus (INPUT) {
-            if(!this.assistMe) {
-
-                /*build filters */
-                if (INPUT.length > 2 && !!this.sectionsConfig['search parameters']['data filters']) {
-
-                    this.filterOptions = [];
-
-                    let filters = this.sectionsConfig['search parameters']['data filters'];
-
-                    let filterInput = INPUT.split(",");
-
-                     if(filterInput[filterInput.length-1].trim().length > 2) {
-                        
-                        filters.map(filter => {
-
-                            switch (filter.type) {
-                                case 'keywords':
-
-                                    filter.keywords.map(K => {
-                                       K.keywords.map(kWord => {
-                                        if(kWord.includes(filterInput[filterInput.length-1].trim())) {
-                                            this.filterOptions.push({category: filter.label, field: filter.field, filter: filter.filter, label: kWord + ": " + K.label, value: kWord + ": " + K.value })
-                                        }
-                                       })
-                                    })
-                                    break;
-                            }
-                        })
-                    }
-                } else {
-                    this.filterOptions = [];
-                }
-            }
-            
-        },
+        assistMeContents(CONTENTS) {
+            console.log("assistMeContents", CONTENTS);
+        }
 	},
     methods: {
         callSearch() {
@@ -336,11 +278,6 @@ export default Vue.component("research-pigean-search", {
                 this.searchParamValues[0].value, 
                 this.searchParamValues[0].parameter, 
                 this.paramIndex, true)
-
-            /*this.parent.setListValue(
-                this.userInputFocus, 
-                'focus', 
-                this.paramIndex + 1, true)*/
 
             this.userInputParameter = "";
             //this.userInputFocus = "";
@@ -396,21 +333,98 @@ export default Vue.component("research-pigean-search", {
         buildSearch(SEARCH) {
             if(!this.assistMe) {
                 this.searchParamValues = [SEARCH];
-                this.userInputParameter = SEARCH.label;
+                this.userInputParameter = "";//SEARCH.label;
             } else {
-                this.searchParamValues.push(SEARCH)
+                console.log("buildSearch", this.userInputParameter);
+                this.buildSearchLLM();
             }
         },
-        /*
-        buildFocus(FOCUS) {
-            this.focusValues.push(FOCUS);
+        async buildSearchLLM() {
+            this.assistMeContents = "Call made to LLM.";
+            this.loading = true;
 
-            this.userInputFocus = "";
-            this.focusValues.map(f => {
-                this.userInputFocus += f.label + ", ";
-            })
-            this.userInputFocus = this.userInputFocus.slice(0, -2);
-        }*/
+            try {
+
+                // 1. Define your JSON object model
+                const jsonModel =  this.assistMeConfig['response json']
+
+                // 2. Convert the object to a formatted string (with 2-space indentation)
+                const modelString = JSON.stringify(jsonModel, null, 2);
+
+                let prompt = this.assistMeConfig['prompt']+'\n';
+                prompt += `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
+
+                // Remember to replace "YOUR_API_KEY" with your actual Google AI API key.
+                const API_KEY = this.assistMeConfig['api key'];
+                const MODEL_NAME = this.assistMeConfig['model'];
+
+                async function callGeminiAPI(promptText,CONFIG) {
+                    let url = CONFIG['url'];
+                    url = url.replace('$api_key', API_KEY);
+                    url = url.replace('$model', MODEL_NAME);
+
+                    const requestBody = {
+                        contents: [{
+                            parts: [{
+                                text: promptText
+                            }]
+                        }],
+                    };
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(requestBody),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        
+                        // Check if we have a valid response with candidates
+                        if (data.candidates && 
+                            data.candidates.length > 0 && 
+                            data.candidates[0].content && 
+                            data.candidates[0].content.parts && 
+                            data.candidates[0].content.parts.length > 0) {
+                            
+                            const generatedText = data.candidates[0].content.parts[0].text;
+                            return generatedText;
+                        } else if (data.candidates && 
+                                   data.candidates.length > 0 && 
+                                   data.candidates[0].content && 
+                                   data.candidates[0].content.role === "model") {
+                            
+                            // The model responded but didn't generate content (possibly filtered)
+                            console.warn("Model responded but no content generated. Response:", data);
+                            return "The model responded but didn't generate any content. This might be due to content filtering.";
+                        } else {
+                            console.error("Unexpected API response structure:", data);
+                            return "Error: Unexpected response structure from LLM";
+                        }
+
+                    } catch (error) {
+                        console.error("Error calling LLM:", error);
+                        return "Error: Failed to get response from LLM";
+                    }
+                }
+
+                // Call the API and wait for the response
+                this.assistMeContents = await callGeminiAPI(prompt, this.assistMeConfig);
+                
+            } catch (error) {
+                console.error("Error in queryLLM:", error);
+                this.assistMeContents = "Error: Failed to process LLM request";
+            } finally {
+                // Always ensure loading is set to false, even if there's an error
+                this.loading = false;
+            }
+        }
     }
 })
 </script>

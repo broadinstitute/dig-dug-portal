@@ -1,13 +1,19 @@
 <template>
-  <div>
-    <div v-if="this.summaryConfig['search focus']">
-        <div class="search-focus-wrapper">
-            <input type="text" v-if="this.summaryConfig['search focus'].type == 'input'" v-model="searchFocus" placeholder="Search focus"/>
+  <div class="llm-query-container">
+    <div class="row">   
+        <div v-if="this.summaryConfig['search focus']" class="llm-query-ui-container col-md-12">
+            <label for="searchFocus">{{ this.summaryConfig['search focus'].label }}</label>
+            <input type="text" v-if="this.summaryConfig['search focus'].type == 'input'" class="form-control search-focus-input" v-model="searchFocus" />
+
+        <button @click="queryLLM()" class="btn btn-sm btn-primary">{{ (!!this.summaryConfig['button label'])?this.summaryConfig['button label']:"Generate summary" }}</button>
+        <research-loading-spinner :isLoading="loading" colorStyle="color"></research-loading-spinner>
+    </div>
+    </div>
+    <div class="row" v-if="summary">
+        <div class="llm-query-contents-container col-md-12">
+            <div v-html="processSummary(summary)"></div>
         </div>
     </div>
-    <div @click="queryLLM()" class="btn btn-primary">{{ (!!this.summaryConfig['button label'])?this.summaryConfig['button label']:"Generate summary" }}</div>
-    <research-loading-spinner :isLoading="loading" colorStyle="color"></research-loading-spinner>
-    <div v-html="processSummary(summary)"></div>
   </div>
 </template>
 
@@ -15,9 +21,14 @@
 import Vue from "vue";
 import $ from "jquery";
 import ResearchLoadingSpinner from "../ResearchLoadingSpinner.vue";
+import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 export default Vue.component("llm-summary", {
-    props: ["dataset","summaryConfig","utils"],
+    props: ["dataset","summaryConfig","utils","sectionID","sectionConfig"],
+    components: {
+        ResearchLoadingSpinner,
+        ResearchDataTable
+    },
     data() {
         return {
             summary: null,
@@ -27,7 +38,7 @@ export default Vue.component("llm-summary", {
     },
     created() {},
     mounted() {
-        
+        //revealing the most fundamentally new mechanistic insights
         
         
     },
@@ -41,7 +52,7 @@ export default Vue.component("llm-summary", {
             }
             
             // 1. Remove markdown code blocks (```json and ```)
-            let cleanedSummary = summary.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+            let cleanedSummary = this.extractJson(summary)
             
             try {
                 // 2. Parse the JSON and convert to readable HTML
@@ -52,6 +63,28 @@ export default Vue.component("llm-summary", {
                 // If JSON parsing fails, return the cleaned text as is
                 return cleanedSummary;
             }
+        },
+        extractJson(str) {
+            // Ensure the input is a string, otherwise return null.
+            if (typeof str !== 'string') {
+                return null;
+            }
+
+            // Find the index of the first opening curly brace.
+            const firstBraceIndex = str.indexOf('{');
+
+            // Find the index of the last closing curly brace.
+            const lastBraceIndex = str.lastIndexOf('}');
+
+            // Check if both braces were found and if the closing brace comes after the opening one.
+            // If not, a valid object structure isn't present.
+            if (firstBraceIndex === -1 || lastBraceIndex === -1 || lastBraceIndex < firstBraceIndex) {
+                return null; // Return null to indicate no valid object was found.
+            }
+
+            // Extract the substring from the first brace to the last brace (inclusive).
+            // This correctly handles nested objects by grabbing the entire outer structure.
+            return str.substring(firstBraceIndex, lastBraceIndex + 1);
         },
 
         jsonToHtml(jsonData) {
@@ -73,9 +106,9 @@ export default Vue.component("llm-summary", {
 
                         itemKeys.map(itemKey => {
                             if(key == this.summaryConfig['data in response']) {
-                                html += `<div class="${itemKey}"><strong>${itemKey}:</strong> ${this.renderFilteredDatasetTable(jsonData[key][itemKey])}</div>`;
+                                html += `<div class="${itemKey.toLowerCase()}"><strong>${itemKey}:</strong> ${this.renderFilteredDatasetTable(jsonData[key][itemKey])}</div>`;
                             } else {
-                                html += `<div class="${itemKey}"><strong>${itemKey}:</strong> ${jsonData[key][itemKey]}</div>`;
+                                html += `<div class="${itemKey.toLowerCase()}"><strong>${itemKey}:</strong> ${jsonData[key][itemKey]}</div>`;
                             }
                         })
 
@@ -91,9 +124,9 @@ export default Vue.component("llm-summary", {
                             jsonData[key].map(item => {
                                 itemKeys.map(itemKey => {
                                     if(itemKey == this.summaryConfig['data in response']) {
-                                        html += `<div class="${itemKey}"><strong>${itemKey}:</strong> ${this.renderFilteredDatasetTable(item[itemKey])}</div>`;
+                                        html += `<div class="${itemKey.toLowerCase()}"><strong>${itemKey}:</strong> ${this.renderFilteredDatasetTable(item[itemKey])}</div>`;
                                     } else {
-                                        html += `<div class="${itemKey}"><strong>${itemKey}:</strong> ${item[itemKey]}</div>`;
+                                        html += `<div class="${itemKey.toLowerCase()}"><strong>${itemKey}:</strong> ${item[itemKey]}</div>`;
                                     }
                                 })
                             })
@@ -101,20 +134,20 @@ export default Vue.component("llm-summary", {
                         } else if(rowType == "array") {
                             let hIndex = 1;
                             jsonData[key].map(item => {
-                                html += `<div class="${key}"><strong>${key + " " + hIndex}:</strong> ${item}</div>`;
+                                html += `<div class="${key.toLowerCase()}"><strong>${key + " " + hIndex}:</strong> ${item}</div>`;
                             })
                         } else {
-                            html += `<div class="${key}"><strong>${key}:</strong> ${item.toString()}</div>`;
+                            html += `<div class="${key.toLowerCase()}"><strong>${key}:</strong> ${item.toString()}</div>`;
                         }
 
                         break;
                     default:
-                        html += `<div class="${key}"><strong>${key}:</strong> ${jsonData[key]}</div>`;
+                        html += `<div class="${key.toLowerCase()}"><strong>${key}:</strong> ${jsonData[key]}</div>`;
                         break;
                     }
                     
                 } else {
-                    html += `<div class="${key}"><strong>${key}:</strong> ${this.renderFilteredDatasetTable(jsonData[key])}</div>`;
+                    html += `<div class="${key.toLowerCase()}"><strong>${key}:</strong> ${this.renderFilteredDatasetTable(jsonData[key])}</div>`;
                 }
                 
             });
@@ -169,13 +202,7 @@ export default Vue.component("llm-summary", {
                 tableHtml += '<tr>';
                 columnsToRender.forEach(col => {
                     const cellValue = row[col] || '';
-                    // Highlight cells that contain key items
-                    let highlightedValue = cellValue;
-                    keyItems.forEach(keyItem => {
-                        const regex = new RegExp(`(${keyItem})`, 'gi');
-                        highlightedValue = highlightedValue.replace(regex, '<mark class="highlight">$1</mark>');
-                    });
-                    tableHtml += `<td>${highlightedValue}</td>`;
+                    tableHtml += `<td>${cellValue}</td>`;
                 });
                 tableHtml += '</tr>';
             });
@@ -295,230 +322,26 @@ $(function () { });
 </script>
 
 <style scoped>
-.analysis-summary {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-}
-
-.analysis-title {
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-
-.introduction-section {
-    background-color: #f8f9fa;
+.llm-query-container {
+    margin-top: 20px;
+    background-color: #f5f5f5;
     padding: 15px;
     border-radius: 5px;
-    margin-bottom: 20px;
 }
 
-.introduction-section h3 {
-    color: #34495e;
-    margin-top: 0;
-}
-
-.introduction-summary {
-    font-size: 16px;
-    color: #555;
-}
-
-.themes-section {
-    margin-top: 20px;
-}
-
-.theme-item {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.theme-title {
-    color: #2980b9;
-    margin-top: 0;
-    border-bottom: 1px solid #ecf0f1;
-    padding-bottom: 10px;
-}
-
-.theme-analysis {
-    margin: 15px 0;
-}
-
-.analysis-item {
-    margin: 10px 0;
-    padding: 8px;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-}
-
-.analysis-item strong {
-    color: #2c3e50;
-    display: inline-block;
-    min-width: 80px;
-}
-
-.supporting-evidence {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #ecf0f1;
-}
-
-.supporting-evidence h5 {
-    color: #7f8c8d;
-    margin-bottom: 10px;
-}
-
-.evidence-item {
-    margin: 8px 0;
-    padding: 5px 0;
-}
-
-.impact-score {
-    margin: 15px 0;
-    padding: 10px;
-    background-color: #fdf2e8;
-    border-radius: 6px;
-    border-left: 4px solid #e67e22;
-}
-
-.novelty-score {
-    margin: 15px 0;
-    padding: 10px;
-    background-color: #e8f4fd;
-    border-radius: 6px;
-    border-left: 4px solid #3498db;
-}
-
-.score-value {
-    font-weight: bold;
-    color: #2980b9;
-    font-size: 18px;
-}
-
-.key-items {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #ecf0f1;
-}
-
-.key-items h5 {
-    color: #7f8c8d;
-    margin-bottom: 10px;
-}
-
-.key-items-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.key-item {
-    background-color: #f8f9fa;
-    margin: 5px 0;
-    padding: 8px 12px;
-    border-radius: 4px;
-    border-left: 3px solid #27ae60;
-    position: relative;
-}
-
-.key-item:before {
-    content: "•";
-    color: #27ae60;
-    font-weight: bold;
-    margin-right: 8px;
-}
-
-.filtered-data-table {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #ecf0f1;
-}
-
-.filtered-data-table h6 {
-    color: #7f8c8d;
-    margin-bottom: 15px;
-    font-size: 16px;
-}
-
-.table-container {
-    overflow-x: auto;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    margin-bottom: 10px;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-
-.data-table th {
-    background-color: #f8f9fa;
-    padding: 12px 8px;
-    text-align: left;
-    font-weight: 600;
-    color: #2c3e50;
-    border-bottom: 2px solid #dee2e6;
-    white-space: nowrap;
-}
-
-.data-table td {
-    padding: 8px;
-    border-bottom: 1px solid #dee2e6;
-    vertical-align: top;
-}
-
-.data-table tbody tr:hover {
-    background-color: #f8f9fa;
-}
-
-.highlight {
-    background-color: #fff3cd;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-weight: 600;
-}
-
-.table-info {
-    font-size: 12px;
-    color: #6c757d;
-    font-style: italic;
-    margin: 0;
-}
-
-.no-data {
-    color: #6c757d;
-    font-style: italic;
+.llm-query-ui-container {
     text-align: center;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
 }
 
-.btn {
+.llm-query-contents-container {
+    vertical-align: bottom;
+    padding: 15px;
+    border-top: 1px solid #cccccc;
+}
+
+.search-focus-input {
+    width: 25% !important;
     display: inline-block;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    border: none;
-    font-size: 14px;
-}
-
-.btn:hover {
-    background-color: #0056b3;
-}
-
-.btn-primary {
-    background-color: #007bff;
+    margin: 0 15px 0 7px;
 }
 </style>

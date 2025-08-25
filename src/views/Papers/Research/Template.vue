@@ -637,6 +637,7 @@
 								:utils="$parent.utilsBox"
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
 								:sharedResource = "$parent.sectionConfigs['shared resource']"
+								:label = "!!$parent.sectionConfigs['search wrapper label']? $parent.sectionConfigs['search wrapper label'] : null"
 								>
 							</research-multi-sections-search>
 

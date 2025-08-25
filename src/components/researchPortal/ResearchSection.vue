@@ -295,6 +295,8 @@
 						<llm-summary 
 							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 							:summaryConfig="sectionConfig['ai summary']"
+							:sectionID="sectionID"
+							:sectionConfig="sectionConfig"
 							:utils="utils">
 
 						</llm-summary>

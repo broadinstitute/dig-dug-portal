@@ -2,7 +2,7 @@
 	<div class="multi-page-search-wrapper" :class="searchVisible == false || displyingSearchNum == 0 ? 'hidden-search' : ''">
 		<div class="filtering-ui-wrapper search-criteria multi-page-search" id="searchCriteria"
 			v-if="searchParameters != null">
-			<h4 class="card-title">Build search criteria</h4>
+			<h4 class="card-title">{{ (!!label)? label : 'Build search criteria'}}</h4>
 			<div class="filtering-ui-content row">
 				<div class="col" :class="!!parameter.display && parameter.display == 'false' ? 'hidden-search' : ''"
 					:type="!!parameter['in-section search']? 'in-section search':''"
@@ -162,7 +162,8 @@ export default Vue.component("research-multi-sections-search", {
 		"sections",
 		"utils",
 		"searchVisible",
-		"sharedResource"
+		"sharedResource",
+		"label"
 	],
 	components: {
 		ResearchContextSearch,
