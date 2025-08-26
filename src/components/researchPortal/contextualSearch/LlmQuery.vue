@@ -45,13 +45,12 @@ export default Vue.component("llm-summary", {
     },
     computed: {},
     watch: {
-        'utils.keyParams.focus': {
-            handler(newFocus) {
-                if (newFocus !== undefined) {
-                    this.searchFocus = newFocus;
-                }
-            },
-            immediate: true
+        dataset(to, from) {
+            if(!!this.utils.keyParams['focus']) {
+                this.searchFocus = this.utils.keyParams['focus'];
+            } else {
+                this.searchFocus = "";
+            }
         }
     },
     methods: {
