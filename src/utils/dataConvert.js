@@ -717,11 +717,35 @@ const object2Array = function (DATASET, COMPARECONFIG, KEY) {
     return arrayedObject;
 }
 
+let extractJson = function (str) {
+    // Ensure the input is a string, otherwise return null.
+    if (typeof str !== 'string') {
+        return null;
+    }
+
+    // Find the index of the first opening curly brace.
+    const firstBraceIndex = str.indexOf('{');
+
+    // Find the index of the last closing curly brace.
+    const lastBraceIndex = str.lastIndexOf('}');
+
+    // Check if both braces were found and if the closing brace comes after the opening one.
+    // If not, a valid object structure isn't present.
+    if (firstBraceIndex === -1 || lastBraceIndex === -1 || lastBraceIndex < firstBraceIndex) {
+        return null; // Return null to indicate no valid object was found.
+    }
+
+    // Extract the substring from the first brace to the last brace (inclusive).
+    // This correctly handles nested objects by grabbing the entire outer structure.
+    return str.substring(firstBraceIndex, lastBraceIndex + 1);
+}
+
 
 export default {
     convertData,
     csv2Json,
     tsv2Json,
     object2Array,
-    flatJson
+    flatJson,
+    extractJson
 };

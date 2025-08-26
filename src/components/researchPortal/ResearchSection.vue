@@ -1408,6 +1408,8 @@ export default Vue.component("research-section", {
 									const convertPoint = this.$root.sharedResource[this.dataPoint['parameter convert'][param]['map name']];
 									paramText = convertPoint[QUERY.split(",")[pIndex]];
 
+									paramText = (!!paramText)? paramText : QUERY;
+
 								}
 								
 								dataUrl = dataUrl.replace("$" + param, paramText);

@@ -85,15 +85,11 @@
                     {{ sIndex + 1 +'. ' }}Search will query data for [ <span class="search-key">{{ section.header }}</span> ] section with [ <span class="search-key">{{ searchParamValues[0].label }}</span> ].
                 </div>
             </div>
-           <!-- <div>
-                Loaded data will be summarized with focuses in: {{ userInputFocus }}
-                
-                <span v-for="(focus, fIndex) in focusValues" v-html="(fIndex < focusValues.length -1)? focus.label + ', ':focus.label" class="search-key"></span>
-               
-            </div> -->
-        </div>
-        <div class="search-buttons-wrapper">
-            
+            <div v-if="!!assistMe && searchParamValues.length > 0">
+                <span class="btn btn-primary" @click="callSearch(focusValue)" :disabled="isLoading" style="margin-right: 8px;">
+                        Search</span>
+                <span class="btn btn-warning" @click="resetSearch()" style="display: inline-block; height: 34px;">Reset search</span>
+            </div>
         </div>
     </div>
 </template>
@@ -119,12 +115,12 @@ export default Vue.component("research-pigean-search", {
             searchOptions: {kpGenes:[],kpPhenotypes:[],otherOptions:{}},
             filterOptions: [],
             searchParamValues: [],
-            //focusValues: [],
+            focusValue: null,
             isLoading: false
         };
     },
     mounted() {
-        console.log("sectionsConfig",this.sectionsConfig['search parameters']);
+        //console.log("sectionsConfig",this.sectionsConfig['search parameters']);
     },
     computed: {
         assistMeConfig() {
@@ -267,12 +263,36 @@ export default Vue.component("research-pigean-search", {
             
         },
         assistMeContents(CONTENTS) {
-            console.log("assistMeContents", CONTENTS);
+            //console.log("assistMeContents", CONTENTS);
+            let jsonData = JSON.parse(this.utils.dataConvert.extractJson(CONTENTS));
+            //console.log("jsonData", jsonData);
+            if(!!jsonData) {
+
+                let fieldsToMatch = {
+                    parameter: {name:'cfdePhenotype',field:'search_terms'},
+                    context: {name: 'focus', field: 'context'}
+                }
+
+                let param = {label:jsonData[fieldsToMatch.parameter.field],value:jsonData[fieldsToMatch.parameter.field],parameter:fieldsToMatch.parameter.name}
+                
+                if(!!param.value && typeof param.value == 'object' && Array.isArray(param.value)) {
+                    param.value = param.value.toString();
+                    param.label = param.value;
+                }
+
+                //console.log("param", param);
+
+                this.buildSearch(param)
+
+                this.focusValue = {label:jsonData[fieldsToMatch.context.field],value:jsonData[fieldsToMatch.context.field],parameter:fieldsToMatch.context.name};
+            }
         }
 	},
     methods: {
-        callSearch() {
+        callSearch(withFocus) {
             this.isLoading = true;
+
+            console.log("search called", this.searchParamValues);
             
             this.parent.setListValue(
                 this.searchParamValues[0].value, 
@@ -282,13 +302,20 @@ export default Vue.component("research-pigean-search", {
             this.userInputParameter = "";
             //this.userInputFocus = "";
             this.searchParamValues = [];
-            //this.focusValues = [];
+            
+            if(!!withFocus) {
+                this.parent.setListValue(
+                withFocus.value, 
+                withFocus.parameter, 
+                this.paramIndex+1, true)
+            }
             
             // Reset loading state after a short delay to allow parent to process
             setTimeout(() => {
                 this.isLoading = false;
             }, 1000);
         },
+
         resetSearch() {
             this.userInputParameter = "";
             //this.userInputFocus = "";
@@ -331,11 +358,10 @@ export default Vue.component("research-pigean-search", {
             }
         },
         buildSearch(SEARCH) {
-            if(!this.assistMe) {
+            if(!!SEARCH) {
                 this.searchParamValues = [SEARCH];
                 this.userInputParameter = "";//SEARCH.label;
             } else {
-                console.log("buildSearch", this.userInputParameter);
                 this.buildSearchLLM();
             }
         },
@@ -353,6 +379,7 @@ export default Vue.component("research-pigean-search", {
 
                 let prompt = this.assistMeConfig['prompt']+'\n';
                 prompt += `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
+                prompt += `User input: ${this.userInputParameter}\n\n`;
 
                 // Remember to replace "YOUR_API_KEY" with your actual Google AI API key.
                 const API_KEY = this.assistMeConfig['api key'];
@@ -395,6 +422,7 @@ export default Vue.component("research-pigean-search", {
                             
                             const generatedText = data.candidates[0].content.parts[0].text;
                             return generatedText;
+
                         } else if (data.candidates && 
                                    data.candidates.length > 0 && 
                                    data.candidates[0].content && 
@@ -413,6 +441,8 @@ export default Vue.component("research-pigean-search", {
                         return "Error: Failed to get response from LLM";
                     }
                 }
+
+                console.log("prompt", prompt);
 
                 // Call the API and wait for the response
                 this.assistMeContents = await callGeminiAPI(prompt, this.assistMeConfig);

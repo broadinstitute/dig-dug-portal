@@ -39,10 +39,21 @@ export default Vue.component("llm-summary", {
     created() {},
     mounted() {
         //revealing the most fundamentally new mechanistic insights
-        
-        
+        if(!!this.utils.keyParams['focus']) {
+            this.searchFocus = this.utils.keyParams['focus'];
+        }
     },
     computed: {},
+    watch: {
+        'utils.keyParams.focus': {
+            handler(newFocus) {
+                if (newFocus !== undefined) {
+                    this.searchFocus = newFocus;
+                }
+            },
+            immediate: true
+        }
+    },
     methods: {
         processSummary(summary) {
             //console.log("summary", typeof summary);
@@ -52,7 +63,7 @@ export default Vue.component("llm-summary", {
             }
             
             // 1. Remove markdown code blocks (```json and ```)
-            let cleanedSummary = this.extractJson(summary)
+            let cleanedSummary = this.utils.dataConvert.extractJson(summary);
             
             try {
                 // 2. Parse the JSON and convert to readable HTML
@@ -64,29 +75,6 @@ export default Vue.component("llm-summary", {
                 return cleanedSummary;
             }
         },
-        extractJson(str) {
-            // Ensure the input is a string, otherwise return null.
-            if (typeof str !== 'string') {
-                return null;
-            }
-
-            // Find the index of the first opening curly brace.
-            const firstBraceIndex = str.indexOf('{');
-
-            // Find the index of the last closing curly brace.
-            const lastBraceIndex = str.lastIndexOf('}');
-
-            // Check if both braces were found and if the closing brace comes after the opening one.
-            // If not, a valid object structure isn't present.
-            if (firstBraceIndex === -1 || lastBraceIndex === -1 || lastBraceIndex < firstBraceIndex) {
-                return null; // Return null to indicate no valid object was found.
-            }
-
-            // Extract the substring from the first brace to the last brace (inclusive).
-            // This correctly handles nested objects by grabbing the entire outer structure.
-            return str.substring(firstBraceIndex, lastBraceIndex + 1);
-        },
-
         jsonToHtml(jsonData) {
             console.log("Processing JSON data:", jsonData);
 
