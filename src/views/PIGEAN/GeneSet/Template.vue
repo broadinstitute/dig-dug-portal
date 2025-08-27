@@ -72,11 +72,10 @@
                         Traits in which gene set affects genetic support
                     </h4>
                     <div>
-                        Gene sets affect the log-odds of the probability 
-                        that a gene is involved in a trait. Effect sizes
-                        are calculated for the gene set in isolation 
-                        (marginal) and in a joint model with all 
-                        gene sets together (joint).
+                        Gene sets affect the log-odds of the probability that a
+                        gene is involved in a trait. Effect sizes are calculated
+                        for the gene set in isolation (marginal) and in a joint
+                        model with all gene sets together (joint).
                     </div>
                 </div>
                 <div class="card-body">
@@ -85,16 +84,14 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $parent.phewasAllData.map(
-                                    (d) => d.phenotype
-                                )
+                                $parent.phewasAllData.map((d) => d.phenotype)
                             "
                             :label-formatter="
                                 (phenotype) =>
-                                    $parent.pigeanMap[
-                                            phenotype
-                                        ]?.description
-                                    || phenotype
+                                    ($parent.pigeanMap[phenotype] &&
+                                        $parent.pigeanMap[phenotype]
+                                            .description) ||
+                                    phenotype
                             "
                             :multiple="true"
                         >
