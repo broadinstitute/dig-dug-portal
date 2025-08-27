@@ -1,33 +1,32 @@
 <template>
     <div class="analysis-summary" v-if="!!summaryContent">
-        <h3>Summary</h3>
         <template v-for="(value, key) in summaryContent">
-            <div class="summary-item string" v-if="getItemType(value) == 'string'">
+            <div class="summary-item string" :class="key.toLowerCase()" v-if="getItemType(value) == 'string'">
                 <span class="key">{{ key }}</span>
                 <span class="value">{{ value }}</span>
             </div>
 
-            <div class="summary-item" v-if="getItemType(value) == 'object'">
-                <div v-for="(itemValue, itemKey) in value">
+            <div class="summary-item object" :class="key.toLowerCase()" v-if="getItemType(value) == 'object'">
+                <div :class="itemKey.toLowerCase()" v-for="(itemValue, itemKey) in value">
                     <span class="key">{{ itemKey }}</span>
                     <span class="value">{{ itemValue }}</span>
                 </div>
             </div>
 
-            <div class="summary-item" v-if="getItemType(value) == 'array' && key != summaryConfig['data in response']">
-                <div v-for="(item, itemIndex) in value">
+            <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key != summaryConfig['data in response']">
+                <div v-for="(item, itemIndex) in value" class="item">
 
                     <div v-if="getItemType(item) == 'object'">
                         <div v-for="(itemValue, itemKey) in item">
-                            <div v-if="getItemType(itemValue) == 'string'">
+                            <div class="string" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'string'">
                                 <span class="key">{{ itemKey }}</span>
                                 <span class="value">{{ itemValue }}</span>
                             </div>
-                            <div v-if="getItemType(itemValue) == 'array' && itemKey != summaryConfig['data in response']">
+                            <div class="array" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'array' && itemKey != summaryConfig['data in response']">
                                 <span class="key">{{ itemKey }}</span>
-                                <span class="value">{{ itemValue }}</span>
+                                <span class="value" v-for="(arrItem, arrItemIndex) in itemValue">{{ arrItem }}</span>
                             </div>
-                            <div v-if="getItemType(itemValue) == 'array' && itemKey == summaryConfig['data in response'] ">
+                            <div class="array" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'array' && itemKey == summaryConfig['data in response'] ">
                                 <research-data-table
                                     :pageID="1"
                                     :dataset="getFilteredData(itemValue)"
@@ -45,7 +44,7 @@
                     </div>
                 </div>
             </div>
-            <div class="summary-item" v-if="getItemType(value) == 'array' && key == summaryConfig['data in response']">
+            <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key == summaryConfig['data in response']">
                 <research-data-table
                     :pageID="1"
                     :dataset="getFilteredData(value)"
@@ -271,5 +270,6 @@ export default Vue.component("response-summary", {
 <style scoped>
 span.key {
     font-weight: bold;
+    margin-right: 10px;
 }
 </style>

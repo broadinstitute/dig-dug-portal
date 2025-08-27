@@ -91,7 +91,7 @@ export default Vue.component("llm-summary", {
                 prompt += `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
 
                 prompt += "Data to analyze: "+dataCollected;
-                prompt += "Focus: " + this.searchFocus;
+                prompt += "Research context: " + this.searchFocus;
                 //prompt += "Focus: "+(!!this.utils.keyParams['focus'])?this.utils.keyParams['focus']:"";
 
                 // Remember to replace "YOUR_API_KEY" with your actual Google AI API key.
@@ -186,7 +186,6 @@ $(function () { });
 .llm-query-contents-container {
     vertical-align: bottom;
     padding: 15px;
-    border-top: 1px solid #cccccc;
 }
 
 .search-focus-input {
