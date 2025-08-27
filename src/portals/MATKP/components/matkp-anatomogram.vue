@@ -9,7 +9,11 @@
                         <option value="Mus musculus">Mus musculus</option>
                     </select>
                 </div>
-                <div class="f-col anatomy" style="gap:10px">
+                <div class="f-col anatomy" style="gap:10px; position:relative">
+                    <div class="f-row spread-out" style="position: absolute; width:100%; font-size: 12px;">
+                        <div>Male</div>
+                        <div>Female</div>
+                    </div>
                     <div class="anatomy-item" :style="`width:${anatomyWidth}px`">
                         <div class="anatomy-points" style="position:absolute; width:100%; height:100%; z-index: 1;">
                             <template v-for="depot in depots[selectedSpecies]">

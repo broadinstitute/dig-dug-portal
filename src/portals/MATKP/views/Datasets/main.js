@@ -16,6 +16,7 @@ new Vue({
 
     data() {
         return {
+            config_pageid: 'matkp_config',
             config: null,
             datasets: null,
             datasetsFlat: null,
@@ -118,7 +119,7 @@ new Vue({
                 ...fields,
                 ...[
                     { key: "show_details", label: "", sortable: false },
-                    { key: "download", label: "", sortable: false },
+                    //{ key: "download", label: "", sortable: false },
                     { key: "datasetId", label: "", sortable: false },
                 ],
             ];
@@ -135,6 +136,8 @@ new Vue({
                     sortable: true,
                 });
             });
+            fields.push({ key: "download", label: "Raw Data", sortable: false });
+            fields.push({ key: "download_public", label: "Processed Data", sortable: false });
             //console.log('subFields', fields);
             return fields;
         },
@@ -144,7 +147,7 @@ new Vue({
                 return Object.keys(this.selectedFilters).every((key) => {
                     if (this.selectedFilters[key].length === 0) return true;
                     return this.selectedFilters[key].some((filterValue) =>
-                        item[key].includes(filterValue)
+                        item[key]?.includes(filterValue)
                     );
                 });
             });
@@ -176,7 +179,7 @@ new Vue({
     methods: {
         async getConfig() {
             const dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=matkp_config";
+                `https://hugeampkpncms.org/rest/data?pageid=${this.config_pageid}`;
             const result = await fetch(dataPoint).then((resp) => resp.json());
             const json = JSON.parse(result[0]["field_data_points"]);
             this.config = json;

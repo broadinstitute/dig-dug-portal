@@ -154,7 +154,7 @@
                   small
                   sort-icon-left
                   :items="$parent.filteredItems"
-                  :fields="$parent.mainFields"
+                  :fields="$parent.mainFields" 
                   :filter="$parent.filter"
                   @filtered="$parent.onFiltered"
                   :per-page="$parent.perPage"
@@ -168,91 +168,59 @@
                   <template #row-details="row">
                     <div class="f-col" style="gap: 5px; margin: 0 0 50px 0">
                       <div class="f-row subtable" v-for="field in $parent.subFields">
-                        <div style="min-width: 200px; font-weight: bold">
-                          {{ field.label }}
-                        </div>
-                        <div class="f-row" style="flex-wrap: wrap; gap: 5px">
-                          <template v-if="$parent.isFilter(field.key)">
-                            <template v-if="Array.isArray(row.item[field.key])">
-                              <template v-for="item in row.item[field.key]">
+                        <template v-if="row.item[field.key]">
+                          <div style="min-width: 200px; font-weight: bold">
+                            {{ field.label }}
+                          </div>
+                          <div class="f-row" style="flex-wrap: wrap; gap: 5px">
+                            <template v-if="$parent.isFilter(field.key)">
+                              <template v-if="Array.isArray(row.item[field.key])">
+                                <template v-for="item in row.item[field.key]">
+                                  <div
+                                    :class="`dataset-table-item`"
+                                    style="white-space: nowrap"
+                                    :data-tooltip="item"
+                                    :data-input-key="field.key"
+                                    :data-input-option="item"
+                                    @click="$parent.addInputOption($event)"
+                                    @mouseover="$parent.highlightTableItems($event)"
+                                    @mouseout="$parent.unHighlightTableItems($event)"
+                                  >
+                                    {{ item }}
+                                  </div>
+                                </template>
+                              </template>
+                              <template v-else>
                                 <div
                                   :class="`dataset-table-item`"
                                   style="white-space: nowrap"
-                                  :data-tooltip="item"
+                                  :data-tooltip="row.item[field.key]"
                                   :data-input-key="field.key"
-                                  :data-input-option="item"
+                                  :data-input-option="row.item[field.key]"
                                   @click="$parent.addInputOption($event)"
                                   @mouseover="$parent.highlightTableItems($event)"
                                   @mouseout="$parent.unHighlightTableItems($event)"
                                 >
-                                  {{ item }}
+                                  {{ row.item[field.key] }}
                                 </div>
                               </template>
                             </template>
                             <template v-else>
-                              <div
-                                :class="`dataset-table-item`"
-                                style="white-space: nowrap"
-                                :data-tooltip="row.item[field.key]"
-                                :data-input-key="field.key"
-                                :data-input-option="row.item[field.key]"
-                                @click="$parent.addInputOption($event)"
-                                @mouseover="$parent.highlightTableItems($event)"
-                                @mouseout="$parent.unHighlightTableItems($event)"
-                              >
+                              <template v-if="field.key.includes('download')">
+                                <a :href="row.item[field.key]" target="_blank" style="display:flex; gap:3px; align-items: center;">
+                                  Download 
+                                  <svg v-if="field.key==='download'" width="13px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M213.333 128v42.666H128V384h213.333v-85.334H384l.001 128H85.333V128h128ZM448 64v170.667h-42.667v-97.832L228.418 313.752l-30.17-30.17 176.915-176.916h-97.83V64H448Z" fill="#ff6c02" fill-rule="evenodd"/></svg>
+                                </a>
+                              </template>
+                              <template v-else>
                                 {{ row.item[field.key] }}
-                              </div>
+                              </template>
                             </template>
-                          </template>
-                          <template v-else>
-                            {{ row.item[field.key] }}
-                          </template>
-                        </div>
+                          </div>
+                        </template>
                       </div>
                     </div>
-                    <!--<button @click="row.toggleDetails">Hide</button>-->
-                    <!--
-                                        <b-table style="font-size:14px;margin-top:14px;"
-                                            id="matkp-datasets-table"
-                                            striped
-                                            small
-                                            sort-icon-left
-                                            :items="[row.item]"
-                                            :fields="$parent.subFields"
-                                        >
-                                        <template #cell()="data">
-                                            <template v-if="Array.isArray(data.value)">
-                                                <template v-for="item in data.value">
-                                                    <div
-                                                    :class="`dataset-table-item`"
-                                                    :data-tooltip="item"
-                                                    :data-input-key="data.field.key"
-                                                    :data-input-option="item"
-                                                    @click="$parent.addInputOption($event)"
-                                                    @mouseover="$parent.highlightTableItems($event)"
-                                                    @mouseout="$parent.unHighlightTableItems($event)"
-                                                    >
-                                                    {{ item }}
-                                                    </div>
-                                                </template>
-                                            </template>
-                                            <template v-else>
-                                                {{ data.value }}
-                                            </template>
-                                        </template>
-                                        </b-table>
-                                        -->
                   </template>
-
-                  <!--
-                                    <template #table-colgroup="scope">
-                                        <col
-                                            v-for="field in scope.fields"
-                                            :key="field.key"
-                                            :style="{ width: field.key === 'Name' ? '400px' : field.key === 'Depot' ? '250px' : 'auto' }"
-                                        >
-                                    </template>
-                                    -->
                   <template #cell(download)="data">
                     <a :href="data.value" target="_blank" :src="data.value">
                       <svg
