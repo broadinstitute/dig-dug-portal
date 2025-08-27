@@ -79,13 +79,17 @@
             </div>
         </div>
         <div v-if="searchParamValues.length > 0" class="search-plan-wrapper">
-            <h4>Search plan:</h4>
+            <h5>Search plan:</h5>
             <div>
                 <div v-for="(section, sIndex) in sectionsConfig.sections" v-if="section['data point'].parameters.includes(searchParamValues[0].parameter)">
                     {{ sIndex + 1 +'. ' }}Search will query data for [ <span class="search-key">{{ section.header }}</span> ] section with [ <span class="search-key">{{ searchParamValues[0].label }}</span> ].
                 </div>
             </div>
-            <div v-if="!!assistMe && searchParamValues.length > 0">
+            <div v-if="!!focusValue">
+                <h6>AI assist after search will be focused on: </h6>
+                <div>Focus: {{ focusValue.label }}</div>
+            </div>
+            <div v-if="!!assistMe && searchParamValues.length > 0" style="margin-top: 15px; text-align: center;">
                 <span class="btn btn-primary" @click="callSearch(focusValue)" :disabled="isLoading" style="margin-right: 8px;">
                         Search</span>
                 <span class="btn btn-warning" @click="resetSearch()" style="display: inline-block; height: 34px;">Reset search</span>
@@ -264,7 +268,7 @@ export default Vue.component("research-pigean-search", {
         },
         assistMeContents(CONTENTS) {
             //console.log("assistMeContents", CONTENTS);
-            let jsonData = JSON.parse(this.utils.dataConvert.extractJson(CONTENTS));
+            let jsonData = this.utils.dataConvert.extractJson(CONTENTS);
             //console.log("jsonData", jsonData);
             if(!!jsonData) {
 

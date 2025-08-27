@@ -737,7 +737,7 @@ let extractJson = function (str) {
 
     // Extract the substring from the first brace to the last brace (inclusive).
     // This correctly handles nested objects by grabbing the entire outer structure.
-    return str.substring(firstBraceIndex, lastBraceIndex + 1);
+    return JSON.parse(str.substring(firstBraceIndex, lastBraceIndex + 1));
 }
 
 

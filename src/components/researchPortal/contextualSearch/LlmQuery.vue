@@ -9,9 +9,14 @@
         <research-loading-spinner :isLoading="loading" colorStyle="color"></research-loading-spinner>
     </div>
     </div>
-    <div class="row" v-if="summary">
+    <div class="row">
         <div class="llm-query-contents-container col-md-12">
-            <div v-html="processSummary(summary)"></div>
+            <response-summary 
+                :summaryContent="utils.dataConvert.extractJson(summary)" 
+                :summaryConfig="summaryConfig" 
+                :utils="utils" 
+                :sectionConfig="sectionConfig" 
+                :dataset="dataset"></response-summary>
         </div>
     </div>
   </div>
@@ -21,13 +26,14 @@
 import Vue from "vue";
 import $ from "jquery";
 import ResearchLoadingSpinner from "../ResearchLoadingSpinner.vue";
-import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResponseSummary from "@/components/researchPortal/contextualSearch/ResponseSummary.vue";
+
 
 export default Vue.component("llm-summary", {
     props: ["dataset","summaryConfig","utils","sectionID","sectionConfig"],
     components: {
         ResearchLoadingSpinner,
-        ResearchDataTable
+        ResponseSummary
     },
     data() {
         return {
@@ -38,6 +44,7 @@ export default Vue.component("llm-summary", {
     },
     created() {},
     mounted() {
+        console.log("mounted", this.sectionConfig);
         //revealing the most fundamentally new mechanistic insights
         if(!!this.utils.keyParams['focus']) {
             this.searchFocus = this.utils.keyParams['focus'];
@@ -51,156 +58,12 @@ export default Vue.component("llm-summary", {
             } else {
                 this.searchFocus = "";
             }
+        },
+        summary(CONTENT) {
+            console.log("summary updated");
         }
     },
     methods: {
-        processSummary(summary) {
-            //console.log("summary", typeof summary);
-            
-            if (!summary || typeof summary !== 'string') {
-                return summary;
-            }
-            
-            // 1. Remove markdown code blocks (```json and ```)
-            let cleanedSummary = this.utils.dataConvert.extractJson(summary);
-            
-            try {
-                // 2. Parse the JSON and convert to readable HTML
-                const jsonData = JSON.parse(cleanedSummary);
-                return this.jsonToHtml(jsonData);
-            } catch (error) {
-                console.error("Failed to parse JSON:", error);
-                // If JSON parsing fails, return the cleaned text as is
-                return cleanedSummary;
-            }
-        },
-        jsonToHtml(jsonData) {
-            console.log("Processing JSON data:", jsonData);
-
-            let jsonKeys = Object.keys(jsonData);
-            let html = '<div class="analysis-summary">';
-
-            jsonKeys.map(key => {
-
-                if(key != this.summaryConfig['data in response']) {
-
-                    let itemType = (typeof jsonData[key] == "object")? (!!Array.isArray(jsonData[key]))? "array" : "object":typeof jsonData[key];
-                    
-                    switch(itemType) {
-                    case "object":
-
-                        let itemKeys = Object.keys(jsonData[key]);
-
-                        itemKeys.map(itemKey => {
-                            if(key == this.summaryConfig['data in response']) {
-                                html += `<div class="${itemKey.toLowerCase()}"><strong>${itemKey}:</strong> ${this.renderFilteredDatasetTable(jsonData[key][itemKey])}</div>`;
-                            } else {
-                                html += `<div class="${itemKey.toLowerCase()}"><strong>${itemKey}:</strong> ${jsonData[key][itemKey]}</div>`;
-                            }
-                        })
-
-                        break;
-                    case "array":
-
-                        let rowType = (typeof jsonData[key][0] == "object")? (!!Array.isArray(jsonData[key][0]))? "array" : "object":typeof jsonData[key][0];
-
-                        if(rowType == "object") {
-
-                            let itemKeys = Object.keys(jsonData[key][0]);
-
-                            jsonData[key].map(item => {
-                                itemKeys.map(itemKey => {
-                                    if(itemKey == this.summaryConfig['data in response']) {
-                                        html += `<div class="${itemKey.toLowerCase()}"><strong>${itemKey}:</strong> ${this.renderFilteredDatasetTable(item[itemKey])}</div>`;
-                                    } else {
-                                        html += `<div class="${itemKey.toLowerCase()}"><strong>${itemKey}:</strong> ${item[itemKey]}</div>`;
-                                    }
-                                })
-                            })
-
-                        } else if(rowType == "array") {
-                            let hIndex = 1;
-                            jsonData[key].map(item => {
-                                html += `<div class="${key.toLowerCase()}"><strong>${key + " " + hIndex}:</strong> ${item}</div>`;
-                            })
-                        } else {
-                            html += `<div class="${key.toLowerCase()}"><strong>${key}:</strong> ${item.toString()}</div>`;
-                        }
-
-                        break;
-                    default:
-                        html += `<div class="${key.toLowerCase()}"><strong>${key}:</strong> ${jsonData[key]}</div>`;
-                        break;
-                    }
-                    
-                } else {
-                    html += `<div class="${key.toLowerCase()}"><strong>${key}:</strong> ${this.renderFilteredDatasetTable(jsonData[key])}</div>`;
-                }
-                
-            });
-
-            html += '</div>';
-            return html;
-        },
-        
-        renderFilteredDatasetTable(keyItems) {
-            if (!this.dataset || !Array.isArray(this.dataset) || this.dataset.length === 0) {
-                return '<p class="no-data">No dataset available for filtering.</p>';
-            }
-            
-            // Get the columns from summaryConfig
-            const columns = this.summaryConfig['columns'];
-            const columnsToRender = this.summaryConfig['columns to render'];
-            /*if (columns.length === 0) {
-                return '<p class="no-data">No columns configured for display.</p>';
-            }*/
-            
-            // Filter dataset rows that contain any of the key items
-            const filteredRows = this.dataset.filter(row => {
-                return keyItems.some(keyItem => {
-                    return columns.some(col => {
-                        const cellValue = String(row[col] || '').toLowerCase();
-                        const searchValue = String(keyItem).toLowerCase();
-                        return cellValue.includes(searchValue) || searchValue.includes(cellValue);
-                    });
-                });
-            });
-            
-            if (filteredRows.length === 0) {
-                return '<p class="no-data">No matching data found for the key items.</p>';
-            }
-            
-            // Create table HTML
-            let tableHtml = '<div class="filtered-data-table">';
-            tableHtml += '<h6>Key items in data:</h6>';
-            tableHtml += '<div class="table-container">';
-            tableHtml += '<table class="table table-striped data-table">';
-            
-            // Table header
-            tableHtml += '<thead><tr>';
-            columnsToRender.forEach(col => {
-                tableHtml += `<th>${col}</th>`;
-            });
-            tableHtml += '</tr></thead>';
-            
-            // Table body
-            tableHtml += '<tbody>';
-            filteredRows.forEach((row, rowIndex) => {
-                tableHtml += '<tr>';
-                columnsToRender.forEach(col => {
-                    const cellValue = row[col] || '';
-                    tableHtml += `<td>${cellValue}</td>`;
-                });
-                tableHtml += '</tr>';
-            });
-            tableHtml += '</tbody>';
-            tableHtml += '</table>';
-            tableHtml += '</div>';
-            tableHtml += `<p class="table-info">Showing ${filteredRows.length} of ${this.dataset.length} total rows</p>`;
-            tableHtml += '</div>';
-            
-            return tableHtml;
-        },
 
         async queryLLM() {
             this.summary = "Call made to LLM.";
