@@ -382,74 +382,50 @@ export default Vue.component("research-pigean-search", {
                 const modelString = JSON.stringify(jsonModel, null, 2);
 
                 let prompt = this.assistMeConfig['prompt']+'\n';
-                prompt += `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
                 prompt += `User input: ${this.userInputParameter}\n\n`;
 
-                // Remember to replace "YOUR_API_KEY" with your actual Google AI API key.
-                const API_KEY = this.assistMeConfig['api key'];
-                const MODEL_NAME = this.assistMeConfig['model'];
+                let systemPrompt = `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
 
-                async function callGeminiAPI(promptText,CONFIG) {
-                    let url = CONFIG['url'];
-                    url = url.replace('$api_key', API_KEY);
-                    url = url.replace('$model', MODEL_NAME);
+                //const MODEL_NAME = this.assistMeConfig['model'];
 
-                    const requestBody = {
-                        contents: [{
-                            parts: [{
-                                text: promptText
-                            }]
-                        }],
+                async function callGeminiAPI(userPrompt,systemPrompt,model) {
+                    let url = 'https://llm.hugeamp.org/gemini';
+
+                    var payload = {
+                        model: model,
+                        systemPrompt: systemPrompt,
+                        userPrompt: userPrompt,
                     };
 
-                    try {
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(requestBody),
-                        });
+                    var options = {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    };
 
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
+                    const response =  await fetch(url, options);
 
-                        const data = await response.json();
-                        
-                        // Check if we have a valid response with candidates
-                        if (data.candidates && 
-                            data.candidates.length > 0 && 
-                            data.candidates[0].content && 
-                            data.candidates[0].content.parts && 
-                            data.candidates[0].content.parts.length > 0) {
-                            
-                            const generatedText = data.candidates[0].content.parts[0].text;
-                            return generatedText;
-
-                        } else if (data.candidates && 
-                                   data.candidates.length > 0 && 
-                                   data.candidates[0].content && 
-                                   data.candidates[0].content.role === "model") {
-                            
-                            // The model responded but didn't generate content (possibly filtered)
-                            console.warn("Model responded but no content generated. Response:", data);
-                            return "The model responded but didn't generate any content. This might be due to content filtering.";
-                        } else {
-                            console.error("Unexpected API response structure:", data);
-                            return "Error: Unexpected response structure from LLM";
-                        }
-
-                    } catch (error) {
-                        console.error("Error calling LLM:", error);
-                        return "Error: Failed to get response from LLM";
+                    if (!response.ok) {
+                        new Error("Fetch error:" + response.error);
+                        return;
                     }
+
+                    const res = await response.json();
+                    //console.log('*KCLLM response*', res);
+                    const data = res.data[0].gemini_response;
+                    //console.log('data', data);
+                    //this.summary = data;
+                    return data;
+
+                    
                 }
 
                 console.log("prompt", prompt);
 
                 // Call the API and wait for the response
-                this.assistMeContents = await callGeminiAPI(prompt, this.assistMeConfig);
+                this.assistMeContents = await callGeminiAPI(prompt, systemPrompt, this.assistMeConfig['model']);
                 
             } catch (error) {
                 console.error("Error in queryLLM:", error);
@@ -592,6 +568,6 @@ select.meaning-search {
 }
 
 .filtering-ui-wrapper.search-criteria.multi-page-search.fixed-header {
-    /*display: none !important;*/
+    position: relative !important;
 }
 </style>

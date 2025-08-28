@@ -31,7 +31,7 @@
                                     :pageID="1"
                                     :dataset="getFilteredData(itemValue)"
                                     :tableFormat="sectionConfig['table format']"
-                                    :initPerPageNumber="null"
+                                    :initPerPageNumber="5"
                                     tableLegend=""
                                     :searchParameters="null" :pkgData="null" :pkgDataSelected="null"
                                     :phenotypeMap="null" :sectionId="1" :multiSectionPage="true" :starItems="null"
