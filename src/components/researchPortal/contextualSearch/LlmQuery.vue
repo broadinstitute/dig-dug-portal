@@ -61,6 +61,11 @@ export default Vue.component("llm-summary", {
         },
         summary(CONTENT) {
             console.log("summary updated");
+        },
+        searchFocus(to, from) {
+            if(to != from) {
+                this.summary = "";
+            }
         }
     },
     methods: {
@@ -68,6 +73,9 @@ export default Vue.component("llm-summary", {
         async queryLLM() {
             this.summary = "Call made to LLM.";
             this.loading = true;
+            if(this.searchFocus != this.utils.keyParams['focus']) {
+                this.utils.keyParams.set({focus: this.searchFocus});
+            }
 
             let url = 'https://llm.hugeamp.org/gemini';
             let dataCollected = ""

@@ -14,35 +14,32 @@
             </div>
 
             <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key != summaryConfig['data in response']">
-                <div v-for="(item, itemIndex) in value" class="item">
-
-                    <div v-if="getItemType(item) == 'object'">
-                        <div v-for="(itemValue, itemKey) in item">
-                            <div class="string" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'string'">
-                                <span class="key">{{ itemKey }}</span>
-                                <span class="value">{{ itemValue }}</span>
-                            </div>
-                            <div class="array" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'array' && itemKey != summaryConfig['data in response']">
-                                <span class="key">{{ itemKey }}</span>
-                                <span class="value" v-for="(arrItem, arrItemIndex) in itemValue">{{ arrItem }}</span>
-                            </div>
-                            <div class="array" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'array' && itemKey == summaryConfig['data in response'] ">
-                                <research-data-table
-                                    :pageID="1"
-                                    :dataset="getFilteredData(itemValue)"
-                                    :tableFormat="sectionConfig['table format']"
-                                    :initPerPageNumber="5"
-                                    tableLegend=""
-                                    :searchParameters="null" :pkgData="null" :pkgDataSelected="null"
-                                    :phenotypeMap="null" :sectionId="1" :multiSectionPage="true" :starItems="null"
-                                    :utils="utils" :region="null" :regionZoom="null"
-                                    :regionViewArea="null" 
-                                    :colors="null" :plotMargin="null">
-                                </research-data-table>
-                            </div>
+                <template v-for="(item, itemIndex) in value">
+                    <div v-for="(itemValue, itemKey) in item" v-if="getItemType(item) == 'object'" class="object-item" :class="itemKey.toLowerCase()">
+                        <div class="string" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'string'">
+                            <span class="key">{{ itemKey }}</span>
+                            <span class="value">{{ itemValue }}</span>
+                        </div>
+                        <div class="array" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'array' && itemKey != summaryConfig['data in response']">
+                            <span class="key">{{ itemKey }}</span>
+                            <span class="value" v-for="(arrItem, arrItemIndex) in itemValue">{{ arrItem }}</span>
+                        </div>
+                        <div class="array" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'array' && itemKey == summaryConfig['data in response'] ">
+                            <research-data-table
+                                :pageID="1"
+                                :dataset="getFilteredData(itemValue)"
+                                :tableFormat="sectionConfig['table format']"
+                                :initPerPageNumber="5"
+                                tableLegend=""
+                                :searchParameters="null" :pkgData="null" :pkgDataSelected="null"
+                                :phenotypeMap="null" :sectionId="1" :multiSectionPage="true" :starItems="null"
+                                :utils="utils" :region="null" :regionZoom="null"
+                                :regionViewArea="null" 
+                                :colors="null" :plotMargin="null">
+                            </research-data-table>
                         </div>
                     </div>
-                </div>
+                </template>
             </div>
             <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key == summaryConfig['data in response']">
                 <research-data-table
