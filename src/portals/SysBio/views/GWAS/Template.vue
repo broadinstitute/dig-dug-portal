@@ -28,6 +28,13 @@
                             <strong>pValue (&le;)</strong>
                         </div>
                     </filter-pvalue-control>
+                    <filter-greater-less
+                            key="beta"
+                            field="beta"
+                            label="Beta"
+                        >
+                            <div class="label">Beta</div>
+                        </filter-greater-less>
                     <template #filtered="{filter}">
                         <b-table
                             small
