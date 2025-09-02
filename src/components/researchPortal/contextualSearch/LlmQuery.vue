@@ -73,63 +73,76 @@ export default Vue.component("llm-summary", {
         async queryLLM() {
             this.summary = "Call made to LLM.";
             this.loading = true;
-            if(this.searchFocus != this.utils.keyParams['focus']) {
-                this.utils.keyParams.set({focus: this.searchFocus});
-            }
+            
+            try {
+                if(this.searchFocus != this.utils.keyParams['focus']) {
+                    this.utils.keyParams.set({focus: this.searchFocus});
+                }
 
-            let url = 'https://llm.hugeamp.org/gemini';
-            let dataCollected = ""
-            this.summaryConfig['columns'].map( C => {
-                this.dataset.map((D,dIndex) => {
-                    if(!!this.summaryConfig['rows limit'] && this.summaryConfig['rows limit'] !== 0 ) {
-                        if(dIndex <= this.summaryConfig['rows limit']) {dataCollected += D[C]+", "};
-                    } else {
-                        dataCollected += D[C]+", "
-                    };
+                let url = 'https://llm.hugeamp.org/gemini';
+                let dataCollected = ""
+                this.summaryConfig['columns'].map( C => {
+                    this.dataset.map((D,dIndex) => {
+                        if(!!this.summaryConfig['rows limit'] && this.summaryConfig['rows limit'] !== 0 ) {
+                            if(dIndex <= this.summaryConfig['rows limit']) {dataCollected += D[C]+", "};
+                        } else {
+                            dataCollected += D[C]+", "
+                        };
+                    })
                 })
-            })
 
-            // 1. Define your JSON object model
-            const jsonModel =  this.summaryConfig['response json']
+                // 1. Define your JSON object model
+                const jsonModel =  this.summaryConfig['response json']
 
-            // 2. Convert the object to a formatted string (with 2-space indentation)
-            const modelString = JSON.stringify(jsonModel, null, 2);
+                // 2. Convert the object to a formatted string (with 2-space indentation)
+                const modelString = JSON.stringify(jsonModel, null, 2);
 
-            let prompt = this.summaryConfig['prompt']+'\n';
-            //prompt += 
+                let prompt = this.summaryConfig['prompt']+'\n';
+                //prompt += 
 
-            prompt += "Data to analyze: "+dataCollected;
-            prompt += "Research context: " + this.searchFocus;
+                prompt += "Data to analyze: "+dataCollected;
+                prompt += "Research context: " + this.searchFocus;
 
-            let systemPrompt = `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
+                let systemPrompt = `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
 
-            var payload = {
-                model: this.summaryConfig['model'],
-                systemPrompt: systemPrompt,
-                userPrompt: prompt,
-            };
+                var payload = {
+                    model: this.summaryConfig['model'],
+                    systemPrompt: systemPrompt,
+                    userPrompt: prompt,
+                };
 
-            var options = {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            };
+                var options = {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                };
 
-            const response =  await fetch(url, options);
+                const response = await fetch(url, options);
 
-            if (!response.ok) {
-                new Error("Fetch error:" + response.error);
-                return;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+                }
+
+                const res = await response.json();
+                console.log('*KCLLM response*', res);
+                
+                // Check if response has expected structure
+                if (!res.data || !res.data[0] || !res.data[0].gemini_response) {
+                    throw new Error('Invalid response structure from LLM service');
+                }
+                
+                const data = res.data[0].gemini_response;
+                this.summary = data;
+                
+            } catch (error) {
+                console.error('Error in queryLLM:', error);
+                this.summary = `Error: Failed to get response from LLM. ${error.message}`;
+            } finally {
+                // Always ensure loading is set to false, even if there's an error
+                this.loading = false;
             }
-
-            const res = await response.json();
-            //console.log('*KCLLM response*', res);
-            const data = res.data[0].gemini_response;
-            //console.log('data', data);
-            this.summary = data;
-            this.loading = false;
         },
     }
 })

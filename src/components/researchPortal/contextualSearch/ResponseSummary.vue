@@ -1,28 +1,34 @@
 <template>
-    <div class="analysis-summary" v-if="!!summaryContent">
-        <template v-for="(value, key) in summaryContent">
+    <div class="analysis-summary-container" v-if="!!summaryContent">
+        <div class="analysis-summary-header">
+            <button class="btn btn-sm btn-outline-primary save-report-btn" @click="saveReport" title="Save report as text file">
+                <i class="fas fa-download"></i> Save Report
+            </button>
+        </div>
+        <div class="analysis-summary" ref="summaryContent">
+            <template v-for="(value, key) in summaryContent" :key="key">
             <div class="summary-item string" :class="key.toLowerCase()" v-if="getItemType(value) == 'string'">
                 <span class="key">{{ key }}</span>
                 <span class="value">{{ value }}</span>
             </div>
 
             <div class="summary-item object" :class="key.toLowerCase()" v-if="getItemType(value) == 'object'">
-                <div :class="itemKey.toLowerCase()" v-for="(itemValue, itemKey) in value">
+                <div :class="itemKey.toLowerCase()" v-for="(itemValue, itemKey) in value" :key="itemKey">
                     <span class="key">{{ itemKey }}</span>
                     <span class="value">{{ itemValue }}</span>
                 </div>
             </div>
 
             <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key != summaryConfig['data in response']">
-                <template v-for="(item, itemIndex) in value">
-                    <div v-for="(itemValue, itemKey) in item" v-if="getItemType(item) == 'object'" class="object-item" :class="itemKey.toLowerCase()">
+                <template v-for="(item, itemIndex) in value" :key="itemIndex">
+                    <div v-for="(itemValue, itemKey) in item" v-if="getItemType(item) == 'object'" class="object-item" :class="itemKey.toLowerCase()" :key="itemKey">
                         <div class="string" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'string'">
                             <span class="key">{{ itemKey }}</span>
                             <span class="value">{{ itemValue }}</span>
                         </div>
                         <div class="array" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'array' && itemKey != summaryConfig['data in response']">
                             <span class="key">{{ itemKey }}</span>
-                            <span class="value" v-for="(arrItem, arrItemIndex) in itemValue">{{ arrItem }}</span>
+                            <span class="value" v-for="(arrItem, arrItemIndex) in itemValue" :key="arrItemIndex">{{ arrItem }}</span>
                         </div>
                         <div class="array" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'array' && itemKey == summaryConfig['data in response'] ">
                             <research-data-table
@@ -56,6 +62,7 @@
                 </research-data-table>
             </div>
         </template>
+        </div>
     </div>
 </template>
 
@@ -87,6 +94,90 @@ export default Vue.component("response-summary", {
         }
     },
     methods: {
+        saveReport() {
+            try {
+                // Get the text content from the summary div
+                const summaryElement = this.$refs.summaryContent;
+                if (!summaryElement) {
+                    console.error('Summary content element not found');
+                    return;
+                }
+
+                // Extract text content, preserving structure
+                let textContent = this.extractTextContent(summaryElement);
+                
+                // Add header information
+                const header = `Analysis Summary Report\nGenerated on: ${new Date().toLocaleString()}\n${'='.repeat(50)}\n\n`;
+                textContent = header + textContent;
+
+                // Create and download the file
+                const blob = new Blob([textContent], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `analysis-summary-${new Date().toISOString().split('T')[0]}.txt`;
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up
+                window.URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error downloading summary:', error);
+                alert('Error downloading summary. Please try again.');
+            }
+        },
+
+        extractTextContent(element) {
+            let text = '';
+            
+            // Handle different types of content
+            if (element.children && element.children.length > 0) {
+                for (let child of element.children) {
+                    if (child.classList && child.classList.contains('summary-item')) {
+                        text += this.extractSummaryItemText(child) + '\n';
+                    } else if (child.tagName === 'TABLE') {
+                        text += this.extractTableText(child) + '\n';
+                    } else {
+                        text += this.extractTextContent(child) + '\n';
+                    }
+                }
+            } else {
+                text = element.textContent || element.innerText || '';
+            }
+            
+            return text;
+        },
+
+        extractSummaryItemText(item) {
+            let text = '';
+            const keyElements = item.querySelectorAll('.key');
+            const valueElements = item.querySelectorAll('.value');
+            
+            for (let i = 0; i < keyElements.length; i++) {
+                const key = keyElements[i].textContent.trim();
+                const value = valueElements[i] ? valueElements[i].textContent.trim() : '';
+                text += `${key}: ${value}\n`;
+            }
+            
+            return text;
+        },
+
+        extractTableText(table) {
+            let text = '';
+            const rows = table.querySelectorAll('tr');
+            
+            for (let row of rows) {
+                const cells = row.querySelectorAll('td, th');
+                const rowText = Array.from(cells).map(cell => cell.textContent.trim()).join('\t');
+                text += rowText + '\n';
+            }
+            
+            return text;
+        },
 
         getItemType(item) {
             if(typeof item == "object" && !Array.isArray(item)) {
@@ -265,8 +356,62 @@ export default Vue.component("response-summary", {
 }); 
 </script>
 <style scoped>
+.analysis-summary-container {
+    position: relative;
+}
+
+.analysis-summary-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.save-report-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    padding: 5px 10px;
+}
+
+.save-report-btn i {
+    font-size: 11px;
+}
+
+.analysis-summary {
+    margin-top: 10px;
+}
+
 span.key {
     font-weight: bold;
     margin-right: 10px;
+}
+
+.summary-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-left: 3px solid #007bff;
+    background-color: #f8f9fa;
+}
+
+.summary-item.string {
+    border-left-color: #28a745;
+}
+
+.summary-item.object {
+    border-left-color: #ffc107;
+}
+
+.summary-item.array {
+    border-left-color: #dc3545;
+}
+
+.object-item {
+    margin: 5px 0;
+    padding: 5px;
+    background-color: #ffffff;
+    border-radius: 3px;
 }
 </style>

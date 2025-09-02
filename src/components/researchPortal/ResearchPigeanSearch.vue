@@ -79,17 +79,23 @@
             </div>
         </div>
         <div v-if="searchParamValues.length > 0" class="search-plan-wrapper">
-            <h5>Search plan:</h5>
+            <h5>Search plan: <span v-if="!!assistMe && !isEditing" class=" btn btn-sm edit-search-plan" @click="editSearchPlan()"> Edit plan</span> <span v-if="!!assistMe && !!isEditing" class=" btn btn-sm edit-search-plan" @click="saveSearchPlan()"> Save plan</span></h5>
+            <div v-if="isEditing">
+                <input type="text" id="search_value" class="form-control search-edit-input" :value="searchParamValues[0].label" />
+            </div>
             <div>
                 <div v-for="(section, sIndex) in sectionsConfig.sections" v-if="section['data point'].parameters.includes(searchParamValues[0].parameter)">
                     {{ sIndex + 1 +'. ' }}Search will query data for [ <span class="search-key">{{ section.header }}</span> ] section with [ <span class="search-key">{{ searchParamValues[0].label }}</span> ].
                 </div>
             </div>
-            <div v-if="!!focusValue">
-                <h6>AI assist after search will be focused on: </h6>
-                <div>Focus: {{ focusValue.label }}</div>
+            <div v-if="!!focusValue" style="margin-top: 15px;">
+                <h5>AI assited research focus: </h5>
+                <div v-if="isEditing">
+                <input type="text"  id="focus_value" class="form-control search-edit-input" :value="focusValue.label" />
             </div>
-            <div v-if="!!assistMe && searchParamValues.length > 0" style="margin-top: 15px; text-align: center;">
+                <div>Extended search will focus on [<span class="search-key">{{ focusValue.label }}</span>].</div>
+            </div>
+            <div v-if="!!assistMe && !isEditing && searchParamValues.length > 0" style="margin-top: 15px; text-align: center;">
                 <span class="btn btn-primary" @click="callSearch(focusValue)" :disabled="isLoading" style="margin-right: 8px;">
                         Search</span>
                 <span class="btn btn-warning" @click="resetSearch()" style="display: inline-block; height: 34px;">Reset search</span>
@@ -120,7 +126,8 @@ export default Vue.component("research-pigean-search", {
             filterOptions: [],
             searchParamValues: [],
             focusValue: null,
-            isLoading: false
+            isLoading: false,
+            isEditing: false
         };
     },
     mounted() {
@@ -293,6 +300,17 @@ export default Vue.component("research-pigean-search", {
         }
 	},
     methods: {
+        editSearchPlan() {
+            this.isEditing = true;
+            console.log("editSearchPlan", this.searchParamValues[0], this.focusValue);
+        },
+        saveSearchPlan() {
+            this.searchParamValues[0].label = document.getElementById("search_value").value;
+            this.searchParamValues[0].value = document.getElementById("search_value").value;
+            this.focusValue.label = document.getElementById("focus_value").value;
+            this.focusValue.value = document.getElementById("focus_value").value;
+            this.isEditing = false;
+        },
         callSearch(withFocus) {
             this.isLoading = true;
 
@@ -441,6 +459,16 @@ export default Vue.component("research-pigean-search", {
 <style scoped>
 /* ones used */
 
+.edit-search-plan {
+    color: #3333FF;
+    text-decoration: underline;
+}
+
+.search-edit-input {
+    width: 80% !important;
+    margin-left: 10%;
+}
+
 .search-parameters-and-options {
     white-space: nowrap;
 }
@@ -487,6 +515,10 @@ export default Vue.component("research-pigean-search", {
 
 .search-plan-wrapper {
     text-align: left;
+    margin-top: 25px;
+    padding-top: 10px;
+    line-height: 1.75em;
+    border-top: solid 1px #cccccc;
 }
 
 .search-key {
