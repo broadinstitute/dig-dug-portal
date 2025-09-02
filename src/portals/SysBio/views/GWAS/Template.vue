@@ -20,6 +20,17 @@
                 <h4>Top single-variant association signals for AD versus PD: European Ancestry</h4>
                 <!-- FILTERS GO HERE -->
                 <criterion-function-group>
+                    <filter-enumeration-control
+                        class="filter-col-md"
+                        field="nearest"
+                        :options="$parent.nearestGenes"
+                        :multiple="true"
+                        :inclusive="true"
+                    >
+                        <div>
+                            <strong>Closest genes</strong>
+                        </div>
+                    </filter-enumeration-control>
                     <filter-pvalue-control
                         class="filter-col-md"
                         :field="'pValue'"
@@ -33,7 +44,7 @@
                             field="beta"
                             label="Beta"
                         >
-                            <div class="label">Beta</div>
+                            <div class="label"><strong>Beta</strong></div>
                         </filter-greater-less>
                     <template #filtered="{filter}">
                         <b-table
@@ -82,13 +93,6 @@
         <sysbio-footer></sysbio-footer>
     </div>
 </template>
-
-<script>
-export default {
-
-}
-</script>
-
 <style scoped>
 .gwas-plots img {
   width: 100%;

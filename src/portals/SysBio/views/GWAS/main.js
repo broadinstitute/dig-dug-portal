@@ -88,6 +88,9 @@ new Vue({
     },
 
     watch: {
+        nearestGenes(newData){
+            console.log(JSON.stringify(newData));
+        }
     },
 
     computed: {
@@ -96,6 +99,11 @@ new Vue({
         },
         tablePhenotype() {
             return this.tableData?.[0].phenotype || '';
+        },
+        nearestGenes(){
+            return this.tableData !== null 
+                ? this.tableData.flatMap(m => m.nearest)
+                : [];
         }
     },
 
