@@ -9,6 +9,10 @@ import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 import * as d3 from "d3";
 import DownloadChart from "@/components/DownloadChart";
 import DataDownload from "@/components/DataDownload";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 import { getTextContent } from "@/portals/SysBio/utils/content.js";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
@@ -19,6 +23,10 @@ new Vue({
     components: {
         DataDownload,
         DownloadChart,
+        CriterionFunctionGroup,
+        FilterPValue,
+        FilterEnumeration,
+        FilterGreaterLess
     },
 
     data() {
@@ -80,6 +88,9 @@ new Vue({
     },
 
     watch: {
+        nearestGenes(newData){
+            console.log(JSON.stringify(newData));
+        }
     },
 
     computed: {
@@ -88,6 +99,11 @@ new Vue({
         },
         tablePhenotype() {
             return this.tableData?.[0].phenotype || '';
+        },
+        nearestGenes(){
+            return this.tableData !== null 
+                ? this.tableData.flatMap(m => m.nearest)
+                : [];
         }
     },
 
