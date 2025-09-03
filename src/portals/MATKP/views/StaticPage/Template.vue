@@ -38,15 +38,19 @@
                   </template>
 
                   <template v-if="$parent.pageType==='items'">
-                    <div v-for="person in $parent.pageContent">
-                        <img class="team-member"
-                            :src="person['Photo']"
-                            :alt="person['Name']"
-                        >
-                        </img>
-                        <h3>{{ person["Name"] }}</h3>
-                        <h5>{{ person["Affiliation"] }}</h5>
-                        <p>{{ person["Role"] }}</p>
+                    <div v-for="index in Math.round($parent.pageContent.length/2)"
+                        class="team-row">
+                        <div v-for="person in $parent.pageContent.slice(2 * index - 2, 2 * index)"
+                            class="team-member">
+                            <img class="team-photo"
+                                :src="person['Photo']"
+                                :alt="person['Name']"
+                            >
+                            </img>
+                            <h3>{{ person["Name"] }}</h3>
+                            <p style="font-size: larger">{{ person["Affiliation"] }}</p>
+                            <p>{{ person["Role"] }}</p>
+                            </div>
                     </div>
                     
                   </template>
@@ -91,7 +95,15 @@
     height: 100%;
     object-fit: contain;
 }
-.team-member {
+.team-photo {
     height: 300px;
+    margin-bottom: 10px;
+    vertical-align: top;
+}
+.team-member {
+    display: inline-block;
+    width: 50%;
+    padding: 50px;
+    height: 500px;
 }
 </style>
