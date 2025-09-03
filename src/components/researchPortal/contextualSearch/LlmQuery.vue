@@ -133,6 +133,8 @@ export default Vue.component("llm-summary", {
                     body: JSON.stringify(payload)
                 };
 
+                //console.log("payload", payload);
+
                 const response = await fetch(url, options);
 
                 if (!response.ok) {
