@@ -64,6 +64,12 @@ new Vue({
                 node: 783,
                 type: 'content'
               },
+              team: {
+                title: "MATKP Team",
+                page_id: "matkp_team",
+                node: 816,
+                type: 'items'
+              }
             }
         };
     },
@@ -112,6 +118,11 @@ new Vue({
             }else{
               this.pageContent = await getNewsFeed(page?.page_id);
             }
+          } else if (this.pageType === 'items') {
+            // Bullet points
+            let byorPageId = page?.page_id || this.fallbackId;
+            let allContent = await getTextContent(byorPageId);
+            this.pageContent = allContent;
           }
           
         }

@@ -46,6 +46,10 @@
                 "path": "/info.html?page=adipose"
             },
             {
+                "label": "Team",
+                "path": "/info.html?page=team"
+            },
+            {
                 "label": "Collaborate",
                 "path": "/info.html?page=collaborate"
             },

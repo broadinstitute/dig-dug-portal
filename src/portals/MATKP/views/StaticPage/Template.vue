@@ -36,6 +36,20 @@
                         <div class="" v-html="$parent.pageContent[0].body"></div>
                     </div>
                   </template>
+
+                  <template v-if="$parent.pageType==='items'">
+                    <div v-for="person in $parent.pageContent">
+                        <img class="team-member"
+                            :src="person['Photo']"
+                            :alt="person['Name']"
+                        >
+                        </img>
+                        <h3>{{ person["Name"] }}</h3>
+                        <h5>{{ person["Affiliation"] }}</h5>
+                        <p>{{ person["Role"] }}</p>
+                    </div>
+                    
+                  </template>
             </div>
           </div>
           <!-- FOOTER -->
@@ -76,5 +90,8 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+.team-member {
+    height: 300px;
 }
 </style>
