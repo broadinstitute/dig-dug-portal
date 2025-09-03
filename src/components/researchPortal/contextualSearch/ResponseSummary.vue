@@ -1,27 +1,27 @@
 <template>
     <div class="analysis-summary-container" v-if="!!summaryContent">
         <div class="analysis-summary-header">
-            <button class="btn btn-sm btn-outline-primary save-report-btn" @click="saveReport" title="Save report as text file">
+            <button class="btn btn-sm btn-outline-primary save-report-btn" @click="saveReport" title="Save report as JSON file">
                 <i class="fas fa-download"></i> Save Report
             </button>
         </div>
         <div class="analysis-summary" ref="summaryContent">
-            <template v-for="(value, key) in summaryContent" :key="key">
-            <div class="summary-item string" :class="key.toLowerCase()" v-if="getItemType(value) == 'string'">
+            <template v-for="(value, key) in summaryContent">
+            <div class="summary-item string" :class="key.toLowerCase()" v-if="getItemType(value) == 'string'" :key="`string-${key}`">
                 <span class="key">{{ key }}</span>
                 <span class="value">{{ value }}</span>
             </div>
 
-            <div class="summary-item object" :class="key.toLowerCase()" v-if="getItemType(value) == 'object'">
+            <div class="summary-item object" :class="key.toLowerCase()" v-if="getItemType(value) == 'object'" :key="`object-${key}`">
                 <div :class="itemKey.toLowerCase()" v-for="(itemValue, itemKey) in value" :key="itemKey">
                     <span class="key">{{ itemKey }}</span>
                     <span class="value">{{ itemValue }}</span>
                 </div>
             </div>
 
-            <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key != summaryConfig['data in response']">
-                <template v-for="(item, itemIndex) in value" :key="itemIndex">
-                    <div v-for="(itemValue, itemKey) in item" v-if="getItemType(item) == 'object'" class="object-item" :class="itemKey.toLowerCase()" :key="itemKey">
+            <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key != summaryConfig['data in response']" :key="`array-${key}`">
+                <template v-for="(item, itemIndex) in value">
+                    <div v-for="(itemValue, itemKey) in item" v-if="getItemType(item) == 'object'" class="object-item" :class="itemKey.toLowerCase()" :key="`${itemIndex}-${itemKey}`">
                         <div class="string" :class="itemKey.toLowerCase()" v-if="getItemType(itemValue) == 'string'">
                             <span class="key">{{ itemKey }}</span>
                             <span class="value">{{ itemValue }}</span>
@@ -47,7 +47,7 @@
                     </div>
                 </template>
             </div>
-            <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key == summaryConfig['data in response']">
+            <div class="summary-item array" :class="key.toLowerCase()" v-if="getItemType(value) == 'array' && key == summaryConfig['data in response']" :key="`data-${key}`">
                 <research-data-table
                     :pageID="1"
                     :dataset="getFilteredData(value)"
@@ -84,6 +84,9 @@ export default Vue.component("response-summary", {
         
     },
     watch: {
+        summaryContent(to, from) {
+            console.log("summaryContent", to);
+        },
         summary(to, from) {
             console.log("summary", to);
         }
@@ -96,26 +99,42 @@ export default Vue.component("response-summary", {
     methods: {
         saveReport() {
             try {
-                // Get the text content from the summary div
-                const summaryElement = this.$refs.summaryContent;
-                if (!summaryElement) {
-                    console.error('Summary content element not found');
+                if (!this.summaryContent) {
+                    console.error('No summary content available');
+                    alert('No summary content to save.');
                     return;
                 }
 
-                // Extract text content, preserving structure
-                let textContent = this.extractTextContent(summaryElement);
-                
-                // Add header information
-                const header = `Analysis Summary Report\nGenerated on: ${new Date().toLocaleString()}\n${'='.repeat(50)}\n\n`;
-                textContent = header + textContent;
+                // Create a comprehensive report object
+                const reportData = {
+                    metadata: {
+                        generatedOn: new Date().toISOString(),
+                        generatedAt: new Date().toLocaleString(),
+                        version: "1.0",
+                        source: "Analysis Summary Report"
+                    },
+                    summary: this.summaryContent,
+                    configuration: {
+                        dataInResponse: this.summaryConfig['data in response'],
+                        model: this.summaryConfig['model'] || 'unknown'
+                    },
+                    dataset: this.dataset/*{
+                        totalRows: this.dataset ? this.dataset.length : 0,
+                        columns: this.summaryConfig['columns'] || [],
+                        columnsToRender: this.summaryConfig['columns to render'] || []
+                    },*/    
+                    
+                };
+
+                // Convert to JSON with proper formatting
+                const jsonContent = JSON.stringify(reportData, null, 2);
 
                 // Create and download the file
-                const blob = new Blob([textContent], { type: 'text/plain' });
+                const blob = new Blob([jsonContent], { type: 'application/json' });
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = `analysis-summary-${new Date().toISOString().split('T')[0]}.txt`;
+                link.download = `analysis-summary-${new Date().toISOString().split('T')[0]}.json`;
                 
                 // Trigger download
                 document.body.appendChild(link);
@@ -131,53 +150,7 @@ export default Vue.component("response-summary", {
             }
         },
 
-        extractTextContent(element) {
-            let text = '';
-            
-            // Handle different types of content
-            if (element.children && element.children.length > 0) {
-                for (let child of element.children) {
-                    if (child.classList && child.classList.contains('summary-item')) {
-                        text += this.extractSummaryItemText(child) + '\n';
-                    } else if (child.tagName === 'TABLE') {
-                        text += this.extractTableText(child) + '\n';
-                    } else {
-                        text += this.extractTextContent(child) + '\n';
-                    }
-                }
-            } else {
-                text = element.textContent || element.innerText || '';
-            }
-            
-            return text;
-        },
 
-        extractSummaryItemText(item) {
-            let text = '';
-            const keyElements = item.querySelectorAll('.key');
-            const valueElements = item.querySelectorAll('.value');
-            
-            for (let i = 0; i < keyElements.length; i++) {
-                const key = keyElements[i].textContent.trim();
-                const value = valueElements[i] ? valueElements[i].textContent.trim() : '';
-                text += `${key}: ${value}\n`;
-            }
-            
-            return text;
-        },
-
-        extractTableText(table) {
-            let text = '';
-            const rows = table.querySelectorAll('tr');
-            
-            for (let row of rows) {
-                const cells = row.querySelectorAll('td, th');
-                const rowText = Array.from(cells).map(cell => cell.textContent.trim()).join('\t');
-                text += rowText + '\n';
-            }
-            
-            return text;
-        },
 
         getItemType(item) {
             if(typeof item == "object" && !Array.isArray(item)) {
@@ -411,7 +384,6 @@ span.key {
 .object-item {
     margin: 5px 0;
     padding: 5px;
-    background-color: #ffffff;
     border-radius: 3px;
 }
 </style>

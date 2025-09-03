@@ -9,10 +9,10 @@
         <research-loading-spinner :isLoading="loading" colorStyle="color"></research-loading-spinner>
     </div>
     </div>
-    <div class="row">
+    <div class="row" v-if="summary">
         <div class="llm-query-contents-container col-md-12">
             <response-summary 
-                :summaryContent="utils.dataConvert.extractJson(summary)" 
+                :summaryContent="parsedSummary" 
                 :summaryConfig="summaryConfig" 
                 :utils="utils" 
                 :sectionConfig="sectionConfig" 
@@ -50,7 +50,21 @@ export default Vue.component("llm-summary", {
             this.searchFocus = this.utils.keyParams['focus'];
         }
     },
-    computed: {},
+    computed: {
+        parsedSummary() {
+            if (!this.summary) return null;
+            
+            try {
+                // Extract JSON from the summary string
+                const cleanedSummary = this.utils.dataConvert.extractJson(this.summary);
+                // Parse the JSON string to an object
+                return cleanedSummary;
+            } catch (error) {
+                console.error("Failed to parse summary JSON:", error);
+                return null;
+            }
+        }
+    },
     watch: {
         dataset(to, from) {
             if(!!this.utils.keyParams['focus']) {
@@ -60,7 +74,7 @@ export default Vue.component("llm-summary", {
             }
         },
         summary(CONTENT) {
-            console.log("summary updated");
+            console.log("summary updated",CONTENT);
         },
         searchFocus(to, from) {
             if(to != from) {
@@ -79,7 +93,7 @@ export default Vue.component("llm-summary", {
                     this.utils.keyParams.set({focus: this.searchFocus});
                 }
 
-                let url = 'https://llm.hugeamp.org/gemini';
+                let url = 'https://llm-dev.hugeamp.org/gemini';
                 let dataCollected = ""
                 this.summaryConfig['columns'].map( C => {
                     this.dataset.map((D,dIndex) => {
