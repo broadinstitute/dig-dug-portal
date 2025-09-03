@@ -38,19 +38,21 @@
                   </template>
 
                   <template v-if="$parent.pageType==='items'">
-                    <div v-for="index in Math.round($parent.pageContent.length/2)"
-                        class="team-row">
-                        <div v-for="person in $parent.pageContent.slice(2 * index - 2, 2 * index)"
-                            class="team-member">
-                            <img class="team-photo"
-                                :src="person['Photo']"
-                                :alt="person['Name']"
-                            >
-                            </img>
-                            <h3>{{ person["Name"] }}</h3>
-                            <p style="font-size: larger">{{ person["Affiliation"] }}</p>
-                            <p>{{ person["Role"] }}</p>
+                    <div v-for="person in $parent.pageContent"
+                        class="team-member">
+                            <div class="photo-wrapper">
+                                <img class="team-photo"
+                                    :src="person['Photo']"
+                                    :alt="person['Name']"
+                                    >
+                                </img>
                             </div>
+                            <div class="team-description">
+                                <h3>{{ person["Name"] }}</h3>
+                                <p style="font-size: larger">{{ person["Affiliation"] }}</p>
+                                <p>{{ person["Role"] }}</p>
+                            </div>
+                        
                     </div>
                     
                   </template>
@@ -96,14 +98,19 @@
     object-fit: contain;
 }
 .team-photo {
-    height: 300px;
+    width: 250px;
     margin-bottom: 10px;
     vertical-align: top;
+    float: left;
+}
+.team-description {
+    width: 70%;
+}
+.photo-wrapper {
+    width: 30%;
 }
 .team-member {
-    display: inline-block;
-    width: 50%;
-    padding: 50px;
-    height: 500px;
+    display: flex;
+    margin-bottom: 50px;
 }
 </style>
