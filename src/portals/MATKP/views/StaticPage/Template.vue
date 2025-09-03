@@ -38,6 +38,7 @@
                   </template>
 
                   <template v-if="$parent.pageType==='items'">
+                    <h2 class="matkp-static-content-title">MATKP Team</h2>
                     <div v-for="person in $parent.pageContent"
                         class="team-member">
                             <div class="photo-wrapper">
