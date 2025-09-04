@@ -303,6 +303,16 @@ function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
 
 }
 
+function formatLLMResponse(VALUE, FORMAT) {
+    switch (FORMAT.type) {
+        case "link":
+            let newTab = FORMAT["new tab"] ? "_blank" : "";
+            return "<a href='" + FORMAT["link to"] + VALUE + "' target='" + newTab + "'>" + VALUE + "</a>";
+            break;
+    }
+
+}
+
 function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
 
     let cellValue = VALUE;
@@ -812,5 +822,6 @@ export default {
     getHoverValue,
     getShortName,
     ssColumnFormat,
-    replaceWithParams
+    replaceWithParams,
+    formatLLMResponse
 };
