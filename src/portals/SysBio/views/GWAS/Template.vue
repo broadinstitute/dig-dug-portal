@@ -54,7 +54,7 @@
                         :disableSort="true"
                         :multiple="true"
                         :inclusive="true"
-                        @input-change="$event => $parent.filterChromosome($event)"
+                        @item-select="$event => $parent.filterChromosome($event)"
                     >
                         <div>
                             <strong>Chromosome</strong>
