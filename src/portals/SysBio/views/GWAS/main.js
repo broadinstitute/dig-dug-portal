@@ -90,6 +90,7 @@ new Vue({
                 sortBy: "pValue",
                 sortDesc: false,
             },
+            chromosomeFilterSet: false,
         };
     },
 
@@ -143,6 +144,16 @@ new Vue({
         },
         filterChromosome(filterCriterion){
             console.log(filterCriterion);
+        },
+        filtersUpdated(filters){
+            console.log("Filters are:", JSON.stringify(filters));
+            filters.forEach(thisFilter => {
+                if(thisFilter.field === 'chromosome'){
+                    this.chromosomeFilterSet = true;
+                    return;
+                }
+            });
+            this.chromosomeFilterSet = false;
         }
     },
 

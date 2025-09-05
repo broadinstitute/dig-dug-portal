@@ -19,14 +19,14 @@
             <div v-if="$parent.tableData" class="f-col" style="gap:10px">
                 <h4>Top single-variant association signals for AD versus PD: European Ancestry</h4>
                 <!-- FILTERS GO HERE -->
-                <criterion-function-group>
+                <criterion-function-group
+                    @update:filter-list="$event = $parent.filtersUpdated($event)">
                     <filter-enumeration-control
                         class="filter-col-md"
                         field="nearest"
                         :options="$parent.nearestGenes"
                         :multiple="true"
                         :inclusive="true"
-                        @input-change="event => $parent.processInput(event)"
                     >
                         <div>
                             <strong>Closest genes</strong>
