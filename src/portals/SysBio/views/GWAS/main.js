@@ -115,6 +115,9 @@ new Vue({
                 isNaN(parseInt(a)) && !isNaN(parseInt(b))
                 ? 1 
                 : parseInt(a) - parseInt(b));
+        },
+        disableRegionFilter(){
+            return !this.chromosomeFilterSet;
         }
     },
 
@@ -147,12 +150,12 @@ new Vue({
         },
         filtersUpdated(filters){
             console.log("Filters are:", JSON.stringify(filters));
-            filters.forEach(thisFilter => {
-                if(thisFilter.field === 'chromosome'){
+            for(let i = 0; i < filters.length; i++){
+                if (filters[i].field === 'chromosome'){
                     this.chromosomeFilterSet = true;
                     return;
                 }
-            });
+            }
             this.chromosomeFilterSet = false;
         }
     },

@@ -10,6 +10,7 @@
         :color="color"
         :computedField="computedField"
         :multiple="false"
+        :disabled="disabled"
         @input-change="getInput()"
     >
         <slot>{{ field }}</slot>
@@ -33,7 +34,11 @@ export default Vue.component("filter-position", {
         color: {
             type: String
         },
-        placeholder: String
+        placeholder: String,
+        disabled: {
+            type: Boolean,
+            default: true
+        }
     },
     components: {
         FilterControlTemplate

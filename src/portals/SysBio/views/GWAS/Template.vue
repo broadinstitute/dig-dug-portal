@@ -60,7 +60,8 @@
                             <strong>Chromosome</strong>
                         </div>
                     </filter-enumeration-control>
-                    <filter-position>
+                    <filter-position
+                        :disabled="$parent.disableRegionFilter">
                         <div>
                             <strong>Position (start-end)</strong>
                         </div>
