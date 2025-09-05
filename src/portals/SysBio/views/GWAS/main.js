@@ -15,6 +15,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
+import FilterPosition from "@/components/criterion/FilterPosition.vue";
 import { getTextContent } from "@/portals/SysBio/utils/content.js";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
@@ -30,7 +31,8 @@ new Vue({
         FilterEnumeration,
         FilterGreaterLess,
         FilterGreaterThan,
-        FilterLessThan
+        FilterLessThan,
+        FilterPosition
     },
 
     data() {
@@ -105,6 +107,13 @@ new Vue({
             return this.tableData !== null 
                 ? this.tableData.flatMap(m => m.nearest)
                 : [];
+        },
+        chromosomes(){
+            // Sort chromosomes numerically with X and Y last
+            return this.tableData.map(m => m.chromosome).sort((a,b) => 
+                isNaN(parseInt(a)) && !isNaN(parseInt(b))
+                ? 1 
+                : parseInt(a) - parseInt(b));
         }
     },
 

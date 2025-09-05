@@ -50,7 +50,8 @@
                     <filter-enumeration-control
                         class="filter-col-md"
                         field="chromosome"
-                        :options="$parent.tableData.map(m => m.chromosome)"
+                        :options="$parent.chromosomes"
+                        :disableSort="true"
                         :multiple="true"
                         :inclusive="true"
                         @input-change="$event => $parent.filterChromosome($event)"
@@ -59,21 +60,12 @@
                             <strong>Chromosome</strong>
                         </div>
                     </filter-enumeration-control>
-                    <filter-greater-control
-                        class="filter-col-md"
-                        field="position"
-                    >
+                    <filter-position>
                         <div>
-                            <strong>Position (&le;)</strong>
+                            <strong>Position (start-end)</strong>
                         </div>
-                    </filter-greater-control>
-                    <filter-less-control
-                        class="filter-col-md"
-                        field="position">
-                        <div>
-                            <strong>Position (&ge;)</strong>
-                        </div>
-                    </filter-less-control>
+                    </filter-position>
+                    
                     <template #filtered="{filter}">
                         <b-table
                             small
