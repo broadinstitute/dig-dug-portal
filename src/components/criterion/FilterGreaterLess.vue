@@ -1,9 +1,5 @@
 <template>
     <span class="greater-less-filter">
-        <select v-model="filterGreater" class="form-control form-control-sm">
-            <option :value="true">&ge;</option>
-            <option :value="false">&le;</option>
-        </select>
         <filter-control-template
             :field="field"
             :type="'number'"
@@ -24,6 +20,10 @@
         >
             <slot>{{ field }}</slot>
         </filter-control-template>
+        <select v-model="filterGreater" class="form-control form-control-sm">
+            <option :value="true">&ge;</option>
+            <option :value="false">&le;</option>
+        </select>
     </span>
 </template>
 <script>
