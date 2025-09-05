@@ -26,6 +26,7 @@
                         :options="$parent.nearestGenes"
                         :multiple="true"
                         :inclusive="true"
+                        @input-change="event => $parent.processInput(event)"
                     >
                         <div>
                             <strong>Closest genes</strong>
@@ -46,6 +47,33 @@
                         >
                             <div class="label"><strong>Beta</strong></div>
                         </filter-greater-less>
+                    <filter-enumeration-control
+                        class="filter-col-md"
+                        field="chromosome"
+                        :options="$parent.tableData.map(m => m.chromosome)"
+                        :multiple="true"
+                        :inclusive="true"
+                        @input-change="$event => $parent.filterChromosome($event)"
+                    >
+                        <div>
+                            <strong>Chromosome</strong>
+                        </div>
+                    </filter-enumeration-control>
+                    <filter-greater-control
+                        class="filter-col-md"
+                        field="position"
+                    >
+                        <div>
+                            <strong>Position (&le;)</strong>
+                        </div>
+                    </filter-greater-control>
+                    <filter-less-control
+                        class="filter-col-md"
+                        field="position">
+                        <div>
+                            <strong>Position (&ge;)</strong>
+                        </div>
+                    </filter-less-control>
                     <template #filtered="{filter}">
                         <b-table
                             small

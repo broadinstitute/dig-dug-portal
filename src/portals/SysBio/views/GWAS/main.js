@@ -13,6 +13,8 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import { getTextContent } from "@/portals/SysBio/utils/content.js";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
@@ -26,7 +28,9 @@ new Vue({
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
-        FilterGreaterLess
+        FilterGreaterLess,
+        FilterGreaterThan,
+        FilterLessThan
     },
 
     data() {
@@ -88,9 +92,6 @@ new Vue({
     },
 
     watch: {
-        nearestGenes(newData){
-            console.log(JSON.stringify(newData));
-        }
     },
 
     computed: {
@@ -123,7 +124,7 @@ new Vue({
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;
-            //console.log(json.data);
+            console.log(JSON.stringify(this.tableData[0]));
         },
         async fetchInfo() {
             this.pageInfo = await getTextContent(
@@ -131,6 +132,9 @@ new Vue({
                 true
             );
         },
+        filterChromosome(filterCriterion){
+            console.log(filterCriterion);
+        }
     },
 
     render(createElement, context) {
