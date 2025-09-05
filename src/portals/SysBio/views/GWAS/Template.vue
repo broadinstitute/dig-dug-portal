@@ -19,7 +19,8 @@
             <div v-if="$parent.tableData" class="f-col" style="gap:10px">
                 <h4>Top single-variant association signals for AD versus PD: European Ancestry</h4>
                 <!-- FILTERS GO HERE -->
-                <criterion-function-group>
+                <criterion-function-group
+                    @update:filter-list="$event = $parent.filtersUpdated($event)">
                     <filter-enumeration-control
                         class="filter-col-md"
                         field="nearest"
@@ -46,6 +47,26 @@
                         >
                             <div class="label"><strong>Beta</strong></div>
                         </filter-greater-less>
+                    <filter-enumeration-control
+                        class="filter-col-md"
+                        field="chromosome"
+                        :options="$parent.chromosomes"
+                        :disableSort="true"
+                        :multiple="true"
+                        :inclusive="true"
+                        @item-select="$event => $parent.filterChromosome($event)"
+                    >
+                        <div>
+                            <strong>Chromosome</strong>
+                        </div>
+                    </filter-enumeration-control>
+                    <filter-position
+                        :disabled="$parent.disableRegionFilter">
+                        <div>
+                            <strong>Position (start-end)</strong>
+                        </div>
+                    </filter-position>
+                    
                     <template #filtered="{filter}">
                         <b-table
                             small

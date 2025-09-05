@@ -13,6 +13,9 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
+import FilterPosition from "@/components/criterion/FilterPosition.vue";
 import { getTextContent } from "@/portals/SysBio/utils/content.js";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
@@ -26,7 +29,10 @@ new Vue({
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
-        FilterGreaterLess
+        FilterGreaterLess,
+        FilterGreaterThan,
+        FilterLessThan,
+        FilterPosition
     },
 
     data() {
@@ -84,13 +90,11 @@ new Vue({
                 sortBy: "pValue",
                 sortDesc: false,
             },
+            chromosomeFilterSet: false,
         };
     },
 
     watch: {
-        nearestGenes(newData){
-            console.log(JSON.stringify(newData));
-        }
     },
 
     computed: {
@@ -104,6 +108,16 @@ new Vue({
             return this.tableData !== null 
                 ? this.tableData.flatMap(m => m.nearest)
                 : [];
+        },
+        chromosomes(){
+            // Sort chromosomes numerically with X and Y last
+            return this.tableData.map(m => m.chromosome).sort((a,b) => 
+                isNaN(parseInt(a)) && !isNaN(parseInt(b))
+                ? 1 
+                : parseInt(a) - parseInt(b));
+        },
+        disableRegionFilter(){
+            return !this.chromosomeFilterSet;
         }
     },
 
@@ -123,7 +137,7 @@ new Vue({
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;
-            //console.log(json.data);
+            console.log(JSON.stringify(this.tableData[0]));
         },
         async fetchInfo() {
             this.pageInfo = await getTextContent(
@@ -131,6 +145,19 @@ new Vue({
                 true
             );
         },
+        filterChromosome(filterCriterion){
+            console.log(filterCriterion);
+        },
+        filtersUpdated(filters){
+            console.log("Filters are:", JSON.stringify(filters));
+            for(let i = 0; i < filters.length; i++){
+                if (filters[i].field === 'chromosome'){
+                    this.chromosomeFilterSet = true;
+                    return;
+                }
+            }
+            this.chromosomeFilterSet = false;
+        }
     },
 
     render(createElement, context) {

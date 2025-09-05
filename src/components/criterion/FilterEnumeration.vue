@@ -9,6 +9,7 @@
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
         @input-change="$emit('input-change', $event)"
+        @item-select="$emit('item-select', $event)"
         :color="color"
         :label="label"
         :multiple="!!multiple"
