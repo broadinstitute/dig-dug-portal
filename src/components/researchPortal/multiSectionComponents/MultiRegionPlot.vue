@@ -162,7 +162,6 @@ export default Vue.component("multi-region-plot", {
 		"utils",
 		"starItems",
 		"colors",
-		"receivedLD"
 	],
 	data() {
 		return {
@@ -605,6 +604,9 @@ export default Vue.component("multi-region-plot", {
 				return returnObj;
 			}
 		},
+		pageLevelLD(){
+			return this.$store.state.topLevelLDData;
+		}
 	},
 	watch: {
 		hoverPos(POS){
@@ -628,16 +630,8 @@ export default Vue.component("multi-region-plot", {
             },
             deep: true,
 		},
-		receivedLD:{
-			handler(newData, oldData){
-				if (!isEqual(newData, oldData)) {
-					if (this.renderConfig.propagateLD !== "true"){
-						console.log("Receiving LD data");
-						this.ldData = newData;
-					}
-                }
-			},
-			deep: true,
+		pageLevelLD(DATA){
+			console.log("receiving LD Data", JSON.stringify(DATA));
 		}
 	},
 	methods: {

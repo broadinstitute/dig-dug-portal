@@ -128,7 +128,6 @@
 				:utils="utils"
 				:starItems="starItems"
 				:colors="colors"
-				:receivedLD="receivedLD"
 				@ld-data-loaded="ld => receiveLDData(ld)"
 				@on-star="starColumn"
 			></multi-region-plot>
@@ -234,7 +233,7 @@ import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfde
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
 		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom",
-		"regionViewArea","starItems","region","bigRegion","receivedLD"],
+		"regionViewArea","starItems","region","bigRegion"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,

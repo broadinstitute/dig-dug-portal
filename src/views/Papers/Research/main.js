@@ -166,7 +166,6 @@ new Vue({
                     "#d4d4d4",
                 ],
             },
-            pageLevelLDData: {}
         };
     },
 
@@ -1022,9 +1021,6 @@ new Vue({
 
             return content;
         },
-        propagateLD(){
-            return this.pageLevelLDData;
-        }
     },
 
     watch: {
@@ -2304,7 +2300,7 @@ new Vue({
         },
         receiveLDData(LD_DATA){
             console.log("LD Data", JSON.stringify(LD_DATA));
-            this.pageLevelLDData = LD_DATA;
+            this.$store.dispatch("sendLDData", LD_DATA);
         }
     
     },

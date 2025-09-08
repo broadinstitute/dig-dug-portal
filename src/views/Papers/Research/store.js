@@ -45,6 +45,7 @@ export default new Vuex.Store({
         phenotypeCorrelation: null,
         /// muti-sections use
         capturedData: [],
+        topLevelLDData: null,
         ///
     },
     mutations: {
@@ -154,6 +155,9 @@ export default new Vuex.Store({
         },
         setPhenotypeCorrelation(state, Correlation) {
             state.phenotypeCorrelation = Correlation;
+        },
+        setTopLevelLDData(state, DATA){
+            state.topLevelLDData = DATA;
         }
     },
     getters: {},
@@ -218,5 +222,8 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
+        sendLDData(context, DATA){
+            context.commit("setTopLevelLDData", DATA);
+        }
     }
 });
