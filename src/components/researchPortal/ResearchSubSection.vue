@@ -606,6 +606,9 @@ export default Vue.component("research-sub-section", {
 
 			return content;
 		},
+		receiveLDData(LD_DATA){
+			this.$emit("ld-data-loaded", LD_DATA);
+		}
 	},
 });
 

@@ -2302,7 +2302,12 @@ new Vue({
             return sortedData[0][p] !== undefined
                 ? sortedData[0]
                 : null;
+        },
+        receiveLDData(LD_DATA){
+            console.log("Receiving LD Data");
+            console.log(JSON.stringify(LD_DATA));
         }
+    
     },
 
     render(createElement, context) {

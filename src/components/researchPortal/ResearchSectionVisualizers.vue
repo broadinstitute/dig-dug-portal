@@ -128,7 +128,7 @@
 				:utils="utils"
 				:starItems="starItems"
 				:colors="colors"
-				
+				@ld-data-loaded="ld => receiveLDData(ld)"
 				@on-star="starColumn"
 			></multi-region-plot>
 			
@@ -281,6 +281,9 @@ export default Vue.component("research-section-visualizers", {
 		starColumn(ARRAY) {
 			this.$emit('on-star', ARRAY);
 		},
+		receiveLDData(DATA){
+			this.$emit("ld-data-loaded", DATA);
+		}
 	},
 });
 

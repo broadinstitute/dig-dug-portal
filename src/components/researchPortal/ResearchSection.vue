@@ -181,6 +181,7 @@
 											:regionViewArea="regionViewArea" :region="regionParam" 
 											:bigRegion="bigRegionParam"
 											:starItems="starItems"
+											@ld-data-loaded="ld => receiveLDData(ld)"
 											@on-star="starColumn">
 										</research-section-visualizers>
 									</div>
@@ -203,8 +204,9 @@
 										:plotLegend="getSectionPlotLegend(sectionID + plotIndex)" :sectionId="sectionID + plotIndex"
 										:utils="utils" :dataComparisonConfig="dataComparisonConfig"
 										:searchParameters="groupSearchParameters" :regionZoom="regionZoom"
-										:regionViewArea="regionViewArea" :region="regionParam" 
+										:regionViewArea="regionViewArea" :region="regionParam"
 										:bigRegion="bigRegionParam" :starItems="starItems"
+										@ld-data-loaded="ld => receiveLDData(ld)"
 										@on-star="starColumn">
 									</research-section-visualizers>
 								</div>
@@ -218,6 +220,7 @@
 								:regionZoom="regionZoom" :regionViewArea="regionViewArea" :region="regionParam"
 								:bigRegion="bigRegionParam"
 								:starItems="starItems"
+								@ld-data-loaded="ld => receiveLDData(ld)"
 								@on-star="starColumn">
 							</research-section-visualizers>
 
@@ -1993,6 +1996,9 @@ export default Vue.component("research-section", {
 					}
 				})
 			}
+		},
+		receiveLDData(LD_DATA){
+			this.$emit("ld-data-loaded", LD_DATA);
 		}
 
 	},

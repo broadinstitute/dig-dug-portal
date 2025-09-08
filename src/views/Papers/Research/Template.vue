@@ -733,7 +733,8 @@
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
 													@on-zoom="$parent.setZoom"
-													@on-checkPosition="$parent.setHoverPos">
+													@on-checkPosition="$parent.setHoverPos"
+													@ld-data-loaded="ld => $parent.receiveLDData(ld)">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
@@ -786,7 +787,8 @@
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
 									@on-zoom="$parent.setZoom"
-									@on-checkPosition="$parent.setHoverPos">
+									@on-checkPosition="$parent.setHoverPos"
+									@ld-data-loaded="ld => $parent.receiveLDData(ld)">
 								</research-section>	
 								<research-sections-summary
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"

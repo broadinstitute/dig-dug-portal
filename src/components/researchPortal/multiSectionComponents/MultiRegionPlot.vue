@@ -140,6 +140,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import { isEqual } from "lodash";
 import regionPlotVector from "@/components/researchPortal/vectorPlots/ResearchRegionPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
@@ -614,6 +615,17 @@ export default Vue.component("multi-region-plot", {
 		starItems(STARS) {
 			this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
 			this.renderPlots();
+		},
+		ldData: {
+			handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+					if (this.renderConfig.propagateLD === "true"){
+						// Propagate LD if necessary
+						this.$emit("ld-data-loaded", newData);
+					}
+                }
+            },
+            deep: true,
 		}
 	},
 	methods: {
