@@ -34,6 +34,7 @@ export default Vue.component("research-region-dots-vector", {
 	},
 	components: {},
 	created: function () {
+		console.log("Research region dots vector created");
 	},
 	mounted: function () {
 		//this.renderPlot()

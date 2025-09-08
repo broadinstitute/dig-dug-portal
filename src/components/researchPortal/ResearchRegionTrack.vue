@@ -118,6 +118,9 @@ export default Vue.component("research-region-track", {
     components: {
         regionTrackVector
     },
+    created(){
+        console.log(this.sectionId + "Research Region Track created");
+    },
     mounted: function () {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);

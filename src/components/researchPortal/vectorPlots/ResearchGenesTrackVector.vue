@@ -33,7 +33,6 @@ export default Vue.component("research-genes-track-vector", {
 	},
 	components: {},
 	created: function () {
-		console.log("Research genes track vector:", JSON.stringify(this.renderConfig));
 	},
 	mounted: function () {
 		//this.renderPlot()
@@ -41,14 +40,8 @@ export default Vue.component("research-genes-track-vector", {
 	beforeDestroy() {
 	},
 	computed: {
-		pageLevelLD(){
-			return this.$store.state.topLevelLDData;
-		}
 	},
 	watch: {
-		pageLevelLD(DATA){
-			console.log("receiving LD Data on research genes track", JSON.stringify(DATA));
-		}
 	},
 	methods: {
 		renderPlot() {
