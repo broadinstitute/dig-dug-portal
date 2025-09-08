@@ -746,7 +746,6 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		resetLdReference(GROUP, ITEM) {
-
 			let variantField = this.renderConfig['ld server']['ref variant field'];
 
 			let VARIANT = this.assoData[GROUP].data[ITEM][variantField];
@@ -1020,6 +1019,8 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		async callForLDData() {
+			// Can we just cut in right here?
+
 			const plotWrappers = document.querySelectorAll(
 				".region-plots-wrapper"
 			);
@@ -1304,7 +1305,11 @@ export default Vue.component("multi-region-plot", {
 				yStart = this.adjPlotMargin.top + HEIGHT,
 				xPosByPixel = WIDTH / (xMax - xMin),
 				yPosByPixel = HEIGHT / (yMax - yMin),
-				variantField = (!!this.renderConfig["ld server"])?this.renderConfig['ld server']['ref variant field']:null,
+				variantField = (!!this.renderConfig["ld server"])
+					? this.renderConfig['ld server']['ref variant field']
+					: this.renderConfig.propagateLD === 'receive'
+						? "LD Variant ID"
+						: null,
 				renderByField = this.renderConfig["render by"],
 				starField = this.renderConfig["star key"],
 				xField = this.renderConfig["x axis field"],
@@ -1381,12 +1386,18 @@ export default Vue.component("multi-region-plot", {
 							);
 
 
-							let ldKey = value[variantField];
+							let ldKey = value[variantField]; // TODO FIX THIS RIGHT HERE
+							
 							let starKey = value[starField];
+							let dot = this.renderConfig.propagateLD === 'receive'
+								? this.globalLDData.default.data[this.getGlobalDot(value)]
+								: this.ldData[GROUP].data[ldKey];
 
-							let dotColor = (!!ldKey)?this.getDotColor(
-								this.ldData[GROUP].data[ldKey]
-							):'#00000030';
+							let dotColor = 
+								//this.renderConfig.propagateLD === 'receive'  ? this.getGlobalDot(value):
+								(!!ldKey || this.renderConfig.propagateLD === 'receive')
+									? this.getDotColor(dot)
+									: '#00000030';
 
 							if (ldKey == this.ldData[GROUP].refVariant) {
 								if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
@@ -1559,8 +1570,6 @@ export default Vue.component("multi-region-plot", {
 						);
 					} else {
 						//let yField = this.renderConfig["y axis field"];
-
-						//console.log(this.assoData[GROUP])
 
 						for (const [key, value] of Object.entries(
 							this.ldData[GROUP].data
@@ -1768,6 +1777,17 @@ export default Vue.component("multi-region-plot", {
 				let index = Math.floor(SCORE * 5);
 				return this.ldDotColor[index];
 			}
+		},
+		getGlobalDot(DOT){
+			let field = "Variant ID";
+			let fieldValues = DOT[field].split("_");
+			let chr = fieldValues[0].replace("chr", "");
+			let pos = fieldValues[1];
+			let ref = fieldValues[2];
+			let alt = fieldValues[3];
+			let formattedDot = `${chr}:${pos}_${ref}/${alt}`;
+			console.log(formattedDot);
+			return formattedDot;
 		},
 		renderConntingLine(
 			CTX,

@@ -35,7 +35,6 @@ export default Vue.component("research-region-plot-vector", {
 	},
 	components: {},
 	created: function () {
-		console.log(this.sectionId, JSON.stringify(this.ldData));
 	},
 	mounted: function () {
 		//this.renderPlot('default')
@@ -179,14 +178,6 @@ export default Vue.component("research-region-plot-vector", {
 				})
 				.style("font", "12px Arial")
 				.call(d3.axisRight(recombY).ticks(5));
-
-			////console.log(this.recombData)
-
-			/// render recomb line
-
-			//console.log("asso", assoData)
-			//console.log("ld", this.ldData)
-			//console.log("recomb", this.recombData)
 
 			this.recombData.position.map( (p, pIndex) => {
 				if(pIndex != 0) {
