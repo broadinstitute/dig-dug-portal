@@ -166,6 +166,7 @@ new Vue({
                     "#d4d4d4",
                 ],
             },
+            pageLevelLDData: {}
         };
     },
 
@@ -1024,11 +1025,6 @@ new Vue({
     },
 
     watch: {
-        sectionsData(newData, oldData) {
-            //Each new item is pushed, so we can take the latest one each time
-            let newestItem = newData[newData.length - 1];
-            console.log(JSON.stringify(this.getLowestPValue(newestItem)));
-        },
         sectionConfigs(CONFIGS) {
             let context;
 
@@ -2304,8 +2300,8 @@ new Vue({
                 : null;
         },
         receiveLDData(LD_DATA){
-            console.log("Receiving LD Data");
-            console.log(JSON.stringify(LD_DATA));
+            console.log("LD Data", JSON.stringify(LD_DATA));
+            this.pageLevelLDData = LD_DATA;
         }
     
     },

@@ -161,7 +161,8 @@ export default Vue.component("multi-region-plot", {
 		"sectionId",
 		"utils",
 		"starItems",
-		"colors"
+		"colors",
+		"receivedLD"
 	],
 	data() {
 		return {
@@ -626,6 +627,16 @@ export default Vue.component("multi-region-plot", {
                 }
             },
             deep: true,
+		},
+		receivedLD:{
+			handler(newData, oldData){
+				if (!isEqual(newData, oldData)) {
+					if (this.renderConfig.propagateLD !== "true"){
+						this.ldData = newData;
+					}
+                }
+			},
+			deep: true,
 		}
 	},
 	methods: {
