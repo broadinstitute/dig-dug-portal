@@ -1025,10 +1025,9 @@ new Vue({
 
     watch: {
         sectionsData(newData, oldData) {
-            //console.log("sectionsData", DATA);
-            for (let i = 0; i < newData.length; i++){
-                console.log(JSON.stringify(this.getLowestPValue(newData[i])));
-            }
+            //Each new item is pushed, so we can take the latest one each time
+            let newestItem = newData[newData.length - 1];
+            console.log(JSON.stringify(this.getLowestPValue(newestItem)));
         },
         sectionConfigs(CONFIGS) {
             let context;
