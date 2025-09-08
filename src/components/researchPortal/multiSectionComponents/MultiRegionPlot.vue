@@ -1786,7 +1786,6 @@ export default Vue.component("multi-region-plot", {
 			let ref = fieldValues[2];
 			let alt = fieldValues[3];
 			let formattedDot = `${chr}:${pos}_${ref}/${alt}`;
-			console.log(formattedDot);
 			return formattedDot;
 		},
 		renderConntingLine(
