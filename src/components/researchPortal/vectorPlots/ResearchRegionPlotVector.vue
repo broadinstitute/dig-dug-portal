@@ -35,6 +35,7 @@ export default Vue.component("research-region-plot-vector", {
 	},
 	components: {},
 	created: function () {
+		console.log(this.sectionId, JSON.stringify(this.ldData));
 	},
 	mounted: function () {
 		//this.renderPlot('default')
@@ -208,7 +209,6 @@ export default Vue.component("research-region-plot-vector", {
 			})
 
 			// render Dots
-
 			let yAxisField = this.renderConfig['y axis field'],
 				xAxisField = this.renderConfig['x axis field'],
 				renderField = this.renderConfig['render by'];
@@ -223,8 +223,6 @@ export default Vue.component("research-region-plot-vector", {
 						fillColor = "#00000030",
 						ldVariantField = this.renderConfig['ld server']['ref variant field'],
 						ldVariant = assoData.data[variant][ldVariantField];
-
-						//console.log("ldVariant", ldVariant)
 
 					if (!!this.ldData[DATA].data[ldVariant]) {
 						let index = Math.floor(this.ldData[DATA].data[ldVariant] * 5);

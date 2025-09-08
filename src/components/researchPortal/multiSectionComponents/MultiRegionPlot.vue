@@ -607,7 +607,6 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		globalLDData(){
-			console.log(this.sectionId, this.renderConfig.propagateLD);
 			return this.$store.state.topLevelLDData !== null
 				? this.$store.state.topLevelLDData
 				: this.ldData;
@@ -629,7 +628,11 @@ export default Vue.component("multi-region-plot", {
                 if (!isEqual(newData, oldData)) {
 					if (this.renderConfig.propagateLD === "send"){
 						// Propagate LD if necessary
-						this.$emit("ld-data-loaded", newData);
+						let ldInfo = {
+							data: newData,
+							server: this.renderConfig["ld server"]
+						};
+						this.$emit("ld-data-loaded", ldInfo);
 					}
                 }
             },

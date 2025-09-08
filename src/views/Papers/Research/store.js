@@ -46,6 +46,7 @@ export default new Vuex.Store({
         /// muti-sections use
         capturedData: [],
         topLevelLDData: null,
+        topLevelLDServer: null,
         ///
     },
     mutations: {
@@ -158,6 +159,9 @@ export default new Vuex.Store({
         },
         setTopLevelLDData(state, DATA){
             state.topLevelLDData = DATA;
+        },
+        setTopLevelLDServer(state, DATA){
+            state.topLevelLDServer = DATA;
         }
     },
     getters: {},
@@ -223,7 +227,8 @@ export default new Vuex.Store({
             context.commit("setPhenotypeCorrelation", DATA);
         },
         sendLDData(context, DATA){
-            context.commit("setTopLevelLDData", DATA);
+            context.commit("setTopLevelLDData", DATA.data);
+            context.commit("setTopLevelLDServer", DATA.server);
         }
     }
 });
