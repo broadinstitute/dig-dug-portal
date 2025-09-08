@@ -1024,8 +1024,11 @@ new Vue({
     },
 
     watch: {
-        sectionsData(DATA) {
+        sectionsData(newData, oldData) {
             //console.log("sectionsData", DATA);
+            for (let i = 0; i < newData.length; i++){
+                console.log(JSON.stringify(this.getLowestPValue(newData[i])));
+            }
         },
         sectionConfigs(CONFIGS) {
             let context;
@@ -2294,6 +2297,13 @@ new Vue({
         showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
         },
+        getLowestPValue(sectionData){
+            let p = "P-value";
+            let sortedData = sectionData.data.sort((a,b) => a[p] - b[p]);
+            return sortedData[0][p] !== undefined
+                ? sortedData[0]
+                : null;
+        }
     },
 
     render(createElement, context) {
