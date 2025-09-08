@@ -120,7 +120,7 @@
 			<research-region-plot-vector
 		        v-if="!!assoData"
 		            :assoData="assoData"
-					:ldData="ldData"
+					:ldData="globalLDData"
 					:recombData="recombData"
 		            :renderConfig="renderConfig"
 		            :colors="ldDotColor"
@@ -201,6 +201,8 @@ export default Vue.component("multi-region-plot", {
 	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
+	},
+	created(){
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -604,8 +606,11 @@ export default Vue.component("multi-region-plot", {
 				return returnObj;
 			}
 		},
-		pageLevelLD(){
-			return this.$store.state.topLevelLDData;
+		globalLDData(){
+			console.log(this.sectionId, this.renderConfig.propagateLD);
+			return this.$store.state.topLevelLDData !== null
+				? this.$store.state.topLevelLDData
+				: this.ldData;
 		}
 	},
 	watch: {
@@ -622,7 +627,7 @@ export default Vue.component("multi-region-plot", {
 		ldData: {
 			handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
-					if (this.renderConfig.propagateLD === "true"){
+					if (this.renderConfig.propagateLD === "send"){
 						// Propagate LD if necessary
 						this.$emit("ld-data-loaded", newData);
 					}
@@ -630,9 +635,6 @@ export default Vue.component("multi-region-plot", {
             },
             deep: true,
 		},
-		pageLevelLD(DATA){
-			console.log("receiving LD Data", JSON.stringify(DATA));
-		}
 	},
 	methods: {
 		downloadImage(ID, NAME, TYPE, SVG, DATA, ref) {

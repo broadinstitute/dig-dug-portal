@@ -167,6 +167,9 @@ export default Vue.component("research-region-plot", {
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
 	},
+	created(){
+		console.log(this.sectionId, "vanilla region plot created");
+	},	
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
@@ -557,9 +560,6 @@ export default Vue.component("research-region-plot", {
 		starItems(CONTENT) {
 			this.renderPlots();
 		},
-		pageLevelLD(DATA){
-			console.log("receiving LD Data on plain region plot", JSON.stringify(DATA));
-		}
 	},
 	methods: {
 
