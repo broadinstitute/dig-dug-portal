@@ -632,6 +632,7 @@ export default Vue.component("multi-region-plot", {
 			handler(newData, oldData){
 				if (!isEqual(newData, oldData)) {
 					if (this.renderConfig.propagateLD !== "true"){
+						console.log("Receiving LD data");
 						this.ldData = newData;
 					}
                 }

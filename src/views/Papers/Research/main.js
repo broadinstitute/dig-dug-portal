@@ -1022,6 +1022,9 @@ new Vue({
 
             return content;
         },
+        propagateLD(){
+            return this.pageLevelLDData;
+        }
     },
 
     watch: {

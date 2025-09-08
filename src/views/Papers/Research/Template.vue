@@ -783,7 +783,7 @@
 									:regionViewArea="$parent.regionViewArea"
 									:pageParams="$parent.pageParams"
 									:searchParameters="$parent.rawSearchParameters"
-									
+									:receivedLD="$parent.propagateLD"
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
 									@on-zoom="$parent.setZoom"
