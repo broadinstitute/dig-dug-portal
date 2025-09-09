@@ -304,13 +304,22 @@ function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
 }
 
 function formatLLMResponse(VALUE, FORMAT) {
+    let newTab;
     switch (FORMAT.type) {
         case "link":
-            let newTab = FORMAT["new tab"] ? "_blank" : "";
+            newTab = FORMAT["new tab"] ? "_blank" : "";
             return "<a href='" + FORMAT["link to"] + VALUE + "' target='" + newTab + "'>" + VALUE + "</a>";
             break;
-    }
+        case "split link":
+            newTab = FORMAT["new tab"] ? "_blank" : "";
+            let contentArr = VALUE.split(FORMAT["split by"]);
+            let returnContent = "";
 
+            contentArr.map((content, index) => {
+                returnContent += (index == FORMAT["link index"]) ? "<a href='" + FORMAT["link to"] + content + "' target='" + newTab + "'>" + content + "</a>" : content;
+            })
+            return returnContent;
+    }
 }
 
 function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {

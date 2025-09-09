@@ -42,6 +42,7 @@ import sessionUtils from "@/utils/sessionUtils";
 import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
+import { llmUtils } from "@/utils/llmUtils.js";
 import $ from "jquery";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
@@ -183,6 +184,7 @@ new Vue({
                 filterUtils: filterUtils,
                 regionUtils: regionUtils,
                 userUtils: userUtils,
+                llmUtils: llmUtils,
             };
             return utils;
         },

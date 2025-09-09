@@ -107,6 +107,7 @@
 <script>
 
 import Vue from "vue";
+//import { llmUtils } from "@/utils/llmUtils.js";
 
 export default Vue.component("research-pigean-search", {
     props: ["sectionsConfig", "paramIndex", "parent", "utils"],
@@ -392,61 +393,33 @@ export default Vue.component("research-pigean-search", {
             this.loading = true;
 
             try {
-
-                // 1. Define your JSON object model
-                const jsonModel =  this.assistMeConfig['response json']
-
-                // 2. Convert the object to a formatted string (with 2-space indentation)
-                const modelString = JSON.stringify(jsonModel, null, 2);
-
-                let prompt = this.assistMeConfig['prompt']+'\n';
+                // Prepare the prompt
+                let prompt = this.assistMeConfig['prompt'] + '\n';
                 prompt += `User input: ${this.userInputParameter}\n\n`;
 
-                let systemPrompt = `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
-
-                //const MODEL_NAME = this.assistMeConfig['model'];
-
-                async function callGeminiAPI(userPrompt,systemPrompt,model) {
-                    let url = 'https://llm.hugeamp.org/gemini';
-
-                    var payload = {
-                        model: model,
-                        systemPrompt: systemPrompt,
-                        userPrompt: userPrompt,
-                    };
-
-                    var options = {
-                        method: 'POST',
-                        headers: {
-                        'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    };
-
-                    const response =  await fetch(url, options);
-
-                    if (!response.ok) {
-                        new Error("Fetch error:" + response.error);
-                        return;
-                    }
-
-                    const res = await response.json();
-                    //console.log('*KCLLM response*', res);
-                    const data = res.data[0].gemini_response;
-                    //console.log('data', data);
-                    //this.summary = data;
-                    return data;
-
-                    
-                }
+                // Prepare the system prompt with JSON model
+                const jsonModel = this.assistMeConfig['response json'];
+                const modelString = JSON.stringify(jsonModel, null, 2);
+                const systemPrompt = `Your entire response must be a single, raw JSON object and nothing else. Do not include '''json markdown tags, explanations, or any text whatsoever before the opening { or after the closing '}. Use this exact JSON structure:  ${modelString}\n\n`;
 
                 console.log("prompt", prompt);
 
-                // Call the API and wait for the response
-                this.assistMeContents = await callGeminiAPI(prompt, systemPrompt, this.assistMeConfig['model']);
+                // Use the utility function
+                const result = await this.utils.llmUtils.queryLLMSimple(
+                    prompt,
+                    systemPrompt,
+                    this.assistMeConfig['model'],
+                    'https://llm.hugeamp.org/gemini'
+                );
+
+                if (result.success) {
+                    this.assistMeContents = result.data;
+                } else {
+                    this.assistMeContents = `Error: Failed to process LLM request. ${result.error}`;
+                }
                 
             } catch (error) {
-                console.error("Error in queryLLM:", error);
+                console.error("Error in buildSearchLLM:", error);
                 this.assistMeContents = "Error: Failed to process LLM request";
             } finally {
                 // Always ensure loading is set to false, even if there's an error
