@@ -26,7 +26,7 @@
                 </div>
             </div>
             <div class="footer-logo">
-                <img src="https://hugeampkpncms.org/sites/default/files/images/sysbio/logos/sb-white-v.svg" />
+                <img src="/images/sysbio/logos/sb-white-v.svg" />
             </div>
         </div>
         <div class="colophon">

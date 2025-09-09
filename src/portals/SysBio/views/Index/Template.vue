@@ -78,7 +78,7 @@
                                     shows all differentially expressed genes between the two groups.</div>
                                 <div class="tab-content-img-wrapper">
                                     <img style="width: 450px;"
-                                        src="https://hugeampkpncms.org/sites/default/files/images/sysbio/images/sysbio_volcano.jpg" />
+                                        src="/images/sysbio/images/sysbio_volcano.jpg" />
 
                                 </div>
                             </div>
@@ -89,7 +89,7 @@
                                 <div class="tab-content-img-wrapper">
 
                                     <img style="width: 850px;"
-                                        src="https://hugeampkpncms.org/sites/default/files/images/sysbio/images/sysbio_pca_collected.jpg" />
+                                        src="/images/sysbio/images/sysbio_pca_collected.jpg" />
                                 </div>
                             </div>
                         </div>
@@ -170,7 +170,7 @@
     height: 500px;
     margin: -40px -5vw 0;
     padding: 100px;
-    background-image: url('https://hugeampkpncms.org/sites/default/files/images/sysbio/images/sysbio_hero.png');
+    background-image: url('/images/sysbio/images/sysbio_hero.png');
     background-size: cover;
     background-position: bottom center;
     color: white;

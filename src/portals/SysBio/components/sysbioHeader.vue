@@ -1,7 +1,7 @@
 <template>
     <div class="header f-row align-v-center spread-out ">
         <a class="logo f-row align-v-center" href="/">
-            <img src="https://hugeampkpncms.org/sites/default/files/images/sysbio/logos/sb-color-h.svg">
+            <img src="/images/sysbio/logos/sb-color-h.svg">
         </a>
         <div class="beta">beta</div>
         <div class="menu f-row">
@@ -50,7 +50,7 @@ export default Vue.component("sysbio-header", {
     computed: {},
     created() {
         this.injectFavicon(
-            "https://hugeampkpncms.org/sites/default/files/images/sysbio/logos/sb-color-icon.svg"
+            "/images/sysbio/logos/sb-color-icon.svg"
         );
         this.injectFont(
             "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"

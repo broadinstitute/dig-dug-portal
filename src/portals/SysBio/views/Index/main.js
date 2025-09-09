@@ -32,7 +32,7 @@ new Vue({
                         body: "Leveraging precision medicine to validate existing targets and discover novel targets and biomarkers.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-alzheimers-disease-2-0/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_AD.png",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_AD.png",
                         type: "medium"
                     },
                     {
@@ -40,7 +40,7 @@ new Vue({
                         body: "Identifying biomarkers, therapeutic targets, and clinical outcome assessments for ALS.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amyotrophic-lateral-sclerosis/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_ALS.png",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_ALS.png",
                         type: "medium"
                     },
                     {
@@ -48,7 +48,7 @@ new Vue({
                         body: "Understanding the cellular and molecular interactions that lead to AIM.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-autoimmune-immune-mediated-diseases/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_AIM.jpg",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_AIM.jpg",
                         type: "medium"
                     },
                     {
@@ -56,7 +56,7 @@ new Vue({
                         body: "Identifying targets for six common metabolic diseases: liver diseases, kidney diseases, obesity, cardiovascular diseases, type 2 diabetes/prediabetes, and type 1 diabetes.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-common-metabolic-disorders/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_CMD.png",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_CMD.png",
                         type: "medium"
                     },
 
@@ -65,7 +65,7 @@ new Vue({
                         body: "Identifying biomarkers and therapies for Parkinson’s Disease.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-parkinsons-disease/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_PD.png",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_PD.png",
                         type: "medium"
                     },
                     {
@@ -73,7 +73,7 @@ new Vue({
                         body: "Performing single cell-level analyses of tissue and blood samples from people with rheumatoid arthritis and systemic lupus erythematosus to pinpoint genes, proteins, pathways, and signaling networks. ",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-rheumatoid-arthritis-and-lupus/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_RA-SLE.png",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_RA-SLE.png",
                         type: "medium"
                     },
                     {
@@ -81,7 +81,7 @@ new Vue({
                         body: "Developing effective early-stage treatments for individuals at risk for schizophrenia, understanding disease pathways, and identifying targets for treatment.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-schizophrenia/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_SCZ.png",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_SCZ.png",
                         type: "medium"
                     },
                     {
@@ -89,7 +89,7 @@ new Vue({
                         body: "Investigating heart failure with preserved ejection fraction (HFpEF) through deep phenotyping and data analysis.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-heart-failure/",
-                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/sysbio_amp_programs/AMP_HF.png",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_HF.png",
                         type: "medium"
                     },
                 ],
@@ -99,25 +99,25 @@ new Vue({
                 list: [
                     {
                         url: "",
-                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/verily.png"
+                        logo: "/images/sysbio/sysbio_consortium/verily.png"
                     }, {
                         url: "",
-                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/technome.png"
+                        logo: "/images/sysbio/sysbio_consortium/technome.png"
                     }, {
                         url: "",
-                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/datatecnica.png"
+                        logo: "/images/sysbio/sysbio_consortium/datatecnica.png"
                     }, {
                         url: "",
-                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/sage.png"
+                        logo: "/images/sysbio/sysbio_consortium/sage.png"
                     }, {
                         url: "",
-                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/Broad.png"
+                        logo: "/images/sysbio/sysbio_consortium/Broad.png"
                     }, {
                         url: "",
-                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/northwestern.png"
+                        logo: "/images/sysbio/sysbio_consortium/northwestern.png"
                     }, {
                         url: "",
-                        logo: "https://hugeampkpncms.org/sites/default/files/images/sysbio_consortium/victr.png"
+                        logo: "/images/sysbio/sysbio_consortium/victr.png"
                     },
                 ],
             },
