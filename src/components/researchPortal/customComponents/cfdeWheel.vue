@@ -2,9 +2,9 @@
     <div class="cfde-wheel">
         <div class="cfde-underlay" @click="$emit('close')"></div>
         <div class="cfde-close" @click="$emit('close')">✖</div>
-        <div style="display:flex; width: 100%; height:100%; padding:40px; gap: 20px">
+        <div style="display:flex; width: 100%; height:100%; padding:40px; gap: 20px; pointer-events: none;">
         <div style="flex:1; display:flex; align-items: center; justify-content: center;">
-            <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 382.365 366.599">
+            <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 382.365 366.599" style="pointer-events: all;">
                 <g transform="translate(191,183) scale(0.55) translate(-191,-200)">
                     <path class="interactive" @mouseenter="hoverCenter($event, centers[0].short_label, 100)" @mouseleave="unhover()" @click="handleClick(centers[0])"
                         d="m99.134 67.883 91.725 124.504L282.29 67.103 191.033.957l-45.95 33.463Z" fill="#cd5230" stroke="#cd5230" stroke-width="1.914" stroke-linejoin="round"/>
@@ -270,7 +270,7 @@ export default Vue.component("cfde-wheel", {
                     short_label: 'The Integration and Coordination Center'
                 },
                 {
-                    homepage: 'https://commonfund.nih.gov/dataecosystem/highlights/common-fund-data-ecosystem-announces-cloud-workspace-implementation-center',
+                    homepage: 'https://cfdecloud.org',
                     short_label: 'The Cloud Workspace Implementation Center'
                 },
                 {
