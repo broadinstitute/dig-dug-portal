@@ -43,12 +43,10 @@
                                 :regionViewArea="null" 
                                 :colors="null" :plotMargin="null">
                             </research-data-table>
-                             <div>{{ 'next step' }}
-                                <button class="btn btn-sm btn-outline-primary" @click="queryNextStep(itemValue)">Next Step</button>
+                             <div v-if="!!summaryConfig['next steps']">
+                                <next-steps :data="getFilteredData(itemValue)" :config="summaryConfig['next steps']" :utils="utils"></next-steps>
                             </div>
                         </div>
-                       
-
                         
                     </div>
                 </template>
@@ -75,21 +73,22 @@
 <script>
 import Vue from "vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import NextSteps from "@/components/researchPortal/contextualSearch/NextSteps.vue";
 
 export default Vue.component("response-summary", {
     props: ["summaryContent","summaryConfig","utils","sectionConfig","dataset"],
     components: {
-        ResearchDataTable
+        ResearchDataTable,
+        NextSteps
     },
     data() {
         return {
             summary: null,
             inSummaryDataLength: null,
-            nextStepData: []
         }
     },
     mounted() {
-        
+        console.log("summaryConfig", this.summaryConfig);
     },
     watch: {
         summaryContent(to, from) {
@@ -98,107 +97,7 @@ export default Vue.component("response-summary", {
         summary(to, from) {
             console.log("summary", to);
         },
-        nextStepData(to, from) {
-
-            function findArrayIntersection(arrays) {
-                // Handle edge cases where no arrays or only one array is provided.
-                if (arrays.length === 0) {
-                    return [];
-                }
-                if (arrays.length === 1) {
-                    // Convert to a Set and back to an array to handle duplicates.
-                    return [...new Set(arrays[0])];
-                }
-
-                // Start with a Set of the elements from the first array.
-                // Using a Set provides efficient O(1) lookups.
-                let intersectionSet = new Set(arrays[0]);
-
-                // Iterate over the rest of the arrays to find the common elements.
-                for (let i = 1; i < arrays.length; i++) {
-                    const currentArraySet = new Set(arrays[i]);
-
-                    // Create a new Set to hold the updated intersection.
-                    const nextIntersectionSet = new Set();
-                    
-                    // Iterate over the current intersection and add elements that also exist
-                    // in the current array's Set.
-                    for (const element of intersectionSet) {
-                    if (currentArraySet.has(element)) {
-                        nextIntersectionSet.add(element);
-                    }
-                    }
-                    
-                    // Update the intersection set for the next iteration.
-                    intersectionSet = nextIntersectionSet;
-                }
-
-                // Convert the final Set back to an array and return it.
-                return [...intersectionSet];
-            }
-
-            let collectedItems = [];
-
-            if(to.length == this.inSummaryDataLength) {
-                
-                this.nextStepData.map((data, dataIndex) => {
-                    let filteredData = data.filter(item => item['combined'] > 2);
-
-                    collectedItems[dataIndex] = filteredData.map(item => item['gene']);
-                    
-                })
-
-                
-            }
-
-            console.log("collectedItems", collectedItems);
-
-            let intersection = findArrayIntersection(collectedItems);
-                console.log("intersection", intersection.join(", "));
-
-            /*try {
-                let url = "https://llm-dev.hugeamp.org/gemini";
-                const payload = {
-                    model: "gemini-2.0-flash",
-                    systemPrompt: "Format response in json. [{gene: gene symbol, function: function of the gene}]",
-                    userPrompt: "Find the function of the following genes: " + intersection.join(", "),
-                };
-
-                const options = {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                };
-
-                const response = await fetch(url, options);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-                }
-
-                const res = await response.json();
-
-                if (!res.data || !res.data[0] || !res.data[0].gemini_response) {
-                    throw new Error('Invalid response structure from LLM service');
-                }
-
-                return {
-                    success: true,
-                    data: res.data[0].gemini_response,
-                    rawResponse: res
-                };
-
-            } catch (error) {
-                console.error('Error in queryLLMSimple:', error);
-                return {
-                    success: false,
-                    error: error.message,
-                    data: null
-                };
-            }*/
-        }
+        
 
     },
     computed: {
@@ -219,6 +118,7 @@ export default Vue.component("response-summary", {
         }
     },
     methods: {
+        
         saveReport() {
             try {
                 if (!this.summaryContent) {
@@ -374,91 +274,6 @@ export default Vue.component("response-summary", {
 
             return returnArray;
         },
-        async queryNextStep(ITEMS) {
-            
-
-            let filteredData = this.getFilteredData(ITEMS);
-            this.inSummaryDataLength = filteredData.length;
-
-            console.log("DATA", filteredData);
-
-            this.nextStepData = [];
-            /*
-            config datamodel:
-            {
-                "url": "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=",
-                "parameters column": "Genes in gene set",
-                "data merge": {"type": "overlap","field":"gene"},
-                "data collect": ["gene"]
-                "data filter": [{
-                    "type": "search greater than",
-                    "field": "combined",
-                    "value": 2
-                }],
-                "next prompt": "user prompt"
-            }
-            */
-			let dataUrl = "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=";
-
-            filteredData.map(async item => {
-                let fetchUrl = dataUrl + item['Genes in gene set'];
-
-                let contentJson = await fetch(fetchUrl).then((resp) => resp.json());
-
-                if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
-                    console.log("contentJson", contentJson.data);
-                    this.nextStepData.push(contentJson.data);
-                } else {
-                    // fetch failed 
-                    console.log("fetch failed");
-                }
-            })
-
-			/*if (TYPE == "replace") {
-				PARAMS.map((param, pIndex) => {
-					if (!!QUERY.split(",")[pIndex]) {
-						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
-					} else {
-						dataUrl = dataUrl.replace("$" + param + ",", '');
-						dataUrl = dataUrl.replace(",$" + param, '');
-						dataUrl = dataUrl.replace("$" + param, '');
-					}
-				})
-
-
-			} else if(TYPE == "replace or") {
-
-				PARAMS.map((param, pIndex) => {
-					if (!!QUERY.split(",")[pIndex]) {
-						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
-					} else {
-						dataUrl = dataUrl.replace("$" + param + ",", '');
-						dataUrl = dataUrl.replace(",$" + param, '');
-						dataUrl = dataUrl.replace("$" + param, '');
-					}
-				})
-
-			} else {
-				dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
-			}
-
-			
-
-			let contentJson = await fetch(dataUrl).then((resp) => resp.json());
-
-			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
-				this.processLoadedBI(contentJson, QUERY);
-			} else {
-				// fetch failed 
-				if (!!this.dataPoint["cumulate data"]) {
-					this.sectionData = this.sectionData
-				} else {
-					this.sectionData = null;
-				}
-				this.loadingDataFlag = "down";
-				this.noLoadedData = "No data is returned. Please check query parameters.";
-			}*/
-		},
 
     }
 }); 

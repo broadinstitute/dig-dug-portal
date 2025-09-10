@@ -27,7 +27,6 @@ import Vue from "vue";
 import $ from "jquery";
 import ResearchLoadingSpinner from "../ResearchLoadingSpinner.vue";
 import ResponseSummary from "@/components/researchPortal/contextualSearch/ResponseSummary.vue";
-//import { llmUtils } from "@/utils/llmUtils.js";
 
 
 export default Vue.component("llm-summary", {

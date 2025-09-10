@@ -324,7 +324,7 @@ export default Vue.component("research-pigean-search", {
 
             this.userInputParameter = "";
             //this.userInputFocus = "";
-            this.searchParamValues = [];
+            //this.searchParamValues = [];
             
             if(!!withFocus) {
                 this.parent.setListValue(
