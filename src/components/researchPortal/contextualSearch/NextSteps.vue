@@ -5,7 +5,7 @@
             <research-loading-spinner :isLoading="loading" colorStyle="color"></research-loading-spinner>
         </div>
         <div class="workflow-message" v-if="workFlowMessage && typeof workFlowMessage == 'string'">
-            <div class="alert alert-info" style="margin-top: 10px; width: auto !important;">{{ workFlowMessage }}</div>
+            <div class="alert alert-info" style="margin-top: 10px; display: inline-block;">{{ workFlowMessage }}</div>
         </div>
         <div class="workflow-message" v-if="workFlowMessage && typeof workFlowMessage == 'object'">
             <research-data-table
