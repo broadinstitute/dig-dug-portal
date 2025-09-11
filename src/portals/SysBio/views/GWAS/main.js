@@ -129,7 +129,9 @@ new Vue({
     },
     methods: {
         async fetchData() {
-            const bi = "https://sysbio.hugeampkpnbi.org/api/bio/query/dataset-associations"
+            const bi = 
+                process.env.VUE_APP_DATASET_ASSOC ||
+                "https://sysbio.hugeampkpnbi.org/api/bio/query/dataset-associations" //TODO make this an env var
             const limit = 500;
             const dataset = "SysBio_Nalls2025_ADvPD_EU";
             const phenotype = "SysBio_ADvPD";
