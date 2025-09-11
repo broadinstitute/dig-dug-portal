@@ -293,6 +293,7 @@
 
 					<div v-if="!!sectionConfig['ai summary'] && !!sectionData">
 						<llm-summary 
+							ref="llmSummary"
 							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
 							:summaryConfig="sectionConfig['ai summary']"
 							:sectionID="sectionID"
@@ -2042,6 +2043,30 @@ export default Vue.component("research-section", {
 					}
 				})
 			}
+
+			if (!!this.sectionConfig["ai summary"]) {
+				// Call queryLLM() function from the LLMQuery component
+				this.$nextTick(() => {
+					if (this.$refs.llmSummary) {
+						this.$refs.llmSummary.queryLLM();
+						// Scroll to the LLMQuery component
+						this.scrollToLLMQuery();
+					}
+				});
+			}
+
+		},
+
+		scrollToLLMQuery() {
+			// Scroll to the LLMQuery component with smooth behavior
+			this.$nextTick(() => {
+				if (this.$refs.llmSummary && this.$refs.llmSummary.$el) {
+					this.$refs.llmSummary.$el.scrollIntoView({
+						behavior: 'smooth',
+						block: 'start'
+					});
+				}
+			});
 		}
 
 	},
