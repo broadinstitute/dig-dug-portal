@@ -5,7 +5,7 @@
             <div class="type">
                 <select id="parameter_type" v-model="parameterFocused"
                 :class="(searchParameterType == 'meaning search')? 'meaning-search':''">
-                    <option value="">{{ 'Set parameter' }}</option>
+                    <option value="">{{ 'Select a Search Type' }}</option>
                     <option v-for="item in searchParameters" 
                             :key="item.parameter"
                             :value="item.parameter">{{ item.label }}</option>
@@ -74,7 +74,7 @@
             <a :key="option.value"
                 href="javascript:;" 
                 v-html="option.label"
-                @click="parent.setListValue(option.value, parameterFocused, paramIndex, true); listOptions = [];"
+                @click="parent.setListValue(option.value, parameterFocused, paramIndex, null); listOptions = [];"
                 class="custom-select-a-option"></a>
         </template>
     </div>
@@ -312,5 +312,6 @@ select.meaning-search {
     margin: auto -20%;
     margin-top: 5px;
     z-index: 100;
+    left: calc(25% + 40px);
 }
 </style>
