@@ -1,5 +1,6 @@
 <template>
 	<div>
+		{{ region }}
 		<div class="sub-section-header"><strong v-if="!!subSectionConfig['label']">{{ subSectionConfig['label'] }}</strong></div>
 		<div v-if="!!subSectionConfig['visualizers'] && (subSectionConfig['visualizers']['wrapper type'] == 'tabs' || subSectionConfig['visualizers']['wrapper type'] == 'divs')"  class="sub-plot-wrapper">
 			<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + rowId">
@@ -27,6 +28,9 @@
 						:plotMargin="plotMargin"
 						:sectionId="(rowId + plotIndex).replaceAll(',','')"
 						:utils="utils"
+						:region="region"
+						:regionZoom=null
+						:regionViewArea=null
 						:searchParameters="rowId">
 					</research-section-visualizers>
 				</div>
@@ -43,6 +47,9 @@
 				:plotMargin="plotMargin"
 				:sectionId="rowId.replaceAll(',','')"
 				:utils="utils" 
+				:region="region"
+				:regionZoom=null
+				:regionViewArea=null
 				:searchParameters="rowId">
 			</research-section-visualizers>
 		</div>
@@ -160,6 +167,7 @@ export default Vue.component("research-sub-section", {
 			numberOfRows: 10,
 			stared: false,
 			staredAll: false,
+			region: null,
 		};
 	},
 	modules: {
@@ -176,22 +184,26 @@ export default Vue.component("research-sub-section", {
 	},
 	computed: {
 		subPageData() {
-			let pageData = [];
-			let rows = this.currentData.length;
+			if(!!this.currentData) {
+				let pageData = [];
+				let rows = this.currentData.length;
 
-			let startIndex = (this.currentPage - 1) * this.numberOfRows;
-			let endIndex =
-				rows - this.currentPage * this.numberOfRows > 0
-					? this.currentPage * this.numberOfRows
-					: rows;
+				let startIndex = (this.currentPage - 1) * this.numberOfRows;
+				let endIndex =
+					rows - this.currentPage * this.numberOfRows > 0
+						? this.currentPage * this.numberOfRows
+						: rows;
 
-			for (let i = startIndex; i < endIndex; i++) {
-				if (!!this.currentData[i]) {
-					pageData.push(this.currentData[i]);
+				for (let i = startIndex; i < endIndex; i++) {
+					if (!!this.currentData[i]) {
+						pageData.push(this.currentData[i]);
+					}
 				}
-			}
 
-			return pageData;
+				return pageData;
+			} else {
+				return [];
+			}
 		},
 		tableFormat() {
 			if (!!this.subSectionConfig['table format']) {
@@ -200,6 +212,7 @@ export default Vue.component("research-sub-section", {
 				return null;
 			}
 		},
+		
 	},
 	watch: {
 		'$parent.$parent.filterValues'(FILTERS) {
@@ -209,9 +222,67 @@ export default Vue.component("research-sub-section", {
 			if(!!this.subSectionConfig["share parent filters"]) {
 				this.filterData()
 			}
+		},
+		subPageData(DATA) {
+			this.getRegion();
 		}
 	},
 	methods: {
+		getRegion() {
+			if(this.subSectionConfig.visualizer && !!this.subSectionConfig.visualizer['genes track']) {
+				let inputType = this.subSectionConfig.visualizer['genes track']['input type'];
+				let region = null;
+
+				switch(inputType) {
+					case 'static':
+						region =  this.subSectionConfig.visualizer['genes track']['region'];
+
+						break;
+					case 'dynamic':
+						const dynamicParameter = this.subSectionConfig.visualizer['genes track']['dynamic parameter'];
+						region = (!this.utils.keyParams[dynamicParameter])? this.utils.keyParams[dynamicParameter]: null;
+
+						break;
+
+					case 'field':
+						const regionField = this.subSectionConfig.visualizer['genes track']['field name'];
+						if(!!this.subSectionConfig.visualizer['genes track']['convert to region']) {
+							// Call the async API method
+							this.callRegionApi(regionField);
+							return; // Exit early since this is async
+						} else {
+							region = this.subPageData[0][regionField];
+						}
+						
+						break;
+
+					}
+			} else {
+				this.region = null;
+			}
+		},
+		async callRegionApi(regionField) {
+			try {
+				let regionGene = this.subPageData[0][regionField];
+				let searchPoint = "https://bioindex.hugeamp.org/api/bio/query/gene?q=" + regionGene;
+
+				const response = await fetch(searchPoint);
+				const geneJson = await response.json();
+
+				if (geneJson.error == null) {
+					this.region = geneJson.data[0].chromosome +
+						":" +
+						geneJson.data[0].start +
+						"-" +
+						geneJson.data[0].end;
+				} else {
+					this.region = null;
+				}
+			} catch (error) {
+				console.error('Error fetching gene data:', error);
+				this.region = null;
+			}
+		},
 		getColumns(ID) {
 			let item;
 			/*if (this.dataComparisonConfig != null) {

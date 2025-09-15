@@ -1,6 +1,5 @@
 <template>
     <div :id="'region_track_wrapper'+sectionId" class="region-track-wrapper">
-        
         <div :id="'block_data_' + sectionId" class="block-data hidden">
             <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
                 <b-icon icon="x-circle-fill"></b-icon>
@@ -175,6 +174,7 @@ export default Vue.component("research-region-track", {
             return plotMargin;
         },
         viewingRegion() {
+
             if (this.region == null) {
                 return null;
             } else {
@@ -240,6 +240,7 @@ export default Vue.component("research-region-track", {
             this.renderPlot(null,"enter");
         },
         viewingRegion(REGION){
+            console.log("viewingRegion is this right?", REGION);
             this.renderPlot();
         },
         plotData(DATA) {
@@ -247,6 +248,9 @@ export default Vue.component("research-region-track", {
         },
         starItems(STARS) {
             this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
+            this.renderPlot();
+        },
+        regionParam(REGION) {
             this.renderPlot();
         }
     },
@@ -322,8 +326,8 @@ export default Vue.component("research-region-track", {
             let plotWidth = canvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
             let region = this.viewingRegion;
             let xPerPixel = plotWidth / (region.end - region.start);
-            //let regionArr = this.region.split(":");
-            //let region = regionArr[1].split("-");
+
+            console.log("this.viewingRegion", this.viewingRegion);
             
 
             // render marker band

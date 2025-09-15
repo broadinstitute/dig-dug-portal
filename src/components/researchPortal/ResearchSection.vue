@@ -9,8 +9,8 @@
 				:sectionConfigs="sectionConfig">
 			</research-section-components>
 		</div>
-		<div class="multi-section" :class="'wrapper-' + sectionIndex" v-if="(!!sectionConfig['required parameters to display'] && !!meetRequirements())
-			|| !sectionConfig['required parameters to display']">
+		<div class="multi-section" :class="'wrapper-' + sectionIndex" v-if="((!!sectionConfig['required parameters to display'] && !!meetRequirements())
+			|| !sectionConfig['required parameters to display']) && (!!this.sectionData && this.sectionData.length > 0)">
 
 			<div class="row section-header" v-if="!isInTab">
 				<div class="col-md-12">
@@ -1000,11 +1000,8 @@ export default Vue.component("research-section", {
 
 							queryParams[p] = region.toString().split(",");
 
-						} else {
-							queryParams[p] = this.utils.keyParams[p].toString().split(","); 
-
-							//console.log("p",this.utils.keyParams[p]);
-							//console.log("p2",queryParams[p]);
+						}  else {
+							queryParams[p] = (this.dataPoint.type == 'bioindex multiple')? this.utils.keyParams[p].toString():this.utils.keyParams[p].toString().split(","); 
 
 						}
 						
@@ -1021,7 +1018,7 @@ export default Vue.component("research-section", {
 
 					if (!!this.utils.keyParams[p]) {
 						pWithValue++;
-						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+						queryParams[p] = (this.dataPoint.type == 'bioindex multiple')? [this.utils.keyParams[p].toString()]:this.utils.keyParams[p].toString().split(",");
 					} else {
 						queryParams[p] = [];
 					}
@@ -1039,7 +1036,7 @@ export default Vue.component("research-section", {
 
 					if (!!this.utils.keyParams[p]) {
 						pWithValue++;
-						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+						queryParams[p] = (this.dataPoint.type == 'bioindex multiple')? [this.utils.keyParams[p].toString()]:this.utils.keyParams[p].toString().split(",");
 					} else {
 						queryParams[p] = [];
 					}
@@ -1087,6 +1084,8 @@ export default Vue.component("research-section", {
 				queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 			}
 
+			//console.log("1", queryParamsString);
+
 			//5. Check if return the first item in the queryParamsString
 			if (queryParamsString.length > 0 && !this.dataPoint['is value array']) {
 				return queryParamsString[0];
@@ -1117,9 +1116,9 @@ export default Vue.component("research-section", {
 				let lastSearched = this.searched[this.searched.length - 1]
 				this.searched = [lastSearched];
 			}
-			let paramsString = this.getParamString(paramsType );
+			let paramsString = this.getParamString(paramsType);
 
-			//console.log("getParamString",paramsString);
+			//console.log("queryData()",paramsString);
 
 			if (paramsString != "invalid") {
 				if (document.getElementById('tabUi' + this.sectionID)) {
@@ -1132,6 +1131,10 @@ export default Vue.component("research-section", {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
 						this.queryBioindex(paramsString, paramsType, params);
+						break;
+					case "bioindex multiple":
+						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
+						this.queryBioindexMultiple(paramsString, paramsType, params);
 						break;
 					case "api":
 						this.queryApi(paramsString, paramsType, params, dataType);
@@ -1343,6 +1346,59 @@ export default Vue.component("research-section", {
 				this.noLoadedData = "No data is returned. Please check query parameters.";
 			}
 		},
+		async queryBioindexMultiple(QUERY, TYPE, PARAMS) {
+
+			//console.log("queryBioindexMultiple()",QUERY, TYPE);
+
+			this.searched.push(QUERY);
+
+			const baseUrl = this.dataPoint.url;
+			const items = QUERY.split(",");
+			let itemsData = {page:1,data:[]}
+
+			// Process all items sequentially to avoid race conditions
+			for (let index = 0; index < items.length; index++) {
+				const item = items[index];
+				let dataUrl = baseUrl; // Use fresh base URL for each item
+				
+				if (TYPE == "replace" || TYPE == "replace or") {
+					dataUrl = dataUrl.replace("$" + PARAMS[0] + ",", item);
+					dataUrl = dataUrl.replace(",$" + PARAMS[0], item);
+					dataUrl = dataUrl.replace("$" + PARAMS[0], item);
+				} else {
+					dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + item;
+				}
+
+				//console.log("dataUrl for item", item, ":", dataUrl);
+
+				try {
+					let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+					if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+						itemsData.data = itemsData.data.concat(contentJson.data);
+						//console.log("Successfully fetched data for item", item, "index", index, "total items", items.length);
+					} else {
+						console.log("No data returned for item", item);
+					}
+				} catch (error) {
+					console.error("Error fetching data for item", item, ":", error);
+				}
+			}
+
+			// Process all collected data
+			if (itemsData.data.length > 0) {
+				this.processLoadedBI(itemsData, QUERY);
+			} else {
+				// No data was fetched for any item
+				if (!!this.dataPoint["cumulate data"]) {
+					this.sectionData = this.sectionData
+				} else {
+					this.sectionData = null;
+				}
+				this.loadingDataFlag = "down";
+				this.noLoadedData = "No data is returned. Please check query parameters.";
+			}
+		},
 
 		async queryBiContinue(TOKEN, QUERY) {
 
@@ -1521,19 +1577,26 @@ export default Vue.component("research-section", {
 
 			let data = CONTENT.data;
 
+			//console.log("processLoadedBI",CONTENT, QUERY);
+
 
 			// if loaded data is processed
 			let tableFormat = this.sectionConfig["table format"];
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// 
+				// convert raw data
 			}
+
+			//console.log("step 1",data);
 
 			let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
 
 			let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 				true : null;
+
+//console.log("isOriginalDataEmpty",isOriginalDataEmpty);
 
 			if (!!cumulateData) {
 

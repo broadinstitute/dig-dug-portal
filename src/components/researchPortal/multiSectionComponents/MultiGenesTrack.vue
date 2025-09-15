@@ -109,7 +109,7 @@ export default Vue.component("multi-genes-track", {
 		if(!!this.genesData) {
 			this.renderTrack(this.genesData);
 		} else {
-			this.getGenesInRegion(this.region)
+			this.getGenesInRegion(this.region,"mount")
 		}
 	},
 	created() {
@@ -161,23 +161,31 @@ export default Vue.component("multi-genes-track", {
 				let start = parseInt(regionArr[0], 10);
 				let end = parseInt(regionArr[1], 10);
 				let distance = end - start;
-				if (this.regionZoom > 0) {
-					let zoomNum = Math.round(
-						distance * (this.regionZoom / 200)
-					);
-					let viewPointShift = Math.round(
-						zoomNum * (this.regionViewArea / 100)
-					);
-					returnObj["chr"] = chr;
-					returnObj["start"] = start + zoomNum + viewPointShift;
-					returnObj["end"] = end - zoomNum + viewPointShift;
-				} else if (this.regionZoom == 0) {
-					returnObj["chr"] = chr;
-					returnObj["start"] = start;
-					returnObj["end"] = end;
-				}
 
-				return returnObj;
+				if(!!chr && !!start && !!end) {
+
+					if (this.regionZoom > 0) {
+						let zoomNum = Math.round(
+							distance * (this.regionZoom / 200)
+						);
+						let viewPointShift = Math.round(
+							zoomNum * (this.regionViewArea / 100)
+						);
+						returnObj["chr"] = chr;
+						returnObj["start"] = start + zoomNum + viewPointShift;
+						returnObj["end"] = end - zoomNum + viewPointShift;
+					} else if (this.regionZoom == 0) {
+						returnObj["chr"] = chr;
+						returnObj["start"] = start;
+						returnObj["end"] = end;
+					}
+
+					return returnObj;
+
+				} else {
+					return null;
+				}
+				
 			}
 		},
 		codingGenes() {
@@ -194,7 +202,7 @@ export default Vue.component("multi-genes-track", {
 				if(!!this.genesData){
 					this.renderTrack(this.genesData);
 				} else {
-					this.getGenesInRegion(n.chr+":"+n.start+"-"+n.end);
+					this.getGenesInRegion(n.chr+":"+n.start+"-"+n.end,"watch");
 				}
 			},
 			deep: true,
@@ -467,39 +475,44 @@ export default Vue.component("multi-genes-track", {
 			}			
 			
 		},
-		async getGenesInRegion(region) {
+		async getGenesInRegion(region,where) {
 
-			let fetchUrl;
-			let searchPoint = this.plotConfig["genes track"]["search point"];
+			if(region.includes("undefined")) {
 
-			if (!!searchPoint) {
-				fetchUrl = searchPoint + "/api/bio/query/genes?q=" + region;
 			} else {
-				fetchUrl = this.utils.uiUtils.biDomain() + "/api/bio/query/genes?q=" + region;
-			}
+				let fetchUrl;
+				let searchPoint = this.plotConfig["genes track"]["search point"];
 
-			let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
+				if (!!searchPoint) {
+					fetchUrl = searchPoint + "/api/bio/query/genes?q=" + region;
+				} else {
+					fetchUrl = this.utils.uiUtils.biDomain() + "/api/bio/query/genes?q=" + region;
+				}
 
-			if (genes.error == null) {
+				let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
-				
-				let genesInRegion = JSON.parse(genes);
-				let codingGenes = "";
+				if (genes.error == null) {
 
-				if (!!genesInRegion["data"] && genesInRegion["data"].length > 1) {
-					genesInRegion["data"].map((gene) => {
-						if ((gene.type = "protein_coding")) {
-							codingGenes += "'" + gene.name + "',";
-						}
-					});
-
-					codingGenes = codingGenes.slice(0, -1);
 					
-					if (codingGenes.length > 1) {
-						this.getGenesData(codingGenes);
+					let genesInRegion = JSON.parse(genes);
+					let codingGenes = "";
+
+					if (!!genesInRegion["data"] && genesInRegion["data"].length > 1) {
+						genesInRegion["data"].map((gene) => {
+							if ((gene.type = "protein_coding")) {
+								codingGenes += "'" + gene.name + "',";
+							}
+						});
+
+						codingGenes = codingGenes.slice(0, -1);
+						
+						if (codingGenes.length > 1) {
+							this.getGenesData(codingGenes);
+						}
 					}
 				}
 			}
+			
 		},
 		async getGenesData(GENES) {
 			

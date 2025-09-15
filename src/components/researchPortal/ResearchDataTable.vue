@@ -367,6 +367,7 @@
 					>
 					<td :colspan="topRowNumber">
 						<research-sub-section
+						v-if="!!collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
 						:sectionId="sectionId"
 						:rowId="getRowID(itemKey + value[itemKey] + index)"
 						:colors="colors"

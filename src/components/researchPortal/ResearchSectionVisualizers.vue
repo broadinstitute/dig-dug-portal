@@ -131,7 +131,6 @@
 				
 				@on-star="starColumn"
 			></multi-region-plot>
-			
 			<!-- general track -->
 			<research-region-track
 				v-if="!!plotConfig && plotConfig['type'] == 'region track' && !!region"
@@ -201,7 +200,6 @@
 				:utils="utils"
 				:data="plotData"
 			></research-single-cell-browser>
-
 		</template>
 		
 	</div>

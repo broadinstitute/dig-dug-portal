@@ -130,6 +130,8 @@
 					<input v-if="parameter.type == 'input' &&
 						parameter.values != 'kp genes'
 						" type="text" class="form-control" :id="'search_param_' + parameter.parameter" />
+					<input v-if="parameter.type == 'input multiple'" 
+						type="text" class="form-control" style="width: 400px !important;" :id="'search_param_' + parameter.parameter" />
 				</div>
 				<div class="col search-btn-wrapper" :class="containsContextSearch()">
 					<div @click="updateSearch()" class="btn btn-sm btn-primary">
@@ -348,6 +350,8 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		setListValue(KEY, PARAMETER, INDEX, UPDATE_SEARCH) {
 
+			//console.log("setListValue",KEY, PARAMETER, INDEX, UPDATE_SEARCH);
+
 			this.paramSearch[INDEX] = KEY;
 			this.searchingValues[PARAMETER] = KEY;
 
@@ -384,6 +388,8 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		updateSearch(KEY,TARGET_SECTIONS) {
 
+			//console.log("updateSearch",KEY,TARGET_SECTIONS);
+
 			this.$root.hoverPos = [];
 
 			let paramsObj = {}
@@ -419,7 +425,7 @@ export default Vue.component("research-multi-sections-search", {
 
 						case "pigean search":
 
-							console.log(this.paramSearch,this.searchingValues)
+							//console.log(this.paramSearch,this.searchingValues)
 
 							//paramValue = this.searchingValues['cfdePhenotype'];
 							s.parameters.map( p => {
