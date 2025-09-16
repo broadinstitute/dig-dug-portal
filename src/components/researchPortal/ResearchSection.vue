@@ -10,7 +10,7 @@
 			</research-section-components>
 		</div>
 		<div class="multi-section" :class="'wrapper-' + sectionIndex" v-if="((!!sectionConfig['required parameters to display'] && !!meetRequirements())
-			|| !sectionConfig['required parameters to display']) && (!!this.sectionData && this.sectionData.length > 0)">
+			|| !sectionConfig['required parameters to display']) && (!!originalData && originalData.length > 0)">
 
 			<div class="row section-header" v-if="!isInTab">
 				<div class="col-md-12">
@@ -1233,7 +1233,7 @@ export default Vue.component("research-section", {
 				}
 			} else {
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "Please set valid parameters for this query.";
+				this.noLoadedData = "Data is already loaded or no valid parameters are set.";
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
@@ -2207,7 +2207,7 @@ button.red-background {
 }
 
 .no-data-flag {
-	font-size: 0.7em;
+	font-size: 0.6em;
 	font-weight: 600;
 	color: #33cc77;
 }

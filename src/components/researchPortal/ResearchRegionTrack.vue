@@ -100,7 +100,8 @@ export default Vue.component("research-region-track", {
         "colors",
         "utils",
         "plotMargin",
-        "starItems"
+        "starItems",
+        "wrapperWidth"
     ],
     data() {
         return {
@@ -295,19 +296,25 @@ export default Vue.component("research-region-track", {
 
         },
         renderPlot(cKey,action) {
+
+            c = document.getElementById(
+                'track_' + this.sectionId
+            );
+
+            c.setAttribute(
+                "style",
+                "display: none;"
+            );
             
             this.posData = {};
 
             let tracks = Object.keys(this.renderData).sort();
             let perTrack = this.plotConfig["track height"]*2;
-            let canvasWidth = document.querySelector("#region_track_wrapper"+this.sectionId).clientWidth * 2;
+            let canvasWidth = (!!this.wrapperWidth)? this.wrapperWidth * 2:document.querySelector("#region_track_wrapper"+this.sectionId).clientWidth * 2;
             let canvasHeight = (perTrack * tracks.length)+ this.adjPlotMargin.top + this.adjPlotMargin.bottom;
 
             let c, ctx;
-
-            c = document.getElementById(
-                'track_' + this.sectionId
-            );
+            
             c.setAttribute("width", canvasWidth);
             c.setAttribute("height", canvasHeight);
             c.setAttribute(
@@ -327,10 +334,7 @@ export default Vue.component("research-region-track", {
             let plotWidth = canvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
             let region = this.viewingRegion;
             let xPerPixel = plotWidth / (region.end - region.start);
-
-            console.log("this.viewingRegion", this.viewingRegion);
             
-
             // render marker band
             
             ctx.fillStyle = "#ff880025";

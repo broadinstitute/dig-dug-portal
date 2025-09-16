@@ -89,7 +89,8 @@ export default Vue.component("multi-genes-track", {
 		"utils",
 		"sectionId",
 		"starItems",
-		"hoverPos"
+		"hoverPos",
+		"wrapperWidth"
 	],
 	data() {
 		return {
@@ -323,6 +324,12 @@ export default Vue.component("multi-genes-track", {
 		renderTrack(GENES) {
 
 			let canvasRenderWidth, canvasRenderHeight;
+			
+			let c = document.getElementById("genesTrack" + this.sectionId);
+			c.setAttribute(
+                "style",
+                "display: none;"
+            );
 
 			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
 
@@ -333,7 +340,7 @@ export default Vue.component("multi-genes-track", {
 					? this.plotConfig.width * 2 +
 					  this.adjPlotMargin.left +
 					  this.adjPlotMargin.right
-					: document.getElementById("genesTrackWrapper" + this.sectionId).clientWidth *2;
+					: (!!this.wrapperWidth)? this.wrapperWidth * 2 : document.getElementById("genesTrackWrapper" + this.sectionId).clientWidth *2;
 
 				let plotWidth =
 					this.plotType == "region plot"
@@ -378,8 +385,7 @@ export default Vue.component("multi-genes-track", {
 					eachGeneTrackHeight * geneTracksArray.length;
 
 				let bump = this.adjPlotMargin.bump;
-
-				let c = document.getElementById("genesTrack" + this.sectionId);
+				
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
 				c.setAttribute(
@@ -593,7 +599,7 @@ $(function () {});
 
 .genes-plot-wrapper {
 	padding: 0 !important;
-	width: 100% !important;
+	/*width: 100% !important;*/
 }
 </style>
 

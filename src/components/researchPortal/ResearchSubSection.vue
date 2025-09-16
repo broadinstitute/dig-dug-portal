@@ -30,7 +30,8 @@
 						:region="region"
 						:regionZoom=null
 						:regionViewArea=null
-						:searchParameters="rowId">
+						:searchParameters="rowId"
+						:wrapperWidth="wrapperWidth">
 					</research-section-visualizers>
 				</div>
 			</div>
@@ -38,7 +39,7 @@
 		</div>
 			
 		<div v-if="!!subSectionConfig['visualizer']" class="sub-plot-wrapper">
-			 <!-- all others -->
+			 
 			<research-section-visualizers 
 				:plotConfig="subSectionConfig['visualizer']"
 				:plotData="currentData"
@@ -50,7 +51,8 @@
 				:region="region"
 				:regionZoom=0
 				:regionViewArea=null
-				:searchParameters="rowId">
+				:searchParameters="rowId"
+				:wrapperWidth="wrapperWidth">
 			</research-section-visualizers>
 		</div>
 		
@@ -168,6 +170,7 @@ export default Vue.component("research-sub-section", {
 			stared: false,
 			staredAll: false,
 			region: null,
+			wrapperWidth: null,
 		};
 	},
 	modules: {
@@ -179,9 +182,12 @@ export default Vue.component("research-sub-section", {
 			this.filterData()
 		}
 	},
-	mounted() {
-		
-	},
+	mounted: function () {
+        window.addEventListener("resize", this.onResize);
+    },
+    beforeDestroy() {
+        window.removeEventListener("resize", this.onResize);
+    },
 	computed: {
 		subPageData() {
 			if(!!this.currentData) {
@@ -228,6 +234,10 @@ export default Vue.component("research-sub-section", {
 		}
 	},
 	methods: {
+		onResize(e) {
+			/* 91 is the margins of the multiple parent wrappers of the plots */
+            this.wrapperWidth = document.querySelector("#rp_tabs_contents").clientWidth - 91;
+        },
 		getRegion() {
 			if(this.subSectionConfig.visualizer && !!this.subSectionConfig.visualizer['genes track']) {
 				let inputType = this.subSectionConfig.visualizer['genes track']['input type'];
@@ -696,6 +706,7 @@ $(function () { });
 
 .sub-plot-wrapper {
 	background-color: #ffffff !important;
+	padding-top: 20px;
 }
 
 .sub-tab-ui-wrapper {

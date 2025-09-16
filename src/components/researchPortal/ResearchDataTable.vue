@@ -2035,6 +2035,7 @@ table.research-data-table {
 
 .dynamic-sub-section td {
 	padding: 1px !important;
+	word-break: break-all;
 }
 
 .loaded-subsection {

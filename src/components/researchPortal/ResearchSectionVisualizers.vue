@@ -146,6 +146,7 @@
 				:plotMargin="plotMargin"
 				
 				:starItems="starItems"
+				:wrapperWidth="wrapperWidth"
 			></research-region-track>
 			<!-- general dots track -->
 			<research-region-dots-track
@@ -176,7 +177,7 @@
 				:utils="utils"
 				:sectionId="sectionId"
 				:starItems="starItems"
-				
+				:wrapperWidth="wrapperWidth"
 			></multi-genes-track>
 
 			<!-- scatter plot -->
@@ -230,7 +231,7 @@ import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfde
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
-		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region","bigRegion"],
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region","bigRegion","wrapperWidth"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
