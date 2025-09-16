@@ -1358,7 +1358,7 @@ export default Vue.component("research-section", {
 
 			// Process all items sequentially to avoid race conditions
 			for (let index = 0; index < items.length; index++) {
-				const item = items[index];
+				const item = items[index].trim();
 				let dataUrl = baseUrl; // Use fresh base URL for each item
 				
 				if (TYPE == "replace" || TYPE == "replace or") {
