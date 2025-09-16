@@ -187,7 +187,9 @@ export default Vue.component("research-region-track", {
                 let start = parseInt(regionArr[0], 10);
                 let end = parseInt(regionArr[1], 10);
                 let distance = end - start;
-                if (this.regionZoom > 0) {
+                let regionZoom = (!this.regionZoom)? 0:this.regionZoom;
+
+                if (regionZoom > 0) {
                     let zoomNum = Math.round(
                         distance * (this.regionZoom / 200)
                     );
@@ -197,7 +199,7 @@ export default Vue.component("research-region-track", {
                     returnObj["chr"] = chr;
                     returnObj["start"] = start + zoomNum + viewPointShift;
                     returnObj["end"] = end - zoomNum + viewPointShift;
-                } else if (this.regionZoom == 0) {
+                } else if (regionZoom == 0) {
                     returnObj["chr"] = chr;
                     returnObj["start"] = start;
                     returnObj["end"] = end;
@@ -240,7 +242,6 @@ export default Vue.component("research-region-track", {
             this.renderPlot(null,"enter");
         },
         viewingRegion(REGION){
-            console.log("viewingRegion is this right?", REGION);
             this.renderPlot();
         },
         plotData(DATA) {

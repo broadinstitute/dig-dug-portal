@@ -1,6 +1,5 @@
 <template>
 	<div>
-		{{ region }}
 		<div class="sub-section-header"><strong v-if="!!subSectionConfig['label']">{{ subSectionConfig['label'] }}</strong></div>
 		<div v-if="!!subSectionConfig['visualizers'] && (subSectionConfig['visualizers']['wrapper type'] == 'tabs' || subSectionConfig['visualizers']['wrapper type'] == 'divs')"  class="sub-plot-wrapper">
 			<div class="sub-tab-ui-wrapper" :id="'tabUiGroup' + rowId">
@@ -39,6 +38,7 @@
 		</div>
 			
 		<div v-if="!!subSectionConfig['visualizer']" class="sub-plot-wrapper">
+			 <!-- all others -->
 			<research-section-visualizers 
 				:plotConfig="subSectionConfig['visualizer']"
 				:plotData="currentData"
@@ -48,7 +48,7 @@
 				:sectionId="rowId.replaceAll(',','')"
 				:utils="utils" 
 				:region="region"
-				:regionZoom=null
+				:regionZoom=0
 				:regionViewArea=null
 				:searchParameters="rowId">
 			</research-section-visualizers>
