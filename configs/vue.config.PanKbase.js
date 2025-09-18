@@ -191,6 +191,13 @@ let pages = {
         filename: "funding.html",
         title: "Funding Opportunities",
         chunks: ["chunk-vendors", "chunk-common", "funding"]    
+    },
+    gene: {
+        entry: "src/portals/PanKbase/views/Gene/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "gene.html",
+        title: "Gene",
+        chunks: ["chunk-vendors", "chunk-common", "gene"]    
     }
 };
 
