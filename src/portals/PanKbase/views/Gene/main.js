@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import store from "./store.js";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
@@ -9,13 +10,13 @@ import keyParams from "@/utils/keyParams";
 import EventBus from "@/utils/eventBus";
 
 new Vue({
+    store,
     components: {
         
     },
     mixins: [pankbaseMixin],
     data() {
-        return {
-            geneName: 'CFTR',            
+        return {        
         };
     },
     watch: {},
@@ -26,6 +27,11 @@ new Vue({
         console.log(cypherDisplay);
         console.log(cypherCurlDisplay);
         //console.log(cypherFetch);
+    },
+    computed: {
+        geneName(){
+            return this.$store.state.geneName;
+        }
     },
     methods: {
         
