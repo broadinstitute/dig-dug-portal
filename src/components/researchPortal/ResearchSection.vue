@@ -13,34 +13,46 @@
 			|| !sectionConfig['required parameters to display']) && (!!originalData && originalData.length > 0)">
 
 			<div class="row section-header" v-if="!isInTab">
-				<div class="col-md-12">
-					<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
-						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-					<button class="btn btn-sm show-evidence-btn show-hide-section"
-						:class="(sectionHidden != true) ? '' : 'red-background'"
-						@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden = (sectionHidden == true) ? false : true"
-						title="Show / hide section"><b-icon icon="eye"></b-icon></button>
+				<div style="display:flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 15px;">
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-						
-						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
-							colorStyle="color"></research-loading-spinner>
-						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
+						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color" />
+						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div> 
 					</h4>
+					<div>
+						<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
+						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+						<button class="btn btn-sm show-evidence-btn show-hide-section"
+							:class="(sectionHidden != true) ? '' : 'red-background'"
+							@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden = (sectionHidden == true) ? false : true"
+							title="Show / hide section"><b-icon icon="eye"></b-icon></button>
+						<research-citation
+							v-if="sectionConfig?.['citations']"
+							:data="sectionConfig?.['citations']"
+							:compact="true"
+							width="800px" 
+						/>
+					</div>
 				</div>
 			</div>
 
 			<div class="row section-header" v-if="!!isInTab">
-				<div class="col-md-12">
-					<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
-						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+				<div style="display:flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 15px;">
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-
-						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
-							colorStyle="color"></research-loading-spinner>
+						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color" />
 						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
 					</h4>
+					<div>
+						<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
+							@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+						<research-citation
+							v-if="sectionConfig?.['citations']"
+							:data="sectionConfig?.['citations']"
+							:compact="true"
+							width="800px" 
+						/>
+					</div>
 				</div>
 			</div>
 

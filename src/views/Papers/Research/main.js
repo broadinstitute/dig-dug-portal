@@ -31,6 +31,9 @@ import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingS
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
+
+import ResearchCitation from "@/components/researchPortal/ResearchCitation.vue";
+
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -77,6 +80,7 @@ new Vue({
         ResearchSingleSearchV2,
         ResearchSingleSearchCFDE,
         ResearchLoadingSpinner,
+        ResearchCitation
     },
     mixins: [pageMixin],
     data() {

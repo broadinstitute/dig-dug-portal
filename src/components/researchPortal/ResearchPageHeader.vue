@@ -244,7 +244,7 @@ export default Vue.component("research-page-header", {
 		tryCustomElements(){
 			if(this.researchMenu["google font"] && this.researchMenu["favicon"]){
 				const temp = document.createElement('div');
-				temp.innerHTML = `<div style='position:sticky; bottom:0; width:100vw; padding:10px; z-index:50; background: #f7ab85; text-align:center;'>This repository is under review for potential modification in compliance with Administration directives.</div>`;
+				temp.innerHTML = `<div style='position:sticky; bottom:0; width:100vw; padding:10px; z-index:50000; background: #f7ab85; text-align:center;'>This repository is under review for potential modification in compliance with Administration directives.</div>`;
 				document.body.appendChild(temp.firstChild);
 			}
 		},
