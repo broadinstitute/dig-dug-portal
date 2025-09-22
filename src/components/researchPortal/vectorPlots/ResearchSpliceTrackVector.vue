@@ -34,6 +34,7 @@ export default Vue.component("research-splice-track-vector", {
 	},
 	components: {},
 	created: function () {
+		console.log("We have created the component.");
 	},
 	mounted: function () {
 		//this.renderPlot()
@@ -41,17 +42,8 @@ export default Vue.component("research-splice-track-vector", {
 	beforeDestroy() {
 	},
 	computed: {
-		ldData(){
-			return this.$store.state.topLevelLDData;
-		},
-		ldServer(){
-			return this.$store.state.topLevelLDServer;
-		}
 	},
 	watch: {
-		ldData(newData){
-			console.log("Component received", newData);
-		}
 	},
 	methods: {
 		renderPlot() {
