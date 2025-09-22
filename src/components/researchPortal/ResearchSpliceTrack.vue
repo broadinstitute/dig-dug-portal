@@ -120,6 +120,7 @@ export default Vue.component("research-splice-track", {
 			this.gene = await(this.getGene(gene));
 			this.spliceData = await(this.getSplices(ensembl, tissue));
 			this.exonData = await(this.getExons(gene));
+			this.calculatePlot();
 			this.renderTrack(this.exonData);
 		}
 	},
@@ -375,6 +376,35 @@ export default Vue.component("research-splice-track", {
 			let gene = await fetch(`${this.biHost}/gene?q=${geneName}`)
 				.then(resp => resp.json());
 			return gene.data[0];
+		},
+		calculatePlot(){
+			let strand = this.exonData[0].strand;
+			let start_splice_event = this.spliceStart(strand);
+			let end_splice_event = this.spliceEnd(strand);
+			let validExons = structuredClone(this.exonData);
+			validExons = validExons.filter(e => 
+				!!this.validExon(strand, e, start_splice_event, end_splice_event));
+			console.log(validExons.length);
+		},
+		spliceStart(strand){
+			let sortedStart = this.spliceData.toSorted((a,b) => a.splice_start - b.splice_start);
+			return strand === "+"
+				? sortedStart[0].splice_start
+				: sortedStart[sortedStart.length - 1].splice_start;
+		},
+		spliceEnd(strand){
+			let sortedEnd = this.spliceData.toSorted((a,b) => a.splice_end - b.splice_end);
+			return strand === "+"
+				? sortedEnd[sortedEnd.length - 1].splice_end
+				: sortedEnd[0].splice_end;
+		},
+		validExon(strand, exon, start_splice_event, end_splice_event){
+			if (strand === "-"){
+				return exon.exon_start < (start_splice_event + 5000) &&
+					exon.exon_end > (end_splice_event - 5000);
+			}
+			return exon.exon_start > (start_splice_event - 5000) &&
+				exon.exon_end < (end_splice_event + 5000);
 		}
 	},
 });
