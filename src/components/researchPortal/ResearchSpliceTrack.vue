@@ -263,7 +263,7 @@ export default Vue.component("research-splice-track", {
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
-					eachGeneTrackHeight * geneTracksArray.length;
+					eachGeneTrackHeight * geneTracksArray[0].length;
 
 				let bump = this.adjPlotMargin.bump;
 
@@ -292,9 +292,9 @@ export default Vue.component("research-splice-track", {
 				ctx.fillStyle = "#000000";
 
 				geneTracksArray.map((genesArray, geneIndex) => {
-					genesArray.map(gene => {
+					genesArray.map((gene, geneSubIndex) => {
 
-						let yPos = this.adjPlotMargin.top + geneIndex * eachGeneTrackHeight;
+						let yPos = this.adjPlotMargin.top + geneSubIndex * eachGeneTrackHeight;
 
 						var left = "\u{2190}";
 						var right = "\u{2192}";
@@ -310,14 +310,14 @@ export default Vue.component("research-splice-track", {
 							yPos
 						);
 
-						ctx.beginPath();
+						/* ctx.beginPath();
 						ctx.lineWidth = 1;
 						ctx.strokeStyle = "#000000";
 						ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
 						ctx.moveTo(gene.xStartPos, yPos + 20);
 						ctx.lineTo(gene.xEndPos, yPos + 20);
-						ctx.stroke();
+						ctx.stroke(); */
 						let xonWidth =
 									gene.xEndPos - gene.xStartPos <= 1
 										? 1
@@ -358,7 +358,7 @@ export default Vue.component("research-splice-track", {
 							}
 						}); */
 					})
-				})
+				});
 			}			
 			
 		},
