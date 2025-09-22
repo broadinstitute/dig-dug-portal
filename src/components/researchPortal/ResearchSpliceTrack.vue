@@ -230,7 +230,6 @@ export default Vue.component("research-splice-track", {
 						(this.adjPlotMargin.left +
 							this.adjPlotMargin.right);
 
-				//let plotHeight = eachGeneTrackHeight * geneTracksArray.length;
 
 				let xMin = this.viewingRegion.start,
 					xMax = this.viewingRegion.end;
@@ -263,7 +262,7 @@ export default Vue.component("research-splice-track", {
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
-					eachGeneTrackHeight * geneTracksArray[0].length;
+					eachGeneTrackHeight * 10; // Arbitrarily making this 10 tracks deep
 
 				let bump = this.adjPlotMargin.bump;
 
@@ -294,7 +293,7 @@ export default Vue.component("research-splice-track", {
 				geneTracksArray.map((genesArray, geneIndex) => {
 					genesArray.map((gene, geneSubIndex) => {
 
-						let yPos = this.adjPlotMargin.top + geneSubIndex * eachGeneTrackHeight;
+						let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
 
 						var left = "\u{2190}";
 						var right = "\u{2192}";
