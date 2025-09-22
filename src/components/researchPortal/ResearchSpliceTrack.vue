@@ -43,7 +43,7 @@ export default Vue.component("research-splice-track", {
 			biHost: "https://vision.hugeampkpnbi.org/api/bio/query",
 			spliceData: null,
 			exonData: null,
-			region: null,
+			gene: null
 		};
 	},
 	modules: {
@@ -84,34 +84,19 @@ export default Vue.component("research-splice-track", {
 			return plotMargin;
 		},
 		searchingRegion() {
-			let returnObj = {};
-			let regionArr = this.region.split(":")[1].split("-");
-			returnObj["start"] = regionArr[0];
-			returnObj["end"] = regionArr[1];
-
-			return returnObj;
+			return {
+				start: this.gene.start,
+				end: this.gene.end
+			};
 		},
 		viewingRegion() {
-			if (this.region == null) {
-				return null;
-			} else {
-				let returnObj = {};
-
-				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
-
-				let regionArr = this.region.split(":")[1].split("-");
-				let chr = this.region.split(":")[0];
-				let start = parseInt(regionArr[0], 10);
-				let end = parseInt(regionArr[1], 10);
-				let distance = end - start;
-				if (this.regionZoom == 0) {
-					returnObj["chr"] = chr;
-					returnObj["start"] = start;
-					returnObj["end"] = end;
-				}
-
-				return returnObj;
-			}
+			return this.gene === null 
+				? null 
+				: {
+					chr: this.gene.chromosome,
+					start: this.gene.start,
+					end: this.gene.end
+				};
 		},
 		selectedSplice(){
 			return this.$store.state.selectedSplice;
@@ -132,7 +117,8 @@ export default Vue.component("research-splice-track", {
 			let gene = spliceParams[0];
 			let ensembl = spliceParams[1];
 			let tissue = spliceParams[2];
-			this.region = await(this.getSingleGeneRegion(gene));
+			this.gene = await(this.getGene(gene));
+			console.log(JSON.stringify(this.gene));
 			this.spliceData = await(this.getSplices(ensembl, tissue));
 			this.exonData = await(this.getExons(gene));
 			this.renderTrack(this.exonData);
@@ -219,6 +205,9 @@ export default Vue.component("research-splice-track", {
 		},
 
 		renderTrack(GENES) {
+			if (this.gene === null){
+				return;
+			}
 
 			let canvasRenderWidth, canvasRenderHeight;
 
@@ -242,8 +231,8 @@ export default Vue.component("research-splice-track", {
 
 				//let plotHeight = eachGeneTrackHeight * geneTracksArray.length;
 
-				let xMin = Number(this.viewingRegion.start),
-					xMax = Number(this.viewingRegion.end);
+				let xMin = this.viewingRegion.start,
+					xMax = this.viewingRegion.end;
 				console.log(xMin, xMax);
 
 				let xStart = this.adjPlotMargin.left;
@@ -383,10 +372,10 @@ export default Vue.component("research-splice-track", {
 				.then(resp => resp.json());
 			return exons.data;
 		},
-		async getSingleGeneRegion(geneName){
+		async getGene(geneName){
 			let gene = await fetch(`${this.biHost}/gene?q=${geneName}`)
 				.then(resp => resp.json());
-			return `${gene.chromosome}:${gene.start}-${gene.end}`;
+			return gene.data[0];
 		}
 	},
 });
