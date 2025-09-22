@@ -1,0 +1,101 @@
+name: Create PR from SysBio-FAIRPlex contributions
+
+# Triggered by webhook from SysBio-FAIRPlex/sysbio-portal when PRs are merged
+on:
+    repository_dispatch:
+        types: [sysbio-contribution]
+    workflow_dispatch:
+        inputs:
+            contributor_pr_number:
+                description: "PR number from SysBio-FAIRPlex/sysbio-portal"
+                required: true
+                type: string
+            contributor_branch:
+                description: "Branch name from the contribution"
+                required: false
+                type: string
+
+jobs:
+    create-contribution-pr:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Source (dig-dug-portal @ sysbio-main)
+              uses: actions/checkout@v4
+              with:
+                  ref: sysbio-main
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  fetch-depth: 0
+
+            - name: Checkout Contributor Changes (sysbio-portal @ main)
+              uses: actions/checkout@v4
+              with:
+                  repository: SysBio-FAIRPlex/sysbio-portal
+                  ref: main
+                  path: contributor-repo
+                  token: ${{ secrets.SYSBIO_CODE_SYNC_PAT }}
+
+            - name: Set up Git
+              run: |
+                  git config --global user.name "SysBio Contribution Bot"
+                  git config --global user.email "sysbio-contributions@users.noreply.github.com"
+
+            - name: Create Contribution Branch
+              run: |
+                  BRANCH_NAME="contrib-sysbio-pr-${{ github.event.inputs.contributor_pr_number || github.event.client_payload.pr_number }}"
+                  echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+                  git checkout -b $BRANCH_NAME
+
+            - name: Sync Contributor Changes
+              run: |
+                  # Backup current vue.config.js
+                  cp vue.config.js vue.config.js.backup
+
+                  # Sync files from contributor repo
+                  rsync -av --delete \
+                    --exclude='.git/' \
+                    --exclude='.github/' \
+                    --exclude='README.md' \
+                    contributor-repo/ ./
+
+                  # Restore original vue.config.js (keep source repo's version)
+                  mv vue.config.js.backup vue.config.js
+
+            - name: Get Contributor PR Info
+              id: pr_info
+              run: |
+                  PR_NUM="${{ github.event.inputs.contributor_pr_number || github.event.client_payload.pr_number }}"
+                  if [ -n "$PR_NUM" ]; then
+                    # You could fetch PR details via GitHub API here if needed
+                    echo "pr_title=Contribution from SysBio-FAIRPlex PR #$PR_NUM" >> $GITHUB_OUTPUT
+                    echo "pr_body=This PR contains contributions from SysBio-FAIRPlex/sysbio-portal PR #$PR_NUM requiring review before integration." >> $GITHUB_OUTPUT
+                  else
+                    echo "pr_title=External contribution from SysBio-FAIRPlex" >> $GITHUB_OUTPUT
+                    echo "pr_body=Manual sync of changes from SysBio-FAIRPlex/sysbio-portal repository." >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Create Pull Request
+              uses: peter-evans/create-pull-request@v5
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  branch: ${{ env.BRANCH_NAME }}
+                  base: sysbio-main
+                  title: ${{ steps.pr_info.outputs.pr_title }}
+                  body: |
+                      🔄 **External Contribution from SysBio-FAIRPlex/sysbio-portal**
+
+                      ${{ steps.pr_info.outputs.pr_body }}
+
+                      **⚠️ Manual Review Required**
+                      - Verify all changes are appropriate
+                      - Check for any security implications
+                      - Ensure changes align with project standards
+
+                      **Source Repository:** SysBio-FAIRPlex/sysbio-portal
+                      **Contributor Access:** External (no direct access to this repo)
+
+                      After merging, changes will sync back to SysBio-FAIRPlex/sysbio-portal automatically.
+                  labels: |
+                      external-contribution
+                      needs-review
+                      sysbio-portal
+                  draft: false

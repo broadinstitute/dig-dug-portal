@@ -40,3 +40,21 @@ docker build --build-arg VUE_APP_VOLCANO_DATASET_URL=https://example.com/data.cs
 ```
 
 For more detailed Docker instructions, see `DOCKER_README.md`.
+
+## 🤝 Contributing Process
+
+1. **Fork this repository** `SysBio-FAIRPlex/sysbio-portal`
+2. **Create your feature branch** from `main`
+3. **Make your changes**
+4. **Submit a PR** to `SysBio-FAIRPlex/sysbio-portal`
+5. **After your PR is merged**, tag a maintainer to sync back to main repo
+6. **(Optionally)** If your changes are time sensitive, you can also build from your fork and deploy it directly, before making a PR.
+
+### Getting Your Changes to Main Repository
+
+After your PR is merged here:
+
+- Comment: `@maintainers please sync to main repository`
+- Your changes will be reverse synced and reviewed again in the main repository
+- Once approved there, they become part of the official codebase
+- Changes automatically sync back here
