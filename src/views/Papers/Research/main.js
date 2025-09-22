@@ -2301,6 +2301,9 @@ new Vue({
         receiveLDData(LD_DATA){
             console.log("LD Data", JSON.stringify(LD_DATA));
             this.$store.dispatch("sendLDData", LD_DATA);
+        },
+        getSplice(splice){
+            console.log("main received", splice);
         }
     
     },

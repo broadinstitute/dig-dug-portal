@@ -797,7 +797,7 @@ export default Vue.component("research-data-table", {
 	},
 	methods: {
 		selectSplice(value){
-			console.log("splice", value);
+			this.$emit("splice", value);
 		},
 		checkFeatureExist(DATA,PATH) {
 			let ifExist = true;

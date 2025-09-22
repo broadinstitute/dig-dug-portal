@@ -241,7 +241,7 @@
 							:regionViewArea="regionViewArea" 
 							:colors="colors" :plotMargin="plotMargin"
 							@on-star="starColumn" @on-filtering="updateData"
-							@on-select="selected => passSelectedData(selected, 1)">
+							@splice="selected => passSelectedData(selected, 1)">
 							
 						</research-data-table>
 						
@@ -287,8 +287,7 @@
 										:utils="utils" @clicked-sort="sortData" :region="regionParam" :regionZoom="regionZoom"
 										:regionViewArea="regionViewArea" 
 										:colors="colors" :plotMargin="plotMargin"
-										@on-star="starColumn" @on-filtering="updateData"
-										@on-select="selected => passSelectedData(selected, 2)">
+										@on-star="starColumn" @on-filtering="updateData">
 									</research-data-table>
 								</div>
 							</div>
@@ -1969,7 +1968,7 @@ export default Vue.component("research-section", {
 			this.$emit("ld-data-loaded", LD_DATA);
 		},
 		passSelectedData(data, whichOne){
-			console.log("passing data from table", JSON.stringify(data), whichOne);
+			this.$emit("splice", data);
 		}
 
 	},

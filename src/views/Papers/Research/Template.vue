@@ -733,7 +733,8 @@
 													@on-sectionData="$parent.onSectionsData"
 													@on-zoom="$parent.setZoom"
 													@on-checkPosition="$parent.setHoverPos"
-													@ld-data-loaded="ld => $parent.receiveLDData(ld)">
+													@ld-data-loaded="ld => $parent.receiveLDData(ld)"
+													@splice="spliceData=> $parent.getSplice(spliceData)">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
