@@ -1,8 +1,10 @@
 <template>
 	<div class="mbm-plot-content row">
+			<span v-if="!!this.selectedSplice">
+				Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}
+			</span>
 		<div class="col-md-12">
 			<!-- place info modal here-->
-			SPLICE TRACK CANVAS
 			<div
 				:id="'spliceTrackWrapper' + sectionId"
 				class="genes-plot-wrapper"
