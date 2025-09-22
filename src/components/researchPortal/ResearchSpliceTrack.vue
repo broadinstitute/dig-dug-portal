@@ -118,7 +118,6 @@ export default Vue.component("research-splice-track", {
 			let ensembl = spliceParams[1];
 			let tissue = spliceParams[2];
 			this.gene = await(this.getGene(gene));
-			console.log(JSON.stringify(this.gene));
 			this.spliceData = await(this.getSplices(ensembl, tissue));
 			this.exonData = await(this.getExons(gene));
 			this.renderTrack(this.exonData);
@@ -166,7 +165,7 @@ export default Vue.component("research-splice-track", {
 								let lastGene = t[t.length - 1];
 
 								//measuring if the regioon of the last gene is bigger than the gene label
-								//console.log("t", t);
+								
 								let lastGeneWidth = lastGene.xEndPos - lastGene.xStartPos;
 								let newGeneWidth = g.xEndPos - g.xStartPos;
 								
@@ -205,6 +204,7 @@ export default Vue.component("research-splice-track", {
 		},
 
 		renderTrack(GENES) {
+			console.log(GENES.length);
 			if (this.gene === null){
 				return;
 			}
@@ -233,7 +233,6 @@ export default Vue.component("research-splice-track", {
 
 				let xMin = this.viewingRegion.start,
 					xMax = this.viewingRegion.end;
-				console.log(xMin, xMax);
 
 				let xStart = this.adjPlotMargin.left;
 				let yStart = this.adjPlotMargin.top;
@@ -322,7 +321,7 @@ export default Vue.component("research-splice-track", {
 									gene.xEndPos - gene.xStartPos <= 1
 										? 1
 										: gene.xEndPos - gene.xStartPos;
-						console.log(geneName, gene.xStartPos, xonWidth);
+						
 						ctx.fillRect(
 									gene.xStartPos,
 									yPos + 10,
