@@ -27,12 +27,10 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-splice-track", {
 	props: [
-		"region",
 		"plotConfig",
 		"plotType",
 		"plotMargin",
 		"regionZoom",
-		"regionViewArea",
 		"utils",
 		"sectionId",
 		"hoverPos"
@@ -45,6 +43,7 @@ export default Vue.component("research-splice-track", {
 			biHost: "https://vision.hugeampkpnbi.org/api/bio/query",
 			spliceData: null,
 			exonData: null,
+			region: null,
 		};
 	},
 	modules: {
@@ -105,17 +104,7 @@ export default Vue.component("research-splice-track", {
 				let start = parseInt(regionArr[0], 10);
 				let end = parseInt(regionArr[1], 10);
 				let distance = end - start;
-				if (this.regionZoom > 0) {
-					let zoomNum = Math.round(
-						distance * (this.regionZoom / 200)
-					);
-					let viewPointShift = Math.round(
-						zoomNum * (this.regionViewArea / 100)
-					);
-					returnObj["chr"] = chr;
-					returnObj["start"] = start + zoomNum + viewPointShift;
-					returnObj["end"] = end - zoomNum + viewPointShift;
-				} else if (this.regionZoom == 0) {
+				if (this.regionZoom == 0) {
 					returnObj["chr"] = chr;
 					returnObj["start"] = start;
 					returnObj["end"] = end;
@@ -143,9 +132,9 @@ export default Vue.component("research-splice-track", {
 			let gene = spliceParams[0];
 			let ensembl = spliceParams[1];
 			let tissue = spliceParams[2];
+			this.region = await(this.getSingleGeneRegion(gene));
 			this.spliceData = await(this.getSplices(ensembl, tissue));
 			this.exonData = await(this.getExons(gene));
-			console.log(JSON.stringify(this.exonData));
 			this.renderTrack(this.exonData);
 		}
 	},
@@ -255,6 +244,7 @@ export default Vue.component("research-splice-track", {
 
 				let xMin = Number(this.viewingRegion.start),
 					xMax = Number(this.viewingRegion.end);
+				console.log(xMin, xMax);
 
 				let xStart = this.adjPlotMargin.left;
 				let yStart = this.adjPlotMargin.top;
@@ -343,6 +333,7 @@ export default Vue.component("research-splice-track", {
 									gene.xEndPos - gene.xStartPos <= 1
 										? 1
 										: gene.xEndPos - gene.xStartPos;
+						console.log(geneName, gene.xStartPos, xonWidth);
 						ctx.fillRect(
 									gene.xStartPos,
 									yPos + 10,
@@ -390,8 +381,12 @@ export default Vue.component("research-splice-track", {
 		async getExons(gene){
 			let exons = await fetch(`${this.biHost}/exons?q=${gene}`)
 				.then(resp => resp.json());
-			console.log(JSON.stringify(exons.data))
 			return exons.data;
+		},
+		async getSingleGeneRegion(geneName){
+			let gene = await fetch(`${this.biHost}/gene?q=${geneName}`)
+				.then(resp => resp.json());
+			return `${gene.chromosome}:${gene.start}-${gene.end}`;
 		}
 	},
 });

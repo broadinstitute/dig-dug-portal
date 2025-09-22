@@ -208,7 +208,7 @@
 			:plotConfig="plotConfig"
 			:plotType="plotConfig['type']"
 			:plotMargin="plotMargin"
-			:regionZoom="regionZoom"
+			:regionZoom="0"
 			:regionViewArea="regionViewArea"
 			:utils="utils"
 			:sectionId="sectionId">
