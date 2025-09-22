@@ -486,7 +486,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-score-plot>
-
 							<research-genes-track
 								v-if="
 									$parent.plotConfig != null &&

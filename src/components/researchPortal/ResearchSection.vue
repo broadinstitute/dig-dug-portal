@@ -223,7 +223,6 @@
 								@ld-data-loaded="ld => receiveLDData(ld)"
 								@on-star="starColumn">
 							</research-section-visualizers>
-
 							</div>
 						</span>
 					</span>

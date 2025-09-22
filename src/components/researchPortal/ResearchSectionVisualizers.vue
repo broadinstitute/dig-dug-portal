@@ -201,9 +201,11 @@
 				:utils="utils"
 				:data="plotData"
 			></research-single-cell-browser>
-
 		</template>
-		
+		<research-splice-track-vector
+				v-if="sectionId.startsWith('sQTL_by_region0_2')">
+
+			</research-splice-track-vector>
 	</div>
 </template>
 
@@ -228,6 +230,7 @@ import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import ResearchSpliceTrackVector from "@/components/researchPortal/vectorPlots/ResearchSpliceTrackVector.vue";
 import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfdePhenotypeXing.vue";
 
 export default Vue.component("research-section-visualizers", {
@@ -252,6 +255,7 @@ export default Vue.component("research-section-visualizers", {
 		ResearchRegionTrack,
 		ResearchRegionDotsTrack,
 		ResearchSingleCellBrowser,
+		ResearchSpliceTrackVector,
 		cfdePhenotypeXing
     },
 	data() {
