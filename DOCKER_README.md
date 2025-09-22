@@ -83,7 +83,7 @@ docker build --build-arg VUE_CONFIG_PATH="./configs/vue.config.YourPortal.js" -t
 
 ### Option 2: For SysBio-FAIRPlex/sysbio-portal repository
 
-If you're building from the SysBio-FAIRPlex/sysbio-portal repository (where vue.config.js has already been replaced by the sysbio-code-sync workflow), you can simply:
+If you're building from the SysBio-FAIRPlex/sysbio-portal repository (where vue.config.js has already been updated), you can simply:
 
 ```powershell
 docker build -t sysbio-portal .
