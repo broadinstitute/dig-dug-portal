@@ -43,7 +43,7 @@ For more detailed Docker instructions, see `DOCKER_README.md`.
 
 ## 🤝 Contributing Process
 
-1. **Fork this repository** `SysBio-FAIRPlex/sysbio-portal`
+1. **Fork this repository** `SysBio-FAIRPlex/sysbio-portal`. If you already have write access, you can skip this step.
 2. **Create your feature branch** from `main`
 3. **Make your changes**
 4. **Submit a PR** to `SysBio-FAIRPlex/sysbio-portal`
