@@ -1,76 +1,20 @@
 <template>
 	<div class="mbm-plot-content row">
-		This is the splice track.
 		<div class="col-md-12">
-			<div class="genes-track-setting" v-if="!!localGeneTypes" >
-				<span class="btn btn-default options-gear" >Genes <b-icon icon="gear-fill"></b-icon></span>
-				<ul class="options" >
-						<li>
-							<input type="checkbox" class="chkbox"
-								@click="utils.uiUtils.showHideElement('genesTrackWrapper' + sectionId)"
-							/><label> Hide track</label>
-						</li>
-						<li>
-							<input type="checkbox" class="chkbox"
-							:id="sectionId + 'GenesTrackAll'"
-							@click="checkAll()"
-							:checked = "(!!plotConfig['genes track']['show all biotypes'])? true:false"
-							/><label> Show all biotypes</label>
-						</li>
-						<li v-for="geneType in localGeneTypes"
-							:key="geneType">
-							<!--
-							<input type="checkbox" class="chkbox"
-								v-if="geneType == 'protein_coding'"
-								:id="sectionId + geneType"
-								:value="geneType"
-								checked
-								@click="renderTrack(localGenesData)"
-							/>
-							-->
-							<input type="checkbox" class="chkbox"
-									:id="sectionId + geneType"
-									:value="geneType"
-									:checked = "(geneType == 'protein_coding' || !!plotConfig['genes track']['show all biotypes'])? true:false"
-									@click="renderTrack(localGenesData)"
-								/>
-							<label :for="geneType">{{ geneType.replaceAll("_"," ") }}</label>
-						</li>
-						<li>
-							<a href="javascript:;"
-							@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_genesTrack', 'svg')">Download SVG</a>
-						</li>
-						<li>
-							<a href="javascript:;"
-							@click="downloadImage('genesTrack' + sectionId, sectionId + '_genesTrack', 'png')">Download PNG</a>
-						</li>
-					</ul>
-			</div>
 			<!-- place info modal here-->
-			THIS IS JUST A CANVAS
+			SPLICE TRACK CANVAS
 			<div
 				:id="'genesTrackWrapper' + sectionId"
 				class="genes-plot-wrapper"
 			>
-				<canvas
+				<!-- <canvas
 					:id="'genesTrack'+sectionId"
 					@resize="onResize"
 					width=""
 					height=""
-				></canvas>
+				></canvas> -->
 			</div>
 		</div>
-		<research-genes-track-vector
-		v-if="renderingGenes.length > 0"
-			:genesData="renderingGenes"
-			:renderConfig="plotConfig"
-			:margin="adjPlotMargin"
-			:region="viewingRegion"
-			:sectionId="sectionId"
-			:utils="utils"
-			:ref="sectionId + '_genesTrack'"
-		>
-		</research-genes-track-vector>
 	</div>
 </template>
 
@@ -82,7 +26,7 @@ import genesTrackVector from "@/components/researchPortal/vectorPlots/ResearchGe
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("multi-genes-track", {
+export default Vue.component("research-splice-track", {
 	props: [
 		"region",
 		"genesData",
@@ -114,7 +58,7 @@ export default Vue.component("multi-genes-track", {
 		if(!!this.genesData) {
 			this.renderTrack(this.genesData);
 		} else {
-			this.getGenesInRegion(this.region)
+			//this.getGenesInRegion(this.region) TODO what happens upon resize?
 		}
 	},
 	created() {
@@ -189,6 +133,9 @@ export default Vue.component("multi-genes-track", {
 			let codingGenesData = this.genesData;
 			return codingGenesData;
 		},
+		selectedSplice(){
+			return this.$store.state.selectedSplice;
+		},
 	},
 	watch: {
 		codingGenes(DATA) {
@@ -199,7 +146,7 @@ export default Vue.component("multi-genes-track", {
 				if(!!this.genesData){
 					this.renderTrack(this.genesData);
 				} else {
-					this.getGenesInRegion(n.chr+":"+n.start+"-"+n.end);
+					//this.getGenesInRegion(n.chr+":"+n.start+"-"+n.end);
 				}
 			},
 			deep: true,
@@ -211,6 +158,9 @@ export default Vue.component("multi-genes-track", {
 			} else {
 				this.renderTrack(this.genesData);
 			}
+		},
+		selectedSplice(newData){
+			console.log("Component received", newData);
 		}
 	},
 	methods: {
