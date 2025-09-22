@@ -203,8 +203,15 @@
 			></research-single-cell-browser>
 		</template>
 		<research-splice-track
-				v-if="sectionId.startsWith('sQTL_by_region0_2')">
-
+				v-if="sectionId.startsWith('sQTL_by_region0_2')"
+			:region="region"
+			:plotConfig="plotConfig"
+			:plotType="plotConfig['type']"
+			:plotMargin="plotMargin"
+			:regionZoom="regionZoom"
+			:regionViewArea="regionViewArea"
+			:utils="utils"
+			:sectionId="sectionId">
 			</research-splice-track>
 	</div>
 </template>

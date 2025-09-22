@@ -47,7 +47,6 @@
 					</ul>
 			</div>
 			<!-- place info modal here-->
-			THIS IS JUST A CANVAS
 			<div
 				:id="'genesTrackWrapper' + sectionId"
 				class="genes-plot-wrapper"

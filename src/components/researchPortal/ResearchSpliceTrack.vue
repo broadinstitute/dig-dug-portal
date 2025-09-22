@@ -4,15 +4,15 @@
 			<!-- place info modal here-->
 			SPLICE TRACK CANVAS
 			<div
-				:id="'genesTrackWrapper' + sectionId"
+				:id="'spliceTrackWrapper' + sectionId"
 				class="genes-plot-wrapper"
 			>
-				<!-- <canvas
-					:id="'genesTrack'+sectionId"
+				<canvas
+					:id="'spliceTrack'+sectionId"
 					@resize="onResize"
 					width=""
 					height=""
-				></canvas> -->
+				></canvas>
 			</div>
 		</div>
 	</div>
@@ -22,14 +22,12 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import genesTrackVector from "@/components/researchPortal/vectorPlots/ResearchGenesTrackVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-splice-track", {
 	props: [
 		"region",
-		"genesData",
 		"plotConfig",
 		"plotType",
 		"plotMargin",
@@ -37,35 +35,29 @@ export default Vue.component("research-splice-track", {
 		"regionViewArea",
 		"utils",
 		"sectionId",
-		"starItems",
 		"hoverPos"
 	],
 	data() {
 		return {
 			plotRendered: 0,
 			localGenesData: null,
-			localGeneTypes: null,
 			renderingGenes: [],
 			biHost: "https://vision.hugeampkpnbi.org/api/bio/query",
-			spliceData: [],
-			exonData: [],
+			spliceData: null,
+			exonData: null,
 		};
 	},
 	modules: {
 		//uiUtils,
 		//Formatters,
 	},
-	components: { genesTrackVector },
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
-		if(!!this.genesData) {
-			this.renderTrack(this.genesData);
-		} else {
-			//this.getGenesInRegion(this.region) TODO what happens upon resize?
+		if(!!this.exonData) {
+			this.renderTrack(this.exonData);
 		}
 	},
 	created() {
-		//this.$root.$refs.genesTrack = this;
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -132,35 +124,19 @@ export default Vue.component("research-splice-track", {
 				return returnObj;
 			}
 		},
-		codingGenes() {
-			let codingGenesData = this.genesData;
-			return codingGenesData;
-		},
 		selectedSplice(){
 			return this.$store.state.selectedSplice;
 		},
 	},
 	watch: {
-		codingGenes(DATA) {
-			this.renderTrack(this.genesData);
-		},
 		viewingRegion: {
 			handler: function (n, o) {
-				if(!!this.genesData){
-					this.renderTrack(this.genesData);
-				} else {
-					//this.getGenesInRegion(n.chr+":"+n.start+"-"+n.end);
+				if(!!this.exonData){
+					this.renderTrack(this.exonData);
 				}
 			},
 			deep: true,
 			immediate: true,
-		},
-		starItems(STARS){
-			if (!this.genesData) {
-				this.renderTrack(this.localGenesData);
-			} else {
-				this.renderTrack(this.genesData);
-			}
 		},
 		async selectedSplice(newData){
 			let spliceParams = newData.split("___");
@@ -170,44 +146,24 @@ export default Vue.component("research-splice-track", {
 			this.spliceData = await(this.getSplices(ensembl, tissue));
 			this.exonData = await(this.getExons(gene));
 			console.log(JSON.stringify(this.exonData));
-			
+			this.renderTrack(this.exonData);
 		}
 	},
 	methods: {
 		//...uiUtils,
 		downloadImage(ID, NAME, TYPE) {
 			if (TYPE == 'svg') {
-				this.$refs[this.sectionId + '_genesTrack'].renderPlot();
-				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "genesTrack"+this.sectionId);
+				this.$refs[this.sectionId + '_spliceTrack'].renderPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "spliceTrack"+this.sectionId);
 			} else if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
 			}
 		},
 		onResize(e) {
-			if(!this.genesData){
-				this.renderTrack(this.localGenesData);
-			} else {
-				this.renderTrack(this.genesData);
+			if(!this.exonData){
+				this.renderTrack(this.exonData);
 			}
 			
-		},
-
-		checkAll() {
-
-			if(!!document.getElementById(this.sectionId + 'GenesTrackAll').checked) {
-				this.localGeneTypes.map(t => {
-					document.getElementById(this.sectionId + t).checked = true;
-				})
-			} else {
-				this.localGeneTypes.map(t => {
-					if(t != 'protein_coding') {
-						document.getElementById(this.sectionId + t).checked = false;
-					}
-					
-				})
-			}
-
-			this.renderTrack(this.localGenesData)
 		},
 
 		sortGenesByRegion(GENES) {
@@ -223,13 +179,9 @@ export default Vue.component("research-splice-track", {
 				gIndex ++;
 			})
 
-
-			let checkedTypes = [...new Set(this.localGeneTypes.filter(type =>
-				!!document.getElementById(this.sectionId + type) && !!document.getElementById(this.sectionId + type).checked))];
-
 			GENES.map(g => {
-				if(!!checkedTypes.includes(g.gene_type)) {
-					if (tracks[0].length == 0) {
+				if( true) {
+					if (tracks[0].length == 0 || true) { // let's just sort them all in one bucket for now
 						tracks[0].push(g);
 					} else {
 						let gTaken = false;
@@ -281,7 +233,7 @@ export default Vue.component("research-splice-track", {
 
 			let canvasRenderWidth, canvasRenderHeight;
 
-			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
+			if (!!document.getElementById("spliceTrackWrapper"+this.sectionId)) {
 
 				
 				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
@@ -290,7 +242,7 @@ export default Vue.component("research-splice-track", {
 					? this.plotConfig.width * 2 +
 					  this.adjPlotMargin.left +
 					  this.adjPlotMargin.right
-					: document.getElementById("genesTrackWrapper" + this.sectionId).clientWidth *2;
+					: document.getElementById("spliceTrackWrapper" + this.sectionId).clientWidth *2;
 
 				let plotWidth =
 					this.plotType == "region plot"
@@ -309,17 +261,17 @@ export default Vue.component("research-splice-track", {
 				let xPosByPixel = plotWidth / (xMax - xMin);
 
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
-									.filter(g => g.start <= xMax && g.end >= xMin);
+									.filter(g => g.exon_start <= xMax && g.exon_end >= xMin);
 
 				genesSorted.map(gene =>{
 
 					let xStartPos =
-						gene.start > xMin
-							? xStart + (gene.start - xMin) * xPosByPixel
+						gene.exon_start > xMin
+							? xStart + (gene.exon_start - xMin) * xPosByPixel
 							: xStart;
 					let xEndPos =
-						gene.end < xMax
-							? xStart + (gene.end - xMin) * xPosByPixel
+						gene.exon_end < xMax
+							? xStart + (gene.exon_end - xMin) * xPosByPixel
 							: xStart + (xMax - xMin) * xPosByPixel;
 
 					gene["xStartPos"] = xStartPos;
@@ -336,7 +288,7 @@ export default Vue.component("research-splice-track", {
 
 				let bump = this.adjPlotMargin.bump;
 
-				let c = document.getElementById("genesTrack" + this.sectionId);
+				let c = document.getElementById("spliceTrack" + this.sectionId);
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
 				c.setAttribute(
@@ -387,8 +339,18 @@ export default Vue.component("research-splice-track", {
 						ctx.moveTo(gene.xStartPos, yPos + 20);
 						ctx.lineTo(gene.xEndPos, yPos + 20);
 						ctx.stroke();
+						let xonWidth =
+									gene.xEndPos - gene.xStartPos <= 1
+										? 1
+										: gene.xEndPos - gene.xStartPos;
+						ctx.fillRect(
+									gene.xStartPos,
+									yPos + 10,
+									xonWidth,
+									20
+								);
 
-						gene.exons.map((exon) => {
+						/* gene.exons.map((exon) => {
 
 							if (exon.start < xMax && exon.end > xMin) {
 								let xonStartPos =
@@ -414,79 +376,11 @@ export default Vue.component("research-splice-track", {
 									20
 								);
 							}
-						});
+						}); */
 					})
 				})
-
-				if(!!this.starItems) {
-					let yPos1 = this.adjPlotMargin.top - (this.adjPlotMargin.bump * 3);
-					let yPos2 = this.adjPlotMargin.top + (GENES.length * eachGeneTrackHeight);
-
-					this.starItems.map(star => {
-						let xPos = xStart + (star.columns[this.plotConfig["x axis field"]] - xMin) * xPosByPixel;
-
-						this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
-					})
-				}
-
 			}			
 			
-		},
-		async getGenesInRegion(region) {
-
-			let fetchUrl;
-			let searchPoint = this.plotConfig["genes track"]["search point"];
-
-			if (!!searchPoint) {
-				fetchUrl = searchPoint + "/api/bio/query/genes?q=" + region;
-			} else {
-				fetchUrl = this.utils.uiUtils.biDomain() + "/api/bio/query/genes?q=" + region;
-			}
-
-			let genes = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
-
-			if (genes.error == null) {
-
-				
-				let genesInRegion = JSON.parse(genes);
-				let codingGenes = "";
-
-				if (!!genesInRegion["data"] && genesInRegion["data"].length > 1) {
-					genesInRegion["data"].map((gene) => {
-						if ((gene.type = "protein_coding")) {
-							codingGenes += "'" + gene.name + "',";
-						}
-					});
-
-					codingGenes = codingGenes.slice(0, -1);
-					
-					if (codingGenes.length > 1) {
-						this.getGenesData(codingGenes);
-					}
-				}
-			}
-		},
-		async getGenesData(GENES) {
-			
-			let fetchUrl;
-			if (!!this.plotConfig["genome reference"] && this.plotConfig["genome reference"] == "GRCh38") {
-				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 1 and gene_name in " + GENES;
-			} else if (!this.plotConfig["genome reference"] ||
-				(!!this.plotConfig["genome reference"] && 
-				(this.plotConfig["genome reference"] == "GRCh37" || this.plotConfig["genome reference"] == "hg19"))) {
-				fetchUrl = "https://portaldev.sph.umich.edu/api/v1/annotation/genes/?filter=source in 3 and gene_name in " + GENES;
-			}
-
-			let genesData = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
-
-			if (genesData.error == null) {
-
-				this.localGenesData = JSON.parse(genesData).data;
-
-				this.localGeneTypes = [...new Set(this.localGenesData.map(g => g.gene_type))].sort()
-
-				this.renderTrack(this.localGenesData);
-			}
 		},
 		async getSplices(ensembl, tissue){
 			let splices = await fetch(`${this.biHost}/splices?q=${ensembl},${tissue}`)
