@@ -2303,7 +2303,8 @@ new Vue({
             this.$store.dispatch("sendLDData", LD_DATA);
         },
         getSplice(splice){
-            console.log("main received", splice);
+            this.selectedSplice = splice;
+            this.$store.dispatch("selectSplice", splice);
         }
     
     },

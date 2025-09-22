@@ -47,6 +47,7 @@ export default new Vuex.Store({
         capturedData: [],
         topLevelLDData: null,
         topLevelLDServer: null,
+        selectedSplice: null,
         ///
     },
     mutations: {
@@ -162,6 +163,9 @@ export default new Vuex.Store({
         },
         setTopLevelLDServer(state, DATA){
             state.topLevelLDServer = DATA;
+        },
+        setSelectedSplice(state, DATA){
+            state.selectedSplice = DATA;
         }
     },
     getters: {},
@@ -229,6 +233,9 @@ export default new Vuex.Store({
         sendLDData(context, DATA){
             context.commit("setTopLevelLDData", DATA.data);
             context.commit("setTopLevelLDServer", DATA.server);
+        },
+        selectSplice(context, DATA){
+            context.commit("setSelectedSplice", DATA);
         }
     }
 });
