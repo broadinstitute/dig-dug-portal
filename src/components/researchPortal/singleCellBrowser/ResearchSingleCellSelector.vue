@@ -1,9 +1,9 @@
 <template>
-    <div style="height:100%; display:flex">
+    <div style="display:flex; flex:1">
         <!-- if layout is list-->
          <div v-if="layout==='list'" class="list-container" :class="[listDirection, listAlignment]">
-            <div class="list-option" v-for="label of listData" :key="label" :data-label="label">
-                <div class="colorize-option" :class="labelIsolated(coloredOption, label)" @click="colorLabel($event, label)" v-b-tooltip:hover.left.window="'isolate label'">
+            <div class="list-option" v-for="label of listData" :key="label" :data-label="label" @click="colorLabel($event, label)">
+                <div class="colorize-option" :class="[labelIsolated(coloredOption, label), {selected: label === selectedOption}]" v-b-tooltip:hover.left.window="'isolate label'">
                     <svg width="1em" viewBox="0 -0.5 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.333C3 13.463 5.427 16 8.418 16 11.41 16 14 13.463 14 10.333 14 7.204 8.418 0 8.418 0S3 7.204 3 10.333Z" :fill="colors ? colors[selectedOption][label] : label === selectedOption ? '#434343' : '#ccc'"/></svg>
                 </div>
                 <div class="option-label" :title="label" @mouseover="emitHover(label)" @mouseout="emitHover('')">{{ label }}</div>
@@ -15,8 +15,8 @@
             <div class="dropdown-group">
                 <select style="width: 100%;" @change="selectOption($event.target.value)" v-model="selectedOption">
                     <option value="">--Select--</option>
-                    <option v-for="(value, key) of data" :value="key">
-                        {{ key }}
+                    <option v-for="(value, key) of filteredData" :value="key">
+                        {{ displayLabel(key) }}
                     </option>
                 </select>
             </div>
@@ -31,8 +31,8 @@
                 <template v-if="showSelect">
                     <select style="width: 100%;" @change="selectOption($event.target.value)" v-model="selectedOption">
                         <option value="">--Select--</option>
-                        <option v-for="(value, key) of data" :value="key">
-                            {{ key }}
+                        <option v-for="(value, key) of filteredData" :value="key">
+                            {{ displayLabel(key) }}
                         </option>
                     </select>
                 </template>
@@ -84,6 +84,7 @@
 <script>
 import * as d3 from 'd3';
 import Vue from 'vue';
+import {llog} from "./llog.js";
 
 /*
 notes:
@@ -113,7 +114,6 @@ colors: {
 }
 
 selectedField: "field1"
-selectedLabel: "label1"
 
 */
 
@@ -123,12 +123,12 @@ export default Vue.component('research-single-cell-selector', {
             type: (Object, Array, null),
             required: true,
         },
-        selectedField: {
-            type: String,
+        displayData: {
+            type: Object,
             required: false,
-            default: ''
+            default: null
         },
-        selectedLabel: {
+        selectedField: {
             type: String,
             required: false,
             default: ''
@@ -173,17 +173,15 @@ export default Vue.component('research-single-cell-selector', {
             selectedOption: '',
             coloredOption: '',
             coloredLabels: [],
-            listData: null
+            listData: null,
+            filteredData: null
         }
     },
     watch: {
         data(){
             this.init();
         },
-        selectedField(){
-            this.init();
-        },
-        selectedLabel(){
+        selectedField(newVal){
             this.init();
         },
         coloredOption(){
@@ -192,7 +190,11 @@ export default Vue.component('research-single-cell-selector', {
             }
         }
     },
+    created() {
+    
+    },
     mounted() {
+        
         this.init();
     },
     computed: {
@@ -205,16 +207,29 @@ export default Vue.component('research-single-cell-selector', {
             //check if data is array
             const isArray = Array.isArray(this.data);
 
-            if(isArray || this.layout==='list'){
+            /*if(this.displayData){
+                this.filteredData = Object.fromEntries(
+                    Object.keys(this.displayData)
+                    .filter(key => key in this.data)
+                    .map(key => [key, this.data[key]])
+                );
+            }else{
+                this.filteredData = this.data;
+            }*/
+            this.filteredData = this.data;
+            
+            //llog('filteredData', this.filteredData);
+
+            if(isArray || this.layout==='list' || this.layout === 'dropdown-list'){
                 //isArray
                 //this.selectedOption = this.selectedOption === this.selectedField ? '' : this.selectedField;
                 this.selectedOption = this.selectedField;
                 this.coloredOption = this.selectedField;
                 //this.coloredLabels[0] = this.selectedField;
                 this.listData = isArray ? this.data : this.data[this.selectedField];
-                this.layout = 'list';
+                //this.layout = 'list';
             }else{
-                this.selectOption(this.selectedField)
+                //this.selectOption(this.selectedField)
                 if(this.layout === "accordion"){
                     this.colorOption(this.selectedField);
                 }
@@ -222,7 +237,7 @@ export default Vue.component('research-single-cell-selector', {
             this.scrollToOption(this.coloredOption);
         },
         selectOption(key){
-            console.log('selectOption',key);
+            //llog('selectOption',key);
             const option = key;// ? key : e.target.value;
             this.coloredLabels = [];
             if(this.layout === 'dropdown-list' || this.layout === 'dropdown') {
@@ -236,7 +251,7 @@ export default Vue.component('research-single-cell-selector', {
         colorOption(option){
             this.coloredOption = option;
             this.coloredLabels = [];
-            this.emitUpdate();
+            //this.emitUpdate();
         },
         colorLabel(e, label){
             const el = e.target;
@@ -253,11 +268,13 @@ export default Vue.component('research-single-cell-selector', {
             this.emitUpdate();
         },
         labelIsolated(key, label){
-            if(this.layout==='list'){
+            if(this.coloredLabels.length>0 && this.coloredLabels.includes(label)){
+                    return 'on';
+            }else if(key === this.coloredOption){
                 if(this.coloredLabels.length===0 || this.coloredLabels.includes(label)){
                     return 'on';
                 }
-            }else if(key === this.coloredOption){
+            }else if(this.layout==='list'){
                 if(this.coloredLabels.length===0 || this.coloredLabels.includes(label)){
                     return 'on';
                 }
@@ -278,13 +295,20 @@ export default Vue.component('research-single-cell-selector', {
                 coloredField: this.coloredOption, 
                 coloredLabels: this.coloredLabels
             }
-            console.log('emitUpdate', emitObj);
+            llog('emitUpdate', emitObj);
             this.$emit('on-update', emitObj);
         },
         emitHover(label){
             this.$emit('on-hover', {
                 hoveredLabel: label
             });
+        },
+        displayLabel(rawLabel){
+            if(this.displayData?.[rawLabel]){
+                return this.displayData[rawLabel].displayName;
+            }else{
+                return rawLabel;
+            }
         }
     },
 });
@@ -322,6 +346,14 @@ select {
     gap:2px; 
     align-items: center; 
     flex-wrap: nowrap;
+    cursor: pointer;
+     opacity: 1;
+}
+.list-option:has(.colorize-option.selected){
+    background:#eee;
+}
+.list-option:hover .option-label{
+    opacity: 0.5;
 }
 
 .dropdown-container{

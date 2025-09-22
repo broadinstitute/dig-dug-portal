@@ -38,6 +38,13 @@ let pages = {
         title: "Genetic Studues",
         chunks: ["chunk-vendors", "chunk-common", "gwas"],
     },
+    singlecell: {
+        entry: "src/portals/SysBio/views/SingleCell/main.js",
+        template: "src/portals/SysBio/views/index.html",
+        filename: "singlecell.html",
+        title: "Single Cell",
+        chunks: ["chunk-vendors", "chunk-common", "singlecell"],
+    },
 };
 
 module.exports = {

@@ -23,6 +23,10 @@
           "path": "/expression.html"
         },
         {
+          "label": "Single Cell Browser",
+          "path": "/singlecell.html"
+        },
+        {
           "label": "Genetic Studies",
           "path": "/gwas.html"
         }
