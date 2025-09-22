@@ -46,6 +46,9 @@ export default Vue.component("research-splice-track", {
 			localGenesData: null,
 			localGeneTypes: null,
 			renderingGenes: [],
+			biHost: "https://vision.hugeampkpnbi.org/api/bio/query",
+			spliceData: [],
+			exonData: [],
 		};
 	},
 	modules: {
@@ -159,8 +162,15 @@ export default Vue.component("research-splice-track", {
 				this.renderTrack(this.genesData);
 			}
 		},
-		selectedSplice(newData){
-			console.log("Component received", newData);
+		async selectedSplice(newData){
+			let spliceParams = newData.split("___");
+			let gene = spliceParams[0];
+			let ensembl = spliceParams[1];
+			let tissue = spliceParams[2];
+			this.spliceData = await(this.getSplices(ensembl, tissue));
+			this.exonData = await(this.getExons(gene));
+			console.log(JSON.stringify(this.exonData));
+			
 		}
 	},
 	methods: {
@@ -478,6 +488,17 @@ export default Vue.component("research-splice-track", {
 				this.renderTrack(this.localGenesData);
 			}
 		},
+		async getSplices(ensembl, tissue){
+			let splices = await fetch(`${this.biHost}/splices?q=${ensembl},${tissue}`)
+				.then(resp => resp.json());
+			return splices.data;
+		},
+		async getExons(gene){
+			let exons = await fetch(`${this.biHost}/exons?q=${gene}`)
+				.then(resp => resp.json());
+			console.log(JSON.stringify(exons.data))
+			return exons.data;
+		}
 	},
 });
 
