@@ -43,7 +43,8 @@ This document explains how to build and run the Portal using Docker.
 ## Environment Variables
 
 - `PORT`: Port on which the Nginx server will listen (default: 8080)
-- `BIOINDEX_DEV`: Set to `1` to use the development BioIndex server instead of production
+- `BIOINDEX_DEV`: Set to `1` to use the development BioIndex server instead of production, or
+- `BIOINDEX_HOST`: URL of the BioIndex server (if not using default)
 - `VUE_APP_VOLCANO_DATASET_URL`: URL to the volcano plot dataset (for the gene expression viewer)
 - `VUE_APP_DATASET_ASSOC`: Dataset associations endpoint (for the genetic studies browser)
 
