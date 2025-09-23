@@ -45,8 +45,10 @@ new Vue({
         },
         };
     },
-    watch: {},
+    watch: {
+    },
     async created() {
+        keyParams.set({ gene: this.geneName });
         this.jsonResults = await this.runAllQueries();
     },
     computed: {

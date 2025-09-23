@@ -7,7 +7,7 @@
         <div class="row front-search-section">
           <div class="col-md-8 offset-md-2" align="center">
               <div class="single-search-wrapper">
-                  <h4 style="color: #fff">
+                  <h4>
                       Search for gene
                   </h4>
                   <research-single-search
@@ -34,5 +34,8 @@
   .query-table {
     margin-bottom: 50px;
     background-color: #efefef;
+  }
+  .single-search-wrapper {
+    margin-bottom: 50px;
   }
 </style>
