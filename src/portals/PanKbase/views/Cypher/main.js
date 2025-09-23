@@ -105,8 +105,8 @@ new Vue({
                 let singleQuery = this.queryKeys[i];
                 let param = {gene: this.geneName}
                 queries[singleQuery] = {
-                    cypherQuery: renderCypher(cyphers[singleQuery], param),
-                    curlQuery: renderCypherCurl(cyphers[singleQuery], param),
+                    cypher: renderCypher(cyphers[singleQuery], param),
+                    curl: renderCypherCurl(cyphers[singleQuery], param),
                     show: "none"
                 }
             }
