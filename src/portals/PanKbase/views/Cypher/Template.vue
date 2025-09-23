@@ -22,10 +22,10 @@
           <div v-for="queryKey, index in $parent.queryKeys" class="query-table">
             <strong>{{ index + 1 }}. {{ $parent.tissueFormatter(queryKey) }}</strong>
             <div class="show-cypher">
-              <button @click="$parent.toggleQuery(queryKey, 'cypher')">
+              <button class="btn btn-secondary btn-sm" @click="$parent.toggleQuery(queryKey, 'cypher')">
                 {{ $parent.queryText[queryKey].show !== 'cypher' ? 'Show' : 'Hide' }} cypher query
               </button>
-              <button @click="$parent.toggleQuery(queryKey, 'curl')">
+              <button class="btn btn-secondary btn-sm" @click="$parent.toggleQuery(queryKey, 'curl')">
                 {{ $parent.queryText[queryKey].show !== 'curl' ? 'Show' : 'Hide' }} curl query
               </button>
             </div>
@@ -36,6 +36,9 @@
               <pre v-else-if="$parent.queryText[queryKey].show === 'curl'">
                 {{ $parent.queryText[queryKey].curl }}
               </pre>
+              <div class="copy-button">
+                <button class="btn btn-secondary btn-sm" @click="$parent.copyQuery(queryKey)">Copy query</button>
+              </div>
             </div>
             
             <b-table :items="$parent.jsonResults[queryKey]"
@@ -48,7 +51,7 @@
       <pkb-footer></pkb-footer> 
   </div>
 </template>
-<style>
+<style scoped>
   .query-table {
     margin-bottom: 50px;
     padding: 10px;
@@ -72,7 +75,12 @@
     padding: 10px;
     color: white;
     background-color: darkslategray;
+    /*background-color: #6c757d;*/
     border-radius: 5px;
     margin-top: 5px;
+  }
+  .copy-button {
+    text-align: right;
+    padding-bottom: 10px;
   }
 </style>

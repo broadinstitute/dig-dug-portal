@@ -117,6 +117,11 @@ new Vue({
                 this.queryText[queryKey].show !== selection 
                     ? selection 
                     : "none"
+        },
+        copyQuery(queryKey){
+            let queryID = this.queryText[queryKey].show;
+            let content = this.queryText[queryKey][queryID];
+            window.navigator.clipboard.writeText(content);
         }
     },
     render(createElement, context) {
