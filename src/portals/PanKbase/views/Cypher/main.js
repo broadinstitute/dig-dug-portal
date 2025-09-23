@@ -79,7 +79,15 @@ new Vue({
             for (let i = 0; i < this.queryKeys.length; i++){
                 let singleQuery = this.queryKeys[i];
                 let results = await runCypherQuery(cyphers[singleQuery], {gene: this.geneName});
-                allResults[singleQuery] = results.results;
+                let entry = results.results;
+                if (singleQuery === 'variant_details'){
+                    // Flatten
+                    entry = entry.map(e => {return {
+                        variant_id: e.variant_id,
+                        tissue: e.tissue,
+                        ...e.eqtl_stats}});
+                }
+                allResults[singleQuery] = entry;
             }
             return allResults;
         }
