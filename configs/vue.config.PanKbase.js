@@ -198,6 +198,13 @@ let pages = {
         filename: "gene.html",
         title: "Gene",
         chunks: ["chunk-vendors", "chunk-common", "gene"]    
+    },
+    cypher: {
+        entry: "src/portals/PanKbase/views/Cypher/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "cypher.html",
+        title: "Cypher",
+        chunks: ["chunk-vendors", "chunk-common", "cypher"]
     }
 };
 
