@@ -106,13 +106,17 @@ new Vue({
                 let param = {gene: this.geneName}
                 queries[singleQuery] = {
                     cypherQuery: renderCypher(cyphers[singleQuery], param),
+                    curlQuery: renderCypherCurl(cyphers[singleQuery], param),
                     show: "none"
                 }
             }
             return queries;
         },
-        toggleQuery(queryKey){
-            this.queryText[queryKey].show = "cypherQuery";
+        toggleQuery(queryKey, selection){
+            this.queryText[queryKey].show = 
+                this.queryText[queryKey].show !== selection 
+                    ? selection 
+                    : "none"
         }
     },
     render(createElement, context) {

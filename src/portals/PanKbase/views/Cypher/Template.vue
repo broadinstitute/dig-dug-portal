@@ -22,11 +22,19 @@
           <div v-for="queryKey, index in $parent.queryKeys" class="query-table">
             <strong>{{ index + 1 }}. {{ $parent.tissueFormatter(queryKey) }}</strong>
             <div class="show-cypher">
-              <button @click="$parent.toggleQuery(queryKey)">Show cypher query</button>
+              <button @click="$parent.toggleQuery(queryKey, 'cypher')">
+                {{ $parent.queryText[queryKey].cypherQuery !== 'cypher' ? 'Show' : 'Hide' }} cypher query
+              </button>
+              <button @click="$parent.toggleQuery(queryKey, 'curl')">
+                {{ $parent.queryText[queryKey].cypherQuery !== 'curl' ? 'Show' : 'Hide' }} curl query
+              </button>
             </div>
             <div :hidden="$parent.queryText[queryKey].show === 'none'">
-              <pre>
+              <pre v-if="$parent.queryText[queryKey].show === 'cypher'">
                 {{ $parent.queryText[queryKey].cypherQuery }}
+              </pre>
+              <pre v-else-if="$parent.queryText[queryKey].show === 'curl'">
+                {{ $parent.queryText[queryKey].curlQuery }}
               </pre>
             </div>
             
