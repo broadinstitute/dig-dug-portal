@@ -42,13 +42,15 @@ new Vue({
                     },
                 }
             ],
-        },
+            },
+            queryText: null,
         };
     },
     watch: {
     },
     async created() {
         keyParams.set({ gene: this.geneName });
+        this.queryText = this.populateQueryText();
         this.jsonResults = await this.runAllQueries();
     },
     computed: {
@@ -87,7 +89,6 @@ new Vue({
                         tissue: e.tissue,
                         ...e.eqtl_stats}});
                 } else if (singleQuery === 'gene_overview'){
-                    console.log(JSON.stringify(entry));
                     entry = entry.map(e => { return {
                         name: e.gene.name,
                         labels: e.gene.labels.join("; "),
@@ -97,11 +98,22 @@ new Vue({
                 allResults[singleQuery] = entry;
             }
             return allResults;
+        },
+        populateQueryText(){
+            let queries = {};
+            for (let i = 0; i < this.queryKeys.length; i++){
+                let singleQuery = this.queryKeys[i];
+                let param = {gene: this.geneName}
+                queries[singleQuery] = {
+                    cypherQuery: renderCypher(cyphers[singleQuery], param),
+                    show: "none"
+                }
+            }
+            return queries;
+        },
+        toggleQuery(queryKey){
+            this.queryText[queryKey].show = "cypherQuery";
         }
-        
-        
-        
-        
     },
     render(createElement, context) {
         return createElement(Template);

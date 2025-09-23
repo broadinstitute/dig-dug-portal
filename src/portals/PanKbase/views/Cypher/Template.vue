@@ -21,6 +21,15 @@
         <div v-if="!!$parent.jsonResults" id="cypher-tables">
           <div v-for="queryKey, index in $parent.queryKeys" class="query-table">
             <strong>{{ index + 1 }}. {{ $parent.tissueFormatter(queryKey) }}</strong>
+            <div class="show-cypher">
+              <button @click="$parent.toggleQuery(queryKey)">Show cypher query</button>
+            </div>
+            <div :hidden="$parent.queryText[queryKey].show === 'none'">
+              <pre>
+                {{ $parent.queryText[queryKey].cypherQuery }}
+              </pre>
+            </div>
+            
             <b-table :items="$parent.jsonResults[queryKey]"
               sticky-header="300px">
             </b-table>
@@ -44,5 +53,9 @@
   #cypher-tables {
     background-color: #efefef;
     padding: 25px;
+  }
+  .show-cypher {
+    text-align: right;
+    padding-bottom: 10px;
   }
 </style>
