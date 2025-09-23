@@ -86,6 +86,13 @@ new Vue({
                         variant_id: e.variant_id,
                         tissue: e.tissue,
                         ...e.eqtl_stats}});
+                } else if (singleQuery === 'gene_overview'){
+                    console.log(JSON.stringify(entry));
+                    entry = entry.map(e => { return {
+                        name: e.gene.name,
+                        labels: e.gene.labels.join("; "),
+                        ...e.gene.properties
+                    }});
                 }
                 allResults[singleQuery] = entry;
             }
