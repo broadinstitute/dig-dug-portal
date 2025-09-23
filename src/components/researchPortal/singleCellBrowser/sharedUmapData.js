@@ -35,7 +35,6 @@ class SharedUmapData {
         }else{
             this.groups.get(group).instances++;
         }
-        console.log('UMAP GROUPS', this.groups)
     }
 
     getPositions(group) {
