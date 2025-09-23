@@ -16,17 +16,13 @@ new Vue({
     },
     mixins: [pankbaseMixin],
     data() {
-        return {        
+        return {
+            jsonResults: []
         };
     },
     watch: {},
     async created() {
-        const cypherDisplay = renderCypher(cyphers.eqtls_by_tissue, {gene: this.geneName});
-        const cypherCurlDisplay = renderCypherCurl(cyphers.eqtls_by_tissue, {gene: this.geneName});
-        const cypherFetch = await runCypherQuery(cyphers.eqtls_by_tissue, {gene: this.geneName});
-        console.log(cypherDisplay);
-        console.log(cypherCurlDisplay);
-        console.log(JSON.stringify(cypherFetch));
+        this.runAllQueries();
     },
     computed: {
         geneName(){
@@ -34,6 +30,15 @@ new Vue({
         }
     },
     methods: {
+        async runAllQueries(){
+            let queries = Object.values(cyphers);
+            for (let i = 0; i < queries.length; i++){
+                let singleQuery = queries[i];
+                let results = await runCypherQuery(singleQuery, {gene: this.geneName});
+                console.log(JSON.stringify(results.results));
+                this.jsonResults.push(results.results);
+            }
+        }
         
         
         

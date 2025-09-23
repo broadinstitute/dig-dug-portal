@@ -2,7 +2,7 @@ const cypherAPI = 'HTTPS://vcr7lwcrnh.execute-api.us-east-1.amazonaws.com/develo
 
 export const cyphers =  {
     // 1. Gene Overview
-    gene_overview: `MATCH (g:gene {name:"GENE_NAME"})
+    gene_overview: `MATCH (g:gene {name:"$gene"})
         RETURN {
         name: g.name,
         labels: labels(g),
@@ -10,13 +10,13 @@ export const cyphers =  {
         } AS gene
         LIMIT 1`,
     // 2. Variant Details
-    variant_details: `MATCH (v:sequence_variant)-[r:fine_mapped_eQTL]->(g:gene {name:"GENE_NAME"})
+    variant_details: `MATCH (v:sequence_variant)-[r:fine_mapped_eQTL]->(g:gene {name:"$gene"})
         RETURN v.id AS variant_id,
             r.tissue_id AS tissue,
             properties(r) AS eqtl_stats
         LIMIT 200`,
     // 3. Regulators of the Gene
-    gene_regulators: `MATCH (src)-[r:regulation]->(g:gene {name:"GENE_NAME"})
+    gene_regulators: `MATCH (src)-[r:regulation]->(g:gene {name:"$gene"})
         RETURN coalesce(src.name, src.id) AS regulator,
             labels(src) AS regulator_labels,
             r.experimental_system AS exp_system,
@@ -26,7 +26,7 @@ export const cyphers =  {
             r.author AS author
         LIMIT 200`,
     // 4. Targets Regulated by the Gene
-    gene_targets: `MATCH (g:gene {name:"GENE_NAME"})-[r:regulation]->(tgt)
+    gene_targets: `MATCH (g:gene {name:"$gene"})-[r:regulation]->(tgt)
         RETURN coalesce(tgt.name, tgt.id) AS target,
             labels(tgt) AS target_labels,
             r.experimental_system AS exp_system,
@@ -36,7 +36,7 @@ export const cyphers =  {
             r.author AS author
         LIMIT 200`,
     // 5. Expression Context
-    expression_context: `MATCH (g:gene {name:"GENE_NAME"})-[r:expression_level]->(ctx)
+    expression_context: `MATCH (g:gene {name:"$gene"})-[r:expression_level]->(ctx)
         RETURN coalesce(ctx.name, ctx.id) AS context,
             labels(ctx) AS context_labels,
             r.All__expression_mean AS all_mean,
@@ -63,7 +63,7 @@ export const cyphers =  {
         LIMIT 300`,
     // 6. Disease/Phenotype Associations
     // a. Gene/Disease links
-    gene_disease_links: `MATCH (g:gene {name:"GENE_NAME"})-[r:effector_gene]->(o:ontology)
+    gene_disease_links: `MATCH (g:gene {name:"$gene"})-[r:effector_gene]->(o:ontology)
         RETURN o.id AS ontology_id,
             coalesce(o.name, o.id) AS ontology_name,
             r.ConfidenceLevel AS confidence,
@@ -74,7 +74,7 @@ export const cyphers =  {
             r.data_version AS data_version,
             r.data_source_url AS source_url`,
     // b. Tissues behind the disease links
-    tissue_disease_links: `MATCH (v)-[r_eqtl:fine_mapped_eQTL]->(g:gene {name:"GENE_NAME"})
+    tissue_disease_links: `MATCH (v)-[r_eqtl:fine_mapped_eQTL]->(g:gene {name:"$gene"})
         MATCH (g)-[:effector_gene]->(o:ontology)
         RETURN o.id AS ontology_id,
             COUNT(DISTINCT v) AS n_variants,
