@@ -6,7 +6,7 @@
       <div class="pkb-body">
         <div class="row front-search-section">
           <div class="col-md-8 offset-md-2" align="center">
-              <div class="single-search-wrapper">
+              <div class="single-search-wrapper cypher-single-search">
                   <h4>
                       Search for gene
                   </h4>
@@ -18,10 +18,11 @@
               </div>
           </div>
       </div>
-        <div v-if="!!$parent.jsonResults">
+        <div v-if="!!$parent.jsonResults" id="cypher-tables">
           <div v-for="queryKey, index in $parent.queryKeys" class="query-table">
             <strong>{{ index + 1 }}. {{ $parent.tissueFormatter(queryKey) }}</strong>
-            <b-table :items="$parent.jsonResults[queryKey]">
+            <b-table :items="$parent.jsonResults[queryKey]"
+              sticky-header="300px">
             </b-table>
           </div>
         </div>
@@ -30,12 +31,18 @@
       <pkb-footer></pkb-footer> 
   </div>
 </template>
-<style scoped>
+<style>
   .query-table {
     margin-bottom: 50px;
-    background-color: #efefef;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: white;
   }
-  .single-search-wrapper {
+  .cypher-single-search {
     margin-bottom: 50px;
+  }
+  #cypher-tables {
+    background-color: #efefef;
+    padding: 25px;
   }
 </style>
