@@ -38,7 +38,6 @@ new Vue({
             for (let i = 0; i < this.queryKeys.length; i++){
                 let singleQuery = this.queryKeys[i];
                 let results = await runCypherQuery(cyphers[singleQuery], {gene: this.geneName});
-                console.log(JSON.stringify(results.results));
                 allResults[singleQuery] = results.results;
             }
             return allResults;

@@ -7,7 +7,8 @@
         <div v-if="!!$parent.jsonResults">
           <div v-for="queryKey, index in $parent.queryKeys">
             <strong>{{ index }}. {{ queryKey }}</strong>
-            {{ JSON.stringify($parent.jsonResults[queryKey]) }}
+            <b-table :items="$parent.jsonResults[queryKey]">
+            </b-table>
           </div>
         </div>
       </div>
