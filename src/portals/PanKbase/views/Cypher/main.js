@@ -17,27 +17,31 @@ new Vue({
     mixins: [pankbaseMixin],
     data() {
         return {
-            jsonResults: []
+            jsonResults: null
         };
     },
     watch: {},
     async created() {
-        this.runAllQueries();
+        this.jsonResults = await this.runAllQueries();
     },
     computed: {
         geneName(){
             return this.$store.state.geneName;
+        },
+        queryKeys(){
+            return Object.keys(cyphers);
         }
     },
     methods: {
         async runAllQueries(){
-            let queries = Object.values(cyphers);
-            for (let i = 0; i < queries.length; i++){
-                let singleQuery = queries[i];
-                let results = await runCypherQuery(singleQuery, {gene: this.geneName});
+            let allResults = {};
+            for (let i = 0; i < this.queryKeys.length; i++){
+                let singleQuery = this.queryKeys[i];
+                let results = await runCypherQuery(cyphers[singleQuery], {gene: this.geneName});
                 console.log(JSON.stringify(results.results));
-                this.jsonResults.push(results.results);
+                allResults[singleQuery] = results.results;
             }
+            return allResults;
         }
         
         
