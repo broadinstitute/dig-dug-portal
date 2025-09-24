@@ -15,7 +15,17 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         gene: bioIndex("gene"),
-        genes: bioIndex("genes")
+        genes: bioIndex("genes"),
+        geneassociations: bioIndex("gene-associations"),
+        varassociations: bioIndex("associations"),
+        ancestryAssoc: bioIndex("ancestry-associations"),
+        associations52k: bioIndex("gene-associations-52k"),
+        geneToTranscript: bioIndex("gene-to-transcript"),
+        transcriptAssoc: bioIndex("transcript-associations"),
+        hugeScores: bioIndex("huge"),
+        geneExpression: bioIndex("gene-expression"),
+        mouseSummary: bioIndex("diff-exp-summary-gene"),
+        uniprot,
     },
     state: {
         geneName: keyParams.gene || "CFTR",
@@ -101,6 +111,16 @@ export default new Vuex.Store({
             let q = `${chromosome}:${start - 300000}-${end + 300000}`;
 
             context.dispatch("genes/query", { q });
+        },
+        async queryAssociations(context) {
+            let query = { q: context.state.geneName };
+            context.dispatch("associations52k/query", query);
+            context.dispatch("geneassociations/query", query);
+            context.dispatch("geneExpression/query", query);
+        },
+        async getHugeScoresData(context) {
+            let name = context.state.geneName;
+            context.dispatch("hugeScores/query", { q: name });
         },
     },
 });
