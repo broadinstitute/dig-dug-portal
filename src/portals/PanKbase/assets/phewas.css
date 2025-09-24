@@ -1,0 +1,71 @@
+/* pheWAS dataset association table */
+#phewas-datasets {
+    border-right: none;
+    margin-top: 1rem;
+}
+
+#phewas-datasets div {
+    border-left: none;
+    border-right: none;
+}
+
+#phewas-datasets .top-level-value-item:first-child {
+    text-align: left;
+}
+
+#phewas-datasets .top-level-header,
+#phewas-datasets .top-level-value {
+    font-size: 1rem;
+}
+
+#phewas-datasets .top-level-value:hover {
+    background-color: #efefef;
+}
+
+#phewas-datasets .list {
+    margin-bottom: 1rem;
+}
+
+#phewas-datasets .feature-content-wrapper {
+    border-left: 4px solid #6c757d78;
+}
+
+#phewas-datasets .feature-header-item {
+    background-color: #d2d2d2;
+}
+
+.phenotype-gene-association {
+    position: relative;
+}
+
+.phenotype-gene-association>.options-4-actions {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color: #fff;
+    font-weight: 400;
+    padding: 10px;
+    border-radius: 5px;
+    left: -12px;
+    top: 10px;
+    z-index: 20;
+    white-space: nowrap;
+    line-height: 1.5em;
+}
+
+.phenotype-gene-association>.options-4-actions {
+    left: 80%;
+    top: -30%;
+}
+
+.phenotype-gene-association:hover>.options-4-actions {
+    display: block;
+}
+
+.phenotype-gene-association:hover>.options-4-actions a {
+    color: #ffffff !important;
+}
+
+.phenotype-gene-association:hover>.options-4-actions a:hover {
+    color: #aaaaff !important;
+}

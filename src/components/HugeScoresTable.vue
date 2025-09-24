@@ -61,13 +61,13 @@
                     {{ r.item.gene }}
                 </a>
             </template>
-            <template #cell(link)="r">
+            <!-- <template #cell(link)="r">
                 <a class="btn view-features-btn btn-secondary"
                     style="color: #ffffff !important"
                     :href="`/hugecalculator.html?gene=${r.item.gene}&phenotype=${r.item.phenotype}&prior=0.3696`"
                     >Open</a
                 >
-            </template>
+            </template> -->
         </b-table>
         <div v-else>
             <b-alert show variant="warning" class="text-center">
@@ -152,10 +152,7 @@ export default Vue.component("HugeScoresTable", {
                     key: "range",
                     label: "Evidence Range",
                 },
-                {
-                    key: "link",
-                    label: "HuGE Calculator",
-                },
+                //{ key: "link", label: "HuGE Calculator",},
             ],
         };
     },

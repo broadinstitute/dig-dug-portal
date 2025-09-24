@@ -88,12 +88,12 @@
 						<span class="awesome"></span> Rare Variation Bayes
 						Factor
 					</li>
-					<li>
+					<!-- <li>
 						<a
 							:href="`/hugecalculator.html?gene=${selectedGene}&phenotype=${selectedPhenotype}`"
 							>View evidence in HuGE calculator >></a
 						>
-					</li>
+					</li> -->
 				</ul>
 				<br />
 			</div>

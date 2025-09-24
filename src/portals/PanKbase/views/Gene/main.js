@@ -3,6 +3,8 @@ import Template from "./Template.vue";
 import store from "./store.js";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
+import "../../assets/phewas.css";
+import "../../assets/filtering.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
