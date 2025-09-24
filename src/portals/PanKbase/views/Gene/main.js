@@ -4,13 +4,18 @@ import store from "./store.js";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
+import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import AncestrySelectPicker from "@/components/AncestrySelectPicker";
+import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -24,39 +29,129 @@ new Vue({
     // Based on HuGeAMP Gene page.
     store,
     components: {
+        UniprotReferencesTable,
         ResearchSingleSearch,
         TooltipDocumentation,
         NCATSPredicateTable,
         FilterPValue,
         UnauthorizedMessage,
+        GeneAssociationsTable,
         GeneAssociationsMasks,
-        ResearchPheWAS
+        ResearchPheWAS,
+        FilterGreaterThan,
+        AncestrySelectPicker,
+        HugeScoresTable
     },
     mixins: [pankbaseMixin],
     data() {
         return {
-            jsonResults: null,
+            activeTab: "hugeScorePheWASPlot",
             searchConfig: {
-            "search instruction": "Search for a gene",
-            "search examples": [
-                {
-                    parameter: "gene",
-                    value: "CFTR",
-                }
-            ],
-            "search parameters": [
-                {
-                    parameter: "gene",
-                    values: "kp genes",
-                    "target page": {
-                        label: "Search Gene",
-                        url: "/gene.html?",
-                    },
-                }
-            ],
+                "search instruction": "Search for a gene",
+                "search examples": [
+                    {
+                        parameter: "gene",
+                        value: "CFTR",
+                    }
+                ],
+                "search parameters": [
+                    {
+                        parameter: "gene",
+                        values: "kp genes",
+                        "target page": {
+                            label: "Search Gene",
+                            url: "/gene.html?",
+                        },
+                    }
+                ],
             },
-            queryText: null,
             phenotypeFilterList: [],
+            plotColors: [
+                "#007bff",
+                "#048845",
+                "#8490C8",
+                "#BF61A5",
+                "#EE3124",
+                "#FCD700",
+                "#5555FF",
+                "#7aaa1c",
+                "#9F78AC",
+                "#F88084",
+                "#F5A4C7",
+                "#CEE6C1",
+                "#cccc00",
+                "#6FC7B6",
+                "#D5A768",
+                "#d4d4d4",
+            ],
+            phewasPlotMargin: {
+                leftMargin: 150,
+                rightMargin: 40,
+                topMargin: 20,
+                bottomMargin: 100,
+                bump: 11,
+            },
+            hugeScoreRenderConfig: {
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "renderScore",
+                "convert y -log10": "false",
+                "y axis label": "Log(HuGE score)",
+                "x axis label": "",
+                "beta field": "null",
+                "hover content": ["bf_common", "bf_rare", "huge"],
+                thresholds: [Math.log(3), Math.log(30)],
+                "label in black": "greater than",
+                height: "600",
+                "plot margin": {
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
+            },
+            commonVariantRenderConfig: {
+                type: "phewas plot",
+                "render by": "phenotype",
+                "group by": "phenotype group",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "beta",
+                "beta field": "null",
+                "hover content": ["pValue"],
+                thresholds: ["2.5e-6"],
+                height: "600",
+                "plot margin": {
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
+            },
+            rareVariantRenderConfig: {
+                type: "phewas plot",
+                "group by": "phenotype group",
+                "render by": "phenotype",
+                "phenotype map": "kp phenotype map",
+                "y axis field": "pValue",
+                "convert y -log10": "true",
+                "y axis label": "-Log10(p-value)",
+                "x axis label": "beta",
+                "beta field": "beta",
+                "hover content": ["pValue", "beta"],
+                thresholds: ["2.5e-6", "0.05"],
+                height: "600",
+                "plot margin": {
+                    left: 150,
+                    right: 150,
+                    top: 250,
+                    bottom: 300,
+                },
+            },
         };
     },
     watch: {
@@ -70,11 +165,19 @@ new Vue({
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
-            this.$store.dispatch("getMouseData");
         },
     },
     async created() {
         keyParams.set({ gene: this.geneName });
+        /// disease systems
+        this.$store.dispatch("bioPortal/getDiseaseSystems");
+        ////
+        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        // get the disease group and set of phenotypes available
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.checkGeneName(this.$store.state.geneName);
     },
     computed: {
         utilsBox() {
@@ -235,6 +338,25 @@ new Vue({
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
+        async checkGeneName(KEY) {
+            let gene = await regionUtils.geneSymbol(KEY);
+
+            if (!!gene && gene != KEY) {
+                document.getElementById("invalidGeneMessage").innerHTML =
+                    "Your search term is an alias name for gene symbol " +
+                    gene +
+                    ". Please enter a new search term above, or go to the " +
+                    gene +
+                    " Gene page";
+
+                document
+                    .getElementById("invalidGeneRedirect")
+                    .setAttribute("href", "/gene.html?gene=" + gene);
+                uiUtils.showElement("invalidGeneWarning");
+                //uiUtils.showElement("pageSearchHeaderContent");
+            }
+        },
         filterPhenotype(newFilters) {
             this.phenotypeFilterList = newFilters;
         },

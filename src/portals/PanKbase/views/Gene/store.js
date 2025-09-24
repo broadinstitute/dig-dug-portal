@@ -41,6 +41,9 @@ export default new Vuex.Store({
             state.geneName = name;
             state.geneRegion = `${chromosome}:${start}-${end}`;
         },
+        setCommonVariantsLength(state, NUM) {
+            state.commonVariantsLength = NUM;
+        },
     },
 
     getters: {
@@ -122,5 +125,13 @@ export default new Vuex.Store({
             let name = context.state.geneName;
             context.dispatch("hugeScores/query", { q: name });
         },
+        async queryUniprot(context, symbol) {
+            let name = symbol || context.getters.canonicalSymbol;
+
+            if (!!symbol) {
+                context.dispatch("uniprot/getUniprotGeneInfo", name);
+            }
+        },
+        
     },
 });
