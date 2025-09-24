@@ -273,6 +273,14 @@
 											</button>
 										</span>
 								</span>
+								<span v-else-if="!!ifDrcPwbColumn(tdKey)" 
+									class="drc-pwb-options">
+									<span class="btns-wrapper">
+										<button class="btn btn-sm show-evidence-btn set-search-btn"
+											@click="openDrcPwbLink(tdValue, tdKey, index)" >
+										{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+									</span>
+								</span>
 								
 								<span v-else v-html="formatValue(tdValue, tdKey, value)"></span>
 
@@ -324,6 +332,14 @@
 													@click="getSubsectionData(tdValue, tdKey, index)" >
 												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
 											</span>
+									</span>
+									<span v-else-if="!!ifDrcPwbColumn(tdKey)" 
+										class="drc-pwb-options">
+										<span class="btns-wrapper">
+											<button class="btn btn-sm show-evidence-btn set-search-btn"
+												@click="openDrcPwbLink(tdValue, tdKey, index)" >
+											{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+										</span>
 									</span>
 									<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
 							</td>
@@ -833,6 +849,14 @@ export default Vue.component("research-data-table", {
 
 			return (this.subSectionHidden.includes(id))? 'hidden' : '';
 		},
+		async openDrcPwbLink(VALUE,KEY,INDEX){
+			console.log(VALUE,KEY,INDEX);
+			let dataPoint = this.tableFormat['column formatting'][KEY]['data point'];
+			const genes = await this.utils.drcUtils.getGenesInGeneSet(VALUE, dataPoint);
+			console.log(genes);
+			//const link = await this.utils.drcUtils.create_pwb_gene_set_workflow(['STAT2', 'STAT3'], VALUE)
+			//window.open(link, '_blank');
+		},
 		setParameter(VALUE,KEY,SECTION,PARAMETERS,COMPARE){
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
@@ -1223,8 +1247,16 @@ export default Vue.component("research-data-table", {
 				return null;
 			}
 		},
+		ifDrcPwbColumn(KEY) {
+			if (!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+				&& !!this.tableFormat['column formatting'][KEY]['type'].includes('drc pwb link')) {
+				return true;
+			} else {
+				return null;
+			}
+		},
 		getParameterColumnLabel(KEY){
-			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY) || !!this.ifByoglSectionColumn(KEY)) {
+			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY) || !!this.ifByoglSectionColumn(KEY) || !!this.ifDrcPwbColumn(KEY) ) {
 				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
 				return label;
 			} else {
