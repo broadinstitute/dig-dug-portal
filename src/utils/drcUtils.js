@@ -53,40 +53,20 @@ async function create_pwb_gene_set_workflow(gene_set, description) {
     })
 }
 
-async function getGenesInGeneSet(QUERY, DATA_POINT) {
+async function getGenesInGeneSet(QUERY, DATA_POINT, MODEL) {
 
-    console.log(QUERY, DATA_POINT);
+    console.log(QUERY, DATA_POINT, MODEL);
 
-    return QUERY;
-
-    /*let dataUrl = DATA_POINT.url;
-    let fKEY = this.getRowID(KEY + QUERY + INDEX);
-
-    if (TYPE == "replace") {
-        PARAMS.map((param, pIndex) => {
-            if (!!QUERY.split(",")[pIndex]) {
-                dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
-            } else {
-                dataUrl = dataUrl.replace("$" + param + ",", '');
-                dataUrl = dataUrl.replace(",$" + param, '');
-                dataUrl = dataUrl.replace("$" + param, '');
-            }
-        })
-
-    } else {
-        dataUrl = dataUrl + "query/" + DATA_POINT.index + "?q=" + QUERY;
-    }
-
-    this.subSectionLoading.push(fKEY); //start loading
-
-    let contentJson = await fetch(dataUrl).then((resp) => resp.json());
-
-    this.subSectionLoading.splice(this.subSectionLoading.indexOf(fKEY), 1); //finish loading
+    let url = DATA_POINT.url + QUERY;
+    let contentJson = await fetch(url).then((resp) => resp.json());
 
     if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
-
+        let genes = contentJson.data.filter((gene) => gene.gene_set_size == MODEL).map((gene) => gene.gene);
+        return genes;
     } else {
-    }*/
+        return null;
+    }
+
 }
 
 export default { create_pwb_workflow, create_pwb_gene_set_workflow, getGenesInGeneSet };
