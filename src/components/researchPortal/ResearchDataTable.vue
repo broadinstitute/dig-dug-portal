@@ -850,7 +850,7 @@ export default Vue.component("research-data-table", {
 			return (this.subSectionHidden.includes(id))? 'hidden' : '';
 		},
 		async openDrcPwbLink(VALUE,KEY,INDEX){
-			console.log(VALUE,KEY,INDEX);
+			
 			const dataPoint = this.tableFormat['column formatting'][KEY]['data point'];
 			const model = !!this.utils.keyParams.model? this.utils.keyParams.model:'all';
 			const genes = await this.utils.drcUtils.getGenesInGeneSet(VALUE, dataPoint,model);
@@ -866,7 +866,7 @@ export default Vue.component("research-data-table", {
 			const link = await this.utils.drcUtils.create_pwb_gene_set_workflow(GENES, DESCRPTION)
 			window.open(link, '_blank');
 		},
-		
+
 		setParameter(VALUE,KEY,SECTION,PARAMETERS,COMPARE){
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
