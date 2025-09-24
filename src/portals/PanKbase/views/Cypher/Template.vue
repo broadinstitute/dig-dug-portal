@@ -18,6 +18,9 @@
               </div>
           </div>
       </div>
+        <h4>Gene Info for {{ $parent.geneName }}</h4>
+          <p style="font-size: larger;">Results from <a href="https://pankgraph.org">PanKgraph</a>
+          via <a href="https://pankgraph.org/docs/API">Query API</a></p>
         <div v-if="!!$parent.jsonResults" id="cypher-tables">
           <div v-for="queryKey, index in $parent.queryKeys" class="query-table">
             <strong>{{ index + 1 }}. {{ $parent.tissueFormatter(queryKey) }}</strong>
@@ -46,6 +49,7 @@
             </b-table>
           </div>
         </div>
+        <div v-else>Loading...</div>
       </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 

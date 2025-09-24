@@ -80,12 +80,12 @@ export const cyphers =  {
             COUNT(DISTINCT v) AS n_variants,
             collect(DISTINCT r_eqtl.tissue_id) AS tissues`,
     // EQTLs by tissue too?
-    eqtls_by_tissue: `
+    /* eqtls_by_tissue: `
         MATCH (v:sequence_variant)-[r:fine_mapped_eQTL]->(g:gene {name:"$gene"})
         RETURN r.tissue_id AS tissue,
             COUNT(DISTINCT v) AS n_variants,
             collect(DISTINCT v.id) AS variant_ids
-        ORDER BY n_variants DESC`
+        ORDER BY n_variants DESC` */
 }
 
 function dedent(str) {
