@@ -5,6 +5,8 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import { cyphers, renderCypher, renderCypherCurl, runCypherQuery } from "../../utils/paragraph.js";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -19,6 +21,8 @@ new Vue({
     store,
     components: {
         ResearchSingleSearch,
+        TooltipDocumentation,
+        NCATSPredicateTable,
     },
     mixins: [pankbaseMixin],
     data() {
@@ -47,6 +51,12 @@ new Vue({
         };
     },
     watch: {
+        region(region) {
+            if (region) {
+                //uiUtils.hideElement("pageSearchHeaderContent");
+                this.$store.dispatch("queryGeneRegion", region);
+            }
+        },
     },
     async created() {
         keyParams.set({ gene: this.geneName });
@@ -54,6 +64,23 @@ new Vue({
     computed: {
         geneName(){
             return this.$store.state.geneName;
+        },
+        region() {
+            return this.$store.getters.region;
+        },
+        docDetails() {
+            let symbol = this.geneSymbol;
+            let r = this.region;
+
+            if (!!symbol && !!r) {
+                return {
+                    gene: symbol,
+                    region: `${r.chromosome}:${Formatters.intFormatter(
+                        r.start
+                    )}-${Formatters.intFormatter(r.end)}`,
+                };
+            }
+            return {};
         },
         utilsBox() {
             let utils = {

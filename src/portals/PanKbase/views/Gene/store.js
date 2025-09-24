@@ -15,6 +15,7 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         gene: bioIndex("gene"),
+        genes: bioIndex("genes")
     },
     state: {
         geneName: keyParams.gene || "CFTR",
@@ -93,6 +94,13 @@ export default new Vuex.Store({
                 context.dispatch("gene/query", { q: name });
                 context.dispatch("geneToTranscript/query", { q: name });
             }
-        }
+        },
+        async queryGeneRegion(context, region) {
+            //To match with HuGE cal +- 300000 to the region
+            let { chromosome, start, end } = region || context.getters.region;
+            let q = `${chromosome}:${start - 300000}-${end + 300000}`;
+
+            context.dispatch("genes/query", { q });
+        },
     },
 });
