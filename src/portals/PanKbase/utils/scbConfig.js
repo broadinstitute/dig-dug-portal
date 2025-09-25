@@ -9,8 +9,8 @@ export const SCB_CONFIG =
             TODO: check optionality - should have defaults if omitted
         */
         "parameters":{
-            "datasetId": "XXXdatasetId",
-            "gene": "XXXgene"
+            "datasetId": "datasetId",
+            "gene": "gene"
         },
 
         /*
