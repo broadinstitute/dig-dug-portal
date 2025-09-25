@@ -1,3 +1,5 @@
+/* This utility file needs to be updated later to make it more generic and configuarable. */
+
 async function create_pwb_workflow(props) {
     const req = await fetch('https://playbook-workflow-builder.cloud/api/db/fpl', {
         method: 'POST',
@@ -61,7 +63,7 @@ async function getGenesInGeneSet(QUERY, DATA_POINT, MODEL) {
     let contentJson = await fetch(url).then((resp) => resp.json());
 
     if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
-        let genes = (MODEL == 'all') ? contentJson.data.filter(gene => gene.combined >= 2).map((gene) => gene.gene) : contentJson.data.filter((gene) => gene.gene_set_size == MODEL).filter(gene => gene.combined >= 2).map((gene) => gene.gene);
+        let genes = (MODEL == 'all') ? contentJson.data.filter(gene => gene.combined >= 0).map((gene) => gene.gene) : contentJson.data.filter((gene) => gene.gene_set_size == MODEL).filter(gene => gene.combined >= 0).map((gene) => gene.gene);
         return genes;
     } else {
         return null;
