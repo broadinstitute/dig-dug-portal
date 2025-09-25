@@ -1646,10 +1646,12 @@
                     });
                     this.displayFields = rawDisplayFields;
                 }
+                
                 //sort it
-                const sortedEntries = Object.entries(this.displayFields).sort(([, a], [, b]) =>
+                /* const sortedEntries = Object.entries(this.displayFields).sort(([, a], [, b]) =>
                     a.displayName.localeCompare(b.displayName)
-                );
+                ); */
+                const sortedEntries = Object.entries(this.displayFields);
                 //create show and hide groups
                 const show = {};
                 const hide = {};
