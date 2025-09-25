@@ -704,4 +704,8 @@
     color: inherit !important;
     text-decoration: inherit !important;
 }
+.mdkp-card {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
 </style>
