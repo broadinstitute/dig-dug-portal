@@ -28,7 +28,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
-
+import filterUtils from "@/utils/filterUtils";
 new Vue({
     // Based on HuGeAMP Gene page.
     store,
@@ -158,6 +158,132 @@ new Vue({
                     bottom: 300,
                 },
             },
+             GTExData: null,
+            GTExDataFields: [
+                {
+                    key: 'tissue',
+                    sortable: true
+                }, {
+                    key: 'biosample',
+                    sortable: true
+                }, {
+                    key: 'tstat',
+                    sortable: true,
+                    formatter: (value) => value ? value.toExponential(2) : ""
+                }
+
+            ],
+            GTExRenderConfig: {
+                type: "bar plot",
+                label: "P-Value",
+                "group by": "tissue",
+                "y axis field": "tstat",
+                "convert y -log10": null,
+                "y ticks decimal point": "2",
+                "render by": "biosample",
+                "y axis label": "Tstat",
+                "x axis label": "Tissue / Biosample",
+                "beta field": null,
+                "hover content": [
+                    "tissue",
+                    "tstat"
+                ],
+                thresholds: "calculate",
+                "thresholds calculate": [
+                    [
+                        0.05,  
+                        "/", 
+                        "data length"
+                    ]
+                ],
+                height: 300,
+                "plot margin": {
+                    top: 200,
+                    bottom: 200,
+                    left: 150,
+                    right: 175
+                }
+            },
+            GTExPage: 1,
+
+            GTExData2: null,
+            GTExData2Fields: [
+                {
+                    key: 'tissue',
+                    sortable: true
+                }, {
+                    key: 'tissueId'
+                }, {
+                    key: 'biosample',
+                    sortable: true
+                }, {
+                    key: 'biosampleId'
+                }, {
+                    key: 'minTpm',
+                    label: 'Min TPM',
+                    sortable: true
+                }, {
+                    key: 'firstQuTpm',
+                    label: 'Q1 TPM',
+                    sortable: true
+                }, {
+                    key: 'medianTpm',
+                    label: 'Median TPM',
+                    sortable: true
+                }, {
+                    key: 'thirdQuTpm',
+                    label: 'Q3 TPM',
+                    sortable: true
+                }, {
+                    key: 'maxTpm',
+                    label: 'Max TPM',
+                    sortable: true
+                }, {
+                    key: 'nSamples',
+                    label: 'Total Samples',
+                    sortable: true
+                }, {
+                    key: 'dataset'
+                },
+
+            ],
+            GTExRenderConfig2: {
+                type: "box plot",
+                label: "Absolute gene expression",
+                "group by": "tissue",
+                "y axis field": {
+                    min: "minTpm",
+                    max: "maxTpm",
+                    median: "medianTPM",
+                    q1: "firstQuTpm",
+                    q3: "thirdQuTpm"
+                },
+                "convert y -log10": null,
+                "y ticks decimal point": "2",
+                "render by": "biosample",
+                "y axis label": "TPM",
+                "x axis label": "Tissue / Biosample",
+                "hover content": [
+                    "tissue",
+                    "nSamples"
+                ],
+                "thresholds": "calculate",
+                "thresholds calculate": [
+                [
+                    0.05,
+                    "/",
+                    "data length"
+                ]
+                ],
+                height: 300,
+                "plot margin": {
+                    top: 200,
+                    bottom: 200,
+                    left: 150,
+                    right: 175
+                }
+            },
+            GTExPage2: 1,
         };
     },
     watch: {
@@ -184,6 +310,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.checkGeneName(this.$store.state.geneName);
+        this.getGTExdata();
+        this.getGTExdata2();
     },
     computed: {
         utilsBox() {
@@ -376,6 +504,48 @@ new Vue({
                 refComponent.renderPheWas();
             }, 500);
         },
+        async getGTExdata(){
+            const dataUrl = "https://cfde.hugeampkpnbi.org/api/bio/query/gtex-tstat?q="+this.$store.state.geneName;
+            let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+            if (contentJson.error == null) {
+                this.GTExData = contentJson.data;
+            }
+        },
+        async getGTExdata2(){
+            const dataUrl = "https://bioindex-dev.hugeamp.org/api/bio/query/gene-expression?q="+this.$store.state.geneName;
+            let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+            if (contentJson.error == null) {
+                const filtered = this.checkPreFilters(contentJson.data);
+                this.GTExData2 = filtered;
+            }
+        },
+        renderGTEx(REF) {
+            this.activeTab = REF;
+            let refComponent = this.$children[0].$refs[REF];
+            setTimeout(function () {
+                refComponent.renderBoxPlot();
+            }, 500);
+        },
+        checkPreFilters(DATA) {
+			//Apply pre filters as data gets loaded;
+			let returnData = DATA;
+            let filters = [
+                {
+                    "field": "collection",
+                    "value": "GTEx",
+                    "type": "search"
+                }
+            ];
+            let filterValues = {}
+            /*
+            filters.map(filter => {
+                filterValues[filter.parameter] = this.utils.keyParams[filter.parameter];
+            })
+            */
+            returnData = filterUtils.applyFilters(filters, DATA, filterValues);
+
+			return returnData;
+		},
     },
     render(createElement, context) {
         return createElement(Template);
