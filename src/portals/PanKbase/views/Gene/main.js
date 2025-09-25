@@ -19,6 +19,8 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
+import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import { SCB_CONFIG } from "../../utils/scbConfig.js";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -45,7 +47,9 @@ new Vue({
         FilterGreaterThan,
         AncestrySelectPicker,
         HugeScoresTable,
-        ResearchSingleCellBrowser
+        ResearchSingleCellBrowser,
+        ResearchBarPlot,
+        ResearchBoxPlot
     },
     mixins: [pankbaseMixin],
     data() {
