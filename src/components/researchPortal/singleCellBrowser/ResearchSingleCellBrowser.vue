@@ -43,7 +43,7 @@
         <template>
             <div style="font-weight: bold;">Select Tissue</div>
             <!-- datasets dropdown -->
-            <select @change="selectDataset(data.item.datasetId)" v-model="datasetId">
+            <select @change="$event => selectDataset($event.target.value)" v-model="datasetId">
                 <option :value="null">--Select--</option>
                 <option v-for="item in singleCellMetadata" :value="item.datasetId">{{ item.tissue }} ({{ item.totalCells.toLocaleString() }} cells)</option>
             </select>
@@ -1194,6 +1194,7 @@
                     return this.allMetadata;
                 };
                 this.singleCellMetadata = filterSingleCellMetadata();
+                console.log(JSON.stringify(this.singleCellMetadata[0]));
                 llog('singleCellMetadata', this.singleCellMetadata);
                 //find metadata for current dataset
                 this.metadata = this.allMetadata.find(x => x.datasetId === this.datasetId);
@@ -1715,6 +1716,7 @@
                 this.getBImetadata();
             },
             selectDataset(datasetId){
+                console.log(datasetId);
                 this.handleSelectEvent({id:this.sectionId, value: datasetId});
             },
             handleSelectEvent(data) {
