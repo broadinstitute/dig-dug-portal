@@ -124,10 +124,27 @@
               </b-tabs>
           </div>
       </div>
-      <!-- TODO add PanKbase-specific cell type visualizer-->
-      <!-- TODO add PanKbase-specific  expression/dataset table -->
+      <!-- PanKbase-specific cell type visualizer-->
+       <div class="card mdkp-card">
+          <div class="card-body">
+              <h4>
+                  {{
+                      `${$store.state.geneName.toUpperCase()} Expression by Cell Type`
+                  }}
+              </h4>
+              <div>
+                  <research-single-cell-browser 
+                      sectionId="pankbase"
+                      :renderConfig="$parent.scbConfig"
+                      :utils="$parent.utilsBox"
+                      :data="$parent.scbData"
+                  ></research-single-cell-browser>
+              </div>
+          </div>
+      </div>
+      <!-- TODO get data for gene signatures card -->
       <!-- TODO add non-PanKbase specific GTEx visualizer and table-->
-       
+
       <!-- Non-PanKbase specific: Gene-level associations -->
       <div class="card mdkp-card">
           <div class="card-body">
@@ -135,14 +152,6 @@
                   {{
                       `Gene-level associations for ${$store.state.geneName.toUpperCase()}`
                   }}
-                  <tooltip-documentation
-                      name="gene.level.association.tooltip.hover"
-                      :content-fill="$parent.docDetails"
-                      :is-hover="true"
-                      :no-icon="false"
-                      :content-map="$store.state.bioPortal.documentations"
-                  >
-                  </tooltip-documentation>
               </h4>
               <span>
                   <documentation

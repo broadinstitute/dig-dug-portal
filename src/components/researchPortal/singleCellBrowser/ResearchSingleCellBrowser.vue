@@ -8,7 +8,7 @@
                         {{ bi.name }}
                     </option>
                 </select>
-                <b-pagination
+                <b-pagination 
                     v-model="currentDatasetsPage"
                     class="pagination justify-content-center"
                     :total-rows="totalDatasets"
@@ -40,6 +40,42 @@
             </div>
         </template>
 
+        <template>
+            <div style="font-weight: bold;">Select Tissue</div>
+            <!-- datasets dropdown -->
+            <select @change="selectDataset(data.item.datasetId)" v-model="datasetId">
+                <option :value="null">--Select--</option>
+                <option v-for="item in singleCellMetadata" :value="item.datasetId">{{ item.tissue }} ({{ item.totalCells.toLocaleString() }} cells)</option>
+            </select>
+        </template>
+
+        <div v-if="showDatasetSelect" style="display:flex; flex-direction: column; gap:10px;">
+            <div>
+                <div style="font-weight: bold; font-size:16px;">Select Tissue</div>
+                <div>Click on a row to select</div>
+            </div>
+            <!-- datasets table -->
+            <b-table v-if="singleCellMetadata"
+                :items="singleCellMetadata"
+                :fields="tableColumns"
+                small
+                striped
+                hover
+                responsive="sm"
+                head-variant="light"
+                sticky-header="300px"
+                :per-page="datasetsPerPage"
+                :current-page="currentDatasetsPage"
+                :tbody-tr-class="datasetsRowClass"
+                @row-clicked="item => selectDataset(item.datasetId)"
+            >
+                <template #cell(datasetId)="data">
+                    <button v-if="data.item.datasetId !== datasetId" @click="selectDataset(data.item.datasetId)">Select</button>
+                    <div v-else>Selected</div>
+                </template>
+            </b-table>
+        </div>
+
 
         <div v-if="!datasetId" style="color:red; margin:0 auto">
             Please Select a Dataset
@@ -52,7 +88,7 @@
 
 
         <div v-if="dataLoaded" style="display:flex; flex-direction: column; gap:20px; width: 100%; max-width:100%; overflow-x: auto;">
-            <!-- layout 0 -->
+            <!-- layout 0 (full)-->
             <div v-if="layout===0" style="display:flex; flex-direction:column; gap:20px; background:#f8f8f8; padding:20px; width:100%; min-width: 840px;">
                 <research-single-cell-info 
                     v-if="metadata"
@@ -220,23 +256,6 @@
                                         :style="`${contCountResults?'pointer-events:none; opacity:0.5':''}`"
                                     />
                                 </div>
-    
-                                
-                                <!--
-                                <div style="display:flex; gap:20px; align-items: center; justify-content: space-between;">
-                                    <div v-if="cellCompositionVars.segmentByLabel && displayFields && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat'" 
-                                        style="display:flex; gap:10px; height: fit-content">
-                                        <div class="plot-toggle" @click="isStacked = !isStacked">
-                                            <div class="plot-toggle-btn" :class="`${isStacked?'':'toggled'}`">group</div>
-                                            <div class="plot-toggle-btn" :class="`${isStacked?'toggled':''}`">stack</div>
-                                        </div>
-                                        <div class="plot-toggle" @click="isNormalized = !isNormalized">
-                                            <div class="plot-toggle-btn" :class="`${isNormalized?'':'toggled'}`">count</div>
-                                            <div class="plot-toggle-btn" :class="`${isNormalized?'toggled':''}`">pct.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                -->
     
                                 <div v-if="!cellCompositionVars.segmentByLabel || (displayFields && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat')" style="display:flex; flex-direction: column; gap:5px">
                                     <research-stacked-bar-plot
@@ -450,17 +469,20 @@
                                 <research-dot-plot
                                     style="display:flex; align-self: center"
                                     :data="markerGenes || expressionStatsAll"
+                                    data-blah="pct_cells_expression"
                                     yKey="cell_type"
                                     xKey="gene"
                                     yLabel="Cell Type"
                                     xLabel="Gene"
+                                    fillKey="mean_expression"
+                                    :sizeKey="markerGenesSizeKey"
                                     :fitToSize="true"
                                     :cellWidth="30"
                                     highlightKey=""
                                 />
                             </div>
                             <b-table v-if="markerGenesTable"
-                                    style="font-size:12px"
+                                    style="font-size:12px;"
                                     :items="markerGenesTable"
                                     :fields="markerTableColumns"
                                     striped
@@ -476,7 +498,7 @@
                 </div>
 
             </div>
-            <!-- layout 1 -->
+            <!-- layout 1 (umap-expression, violins-expression/cell type)-->
             <div v-if="layout===1" style="display:flex; flex-direction:column; width:100%; align-self:center;">
                 <research-single-cell-info 
                     :data="metadata"
@@ -552,89 +574,219 @@
                     </div>
                 </div>
             </div>
+            <!-- layout 2 (umap clusters)-->
+            <div v-if="layout===2" style="display:flex; flex-direction:column; gap:20px; background:#f8f8f8; padding:20px; width:100%; min-width: 840px;">
+                <div v-if="dataReady" class="" style="display:flex; flex-direction: column; gap:20px;">
+                    <research-single-cell-info 
+                        v-if="metadata"
+                        :data="metadata"
+                    />
+                    <!-- UMAP feature plots-->
+                    <div style="display: flex; gap:20px;">
+                        <div v-if="coordinates" style="display:flex; gap:20px; flex:1; padding: 20px; background: white;">
+                            <div v-if="colorByFields" style="display:flex; flex-direction: column; align-self: flex-start; width:400px;">
+                                <strong style="font-size: 16px; margin: 0 0 5px;">Color By</strong>
+                                <div style="display:flex; flex-direction: column; height: 400px; gap:5px">
+                                    <select style="width: 100%;" @change="selectColorBy($event.target.value)" v-model="cellCompositionVars.colorByField">
+                                        <option value="">--Select--</option>
+                                        <option v-for="(value, key) of colorByFields.show" :value="key">
+                                            {{ displayLabel(key) }}
+                                        </option>
+                                    </select>
+                                    <div style="width: 100%; flex-grow:1; overflow-x: hidden; overflow-y: auto;">
+                                        <research-single-cell-selector 
+                                            :data="fields['metadata_labels']"
+                                            :displayData="displayFields"
+                                            :selectedField="cellCompositionVars.colorByField"
+                                            layout="list"
+                                            :colors="labelColors"
+                                            @on-update="handleSelectorUpdate($event)"
+                                            @on-hover="handleSelectorHover($event)"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction: column; width: min-content; flex: 1">
+                                <div style="display:flex; justify-content: space-between; align-items: baseline; margin: 0 0 5px;">
+                                    <strong style="font-size: 16px;">Cell Type Clustering</strong>
+                                    <div>UMAP {{ totalCells.toLocaleString() }} cells</div>
+                                </div>
+                                <research-umap-plot-gl 
+                                    :group="datasetId"
+                                    :points="coordinates"
+                                    :labels="fields"
+                                    :colors="labelColors"
+                                    :cellTypeField="cellTypeField"
+                                    :colorByField="cellCompositionVars.colorByField"
+                                    :hoverFields="[]"
+                                    :highlightLabel="cellCompositionVars.highlightLabel"
+                                    :highlightLabels="cellCompositionVars.highlightLabels"
+                                    :width="400"
+                                    :height="400"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- layout 1 (umap-expression, violins-expression/cell type)-->
+            <div v-if="layout===3" style="display:flex; flex-direction:column; width:100%; align-self:center;">
+                <research-single-cell-info 
+                    :data="metadata"
+                />
+                <div v-if="dataReady" style="display:flex; gap:40px; flex:1">
+                    <div style="display: flex; flex-direction: column; gap:20px; flex: 1;">
+                        <!-- cell counts -->
+                        <div style="display: flex; flex-direction: column; flex:1; gap:20px; padding:20px; background: white;">
+                            <div style="display:flex; justify-content: space-between; gap:10px">
+                                <div style="font-size: 16px;">
+                                    <span style="font-weight: bold">{{isATACseq ? 'Nuclei' : 'Cell'}} {{ isNormalized ? 'Proportion' : 'Count' }}</span> 
+                                    <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat'">
+                                        by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                        per <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</span> 
+                                        </template>
+                                        <template v-else-if="cellCompositionVars.segmentByLabel">
+                                        by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</span> 
+                                        per <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                    </template>
+                                    <template v-else>
+                                        by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                    </template>
+                                    <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cont'">
+                                        <div style="font-size: 12px;">
+                                            Each point represents the average {{isATACseq ? 'nuclei' : 'cell'}} {{ isNormalized ? 'proportion' : 'distribution' }} per {{ this.aggregateType }}
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <download-chart 
+                                    class="download"
+                                    chartId="sc_stacked_bar_plot"
+                                    style="width: 125px; align-self: flex-start;"
+                                    :style="`${contCountResults?'pointer-events:none; opacity:0.5':''}`"
+                                />
+                            </div>
+
+                            <div v-if="!cellCompositionVars.segmentByLabel || (displayFields && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat')" style="display:flex; flex-direction: column; gap:5px">
+                                <research-stacked-bar-plot
+                                    :data="cellCompositionVars.segmentByCounts2"
+                                    :primaryKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.segmentByLabel : cellCompositionVars.displayByLabel"
+                                    :subsetKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.displayByLabel : cellCompositionVars.segmentByLabel"
+                                    :xAxisLabel="cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)"
+                                    :yAxisLabel="`${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
+                                    :highlightKey="cellCompositionVars.highlightLabel"
+                                    :normalize="isNormalized"
+                                    :stack="cellCompositionVars.segmentByLabel ? true : false"
+                                />
+                                <div style="font-size:12px; opacity:0.5">{{ cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.displayByLabel) : displayLabel(cellCompositionVars.segmentByLabel) }}</div>
+                                <research-single-cell-selector 
+                                    :data="fields['metadata_labels']"
+                                    layout="list"
+                                    listDirection="horizontal"
+                                    listAlignment="start"
+                                    :colors="labelColors"
+                                    :selectedField="cellCompositionVars.segmentByLabel ? cellCompositionVars.displayByLabel : cellCompositionVars.segmentByLabel"
+                                    @on-update="handleSelectorUpdate($event)"
+                                    @on-hover="handleSelectorHover($event)"
+                                />
+                            </div>
+
+                            <div v-if="contCountResults">
+                                    <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.displayByLabel) }}</div>
+                                <div style="display:flex; flex-wrap: wrap; gap: 10px;">
+                                    <div v-for="item in contCountResults" style="min-width: 250px; flex:1;">
+                                        <div>{{ item.groupKey }}</div>
+                                        <research-scatter-plot 
+                                            :data="item.data"
+                                            :width="300"
+                                            :height="150"
+                                            :xKey="cellCompositionVars.segmentByLabel"
+                                            yKey="cell_proportion"
+                                            :xLabel="displayLabel(cellCompositionVars.segmentByLabel)"
+                                            yLabel="Cell Proportion"
+                                            :yDomain="[0, 1]"
+                                            renderAs="svg"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Marker genes -->
+                        <div style="display:flex; gap:25px">
+                            <div v-if="markers && (markerGenes || expressionStatsAll.length>0)" style="display:flex; flex-direction: column; gap:20px; background:white; padding:20px; width:100%">
+                                <div style="display:flex; flex-direction: column; gap:20px; min-width: 50%;">
+                                    <div style="display:flex; justify-content: space-between;">
+                                        <div style="display:flex; flex-direction: column;">
+                                            <strong style="font-size: 16px;">{{ dotPlotCellType!=""?`Marker Genes for ${dotPlotCellType}` : 'Top Marker Genes by Cell Type' }}</strong>
+                                            <div  style="font-size:12px; opacity:0.5">Ranked by {{markersHaveZscores ? 'z-score' : 'mean expression'}}</div>
+                                        </div>
+                                        <div style="display:flex; gap:20px">
+                                            <div style="display:flex; gap:5px" class="legends">
+                                                <div style="display:flex; flex-direction: column;" class="legend">
+                                                    <div class="label">Mean Expression</div>
+                                                    <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray});`"></div>
+                                                    <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
+                                                </div>
+                                                <div style="display:flex; flex-direction: column;" class="legend">
+                                                    <div class="label">% Cells Expressing</div>
+                                                    <div style="display:flex" class="circles">
+                                                        <div class="circleBorder"><div class="circle" style="height:20%"></div></div>
+                                                        <div class="circleBorder"><div class="circle" style="height:40%"></div></div>
+                                                        <div class="circleBorder"><div class="circle" style="height:60%"></div></div>
+                                                        <div class="circleBorder"><div class="circle" style="height:80%"></div></div>
+                                                        <div class="circleBorder"><div class="circle" style="height:100%"></div></div>
+                                                    </div>
+                                                    <div style="display:flex" class="marks"><div>0</div><div>100</div></div>
+                                                </div>
+                                            </div>
+                                            <download-chart 
+                                                class="download"
+                                                chartId="sc_dot_plot"
+                                                style="width: 125px; align-self: flex-start;"
+                                            />
+                                        </div>
+                                        
+                                    </div>
+
+                                    <research-dot-plot
+                                        style="display:flex; align-self: center"
+                                        :data="markerGenes || expressionStatsAll"
+                                        data-blah="pct_cells_expression"
+                                        yKey="cell_type"
+                                        xKey="gene"
+                                        yLabel="Cell Type"
+                                        xLabel="Gene"
+                                        fillKey="mean_expression"
+                                        :sizeKey="markerGenesSizeKey"
+                                        :fitToSize="true"
+                                        :cellWidth="30"
+                                        highlightKey=""
+                                    />
+                                </div>
+                                <b-table v-if="markerGenesTable"
+                                        style="font-size:12px;"
+                                        :items="markerGenesTable"
+                                        :fields="markerTableColumns"
+                                        striped
+                                        hover
+                                        small
+                                        responsive="sm"
+                                        head-variant="light"
+                                        sticky-header="300px" 
+                                    >
+                                </b-table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
         </div>
     </div>
 </template>
   
 <script>
-    /*
-    sample render config:
-    {
-        "type": "cell browser",
-        "label": "Single Cell Browser",
-
-        ///
-            (optional) url parameter names
-            this is only really needed with 2+ cell browser components on same page
-            TODO: check optionality - should have defaults if omitted
-        ///
-        "parameters":{
-            "datasetId": "XXXdatasetId",
-            "gene": "XXXgene"
-        },
-
-        ///
-            (required) desired bioindex url where api enpoints are localed
-            "bioIndexDev" will be used if detected subdomain contains 'dev' or port is 8000
-            TODO: make something default?
-            TODO: handle trailing slash
-        ///
-        "bioIndex": "https://bioindex.pankbase.org",
-        "bioIndexDev": "https://bioindex-dev.pankbase.org",
-
-        ///
-            (optional) formatting params
-            can be applied to all datasets in a bioindex
-            and/or a specific dataset
-            TODO: add a dataset specific example
-        ///
-        "format":{
-            //"default" formatting for all datasets in a bioindex
-            "default":{
-                ///
-                    displayMap allows you to define user readable labels 
-                        for your dataset column names
-                    each key in displayMap should match a key in fields.metadata_labels
-                        from the fields enpoint of your bioindex
-                    the value of each key should be the desired label to display
-                    otherwise the key name will be used for display
-                ///
-                "displayMap":{
-                    "biosample_id": "Biosample ID",
-                    this.donorsField: "Donor ID",
-                    "disease__ontology_label": "Disease",
-                    "cell_type__author": "Cell Type",
-                    "bmi": "BMI",
-                    "bmi__group": "BMI Group",
-                    "custom__cell_cycle__phase": "Cell Cycle Phase",
-                    "custom__author_cell_substype": "Cell Sub-Type",
-                    "custom__development_stage__ontology_label": "Development Stage",
-                    "custom__organism_age": "Age (years)",
-                    "custom__organism_age__group": "Age Group (years)"
-                },
-
-                ///
-                    define the columns in your data for a few default categories
-                    used for selecting the appropriate fields for display and visualizations
-                ///
-                "groups":{
-                    "cellType": "cell_type__author",
-                    "cellSubType": "custom__author_cell_substype",
-                    "donors": this.donorsField,
-                    "samples": "biosample_id"
-                }
-            }
-            ///
-                in addition to default settings, you can specify same settings per datasetId
-            ///
-            "<some_dataset_ID>":{
-                "displayMap": {},
-                "annotationGroups": {},    
-            }
-        }
-    }
-    */
-
     import * as d3 from 'd3';
     import Vue, { shallowRef } from 'vue';
     import keyParams from "@/utils/keyParams";
@@ -711,6 +863,7 @@
                 },
 
                 allMetadata: null, //raw metadata for all datasets
+                singleCellMetadata: null, //raw metadata for single-cell datasets
                 metadata: null, //raw metadata for current dataset
                 fields: null,   //raw fields
                 coordinates: null,  //raw coordinates
@@ -736,13 +889,20 @@
 
                 viewType: 1,
                 
-                tableColumns: ["datasetName", "tissue", "method", "totalCells", { key: 'datasetId', label: 'View' }],
+                tableColumns: [
+                    {key: "tissue", label: "Tissue", class:"capitalize"},
+                    {key: "depot", label: "Depot", class:"capitalize"}, 
+                    {key: "totalDonors", label: "Donors", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                    {key: "totalBiosamples", label: "Biosamples", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                    {key: "totalSamples", label: "Samples", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                ],
                 currentDatasetsPage: 1,
                 totalDatasets: null,
-                datasetsPerPage: 3,
+                datasetsPerPage: null,
 
-                componentsConfig: null,
                 presetsConfig: null,
+
+                showDatasetSelect: false,
 
                 //colorIndex: 0,
                 //colorScaleIndex: d3.scaleOrdinal(colors),
@@ -788,7 +948,7 @@
                         sortable: true,
                         formatter: (val) => typeof val === 'number' ? val.toPrecision(3) : ''
                     },{
-                        key: 'pct_nz_group',
+                        key: 'pct_cells_expression',
                         label: '% Expressing',
                         sortable: true,
                         formatter: (val) => typeof val === 'number' ? (val * 100).toFixed(1) + '%' : ''
@@ -907,8 +1067,18 @@
 
                 return bi;
             },
+            markerGenesSizeKey(){
+                //todo: remove this after marker_genes endpoint data struct is standardized
+                if(!this.markerGenes) return null;
+                if(this.markerGenes[0].pct_nz_group) return 'pct_nz_group';
+                if(this.markerGenes[0].pct_cells_expression) return 'pct_cells_expression';
+            }
         },
         methods: {
+            datasetsRowClass(item){
+                if (!item) return ''; // For header/footer rows
+                return item.datasetId === this.datasetId ? 'selected-dataset-row' : 'dataset-row';
+            },
             preprocessBoxPlotData(groupKey, contKey){
                 return scUtils.preprocessBoxPlotData(this.fields.metadata, this.fields.metadata_labels, groupKey, contKey)
             },
@@ -924,11 +1094,22 @@
             clean(){
                 this.allMetadata = null;
                 this.metadata = null;
+
+                this.fields = null;
+                this.coordinates = null;
+                this.markers = null;
+
+                this.markersList = null;
+                this.markerCellTypes = null;
+                this.markerGenes = null;
+                this.markerGenesTable = null;
+                this.markersByGene = null;
+                this.markersByCellType = null;
+
                 this.dataLoaded = false;
                 this.dataReady = false;
                 this.expressionData = {};
                 this.geneNames = [];
-                this.markersList = [];
                 this.expressionStatsAll = [];
                 this.genesNotFound = [];
                 this.dotPlotCellType = "",
@@ -964,16 +1145,10 @@
                 this.contExprResults = null;
             },
             async init(){
-                //check which components to enable based on config options
-                //all are enabled by default if not set
-                this.componentsConfig = this.renderConfig["components"];
-                this.showCellInfo = this.componentsConfig?.["cell info"]?.enabled ?? true;
-                this.showCellProportion = this.componentsConfig?.["cell proportion"]?.enabled ?? true;
-                this.showGeneExpression = this.componentsConfig?.["gene expression"]?.enabled ?? true;
-                this.showMarkerGenes = this.componentsConfig?.["marker genes"]?.enabled ?? true;
-
+                
                 this.presetsConfig = this.renderConfig["presets"];
-
+                llog('presets', this.presetsConfig);
+                this.showDatasetSelect = this.presetsConfig?.["showDatasetSelect"] || false;
                 this.layout = keyParams["layout"] || this.presetsConfig?.["layout"] || 0;
                 llog('LAYOUT', this.layout)
 
@@ -990,7 +1165,7 @@
                         this.datasetId = this.presetsConfig.datasetId
                     }else{
                         llog('select a dataset');
-                        return;
+                        //return;
                     }
                 }
                 llog(`requested dataset: ${this.datasetId}`);
@@ -1038,7 +1213,7 @@
                 this.fields = await scUtils.fetchFields(fieldsEnpoint, this.datasetId);
                 if(this.fields){
                     if(!this.totalCells){
-                        this.totalCells = this.fields.NAME.length;
+                        this.totalCells = this.fields.NAME?.length | this.fields.ID?.length;
                     }
                     llog('fields', this.fields);
                 }else{
@@ -1046,13 +1221,15 @@
                 }
 
                 //fetch coordinates
-                this.preloadItem = 'coordinates';
-                const coordinatesEnpoint = this.selectedBI+this.BIendpoints.coordinates;
-                this.coordinates = await scUtils.fetchCoordinates(coordinatesEnpoint, this.datasetId);
-                if(this.coordinates){
-                    llog('coordinates', this.coordinates);
-                }else{
-                    llog('there was an error getting coordinates');
+                if(this.layout !== 3){
+                    this.preloadItem = 'coordinates';
+                    const coordinatesEnpoint = this.selectedBI+this.BIendpoints.coordinates;
+                    this.coordinates = await scUtils.fetchCoordinates(coordinatesEnpoint, this.datasetId);
+                    if(this.coordinates){
+                        llog('coordinates', this.coordinates);
+                    }else{
+                        llog('there was an error getting coordinates');
+                    }
                 }
 
                 //fetch markers
@@ -1072,7 +1249,15 @@
                 const markersEnpoint = this.selectedBI+this.BIendpoints.markers;
                 if(markersEnpoint){
                     const url = markersEnpoint;
-                    this.markers = await scUtils.fetchMarkers(url, this.datasetId);
+                    const markersRaw = await scUtils.fetchMarkers(url, this.datasetId);
+                    //remap params to handle older/newer versions
+                    const markersNormalized = markersRaw.map(m => ({
+                        ...m,
+                        mean_expression: m.mean_expression ?? m.mean_expression_raw ?? 0,
+                        pct_cells_expression: m.pct_cells_expression ?? m.pct_nz_group ?? 0,
+                        // Add other fallback mappings here if needed
+                    }));
+                    this.markers = markersNormalized;
                     llog('markers', this.markers);
                     if(this.markers){
                         if(Array.isArray(this.markers)){
@@ -1850,5 +2035,23 @@ button:hover {
     ::v-deep .download.show .dropdown-item{
         text-align: center;
     }
+
+    ::v-deep .b-table-sticky-header {
+        padding: 0 10px;
+    }
+
+    ::v-deep .b-table-sticky-header th.position-relative {
+        position: sticky !important;
+    }
+
+    ::v-deep .dataset-row {
+        cursor:pointer;
+    }
+    ::v-deep .selected-dataset-row {
+        background-color: #d0ebff !important;
+    }
+
+    ::v-deep .capitalize{
+        text-transform: capitalize;
+    }
 </style>
-  

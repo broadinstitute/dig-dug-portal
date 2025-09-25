@@ -18,6 +18,8 @@ import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker";
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
+import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import { SCB_CONFIG } from "../../utils/scbConfig.js";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -42,11 +44,13 @@ new Vue({
         ResearchPheWAS,
         FilterGreaterThan,
         AncestrySelectPicker,
-        HugeScoresTable
+        HugeScoresTable,
+        ResearchSingleCellBrowser
     },
     mixins: [pankbaseMixin],
     data() {
         return {
+            scbData: [],
             activeTab: "hugeScorePheWASPlot",
             searchConfig: {
                 "search instruction": "Search for a gene",
@@ -194,6 +198,9 @@ new Vue({
                 regionUtils: regionUtils,
             };
             return utils;
+        },
+        scbConfig(){
+            return SCB_CONFIG;
         },
         geneName(){
             return this.$store.state.geneName;
