@@ -10,7 +10,7 @@
 			</research-section-components>
 		</div>
 		<div class="multi-section" :class="'wrapper-' + sectionIndex" v-if="((!!sectionConfig['required parameters to display'] && !!meetRequirements())
-			|| !sectionConfig['required parameters to display']) && (!!originalData && originalData.length > 0)">
+			|| !sectionConfig['required parameters to display']) || (!!sectionConfig['data required to diaply'] && !!originalData && originalData.length > 0)">
 
 			<div class="row section-header" v-if="!isInTab">
 				<div style="display:flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 15px;">

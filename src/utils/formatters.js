@@ -410,6 +410,14 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                         ) / 1000000000;
                 break;
 
+            case "kp phenotype description":
+                let phenotypeDescription = PMAP && PMAP[cellValue]
+                    ? PMAP[cellValue].description
+                    : cellValue;
+
+                cellValue = phenotypeDescription;
+                break;
+
             case "kp phenotype link":
                 let phenotypeName = PMAP[cellValue]
                     ? PMAP[cellValue].description

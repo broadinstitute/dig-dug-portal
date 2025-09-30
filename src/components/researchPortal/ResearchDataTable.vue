@@ -1522,7 +1522,7 @@ export default Vue.component("research-data-table", {
 						null,
 						this.dataScores
 					);
-				} else if (!!types.includes("kp phenotype link")) {
+				} else if (!!types.includes("kp phenotype link") || !!types.includes("kp phenotype description")) {
 					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
