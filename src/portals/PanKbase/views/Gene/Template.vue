@@ -138,6 +138,7 @@
                       :renderConfig="$parent.scbConfig"
                       :utils="$parent.utilsBox"
                       :data="$parent.scbData"
+                      :layout="1"
                   ></research-single-cell-browser>
               </div>
           </div>

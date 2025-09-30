@@ -2,6 +2,9 @@ export const SCB_CONFIG =
     {
         "type": "cell browser",
         "label": "Single Cell Browser",
+        "presets": {
+            "layout": 1
+        },
 
         /*
             (optional) url parameter names

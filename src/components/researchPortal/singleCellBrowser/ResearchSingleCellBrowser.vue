@@ -834,7 +834,7 @@
             data: {
                 type: Array,
                 required: true
-            }
+            },
         },
         data() {
             return {
@@ -981,7 +981,7 @@
 
                 highlightHoverTimeout: null,
 
-                layout: -1,
+                //layout: -1,
                 layoutOptions: [
                     {
                         name: 'option0',
