@@ -96,8 +96,8 @@
                     </div>
                 </div>
             </div>
-            <div class="container static-content-section">
-                <!-- <div class="row">
+            <!-- <div class="container static-content-section">
+                 <div class="row">
                     <div class="col-md-7">
                         <about-portal-section
                             :front-contents="$parent.frontContents"
@@ -122,8 +122,8 @@
                             :news-feed="$store.state.kp4cd.newsFeed"
                         ></news-feed-section>
                     </div>
-                </div> -->
-            </div>
+                </div>
+            </div> -->
         </div>
 
         <!-- Footer-->
