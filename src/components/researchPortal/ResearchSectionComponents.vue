@@ -16,13 +16,15 @@ import $ from "jquery";
 import cfdeEcoSystem from "@/components/researchPortal/customComponents/cfdeEcoSystem.vue";
 import cfdeLanding from "@/components/researchPortal/customComponents/cfdeLanding.vue";
 import cfdeValidationPlanner from "@/components/researchPortal/customComponents/cfdeValidationPlanner.vue";
+import cfdeMechanismDiscovery from "@/components/researchPortal/customComponents/cfdeMechanismDiscovery.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
 	components: {
 		cfdeEcoSystem,
 		cfdeLanding,
-		cfdeValidationPlanner
+		cfdeValidationPlanner,
+		cfdeMechanismDiscovery
 	},
 	data() {
 		return {
@@ -42,6 +44,8 @@ export default Vue.component("research-section-components", {
 				break;
 			case 'cfdeValidationPlanner':
 				this.currentComponent = cfdeValidationPlanner;
+			case 'cfdeMechanismDiscovery':
+				this.currentComponent = cfdeMechanismDiscovery;
 				break;
 		}
 	},
