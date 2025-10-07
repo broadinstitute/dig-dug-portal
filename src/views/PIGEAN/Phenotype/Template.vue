@@ -266,6 +266,7 @@
                                 :heatmapData="$parent.heatmapData"
                                 :renderConfig="$parent.heatmapConfig"
                                 :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                                :alwaysHideTooltip="true"
                             >
                             </heatmap>
                         </div>
