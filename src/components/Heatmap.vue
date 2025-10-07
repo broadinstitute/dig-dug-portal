@@ -53,7 +53,7 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("heatmap", {
-    props: ["heatmapData", "renderConfig"],
+    props: ["heatmapData", "renderConfig", "alwaysHideTooltip"],
     data() {
         return {
             squareData: {},
@@ -65,7 +65,6 @@ export default Vue.component("heatmap", {
             lo: null,
             mid: null,
             hi: null,
-            alwaysHideTooltip: true,
         };
     },
     modules: {
