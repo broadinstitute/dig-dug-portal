@@ -1115,7 +1115,7 @@
             },
             portalGroup(){
                 const hostname = window.location.hostname;
-                const isHugeamp = hostname.includes('hugeamp.org');
+                const isHugeamp = (hostname === 'hugeamp.org') || hostname.endsWith('.hugeamp.org');
                 const isLocalhost = hostname.includes('localhost');
                 const parts = hostname.split('.');
                 let subdomain = null;
