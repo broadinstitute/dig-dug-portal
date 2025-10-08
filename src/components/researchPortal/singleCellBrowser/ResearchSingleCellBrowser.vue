@@ -1100,6 +1100,7 @@
         },
         mounted() {
             llog('renderConfig', this.renderConfig);
+            llog('portal', this.portalGroup);
             llog('data', this.data);
             
             EventBus.$on('on-select',this.handleSelectEvent);
@@ -1112,6 +1113,24 @@
             isDev(){
                 return keyParams['dev']===1;
             },
+            portalGroup(){
+                const hostname = window.location.hostname;
+                const isHugeamp = hostname.includes('hugeamp.org');
+                const isLocalhost = hostname.includes('localhost');
+                const parts = hostname.split('.');
+                let subdomain = null;
+                if(isLocalhost){
+                    if (parts.length === 2 && parts[0] !== 'www' && parts[0] !== 'dev') {
+                        subdomain = parts[0];
+                    }
+                }else if(isHugeamp){
+                    if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'dev') {
+                        subdomain = parts[0];
+                    }
+                }
+                
+                return subdomain;
+            },
             isATACseq(){
                 if(this.metadata?.["method"]?.toLowerCase().includes('atac')){
                     return true;
@@ -1121,7 +1140,7 @@
             selectedBI(){
                 const domain = window.location.hostname;
                 const port = window.location.port;
-                const isDev = domain === "localhost" || domain.split('.')[0].includes('dev') || port === '8000';
+                const isDev = domain.includes("localhost") || domain.includes('dev') || port === '8000';
                 
                 let bi;
                 if(keyParams["bioIndex"]){
@@ -1264,20 +1283,40 @@
                     return;
                 }
                 llog('allMetadata', this.allMetadata);
-                //filter out only single cell metadata
+
+                //filter metadata
                 const filterSingleCellMetadata = () => {
+                    let filteredMetadata = this.allMetadata;
+                    //get only single-cell
                     if (this.allMetadata[0]?.data_type) {
-                        return this.allMetadata.filter(item => item.data_type === 'single_cell');
+                        filteredMetadata = this.allMetadata.filter(item => item.data_type === 'single_cell');
                     }
-                    return this.allMetadata;
+                    //get matching portals
+                    if(this.portalGroup){
+                        filteredMetadata =  filteredMetadata.filter(item => {
+                            if(item.portals){
+                                return item.portals.includes(this.portalGroup);
+                            }
+                        })
+                    }
+                    return filteredMetadata;
                 };
-                this.singleCellMetadata = filterSingleCellMetadata();
+
+                this.singleCellMetadata = filterSingleCellMetadata()
                 llog('singleCellMetadata', this.singleCellMetadata);
+                
                 //find metadata for current dataset
-                this.metadata = this.allMetadata.find(x => x.datasetId === this.datasetId);
+                this.metadata = this.singleCellMetadata.find(x => x.datasetId === this.datasetId);
                 if(!this.metadata){
                     llog(this.datasetId, 'not available in this collection');
-                    return;
+                    if(this.singleCellMetadata.length>0){
+                        //just load first dataset available
+                        this.datasetId = this.singleCellMetadata[0].datasetId;
+                        llog('loading first dataset', this.datasetId);
+                        this.metadata = this.singleCellMetadata.find(x => x.datasetId === this.datasetId);
+                    }else{
+                        return;
+                    }
                 }
                 llog('datasetMetadata', this.metadata);
 
