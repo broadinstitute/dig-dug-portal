@@ -1,135 +1,164 @@
 <template>
 	<div>
-        <div id="planner-search-ui">
-            <h4>Experimental Design Planner</h4>
+        <!-- Hypothesis to Validate Section -->
+        <div id="hypothesis-section" class="hypothesis-container">
             
-            <div class="search-filters">
-                <!-- 1. Phenotypes -->
-                <div class="filter-section">
-                    <h5>Phenotypes (optional)</h5>
-                    <div class="autocomplete-container">
-                        <div class="search-input-container">
-                            <input 
-                                type="text" 
-                                v-model="phenotypeSearch" 
-                                @input="filterPhenotypes"
-                                @focus="showPhenotypeDropdown = true"
-                                placeholder="Search phenotypes..."
-                                class="autocomplete-input"
-                            >
-                            <button 
-                                v-if="filteredPhenotypes.length === 0 && phenotypeSearch.trim() !== ''"
-                                @click="confirmSearchTerms"
-                                class="confirm-search-btn"
-                            >
-                                Confirm search terms
+            <div class="section-header">
+                    <h4>Hypothesis to Validate</h4>
+            </div>
+            <div class="hypothesis-content">
+                <h5>Please use <a href="/r/kc_mechanism_discovery" target="_blank">CFDE Mechanism Explorer</a> to generate a hypothesis.</h5>
+                <div class="textarea-container">
+                    <textarea 
+                        v-model="phenotypeSearch" 
+                        placeholder="Enter your hypothesis..."
+                        class="hypothesis-textarea"
+                        rows="3"
+                    ></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="planner-search-ui" :class="{ 'collapsed': showSummary }">
+            <div class="section-header" @click="toggleSearchUI">
+                <h4>Set Experiment Preferences</h4>
+                <span class="collapse-icon">{{ showSummary ? '▼' : '▲' }}</span>
+            </div>
+            <div v-if="!showSummary" class="section-content">
+
+            <!-- 1. Experimental Parameters Group -->
+            <div class="experimental-parameters">
+                <h4>Experimental Parameters</h4>
+                <div class="parameters-grid">
+                    <!-- Assay Types -->
+                    <div class="filter-section">
+                        <h5>Assay Types</h5>
+                        <div class="dropdown-container" @mouseenter="showDropdowns.assayTypes = true" @mouseleave="showDropdowns.assayTypes = false">
+                            <button class="dropdown-toggle">
+                                {{ selectedAssayTypes.length > 0 ? `${selectedAssayTypes.length} selected` : 'Select assay types...' }}
                             </button>
-                        </div>
-                        <div v-if="showPhenotypeDropdown && filteredPhenotypes.length > 0" class="autocomplete-dropdown">
-                            <div 
-                                v-for="phenotype in filteredPhenotypes" 
-                                :key="phenotype.name"
-                                @click="selectPhenotype(phenotype)"
-                                class="autocomplete-item"
-                            >
-                                <div class="phenotype-label">{{ phenotype.description }}</div>
-                                <div class="phenotype-group">{{ phenotype.group }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-if="selectedPhenotypes.length > 0" class="selected-items">
-                        <div v-for="phenotype in selectedPhenotypes" :key="phenotype.name || phenotype.searchTerm" class="selected-item">
-                            <span>{{ phenotype.description || phenotype.searchTerm }}</span>
-                            <button @click="removePhenotype(phenotype)" class="remove-btn">×</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. Assay Types -->
-                <div class="filter-section">
-                    <h5>Assay Types<span class="required-asterisk">*</span></h5>
-                    <div class="dropdown-container" @mouseenter="showDropdowns.assayTypes = true" @mouseleave="showDropdowns.assayTypes = false">
-                        <button class="dropdown-toggle">
-                            {{ selectedAssayTypes.length > 0 ? `${selectedAssayTypes.length} selected` : 'Select assay types...' }}
-                        </button>
-                        <div v-if="showDropdowns.assayTypes" class="dropdown-content">
-                            <div v-for="(assays, category) in assay_types.categories" :key="category" class="category-section">
-                                <div class="category-header">{{ category }}</div>
-                                <div v-for="assay in assays" :key="assay.id" class="checkbox-item">
-                                    <input type="checkbox" :id="'assay-' + assay.id" :value="category + ':' + assay.label" v-model="selectedAssayTypes">
-                                    <label :for="'assay-' + assay.id">{{ assay.label }}</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-if="selectedAssayTypes.length > 0" class="selected-items">
-                        <div v-for="assayType in selectedAssayTypes" :key="assayType" class="selected-item">
-                            <span>{{ assayType.split(':')[1] }}</span>
-                            <button @click="removeAssayType(assayType)" class="remove-btn">×</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Cell Types -->
-                <div class="filter-section">
-                    <h5>Cell Types<span class="required-asterisk">*</span></h5>
-                    <div class="dropdown-container" @mouseenter="showDropdowns.cellTypes = true" @mouseleave="showDropdowns.cellTypes = false">
-                        <button class="dropdown-toggle">
-                            {{ selectedCellTypes.length > 0 ? `${selectedCellTypes.length} selected` : 'Select cell types...' }}
-                        </button>
-                        <div v-if="showDropdowns.cellTypes" class="dropdown-content">
-                            <div v-for="group in cell_types.groups" :key="group.group" class="group-section">
-                                <div class="group-header">{{ group.group }}</div>
-                                
-                                <!-- Handle groups with direct options -->
-                                <div v-if="group.options" v-for="option in group.options" :key="option.id" class="checkbox-item">
-                                    <input type="checkbox" :id="'cell-' + option.id" :value="group.group + ':' + option.label" v-model="selectedCellTypes">
-                                    <label :for="'cell-' + option.id">{{ option.label }}</label>
-                                </div>
-                                
-                                <!-- Handle groups with subgroups -->
-                                <div v-if="group.subgroups" v-for="subgroup in group.subgroups" :key="subgroup.label" class="subgroup-section">
-                                    <div class="subgroup-header">{{ subgroup.label }}</div>
-                                    <div v-for="option in subgroup.options" :key="option.id" class="checkbox-item">
-                                        <input type="checkbox" :id="'cell-' + option.id" :value="group.group + ':' + subgroup.label + ':' + option.label" v-model="selectedCellTypes">
-                                        <label :for="'cell-' + option.id">{{ option.label }}</label>
+                            <div v-if="showDropdowns.assayTypes" class="dropdown-content">
+                                <div v-for="(assays, category) in assay_types.categories" :key="category" class="category-section">
+                                    <div class="category-header">{{ category }}</div>
+                                    <div v-for="assay in assays" :key="assay.id" class="checkbox-item">
+                                        <input type="checkbox" :id="'assay-' + assay.id" :value="category + ':' + assay.label" v-model="selectedAssayTypes">
+                                        <label :for="'assay-' + assay.id">{{ assay.label }}</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div v-if="selectedCellTypes.length > 0" class="selected-items">
-                        <div v-for="cellType in selectedCellTypes" :key="cellType" class="selected-item">
-                            <span>{{ cellType.split(':').pop() }}</span>
-                            <button @click="removeCellType(cellType)" class="remove-btn">×</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. Assay Readouts -->
-                <div class="filter-section">
-                    <h5>Assay Readouts<span class="required-asterisk">*</span></h5>
-                    <div class="dropdown-container" @mouseenter="showDropdowns.readouts = true" @mouseleave="showDropdowns.readouts = false">
-                        <button class="dropdown-toggle">
-                            {{ selectedReadouts.length > 0 ? `${selectedReadouts.length} selected` : 'Select readouts...' }}
-                        </button>
-                        <div v-if="showDropdowns.readouts" class="dropdown-content">
-                            <div v-for="readout in assay_readouts.options" :key="readout.label" class="checkbox-item">
-                                <input type="checkbox" :id="'readout-' + readout.label" :value="readout.label" v-model="selectedReadouts">
-                                <label :for="'readout-' + readout.label">{{ readout.label }}</label>
+                        <div v-if="selectedAssayTypes.length > 0" class="selected-items">
+                            <div v-for="assayType in selectedAssayTypes" :key="assayType" class="selected-item">
+                                <span>{{ assayType.split(':')[1] }}</span>
+                                <button @click="removeAssayType(assayType)" class="remove-btn">×</button>
                             </div>
                         </div>
                     </div>
-                    <div v-if="selectedReadouts.length > 0" class="selected-items">
-                        <div v-for="readout in selectedReadouts" :key="readout" class="selected-item">
-                            <span>{{ readout }}</span>
-                            <button @click="removeReadout(readout)" class="remove-btn">×</button>
+
+                    <!-- Cell Types -->
+                    <div class="filter-section">
+                        <h5>Cell Types</h5>
+                        <div class="dropdown-container" @mouseenter="showDropdowns.cellTypes = true" @mouseleave="showDropdowns.cellTypes = false">
+                            <button class="dropdown-toggle">
+                                {{ selectedCellTypes.length > 0 ? `${selectedCellTypes.length} selected` : 'Select cell types...' }}
+                            </button>
+                            <div v-if="showDropdowns.cellTypes" class="dropdown-content">
+                                <div v-for="group in cell_types.groups" :key="group.group" class="group-section">
+                                    <div class="group-header">{{ group.group }}</div>
+                                    
+                                    <!-- Handle groups with direct options -->
+                                    <template v-if="group.options">
+                                        <div v-for="option in group.options" :key="option.id" class="checkbox-item">
+                                            <input type="checkbox" :id="'cell-' + option.id" :value="group.group + ':' + option.label" v-model="selectedCellTypes">
+                                            <label :for="'cell-' + option.id">{{ option.label }}</label>
+                                        </div>
+                                    </template>
+                                    
+                                    <!-- Handle groups with subgroups -->
+                                    <template v-if="group.subgroups">
+                                        <div v-for="subgroup in group.subgroups" :key="subgroup.label" class="subgroup-section">
+                                            <div class="subgroup-header">{{ subgroup.label }}</div>
+                                            <div v-for="option in subgroup.options" :key="option.id" class="checkbox-item">
+                                                <input type="checkbox" :id="'cell-' + option.id" :value="group.group + ':' + subgroup.label + ':' + option.label" v-model="selectedCellTypes">
+                                                <label :for="'cell-' + option.id">{{ option.label }}</label>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="selectedCellTypes.length > 0" class="selected-items">
+                            <div v-for="cellType in selectedCellTypes" :key="cellType" class="selected-item">
+                                <span>{{ cellType.split(':').pop() }}</span>
+                                <button @click="removeCellType(cellType)" class="remove-btn">×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assay Readouts -->
+                    <div class="filter-section">
+                        <h5>Assay Readouts</h5>
+                        <div class="dropdown-container" @mouseenter="showDropdowns.readouts = true" @mouseleave="showDropdowns.readouts = false">
+                            <button class="dropdown-toggle">
+                                {{ selectedReadouts.length > 0 ? `${selectedReadouts.length} selected` : 'Select readouts...' }}
+                            </button>
+                            <div v-if="showDropdowns.readouts" class="dropdown-content">
+                                <div v-for="readout in assay_readouts.options" :key="readout.label" class="checkbox-item">
+                                    <input type="checkbox" :id="'readout-' + readout.label" :value="readout.label" v-model="selectedReadouts">
+                                    <label :for="'readout-' + readout.label">{{ readout.label }}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="selectedReadouts.length > 0" class="selected-items">
+                            <div v-for="readout in selectedReadouts" :key="readout" class="selected-item">
+                                <span>{{ readout }}</span>
+                                <button @click="removeReadout(readout)" class="remove-btn">×</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- 5. Preferred Programs -->
+            <!-- 2. Experimental Constraints -->
+            <div class="experimental-constraints">
+                <h4>Experimental Constraints</h4>
+                <div class="constraints-grid">
+                    <!-- Throughput -->
+                    <div class="constraint-section">
+                        <label for="throughput-select">Throughput</label>
+                        <select id="throughput-select" v-model="selectedThroughput" class="constraint-select">
+                            <option value="">Select throughput...</option>
+                            <option value="low">Low (1-5 conditions)</option>
+                            <option value="medium">Medium (6-30)</option>
+                            <option value="high">High (30+)</option>
+                        </select>
+                    </div>
+
+                    <!-- Species Constraints -->
+                    <div class="constraint-section">
+                        <label for="species-select">Species Constraints</label>
+                        <select id="species-select" v-model="selectedSpecies" class="constraint-select">
+                            <option value="">Select species...</option>
+                            <option value="human">Human</option>
+                            <option value="rodents">Rodents</option>
+                            <option value="human-rodents">Human + Rodents</option>
+                        </select>
+                    </div>
+
+                    <!-- Time Budget -->
+                    <div class="constraint-section">
+                        <label for="timebudget-select">Time Budget</label>
+                        <select id="timebudget-select" v-model="selectedTimeBudget" class="constraint-select">
+                            <option value="">Select time budget...</option>
+                            <option value="2-3weeks">2-3 weeks</option>
+                            <option value="1-2months">1-2 months</option>
+                            <option value="quarter">Quarter-long</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3. Preferred Programs -->
             <div class="prefered-programs" v-if="selectedAssayTypes.length > 0">
                 <h5>Preferred Programs</h5>
                 <div class="programs-list">
@@ -140,7 +169,6 @@
                 </div>
             </div>
             
-            
             <!-- Action Buttons -->
             <div class="action-buttons">
                 <button @click="draftValidationPlan" class="btn btn-primary">
@@ -150,33 +178,188 @@
                     Reset
                 </button>
             </div>
+            </div>
         </div>
-        <div id="planner-search-draft">
-            <h4>Planner Search Draft</h4>
-            <!-- Summary -->
-            <div class="search-summary" v-if="showSummary">
-                <h5>Selected Configuration</h5>
-                <div class="summary-card">
-                    <p v-if="selectedPhenotypes.length > 0"><strong>Phenotypes:</strong> {{ selectedPhenotypes.map(p => p.description || p.searchTerm).join(', ') }}</p>
-                    <p><strong>Assay Types:</strong> {{ selectedAssayTypes.join(', ') }}</p>
-                    <p><strong>Cell Types:</strong> {{ selectedCellTypes.join(', ') }}</p>
-                    <p><strong>Readouts:</strong> {{ selectedReadouts.join(', ') }}</p>
-                    <p v-if="selectedPrograms.length > 0"><strong>Programs:</strong> {{ selectedPrograms.join(', ') }}</p>
-                    
-                    <div class="search-context">
-                        <h6>Search Context</h6>
-                        <div v-html="searchPlanText"></div>
+        <div id="planner-search-draft" :class="{ 'collapsed': !showSearchDraft }">
+            <div class="section-header" @click="toggleSearchDraft">
+                <h4>Review Experiment Configuration</h4>
+                <span class="collapse-icon">{{ showSearchDraft ? '▲' : '▼' }}</span>
+            </div>
+            <div v-if="showSearchDraft" class="section-content">
+                <!-- Summary -->
+                <div class="search-summary" v-if="showSummary">
+                    <h5>Selected Configuration</h5>
+                    <div class="summary-card">
+                        <p v-if="phenotypeSearch.trim() !== ''"><strong>Hypothesis/Phenotype Search:</strong> {{ phenotypeSearch }}</p>
+                        <p><strong>Assay Types:</strong> {{ selectedAssayTypes.join(', ') }}</p>
+                        <p><strong>Cell Types:</strong> {{ selectedCellTypes.join(', ') }}</p>
+                        <p><strong>Readouts:</strong> {{ selectedReadouts.join(', ') }}</p>
+                        <p v-if="selectedPrograms.length > 0"><strong>Programs:</strong> {{ selectedPrograms.join(', ') }}</p>
+                        <p v-if="selectedThroughput"><strong>Throughput:</strong> {{ selectedThroughput }}</p>
+                        <p v-if="selectedSpecies"><strong>Species:</strong> {{ selectedSpecies }}</p>
+                        <p v-if="selectedTimeBudget"><strong>Time Budget:</strong> {{ selectedTimeBudget }}</p>
+                        
+                        <div class="search-context">
+                            <h6>Search Context</h6>
+                            <div v-html="searchPlanText"></div>
+                        </div>
+                        
+                        <button @click="generateExperiment" class="btn btn-primary" :disabled="isGenerating">
+                            {{ isGenerating ? 'Generating...' : 'Generate Experiment' }}
+                        </button>
                     </div>
-                    
-                    <button @click="generateExperiment" class="btn btn-primary">
-                        Generate Experiment
-                    </button>
                 </div>
             </div>
         </div>
-        <div id="planner-search-results">
+        <div id="planner-search-results" v-if="experimentResults">
             <h4>Planner Search Results</h4>
-            {{ selectedPhenotypes }}
+            <div v-if="isGenerating" class="loading-message">
+                <p>Generating experiment recommendations...</p>
+            </div>
+            <div v-else class="experiment-results">
+                    <div v-if="isValidExperimentJSON(experimentResults)" class="experiment-plan">
+                        <div v-for="(experiment, index) in parsedExperimentResults" :key="index" class="experiment-card">
+                            <!-- CFDE Program -->
+                            <div class="experiment-section">
+                                <h6 class="section-title">CFDE Program</h6>
+                                <div class="program-info">
+                                    <span class="program-name">{{ experiment.cfde_program.program }}</span>
+                                    <span class="strength-badge">Strength: {{ experiment.cfde_program.strength }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Biological Assertion -->
+                            <div class="experiment-section">
+                                <h6 class="section-title">Biological Assertion</h6>
+                                <div class="assertion-content">
+                                    <div class="mechanism">
+                                        <strong>Mechanism:</strong> {{ experiment.biological_assertion.mechanism }}
+                                    </div>
+                                    <div class="phenotype">
+                                        <strong>Phenotype:</strong> {{ experiment.biological_assertion.phenotype }}
+                                    </div>
+                                    <div class="bridging-genes">
+                                        <strong>Bridging Genes:</strong>
+                                        <div class="gene-tags">
+                                            <span v-for="gene in experiment.biological_assertion.bridging_genes" :key="gene" class="gene-tag">{{ gene }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Suggested Experiment -->
+                            <div class="experiment-section">
+                                <h6 class="section-title">Suggested Experiment</h6>
+                                <div class="experiment-description">
+                                    {{ experiment.suggested_experiment.experiment }}
+                                </div>
+                            </div>
+
+                            <!-- Why Validate -->
+                            <div class="experiment-section">
+                                <h6 class="section-title">Why Validate</h6>
+                                <div class="validation-reasons">
+                                    <div class="reason-item">
+                                        <strong>Feasibility:</strong> {{ experiment.Why_validate.feasibility }}
+                                    </div>
+                                    <div class="reason-item">
+                                        <strong>Impact:</strong> {{ experiment.Why_validate.Impact }}
+                                    </div>
+                                    <div class="reason-item">
+                                        <strong>Novelty:</strong> {{ experiment.Why_validate.Novelty }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Protocol Sketch -->
+                            <div class="experiment-section">
+                                <h6 class="section-title">Protocol Sketch</h6>
+                                <div class="protocol-details">
+                                    <div class="protocol-item">
+                                        <strong>Design:</strong> {{ experiment.protocol_sketch.design }}
+                                    </div>
+                                    <div class="protocol-item">
+                                        <strong>Perturbation:</strong> {{ experiment.protocol_sketch.perturbation }}
+                                    </div>
+                                    <div class="protocol-item">
+                                        <strong>Readouts:</strong> {{ experiment.protocol_sketch.readouts }}
+                                    </div>
+                                    <div class="protocol-item">
+                                        <strong>Controls:</strong> {{ experiment.protocol_sketch.controls }}
+                                    </div>
+                                    <div class="protocol-item">
+                                        <strong>Analysis:</strong> {{ experiment.protocol_sketch.analysis }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Feasibility Details -->
+                            <div class="experiment-section">
+                                <h6 class="section-title">Feasibility Details</h6>
+                                <div class="feasibility-content">
+                                    <div class="feasibility-item">
+                                        <strong>Matches Your Setup:</strong>
+                                        <ul class="setup-list">
+                                            <li v-for="item in experiment.feasibility_details.matches_your_setup" :key="item">{{ item }}</li>
+                                        </ul>
+                                    </div>
+                                    <div class="feasibility-item">
+                                        <strong>Fits Expected Timeline:</strong> {{ experiment.feasibility_details.fits_expected_timeline }}
+                                    </div>
+                                    <div class="feasibility-item">
+                                        <strong>Estimated Conditions:</strong> {{ experiment.feasibility_details.Estimated_conditions }}
+                                    </div>
+                                    <div class="feasibility-item">
+                                        <strong>Required Materials:</strong>
+                                        <ul class="materials-list">
+                                            <li v-for="material in experiment.feasibility_details.required_materials" :key="material">{{ material }}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Design Critique -->
+                            <div class="experiment-section">
+                                <h6 class="section-title">Design Critique</h6>
+                                <div class="critique-content">
+                                    <div class="critique-section">
+                                        <strong>Strengths:</strong>
+                                        <ul class="critique-list strengths">
+                                            <li v-for="strength in experiment.design_critique.strengths" :key="strength">{{ strength }}</li>
+                                        </ul>
+                                    </div>
+                                    <div class="critique-section">
+                                        <strong>Limitations:</strong>
+                                        <ul class="critique-list limitations">
+                                            <li v-for="limitation in experiment.design_critique.limitations" :key="limitation">{{ limitation }}</li>
+                                        </ul>
+                                    </div>
+                                    <div class="critique-section">
+                                        <strong>Alternative Approaches:</strong>
+                                        <div class="alternatives">
+                                            <div v-for="(alt, altIndex) in experiment.design_critique.alternative_approaches" :key="`alt-${index}-${altIndex}`" class="alternative-item">
+                                                <span class="alt-type">{{ alt.type }}:</span> {{ alt.suggestion }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="critique-section">
+                                        <strong>Strategic Recommendation:</strong>
+                                        <div class="strategic-rec">{{ experiment.design_critique.strategic_recommendation }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Provenance -->
+                            <div class="experiment-section">
+                                <h6 class="section-title">Provenance</h6>
+                                <div class="provenance-text">{{ experiment.provenance }}</div>
+                            </div>
+                        </div>
+                    </div>
+                <div v-else class="raw-results">
+                    <pre>{{ experimentResults }}</pre>
+                </div>
+            </div>
         </div>
 	</div>
 </template>
@@ -184,6 +367,7 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import { createLLMClient } from "@/utils/llmClient";
 
 Vue.use(BootstrapVueIcons);
 
@@ -517,13 +701,19 @@ export default {
                 },
 
 
-            experiment_prompt: `You are a biomedical assistant specialized in experimental design.
-Your task is to generate validation experiment proposals that test causal links between biological mechanisms and phenotypes, derived from gene set–phenotype associations (e.g., from CFDE, MotorPAC, HuBMAP, or other multi-omic programs).
+            experiment_prompt: `Your task is to generate validation experiment proposals that test causal links between biological mechanisms and phenotypes, derived from gene set–phenotype associations (e.g., from CFDE, MotorPAC, HuBMAP, or other multi-omic programs) or hypothesis.
 
-For each input, reason biologically and output a structured JSON object following the provided schema.
+For each input, reason biologically and output a structured JSON object following the provided schema. Critically evaluate all inputs for biological consistency. If the provided assays or cell types are not appropriate for the hypothesis, design the experiment as requested but use the design_critique section to explicitly state the mismatch and propose a more suitable model. If the input is a gene set–phenotype association, generate a validation experiment that tests the association.
 
-Every output must contain exactly one item in resultModel[], fully populated and coherent.
-Avoid speculative or unsupported biological claims; base reasoning on gene function, pathways, and plausible assays.
+Consider user configured conditions for the experiment. If the user has selected a throughput, use the appropriate number of conditions. If the user has selected a species, use the appropriate cell types. If the user has selected a program, use the appropriate assay types. If the user has selected a cell type, use the appropriate assay types. If the user has selected a readout, use the appropriate assay types.
+
+Every output must contain exactly one item in resultModel[], fully populated and coherent. Avoid speculative or unsupported biological claims; base reasoning on established gene function, pathways, and plausible assays.
+
+If the input is a hypothesis, generate a validation experiment that tests the hypothesis.
+
+When multiple genes are provided, select the most suitable candidate for the initial validation experiment (e.g., a rate-limiting enzyme, a structural component, or a key regulator) and justify this choice.
+
+Within the strategic_recommendation, you should outline a tiered validation strategy, framing the primary experiment as a crucial first step and then suggesting logical follow-up studies.
 
 {
   "resultModel": [
@@ -547,63 +737,40 @@ Avoid speculative or unsupported biological claims; base reasoning on gene funct
       },
       "protocol_sketch": {
         "design": "<study layout>",
-        "purturbation": "<manipulation>",
+        "perturbation": "<manipulation>",
         "readouts": "<key assays>",
         "controls": "<control conditions>",
         "analysis": "<data analysis plan>"
       },
       "feasibility_details": {
         "matches_your_setup": ["<assay>", "<cell type>", "<instrumentation>"],
-        "fits_expected_timeline": <true/false>,
+        "fits_expected_timeline": "<true/false>",
         "Estimated_conditions": "<e.g., 6–12>",
         "required_materials": ["<reagent1>", "<reagent2>"]
+      },
+      "design_critique": {
+        "strengths": [
+          "<advantage of the proposed experimental design>"
+        ],
+        "limitations": [
+          "<potential drawback or confounding factor of the design>"
+        ],
+        "alternative_approaches": [
+          {
+            "type": "<e.g., Assay Modification, Model Improvement>",
+            "suggestion": "<description of the alternative approach>"
+          }
+        ],
+        "strategic_recommendation": "<concise verdict on the experiment's role and suggested next steps>"
       },
       "provenance": "<data source or model reasoning>"
     }
   ]
 }
+
 **Example:**
 **Input:**
-Phenotype: Cardiometabolic risk
-Associated genes: PPARGC1A, UCP1, CIDEA, NRF1, TFAM
-Supporting program: MotorPAC
-Strength: 1.2
 
-**Output:**
-{
-  "resultModel": [
-    {
-      "cfde_program": { "program": "MotorPAC", "strength": 1.2 },
-      "biological_assertion": {
-        "mechanism": "Exercise-driven adipose remodeling",
-        "phenotype": "Cardiometabolic risk",
-        "bridging_genes": ["PPARGC1A", "UCP1", "CIDEA", "NRF1", "TFAM"]
-      },
-      "suggested_experiment": {
-        "experiment": "CRISPRa PPARGC1A in human adipocytes; measure thermogenic and insulin response markers under chronic β-adrenergic stimulation."
-      },
-      "Why_validate": {
-        "feasibility": "Feasible in vitro using human adipocytes with CRISPRa and thermogenic assays.",
-        "Impact": "Establishes causal link between exercise-induced thermogenesis and insulin sensitivity.",
-        "Novelty": "Connects exercise transcriptomic signatures to human adipocyte causality."
-      },
-      "protocol_sketch": {
-        "design": "In vitro CRISPRa activation study.",
-        "purturbation": "Activation of PPARGC1A with dCas9-VP64.",
-        "readouts": "pAKT, OCR, UCP1 expression, glucose uptake.",
-        "controls": "Non-targeting sgRNA; β-adrenergic stimulus alone.",
-        "analysis": "Compare fold changes vs. control; enrichment of thermogenic pathways."
-      },
-      "feasibility_details": {
-        "matches_your_setup": ["assay: CRISPRa", "cells: human adipocytes", "readouts: pAKT, OCR"],
-        "fits_expected_timeline": true,
-        "Estimated_conditions": "6–12",
-        "required_materials": ["dCas9-VP64 plasmid", "sgRNA library", "β-adrenergic agonist"]
-      },
-      "provenance": "MotorPAC gene signatures (v2024.11); overlap with exercise thermogenic modules."
-    }
-  ]
-}
 `,
             apiUrls: {
                 phenotype2Geneset: "",
@@ -612,15 +779,18 @@ Strength: 1.2
                 experimentGeneration: "",
             },
             // UI state
-            selectedPhenotypes: [],
             phenotypeSearch: '',
-            filteredPhenotypes: [],
-            showPhenotypeDropdown: false,
             selectedAssayTypes: [],
             selectedCellTypes: [],
             selectedReadouts: [],
             selectedPrograms: [],
+            selectedThroughput: '',
+            selectedSpecies: '',
+            selectedTimeBudget: '',
             showSummary: false,
+            isGenerating: false,
+            experimentResults: '',
+            showSearchDraft: true,
             showDropdowns: {
                 assayTypes: false,
                 cellTypes: false,
@@ -630,6 +800,21 @@ Strength: 1.2
 	},
 	modules: {
 	},
+
+    created() {
+        this.processAssociations = createLLMClient({
+            llm: "openai",
+            model: "gpt-5-nano",
+            system_prompt: this.extractSystemPrompt
+        });
+
+        this.buildExperiments = createLLMClient({
+            llm: "openai",
+            model: "gpt-5-mini",
+            system_prompt: this.experimentPrompt()
+        });
+    },
+
 	mounted: function () {
 
 	},
@@ -651,46 +836,17 @@ Strength: 1.2
 			return Array.from(programs).sort();
 		},
 		searchPlanText() {
-			const selectablePhenotypes = this.selectedPhenotypes.filter(p => p.case === 'selectable');
-			const semanticSearchPhenotypes = this.selectedPhenotypes.filter(p => p.case === 'semantic_search');
-			
 			let text = '<p>This validation plan will execute the following search strategy:</p>';
 			
-			// Case 1: If user selected phenotypes from phenotypesInUse
-			if (selectablePhenotypes.length > 0 && this.selectedCellTypes.length > 0 && this.selectedPrograms.length > 0) {
+			// Hypothesis analysis
+			if (this.phenotypeSearch.trim() !== '' && this.selectedAssayTypes.length > 0 && this.selectedCellTypes.length > 0) {
+				text += '<p><strong>Hypothesis Analysis Strategy:</strong></p>';
 				text += '<ol>';
-				text += '<li><strong>Get gene sets associated with selected phenotype(s):</strong> ';
-				text += `Query the phenotype-to-geneset API for ${selectablePhenotypes.map(p => p.description || p.searchTerm || '').join(', ')} to retrieve associated gene sets.</li>`;
+				text += '<li><strong>Analyze hypothesis:</strong> ';
+				text += `Process the provided hypothesis "${this.phenotypeSearch.trim()}" to identify key biological concepts, potential mechanisms, and relevant gene targets for experimental validation.</li>`;
 				
-				text += '<li><strong>Filter loaded gene sets by selected Cell Types:</strong> ';
-				text += `Apply cell type filtering using ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')} to narrow down the gene sets to relevant cellular contexts.</li>`;
-				
-				text += '<li><strong>Filter gene sets by selected program(s):</strong> ';
-				text += `Further refine the results by filtering through the selected programs: ${this.selectedPrograms.join(', ')} to ensure data quality and relevance.</li>`;
-				
-				text += '<li><strong>Build validation experiment options:</strong> ';
-				text += `Generate targeted validation experiment proposals using the filtered gene sets, incorporating selected assay types (${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}) and readouts (${this.selectedReadouts.join(', ')}) to test causal relationships between biological mechanisms and phenotypes.</li>`;
-				text += '</ol>';
-			}
-			
-			// Case 2: If user has semantic search phenotypes
-			if (semanticSearchPhenotypes.length > 0) {
-				text += '<p><strong>Semantic Search Strategy:</strong></p>';
-				text += '<ol>';
-				text += '<li><strong>Get a list of phenotypes relevant to search terms:</strong> ';
-				text += `Perform semantic search for "${semanticSearchPhenotypes.map(p => p.searchTerm || '').join(', ')}" to identify relevant phenotypes from the knowledge base.</li>`;
-				
-				text += '<li><strong>Query gene sets for identified phenotypes:</strong> ';
-				text += `Use the returned phenotype list to query the phenotype-to-geneset API and retrieve associated gene sets.</li>`;
-				
-				text += '<li><strong>Filter loaded gene sets by selected Cell Types:</strong> ';
-				text += `Apply cell type filtering using ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')} to narrow down the gene sets to relevant cellular contexts.</li>`;
-				
-				text += '<li><strong>Filter gene sets by selected program(s):</strong> ';
-				text += `Further refine the results by filtering through the selected programs: ${this.selectedPrograms.join(', ')} to ensure data quality and relevance.</li>`;
-				
-				text += '<li><strong>Build validation experiment options:</strong> ';
-				text += `Generate targeted validation experiment proposals using the filtered gene sets, incorporating selected assay types (${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}) and readouts (${this.selectedReadouts.join(', ')}) to test causal relationships between biological mechanisms and phenotypes.</li>`;
+				text += '<li><strong>Build an experiment plan:</strong> ';
+				text += `Design targeted validation experiments incorporating selected assay types (${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}), cell types (${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}), and readouts (${this.selectedReadouts.join(', ')}) to test the hypothesis and establish causal relationships.</li>`;
 				text += '</ol>';
 			}
 			
@@ -706,6 +862,17 @@ Strength: 1.2
 			}
 			
 			return text;
+		},
+		parsedExperimentResults() {
+			if (this.isValidExperimentJSON(this.experimentResults)) {
+				try {
+					return JSON.parse(this.experimentResults).resultModel;
+				} catch (error) {
+					console.error('Error parsing experiment results:', error);
+					return [];
+				}
+			}
+			return [];
 		}
 	},
 	watch: {
@@ -715,66 +882,6 @@ Strength: 1.2
 		}
 	},
 	methods: {
-		filterPhenotypes() {
-			if (this.phenotypeSearch.length < 2) {
-				this.filteredPhenotypes = [];
-				return;
-			}
-			
-			const searchTerm = this.phenotypeSearch.toLowerCase();
-			this.filteredPhenotypes = this.phenotypesInUse.filter(phenotype => 
-				phenotype.description.toLowerCase().includes(searchTerm) ||
-				phenotype.name.toLowerCase().includes(searchTerm) ||
-				phenotype.group.toLowerCase().includes(searchTerm)
-			)
-			.sort((a, b) => a.description.length - b.description.length) // Sort by description length, shorter first
-			.slice(0, 10); // Limit to 10 results
-		},
-		selectPhenotype(phenotype) {
-			// Check if already selected
-			if (!this.selectedPhenotypes.find(p => p.name === phenotype.name)) {
-				// Add case information for API routing
-				const phenotypeWithCase = {
-					...phenotype,
-					case: 'selectable' // Case 1: From existing phenotype data
-				};
-				this.selectedPhenotypes.push(phenotypeWithCase);
-			}
-			this.phenotypeSearch = '';
-			this.filteredPhenotypes = [];
-			this.showPhenotypeDropdown = false;
-		},
-		confirmSearchTerms() {
-			const searchTerm = this.phenotypeSearch.trim();
-			if (searchTerm !== '') {
-				// Create a custom phenotype object for search terms
-				const customPhenotype = {
-					searchTerm: searchTerm,
-					description: searchTerm,
-					name: `search_${Date.now()}`, // Unique identifier
-					group: 'Custom Search',
-					case: 'semantic_search' // Case 2: Custom search terms for semantic search
-				};
-				
-				// Check if already selected
-				if (!this.selectedPhenotypes.find(p => p.searchTerm === searchTerm)) {
-					this.selectedPhenotypes.push(customPhenotype);
-				}
-				
-				this.phenotypeSearch = '';
-				this.filteredPhenotypes = [];
-				this.showPhenotypeDropdown = false;
-			}
-		},
-		removePhenotype(phenotype) {
-			if (phenotype.searchTerm) {
-				// Remove custom search term
-				this.selectedPhenotypes = this.selectedPhenotypes.filter(p => p.searchTerm !== phenotype.searchTerm);
-			} else {
-				// Remove regular phenotype
-				this.selectedPhenotypes = this.selectedPhenotypes.filter(p => p.name !== phenotype.name);
-			}
-		},
 		removeAssayType(assayType) {
 			this.selectedAssayTypes = this.selectedAssayTypes.filter(a => a !== assayType);
 		},
@@ -784,52 +891,134 @@ Strength: 1.2
 		removeReadout(readout) {
 			this.selectedReadouts = this.selectedReadouts.filter(r => r !== readout);
 		},
+		toggleSearchUI() {
+			this.showSummary = !this.showSummary;
+		},
+		toggleSearchDraft() {
+			this.showSearchDraft = !this.showSearchDraft;
+		},
 		draftValidationPlan() {
 			// Show the summary section
 			this.showSummary = true;
 			
 			// Draft validation plan based on selected configuration
 			console.log('Drafting validation plan with:', {
-				phenotypes: this.selectedPhenotypes,
+				hypothesisSearch: this.phenotypeSearch,
+				inputType: this.inputType,
 				assayTypes: this.selectedAssayTypes,
 				cellTypes: this.selectedCellTypes,
 				readouts: this.selectedReadouts,
-				programs: this.selectedPrograms
+				programs: this.selectedPrograms,
+				throughput: this.selectedThroughput,
+				species: this.selectedSpecies,
+				timeBudget: this.selectedTimeBudget
 			});
 			
-			// Separate phenotypes by case for different API calls
-			const selectablePhenotypes = this.selectedPhenotypes.filter(p => p.case === 'selectable');
-			const semanticSearchPhenotypes = this.selectedPhenotypes.filter(p => p.case === 'semantic_search');
-			
-			console.log('Selectable phenotypes (API 1):', selectablePhenotypes);
-			console.log('Semantic search phenotypes (API 2):', semanticSearchPhenotypes);
-			
-			// TODO: Call different APIs based on case
-			// API 1: For selectable phenotypes
-			// API 2: For semantic search phenotypes
+			// TODO: Call different APIs based on whether hypothesis search is provided
+			// API 1: For hypothesis/phenotype search terms
+			// API 2: For program-based search
 		},
 		resetAllSelections() {
 			// Reset all selections
-			this.selectedPhenotypes = [];
 			this.selectedAssayTypes = [];
 			this.selectedCellTypes = [];
 			this.selectedReadouts = [];
 			this.selectedPrograms = [];
+			this.selectedThroughput = '';
+			this.selectedSpecies = '';
+			this.selectedTimeBudget = '';
 			this.phenotypeSearch = '';
-			this.filteredPhenotypes = [];
-			this.showPhenotypeDropdown = false;
 			this.showSummary = false;
+			this.experimentResults = '';
+			this.isGenerating = false;
+			this.showSearchDraft = true;
 		},
-		generateExperiment() {
-			// Generate experiment based on selected configuration
-			console.log('Generating experiment with:', {
-				assayTypes: this.selectedAssayTypes,
-				cellTypes: this.selectedCellTypes,
-				readouts: this.selectedReadouts
-			});
+		extractSystemPrompt() {
+			return "You are a system for extracting and processing phenotype-gene associations from research queries.";
+		},
+		experimentPrompt() {
+			// Build the experiment prompt with captured search draft values
+			let prompt = this.experiment_prompt;
 			
-			// TODO: Implement experiment generation logic
-			alert(`Experiment generated with ${this.selectedAssayTypes.length} assay types, ${this.selectedCellTypes.length} cell types, and ${this.selectedReadouts.length} readouts`);
+			// Add search context information
+			prompt += '\n\n**Current Search Context:**\n';
+			
+			if (this.phenotypeSearch.trim() !== '') {
+				prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
+			}
+			
+			if (this.selectedAssayTypes.length > 0) {
+				prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
+			}
+			
+			if (this.selectedCellTypes.length > 0) {
+				prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
+			}
+			
+			if (this.selectedReadouts.length > 0) {
+				prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
+			}
+			
+			if (this.selectedPrograms.length > 0) {
+				prompt += `**Selected Programs:** ${this.selectedPrograms.join(', ')}\n`;
+			}
+			
+			if (this.selectedThroughput) {
+				prompt += `**Throughput:** ${this.selectedThroughput}\n`;
+			}
+			
+			if (this.selectedSpecies) {
+				prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
+			}
+			
+			if (this.selectedTimeBudget) {
+				prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
+			}
+			
+			return prompt;
+		},
+		isValidExperimentJSON(str) {
+			if (!str || typeof str !== 'string') return false;
+			try {
+				const parsed = JSON.parse(str);
+				return parsed && parsed.resultModel && Array.isArray(parsed.resultModel) && parsed.resultModel.length > 0;
+			} catch (error) {
+				return false;
+			}
+		},
+		async generateExperiment() {
+			try {
+				// Show loading state
+				this.isGenerating = true;
+				
+				// Generate experiment using the LLM client
+				this.buildExperiments.sendPrompt({
+					userPrompt: this.phenotypeSearch.trim() || 'Generate validation experiments based on the selected parameters',
+					onResponse: (response) => {
+						// Store the response for display
+						this.experimentResults = response;
+						// Collapse the search draft section when response is received
+						this.showSearchDraft = false;
+						console.log('Experiment generated:', response);
+					},
+					onError: (error) => {
+						console.error('Error generating experiment:', error);
+						this.experimentResults = 'Error generating experiment. Please try again.';
+						// Also collapse on error to show the error message
+						this.showSearchDraft = false;
+					},
+					onEnd: () => {
+						this.isGenerating = false;
+					}
+				});
+				
+			} catch (error) {
+				console.error('Error generating experiment:', error);
+				this.experimentResults = 'Error generating experiment. Please try again.';
+				this.isGenerating = false;
+				// Collapse on synchronous error as well
+				this.showSearchDraft = false;
+			}
 		}
 	}
 };
@@ -839,18 +1028,104 @@ Strength: 1.2
 */
 </script>
 <style scoped>
-.search-filters {
+/* Hypothesis to Validate Section */
+.hypothesis-container {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.hypothesis-content h5 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.hypothesis-section {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+.experimental-parameters h4 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #495057;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.parameters-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
-    margin: 20px 0;
 }
 
-.filter-section {
-    background: #f8f9fa;
-    padding: 15px;
+.experimental-constraints {
+    /*background: #ffffff;
+    padding: 20px;
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    */
+    margin-top: 20px;
+}
+
+.experimental-constraints h4 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #495057;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.constraints-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.constraint-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.constraint-section label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 14px;
+}
+
+.constraint-select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.constraint-select:focus {
+    outline: none;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.constraint-select:hover {
+    border-color: #86b7fe;
+}
+
+.filter-section, .constraint-section {
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
 }
 
 .filter-section h5 {
@@ -1001,8 +1276,8 @@ Strength: 1.2
 .dropdown-toggle {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
     background: white;
     text-align: left;
     cursor: pointer;
@@ -1176,72 +1451,338 @@ Strength: 1.2
     flex: 1;
 }
 
-/* Autocomplete styles */
-.autocomplete-container {
-    position: relative;
-    width: 100%;
+
+/* Results section styles */
+#planner-search-results {
+    margin-top: 20px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.search-input-container {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+/* Removed .results-container - no longer needed */
+
+.loading-message {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+    font-style: italic;
 }
 
-.autocomplete-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 14px;
+.experiment-results {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 15px;
 }
 
-.autocomplete-input:focus {
-    outline: none;
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.autocomplete-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ced4da;
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.autocomplete-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #f8f9fa;
-    transition: background-color 0.2s ease;
-}
-
-.autocomplete-item:hover {
-    background-color: #f8f9fa;
-}
-
-.autocomplete-item:last-child {
-    border-bottom: none;
-}
-
-.phenotype-label {
-    font-weight: 500;
+.experiment-results pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Courier New', monospace;
     font-size: 13px;
+    line-height: 1.4;
     color: #495057;
 }
 
-.phenotype-group {
-    font-size: 11px;
+/* Experiment Plan Layout Styles */
+.experiment-plan {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.experiment-card {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.experiment-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.experiment-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.section-title {
+    color: #495057;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #007bff;
+}
+
+.program-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.program-name {
+    font-weight: 600;
+    color: #007bff;
+    font-size: 14px;
+}
+
+.strength-badge {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.assertion-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mechanism, .phenotype {
+    line-height: 1.5;
+    color: #495057;
+}
+
+.bridging-genes {
+    margin-top: 8px;
+}
+
+.gene-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.gene-tag {
+    background: #f8f9fa;
+    color: #495057;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #dee2e6;
+}
+
+.experiment-description {
+    line-height: 1.6;
+    color: #495057;
+    font-style: italic;
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 4px solid #28a745;
+}
+
+.validation-reasons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reason-item {
+    line-height: 1.5;
+    color: #495057;
+}
+
+.protocol-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.protocol-item {
+    line-height: 1.5;
+    color: #495057;
+}
+
+.feasibility-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.feasibility-item {
+    line-height: 1.5;
+    color: #495057;
+}
+
+.setup-list, .materials-list {
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+}
+
+.setup-list li, .materials-list li {
+    margin: 4px 0;
     color: #6c757d;
-    margin-top: 2px;
+}
+
+.critique-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.critique-section {
+    line-height: 1.5;
+    color: #495057;
+}
+
+.critique-list {
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+}
+
+.critique-list li {
+    margin: 6px 0;
+    line-height: 1.4;
+}
+
+.critique-list.strengths li {
+    color: #28a745;
+}
+
+.critique-list.limitations li {
+    color: #dc3545;
+}
+
+.alternatives {
+    margin-top: 8px;
+}
+
+.alternative-item {
+    margin: 8px 0;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #ffc107;
+}
+
+.alt-type {
+    font-weight: 600;
+    color: #495057;
+}
+
+.strategic-rec {
+    margin-top: 8px;
+    padding: 12px;
+    background: #e3f2fd;
+    border-radius: 6px;
+    border-left: 4px solid #2196f3;
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.provenance-text {
+    line-height: 1.5;
+    color: #6c757d;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.raw-results {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.raw-results pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #495057;
+}
+
+/* Collapsible Sections */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    padding: 10px 0;
+    margin-bottom: 15px;
+}
+
+
+.collapse-icon {
+    font-size: 14px;
+    color: #6c757d;
+    transition: transform 0.2s ease;
+}
+
+.collapsed .section-header {
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 0;
+}
+
+.section-content {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.collapsed .section-content {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+}
+
+#planner-search-ui, #planner-search-draft {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+#planner-search-ui.collapsed, #planner-search-draft.collapsed {
+    padding: 10px 20px;
+}
+
+
+/* Textarea styles */
+.textarea-container {
+    width: 100%;
+}
+
+.hypothesis-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+    background-color: white;
+}
+
+.hypothesis-textarea:focus {
+    outline: none;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 .selected-items {
@@ -1280,19 +1821,4 @@ Strength: 1.2
     color: #333;
 }
 
-.confirm-search-btn {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background-color 0.2s ease;
-}
-
-.confirm-search-btn:hover {
-    background-color: #218838;
-}
 </style>

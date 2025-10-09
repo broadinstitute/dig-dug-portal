@@ -6,6 +6,7 @@
 			:sectionConfigs="sectionConfigs">
 		</component>
 		<!-- <cfde-eco-system v-if="component='cfdeEcoSystem'"></cfde-eco-system> -->
+		
 	</div>
 </template>
 
@@ -34,7 +35,7 @@ export default Vue.component("research-section-components", {
 	modules: {
 	},
 	mounted: function () {
-
+console.log('this.component', this.component);
 		switch(this.component) {
 			case 'cfdeEcoSystem':
 				this.currentComponent = cfdeEcoSystem;
@@ -44,6 +45,7 @@ export default Vue.component("research-section-components", {
 				break;
 			case 'cfdeValidationPlanner':
 				this.currentComponent = cfdeValidationPlanner;
+				break;
 			case 'cfdeMechanismDiscovery':
 				this.currentComponent = cfdeMechanismDiscovery;
 				break;
