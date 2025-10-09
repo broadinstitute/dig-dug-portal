@@ -29,6 +29,17 @@
             </div>
             <div style="display:flex; gap: 5px; align-items: center; justify-content: space-between;">
                 <a role="button" onClick="alert('TODO: show query examples')">show examples</a>
+                <fieldset style="display:flex; align-items: center; gap:10px">
+                    <div>(DEV) search by:</div>
+                    <div style="display: flex; align-items: center; gap:5px">
+                        <input type="radio" id="search_phenotypes" name="seach_type" value="phenotypes" v-model="searchType"/>
+                        <label for="search_phenotypes">phenotypes <span class="info-icon" v-b-tooltip.hover="'Runs semantic search against phenotypes, then gets associated gene-sets for each.'">?</span></label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap:5px">
+                        <input type="radio" id="seach_terms" name="seach_type" value="terms" v-model="searchType"/>
+                        <label for="seach_terms">terms <span class="info-icon" v-b-tooltip.hover="'Runs semantic search against phenotype/gene-set associations.'">?</span></label>
+                    </div>
+                </fieldset>
             </div>
             <div>
                 <!--
@@ -128,11 +139,12 @@
                     </div>
                 </div>
     
-                <div v-if="associations" style="display:flex; flex-direction: column; gap: 5px">
+                <div v-if="associations && total_relevant_associations" style="display:flex; flex-direction: column; gap: 5px">
                     <div style="font-size: 1.2em; font-weight: bold;">Found <strong>{{ associations.length }} phenotype↔signature</strong> associations related to the Search Terms</div>
                     <div class="section-header" @click="display_associations = !display_associations">
                         <div>Across <strong>{{ total_phenotypes }} phenotypes</strong>, <strong>{{ total_signatures }} signatures</strong>, and <strong>{{ total_programs }} CFDE programs</strong>.</div>
-                        <div>Selected the <strong>{{ total_strong_associations }} strongest</strong> associations. 
+                        <div>Includig <strong>{{ total_strong_associations }} strong</strong>, <strong>{{ total_moderate_associations }} moderate</strong>, and <strong>{{ total_low_associations }} low</strong> association stengths.</div>
+                        <div>Selected <strong>{{ total_relevant_associations }} <span v-for="(strength, idx) in filtered_association_strengths" style="text-transform: lowercase;">{{ association_strengths_list[strength].label }}{{ idx < filtered_association_strengths.length-1 ? ',' : '' }}</span></strong> associations.
                             <!--
                             <template v-if="filtered_programs.length>0">
                                 from <strong>
@@ -315,16 +327,16 @@
             </div>
             <div v-if="search_step >= 3" style="display: flex; flex-direction: column; gap:10px">
                 <div v-if="loading_genes" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
-                    <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes of associations </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ total_strong_associations }}</div>
+                    <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes of associations </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ total_relevant_associations }}</div>
                 </div>
                 <div v-if="loading_mechanisms" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
-                    <div style="font-size:1.2em;"><strong>Action:</strong> Generating mechanistic hypotheses </div><div v-if="elapsed" style="font-size: 1em;">{{ `(${elapsed})` }}</div>
+                    <div style="font-size:1.2em;"><strong>Action:</strong> Generating mechanistic hypotheses </div><div v-if="elapsed" style="font-size: 1em;">{{ `${elapsed}` }} (usually takes  about 1 minute)</div>
                 </div>
 
                 <div v-if="mechanisms" style="display:flex; flex-direction: column; gap: 5px">
                     <div style="font-size: 1.2em; font-weight: bold;">Generated {{ mechanisms.length }} mechanistic hypotheses.</div>
                     <div class="section-header" @click="display_mechanisms = !display_mechanisms">
-                        <div>From <strong>{{total_strong_associations}} strongly linked</strong> associations.</div>
+                        <div>From <strong>{{ total_relevant_associations }}</strong> associations.</div>
                         <div class="section-header-state">
                             {{ !display_mechanisms ? 'show more' : 'show less' }}
                         </div>
@@ -345,7 +357,7 @@
                                 </div>
                                 <div style="display:flex; flex-direction: column; padding: 5px;">
                                     <div style="font-size: .8em; font-weight: bold;">contributing CFDE programs</div>
-                                    <div style="display: flex; gap:5px;">
+                                    <div style="display: flex; gap:5px; flex-wrap: wrap;">
                                         <span class="pill" v-for="program in mechanism.programs">{{ program }}</span>
                                     </div>
                                 </div>
@@ -377,10 +389,12 @@
                                     <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_justification = !mechanism.display_justification">why these associations?</div>
                                     <div :class="{collapsed: !mechanism.display_justification}">{{ mechanism.justification }}</div>
                                 </div>
-                                
                                 <div style="display:flex; flex-direction: column; padding: 5px;">
                                     <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_validation = !mechanism.display_validation">how to validate?</div>
                                     <div :class="{collapsed: !mechanism.display_validation}">{{ mechanism.validation }}</div>
+                                </div>
+                                <div style="padding: 5px">
+                                    <a :href="`/research.html?pageid=kc_validation_planner&hypothesis=${mechanism.hypothesis}&programs=${mechanism.programs}`" target="_blank">plan a validation experiment</a> for this hypothesis.
                                 </div>
                             </div>
                         </div>
@@ -419,6 +433,7 @@ export default Vue.component("cfde-mechanism-discovery", {
             openai_api_key: process.env.VUE_APP_OPENAI_API_KEY,
 
             search_step: 0, //0: search not started, 1: parsing query; 2: getting associations; 3: generating hypotheses
+            searchType: "terms",
 
             userQuery: 'i am studying energy balance with indirect calorimetry',
             searchCriteria: null,
@@ -427,6 +442,8 @@ export default Vue.component("cfde-mechanism-discovery", {
             mechanisms: null,
             mechanisms_summary: null,
             association_genes_loaded: 0,
+
+            semanticPhenotypes: null,
 
             loading_search_criteria: false,
             loading_associations: false,
@@ -438,6 +455,9 @@ export default Vue.component("cfde-mechanism-discovery", {
             display_mechanisms: true,
 
             total_strong_associations: null,
+            total_moderate_associations: null,
+            total_low_associations: null,
+            total_relevant_associations: null,
             phenotypes_list: [],
             association_strengths_list: [
                 { label: "Strong", text: ">=1" },
@@ -552,6 +572,45 @@ energy balance with indirect calorimetry
   ]
 }
 `,
+
+            extractSystemPropmpt2: `You extract key research concepts from free-text queries.
+
+Return a JSON object with:
+
+* 'search_terms': a targeted list of keywords to use in a semantic search. (terms to output: min=1, max=5)
+* 'research_context': a short, self-contained description of the research setting that **includes the search terms naturally**.
+
+Guidelines:
+
+* User queries may be verbose or contain multiple traits.
+* Context must be inferred from the users query, keep it short, dont add more context than absolutely necessary.
+* Search terms will be used in an embedding space consisting of labels like 'gene expression siganture association with phenotype'.
+  -Heres a tiny sample of the kinds of terms that sematic search will check against:
+ 'abnormal sternum morphology mp associated with gcat trait bmi-adjusted hip circumference
+  npy6r idg gpcr archs4 coexpression heart - left ventricle female 70-79 up associated with cardiac mri latent space
+  heart - left ventricle female 40-49 up associated with cardiac mri latent space
+  gpr42 idg gpcr archs4 coexpression associated with crohn's disease
+  p2ry10 idg gpcr archs4 coexpression associated with eczematoid dermatitis'
+ - search terms should be selected to work well against this type of embedding space. 
+ - **always** use terms directly asked for in the users query.
+ - **avoid** duplicate keywords in terms
+ - **avoid** listing program names
+* Return only JSON. No extra text or explanation.
+
+---
+
+### Example
+
+**Input:**
+energy balance with indirect calorimetry  
+
+**Output:**
+{
+  "search_terms": ["energy balance"],
+  "research_context": "investigating energy balance using indirect calorimetry"
+}
+`,
+
             groupSystemPrompt2: `You are an expert in **bioinformatics** and **semantic annotation**.
 
 You will be given a list of **gene set-phenotype associations**, each with:
@@ -688,7 +747,12 @@ Return a structured **JSON object** following this schema:
             this.mechanisms_summary = null;
             this.association_genes_loaded = 0;
 
+            this.semanticPhenotypes = null;
+
             this.total_strong_associations = null;
+            this.total_moderate_associations = null;
+            this.total_low_associations = null;
+            this.total_relevant_associations = null;
             this.phenotypes_list = [];
             this.programs_list = [];
             this.filtered_phenotypes = [];
@@ -741,12 +805,59 @@ Return a structured **JSON object** following this schema:
             });
         },
 
-        async termSearch(term){
-            console.log('searching for', term);
-            this.updateStep(2, 'start');
-            this.searchTerm = term;
+        async phenotypeSearch(term){
+            //semantic search for phenotypes
+            const url = `https://api.kpndataregistry.org:8000/api/search/phenotypes?q=${encodeURIComponent(this.searchTerm)}&similarity_threshold=-0.1`
+            const response =  await fetch(url);
 
-            //semantic search for trait
+            if (!response.ok) {
+                new Error("Fetch error:" + response.statusText);
+                return;
+            }
+
+            const res = await response.json();
+            const data = res.data;
+
+            if(data.length > 10){
+                console.log('more than 10 phenotypes returned, sorting by score and trimming to 10 max');
+                data.sort((a, b) => b.score - a.score);
+                data.splice(10);
+            }
+
+            this.semanticPhenotypes = data;
+
+            console.log('raw phenotype search results', data);
+
+            const associations = [];
+
+            //get the associations for those phenotypes
+            console.log(`getting associations for ${data.length} phenotypes`);
+            await Promise.all(
+                data.map(async item => {
+                    const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=${item.id},cfde&limit=100`
+                    const response =  await fetch(url);
+
+                    if (!response.ok) {
+                        new Error("Fetch error:" + response.statusText);
+                        return;
+                    }
+
+                    const res = await response.json();
+                    const data = res.data;
+
+                    associations.push(...data);
+                })
+            )
+
+            const sortedArray = [...associations].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
+
+            //console.log('associations by phenotype', sortedArray);
+
+            return sortedArray;
+        },
+
+        async termSearch(term){
+            //semantic search for trait associations
             const url = `https://api.kpndataregistry.org:8000/api/search/terms?q=${encodeURIComponent(this.searchTerm)}&similarity_threshold=-0.5`
             const response =  await fetch(url);
 
@@ -758,18 +869,37 @@ Return a structured **JSON object** following this schema:
             const res = await response.json();
             const data = res.data;
 
-            console.log('raw search results', data);
+            console.log('raw term search results', data);
 
             //sort by similarity score
             const sortedArray = [...data].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
-            const transformedData = this.transformData(sortedArray);
 
+            //console.log('associations by term', sortedArray)
+
+            return sortedArray;
+        },
+
+        async associationSearch(term){
+            console.log('searching for', term);
+            this.updateStep(2, 'start');
+            this.searchTerm = term;
+
+            if(this.searchType==="terms"){
+                const termAssociatiouns = await this.termSearch(term);
+                console.log('associations by term', termAssociatiouns);
+                const termAssociationsTransformed = this.transformTermAssociations(termAssociatiouns);
+                console.log('associations by term transformed', termAssociationsTransformed);
+                this.associations = termAssociationsTransformed;
+            }else{
+                const phenotypeAssociations = await this.phenotypeSearch(term);
+                console.log('associations by phenotype', phenotypeAssociations);
+                const phenotypeAssociationsTransformed = this.transformPhenotypeAssociations(phenotypeAssociations);
+                console.log('associations by phenotype transformed', phenotypeAssociationsTransformed);
+                this.associations = phenotypeAssociationsTransformed;
+            }
             await this.wait(3000);
 
-            this.associations = transformedData;
-
             console.log('transformed search results', this.associations);
-
 
             const allPhenotypeGroup = this.groupBy(this.associations, 'phenotype');
             const allSenesetGroup = this.groupBy(this.associations, 'gene_set');
@@ -785,10 +915,31 @@ Return a structured **JSON object** following this schema:
             this.programs_list = Object.keys(allSourceGroup).sort();
 
             this.filtered_phenotypes = this.phenotypes_list;
-            this.filtered_association_strengths.push(0);
+
+            console.log('getting strong associations');
 
             //first get only strong associations
-            let relevantAssociations = this.associations.filter(association => association.beta_uncorrected >= 1); //null;
+            //this.filtered_association_strengths.push(0);
+            const strongAssociations = this.associations.filter(association => association.beta_uncorrected >= 1);
+            const moderateAssociations = this.associations.filter(association => association.beta_uncorrected >= 0.1 && association.beta_uncorrected < 1);
+            const lowAssociations = this.associations.filter(association => association.beta_uncorrected < 0.1);
+
+            let relevantAssociations = [];
+
+            if(strongAssociations.length>0){
+                this.filtered_association_strengths.push(0);
+                relevantAssociations.push(...strongAssociations);
+            }
+
+            if(relevantAssociations.length<25 && moderateAssociations.length>0){
+                this.filtered_association_strengths.push(1);
+                relevantAssociations.push(...moderateAssociations);
+            }
+
+            if(relevantAssociations.length<25 && lowAssociations.length>0){
+                this.filtered_association_strengths.push(2);
+                relevantAssociations.push(...lowAssociations);
+            }
 
             //from those, get only requested programs (if any)
             if(this.filtered_programs.length > 0){
@@ -799,9 +950,18 @@ Return a structured **JSON object** following this schema:
                 this.filtered_programs = this.programs_list;
             }
 
-            this.total_strong_associations = relevantAssociations.length;
+            this.total_strong_associations = strongAssociations.length;
+            this.total_moderate_associations = moderateAssociations.length;
+            this.total_low_associations = lowAssociations.length;
 
-            console.log('filtered search results', relevantAssociations);
+            if(relevantAssociations.length>300){
+                console.log(`selected ${relevantAssociations.length} associations, trimming down to 300`);
+                relevantAssociations.splice(300);
+            }
+
+            this.total_relevant_associations = relevantAssociations.length;
+
+            console.log('associations for analysis', relevantAssociations);
 
             //update selected associations in full list
             const idsToSelect = new Set(relevantAssociations.map(item => item.id));
@@ -827,14 +987,12 @@ Return a structured **JSON object** following this schema:
                     const geneArray = genes.map(gene => gene.gene);
                     item.genes = geneArray;
                     this.association_genes_loaded += 1;
-                    //this.$set(item, 'genes', genes);
-                    //this.$set(item, '_showDetails', true);
                 })
             )
 
             console.log({relevantAssociations});
 
-            const strongAssociationsSimplified = relevantAssociations.map(item => {
+            const relevantAssociationsSimplified = relevantAssociations.map(item => {
                 return { 
                     id: item.id,
                     source: item.source,
@@ -843,46 +1001,17 @@ Return a structured **JSON object** following this schema:
                 }
             });
 
-            console.log({strongAssociationsSimplified})
+            console.log({relevantAssociationsSimplified})
 
-            const strongAssociationsSimplifiedCSV = this.objToCSV(strongAssociationsSimplified);
+            const relevantAssociationsSimplifiedCSV = this.objToCSV(relevantAssociationsSimplified);
 
-            console.log(strongAssociationsSimplifiedCSV);
+            console.log(relevantAssociationsSimplifiedCSV);
 
             this.updateStep(3, 'end');
 
             this.updateStep(4, 'start');
 
-            this.prepareMechanismPrompt(strongAssociationsSimplifiedCSV, this.searchCriteria[1].values)
-
-            return;
-            const allowedSources = this.searchCriteria[2].values.length>0 ? this.searchCriteria[2].values : [];
-            const strongAssociationsFilteredBySource = relevantAssociations.filter(obj => allowedSources.includes(obj.source));
-
-            console.log({strongAssociationsFilteredBySource});
-
-            const phenotypeGroup = this.groupBy(relevantAssociations, 'phenotype');
-            const sourceGroup = this.groupBy(strongAssociationsFilteredBySource, 'source');
-
-            console.log({phenotypeGroup, sourceGroup});
-
-            const sourceGroupInPhenotype = {};
-            for(const key in phenotypeGroup){
-                const sourceGroup = this.groupBy(phenotypeGroup[key], 'source');
-                sourceGroupInPhenotype[key] = sourceGroup;
-            }
-
-            const phenotypeGroupInSource = {};
-            for(const key in sourceGroup){
-                const phenotypeGroup = this.groupBy(sourceGroup[key], 'phenotype');
-                phenotypeGroupInSource[key] = phenotypeGroup;
-            }
-
-            console.log({sourceGroupInPhenotype, phenotypeGroupInSource})
-
-            this.associationGroups = phenotypeGroupInSource;
-
-            return;
+            this.prepareMechanismPrompt(relevantAssociationsSimplifiedCSV, this.searchCriteria[1].values)
         },
 
         objToCSV(data) {
@@ -915,27 +1044,48 @@ Return a structured **JSON object** following this schema:
             });
         },
 
-        transformData(arr) {
+        transformTermAssociations(arr) {
             return arr.map(item => {
                 // Extract phenotype name from term
                 const match = item.term.match(/associated with (.+)$/i);
                 const phenotypeName = match ? match[1].trim() : null;
-
                 return {
-                ...item,
-                //used for selection for analysis
-                selected: false,
-                // 1. rename phenotype → phenotype_id
-                phenotype_id: item.phenotype,
-                // 2. add phenotype (extracted text)
-                phenotype: phenotypeName,
-                // 3. gene_set without ":" and everything after
-                gene_set: item.gene_set.includes(":")
-                    ? item.gene_set.split(":")[0]
-                    : item.gene_set
+                    ...item,
+                    //used for selection for analysis
+                    selected: false,
+                    // 1. rename phenotype → phenotype_id
+                    phenotype_id: item.phenotype,
+                    // 2. add phenotype (extracted text)
+                    phenotype: phenotypeName,
+                    // 3. gene_set without ":" and everything after
+                    gene_set: item.gene_set.includes(":")
+                        ? item.gene_set.split(":")[0]
+                        : item.gene_set
                 };
             });
         },
+
+        transformPhenotypeAssociations(arr) {
+            let count = 0;
+            return arr.map(item => {
+                const match = this.semanticPhenotypes.find(phenotype => phenotype.id===item.phenotype)
+                count++;
+                return {
+                    ...item,
+                    //id to match to later
+                    id: `term_${count}`,
+                    //association term
+                    term: `${item.gene_set} associated with ${match.description}`,
+                    //used for selection for analysis
+                    selected: false,
+                    // 1. rename phenotype → phenotype_id
+                    phenotype_id: item.phenotype,
+                    // 2. add phenotype (extracted text)
+                    phenotype: match.description
+                };
+            });
+        },
+
 
         groupBy(array, key) {
             return array.reduce((result, item) => {
@@ -1209,7 +1359,7 @@ Return a structured **JSON object** following this schema:
                     .map(item => item.program);
                 this.filtered_programs = requestedPrograms;
                 */
-                this.termSearch(this.searchTerm);
+                this.associationSearch(this.searchTerm);
             }
         },
         onExtractEnd(end){
