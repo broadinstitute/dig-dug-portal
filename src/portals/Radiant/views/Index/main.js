@@ -26,7 +26,7 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-//import {SignIn,CheckSignInStatus} from "@/portals/Radiant/components/LoginComponent.js";
+import {SignIn,CheckSignInStatus} from "@/portals/Radiant/components/LoginComponent.js";
 
 new Vue({
     store,
@@ -57,7 +57,8 @@ new Vue({
     },
 
     created() {
-        //this.CheckSignInStatus();
+        //console.log("index created:", Vue.prototype.$access);
+        this.CheckSignInStatus();
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -74,7 +75,7 @@ new Vue({
         postAlertError,
         closeAlert,
         //SignIn,
-        //CheckSignInStatus
+        CheckSignInStatus
     },
 
     computed: {
