@@ -47,6 +47,8 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
+import {SignIn,CheckSignInStatus} from "@/portals/Radiant/components/LoginComponent.js";
+
 new Vue({
     store,
 
@@ -208,6 +210,7 @@ new Vue({
     },
 
     created() {
+        this.CheckSignInStatus();
         if (keyParams.variant) {
             this.$store.dispatch("bioPortal/getDiseaseGroups");
             this.$store.dispatch("bioPortal/getPhenotypes");
@@ -223,6 +226,7 @@ new Vue({
         closeAlert,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,
+        CheckSignInStatus,
 
         exploreRegion(expanded = 50000) {
             let pos = this.chromPos;
