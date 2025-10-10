@@ -64,6 +64,8 @@ import Alert, {
     closeAlert,
 } from "@/components/Alert";
 
+import {SignIn,CheckSignInStatus} from "@/portals/Radiant/components/LoginComponent.js";
+
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
@@ -712,6 +714,7 @@ new Vue({
     },
 
     async created() {
+        this.CheckSignInStatus();
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
@@ -744,7 +747,7 @@ new Vue({
         closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
         pValueFormatter: Formatters.pValueFormatter,
-
+        CheckSignInStatus,
         async checkGeneName(KEY) {
             let gene = await regionUtils.geneSymbol(KEY);
 
