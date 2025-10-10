@@ -10,6 +10,13 @@ let pages = {
         title: "Home",
         chunks: ["chunk-vendors", "chunk-common", "index"],
     },
+    login: {
+        entry: "src/portals/Radiant/views/Login/main.js",
+        template: "public/login.html",
+        filename: "login.html",
+        title: "Home",
+        chunks: ["chunk-vendors", "chunk-common", "login"],
+    },
     debug: {
         entry: "src/views/Debug/main.js",
         template: "public/index.html",
