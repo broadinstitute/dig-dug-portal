@@ -10,7 +10,7 @@
         <div v-if="diseaseGroup" class="container-fluid">
             <div class="row amp-banner-2021" v-if="diseaseGroup.default">
                 <a
-                    href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/common-metabolic-diseases"
+                    href="https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-common-metabolic-disorders/"
                     ><img
                         :src="'//kp4cd.org/sites/default/files/vueportal/amp_text.svg'"
                         style="
@@ -41,12 +41,13 @@
                 <div :class="diseaseGroup.name + 'kp-logo-wrapper col-md-4'">
                     <a href="/">
                         <img
-                                v-if="frontContents.field_banner_logo"
-                                :src="'//kp4cd.org/sites/default/files/vueportal/' +
-                                    frontContents.field_banner_logo
-                                    "
-                                :class="diseaseGroup.name + 'kp-logo'"
-                            />
+                            v-if="frontContents.field_banner_logo"
+                            :src="
+                                '//kp4cd.org/sites/default/files/vueportal/' +
+                                frontContents.field_banner_logo
+                            "
+                            :class="diseaseGroup.name + 'kp-logo'"
+                        />
                         <img
                             v-else
                             src="//kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
