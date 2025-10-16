@@ -17,7 +17,7 @@
                     ></textarea>
         </div>
                 <div class="gene-sets-input">
-                    <label for="gene-sets">Phenotypes, Gene sets, and Sources (optional)</label>
+                    <label for="gene-sets">Phenotypes, Gene sets, and Sources</label>
                     <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
                     <textarea 
                         id="gene-sets"
@@ -27,39 +27,77 @@
                         rows="3"
                     ></textarea>
                 </div>
-                <div class="bridging-genes-input">
-                    <label for="bridging-genes">Bridging Genes (optional)</label>
-                    <input 
-                        type="text" 
-                        id="bridging-genes"
-                        v-model="bridgingGenes" 
-                        placeholder="e.g., TP53, BRCA1, MYC..."
-                        class="bridging-genes-field"
-                    />
-                </div>
                 
                 <!-- Gene Data Table -->
                 <div v-if="geneData.length > 0" class="gene-data-table-section">
-                    <h5>Gene Association Data</h5>
+                    <label class="gene-data-label">Gene Association Data - Select genes to generate experiment plans</label>
+                    <small class="gene-data-description">
+                        Review the gene associations below and select the genes you want to include in your experiment plan. 
+                        Each selected gene will be used to generate targeted validation experiments.
+                    </small>
+                    
+                    <!-- Gene Filter Slider -->
+                    <div class="gene-filter-section">
+                        <div class="filter-header">
+                            <label class="filter-label">Sort genes by Indirect genetic support score</label>
+                            <div class="filter-info">
+                                <small>Formula: combined - {{ priorWeight }} × prior | Lowest score: {{ minScore.toFixed(2) }}</small>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <input 
+                                type="range" 
+                                v-model="priorWeight" 
+                                min="0" 
+                                max="1" 
+                                step="0.1" 
+                                class="score-slider"
+                            />
+                            <div class="slider-labels">
+                                <span class="slider-label">Pure combined</span>
+                                <span class="slider-label">Prior adjusted</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="table-container">
                         <table class="gene-data-table">
                             <thead>
                                 <tr>
+                                    <th>
+                                        <!---<input 
+                                            type="checkbox" 
+                                            @change="toggleAllGenes" 
+                                            :checked="allGenesSelected"
+                                            class="select-all-checkbox"
+                                        />
+                                        -->
+                                    </th>
                                     <th>Gene</th>
-                                    <th>Combined</th>
-                                    <th>Prior</th>
+                                    <th>Combined genetic support</th>
+                                    <th>Direct genetic support</th>
+                                    <th>Indirect genetic support</th>
                                     <th>Summary</th>
                                     <th>Phenotype</th>
                                     <th>Gene Set</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="item in paginatedGeneData" :key="`${item.gene}-${item.phenotype}-${item.gene_set}`">
+                                <tr v-for="item in paginatedFilteredGenes" :key="`${item.gene}-${item.combined || 0}`">
+                                    <td>
+                                        <input 
+                                            type="checkbox" 
+                                            :value="item.gene" 
+                                            v-model="selectedGenes"
+                                            class="gene-checkbox"
+                                        />
+                                    </td>
                                     <td>{{ item.gene }}</td>
                                     <td>{{ item.combined ? item.combined.toFixed(2) : 'N/A' }}</td>
+                                    <td>{{ item.log_bf ? item.log_bf.toFixed(2) : 'N/A' }}</td>
                                     <td>{{ item.prior ? item.prior.toFixed(2) : 'N/A' }}</td>
                                     <td>{{ item.summary || 'TBD' }}</td>
-                                    <td>{{ getPhenotypeById(item.phenotype) || item.phenotype }}</td>
+                                    <td>{{ getPhenotypeDisplayNames(item.phenotype) }}</td>
                                     <td>{{ item.gene_set }}</td>
                                 </tr>
                             </tbody>
@@ -71,6 +109,14 @@
                                 Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, geneData.length) }} of {{ geneData.length }} entries
                             </div>
                             <div class="pagination-controls">
+                                <button 
+                                    @click="goToFirstPage" 
+                                    :disabled="currentPage === 1"
+                                    class="pagination-btn first-last-btn"
+                                    title="First page"
+                                >
+                                    ««
+                                </button>
                                 <button 
                                     @click="previousPage" 
                                     :disabled="currentPage === 1"
@@ -95,9 +141,34 @@
                                 >
                                     Next
                                 </button>
+                                <button 
+                                    @click="goToLastPage" 
+                                    :disabled="currentPage === totalPages"
+                                    class="pagination-btn first-last-btn"
+                                    title="Last page"
+                                >
+                                    »»
+                                </button>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Selected Genes Actions -->
+                    <!--<div v-if="selectedGenes.length > 0" class="selected-genes-actions">
+                        <div class="selected-count">
+                            <strong>{{ selectedGenes.length }}</strong> gene{{ selectedGenes.length > 1 ? 's' : '' }} selected
+                        </div>
+                        <div class="selected-genes-list">
+                            <span v-for="gene in selectedGenes" :key="gene" class="selected-gene-tag">
+                                {{ gene }}
+                                <button @click="removeGene(gene)" class="remove-gene-btn">×</button>
+                            </span>
+                        </div>
+                        <div class="gene-actions">
+                            <button @click="clearSelectedGenes" class="btn btn-sm btn-outline-secondary">Clear Selection</button>
+                            <button @click="exportSelectedGenes" class="btn btn-sm btn-primary">Export Selected Genes</button>
+                        </div>
+                    </div>-->
                 </div>
             </div>
         </div>
@@ -281,11 +352,10 @@
                     <h5>Experiment Configuration</h5>
                     <div class="summary-card">
                         <p v-if="phenotypeSearch.trim() !== ''"><strong>Hypothesis:</strong> {{ phenotypeSearch }}</p>
-                        <p v-if="geneSets.trim() !== ''"><strong>Phenotypes, Gene sets, and Sources:</strong> {{ geneSets }}</p>
-                        <p v-if="bridgingGenes.trim() !== ''"><strong>Bridging Genes:</strong> {{ bridgingGenes }}</p>
-                        <p><strong>Assay Types:</strong> {{ selectedAssayTypes.join(', ') }}</p>
-                        <p><strong>Cell Types:</strong> {{ selectedCellTypes.join(', ') }}</p>
-                        <p><strong>Readouts:</strong> {{ selectedReadouts.join(', ') }}</p>
+                        <p v-if="selectedGenes.length > 0"><strong>Selected Genes:</strong> {{ selectedGenes.join(', ') }}</p>
+                        <p v-if="selectedAssayTypes.length > 0"><strong>Assay Types:</strong> {{ selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ') }}</p>
+                        <p v-if="selectedCellTypes.length > 0"><strong>Cell Types:</strong> {{ selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ') }}</p>
+                        <p v-if="selectedReadouts.length > 0"><strong>Readouts:</strong> {{ selectedReadouts.join(', ') }}</p>
                         <p v-if="selectedThroughput"><strong>Throughput:</strong> {{ selectedThroughput }}</p>
                         <p v-if="selectedSpecies"><strong>Species:</strong> {{ selectedSpecies }}</p>
                         <p v-if="selectedTimeBudget"><strong>Timeline:</strong> {{ selectedTimeBudget }}</p>
@@ -294,58 +364,20 @@
                         <div class="search-context">
                             <h6>Search Context</h6>
                             
-                            <!-- Association Groups Selection -->
-                            <div v-if="associationGroups.length > 0" class="association-groups-selection">
-                                <h6>Select Association Groups for Experiment Generation</h6>
-                                <p>Choose which phenotype+source groups to include in your experiment plan:</p>
-                                
-                                <!-- Association Groups List -->
-                                <div v-if="!ignoreAssociations" class="groups-checkbox-container">
-                                    <div v-for="(group, index) in associationGroups" :key="index" class="group-checkbox-item">
-                                        <input 
-                                            type="checkbox" 
-                                            :id="'group-' + index" 
-                                            :value="group.groupKey" 
-                                            v-model="selectedAssociationGroups"
-                                            class="group-checkbox"
-                                        >
-                                        <label :for="'group-' + index" class="group-label">
-                                            <strong>{{ group.phenotype }} + {{ group.source }}</strong>
-                                            <span class="gene-sets-count">({{ group.geneSets.length }} gene set{{ group.geneSets.length > 1 ? 's' : '' }})</span>
-                                        </label>
-                                    </div>
+                            <!-- Gene Selection Status -->
+                            <div v-if="selectedGenes.length > 0" class="gene-selection-status">
+                                <p><strong>Selected Genes for Experiment Generation:</strong></p>
+                                <div class="selected-genes-display">
+                                    <span v-for="gene in selectedGenes" :key="gene" class="selected-gene-badge">{{ gene }}</span>
                                 </div>
-
-                                <!-- Ignore Associations Option -->
-                                <div class="ignore-associations-option">
-                                    <div class="ignore-checkbox-item">
-                                        <input 
-                                            type="checkbox" 
-                                            id="ignore-associations" 
-                                            v-model="ignoreAssociations"
-                                            class="ignore-checkbox"
-                                            @change="onIgnoreAssociationsChange"
-                                        >
-                                        <label for="ignore-associations" class="ignore-label">
-                                            <strong>Ignore associations and use hypothesis only</strong>
-                                            <span class="ignore-description">Generate experiments based solely on the hypothesis without using phenotype-gene set associations</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                
-                                <!-- Selection Status -->
-                                <div v-if="!ignoreAssociations" class="selection-status">
-                                    <div v-if="selectedAssociationGroups.length === 0" class="selection-warning">
-                                        <small><em>Please select at least one association group to generate experiments.</em></small>
-                                    </div>
-                                    <!--<div v-else class="selection-summary">
-                                        <small>{{ selectedAssociationGroups.length }} of {{ associationGroups.length }} groups selected</small>
-                                    </div>-->
-                                </div>
-                                
-                                <div v-else class="ignore-mode-summary">
-                                    <small><strong>Hypothesis-only mode:</strong> Experiments will be generated using the hypothesis without association groups.</small>
-                                </div>
+                                <p class="experiment-plan-info">
+                                    <strong>{{ selectedGenes.length }}</strong> gene{{ selectedGenes.length > 1 ? 's' : '' }} selected. 
+                                    Experiment plans will be generated for each selected gene in combination with your hypothesis.
+                                </p>
+                            </div>
+                            
+                            <div v-else class="no-genes-selected">
+                                <p><em>No genes selected. Please select genes from the Gene Association Data table above to generate experiment plans.</em></p>
                             </div>
 
                             <div v-html="searchPlanText"></div>
@@ -374,18 +406,6 @@
             <div v-else class="experiment-results">
                 <div class="experiment-plan">
                     <div v-for="(experiment, index) in parsedExperimentResults" :key="index" class="experiment-card">
-                        <!-- Hypothesis Origin -->
-                        <div class="experiment-section">
-                            <h6 class="section-title">Hypothesis Origin</h6>
-                            <div class="origin-content">
-                                <div class="origin-item">
-                                    <strong>Source Type:</strong> {{ experiment.hypothesis_origin.source_type }}
-                                </div>
-                                <div class="origin-item">
-                                    <strong>Source Detail:</strong> {{ experiment.hypothesis_origin.source_detail }}
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Biological Assertion -->
                         <div class="experiment-section">
@@ -397,11 +417,8 @@
                                 <div class="phenotype">
                                     <strong>Phenotype:</strong> {{ experiment.biological_assertion.phenotype }}
                                 </div>
-                                <div class="bridging-genes">
-                                    <strong>Bridging Genes:</strong>
-                                    <div class="gene-tags">
-                                        <span v-for="gene in experiment.biological_assertion.bridging_genes" :key="gene" class="gene-tag">{{ gene }}</span>
-                                    </div>
+                                <div class="gene">
+                                    <strong>Gene:</strong> {{ experiment.biological_assertion.gene }}
                                 </div>
                             </div>
                         </div>
@@ -868,20 +885,15 @@ export default {
                 ]
                 },
 
-                experiment_prompt: `Your task is to generate validation experiment proposals based on phenotype-gene set associations or biological hypotheses.
+                experiment_prompt: `Your task is to generate validation experiment proposals based on biological hypotheses and selected genes.
 
                 **EXPERIMENT GENERATION STRATEGY:**
 
-                **CASE 1: If phenotype-gene set associations are provided:**
-                1. Group the associations by phenotype + source (e.g., "Diabetes + GTEx", "Hypertension + MoTrPAC")
-                2. For each group, generate a separate experiment protocol that validates the phenotype-gene set associations from that specific source
-                3. Each experiment should focus on testing the biological mechanisms connecting the phenotype to the gene sets from that particular data source
-                4. Generate one experiment per phenotype+source group
-                5. **IMPORTANT: You MUST generate multiple experiments if there are multiple phenotype+source groups**
-
-                **CASE 2: If no associations are provided but hypothesis is given:**
-                1. Generate a single validation experiment based on the provided hypothesis
-                2. Design the experiment to test the causal relationships described in the hypothesis
+                1. Generate one experiment protocol for each selected gene in combination with the hypothesis
+                2. Each experiment should focus on testing how the specific gene relates to the biological mechanisms described in the hypothesis
+                3. Design experiments to validate the role of each gene in the hypothesized biological process
+                4. Generate one experiment per selected gene
+                5. **IMPORTANT: You MUST generate multiple experiments if there are multiple selected genes**
 
                 **EXPERIMENT DESIGN PRINCIPLES:**
                 - Carefully consider user-provided preferences for experiment configuration (species, cell type, assays, throughput)
@@ -891,23 +903,19 @@ export default {
                 - Outline a tiered validation strategy in strategic_recommendation
 
                 **OUTPUT FORMAT:**
-                - Generate one experiment per phenotype+source group (if associations provided)
+                - Generate one experiment per selected gene (if genes provided)
                 - Each experiment must be fully populated and coherent
                 - Avoid speculative biological claims; base reasoning on established gene function and pathways
-                - **CRITICAL: If you see multiple phenotype+source groups in the input, you MUST generate multiple experiments in the resultModel array**
+                - **CRITICAL: If you see multiple selected genes in the input, you MUST generate multiple experiments in the resultModel array**
                 - The resultModel array should contain one object per experiment
 
                 {
                     "resultModel": [
                         {
-                        "hypothesis_origin": { 
-                            "source_type": "<e.g., User-provided, Publication, Preliminary Data, Data Source>",
-                            "source_detail": "<e.g., User Hypothesis, PMID:123456, GTEx Dataset, MoTrPAC Analysis>"
-                        },
                         "biological_assertion": {
                             "mechanism": "<biological process or pathway connecting phenotype to gene sets>",
                             "phenotype": "<disease or observable trait from the association group>",
-                            "bridging_genes": ["<gene1>", "<gene2>", "<gene3>"]
+                            "gene": "<gene>"
                         },
                         "suggested_experiment": {
                             "experiment": "<concise validation experiment for this phenotype+source group>"
@@ -952,16 +960,9 @@ export default {
                 }
                 `,
 
-            apiUrls: {
-                phenotype2Geneset: "",
-                phenotypeMeaning: "",
-                program2Associations: "",
-                experimentGeneration: "",
-            },
             // UI state
             phenotypeSearch: '',
             geneSets: '',
-            bridgingGenes: '',
             selectedAssayTypes: [],
             selectedCellTypes: [],
             selectedReadouts: [],
@@ -986,8 +987,13 @@ export default {
             },
             // Gene data table properties
             geneData: [],
+            filteredGenes: [],
             currentPage: 1,
-            itemsPerPage: 10
+            itemsPerPage: 10,
+            selectedGenes: [],
+            // Gene filter properties
+            priorWeight: 0,
+            minScore: 0
 		};
 	},
 	modules: {
@@ -1022,70 +1028,46 @@ export default {
 		searchPlanText() {
 			let text = '<p>Your experiment plan will be created using the following approach:</p>';
 			
-			// Check if we have associations data
-			if (this.geneSets.trim() !== '' && !this.ignoreAssociations) {
-				const parsedContent = this.parseTextareaContent(this.geneSets.trim());
-				
-				if (parsedContent.includes('**Group:')) {
-					// Count the number of selected phenotype+source groups
-					const selectedGroupCount = this.selectedAssociationGroups.length;
-					const totalGroupCount = this.associationGroups.length;
-					
-					text += '<p><strong>Phenotype-Gene Set Association Strategy:</strong></p>';
-					text += '<ol>';
-					text += '<li><strong>Group associations by phenotype + source:</strong> ';
-					text += `Identified ${totalGroupCount} distinct phenotype+source groups from the provided associations.`;
-					if (selectedGroupCount < totalGroupCount) {
-						text += ` <strong>Selected ${selectedGroupCount} groups</strong> for experiment generation.`;
-					}
-					text += '</li>';
-					
-					text += '<li><strong>Generate targeted experiments:</strong> ';
-					text += `Will create ${selectedGroupCount} separate experiment protocol${selectedGroupCount > 1 ? 's' : ''} - one for each selected phenotype+source group to validate the specific biological mechanisms.</li>`;
-					
-					text += '<li><strong>Apply user preferences:</strong> ';
-					if (this.selectedAssayTypes.length > 0 || this.selectedCellTypes.length > 0 || this.selectedReadouts.length > 0) {
-						text += 'Incorporate selected assay types, cell types, and readouts into each experiment design.</li>';
-					} else {
-						text += 'Design experiments using optimal assay types, cell types, and readouts for each validation target.</li>';
-					}
-					text += '</ol>';
-				} else {
-					// Plain text associations
-					text += '<p><strong>Phenotype-Gene Set Association Strategy:</strong></p>';
-					text += '<ol>';
-					text += '<li><strong>Process associations:</strong> Analyze the provided phenotype-gene set associations to identify validation targets.</li>';
-					text += '<li><strong>Generate validation experiments:</strong> Design experiments to test the biological mechanisms connecting phenotypes to gene sets.</li>';
-					text += '</ol>';
-				}
-			} else if (this.geneSets.trim() !== '' && this.ignoreAssociations) {
-				// Ignore associations mode
-				text += '<p><strong>Hypothesis-Only Strategy:</strong></p>';
+			if (this.selectedGenes.length > 0 && this.phenotypeSearch.trim() !== '') {
+				text += '<p><strong>Hypothesis + Selected Genes Strategy:</strong></p>';
 				text += '<ol>';
-				text += '<li><strong>Ignore phenotype-gene set associations:</strong> ';
-				text += 'Will not use the provided associations data for experiment generation.</li>';
+				text += '<li><strong>Analyze hypothesis:</strong> ';
+				text += `Process the provided hypothesis "${this.phenotypeSearch.trim()}" to identify key biological concepts and mechanisms.</li>`;
 				
-				text += '<li><strong>Focus on hypothesis analysis:</strong> ';
-				text += 'Generate experiments based solely on the provided hypothesis without considering phenotype-gene set associations.</li>';
+				text += '<li><strong>Generate gene-specific experiments:</strong> ';
+				text += `Create ${this.selectedGenes.length} separate experiment protocol${this.selectedGenes.length > 1 ? 's' : ''} - one for each selected gene (${this.selectedGenes.join(', ')}) in combination with your hypothesis.</li>`;
 				
 				text += '<li><strong>Apply user preferences:</strong> ';
 				if (this.selectedAssayTypes.length > 0 || this.selectedCellTypes.length > 0 || this.selectedReadouts.length > 0) {
-					text += 'Incorporate selected assay types, cell types, and readouts into the hypothesis-based experiment design.</li>';
+					text += 'Incorporate selected assay types, cell types, and readouts into each gene-specific experiment design.</li>';
 				} else {
-					text += 'Design experiments using optimal assay types, cell types, and readouts for hypothesis validation.</li>';
+					text += 'Design experiments using optimal assay types, cell types, and readouts for each gene validation target.</li>';
 				}
 				text += '</ol>';
-			}
-			// Hypothesis analysis (if no associations or in addition to associations)
-			else if (this.phenotypeSearch.trim() !== '') {
-				text += '<p><strong>Hypothesis Analysis Strategy:</strong></p>';
+			} else if (this.selectedGenes.length > 0) {
+				text += '<p><strong>Selected Genes Strategy:</strong></p>';
+				text += '<ol>';
+				text += '<li><strong>Generate gene-specific experiments:</strong> ';
+				text += `Create ${this.selectedGenes.length} separate experiment protocol${this.selectedGenes.length > 1 ? 's' : ''} - one for each selected gene (${this.selectedGenes.join(', ')}) to validate their biological functions.</li>`;
+				
+				text += '<li><strong>Apply user preferences:</strong> ';
+				if (this.selectedAssayTypes.length > 0 || this.selectedCellTypes.length > 0 || this.selectedReadouts.length > 0) {
+					text += 'Incorporate selected assay types, cell types, and readouts into each gene-specific experiment design.</li>';
+				} else {
+					text += 'Design experiments using optimal assay types, cell types, and readouts for each gene validation target.</li>';
+				}
+				text += '</ol>';
+			} else if (this.phenotypeSearch.trim() !== '') {
+				text += '<p><strong>Hypothesis-Only Strategy:</strong></p>';
 				text += '<ol>';
 				text += '<li><strong>Analyze hypothesis:</strong> ';
-				text += `Process the provided hypothesis "${this.phenotypeSearch.trim()}" to identify key biological concepts, potential mechanisms, and relevant gene targets for experimental validation.</li>`;
+				text += `Process the provided hypothesis "${this.phenotypeSearch.trim()}" to identify key biological concepts and mechanisms.</li>`;
 				
 				text += '<li><strong>Build an experiment plan:</strong> ';
-				text += `Design targeted validation experiments incorporating selected assay types (${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}), cell types (${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}), and readouts (${this.selectedReadouts.join(', ')}) to test the hypothesis and establish causal relationships.</li>`;
+				text += 'Design targeted validation experiments to test the hypothesis and establish causal relationships.</li>';
 				text += '</ol>';
+			} else {
+				text += '<p><em>Please provide a hypothesis and/or select genes to generate experiment plans.</em></p>';
 			}
 			
 			// Additional context based on other selections
@@ -1120,6 +1102,14 @@ export default {
 			const end = start + this.itemsPerPage;
 			return this.geneData.slice(start, end);
 		},
+		paginatedFilteredGenes() {
+			const start = (this.currentPage - 1) * this.itemsPerPage;
+			const end = start + this.itemsPerPage;
+			return this.filteredGenes.slice(start, end);
+		},
+		filteredGeneCount() {
+			return this.filteredGenes.length;
+		},
 		visiblePages() {
 			const pages = [];
 			const total = this.totalPages;
@@ -1140,6 +1130,10 @@ export default {
 			
 			return pages;
 		},
+		allGenesSelected() {
+			return this.paginatedGeneData.length > 0 && 
+				   this.paginatedGeneData.every(item => this.selectedGenes.includes(item.gene));
+		},
 	},
 	watch: {
 			utilsBox: {
@@ -1149,11 +1143,97 @@ export default {
 					}
 				},
 				immediate: true
+			},
+			priorWeight(newVal, oldVal) {
+				// Update filtered genes when slider value changes
+				console.log(`Prior weight changed from ${oldVal} to ${newVal}`);
+				this.updateFilteredGenes();
 			}
 	},
 	methods: {
 		getPhenotypeById(phenotypeId) {
 			return findPhenotypeById(phenotypeId);
+		},
+		getPhenotypeDisplayNames(phenotypeString) {
+			if (!phenotypeString) return '';
+			
+			// Split by comma and convert each phenotype ID to human-readable name
+			const phenotypeIds = phenotypeString.split(', ').map(id => id.trim());
+			const displayNames = phenotypeIds.map(id => {
+				const humanReadableName = findPhenotypeById(id);
+				return humanReadableName || id; // Fallback to original ID if not found
+			});
+			
+			return displayNames.join(', ');
+		},
+		updateFilteredGenes() {
+			// Calculate the score for each gene using: combined - a * prior
+			const scoredGenes = this.geneData.map(gene => {
+				const combined = gene.combined || 0;
+				const prior = gene.prior || 0;
+				const score = combined - (this.priorWeight * prior);
+				return { ...gene, calculatedScore: score };
+			});
+			
+			// Sort by calculated score (descending)
+			scoredGenes.sort((a, b) => b.calculatedScore - a.calculatedScore);
+			
+			// Update minScore to the lowest score in the filtered set
+			this.minScore = scoredGenes.length > 0 ? scoredGenes[scoredGenes.length - 1].calculatedScore : 0;
+			
+			// Update filtered genes using Vue.set to ensure reactivity
+			this.$set(this, 'filteredGenes', scoredGenes);
+			
+			// Reset to first page when filter changes
+			this.currentPage = 1;
+			
+			// Debug logging
+			console.log(`Filter updated: ${this.filteredGenes.length} genes, priorWeight: ${this.priorWeight}, minScore: ${this.minScore.toFixed(2)}`);
+		},
+		toggleAllGenes() {
+			if (this.allGenesSelected) {
+				// Unselect all genes on current page
+				this.paginatedGeneData.forEach(item => {
+					const index = this.selectedGenes.indexOf(item.gene);
+					if (index > -1) {
+						this.selectedGenes.splice(index, 1);
+					}
+				});
+			} else {
+				// Select all genes on current page
+				this.paginatedGeneData.forEach(item => {
+					if (!this.selectedGenes.includes(item.gene)) {
+						this.selectedGenes.push(item.gene);
+					}
+				});
+			}
+		},
+		removeGene(gene) {
+			const index = this.selectedGenes.indexOf(gene);
+			if (index > -1) {
+				this.selectedGenes.splice(index, 1);
+			}
+		},
+		clearSelectedGenes() {
+			this.selectedGenes = [];
+		},
+		exportSelectedGenes() {
+			if (this.selectedGenes.length === 0) {
+				alert('No genes selected to export.');
+				return;
+			}
+			
+			// Create a simple text file with selected genes
+			const content = this.selectedGenes.join('\n');
+			const blob = new Blob([content], { type: 'text/plain' });
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = 'selected_genes.txt';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
 		},
 		sortAndGroupGeneData(geneData) {
 			// First, sort by Combined score (descending - highest first)
@@ -1163,25 +1243,61 @@ export default {
 				return combinedB - combinedA; // Descending order
 			});
 			
-			// Then group by Gene while maintaining the Combined score order within each group
+			// Group by Gene and merge rows
 			const groupedByGene = {};
 			const result = [];
 			
 			sortedByCombined.forEach(item => {
 				const gene = item.gene;
 				if (!groupedByGene[gene]) {
-					groupedByGene[gene] = [];
+					// First occurrence of this gene - keep this row as the base
+					groupedByGene[gene] = {
+						...item,
+						phenotypes: new Set([item.phenotype]),
+						geneSets: new Set([item.gene_set])
+					};
+				} else {
+					// Merge with existing gene data
+					groupedByGene[gene].phenotypes.add(item.phenotype);
+					groupedByGene[gene].geneSets.add(item.gene_set);
+					
+					// Update other fields if this row has higher combined score
+					const currentCombined = groupedByGene[gene].combined || 0;
+					const newCombined = item.combined || 0;
+					if (newCombined > currentCombined) {
+						// Update with the row that has higher combined score
+						Object.assign(groupedByGene[gene], {
+							combined: item.combined,
+							prior: item.prior,
+							beta: item.beta,
+							log_bf: item.log_bf,
+							source: item.source,
+							summary: item.summary
+						});
+					}
 				}
-				groupedByGene[gene].push(item);
 			});
 			
-			// Flatten the grouped data back to array, maintaining gene grouping
+			// Convert Sets back to arrays and create final result
 			Object.keys(groupedByGene).forEach(gene => {
-				result.push(...groupedByGene[gene]);
+				const mergedItem = groupedByGene[gene];
+				result.push({
+					...mergedItem,
+					phenotype: Array.from(mergedItem.phenotypes).join(', '),
+					gene_set: Array.from(mergedItem.geneSets).join(', '),
+					// Remove the temporary Set properties
+					phenotypes: undefined,
+					geneSets: undefined
+				});
 			});
 			
-			console.log('🔄 Gene data sorted by Combined score and grouped by Gene');
-			console.log('📊 Genes grouped:', Object.keys(groupedByGene).length, 'unique genes');
+			// Sort the final result by Combined score (descending)
+			result.sort((a, b) => {
+				const combinedA = a.combined || 0;
+				const combinedB = b.combined || 0;
+				return combinedB - combinedA;
+			});
+			
 			
 			return result;
 		},
@@ -1266,10 +1382,8 @@ export default {
 			}
 		},
 		async initializeFromKeyParams() {
-			console.log('🔍 initializeFromKeyParams called');
 			// Check if keyParams exist and populate fields
 			if (this.utilsBox && this.utilsBox.keyParams) {
-				console.log('✅ utilsBox.keyParams found:', this.utilsBox.keyParams);
 				
 				let hypothesisFound = false;
 				
@@ -1277,33 +1391,22 @@ export default {
 				if (this.utilsBox.keyParams['hypothesis'] && typeof this.utilsBox.keyParams['hypothesis'] === 'string') {
 					this.phenotypeSearch = this.utilsBox.keyParams['hypothesis'];
 					hypothesisFound = true;
-					console.log('📝 Hypothesis populated:', this.phenotypeSearch);
 				}
 				
 				// Populate gene sets field if keyParams['geneSets'] exists
 				if (this.utilsBox.keyParams['geneSets'] && typeof this.utilsBox.keyParams['geneSets'] === 'string') {
 					this.geneSets = this.utilsBox.keyParams['geneSets'];
-					console.log('📝 Gene sets populated from geneSets param:', this.geneSets);
 				}
 				
 				// Populate gene sets field if keyParams['associations'] exists
 				if (this.utilsBox.keyParams['associations'] && typeof this.utilsBox.keyParams['associations'] === 'string') {
 					this.geneSets = this.parseAssociations(this.utilsBox.keyParams['associations']);
-					console.log('📝 Gene sets populated from associations param:', this.geneSets);
 				}
 				
-				// Populate bridging genes field if keyParams['genes'] exists
-				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
-					this.bridgingGenes = this.utilsBox.keyParams['genes'];
-					console.log('📝 Bridging genes populated:', this.bridgingGenes);
-				}
 				
 				// If we have gene sets data, fetch genes from phenotype-gene set associations
 				if (this.geneSets.trim()) {
-					console.log('🧬 Gene sets data found, fetching genes...');
 					await this.fetchGenesFromAssociations();
-				} else {
-					console.log('❌ No gene sets data found, skipping gene fetch');
 				}
 				
 				// If hypothesis was found, open the configure panel instead of generating draft
@@ -1323,87 +1426,60 @@ export default {
 						}, 500); // Wait for panel to open
 					});
 				}
-			} else {
-				console.log('❌ utilsBox or keyParams not found');
 			}
 		},
 		async fetchGenesFromAssociations() {
-			console.log('🚀 fetchGenesFromAssociations called');
 			try {
 				// Parse the gene sets data to extract phenotype and gene set information
 				const lines = this.geneSets.split('\n').filter(line => line.trim());
-				console.log('📄 Parsed lines from gene sets:', lines);
 				const geneQueries = [];
 				
 				// Extract phenotype and gene set pairs for API queries
 				for (const line of lines) {
 					const parts = line.split(',').map(part => part.trim());
-					console.log('🔍 Processing line parts:', parts);
 					if (parts.length >= 2) {
 						const phenotype = findPhenotypeByName(parts[0]);
 						const geneSet = parts[1];
 						if (phenotype && geneSet) {
 							geneQueries.push({ phenotype, geneSet });
-							console.log('✅ Added query:', { phenotype, geneSet });
 						}
 					}
 				}
-				
-				console.log('📋 Total gene queries to process:', geneQueries.length);
 				
 				// Fetch genes for each phenotype-gene set pair
 				const allGenes = new Set();
 				const allGeneData = [];
 				
 				for (const query of geneQueries) {
-					console.log('🌐 Fetching data for query:', query);
 					try {
 						const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)}`;
-						console.log('🔗 API URL:', url);
 						
 						const response = await fetch(url);
-						console.log('📡 Response status:', response.status);
 						
 						const data = await response.json();
-						console.log('📊 API response data:', data);
 						
 						// Extract genes and full data from the response
 						if (data.data && Array.isArray(data.data)) {
-							console.log('📈 Found data items:', data.data.length);
 							data.data.forEach(item => {
 								if (item.gene) {
 									allGenes.add(item.gene);
 									allGeneData.push(item);
-									console.log('🧬 Added gene:', item.gene);
 								}
 							});
-						} else {
-							console.log('❌ No data array in response or data is not an array');
 						}
 					} catch (error) {
 						console.error(`❌ Error fetching genes for ${query.phenotype}-${query.geneSet}:`, error);
 					}
 				}
 				
-				console.log('📊 Total unique genes found:', allGenes.size);
-				console.log('📊 Total gene data items:', allGeneData.length);
-				
 				// Sort by Combined score (descending) first, then group by Gene
 				const sortedAndGroupedData = this.sortAndGroupGeneData(allGeneData);
-				console.log('🔄 Sorted and grouped gene data:', sortedAndGroupedData.length, 'items');
-				
-				// Update the bridging genes field with fetched genes
-				if (allGenes.size > 0) {
-					const genesArray = Array.from(allGenes);
-					this.bridgingGenes = genesArray.join(', ');
-					console.log('✅ Bridging genes updated:', this.bridgingGenes);
-				} else {
-					console.log('❌ No genes found to populate bridging genes field');
-				}
 				
 				// Store the sorted and grouped gene data for the table
 				this.geneData = sortedAndGroupedData;
-				console.log('📋 Gene data stored for table:', this.geneData.length, 'items');
+				
+				// Initialize filtered genes and apply initial filter
+				this.updateFilteredGenes();
 				
 			} catch (error) {
 				console.error('Error fetching genes from associations:', error);
@@ -1423,6 +1499,12 @@ export default {
 			if (page >= 1 && page <= this.totalPages) {
 				this.currentPage = page;
 			}
+		},
+		goToFirstPage() {
+			this.currentPage = 1;
+		},
+		goToLastPage() {
+			this.currentPage = this.totalPages;
 		},
 		removeAssayType(assayType) {
 			this.selectedAssayTypes = this.selectedAssayTypes.filter(a => a !== assayType);
@@ -1447,7 +1529,6 @@ export default {
 			const config = {
 				hypothesisSearch: this.phenotypeSearch,
 				geneSets: this.geneSets,
-				bridgingGenes: this.bridgingGenes,
 				assayTypes: this.selectedAssayTypes,
 				cellTypes: this.selectedCellTypes,
 				readouts: this.selectedReadouts,
@@ -1459,25 +1540,14 @@ export default {
 			
 			
 			// Validate that we have the required inputs
-			if (!this.phenotypeSearch.trim() && !this.geneSets.trim()) {
-				alert('Please provide either a hypothesis or phenotype-gene set associations.');
+			if (!this.phenotypeSearch.trim() && this.selectedGenes.length === 0) {
+				alert('Please provide a hypothesis and/or select genes to generate experiment plans.');
 				return;
 			}
 			
-			// If we have associations, parse them to show how many groups we'll generate
-			if (this.geneSets.trim()) {
-				const parsedContent = this.parseTextareaContent(this.geneSets.trim());
-				
-				// Count the number of phenotype+source groups
-				if (parsedContent.includes('**Group:')) {
-					const groupCount = (parsedContent.match(/\*\*Group:/g) || []).length;
-					
-					// Parse and populate association groups for selection
-					this.populateAssociationGroups();
-					
-					// Auto-select all groups by default
-					this.selectedAssociationGroups = this.associationGroups.map(group => group.groupKey);
-				}
+			// Show gene selection status
+			if (this.selectedGenes.length > 0) {
+				console.log(`Selected ${this.selectedGenes.length} genes for experiment generation: ${this.selectedGenes.join(', ')}`);
 			}
 			
 			// Wait for collapse animation to complete, then scroll to draft section
@@ -1569,10 +1639,10 @@ export default {
 			this.experimentNotes = '';
 			this.phenotypeSearch = '';
 			this.geneSets = '';
-			this.bridgingGenes = '';
 			this.selectedAssociationGroups = [];
 			this.associationGroups = [];
 			this.ignoreAssociations = false;
+			this.selectedGenes = [];
 			this.showSummary = false;
 			this.experimentResults = '';
 			this.isGenerating = false;
@@ -1593,15 +1663,10 @@ export default {
 				prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
 			}
 			
-			if (this.geneSets.trim() !== '') {
-				// Parse the textarea content to format it properly for the prompt
-				const parsedContent = this.parseTextareaContent(this.geneSets.trim());
-				prompt += `**Phenotypes gene sets associations:**\n${parsedContent}\n`;
+			if (this.selectedGenes.length > 0) {
+				prompt += `**Selected Genes:** ${this.selectedGenes.join(', ')}\n`;
 			}
 			
-			if (this.bridgingGenes.trim() !== '') {
-				prompt += `**Bridging Genes:** ${this.bridgingGenes.trim()}\n`;
-			}
 			
 			if (this.selectedAssayTypes.length > 0) {
 				prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
@@ -1645,14 +1710,8 @@ export default {
 		async generateExperiment() {
 			try {
 				// Validate that we have the required inputs
-				if (!this.phenotypeSearch.trim() && !this.geneSets.trim()) {
-					alert('Please provide either a hypothesis or phenotype-gene set associations.');
-					return;
-				}
-				
-				// If we have associations, validate that at least one group is selected (unless ignoring associations)
-				if (this.geneSets.trim() && this.associationGroups.length > 0 && !this.ignoreAssociations && this.selectedAssociationGroups.length === 0) {
-					alert('Please select at least one association group to generate experiments, or check "Ignore associations" to use hypothesis only.');
+				if (!this.phenotypeSearch.trim() && this.selectedGenes.length === 0) {
+					alert('Please provide a hypothesis and/or select genes to generate experiment plans.');
 					return;
 				}
 				
@@ -1756,9 +1815,6 @@ export default {
 				content += `PHENOTYPES, GENE SETS, AND SOURCES:\n${this.geneSets}\n\n`;
 			}
 			
-			if (this.bridgingGenes.trim() !== '') {
-				content += `BRIDGING GENES:\n${this.bridgingGenes}\n\n`;
-			}
 			
 			// Add configuration summary
 			content += 'EXPERIMENT CONFIGURATION:\n';
@@ -1793,21 +1849,13 @@ export default {
 					content += `EXPERIMENT ${index + 1}\n`;
 					content += '==================\n\n';
 					
-					// Hypothesis Origin
-					if (experiment.hypothesis_origin) {
-						content += `HYPOTHESIS ORIGIN:\n`;
-						content += `Source Type: ${experiment.hypothesis_origin.source_type}\n`;
-						content += `Source Detail: ${experiment.hypothesis_origin.source_detail}\n\n`;
-					}
 					
 					// Biological Assertion
 					if (experiment.biological_assertion) {
 						content += `BIOLOGICAL ASSERTION:\n`;
 						content += `Mechanism: ${experiment.biological_assertion.mechanism}\n`;
 						content += `Phenotype: ${experiment.biological_assertion.phenotype}\n`;
-						if (experiment.biological_assertion.bridging_genes) {
-							content += `Bridging Genes: ${experiment.biological_assertion.bridging_genes.join(', ')}\n`;
-						}
+						content += `Gene: ${experiment.biological_assertion.gene}\n`;
 						content += '\n';
 					}
 					
@@ -2064,37 +2112,6 @@ export default {
     border-color: #86b7fe;
 }
 
-.bridging-genes-input {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.bridging-genes-input label {
-    font-weight: 500;
-    color: #495057;
-    font-size: 14px;
-}
-
-.bridging-genes-field {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    background-color: white;
-}
-
-.bridging-genes-field:focus {
-    outline: none;
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.bridging-genes-field:hover {
-    border-color: #86b7fe;
-}
 
 .constraints-grid {
     display: grid;
@@ -2688,26 +2705,10 @@ export default {
     color: #495057;
 }
 
-.bridging-genes {
+.gene {
     margin-top: 8px;
 }
 
-.gene-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 6px;
-}
-
-.gene-tag {
-    background: #f8f9fa;
-    color: #495057;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-    border: 1px solid #dee2e6;
-}
 
 .experiment-description {
     line-height: 1.6;
@@ -2825,16 +2826,6 @@ export default {
     font-style: italic;
 }
 
-.origin-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.origin-item {
-    line-height: 1.5;
-    color: #495057;
-}
 
 .justification-text {
     margin-top: 8px;
@@ -2994,30 +2985,123 @@ export default {
 
 /* Gene Data Table Styles */
 .gene-data-table-section {
-    margin-top: 20px;
-    padding: 15px;
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gene-data-label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 14px;
+}
+
+.gene-data-description {
+    display: block;
+    color: #6c757d;
+    font-size: 12px;
+    font-style: italic;
+    margin: 4px 0 8px 0;
+    padding: 4px 8px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #17a2b8;
+    border-radius: 3px;
+}
+
+/* Gene Filter Slider Styles */
+.gene-filter-section {
+    margin: 10px 0;
+    padding: 12px;
     background: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 6px;
 }
 
-.gene-data-table-section h5 {
-    margin: 0 0 15px 0;
-    font-size: 16px;
-    font-weight: 600;
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 13px;
+    margin: 0;
+}
+
+.slider-container {
+    margin: 0;
+}
+
+.score-slider {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: #ddd;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin-bottom: 6px;
+}
+
+.score-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #007bff;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.score-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #007bff;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #6c757d;
+}
+
+.slider-label {
+    font-size: 10px;
+    color: #6c757d;
+}
+
+.filter-info {
+    font-size: 10px;
+    color: #6c757d;
+    font-style: italic;
+    margin: 0;
 }
 
 .table-container {
     overflow-x: auto;
+    border-radius: 6px;
+    background: white;
 }
 
 .gene-data-table {
     width: 100%;
     border-collapse: collapse;
     background: white;
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #d1d5db;
+    border-top: 1px solid #d1d5db;
 }
 
 .gene-data-table th {
@@ -3043,6 +3127,132 @@ export default {
 
 .gene-data-table tr:last-child td {
     border-bottom: none;
+}
+
+
+/* Checkbox Styles */
+.select-all-checkbox, .gene-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #007bff;
+}
+
+.select-all-checkbox {
+    margin: 0;
+}
+
+.gene-checkbox {
+    margin: 0;
+}
+
+.gene-data-table th:first-child,
+.gene-data-table td:first-child {
+    width: 40px;
+    text-align: center;
+    padding: 8px 4px;
+}
+
+/* Selected Genes Actions */
+.selected-genes-actions {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+}
+
+.selected-count {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #495057;
+}
+
+.selected-genes-list {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.selected-gene-tag {
+    display: inline-flex;
+    align-items: center;
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.remove-gene-btn {
+    background: none;
+    border: none;
+    color: white;
+    margin-left: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.remove-gene-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.gene-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+/* Gene Selection Status Styles */
+.gene-selection-status {
+    margin-bottom: 15px;
+}
+
+.selected-genes-display {
+    margin: 8px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.selected-gene-badge {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.experiment-plan-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #495057;
+}
+
+.no-genes-selected {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    color: #6c757d;
 }
 
 /* Pagination Styles */
@@ -3084,6 +3294,12 @@ export default {
 .pagination-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.first-last-btn {
+    padding: 6px 8px;
+    font-weight: bold;
+    font-size: 12px;
 }
 
 .page-numbers {
