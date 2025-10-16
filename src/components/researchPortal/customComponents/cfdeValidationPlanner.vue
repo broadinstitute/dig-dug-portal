@@ -30,7 +30,9 @@
                 
                 <!-- Gene Data Table -->
                 <div v-if="geneData.length > 0" class="gene-data-table-section">
-                    <label class="gene-data-label">Gene Association Data - Select genes to generate experiment plans</label>
+                    <div class="gene-data-header">
+                        <label class="gene-data-label">Gene Association Data - Select genes to generate experiment plans</label>
+                    </div>
                     <small class="gene-data-description">
                         Review the gene associations below and select the genes you want to include in your experiment plan. 
                         Each selected gene will be used to generate targeted validation experiments.
@@ -39,9 +41,9 @@
                     <!-- Gene Filter Slider -->
                     <div class="gene-filter-section">
                         <div class="filter-header">
-                            <label class="filter-label">Sort genes by Indirect genetic support score</label>
+                            <label class="filter-label">Sort genes by Indirect genetic support score weighted by {{ priorWeight }}</label>
                             <div class="filter-info">
-                                <small>Formula: combined - {{ priorWeight }} × prior | Lowest score: {{ minScore.toFixed(2) }}</small>
+                                <small>Formula: combined - {{ priorWeight }} × Indirect genetic support | Lowest score: {{ minScore.toFixed(2) }}</small>
                             </div>
                         </div>
                         <div class="slider-container">
@@ -54,13 +56,17 @@
                                 class="score-slider"
                             />
                             <div class="slider-labels">
-                                <span class="slider-label">Pure combined</span>
-                                <span class="slider-label">Prior adjusted</span>
+                                <span class="slider-label">0</span>
+                                <span class="slider-label">1</span>
                             </div>
                         </div>
                     </div>
                     
                     <div class="table-container">
+                        <div v-if="isGettingGeneSummaries" class="summary-loading-indicator">
+                            <span class="loading-spinner-small"></span>
+                            <span class="loading-text">Generating gene summaries...</span>
+                        </div>
                         <table class="gene-data-table">
                             <thead>
                                 <tr>
@@ -77,7 +83,7 @@
                                     <th>Combined genetic support</th>
                                     <th>Direct genetic support</th>
                                     <th>Indirect genetic support</th>
-                                    <th>Summary</th>
+                                    <th>Function summary</th>
                                     <th>Phenotype</th>
                                     <th>Gene Set</th>
                                 </tr>
@@ -96,7 +102,12 @@
                                     <td>{{ item.combined ? item.combined.toFixed(2) : 'N/A' }}</td>
                                     <td>{{ item.log_bf ? item.log_bf.toFixed(2) : 'N/A' }}</td>
                                     <td>{{ item.prior ? item.prior.toFixed(2) : 'N/A' }}</td>
-                                    <td>{{ item.summary || 'TBD' }}</td>
+                                    <td>
+                                        <div class="summary-cell">
+                                            <span v-if="isGettingGeneSummaries && getGeneSummary(item.gene) === 'TBD'" class="loading-spinner"></span>
+                                            <span v-else>{{ getGeneSummary(item.gene) }}</span>
+                                        </div>
+                                    </td>
                                     <td>{{ getPhenotypeDisplayNames(item.phenotype) }}</td>
                                     <td>{{ item.gene_set }}</td>
                                 </tr>
@@ -411,6 +422,9 @@
                         <div class="experiment-section">
                             <h6 class="section-title">Biological Assertion</h6>
                             <div class="assertion-content">
+                                <div class="hypothesis">
+                                    <strong>Hypothesis:</strong> {{ experiment.biological_assertion.hypothesis }}
+                                </div>
                                 <div class="mechanism">
                                     <strong>Mechanism:</strong> {{ experiment.biological_assertion.mechanism }}
                                 </div>
@@ -913,6 +927,7 @@ export default {
                     "resultModel": [
                         {
                         "biological_assertion": {
+                            "hypothesis": "<user provided hypothesis>",
                             "mechanism": "<biological process or pathway connecting phenotype to gene sets>",
                             "phenotype": "<disease or observable trait from the association group>",
                             "gene": "<gene>"
@@ -960,6 +975,23 @@ export default {
                 }
                 `,
 
+                gene_summary_prompt:`I have a hypothesis and a list of up to 10 genes related to a specific phenotype or mechanism.
+
+                **Task:** Analyze the provided hypothesis and gene list. For each gene, generate a concise summary of its primary function, **contextualizing that function directly within the scope of the provided hypothesis**. Do not include general functions that are irrelevant to the proposed mechanism.
+
+                **Output Format:** Respond **ONLY** with a valid JSON array matching the following model. Do not include any introductory text, explanation, or markdown formatting outside of the JSON structure itself.
+
+                **JSON Model:**
+                [{'gene':<'gene symbol'>, 'function':'function summary'}, {}...]
+
+                **Constraints:**
+                1.  The function summary for each gene must be no more than **three sentences**.
+                2.  The entire output must be a single, valid JSON array.
+
+                **Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
+
+                **Gene List:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]`,
+            
             // UI state
             phenotypeSearch: '',
             geneSets: '',
@@ -993,17 +1025,22 @@ export default {
             selectedGenes: [],
             // Gene filter properties
             priorWeight: 0,
-            minScore: 0
+            minScore: 0,
+            // Gene summaries cache
+            geneSummaries: {},
+            // Gene summary request state
+            isGettingGeneSummaries: false,
+            geneSummaryTimeout: null
 		};
 	},
 	modules: {
 	},
 
     created() {
-        this.processAssociations = createLLMClient({
+        this.getGeneSummaries = createLLMClient({
             llm: "openai",
             model: "gpt-5-nano",
-            system_prompt: this.extractSystemPrompt
+            system_prompt: this.gene_summary_prompt
         });
 
         this.buildExperiments = createLLMClient({
@@ -1023,6 +1060,10 @@ export default {
 	beforeDestroy() {
 		// Clean up timer when component is destroyed
 		this.clearGenerationTimer();
+		// Clean up gene summary timeout
+		if (this.geneSummaryTimeout) {
+			clearTimeout(this.geneSummaryTimeout);
+		}
 	},
 	computed: {
 		searchPlanText() {
@@ -1148,6 +1189,10 @@ export default {
 				// Update filtered genes when slider value changes
 				console.log(`Prior weight changed from ${oldVal} to ${newVal}`);
 				this.updateFilteredGenes();
+			},
+			currentPage() {
+				// Get gene summaries when page changes
+				this.getGeneSummariesForCurrentPage();
 			}
 	},
 	methods: {
@@ -1165,6 +1210,10 @@ export default {
 			});
 			
 			return displayNames.join(', ');
+		},
+		getGeneSummary(geneSymbol) {
+			if (!geneSymbol) return 'TBD';
+			return this.geneSummaries[geneSymbol] || 'TBD';
 		},
 		updateFilteredGenes() {
 			// Calculate the score for each gene using: combined - a * prior
@@ -1187,8 +1236,90 @@ export default {
 			// Reset to first page when filter changes
 			this.currentPage = 1;
 			
+			// Get gene summaries for current page
+			this.getGeneSummariesForCurrentPage();
+			
 			// Debug logging
 			console.log(`Filter updated: ${this.filteredGenes.length} genes, priorWeight: ${this.priorWeight}, minScore: ${this.minScore.toFixed(2)}`);
+		},
+		async getGeneSummariesForCurrentPage() {
+			// Clear any existing timeout
+			if (this.geneSummaryTimeout) {
+				clearTimeout(this.geneSummaryTimeout);
+			}
+			
+			// Debounce the request to prevent rapid successive calls
+			this.geneSummaryTimeout = setTimeout(() => {
+				this._executeGeneSummaryRequest();
+			}, 300); // 300ms debounce
+		},
+		async _executeGeneSummaryRequest() {
+			// Prevent concurrent requests
+			if (this.isGettingGeneSummaries) {
+				console.log('Gene summary request already in progress, skipping...');
+				return;
+			}
+			
+			// Get genes on current page that don't have summaries yet
+			const currentPageGenes = this.paginatedFilteredGenes;
+			const genesNeedingSummaries = currentPageGenes.filter(gene => 
+				!this.geneSummaries[gene.gene] && gene.gene
+			);
+			
+			if (genesNeedingSummaries.length === 0) {
+				return; // All genes on this page already have summaries
+			}
+			
+			// Limit to 10 genes as per prompt constraints
+			const genesToProcess = genesNeedingSummaries.slice(0, 10);
+			
+			if (genesToProcess.length === 0) {
+				return;
+			}
+			
+			this.isGettingGeneSummaries = true;
+			
+			try {
+				// Prepare the prompt
+				const geneList = genesToProcess.map(gene => gene.gene).join(', ');
+				const prompt = this.gene_summary_prompt
+					.replace('[INSERT YOUR HYPOTHESIS HERE]', this.phenotypeSearch.trim() || 'No specific hypothesis provided')
+					.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]', geneList);
+				
+				// Call the LLM
+				this.getGeneSummaries.sendPrompt({
+					userPrompt: prompt,
+					onResponse: (response) => {
+						try {
+							// Parse the JSON response
+							const summaries = JSON.parse(response);
+							
+							// Update the geneSummaries cache
+							summaries.forEach(item => {
+								if (item.gene && item.function) {
+									this.$set(this.geneSummaries, item.gene, item.function);
+								}
+							});
+							
+							console.log(`Gene summaries updated for ${summaries.length} genes`);
+						} catch (error) {
+							console.error('Error parsing gene summaries response:', error);
+						} finally {
+							this.isGettingGeneSummaries = false;
+						}
+					},
+					onError: (error) => {
+						console.error('Error getting gene summaries:', error);
+						this.isGettingGeneSummaries = false;
+					},
+					onEnd: () => {
+						this.isGettingGeneSummaries = false;
+					}
+				});
+			} catch (error) {
+				console.error('Error preparing gene summaries request:', error);
+				this.isGettingGeneSummaries = false;
+			}
 		},
 		toggleAllGenes() {
 			if (this.allGenesSelected) {
@@ -1412,19 +1543,19 @@ export default {
 				// If hypothesis was found, open the configure panel instead of generating draft
 				if (hypothesisFound) {
 					this.showSummary = false; // Open the configure experiment parameters panel
-					// Scroll to configure panel after URL parameters are processed
-					this.$nextTick(() => {
-						setTimeout(() => {
-							const configurePanel = document.getElementById('planner-search-ui');
-							if (configurePanel) {
-								configurePanel.scrollIntoView({ 
-									behavior: 'smooth', 
-									block: 'start',
-									inline: 'nearest'
-								});
-							}
-						}, 500); // Wait for panel to open
-					});
+					// Scroll disabled to allow users to see genes getting fetched
+					// this.$nextTick(() => {
+					// 	setTimeout(() => {
+					// 		const configurePanel = document.getElementById('planner-search-ui');
+					// 		if (configurePanel) {
+					// 			configurePanel.scrollIntoView({ 
+					// 				behavior: 'smooth', 
+					// 				block: 'start',
+					// 				inline: 'nearest'
+					// 			});
+					// 		}
+					// 	}, 500); // Wait for panel to open
+					// });
 				}
 			}
 		},
@@ -1481,6 +1612,11 @@ export default {
 				// Initialize filtered genes and apply initial filter
 				this.updateFilteredGenes();
 				
+				// Get gene summaries for the first page
+				this.$nextTick(() => {
+					this.getGeneSummariesForCurrentPage();
+				});
+				
 			} catch (error) {
 				console.error('Error fetching genes from associations:', error);
 			}
@@ -1524,6 +1660,8 @@ export default {
 		draftValidationPlan() {
 			// First collapse the configure panel with animation
 			this.showSummary = true;
+			// Open the experiment plan summary section
+			this.showSearchDraft = true;
 			
 			// Collect and validate the current configuration
 			const config = {
@@ -1853,6 +1991,7 @@ export default {
 					// Biological Assertion
 					if (experiment.biological_assertion) {
 						content += `BIOLOGICAL ASSERTION:\n`;
+						content += `Hypothesis: ${experiment.biological_assertion.hypothesis}\n`;
 						content += `Mechanism: ${experiment.biological_assertion.mechanism}\n`;
 						content += `Phenotype: ${experiment.biological_assertion.phenotype}\n`;
 						content += `Gene: ${experiment.biological_assertion.gene}\n`;
@@ -2700,7 +2839,7 @@ export default {
     gap: 12px;
 }
 
-.mechanism, .phenotype {
+.hypothesis, .mechanism, .phenotype {
     line-height: 1.5;
     color: #495057;
 }
@@ -3016,6 +3155,8 @@ export default {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 6px;
+    width: 60%;
+    margin-left: 40%;
 }
 
 .filter-header {
@@ -3334,6 +3475,65 @@ export default {
 .page-btn.active:hover {
     background: #0056b3;
     border-color: #0056b3;
+}
+
+/* Gene Summary Loading Spinner */
+.summary-cell {
+    display: flex;
+    align-items: center;
+    min-height: 20px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Gene Data Header Loading Indicator */
+.gene-data-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.summary-loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #1976d2;
+}
+
+.loading-spinner-small {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 </style>
