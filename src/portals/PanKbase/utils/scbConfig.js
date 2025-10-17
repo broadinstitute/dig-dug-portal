@@ -3,7 +3,9 @@ export const SCB_CONFIG =
         "type": "cell browser",
         "label": "Single Cell Browser",
         "presets": {
-            "layout": 1
+            "layout": 1,
+            "datasetId": "islet_of_Langerhans_scRNA_v3-3",
+            "showDatasetSelect": false
         },
 
         /*
@@ -12,7 +14,6 @@ export const SCB_CONFIG =
             TODO: check optionality - should have defaults if omitted
         */
         "parameters":{
-            "datasetId": "datasetId",
             "gene": "gene"
         },
 

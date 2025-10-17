@@ -41,12 +41,19 @@
         </template>
 
         <template>
-            <div style="font-weight: bold;">Select Tissue</div>
-            <!-- datasets dropdown -->
-            <select @change="$event => selectDataset($event.target.value)" v-model="datasetId">
-                <option :value="null">--Select--</option>
-                <option v-for="item in singleCellMetadata" :value="item.datasetId">{{ item.tissue }} ({{ item.totalCells.toLocaleString() }} cells)</option>
-            </select>
+            <div v-if="!showDatasetSelect">
+                {{ datasetBadge(singleCellMetadata.find(i => i.datasetId === datasetId))}}
+            </div>
+            <div v-else>
+                <div style="font-weight: bold;">Select Tissue</div>
+                <!-- datasets dropdown -->
+                
+                <select
+                    @change="$event => selectDataset($event.target.value)" v-model="datasetId">
+                    <option :value="null">--Select--</option>
+                    <option v-for="item in singleCellMetadata" :value="item.datasetId">{{ datasetBadge(item) }}</option>
+                </select>
+            </div>            
         </template>
 
         <div v-if="showDatasetSelect" style="display:flex; flex-direction: column; gap:10px;">
@@ -533,23 +540,6 @@
                                     :width="400"
                                     :height="400"
                                 />
-                                <!--
-                                <research-umap-plot
-                                    :sectionId="sectionId"
-                                    title=""
-                                    :points="coordinates"
-                                    :fields="fields"
-                                    :cellTypeField="cellTypeField"
-                                    :colorByField="cellCompositionVars.colorByField"
-                                    :hoverFields="['cell_label']"
-                                    :expression="expressionData[geneExpressionVars.selectedGene]"
-                                    :expressionGene="geneExpressionVars.selectedGene"
-                                    :highlightLabel="cellCompositionVars.highlightLabel"
-                                    :highlightLabels="cellCompositionVars.highlightLabels"
-                                    :width="400"
-                                    :labelSizePx="28"
-                                />
-                                -->
                                 <div style="display:flex; flex-direction: column; position:absolute; top:4px; left:5px;" class="legend">
                                     <div class="label">Expression</div>
                                     <div class="gradient" :style="`background: linear-gradient(to right, ${colorScalePlasmaColorsArray}); height:5px;`"></div>
@@ -1078,6 +1068,9 @@
             datasetsRowClass(item){
                 if (!item) return ''; // For header/footer rows
                 return item.datasetId === this.datasetId ? 'selected-dataset-row' : 'dataset-row';
+            },
+            datasetBadge(item){
+                return `${ item.tissue } (${ item.totalCells.toLocaleString() } cells)`;
             },
             preprocessBoxPlotData(groupKey, contKey){
                 return scUtils.preprocessBoxPlotData(this.fields.metadata, this.fields.metadata_labels, groupKey, contKey)

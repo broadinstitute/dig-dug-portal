@@ -21,6 +21,7 @@ import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
 import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
 import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
+import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 import { SCB_CONFIG } from "../../utils/scbConfig.js";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -31,6 +32,7 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import filterUtils from "@/utils/filterUtils";
+import bioPortal from "../../../../modules/bioPortal.js";
 new Vue({
     // Based on HuGeAMP Gene page.
     store,
@@ -288,6 +290,7 @@ new Vue({
                 }
             },
             GTExPage2: 1,
+            t1d: "TYPE 1 DIABETES"
         };
     },
     watch: {
@@ -302,6 +305,9 @@ new Vue({
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
         },
+        t1dphenotypes(newData){
+            console.log(newData.length, JSON.stringify(newData));
+        }
     },
     async created() {
         keyParams.set({ gene: this.geneName });
@@ -357,6 +363,11 @@ new Vue({
             }
             return {};
         },
+        t1dphenotypes(){
+            let allPhenotypes = structuredClone(this.$store.state.bioPortal.phenotypes);
+            return allPhenotypes.filter(p => p.group === this.t1d)
+                .map(p => p.name);
+        },
         geneassociations() {
             let data = this.$store.state.geneassociations.data;
 
@@ -403,8 +414,10 @@ new Vue({
                     "phenotype"
                 );
             }
-
+            console.log(JSON.stringify(this.t1dphenotypes));
             let hugeMap = {};
+            // for pankbase: filter to only t1d phenotypes
+            //data = data.filter(d => this.t1dphenotypes.includes(d.phenotype));
 
             for (let i in data) {
                 const score = data[i];
@@ -419,6 +432,7 @@ new Vue({
                 if (!this.phenotypeMap[score.phenotype]) {
                     continue;
                 }
+                
 
                 hugeMap[score.phenotype] = score;
             }

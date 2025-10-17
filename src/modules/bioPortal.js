@@ -31,7 +31,7 @@ export default {
             documentations: {},
             user: "",
             links: [],
-            defaultPortal: "",
+            defaultPortal: "t1d", // For PanKbase
         };
     },
 
@@ -164,6 +164,7 @@ export default {
 
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
+            console.log(state.defaultPortal);
             let qs = queryString.stringify(
                 {
                     q:
@@ -177,7 +178,6 @@ export default {
             let json = await fetch(
                 `${BIO_INDEX_HOST}/api/portal/phenotypes?${qs}`
             ).then((resp) => resp.json());
-
             // set the list of phenotypes
             commit("setPhenotypes", json.data);
         },

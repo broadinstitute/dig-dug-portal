@@ -30,6 +30,7 @@ export default new Vuex.Store({
     state: {
         geneName: keyParams.gene || "CFTR",
         geneToQuery: "",
+        phenotypes: null,
     },
 
     mutations: {
