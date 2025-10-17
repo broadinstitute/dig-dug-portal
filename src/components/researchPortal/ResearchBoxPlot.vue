@@ -17,7 +17,7 @@
 							utils.uiUtils.removeOnMouseOut(canvasId + 'boxInfoBox', 100)
 						"
 					>
-						<b-icon icon="x-circle-fill"></b-icon>
+						<!-- <b-icon icon="x-circle-fill"></b-icon>--->
 					</div>
 					<span :id="canvasId + 'boxInfoBoxContent'"></span>
 
