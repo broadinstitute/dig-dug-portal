@@ -26,7 +26,7 @@
                             )
                         "
                     >
-                        <b-icon icon="x-circle-fill"></b-icon>
+                        <!--<b-icon icon="x-circle-fill"></b-icon>-->
                     </div>
                     <span :id="canvasId + 'pheWasInfoBoxContent'"></span>
 
