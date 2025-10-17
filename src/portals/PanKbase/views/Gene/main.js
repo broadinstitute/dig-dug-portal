@@ -343,6 +343,9 @@ new Vue({
         geneName(){
             return this.$store.state.geneName;
         },
+        geneFunction() {
+            return this.$store.getters["uniprot/geneFunction"] || "";
+        },
         symbolName() {
             return this.$store.getters.canonicalSymbol;
         },
