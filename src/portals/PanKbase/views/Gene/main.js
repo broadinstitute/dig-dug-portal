@@ -290,7 +290,9 @@ new Vue({
                 }
             },
             GTExPage2: 1,
-            t1d: "TYPE 1 DIABETES"
+            t1d: "TYPE 1 DIABETES",
+            byor_toc: "pankbase_gene_tableofcontents",
+            toc: null,
         };
     },
     watch: {
@@ -305,12 +307,11 @@ new Vue({
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
         },
-        t1dphenotypes(newData){
-            console.log(newData.length, JSON.stringify(newData));
-        }
     },
     async created() {
         keyParams.set({ gene: this.geneName });
+        this.toc = await getPankbaseContent(this.byor_toc, false, true);
+        console.log(this.tableOfContents);
         /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
@@ -418,7 +419,6 @@ new Vue({
                     "phenotype"
                 );
             }
-            console.log(JSON.stringify(this.t1dphenotypes));
             let hugeMap = {};
             // for pankbase: filter to only t1d phenotypes
             //data = data.filter(d => this.t1dphenotypes.includes(d.phenotype));
@@ -493,6 +493,20 @@ new Vue({
 
             return endpoint.data;
         },
+        tableOfContents(){
+            if (this.toc === null){
+                return [];
+            }
+            let output = [];
+            let genePlaceholder = "[Gene]";
+            let lines = this.toc.field_data_points
+                .replaceAll("\r", "")
+                .split("\n");
+            for (let i = 0; i < lines.length; i++){
+                output.push(lines[i].replaceAll(genePlaceholder, this.$store.state.geneName));
+            }
+            return output;
+        }
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,

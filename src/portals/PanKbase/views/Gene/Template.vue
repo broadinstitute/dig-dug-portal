@@ -18,6 +18,15 @@
               </div>
           </div>
       </div>
+      <!-- Table of contents-->
+      <div class="card mdkp-card">
+        <div class="card-body">
+            <div class="toc-item" v-for="item in $parent.tableOfContents">
+                {{ item }}
+                <a>Learn more</a>
+            </div>
+        </div>
+      </div>
       <!-- Non-PanKbase specific: Basic summary -->
       <div class="card mdkp-card">
           <div class="card-body">
@@ -708,5 +717,12 @@
 .mdkp-card {
   margin-top: 20px;
   margin-bottom: 20px;
+}
+.toc-item {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #efefef;
+    border: 1px solid #dddddd;
+    border-radius: 5px; 
 }
 </style>
