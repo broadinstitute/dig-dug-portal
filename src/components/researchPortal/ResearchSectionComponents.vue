@@ -15,6 +15,7 @@ import $ from "jquery";
 
 import cfdeEcoSystem from "@/components/researchPortal/customComponents/cfdeEcoSystem.vue";
 import cfdeLanding from "@/components/researchPortal/customComponents/cfdeLanding.vue";
+import cfdeLanding2 from "@/components/researchPortal/customComponents/cfdeLanding2.vue";
 import cfdeMechanismDiscovery from "@/components/researchPortal/customComponents/cfdeMechanismDiscovery.vue";
 
 export default Vue.component("research-section-components", {
@@ -22,6 +23,7 @@ export default Vue.component("research-section-components", {
 	components: {
 		cfdeEcoSystem,
 		cfdeLanding,
+		cfdeLanding2,
 		cfdeMechanismDiscovery
 	},
 	data() {
@@ -39,6 +41,9 @@ export default Vue.component("research-section-components", {
 				break;
 			case 'cfdeLanding':
 				this.currentComponent = cfdeLanding;
+				break;
+			case 'cfdeLanding2':
+				this.currentComponent = cfdeLanding2;
 				break;
 			case 'cfdeMechanismDiscovery':
 				this.currentComponent = cfdeMechanismDiscovery;

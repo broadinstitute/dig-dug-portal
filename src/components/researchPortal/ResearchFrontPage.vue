@@ -59,6 +59,7 @@ import Vue from "vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
+import ResearchSingleSearchCFDEllm from "@/components/researchPortal/ResearchSingleSearchCFDEllm.vue";
 
 export default Vue.component("research-front-page", {
 	props: ["sectionConfigs","pageDescription", "utilsBox","phenotypeMap","phenotypesInUse"],
@@ -66,7 +67,8 @@ export default Vue.component("research-front-page", {
 	components: {
         ResearchSingleSearch,
         ResearchSingleSearchV2,
-        ResearchSingleSearchCFDE
+        ResearchSingleSearchCFDE,
+        ResearchSingleSearchCFDEllm
     },
 
 	data() {

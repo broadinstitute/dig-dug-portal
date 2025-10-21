@@ -394,7 +394,7 @@
                                     <div :class="{collapsed: !mechanism.display_validation}">{{ mechanism.validation }}</div>
                                 </div>
                                 <div style="padding: 5px">
-                                    <a :href="`/research.html?pageid=kc_validation_planner&hypothesis=${mechanism.hypothesis}&programs=${mechanism.programs}`" target="_blank">plan a validation experiment</a> for this hypothesis.
+                                    <a :href="validationLink(mechanism)" target="_blank">plan a validation experiment</a> for this hypothesis.
                                 </div>
                             </div>
                         </div>
@@ -413,6 +413,7 @@
 import Vue from "vue";
 import BootstrapVue from "bootstrap-vue";
 
+import keyParams from "@/utils/keyParams";
 import { createLLMClient } from "@/utils/llmClient";
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -518,19 +519,20 @@ Return a JSON object with:
 Guidelines:
 
 * User queries may be verbose or contain multiple traits.
-* Context must be inferred from the users query, keep it short, dont add more context than absolutely necessary.
-* Programs - if query mentions specific CFDE Programs, select *only* those program as 'requested'. Otherwise select relevant programs as 'suggested'.
-* Search terms will be used in an embedding space consisting of labels like 'gene expression siganture association with phenotype'.
+* 'Context' must be inferred from the users query, keep it short, dont add more context than absolutely necessary.
+* 'Programs' - if query mentions specific CFDE Programs, select *only* those program as 'requested'. Otherwise select relevant programs as 'suggested'.
+* 'Search terms' will be used to search an embedding space consisting of labels like 'gene expression siganture associated with phenotype'.
   -Heres a tiny sample of the kinds of terms that sematic search will check against:
  'abnormal sternum morphology mp associated with gcat trait bmi-adjusted hip circumference
   npy6r idg gpcr archs4 coexpression heart - left ventricle female 70-79 up associated with cardiac mri latent space
   heart - left ventricle female 40-49 up associated with cardiac mri latent space
   gpr42 idg gpcr archs4 coexpression associated with crohn's disease
   p2ry10 idg gpcr archs4 coexpression associated with eczematoid dermatitis'
- - search terms should be selected to work well against this type of embedding space. 
- - **always** use terms directly asked for in the users query.
- - **avoid** duplicate keywords in terms
- - **avoid** listing program names
+ - 'search terms' should be selected to work well against this type of embedding space. 
+ - **always** use 'search terms' directly asked for in the users query.
+ - **avoid** duplicate keywords in 'search terms'
+ - **avoid** listing program names in 'search terms'
+ - **avoid** 'search terms' that do not aid in searcing for a phenotype or expression signature
 * Return only JSON. No extra text or explanation.
 
 ---
@@ -639,6 +641,7 @@ Your task is to generate **mechanistic hypotheses** that integrate across associ
 * The 'hypothesis' field should be a **short-form version** (1-2 sentences, concise, plain-language).
 * Include a 'validation' field suggesting a brief experiment or analysis that could be used to test the hypothesis.
 * Include a 'justification' field for each hypothesis that explains why this particular group of associations was selected from the overall set.
+* **Never** use 'term ids' in your explanations, mention either the 'signature' or 'phenotype' instead.
 ---
 
 ## CFDE Program Details
@@ -711,9 +714,12 @@ Return a structured **JSON object** following this schema:
     },
 
     mounted() {
-       this.initLines();
-       window.addEventListener("resize", this.updateLinePositions);
-       window.addEventListener("scroll", this.updateLinePositions);
+        if(keyParams.query){
+            this.userQuery = keyParams.query;
+        }
+        this.initLines();
+        window.addEventListener("resize", this.updateLinePositions);
+        window.addEventListener("scroll", this.updateLinePositions);
     },
 
     beforeDestroy() {
@@ -792,6 +798,8 @@ Return a structured **JSON object** following this schema:
                 console.log('query missing');
                 return;
             }
+
+            keyParams.query = query;
 
             this.updateStep(1, 'start');
 
@@ -1209,6 +1217,18 @@ Return a structured **JSON object** following this schema:
                 }
             }
             
+        },
+
+        validationLink(mechanism){
+            const hypothesis = mechanism.hypothesis;
+            const associations = mechanism.associations.map(item => {
+                    // Handle possible missing fields gracefully
+                    const phenotype = item.phenotype || "";
+                    const geneSet = item.gene_set || "";
+                    const source = item.source || "";
+                    return `${phenotype},${geneSet},${source}`;
+                }).join(';');
+            return `/research.html?pageid=kc_validation_planner&hypothesis=${hypothesis}&associations=${associations}`
         },
 
 
