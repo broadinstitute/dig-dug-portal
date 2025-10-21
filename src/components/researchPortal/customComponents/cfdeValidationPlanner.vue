@@ -104,7 +104,7 @@
                     <div class="table-container">
                     <div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
                         <span class="loading-spinner-small"></span>
-                        <span class="loading-text">Generating gene novelty and relevance scores... ({{ geneNoveltyElapsedTime }})</span>
+                        <span class="loading-text">Generating gene to hypothesis novelty and relevance scores... ({{ geneNoveltyElapsedTime }})</span>
                     </div>
                         <table class="gene-data-table">
                             <thead>
