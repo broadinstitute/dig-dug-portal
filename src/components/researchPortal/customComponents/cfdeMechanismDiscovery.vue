@@ -1,7 +1,7 @@
 <template>
     <div class="reset">
         <div>
-            <div style="font-size: 2em; font-weight: bold; line-height: 1em;">CFDE Mechanism Discovery</div>
+            <div style="font-size: 2em; font-weight: bold; line-height: 1em;">CFDE REVEAL</div>
             <div style="font-size: 1.2em; font-weight: bold;">Turn your research question into mechanistic leads</div>
             <div style="width: 450px; margin: 5px 0 0">Explore gene expression signatures linked to phenotypes, <br/>and get evidence-backed hypotheses about the biology behind them.</div>
             <div><a role="button" onClick="alert('TODO: documentation about the data, associations, and methods')">Learn more</a>.</div>
@@ -14,11 +14,11 @@
                 <fieldset style="display:flex; align-items: center; gap:10px">
                     <div>mode:</div>
                     <div style="display: flex; align-items: center; gap:5px">
-                        <input type="radio" id="search_auto" name="search_mode" value="auto" checked/>
+                        <input type="radio" id="search_auto" name="search_mode" value="auto" v-model="searchMode"/>
                         <label for="search_auto">auto <span class="info-icon" v-b-tooltip.hover="'Allow this tool to run automatically to the end.'">?</span></label>
                     </div>
                     <div style="display: flex; align-items: center; gap:5px">
-                        <input type="radio" id="seach_step" name="search_mode" value="step" disabled/>
+                        <input type="radio" id="seach_step" name="search_mode" value="step" v-model="searchMode" disabled/>
                         <label for="seach_step" style="opacity: 0.6;">step <span class="info-icon" v-b-tooltip.hover="'Tool will pause and confirm with you at each step before proceeding.'">?</span></label>
                     </div>
                 </fieldset>
@@ -27,6 +27,7 @@
                 <input type="textarea" placeholder="search query" ref="query" style="flex:1; padding: 10px;" v-model="userQuery"></input>
                 <button style="width: 200px;" @click="queryParse($refs.query.value)">Search</button>
             </div>
+            <!-- SEARCH TYPE SELECTOR
             <div style="display:flex; gap: 5px; align-items: center; justify-content: space-between;">
                 <a role="button" onClick="alert('TODO: show query examples')">show examples</a>
                 <fieldset style="display:flex; align-items: center; gap:10px">
@@ -41,6 +42,7 @@
                     </div>
                 </fieldset>
             </div>
+            -->
             <div>
                 <!--
                 <span class="query-sample">I'm looking for adipose tissue signatures linked to insulin resistance.</span>
@@ -95,7 +97,7 @@
     
                 <div :class="{collapsed: !display_search_criteria}" style="padding: 0 40px; display:flex; flex-direction: column; gap: 10px;">
                     <div style="display:flex; align-items: center; justify-content: flex-end;">
-                        <button @click="alert('TODO: implement editing search criteria')">✎ Edit search criteria then continue from here</button>
+                        <button @click="alert('TODO: implement editing search criteria')">✎ Edit search criteria</button>
                     </div>
                     <div style="display:flex; align-items: center;">
                         <div style="font-size: 1.2em; font-weight: bold;">The values below will be used to inform subsequent steps</div>
@@ -116,6 +118,9 @@
                             <span v-html="data.value"></span>
                         </template>
                     </b-table>
+                    <div v-if="searchMode==='step'" style="display:flex; align-items: center; justify-content: flex-end;">
+                        <button @click="associationSearch(searchTerm);">Continue</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -143,7 +148,7 @@
                     <div style="font-size: 1.2em; font-weight: bold;">Found <strong>{{ associations.length }} phenotype↔signature</strong> associations related to the Search Terms</div>
                     <div class="section-header" @click="display_associations = !display_associations">
                         <div>Across <strong>{{ total_phenotypes }} phenotypes</strong>, <strong>{{ total_signatures }} signatures</strong>, and <strong>{{ total_programs }} CFDE programs</strong>.</div>
-                        <div>Includig <strong>{{ total_strong_associations }} strong</strong>, <strong>{{ total_moderate_associations }} moderate</strong>, and <strong>{{ total_low_associations }} low</strong> association stengths.</div>
+                        <div>Including <strong>{{ total_strong_associations }} strong</strong>, <strong>{{ total_moderate_associations }} moderate</strong>, and <strong>{{ total_low_associations }} low</strong> association stengths.</div>
                         <div>Selected <strong>{{ total_relevant_associations }} <span v-for="(strength, idx) in filtered_association_strengths" style="text-transform: lowercase;">{{ association_strengths_list[strength].label }}{{ idx < filtered_association_strengths.length-1 ? ',' : '' }}</span></strong> associations.
                             <!--
                             <template v-if="filtered_programs.length>0">
@@ -162,7 +167,7 @@
     
                 <div :class="{collapsed: !display_associations}" style="display:flex; flex-direction: column; gap:10px; padding: 0 40px;">
                     <div style="display:flex; align-items: center; justify-content: flex-end;">
-                        <button @click="alert('TODO: implement editing association selection')">✎ Edit selected associations then re-interperet</button>
+                        <button @click="alert('TODO: implement editing association selection')">✎ Edit selected associations</button>
                     </div>
                     <!-- FILTERS hidden -->
                     <div style="display: none; flex-direction: column; gap: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; margin: 10px 0;">
@@ -312,6 +317,9 @@
                                 />
                             </template>
                     </b-table>
+                    <div v-if="searchMode==='step'" style="display:flex; align-items: center; justify-content: flex-end;">
+                        <button @click="mechanismsReveal()">Continue</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -434,6 +442,7 @@ export default Vue.component("cfde-mechanism-discovery", {
             openai_api_key: process.env.VUE_APP_OPENAI_API_KEY,
 
             search_step: 0, //0: search not started, 1: parsing query; 2: getting associations; 3: generating hypotheses
+            searchMode: "auto",
             searchType: "terms",
 
             userQuery: 'i am studying energy balance with indirect calorimetry',
@@ -459,6 +468,7 @@ export default Vue.component("cfde-mechanism-discovery", {
             total_moderate_associations: null,
             total_low_associations: null,
             total_relevant_associations: null,
+            relevantAssociations: null,
             phenotypes_list: [],
             association_strengths_list: [
                 { label: "Strong", text: ">=1" },
@@ -759,6 +769,7 @@ Return a structured **JSON object** following this schema:
             this.total_moderate_associations = null;
             this.total_low_associations = null;
             this.total_relevant_associations = null;
+            this.relevantAssociations = null;
             this.phenotypes_list = [];
             this.programs_list = [];
             this.filtered_phenotypes = [];
@@ -890,6 +901,7 @@ Return a structured **JSON object** following this schema:
         async associationSearch(term){
             console.log('searching for', term);
             this.updateStep(2, 'start');
+            this.display_search_criteria = false;
             this.searchTerm = term;
 
             if(this.searchType==="terms"){
@@ -979,15 +991,26 @@ Return a structured **JSON object** following this schema:
                 }
             });
 
-
+            this.relevantAssociations = relevantAssociations;
 
             this.updateStep(2, 'end');
 
             //return;
+            if(this.searchMode==='step'){
+                this.display_associations = true;
+                return;
+            }else{
+                this.mechanismsReveal();
+            }
+        },
 
+        async mechanismsReveal(){
             this.updateStep(3, 'start');
+            this.display_associations = false;
 
             console.log('getting genes for strong associations');
+
+            const relevantAssociations = this.relevantAssociations;
 
             await Promise.all(
                 relevantAssociations.map(async item => {
@@ -1228,7 +1251,7 @@ Return a structured **JSON object** following this schema:
                     const source = item.source || "";
                     return `${phenotype},${geneSet},${source}`;
                 }).join(';');
-            return `/research.html?pageid=kc_validation_planner&hypothesis=${hypothesis}&associations=${associations}`
+            return `/research.html?pageid=cfde_design&hypothesis=${hypothesis}&associations=${associations}`
         },
 
 
@@ -1371,7 +1394,7 @@ Return a structured **JSON object** following this schema:
                 //this.searchTerm = json.search_terms.join(',');
                 //this.userContext = json.context;
                 //this.termSearch(this.searchTerm);
-                this.updateStep(this.search_step, 'end');
+                this.updateStep(1, 'end');
                 this.searchTerm = json.search_terms.join(', ');
                 /*
                 const requestedPrograms = json.cfde_programs
@@ -1379,7 +1402,12 @@ Return a structured **JSON object** following this schema:
                     .map(item => item.program);
                 this.filtered_programs = requestedPrograms;
                 */
-                this.associationSearch(this.searchTerm);
+                if(this.searchMode==='auto'){
+                    this.associationSearch(this.searchTerm);
+                }else{
+                    this.display_search_criteria = true;
+                }
+                
             }
         },
         onExtractEnd(end){

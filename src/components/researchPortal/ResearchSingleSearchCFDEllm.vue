@@ -57,7 +57,7 @@
 								and 150,000 gene expression signatures from various CFDE Programs.
 							</div>
 							<div style="margin: 10px 0 0">
-								<a :href="kcURL(`/r/kc_mechanism_discovery?query=${llmResults.discovery}`)" target="_blank">mechanism discovery</a>
+								<a :href="kcURL(`/r/cfde_reveal?query=${llmResults.discovery}`)" target="_blank">mechanism discovery</a>
 							</div>
 						</div>
 					</div>
@@ -354,6 +354,7 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 import EventBus from "@/utils/eventBus";
 import { createLLMClient } from "@/utils/llmClient";
+import { kcURL } from "@/utils/cfdeUtils";
 
 export default Vue.component("research-single-search-cfde-llm", {
 	props: ["singleSearchConfig", "phenotypes", "utils", "fromNav"],
@@ -750,12 +751,14 @@ export default Vue.component("research-single-search-cfde-llm", {
 		},
 	},
 	methods: {
+		kcURL,
 		...alertUtils,
 		getVerticalPos(WRAPPER,TARGET) {
 			let wrapper = document.getElementById(WRAPPER);
 			let vPos = (wrapper)? wrapper.scrollTop * -1 : 0;
 			document.getElementById(TARGET).style.setProperty('top', vPos+'px');
 		},
+		/*
 		kcURL(path){
 			const isLocalhost = window.location.hostname === 'localhost';
   
@@ -772,6 +775,7 @@ export default Vue.component("research-single-search-cfde-llm", {
 				return path;
 			}
 		},
+		*/
 		getMeaningOptions() {
 
 			const dataPoint = this.singleSearchConfig["search by meaning parameters"].filter( P => P.parameter == this.meaningSearchParam )[0]['data point'];

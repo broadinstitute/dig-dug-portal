@@ -207,14 +207,14 @@
                                 src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/gene_set.png"
                             />
                         </div>
-                        <h2>Mechanism Discovery</h2>
+                        <h2>CFDE REVEAL</h2>
                         <div style="flex:1">
                             Turn your research question into mechanistic leads by
                             exploring gene expression signatures linked to phenotypes,
                             and get evidence-backed hypotheses about the biology behind them.
                         </div>
                         <a
-                            href="/r/kc_mechanism_discovery"
+                            href="/r/cfde_reveal"
                             style="align-self: flex-end"
                             >Start here</a
                         >
@@ -225,13 +225,13 @@
                                 src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/dge.png"
                             />
                         </div>
-                        <h2>Validation Planner</h2>
+                        <h2>CFDE DESIGN</h2>
                         <div style="flex:1">
                             Find ways to validate your mechanistic hypothesis
                             of Common Fund Data with the tools available to you.
                         </div>
                         <a
-                            href="/r/kc_validation_planner"
+                            href="/r/cfde_design"
                             style="align-self: flex-end"
                             >Start here</a
                         >
