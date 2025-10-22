@@ -19,6 +19,7 @@ import cfdeLanding from "@/components/researchPortal/customComponents/cfdeLandin
 import cfdeValidationPlanner from "@/components/researchPortal/customComponents/cfdeValidationPlanner.vue";
 import cfdeLanding2 from "@/components/researchPortal/customComponents/cfdeLanding2.vue";
 import cfdeMechanismDiscovery from "@/components/researchPortal/customComponents/cfdeMechanismDiscovery.vue";
+import cfdeGenesValidator from "@/components/researchPortal/customComponents/cfdeGenesValidator.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
@@ -27,7 +28,8 @@ export default Vue.component("research-section-components", {
 		cfdeLanding,
 		cfdeValidationPlanner,
 		cfdeLanding2,
-		cfdeMechanismDiscovery
+		cfdeMechanismDiscovery,
+		cfdeGenesValidator
 	},
 	data() {
 		return {
@@ -53,6 +55,9 @@ console.log('this.component', this.component);
 				break;
 			case 'cfdeMechanismDiscovery':
 				this.currentComponent = cfdeMechanismDiscovery;
+				break;
+			case 'cfdeGenesValidator':
+				this.currentComponent = cfdeGenesValidator;
 				break;
 		}
 	},
