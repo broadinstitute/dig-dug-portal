@@ -47,6 +47,7 @@ console.log('this.component', this.component);
 				break;
 			case 'cfdeValidationPlanner':
 				this.currentComponent = cfdeValidationPlanner;
+				break;
 			case 'cfdeLanding2':
 				this.currentComponent = cfdeLanding2;
 				break;
