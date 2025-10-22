@@ -1,5 +1,51 @@
 <template>
 	<div>
+		<!-- URL Parameter Choice Dialog -->
+		<div v-if="showUrlChoiceDialog" class="url-choice-dialog-overlay">
+			<div class="url-choice-dialog">
+				<div class="url-choice-header">
+					<h3>Choose Gene Source</h3>
+					<p>Both associations and genes parameters were found in the URL. Please choose which gene source you'd like to use for validation:</p>
+				</div>
+				
+				<div class="url-choice-options">
+					<div class="url-choice-option">
+						<div class="url-choice-title">
+							<h4>Genes from Associations</h4>
+							<p>Fetch genes from phenotype-gene set associations</p>
+						</div>
+						<div class="url-choice-preview">
+							<strong>Associations data:</strong>
+							<pre>{{ urlChoiceOptions.associations }}</pre>
+						</div>
+						<button @click="chooseAssociations" class="btn btn-primary url-choice-btn">
+							Use Associations
+						</button>
+					</div>
+					
+					<div class="url-choice-option">
+						<div class="url-choice-title">
+							<h4>Genes from URL Parameter</h4>
+							<p>Use the specific genes provided in the URL</p>
+						</div>
+						<div class="url-choice-preview">
+							<strong>Genes:</strong>
+							<span class="genes-list">{{ urlChoiceOptions.genes.join(', ') }}</span>
+						</div>
+						<button @click="chooseGenes" class="btn btn-primary url-choice-btn">
+							Use Genes
+						</button>
+					</div>
+				</div>
+				
+				<div class="url-choice-actions">
+					<button @click="cancelUrlChoice" class="btn btn-outline-secondary">
+						Cancel
+					</button>
+				</div>
+			</div>
+		</div>
+		
         <!-- Two Column Layout for Upper Half -->
         <div class="upper-layout">
             <!-- Left Column (70%) - Hypothesis Section -->
@@ -544,9 +590,8 @@
                             </div>
                             
                             <div v-else class="no-genes-selected warning-box">
-                                <div class="warning-icon">⚠️</div>
                                 <div class="warning-content">
-                                    <p><strong>Warning:</strong> No genes selected. You must select at least 1 gene from the Gene Association Data table above to generate experiment plans.</p>
+                                    <p><strong>Warning:</strong>⚠️ No genes selected. You must select at least 1 gene to generate experiment plans.</p>
                                 </div>
                             </div>
 
@@ -559,9 +604,6 @@
                                 {{ isGenerating ? `Generating Experiments (${elapsedTime})` : 
                                    selectedGenes.length === 0 ? '⚠️ Select Genes First' : 'Generate Experiment' }}
                             </button>
-                            <div v-if="selectedGenes.length === 0" class="button-warning">
-                                <small>⚠️ You must select at least 1 gene to generate experiment plans</small>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1216,9 +1258,15 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
             geneNoveltyElapsedTime: '0:00',
             // Gene loading state
             isLoadingGenes: false,
-            // Manual gene input state
-            showManualGeneInput: false,
-            manualGenes: ''
+			// Manual gene input state
+			showManualGeneInput: false,
+			manualGenes: '',
+			// URL parameter choice dialog
+			showUrlChoiceDialog: false,
+			urlChoiceOptions: {
+				associations: null,
+				genes: null
+			}
 		};
 	},
 	modules: {
@@ -1842,6 +1890,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			if (this.utilsBox && this.utilsBox.keyParams) {
 				
 				let hypothesisFound = false;
+				let hasAssociations = false;
+				let hasGenes = false;
 				
 				// Populate hypothesis field if keyParams['hypothesis'] exists
 				if (this.utilsBox.keyParams['hypothesis'] && typeof this.utilsBox.keyParams['hypothesis'] === 'string') {
@@ -1849,20 +1899,42 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					hypothesisFound = true;
 				}
 				
-				// Populate gene sets field if keyParams['geneSets'] exists
+				// Check for associations parameter
 				if (this.utilsBox.keyParams['geneSets'] && typeof this.utilsBox.keyParams['geneSets'] === 'string') {
 					this.geneSets = this.utilsBox.keyParams['geneSets'];
+					hasAssociations = true;
 				}
 				
-				// Populate gene sets field if keyParams['associations'] exists
+				// Check for associations parameter (alternative)
 				if (this.utilsBox.keyParams['associations'] && typeof this.utilsBox.keyParams['associations'] === 'string') {
 					this.geneSets = this.parseAssociations(this.utilsBox.keyParams['associations']);
+					hasAssociations = true;
 				}
 				
+				// Check for genes parameter
+				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
+					const geneList = this.utilsBox.keyParams['genes'].split(',').map(gene => gene.trim()).filter(gene => gene);
+					if (geneList.length > 0) {
+						hasGenes = true;
+						this.urlChoiceOptions.genes = geneList;
+					}
+				}
 				
-				// If we have gene sets data, fetch genes from phenotype-gene set associations
-				if (this.geneSets.trim()) {
+				// If both associations and genes are present, show choice dialog
+				if (hasAssociations && hasGenes) {
+					this.urlChoiceOptions.associations = this.geneSets;
+					this.showUrlChoiceDialog = true;
+					return; // Wait for user choice
+				}
+				
+				// If only associations, proceed with associations
+				if (hasAssociations && !hasGenes) {
 					await this.fetchGenesFromAssociations();
+				}
+				
+				// If only genes, proceed with genes
+				if (!hasAssociations && hasGenes) {
+					await this.addGenesFromUrl(this.urlChoiceOptions.genes);
 				}
 				
 				// If hypothesis was found, open the configure panel instead of generating draft
@@ -2012,6 +2084,72 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			} catch (error) {
 				console.error('Error preparing manual gene novelty request:', error);
 			}
+		},
+		
+		async addGenesFromUrl(geneList) {
+			try {
+				// Check for duplicate genes
+				const existingGenes = this.geneData.map(g => g.gene);
+				const duplicateGenes = geneList.filter(gene => existingGenes.includes(gene));
+				const newGenes = geneList.filter(gene => !existingGenes.includes(gene));
+				
+				if (duplicateGenes.length > 0) {
+					console.log(`Skipping duplicate genes from URL: ${duplicateGenes.join(', ')}`);
+				}
+				
+				if (newGenes.length === 0) {
+					console.log('All genes from URL are already in the table');
+					return;
+				}
+				
+				// Create gene data entries for URL genes
+				const urlGeneData = newGenes.map(gene => ({
+					gene: gene,
+					log_bf: null, // null indicates manual gene
+					prior: null,
+					combined: null,
+					directPPA: null,
+					indirectPPA: null,
+					source: 'URL Parameters',
+					phenotype: 'URL Parameters',
+					isManual: true // Flag to identify manual genes
+				}));
+				
+				// Add to existing gene data
+				this.geneData = [...this.geneData, ...urlGeneData];
+				this.originalGeneData = [...this.originalGeneData, ...urlGeneData];
+				
+				// Update filtered genes
+				this.updateFilteredGenes();
+				
+				console.log(`Added ${newGenes.length} genes from URL parameters: ${newGenes.join(', ')}`);
+				
+				// Get novelty scores for URL genes if hypothesis is provided
+				if (this.phenotypeSearch.trim()) {
+					await this.getNoveltyForManualGenes(newGenes);
+				}
+				
+			} catch (error) {
+				console.error('Error adding genes from URL parameters:', error);
+			}
+		},
+		
+		async chooseAssociations() {
+			this.showUrlChoiceDialog = false;
+			this.geneSets = this.urlChoiceOptions.associations;
+			await this.fetchGenesFromAssociations();
+		},
+		
+		async chooseGenes() {
+			this.showUrlChoiceDialog = false;
+			await this.addGenesFromUrl(this.urlChoiceOptions.genes);
+		},
+		
+		cancelUrlChoice() {
+			this.showUrlChoiceDialog = false;
+			// Clear the options
+			this.urlChoiceOptions.associations = null;
+			this.urlChoiceOptions.genes = null;
 		},
 		async fetchGenesFromAssociations() {
 			try {
@@ -3076,7 +3214,7 @@ a {
 }
 
 .btn-primary {
-    background-color: #007bff;
+    background-color: #55AAEE;
     color: white;
 }
 
@@ -3321,10 +3459,10 @@ a {
 }
 
 .experiment-results {
-    background: #f8f9fa;
+    /*background: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 6px;
-    padding: 15px;
+    padding: 15px;*/
 }
 
 .experiment-results pre {
@@ -3417,8 +3555,7 @@ a {
     font-style: italic;
     background: #f8f9fa;
     padding: 12px;
-    border-radius: 6px;
-    border-left: 4px solid #28a745;
+    border-left: 4px solid #FF6600;
 }
 
 .validation-reasons {
@@ -3501,7 +3638,6 @@ a {
     margin: 8px 0;
     padding: 8px 12px;
     background: #f8f9fa;
-    border-radius: 6px;
     border-left: 3px solid #ffc107;
 }
 
@@ -3514,7 +3650,6 @@ a {
     margin-top: 8px;
     padding: 12px;
     background: #e3f2fd;
-    border-radius: 6px;
     border-left: 4px solid #2196f3;
     font-style: italic;
     line-height: 1.5;
@@ -3532,7 +3667,6 @@ a {
     margin-top: 8px;
     padding: 12px;
     background: #fff3cd;
-    border-radius: 6px;
     border-left: 4px solid #ffc107;
     line-height: 1.5;
     color: #495057;
@@ -4393,5 +4527,187 @@ a {
     background: #f8f9fa;
 }
 
+/* URL Choice Dialog Styles */
+.url-choice-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.url-choice-dialog {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: dialogSlideIn 0.3s ease-out;
+}
+
+@keyframes dialogSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.url-choice-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.url-choice-header h3 {
+    margin: 0 0 8px 0;
+    color: #FF6600;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.url-choice-header p {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.url-choice-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 24px;
+}
+
+.url-choice-option {
+    border: 1px solid #e9ecef;
+    padding: 20px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.url-choice-option:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.url-choice-title {
+    margin-bottom: 16px;
+}
+
+.url-choice-title h4 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.url-choice-title p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.url-choice-preview {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.url-choice-preview strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.url-choice-preview pre {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.genes-list {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #333;
+    word-break: break-word;
+}
+
+.url-choice-btn {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.url-choice-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.url-choice-actions {
+    padding: 16px 24px 24px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.url-choice-actions .btn {
+    padding: 10px 24px;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .url-choice-dialog {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .url-choice-options {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+    }
+    
+    .url-choice-option {
+        padding: 16px;
+    }
+    
+    .url-choice-header {
+        padding: 20px 20px 16px;
+    }
+    
+    .url-choice-header h3 {
+        font-size: 20px;
+    }
+    
+    .url-choice-header p {
+        font-size: 14px;
+    }
+}
+
 
 </style>
+
