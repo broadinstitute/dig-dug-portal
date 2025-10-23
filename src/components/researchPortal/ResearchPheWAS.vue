@@ -988,7 +988,6 @@ export default Vue.component("ResearchPhewasPlot", {
                         });
                     }
                 }
-                console.log("should be emitting colors", JSON.stringify(pigeanColors));
                 this.$emit("pigeanColors", pigeanColors);
             }
         },

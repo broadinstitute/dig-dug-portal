@@ -41,7 +41,6 @@ export default Vue.component("pigean-plot", {
         tooltip: null,
         tooltipElement: null,
         tooltipPinned: false,
-        colorMap: this.groupColors(),
         allHoverFields: this.getHoverFields(),
         hoverBoxPosition: this.config.hoverBoxPosition || "left",
         dotOutlineColor: "#00000075"
@@ -257,29 +256,14 @@ export default Vue.component("pigean-plot", {
         this.tooltip.style("opacity", 0);
       }
     },
-    groupColors(){
-      // Based on pigeanData not filtered data. Phenotypes should always match PheWAS
-      let groupsInUse = this.pigeanData.map(d => d.phenotype)
-        .map(p => !!this.phenotypeMap[p] ? this.phenotypeMap[p]["group"] : "")
-        .filter(g => g !== "");
-      let uniqueGroups = [];
-      groupsInUse.forEach(g => {
-        if (!uniqueGroups.includes(g)){
-          uniqueGroups.push(g);
-        }});
-      uniqueGroups.sort();
-      let colorMap = {};
-      let colors = plotUtils.plotColors();
-      for (let i = 0; i < uniqueGroups.length; i++){
-        colorMap[uniqueGroups[i]] = colors[i % colors.length];
-      }
-      return colorMap;
-    },
     dotColor(phenotype){
       if (!this.phenotypeMap[phenotype]){
         return this.dotOutlineColor;
       }
-      return this.colorMap[this.phenotypeMap[phenotype].group];
+      if (this.pigeanColors === null){
+        return "lightgray";
+      }
+      return this.pigeanColors[this.phenotypeMap[phenotype].group];
     },
     phDesc(phenotype){
       if (!this.phenotypeMap[phenotype]){
@@ -322,7 +306,7 @@ export default Vue.component("pigean-plot", {
       phenotypes.forEach(phenotype => this.highlightDot(phenotype));
     },
     pigeanColors(newColors){
-      console.log("new colors are", JSON.stringify(newColors));
+      this.drawChart();
     }
   }
 });
