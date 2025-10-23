@@ -78,7 +78,7 @@
                             rows="3"
                         ></textarea>
                     </div>
-                    <div v-if="!showManualGeneInput && geneSets.trim() && geneData.length === 0" class="load-genes-section">
+                    <div v-if="!showManualGeneInput && geneSets.trim() && (geneData.length === 0 || associationsModified)" class="load-genes-section">
                         <button 
                             @click="loadGenesFromAssociations" 
                             class="btn btn-secondary load-genes-btn"
@@ -173,14 +173,20 @@
                                     <!--<small class="overlap-description">Remove genes that have log_bf = 0</small>-->
                                 </div>
                                 <div class="overlap-filter">
-                                    <label class="overlap-checkbox-label">
+                                    <label class="overlap-checkbox-label" :class="{ 'disabled': shouldDisableOverlappingFilter }">
                                         <input 
                                             type="checkbox" 
                                             v-model="showOnlyOverlappingGenes"
                                             @change="updateFilteredGenes"
                                             class="overlap-checkbox"
+                                            :disabled="shouldDisableOverlappingFilter"
                                         />
-                                        Show {{ overlappingGenesCount }} overlapping genes only
+                                        <span v-if="!shouldDisableOverlappingFilter">
+                                            Show {{ overlappingGenesCount }} overlapping genes only
+                                        </span>
+                                        <span v-else class="disabled-text">
+                                            Overlapping genes filter (disabled - only one association or manual genes)
+                                        </span>
                                     </label>
                                     <!--<small class="overlap-description">Filter genes that appear in multiple associations</small>-->
                                 </div>
@@ -1258,6 +1264,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
             geneNoveltyElapsedTime: '0:00',
             // Gene loading state
             isLoadingGenes: false,
+            // Track if associations have been modified since last gene load
+            associationsModified: false,
 			// Manual gene input state
 			showManualGeneInput: false,
 			manualGenes: '',
@@ -1429,8 +1437,32 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			});
 			return this.geneData.filter(gene => geneCounts[gene.gene] > 1).length;
 		},
+		hasOnlyOneAssociation() {
+			// Check if there's only one association in the geneSets
+			if (!this.geneSets.trim()) {
+				return false;
+			}
+			
+			const lines = this.geneSets.split('\n').filter(line => line.trim());
+			return lines.length === 1;
+		},
+		hasOnlyOneAssociationFromData() {
+			// Check if there's only one association based on the actual gene data
+			// Count unique phenotype-geneSet combinations in originalGeneData
+			const associations = new Set();
+			this.originalGeneData.forEach(item => {
+				if (item.phenotype && item.gene_set) {
+					associations.add(`${item.phenotype}-${item.gene_set}`);
+				}
+			});
+			return associations.size === 1;
+		},
+		shouldDisableOverlappingFilter() {
+			// Disable overlapping filter if there's only one association or if it's manual genes
+			return this.hasOnlyOneAssociation || this.hasOnlyOneAssociationFromData || this.hasManualGenes;
+		},
 	},
-	watch: {
+		watch: {
 			utilsBox: {
 				handler(newVal) {
 					if (newVal && newVal.keyParams) {
@@ -1438,6 +1470,19 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					}
 				},
 				immediate: true
+			},
+			geneSets(newVal, oldVal) {
+				// Track when associations are modified
+				if (oldVal !== undefined && newVal !== oldVal) {
+					// If geneSets is cleared, reset the modified flag
+					if (!newVal.trim()) {
+						this.associationsModified = false;
+						console.log('Associations cleared, Load Genes button hidden');
+					} else {
+						this.associationsModified = true;
+						console.log('Associations modified, Load Genes button should appear');
+					}
+				}
 			},
 			priorWeight(newVal, oldVal) {
 				// Update filtered genes when slider value changes
@@ -1447,6 +1492,13 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			currentPage() {
 				// Get gene novelty when page changes
 				this.getGeneNoveltyForCurrentPage();
+			},
+			shouldDisableOverlappingFilter(newVal) {
+				// If overlapping filter should be disabled, turn it off
+				if (newVal && this.showOnlyOverlappingGenes) {
+					this.showOnlyOverlappingGenes = false;
+					this.updateFilteredGenes();
+				}
 			}
 	},
 	methods: {
@@ -1520,8 +1572,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				this.filteredOutCount = 0;
 			}
 			
-			// Apply overlapping genes filter if enabled (but skip for manual genes)
-			if (this.showOnlyOverlappingGenes) {
+			// Apply overlapping genes filter if enabled AND there are multiple associations (but skip for manual genes)
+			if (this.showOnlyOverlappingGenes && !this.shouldDisableOverlappingFilter) {
 				// Count gene occurrences in original data
 				const geneCounts = {};
 				this.originalGeneData.forEach(item => {
@@ -1538,6 +1590,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				console.log(`Overlapping genes filter: ${genesToFilter.length} genes appear in multiple associations or are manual (${this.overlappingFilteredCount} filtered out)`);
 			} else {
 				this.overlappingFilteredCount = 0;
+				if (this.shouldDisableOverlappingFilter) {
+					console.log(`Overlapping genes filter disabled - only one association or manual genes`);
+				}
 			}
 			
 			// Calculate the score for each gene using: Novelty = D * (1 - I) * alpha
@@ -1960,6 +2015,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			try {
 				this.isLoadingGenes = true;
 				await this.fetchGenesFromAssociations();
+				// Reset the modified flag after successful gene loading
+				this.associationsModified = false;
+				console.log('Genes loaded successfully, associations modified flag reset');
 			} catch (error) {
 				console.error('Error loading genes from associations:', error);
 			} finally {
@@ -2204,6 +2262,12 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Store the sorted and grouped gene data for the table
 				this.geneData = sortedAndGroupedData;
 				
+				// Reset overlapping filter if there's only one association
+				if (this.shouldDisableOverlappingFilter) {
+					this.showOnlyOverlappingGenes = false;
+					console.log('Overlapping filter reset - only one association detected');
+				}
+				
 				// Initialize filtered genes and apply initial filter
 				this.updateFilteredGenes();
 				
@@ -2377,6 +2441,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			this.filteredOutCount = 0;
 			this.overlappingFilteredCount = 0;
 			this.showOnlyLogBfGenes = true;
+			// Reset associations modified flag
+			this.associationsModified = false;
 			this.showOnlyOverlappingGenes = true;
 			this.priorWeight = 1;
 			this.clearGenerationTimer();
@@ -3966,6 +4032,20 @@ a {
     color: #495057;
     cursor: pointer;
     margin-bottom: 4px;
+}
+
+.overlap-checkbox-label.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.overlap-checkbox-label.disabled .overlap-checkbox {
+    cursor: not-allowed;
+}
+
+.disabled-text {
+    color: #999;
+    font-style: italic;
 }
 
 .overlap-checkbox {
