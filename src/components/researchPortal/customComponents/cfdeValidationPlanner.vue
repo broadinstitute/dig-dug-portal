@@ -2991,6 +2991,40 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				content += this.experimentResults;
 			}
 			
+			// Add disclaimers at the end
+			content += '\n\n';
+			content += 'IMPORTANT DISCLAIMERS\n';
+			content += '====================\n\n';
+			
+			// Main experiment disclaimer
+			content += '⚠️ IMPORTANT DISCLAIMER\n';
+			content += 'This tool is designed to help generate testable experiment plans for hypothesis validation, not to provide definitive scientific guidance.\n\n';
+			content += 'Please note that:\n';
+			content += '• These experiment plans are AI-generated suggestions and should be reviewed by qualified researchers\n';
+			content += '• Plans may not align with current journal standards, field-specific requirements, or institutional protocols\n';
+			content += '• Always consult with domain experts and follow established laboratory safety and ethical guidelines\n';
+			content += '• Verify all technical details, protocols, and safety considerations before implementation\n';
+			content += '• Consider your specific experimental context, resources, and constraints\n\n';
+			content += 'Use these suggestions as a starting point for discussion and planning, not as final experimental protocols.\n\n';
+			
+			// Timeline disclaimer
+			content += 'TIMELINE DISCLAIMER\n';
+			content += 'Please note these timelines are general estimates, not absolute predictions, and that timelines assume the user already has the animals/cells/experimental reagents in-hand and the appropriate animal and/or institutional protocols in place to conduct these experiments. All researchers should be responsible for conducting their experiments in accordance with ethical guidelines as required by their institution.\n\n';
+			
+			// Conditions disclaimer
+			content += 'CONDITIONS DISCLAIMER\n';
+			content += 'Please note: These are general estimates. Researchers should perform a power calculation for each assay to determine the appropriate number of mice required for the experiment based on expected effect size, variability, and desired statistical power.\n\n';
+			
+			// Citation information
+			content += 'CITATION INFORMATION\n';
+			content += 'If you use this tool in a scientific publication, presentation, or other output, please cite the CFDE Knowledge Center in the following format:\n\n';
+			content += 'The Common Fund Data Ecosystem Knowledge Center (https://www.cfdeknowledge.org), supported by NIH Office of the Director, Fund OT2OD036440. Year Month Date of access; URL of page cited. Specific identifiers/ accession numbers for datasets used.\n\n';
+			content += 'Additional Citation Requirements:\n';
+			content += '• Users citing data and/or resources collected through other CFDE- or non-CFDE-generated studies should also cite all underlying studies comprising those datasets\n';
+			content += '• All published datasets must be cited according to the associated publication, using DOIs and PMIDs when available\n';
+			content += '• Data reused from third-party repositories must adhere to their citation policies\n\n';
+			content += 'Citation policies for each page or analysis on the Knowledge Center are available here: https://cfdeknowledge.org/r/cfdekc_policies_citation\n';
+			
 			return content;
 		}
 	}
