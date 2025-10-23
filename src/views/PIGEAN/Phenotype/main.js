@@ -336,6 +336,11 @@ new Vue({
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;
+        },
+        pigeanColors(){
+            let colors = {};
+            colors[this.$store.state.phenotype.group] = plotUtils.plotColors()[0];
+            return colors;
         }
 
     },
