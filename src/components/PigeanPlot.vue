@@ -26,7 +26,7 @@ export default Vue.component("pigean-plot", {
   },
   props: [
     "pigeanData", "config", "phenotypeMap", "filter", 
-    "genesetSize", "traitGroup", "matchingHoverDots"
+    "genesetSize", "traitGroup", "matchingHoverDots", "pigeanColors"
   ],
   data() {
       return {
@@ -320,6 +320,9 @@ export default Vue.component("pigean-plot", {
       this.unHighlightDots();
       let phenotypes = Object.keys(JSON.parse(newDots));
       phenotypes.forEach(phenotype => this.highlightDot(phenotype));
+    },
+    pigeanColors(newColors){
+      console.log("new colors are", JSON.stringify(newColors));
     }
   }
 });
