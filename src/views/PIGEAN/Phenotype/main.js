@@ -48,7 +48,6 @@ new Vue({
     mixins: [pageMixin],
     data() {
         return {
-            plotColors: plotUtils.plotColors(),
             pigeanPhenotypeMap: {},
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
