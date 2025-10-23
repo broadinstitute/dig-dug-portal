@@ -592,7 +592,46 @@
                             <h6>Experiment Plan</h6>
                             
                             <div v-if="selectedGenes.length > 0" class="experiment-plan-info">
-                                <p>Experiment plans will be generated for each selected gene in combination with your hypothesis.</p>
+                                <p>Choose how to generate experiment plans with your selected genes:</p>
+                                
+                                <div class="gene-strategy-options">
+                                    <div class="strategy-option">
+                                        <input 
+                                            type="radio" 
+                                            id="individual-genes" 
+                                            v-model="geneExperimentStrategy" 
+                                            value="individual"
+                                            class="strategy-radio"
+                                        >
+                                        <label for="individual-genes" class="strategy-label">
+                                            <strong>Individual Gene Experiments</strong>
+                                            <small>Generate separate experiment plans for each selected gene</small>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="strategy-option">
+                                        <input 
+                                            type="radio" 
+                                            id="all-genes-together" 
+                                            v-model="geneExperimentStrategy" 
+                                            value="all_together"
+                                            class="strategy-radio"
+                                        >
+                                        <label for="all-genes-together" class="strategy-label">
+                                            <strong>Combined Gene Experiment</strong>
+                                            <small>Generate one experiment plan that tests all selected genes together</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="strategy-description">
+                                    <p v-if="geneExperimentStrategy === 'individual'">
+                                        <em>This will generate {{ selectedGenes.length }} separate experiment plan{{ selectedGenes.length > 1 ? 's' : '' }} - one for each gene ({{ selectedGenes.join(', ') }}) in combination with your hypothesis.</em>
+                                    </p>
+                                    <p v-else-if="geneExperimentStrategy === 'all_together'">
+                                        <em>This will generate one comprehensive experiment plan that tests all selected genes ({{ selectedGenes.join(', ') }}) together in combination with your hypothesis.</em>
+                                    </p>
+                                </div>
                             </div>
                             
                             <div v-else class="no-genes-selected warning-box">
@@ -618,14 +657,38 @@
         <div id="planner-search-results" class="section-wrapper" v-if="experimentResults">
             <div class="protocol-header">
                 <h4>Generated Experiment Protocol</h4>
-                <button v-if="!isGenerating" @click="downloadExperiment" class="btn btn-sm btn-success download-btn">
-                    Download Experiment Plan
-                </button>
+                <div class="protocol-actions">
+                    <button v-if="!isGenerating" @click="downloadExperiment" class="btn btn-sm btn-primary download-btn">
+                        Download Experiment Plan
+                    </button>
+                    <button v-if="!isGenerating" @click="showCitationInfo" class="btn btn-sm btn-success citation-btn">
+                        Citation Information
+                    </button>
+                </div>
             </div>
             <div v-if="isGenerating" class="loading-message">
                 <p>Creating your experiment protocol...</p>
             </div>
             <div v-else class="experiment-results">
+                <!-- Disclaimer Section -->
+                <div class="experiment-disclaimer">
+                    <div class="disclaimer-header">
+                        <h5>⚠️ Important Disclaimer</h5>
+                    </div>
+                    <div class="disclaimer-content">
+                        <p><strong>This tool is designed to help generate testable experiment plans for hypothesis validation, not to provide definitive scientific guidance.</strong></p>
+                        <p>Please note that:</p>
+                        <ul>
+                            <li>These experiment plans are AI-generated suggestions and should be reviewed by qualified researchers</li>
+                            <li>Plans may not align with current journal standards, field-specific requirements, or institutional protocols</li>
+                            <li>Always consult with domain experts and follow established laboratory safety and ethical guidelines</li>
+                            <li>Verify all technical details, protocols, and safety considerations before implementation</li>
+                            <li>Consider your specific experimental context, resources, and constraints</li>
+                        </ul>
+                        <p><em>Use these suggestions as a starting point for discussion and planning, not as final experimental protocols.</em></p>
+                    </div>
+                </div>
+                
                 <div class="experiment-plan">
                     <div v-for="(experiment, index) in parsedExperimentResults" :key="index" class="experiment-card">
 
@@ -706,9 +769,15 @@
                                 </div>
                                 <div class="feasibility-item">
                                     <strong>Expected Timeline:</strong> {{ experiment.feasibility_details.expected_timeline }}
+                                    <div class="timeline-disclaimer">
+                                        <small><em>Please note these timelines are general estimates, not absolute predictions, and that timelines assume the user already has the animals/cells/experimental reagents in-hand and the appropriate animal and/or institutional protocols in place to conduct these experiments. All researchers should be responsible for conducting their experiments in accordance with ethical guidelines as required by their institution.</em></small>
+                                    </div>
                                 </div>
                                 <div class="feasibility-item">
                                     <strong>Estimated Conditions:</strong> {{ experiment.feasibility_details.Estimated_conditions }}
+                                    <div class="conditions-disclaimer">
+                                        <small><em>Please note: These are general estimates. Researchers should perform a power calculation for each assay to determine the appropriate number of mice required for the experiment based on expected effect size, variability, and desired statistical power.</em></small>
+                                    </div>
                                 </div>
                                 <div class="feasibility-item">
                                     <strong>Required Materials:</strong>
@@ -762,10 +831,40 @@
                     </div>
                     <!-- Download button for multiple protocols -->
                     <div v-if="parsedExperimentResults.length > 1" class="protocol-footer">
-                        <button @click="downloadExperiment" class="btn btn-sm btn-success download-btn">
+                        <button @click="downloadExperiment" class="btn btn-sm btn-primary download-btn">
                             Download All Experiments
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Citation Information Popup -->
+        <div v-if="showCitationPopup" class="citation-popup-overlay" @click="hideCitationInfo">
+            <div class="citation-popup" @click.stop>
+                <div class="citation-popup-header">
+                    <h4>Citation Information</h4>
+                    <button @click="hideCitationInfo" class="citation-close-btn">&times;</button>
+                </div>
+                <div class="citation-popup-content">
+                    <p><strong>If you use this tool in a scientific publication, presentation, or other output, please cite the CFDE Knowledge Center in the following format:</strong></p>
+                    
+                    <div class="citation-format">
+                        <p>The Common Fund Data Ecosystem Knowledge Center (<a href="https://www.cfdeknowledge.org" target="_blank">https://www.cfdeknowledge.org</a>), supported by NIH Office of the Director, Fund OT2OD036440. Year Month Date of access; URL of page cited. Specific identifiers/ accession numbers for datasets used.</p>
+                    </div>
+                    
+                    <p><strong>Additional Citation Requirements:</strong></p>
+                    <ul>
+                        <li>Users citing data and/or resources collected through other CFDE- or non-CFDE-generated studies should also cite all underlying studies comprising those datasets.</li>
+                        <li>All published datasets must be cited according to the associated publication, using DOIs and PMIDs when available.</li>
+                        <li>Data reused from third-party repositories must adhere to their citation policies.</li>
+                    </ul>
+                    
+                    <p><strong>Citation Policies:</strong></p>
+                    <p>Citation policies for each page or analysis on the Knowledge Center are available here: <a href="https://cfdeknowledge.org/r/cfdekc_policies_citation" target="_blank">https://cfdeknowledge.org/r/cfdekc_policies_citation</a></p>
+                </div>
+                <div class="citation-popup-footer">
+                    <button @click="hideCitationInfo" class="btn btn-primary">Close</button>
                 </div>
             </div>
         </div>
@@ -1186,6 +1285,83 @@ export default {
                 }
                 `,
 
+                experiment_prompt_genes: `Your task is to generate validation experiment proposals based on biological hypotheses and selected genes.
+
+                **EXPERIMENT GENERATION STRATEGY:**
+
+                **FOR COMBINED GENE EXPERIMENTS:**
+                1. Generate ONE comprehensive experiment protocol that tests ALL selected genes together
+                2. Design experiments that investigate how the genes interact or work together in the biological mechanisms described in the hypothesis
+                3. Focus on testing gene-gene interactions, pathway relationships, or coordinated effects
+                4. Generate only ONE experiment that encompasses all selected genes
+                5. **IMPORTANT: For combined experiments, generate only ONE experiment in the resultModel array**
+
+                **EXPERIMENT DESIGN PRINCIPLES:**
+                - Carefully consider user-provided preferences for experiment configuration (species, cell type, assays, throughput)
+                - Design the most scientifically robust and feasible validation experiment
+                - If you determine an alternative approach is significantly better, use the justification_for_deviation field to explain why
+                - Select the most suitable candidate genes for initial validation (rate-limiting enzymes, structural components, key regulators)
+                - Outline a tiered validation strategy in strategic_recommendation
+
+                **OUTPUT FORMAT:**
+                - Generate one experiment per selected gene (if genes provided)
+                - Each experiment must be fully populated and coherent
+                - Avoid speculative biological claims; base reasoning on established gene function and pathways
+                - **CRITICAL: If you see multiple selected genes in the input, you MUST generate multiple experiments in the resultModel array**
+                - The resultModel array should contain one object per experiment
+
+                {
+                    "resultModel": [
+                        {
+                        "biological_assertion": {
+                            "hypothesis": "<user provided hypothesis>",
+                            "mechanism": "<biological process or pathway connecting phenotype to gene sets>",
+                            "phenotype": "<disease or observable trait from the association group>",
+                            "gene": "<gene>"
+                        },
+                        "suggested_experiment": {
+                            "experiment": "<concise validation experiment for this phenotype+source group>"
+                        },
+                        "Why_validate": {
+                            "feasibility": "<why technically feasible>",
+                            "Impact": "<how results clarify mechanism>",
+                            "Novelty": "<what's new>"
+                        },
+                        "protocol_sketch": {
+                            "design": "<study layout>",
+                            "perturbation": "<manipulation>",
+                            "readouts": "<key assays>",
+                            "controls": "<control conditions>",
+                            "analysis": "<data analysis plan>"
+                        },
+                        "feasibility_details": {
+                            "required_capabilities": ["<assay/skill 1>", "<assay/skill 2>", "<instrumentation 1>"],
+                            "expected_timeline": "<e.g., 1-2 weeks>",
+                            "Estimated_conditions": "<e.g., 6–12>",
+                            "required_materials": ["<reagent1>", "<reagent2>"]
+                        },
+                        "design_critique": {
+                            "strengths": [
+                            "<advantage of the proposed experimental design>"
+                            ],
+                            "limitations": [
+                            "<potential drawback or confounding factor of the design>"
+                            ],
+                            "justification_for_deviation": "<Explain why the proposed design differs from user preferences, if applicable. If it matches, state that the user's preference is suitable.>", 
+                            "alternative_approaches": [
+                            {
+                                "type": "<e.g., Assay Modification, Model Improvement>",
+                                "suggestion": "<description of the alternative approach>"
+                            }
+                            ],
+                            "strategic_recommendation": "<concise verdict on the experiment's role and suggested next steps>"
+                        },
+                        "provenance": "<data source or model reasoning>"
+                        }
+                    ]
+                }
+                `,
+
 
                 gene_novelty_prompt: `Generate a JSON array for up to 10 genes based on the hypothesis below.
 
@@ -1247,6 +1423,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
             currentPage: 1,
             itemsPerPage: 10,
             selectedGenes: [],
+            // Gene experiment strategy
+            geneExperimentStrategy: 'individual', // 'individual' or 'all_together'
             // Gene filter properties
             priorWeight: 0,
             minScore: 0,
@@ -1266,6 +1444,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
             isLoadingGenes: false,
             // Track if associations have been modified since last gene load
             associationsModified: false,
+            // Citation popup state
+            showCitationPopup: false,
 			// Manual gene input state
 			showManualGeneInput: false,
 			manualGenes: '',
@@ -2496,6 +2676,52 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			
 			return prompt;
 		},
+		experimentPromptGenes() {
+			// Build the experiment prompt for combined gene experiments
+			let prompt = this.experiment_prompt_genes;
+			
+			// Add search context information
+			prompt += '\n\n**Current Search Context:**\n';
+			
+			if (this.phenotypeSearch.trim() !== '') {
+				prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
+			}
+			
+			if (this.selectedGenes.length > 0) {
+				prompt += `**Selected Genes (ALL TOGETHER):** ${this.selectedGenes.join(', ')}\n`;
+				prompt += `**Strategy:** Generate ONE comprehensive experiment that tests all genes together\n`;
+			}
+			
+			if (this.selectedAssayTypes.length > 0) {
+				prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
+			}
+			
+			if (this.selectedCellTypes.length > 0) {
+				prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
+			}
+			
+			if (this.selectedReadouts.length > 0) {
+				prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
+			}
+			
+			if (this.selectedThroughput) {
+				prompt += `**Throughput:** ${this.selectedThroughput}\n`;
+			}
+			
+			if (this.selectedSpecies) {
+				prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
+			}
+			
+			if (this.selectedTimeBudget) {
+				prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
+			}
+			
+			if (this.experimentNotes.trim() !== '') {
+				prompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
+			}
+			
+			return prompt;
+		},
 		isValidExperimentJSON(str) {
 			if (!str || typeof str !== 'string') return false;
 			try {
@@ -2516,7 +2742,14 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Show loading state and start timer
 				this.isGenerating = true;
 				this.generationStartTime = Date.now();
-                let prompt = this.experimentPrompt();
+                
+				// Choose the appropriate prompt based on gene strategy
+				let prompt;
+				if (this.selectedGenes.length > 0 && this.geneExperimentStrategy === 'all_together') {
+					prompt = this.experimentPromptGenes();
+				} else {
+					prompt = this.experimentPrompt();
+				}
 				
 				// Start timer to update elapsed time every second
 				this.generationTimer = setInterval(() => {
@@ -2603,6 +2836,12 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				console.error('Error downloading experiment plan:', error);
 				alert('Error downloading experiment plan. Please try again.');
 			}
+		},
+		showCitationInfo() {
+			this.showCitationPopup = true;
+		},
+		hideCitationInfo() {
+			this.showCitationPopup = false;
 		},
 		formatExperimentForDownload() {
 			let content = '';
@@ -3498,13 +3737,8 @@ a {
     border-radius: 6px;
     border: none;
     cursor: pointer;
-    background-color: #28a745;
     color: white;
     transition: background-color 0.2s ease;
-}
-
-.download-btn:hover {
-    background-color: #218838;
 }
 
 .protocol-footer {
@@ -3539,6 +3773,279 @@ a {
     font-size: 13px;
     line-height: 1.4;
     color: #495057;
+}
+
+/* Experiment Disclaimer Styles */
+.experiment-disclaimer {
+    background: #fff3cd;
+    border-left: 4px solid #FF6600;
+    margin-bottom: 25px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.disclaimer-header {
+    margin-bottom: 15px;
+}
+
+.disclaimer-header h5 {
+    margin: 0;
+    color: #856404;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.disclaimer-content {
+    color: #856404;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.disclaimer-content p {
+    margin: 0 0 12px 0;
+}
+
+.disclaimer-content p:last-child {
+    margin-bottom: 0;
+}
+
+.disclaimer-content ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.disclaimer-content li {
+    margin-bottom: 6px;
+}
+
+.disclaimer-content strong {
+    font-weight: 600;
+}
+
+.disclaimer-content em {
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* Timeline Disclaimer Styles */
+.timeline-disclaimer {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.timeline-disclaimer small {
+    color: #6c757d;
+    display: block;
+}
+
+.timeline-disclaimer em {
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* Conditions Disclaimer Styles */
+.conditions-disclaimer {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.conditions-disclaimer small {
+    color: #6c757d;
+    display: block;
+}
+
+.conditions-disclaimer em {
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* Gene Strategy Options Styles */
+.gene-strategy-options {
+    margin: 15px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.strategy-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e9ecef;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+}
+
+.strategy-option:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.strategy-radio {
+    margin: 0;
+    margin-top: 2px;
+}
+
+.strategy-label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+}
+
+.strategy-label strong {
+    display: block;
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.strategy-label small {
+    display: block;
+    color: #6c757d;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.strategy-description {
+    margin-top: 15px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-left: 3px solid #6c757d;
+}
+
+.strategy-description p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.strategy-description em {
+    font-style: italic;
+    color: #495057;
+}
+
+/* Protocol Actions Styles */
+.protocol-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.citation-btn {
+    margin-left: 0;
+}
+
+/* Citation Popup Styles */
+.citation-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.citation-popup {
+    background: white;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.citation-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.citation-popup-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.citation-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.citation-close-btn:hover {
+    color: #333;
+}
+
+.citation-popup-content {
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.citation-popup-content p {
+    margin-bottom: 15px;
+}
+
+.citation-popup-content ul {
+    margin: 15px 0;
+    padding-left: 20px;
+}
+
+.citation-popup-content li {
+    margin-bottom: 8px;
+}
+
+.citation-format {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    padding: 15px;
+    margin: 15px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.citation-format p {
+    margin: 0;
+}
+
+.citation-popup-content a {
+    color: #FF6600;
+    text-decoration: none;
+}
+
+.citation-popup-content a:hover {
+    text-decoration: underline;
+}
+
+.citation-popup-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+    text-align: center;
 }
 
 /* Experiment Plan Layout Styles */
@@ -3773,7 +4280,7 @@ a {
     margin: 0 0 20px 0;
     padding: 12px 16px;
     background-color: #f8f9fa;
-    border-left: 3px solid #6c757d;
+    border-left: 3px solid #FF6600;
 }
 
 .user-guidance p {
