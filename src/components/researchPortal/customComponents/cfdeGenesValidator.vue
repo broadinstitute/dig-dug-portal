@@ -49,25 +49,12 @@
 		<!-- Two Column Layout for Upper Half -->
 		<div class="upper-layout">
 			<div class="left-column">
-				<!-- hypothesis section -->
-				<div class="section-header">
-					<h4>Hypothesis</h4>
-				</div>
-				<small class="format-suggestion">Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.</small>
-				<div class="textarea-container">
-			<textarea 
-						v-model="phenotypeSearch" 
-						placeholder="Enter your hypothesis..."
-				class="hypothesis-textarea"
-				rows="3"
-			></textarea>
-		</div>
 
-		<small class="input-warning">Load genes from phenotype-gene set associations or enter genes manually to Genes input below</small>
 				<!-- associations section -->
-
 				<div class="gene-sets-input">
 					<div v-if="!hideAssociationsInput">
+						<small class="input-warning">Load genes from phenotype-gene set associations or enter genes manually to Genes input below</small>
+
 						<div class="section-header">
 							<h4>Phenotype Gene set Associations</h4>
 						</div>
@@ -98,18 +85,34 @@
 							<h4>Genes</h4>
 						</div>
 						<small class="format-suggestion">Enter genes separated by commas (e.g., GENE1, GENE2, GENE3)</small>
-			<textarea 
-				id="manual-genes"
-				v-model="manualGenes" 
-				placeholder="e.g., TP53, BRCA1, MYC, EGFR"
-				class="manual-genes-field"
-				rows="2"
-			></textarea>
+						<textarea 
+							id="manual-genes"
+							v-model="manualGenes" 
+							placeholder="e.g., TP53, BRCA1, MYC, EGFR"
+							class="manual-genes-field"
+							rows="2"
+						></textarea>
 						<!-- Gene actions will be moved to user options -->
 					</div>
 				</div>
 
+				<!-- hypothesis section -->
+				 <div class="gene-sets-input">
+					<div class="section-header">
+						<h4>Hypothesis (Optional)</h4>
+					</div>
+					<small class="format-suggestion">Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.</small>
+					<div class="textarea-container">
+						<textarea 
+							v-model="phenotypeSearch" 
+							placeholder="Enter your hypothesis..."
+							class="hypothesis-textarea"
+							rows="3"
+						></textarea>
+					</div>
+				 </div>
 			</div>
+			
 			<div class="right-column">
 				<!-- Gene Exploration Options -->
 				<div class="gene-options-section">
@@ -137,16 +140,16 @@
 								</ul>
 							</div>
 							<div class="option-actions">
-				<button 
+								<button 
 									@click="exploreGTExExpression"
 									class="btn btn-primary option-btn"
 									:disabled="!manualGenes.trim()"
 								>
 									Open GTEx Browser
-				</button>
+								</button>
 								<span class="option-note">{{ getGeneCount() > 50 ? 'First 50 genes will be used' : 'Opens in new tab' }}</span>
-			</div>
-		</div>
+							</div>
+						</div>
 
 						<!-- Option 2: Playbook Workflow Builder -->
 						<div class="gene-option-card">
@@ -198,24 +201,22 @@
 								</ul>
 							</div>
 							<div class="option-actions">
-				<button 
+								<button 
 									@click="generateHypothesisAlignment"
 									class="btn btn-primary option-btn"
 									:disabled="!manualGenes.trim() || isGettingGeneNovelty"
 								>
 									<span v-if="isGettingGeneNovelty" class="loading-spinner-small"></span>
 									Generate Scores
-				</button>
+								</button>
 								<span class="option-note">Requires hypothesis input</span>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			</div>
-			
+		</div>
 		
-			
 		<!-- Welcome Popup for New Users -->
 		<div v-if="showWelcomePopup" class="welcome-popup-overlay">
 			<div class="welcome-popup">
@@ -286,11 +287,11 @@
 		<!-- Gene Data Table -->
 		<div v-if="geneData.length > 0" class="gene-data-table-section">
 			<!-- Loading Banner (simplified like validation planner) -->
-				<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
-					<span class="loading-spinner-small"></span>
+			<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
+				<span class="loading-spinner-small"></span>
 				<span class="loading-text">Generating gene to hypothesis novelty and relevance scores... ({{ geneNoveltyElapsedTime }})</span>
-				</div>
-				
+			</div>
+			
 			<div class="table-container">
 				<table class="gene-data-table">
 					<thead>
@@ -307,33 +308,33 @@
 							<!-- Gene row -->
 							<template v-if="row.type === 'gene'">
 								<td>{{ row.item.gene }}</td>
-							<td>
-								<div class="relevance-cell">
+								<td>
+									<div class="relevance-cell">
 										<div v-if="getRelevance(row.item.gene)" class="score-content" :class="{ 'high-score': getRelevance(row.item.gene).score >= 7 }">
 											<div class="score-value">{{ getRelevanceScore(row.item.gene) }}</div>
-									</div>
+										</div>
 										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
-									<span v-else>TBD</span>
-								</div>
-							</td>
-							<td>
-								<div class="novelty-cell">
+										<span v-else>TBD</span>
+									</div>
+								</td>
+								<td>
+									<div class="novelty-cell">
 										<div v-if="getNovelty(row.item.gene)" class="score-content" :class="{ 'high-score': getNovelty(row.item.gene).score >= 7 }">
 											<div class="score-value">{{ getNoveltyScore(row.item.gene) }}</div>
-									</div>
+										</div>
 										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
-									<span v-else>TBD</span>
-								</div>
-							</td>
-							<td>
-								<div class="reason-cell">
+										<span v-else>TBD</span>
+									</div>
+								</td>
+								<td>
+									<div class="reason-cell">
 										<div v-if="getNovelty(row.item.gene)" class="reason-content">
 											{{ getNovelty(row.item.gene).context }}
-									</div>
+										</div>
 										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
-									<span v-else>TBD</span>
-								</div>
-							</td>
+										<span v-else>TBD</span>
+									</div>
+								</td>
 								<td v-if="!hasManualGenes">
 									<button 
 										@click="toggleEvidenceView(row.item.gene)"
@@ -2233,7 +2234,8 @@ small.format-suggestion, small.input-warning {
 small.input-warning {
     border-left: 3px solid #FF6600;
 	color: #FF6600;
-	font-size: 13px;
+	font-size: 16px;
+	margin-bottom: 20px;
 }
 
 .section-header {
