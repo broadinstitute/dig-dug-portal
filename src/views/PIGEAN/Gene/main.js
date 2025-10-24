@@ -93,6 +93,7 @@ new Vue({
                 hoverFields: ["gene", "combined"],
             },
             plotColors: plotUtils.plotColors(),
+            pigeanColors: null,
             renderConfig: {
                 type: "phewas plot",
                 "render by": "phenotype",
@@ -211,6 +212,9 @@ new Vue({
             } else {
                 this.dotsToPhewas = dots;
             }
+        },
+        storeColors(colors){
+            this.pigeanColors = colors;
         }
     },
 

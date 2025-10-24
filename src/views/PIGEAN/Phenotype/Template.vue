@@ -129,6 +129,7 @@
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
+                                :pigeanColors="$parent.pigeanColors"
                             >
                             </pigean-plot>
                             <pigean-table
@@ -184,6 +185,7 @@
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
+                                :pigeanColors="$parent.pigeanColors"
                                 :filter="filter"
                             >
                             </pigean-plot>
