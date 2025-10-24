@@ -152,7 +152,7 @@
 						</div>
 
 						<!-- Option 2: Jupiter Notebook for MoTrPAC -->
-						<div class="gene-option-card">
+						<div v-if="sectionConfigs && sectionConfigs.links && sectionConfigs.links.motrpac" class="gene-option-card">
 							<div class="option-header">
 								<h5>MoTrPAC Exercise Response Analysis</h5>
 								<span class="option-badge">Jupyter Notebook</span>
@@ -1784,13 +1784,21 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				return;
 			}
 
-			// TODO: Replace with actual Jupyter notebook URL when available
-			// For now, show a placeholder message
-			alert('MoTrPAC Jupyter Notebook integration is coming soon! The notebook will allow you to visualize your genes using MoTrPAC exercise response data.');
+			// Check if sectionConfigs and the MoTrPAC link are available
+			if (!this.sectionConfigs || !this.sectionConfigs.links || !this.sectionConfigs.links.motrpac) {
+				alert('MoTrPAC notebook link is not available. Please try again later.');
+				return;
+			}
+
+			// Get the base URL from sectionConfigs
+			const baseUrl = this.sectionConfigs.links.motrpac;
 			
-			// Placeholder for future implementation:
-			// const notebookUrl = `https://your-jupyter-notebook-url.com?genes=${geneList.join(',')}`;
-			// window.open(notebookUrl, '_blank');
+			// Add genes as URL parameter
+			const genesParam = geneList.join(',');
+			const notebookUrl = `${baseUrl}?genes=${encodeURIComponent(genesParam)}`;
+			
+			// Open in new tab
+			window.open(notebookUrl, '_blank');
 		},
 		async enrichGenes() {
 			// Parse genes from manual input
