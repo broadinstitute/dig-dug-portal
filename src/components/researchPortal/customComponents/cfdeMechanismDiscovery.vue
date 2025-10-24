@@ -24,13 +24,13 @@
                 </fieldset>
             </div>
             <div style="display:flex; gap:10px">
-                <input type="textarea" placeholder="search query" ref="query" style="flex:1; padding: 10px;" v-model="userQuery"></input>
+                <input type="textarea" placeholder="" ref="query" style="flex:1; padding: 10px;" v-model="userQuery"></input>
                 <button class="btn btn-primary" style="width: 200px;" @click="queryParse($refs.query.value)">Search</button>
             </div>
-            <!-- SEARCH TYPE SELECTOR
+            
             <div style="display:flex; gap: 5px; align-items: center; justify-content: space-between;">
-                <a role="button" onClick="alert('TODO: show query examples')">show examples</a>
-                <fieldset style="display:flex; align-items: center; gap:10px">
+                <a role="button" @click="display_examples = !display_examples">{{!display_examples ? 'show' : 'hide'}} examples</a>
+                <fieldset style="display:none; align-items: center; gap:10px">
                     <div>(DEV) search by:</div>
                     <div style="display: flex; align-items: center; gap:5px">
                         <input type="radio" id="search_phenotypes" name="seach_type" value="phenotypes" v-model="searchType"/>
@@ -42,11 +42,8 @@
                     </div>
                 </fieldset>
             </div>
-            -->
-            <div>
-                <!--
-                <span class="query-sample">I'm looking for adipose tissue signatures linked to insulin resistance.</span>
-                -->
+            <div :class="{collapsed: !display_examples}" style="display:flex; gap:10px;">
+                <div v-for="example in exampleQueries" class="query-sample" @click="useExample(example)">{{ example }}</div>
             </div>
         </div>
 
@@ -62,8 +59,11 @@
             </div>
     
             <div v-if="search_step >= 1" style="display: flex; flex-direction: column; gap:10px">
-                <div v-if="loading_search_criteria" class="loading-text" style="display:flex; flex-direction: column; gap:5px; min-height: 75px;">
-                    <div style="font-size:1.2em;"><strong>Action:</strong> Extracting research criteria based on your Query</div>
+                <div v-if="loading_search_criteria" class="loading-text" style="display:flex; align-items: baseline; gap:5px; min-height: 75px;">
+                    <div style="font-size:1.2em;"><strong>Action:</strong> Extracting research criteria based on your query.</div><div v-if="elapsed" style="font-size: 1em;">{{ `${elapsed}` }} (usually takes about 30 seconds)</div>
+                </div>
+                <div v-if="error_search_criteria" style="display:flex; align-items: baseline; gap:5px; min-height: 75px;">
+                    <div style="font-size:1.2em; color:red"><strong>Error:</strong> {{ error_msg_search_criteria }}</div><button v-if="allow_retry" @click="beginFlow()" class="btn btn-sm btn-primary">Retry</button>
                 </div>
     
                 <div v-if="searchCriteria" style="display:flex; flex-direction: column; gap: 5px">
@@ -126,15 +126,13 @@
                         </template>
                     </b-table>
                     <div style="display:flex; align-items: center; justify-content: flex-end;">
-                        <button @click="associationSearch(searchTerm);" class="btn btn-primary" :disabled="edit_search_criteria || search_step>1 || (search_step>1 && !user_edited_search_criteria)">
+                        <button @click="associationSearch(searchTerm)" class="btn btn-primary" :disabled="edit_search_criteria || search_step>1 || (search_step>1 && !user_edited_search_criteria)">
                             {{ searchMode==="step" ? "Continue" : "Re-search" }}
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-
-
 
         <div style="position: relative;">
             <div class="dot dot3"></div>
@@ -148,9 +146,11 @@
             <div v-if="search_step >= 2" style="display: flex; flex-direction: column; gap:10px">
                 <div v-if="loading_associations" class="loading-text" style="display:flex; gap:10px; min-height: 75px">
                     <div style="font-size:1.2em;">
-                        <strong>Action:</strong> Searching for phenotype↔signature associations 
-                        related to <strong>{{ searchTerm }}</strong>
+                        <strong>Action:</strong> Searching for phenotype↔signature associations related to <strong>{{ searchTerm }}</strong>
                     </div>
+                </div>
+                <div v-if="error_associations" style="display:flex; align-items: baseline; gap:5px; min-height: 75px;">
+                    <div style="font-size:1.2em; color:red"><strong>Error:</strong> {{ error_msg_associations }}</div><button v-if="allow_retry" @click="associationSearch(searchTerm)" class="btn btn-sm btn-primary">Retry</button>
                 </div>
     
                 <div v-if="associations && relevantAssociations" style="display:flex; flex-direction: column; gap: 5px">
@@ -360,10 +360,13 @@
             </div>
             <div v-if="search_step >= 3" style="display: flex; flex-direction: column; gap:10px">
                 <div v-if="loading_genes" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
-                    <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes of associations </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ relevantAssociations.length }}</div>
+                    <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes of selected associations </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ relevantAssociations.length }}</div>
                 </div>
                 <div v-if="loading_mechanisms" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
                     <div style="font-size:1.2em;"><strong>Action:</strong> Generating mechanistic hypotheses </div><div v-if="elapsed" style="font-size: 1em;">{{ `${elapsed}` }} (usually takes  about 1 minute)</div>
+                </div>
+                <div v-if="error_mechanisms" style="display:flex; align-items: baseline; gap:5px; min-height: 75px;">
+                    <div style="font-size:1.2em; color:red"><strong>Error:</strong> {{ error_msg_mechanisms }}</div><button @click="mechanismsReveal()" class="btn btn-sm btn-primary">Retry</button>
                 </div>
 
                 <div v-if="mechanisms" style="display:flex; flex-direction: column; gap: 5px">
@@ -453,8 +456,8 @@
                                 <div style="display:flex; flex-direction: column; padding: 5px; margin-top: auto;">
                                     <div style="font-size: .8em; font-weight: bold;">next steps</div>
                                     <div style="display: flex; gap:10px;">
-                                        <a :href="genesLink(mechanism)" target="_blank" class="next_step">explore genes from this hypothesis</a>
-                                        <a :href="validationLink(mechanism)" target="_blank" class="next_step">plan a validation experiment</a>
+                                        <a :href="genesLink(mechanism)" target="_blank" class="btn btn-info" style="flex:1; color:white !important; padding:10px">explore genes from this hypothesis</a>
+                                        <a :href="validationLink(mechanism)" target="_blank" class="btn btn-primary" style="flex:1; color:white !important; padding:10px">plan a validation experiment</a>
                                     </div>
                                 </div>
                             </div>
@@ -500,7 +503,7 @@ export default Vue.component("cfde-mechanism-discovery", {
             searchMode: "auto",
             searchType: "terms",
 
-            userQuery: 'i am studying energy balance with indirect calorimetry',
+            userQuery: '',
             searchCriteria: null,
             associations: null,
             filteredAssociations: null,
@@ -516,6 +519,20 @@ export default Vue.component("cfde-mechanism-discovery", {
             loading_genes: false,
             loading_mechanisms: false,
 
+            error_search_criteria: false,
+            error_msg_search_criteria: '',
+            error_mechanisms: false,
+            error_msg_mechanisms: '',
+            error_associations: false,
+            error_msg_associations: '',
+
+            allow_retry: true,
+
+            retry_mechanisms: 0,
+            retry_extract: 0,
+            retry_max: 1,
+
+            display_examples: false,
             display_search_criteria: false,
             display_associations: false,
             display_mechanisms: true,
@@ -586,6 +603,14 @@ export default Vue.component("cfde-mechanism-discovery", {
             llmExtract: null,
             llmAnalyze: null,
 
+            exampleQueries: [
+                "I study motor neuron degeneration and its role in progressive neuromotor disorders",
+                "Human accelerated regions and want to know how they contribute to neurodevelopment and cognition",
+                "What are druggable targets for obesity?",
+                "I'm looking to find mechanisms that underlie body mass index in humans and the tissues involved",
+                "What novel genes might be candidates for rare congenital myopathies"
+            ],
+
             extractSystemPropmpt: `You extract key research concepts from free-text queries.
 
 Return a JSON object with:
@@ -654,6 +679,14 @@ energy balance with indirect calorimetry
     }
   ]
 }
+
+--
+
+**IMPORTANT**: if a users query is completely unrelated to the subject of biological research, return only the following:
+{
+   "error": "Query unrelated to biological research."
+}
+
 `,
 
             extractSystemPropmpt2: `You extract key research concepts from free-text queries.
@@ -798,6 +831,7 @@ Return a structured **JSON object** following this schema:
         if(keyParams.query){
             this.userQuery = keyParams.query;
         }
+        this.$refs.query.focus();
         this.initLines();
         window.addEventListener("resize", this.updateLinePositions);
         window.addEventListener("scroll", this.updateLinePositions);
@@ -820,21 +854,6 @@ Return a structured **JSON object** following this schema:
         filtered_programs: 'updateSelectedRows',
         filtered_phenotypes: 'updateSelectedRows',
         filtered_association_strengths: 'updateSelectedRows',
-        /*filtered_programs(newVal) {
-            if(this.all_filters?.sources){
-                this.all_filters.sources = newVal;
-            }
-        },
-        filtered_phenotypes(newVal) {
-            if(this.all_filters?.phenotypes){
-                this.all_filters.phenotypes = newVal;
-            }
-        },
-        filtered_association_strengths(newVal) {
-            if(this.all_filters?.strengths){
-                this.all_filters.strengths = newVal;
-            }
-        }*/
     },
 
     methods: {
@@ -892,10 +911,23 @@ Return a structured **JSON object** following this schema:
             this.loading_genes = false;
             this.loading_mechanisms = false;
 
+            this.error_search_criteria = false,
+            this.error_msg_search_criteria = '',
+            this.error_mechanisms = false;
+            this.error_msg_mechanisms = '';
+            this.error_associations = false;
+            this.error_msg_associations = '';
+
+            this.allow_retry = true;
+
+            this.retry_mechanisms = 0;
+            this.retry_extract = 0;
+
             this.edit_search_criteria = false;
             this.edit_associations = false;
             this.edit_context = false;
 
+            this.display_examples = false;
             this.display_search_criteria = false;
             this.display_associations = false;
             this.display_mechanisms = true;
@@ -910,7 +942,15 @@ Return a structured **JSON object** following this schema:
 
             this.stopTimer();
         },
-        async queryParse(query){
+
+        //
+        //
+        //
+        // flow handlers
+        //
+        //
+        //
+        queryParse(query){
             this.clean();
 
             console.log('parse query', query);
@@ -919,12 +959,19 @@ Return a structured **JSON object** following this schema:
                 return;
             }
 
-            keyParams.query = query;
+            //keyParams.query = query;
+            this.userQuery = query;
 
+            this.beginFlow();
+        },
+
+        async beginFlow(){
             this.updateStep(1, 'start');
 
+            this.startTimer(1, () => {this.handleExtractTimeout()});
+
             this.llmExtract.sendPrompt({
-                userPrompt: query,
+                userPrompt: this.userQuery,
                 onToken: this.onExtractToken,
                 onResponse: this.onExtractResponse,
                 onState: this.onExtractState,
@@ -933,75 +980,9 @@ Return a structured **JSON object** following this schema:
             });
         },
 
-        editSearchCriteria(){
-            this.prev_search_criteria = JSON.parse(JSON.stringify(this.searchCriteria));
-            this.edit_search_criteria = true;
-            this.user_edited_search_criteria = false;
-        },
-        cancelEditSearchCriteria(){
-            this.edit_search_criteria = false;
-            this.searchCriteria = JSON.parse(JSON.stringify(this.prev_search_criteria));
-        },
-        removeSearchTerm(term){
-            if(!edit_search_criteria) return;
-            const idx = this.searchCriteria[0].values.indexOf(term);
-            if (idx !== -1) {
-                this.searchCriteria[0].values.splice(idx, 1);
-            }
-        },
-        addSearchTerm(event){
-            const val = event.target.value;
-            if(val.trim() !== ''){
-                this.searchCriteria[0].values.push(event.target.value);
-            }
-            event.target.value = "";
-            event.target.blur();
-        },
-        saveSearchCriteria(){
-            this.edit_search_criteria = false;
-            this.user_edited_search_criteria = true;
-            this.searchTerm = this.searchCriteria[0].values.join(', ');
-            this.updateStep(1, 'end');
-        },
-
-        editAssociations(){
-            this.prev_associations = this.associations;
-            this.prev_filtered_phenotypes = this.filtered_phenotypes;
-            this.prev_filtered_programs = this.filtered_programs;
-            this.prev_filtered_association_strengths = this.filtered_association_strengths;
-            this.edit_associations = true;
-            this.user_selected_associations = false;
-        },
-        cancelEditAssociations(){
-            this.filtered_association_strengths = this.prev_filtered_association_strengths;
-            this.filtered_programs = this.prev_filtered_programs;
-            this.filtered_phenotypes = this.prev_filtered_phenotypes;
-            this.associations = this.prev_associations;
-            this.edit_associations = false;
-        },
-        saveAssociations(){
-            this.user_selected_associations = true;
-            this.relevantAssociations = this.associations.filter(item => item.selected);
-            this.edit_associations = false;
-            this.updateStep(2, 'end');
-        },
-
-        editContext(){
-            this.prev_context = this.searchCriteria[1].values;
-            this.edit_context = true;
-            this.$nextTick(() => {
-                const input = document.querySelector('#context-edit-2')
-                input.focus();
-            });
-        },
-        cancelEditContext(){
-            this.edit_context = false;
-            this.searchCriteria[1].values = this.prev_context;
-        },
-
         async phenotypeSearch(term){
             //semantic search for phenotypes
-            const url = `https://api.kpndataregistry.org:8000/api/search/phenotypes?q=${encodeURIComponent(this.searchTerm)}&similarity_threshold=-0.1`
+            const url = `https://api.kpndataregistry.org:8000/api/search/phenotypes?q=${encodeURIComponent(term)}&similarity_threshold=-0.1`
             const response =  await fetch(url);
 
             if (!response.ok) {
@@ -1052,25 +1033,31 @@ Return a structured **JSON object** following this schema:
 
         async termSearch(term){
             //semantic search for trait associations
-            const url = `https://api.kpndataregistry.org:8000/api/search/terms?q=${encodeURIComponent(this.searchTerm)}&similarity_threshold=-0.5`
-            const response =  await fetch(url);
-
-            if (!response.ok) {
-                new Error("Fetch error:" + response.statusText);
+            const url = `https://api.kpndataregistry.org:8000/api/search/terms?q=${encodeURIComponent(term)}&similarity_threshold=-0.5`
+            try{
+                const response =  await fetch(url);
+    
+                if (!response.ok) {
+                    this.updateStep(this.search_step, 'error', "An error occured");
+                    //new Error("Fetch error:" + response.statusText);
+                    return;
+                }
+    
+                const res = await response.json();
+                const data = res.data;
+    
+                console.log('raw term search results', data);
+    
+                //sort by similarity score
+                const sortedArray = [...data].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
+    
+                //console.log('associations by term', sortedArray)
+    
+                return sortedArray;
+            }catch(err){
+                this.updateStep(this.search_step, 'error', "An error occured");
                 return;
             }
-
-            const res = await response.json();
-            const data = res.data;
-
-            console.log('raw term search results', data);
-
-            //sort by similarity score
-            const sortedArray = [...data].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
-
-            //console.log('associations by term', sortedArray)
-
-            return sortedArray;
         },
 
         async associationSearch(term){
@@ -1080,14 +1067,16 @@ Return a structured **JSON object** following this schema:
             this.searchTerm = term;
 
             if(this.searchType==="terms"){
-                const termAssociatiouns = await this.termSearch(term);
-                console.log('associations by term', termAssociatiouns);
-                const termAssociationsTransformed = this.transformTermAssociations(termAssociatiouns);
+                const termAssociations = await this.termSearch(term);
+                console.log('associations by term', termAssociations);
+                if(!termAssociations || termAssociations.length===0) return;
+                const termAssociationsTransformed = this.transformTermAssociations(termAssociations);
                 console.log('associations by term transformed', termAssociationsTransformed);
                 this.associations = termAssociationsTransformed;
             }else{
                 const phenotypeAssociations = await this.phenotypeSearch(term);
                 console.log('associations by phenotype', phenotypeAssociations);
+                if(!phenotypeAssociations || phenotypeAssociations.length===0) return;
                 const phenotypeAssociationsTransformed = this.transformPhenotypeAssociations(phenotypeAssociations);
                 console.log('associations by phenotype transformed', phenotypeAssociationsTransformed);
                 this.associations = phenotypeAssociationsTransformed;
@@ -1279,16 +1268,22 @@ Return a structured **JSON object** following this schema:
 
             const relevantAssociations = this.relevantAssociations;
 
-            await Promise.all(
-                relevantAssociations.map(async item => {
-                    const genes = await this.fetchGenesForTerm(item.phenotype_id, item.gene_set);
-                    const filtered = genes.filter(g => g.combined > 2);
-                    const sorted = filtered.sort((a, b) => b.combined - a.combined)
-                    const geneArray = sorted.map(gene => gene.gene);
-                    item.genes = geneArray;
-                    this.association_genes_loaded += 1;
-                })
-            )
+            const allHaveGenes = relevantAssociations.every(obj => Array.isArray(obj.genes));
+
+            if(!allHaveGenes){
+                await Promise.all(
+                    relevantAssociations.map(async item => {
+                        const genes = await this.fetchGenesForTerm(item.phenotype_id, item.gene_set);
+                        const filtered = genes.filter(g => g.combined > 2);
+                        const sorted = filtered.sort((a, b) => b.combined - a.combined)
+                        const geneArray = sorted.map(gene => gene.gene);
+                        item.genes = geneArray;
+                        this.association_genes_loaded += 1;
+                    })
+                )
+            }else{
+                this.association_genes_loaded  = relevantAssociations.length;
+            }
 
             console.log({relevantAssociations});
 
@@ -1332,7 +1327,7 @@ Return a structured **JSON object** following this schema:
             
             console.log('fullPrompt', fullPrompt);
 
-            this.startTimer()
+            this.startTimer(2, () => {this.handleAnalyzeTimeout()});
 
             this.llmAnalyze.sendPrompt({
                 userPrompt: fullPrompt,
@@ -1437,16 +1432,98 @@ Return a structured **JSON object** following this schema:
             */
         },
 
+        //
+        //
+        //
+        // ui handlers
+        //
+        //
+        //
+
+        useExample(text){
+            this.userQuery = text;
+        },
+
+        editSearchCriteria(){
+            this.prev_search_criteria = JSON.parse(JSON.stringify(this.searchCriteria));
+            this.edit_search_criteria = true;
+            this.user_edited_search_criteria = false;
+        },
+        cancelEditSearchCriteria(){
+            this.edit_search_criteria = false;
+            this.searchCriteria = JSON.parse(JSON.stringify(this.prev_search_criteria));
+        },
+        removeSearchTerm(term){
+            if(!this.edit_search_criteria) return;
+            const idx = this.searchCriteria[0].values.indexOf(term);
+            if (idx !== -1) {
+                this.searchCriteria[0].values.splice(idx, 1);
+            }
+        },
+        addSearchTerm(event){
+            const val = event.target.value;
+            if(val.trim() !== ''){
+                this.searchCriteria[0].values.push(event.target.value);
+            }
+            event.target.value = "";
+            event.target.blur();
+        },
+        saveSearchCriteria(){
+            this.edit_search_criteria = false;
+            this.user_edited_search_criteria = true;
+            this.searchTerm = this.searchCriteria[0].values.join(', ');
+            this.updateStep(1, 'end');
+        },
+
+        editAssociations(){
+            this.prev_associations = this.associations;
+            this.prev_filtered_phenotypes = this.filtered_phenotypes;
+            this.prev_filtered_programs = this.filtered_programs;
+            this.prev_filtered_association_strengths = this.filtered_association_strengths;
+            this.edit_associations = true;
+            this.user_selected_associations = false;
+        },
+        cancelEditAssociations(){
+            this.filtered_association_strengths = this.prev_filtered_association_strengths;
+            this.filtered_programs = this.prev_filtered_programs;
+            this.filtered_phenotypes = this.prev_filtered_phenotypes;
+            this.associations = this.prev_associations;
+            this.edit_associations = false;
+        },
+        saveAssociations(){
+            this.user_selected_associations = true;
+            this.relevantAssociations = this.associations.filter(item => item.selected);
+            this.edit_associations = false;
+            this.updateStep(2, 'end');
+        },
+
+        editContext(){
+            this.prev_context = this.searchCriteria[1].values;
+            this.edit_context = true;
+            this.$nextTick(() => {
+                const input = document.querySelector('#context-edit-2')
+                input.focus();
+            });
+        },
+        cancelEditContext(){
+            this.edit_context = false;
+            this.searchCriteria[1].values = this.prev_context;
+        },
+
         updateStep(step, status, note=null){
             this.search_step = step;
 
             if(step===1){
                 if(status==='start'){
+                    this.display_examples = false;
+                    this.error_search_criteria = false;
                     this.loading_search_criteria = true;
                     this.setLineAnimated(1);
+                    document.querySelector(`.dot${step+1}`).classList.remove("error");
                     document.querySelector(`.dot${step+1}`).classList.add("loading");
                 }
                 if(status==='end'){
+                    this.error_search_criteria = false;
                     this.loading_search_criteria = false;
                     this.setLineSolid(1);
                     this.setLineDotted(2);
@@ -1455,34 +1532,44 @@ Return a structured **JSON object** following this schema:
                     document.querySelector(`.dot${step+1}`).classList.add("on");
                 }
                 if(status==='error'){
+                    this.loading_search_criteria = false;
                     this.setLineError(1);
                     document.querySelector(`.dot${step+1}`).classList.remove("loading");
                     document.querySelector(`.dot${step+1}`).classList.add("error");
+                    this.error_msg_search_criteria = note;
+                    this.error_search_criteria = true;
                 }
             }
             if(step===2){
                 if(status==='start'){
                     this.loading_associations = true;
+                    this.error_associations = false;
                     this.setLineAnimated(2);
+                    document.querySelector(`.dot${step+1}`).classList.remove("error");
                     document.querySelector(`.dot${step+1}`).classList.add("loading");
                 }
                 if(status==='end'){
                     this.loading_associations = false;
+                    this.error_associations = false;
                     this.setLineSolid(2);
                     this.setLineDotted(3);
                     document.querySelector(`.dot${step+1}`).classList.remove("loading");
                     document.querySelector(`.dot${step+1}`).classList.add("on");
                 }
                 if(status==='error'){
+                    this.loading_associations = false;
                     this.setLineError(2);
                     document.querySelector(`.dot${step+1}`).classList.remove("loading");
                     document.querySelector(`.dot${step+1}`).classList.add("error");
+                    this.error_msg_associations = note;
+                    this.error_associations = true;
                 }
             }
             if(step===3){
                 if(status==='start'){
                     this.loading_genes = true;
                     this.setLineAnimated(3);
+                    document.querySelector(`.dot4`).classList.remove("error");
                     document.querySelector(`.dot4`).classList.add("loading");
                 }
                 if(status==='end'){
@@ -1492,6 +1579,7 @@ Return a structured **JSON object** following this schema:
                     //document.querySelector(`.dot${step+1}`).classList.add("on");
                 }
                 if(status==='error'){
+                    this.loading_genes = false;
                     this.setLineError(3);
                     document.querySelector(`.dot4`).classList.remove("loading");
                     document.querySelector(`.dot4`).classList.add("error");
@@ -1500,24 +1588,38 @@ Return a structured **JSON object** following this schema:
             if(step===4){
                 if(status==='start'){
                     this.loading_mechanisms = true;
+                    this.error_mechanisms = false;
+                    document.querySelector(`.dot4`).classList.remove("error");
                     //this.setLineAnimated(step);
                     //document.querySelector(`.dot${step+1}`).classList.add("loading");
                 }
                 if(status==='end'){
                     this.loading_mechanisms = false;
+                    this.error_mechanisms = false;
                     this.setLineSolid(3);
                     document.querySelector(`.dot4`).classList.remove("loading");
                     document.querySelector(`.dot4`).classList.add("on");
                 }
                 if(status==='error'){
+                    this.loading_mechanisms = false;
                     this.setLineError(3);
                     document.querySelector(`.dot4`).classList.remove("loading");
                     document.querySelector(`.dot4`).classList.add("error");
+                    this.error_msg_mechanisms = note;
+                    this.error_mechanisms = true;
                 }
             }
             
         },
 
+
+        //
+        //
+        //
+        // Url processing
+        //
+        //
+        //
         getsetLink(association){
             const geneset = `${association.phenotype},${association.gene_set},${association.source}`
             const url = kcURL(`/r/cfde_explore?associations=${geneset}`);
@@ -1525,12 +1627,11 @@ Return a structured **JSON object** following this schema:
         },
 
         genesLink(mechanism){
+            const hypothesis = mechanism.hypothesis;
             const genes = mechanism.associations.flatMap(item => item.genes);
-            const url = kcURL(`/r/cfde_explore?genes=${genes}`);
+            const url = kcURL(`/r/cfde_explore?hypothesis=${hypothesis}&genes=${genes}`);
             return url;
         },
-
-        //https://dev.cfdeknowledge.org/r/cfde_explore?hypothesis=Coordinated%20downregulation%20of%20core%20mitochondrial%20OXPHOS%20genes%20in%20brown%20adipose,%20brain,%20and%20heart%20reduces%20oxidative%20phosphorylation%20capacity,%20lowering%20whole-body%20VO2%20and%20increasing%20reliance%20on%20carbohydrate%20oxidation%20(higher%20RER).&associations=disorder%20of%20energy%20metabolism,gtex_brain-amygdala_MHSEPSIS_down,kc_diffexp;rare%20inborn%20errors%20of%20metabolism,T69-Brown-Adipose_Male_8W_Down,motrpac;disorder%20of%20energy%20metabolism,gtex_brain-ch_MHTXCEXP_up,kc_diffexp;disorder%20of%20energy%20metabolism,gtex_heart-aa_MONDO_0007915_down,kc_diffexp&genes=MT-ATP8,MCCC2,HADHB,NDUFS1,COX4I1,SPG7,ELOVL5,UROD,ATP1A1,NDUFS2,PPARG
 
         validationLink(mechanism){
             const hypothesis = mechanism.hypothesis;
@@ -1546,20 +1647,39 @@ Return a structured **JSON object** following this schema:
         },
 
 
+        //
+        //
+        //
         //Timing
-        startTimer() {
-            // reset state
+        //
+        //
+        //
+        startTimer(timeoutMinutes = null, onTimeout = null) {
+            // Reset state
             this.stopTimer();
             const startTime = Date.now();
             this.elapsed = null;
 
+            // Compute timeout in ms (if provided)
+            const timeoutMs = timeoutMinutes ? timeoutMinutes * 60 * 1000 : null;
+
             this.timer = setInterval(() => {
-                const diff = Date.now() - startTime; // ms
+                const diff = Date.now() - startTime;
                 const minutes = Math.floor(diff / 60000);
                 const seconds = Math.floor((diff % 60000) / 1000);
                 this.elapsed = 
-                String(minutes).padStart(2, "0") + ":" + 
-                String(seconds).padStart(2, "0") + " elapsed";
+                    String(minutes).padStart(2, "0") + ":" + 
+                    String(seconds).padStart(2, "0") + " elapsed";
+
+                // Check for timeout
+                if (timeoutMs && diff >= timeoutMs) {
+                    this.stopTimer(); // Stop the interval
+                    if (typeof onTimeout === "function") {
+                        onTimeout(); // Call the handler
+                    } else {
+                        console.warn("Timer timeout reached!");
+                    }
+                }
             }, 1000);
         },
         stopTimer() {
@@ -1569,7 +1689,13 @@ Return a structured **JSON object** following this schema:
             }
         },
 
+        //
+        //
+        //
         //Lines
+        //
+        //
+        //
         getCenter(el) {
             const rect = el.getBoundingClientRect();
             return {
@@ -1626,7 +1752,7 @@ Return a structured **JSON object** following this schema:
         }, 
         setLineSolid(index) {
             const line = document.getElementById(`line${index}`);
-            line.classList.remove("dotted", "animated");
+            line.classList.remove("dotted", "animated", "error");
         },
         setLineDotted(index) {
             const line = document.getElementById(`line${index}`);
@@ -1636,25 +1762,50 @@ Return a structured **JSON object** following this schema:
         setLineError(index) {
             const line = document.getElementById(`line${index}`);
             line.classList.add("error");
-            line.classList.remove("animated");
+            line.classList.remove("animated", "dotted");
         },
         setLineAnimated(index) {
             const line = document.getElementById(`line${index}`);
             line.classList.add("animated");
-            line.classList.remove("dotted");
+            line.classList.remove("dotted", "error");
         },
 
 
+        //
+        //
+        //
         //llmExtract handlers
+        //
+        //
+        //
+        handleExtractTimeout(){
+            console.log("Extract TIMEOUT");
+            /*if(this.retry_extract < this.retry_max){
+                this.retry_extract++;
+                console.log(`   retrying ${this.retry_extract}/${this.retry_max}`)
+                this.llmExtract.abort();
+                this.beginFlow();
+            }else{*/
+                this.llmExtract.abort();
+                this.updateStep(this.search_step, 'error', "Request is taking too long.");
+                //console.log('   could be systemic, try again later.');
+            //}
+        },
         onExtractToken(token){
             console.log('onToken', token);
         },
         onExtractResponse(response){
+            this.stopTimer();
             this.llmExtractState = '';
             console.log('onResponse', response);
             if(response){
                 const json = this.parseLLMResponse(response);
                 console.log('response json', json);
+                if(json.error){
+                    this.updateStep(this.search_step, 'error', json.error);
+                    this.allow_retry = false;
+                    return;
+                }
                 this.searchCriteria = [
                     {
                         search_criteria: 'Search Terms',
@@ -1702,13 +1853,15 @@ Return a structured **JSON object** following this schema:
             }
         },
         onExtractEnd(end){
+            this.stopTimer();
             this.llmExtractState = '';
             console.log('End');
         },
         onExtractError(error){
+            this.stopTimer();
             this.llmExtractState = error;
             console.log('onError', error);
-            this.updateStep(this.search_step, 'error', error.message);
+            this.updateStep(this.search_step, 'error', "An error occured");
         },
         onExtractState(state){
             this.llmExtractState = state;
@@ -1716,8 +1869,26 @@ Return a structured **JSON object** following this schema:
         },
 
 
-
+        //
+        //
+        //
         //llmAnalyze handlers
+        //
+        //
+        //
+        handleAnalyzeTimeout(){
+            console.log("Analyze TIMEOUT");
+            /*if(this.retry_mechanisms <= this.retry_max){
+                this.retry_mechanisms++;
+                console.log(`   retrying ${this.retry_mechanisms}/${this.retry_max}`)
+                this.llmAnalyze.abort();
+                mechanismsReveal();
+            }else{*/
+                this.llmAnalyze.abort();
+                this.updateStep(this.search_step, 'error', "Request is taking too long.");
+                //console.log('   could be systemic, try again later.');
+            //}
+        },
         onGroupToken(token){
             //NOTE:
             //langflow streams the entire response string with updated parts (use +)
@@ -1729,6 +1900,7 @@ Return a structured **JSON object** following this schema:
         },
         onGroupResponse(response){
             this.stopTimer();
+            this.retry_mechanisms = 0;
             this.llmGroupState = '';
             console.log('onResponse', response);
             this.response = response;
@@ -1754,7 +1926,6 @@ Return a structured **JSON object** following this schema:
                     this.mechanisms_summary = json.overall_summary;
 
                     this.updateStep(4, 'end');
-                    //this.parsedResponse = this.enrichGroups(json, this.associations);
                     console.log('response parsed', this.mechanisms);
                 }
             }
@@ -1775,9 +1946,10 @@ Return a structured **JSON object** following this schema:
             }
         },
         onGroupError(error){
+            this.stopTimer();
             this.llmGroupState = error;
             console.log('onError', error);
-            this.updateStep(this.search_step, 'error', error.message);
+            this.updateStep(this.search_step, 'error', "An error occured");
         },
         onGroupState(state){
             this.llmGroupState = state;
@@ -1832,16 +2004,13 @@ Return a structured **JSON object** following this schema:
 }
 
 .query-sample {
-    display: inline-block;
-    background: #ddd;
-    padding: 0 5px;
+    background: #eee;
+    padding: 3px 10px;
     border-radius: 10px;
-    border: 1px solid #ccc;
     cursor: pointer;
 }
 .query-sample:hover{
-    background: #ccc;
-    border-color: #ddd;
+    background: #ddd;
 }
 
 .pill {

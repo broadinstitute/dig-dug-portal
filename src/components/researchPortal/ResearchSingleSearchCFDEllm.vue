@@ -8,7 +8,7 @@
 				<strong>With this LLM enhanced search, you can:</strong>
 				<div>Ask about the Common Fund, its Centers, or its Programs.</div>
 				<div>Tell me what you're researching or curious about.</div>
-				<div>Just describe what youre looking for.</div>
+				<div>Just describe what you're looking for.</div>
 			</div>
 			<div v-if="searchInitiated" class="search-results" style="gap:40px">
 				<!--

@@ -40,6 +40,10 @@
             userPrompt: "Grep this grog",
             onResponse: resp => console.log("response:", resp)
         });
+
+        //manually cancel a request in progress
+        summarizer.abort();
+        pirate.abort();
 **/
 
 export function createLLMClient({ llm = "gemini", model, system_prompt, stream = false }) {
@@ -54,6 +58,7 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
     // cancel previous if needed
     abortController?.abort();
     abortController = new AbortController();
+    const signal = abortController.signal; // Grab signal for manual checks
 
     onState?.("Thinking...");
 
@@ -72,41 +77,81 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      signal: abortController.signal,
+      signal: signal, // Pass signal to fetch
     };
 
     try {
       if (stream) {
-        await callStreaming(url, options, { onToken, onState, onEnd, onError });
+        await callStreaming(url, options, { onToken, onState, onEnd, onError, signal });
       } else {
-        await callOnce(url, options, { onResponse, onState, onEnd, onError });
+        await callOnce(url, options, { onResponse, onState, onEnd, onError, signal });
       }
     } catch (err) {
-      onError?.(err);
+      // This catches AbortError if fetch() or reader.read() is cancelled
+      if (err.name === 'AbortError') {
+        onState?.("Aborted");
+        // This is an intentional abort, not an "error"
+        console.log("Request was aborted.");
+      } else {
+        onError?.(err);
+      }
     }
   }
 
-  async function callOnce(url, options, { onResponse, onError, onState, onEnd }) {
-    const response = await fetch(url, options);
+  async function callOnce(url, options, { onResponse, onError, onState, onEnd, signal }) {
+    const response = await fetch(url, options); // This will throw AbortError if aborted
+
+    // --- FIX ---
+    // Handle race condition: fetch succeeded but abort was called right after
+    if (signal.aborted) {
+      onState?.("Aborted");
+      return;
+    }
+
     if (!response.ok) {
       onError?.(new Error("Fetch error"));
       return;
     }
 
     const res = await response.json();
+
+    // --- FIX ---
+    // Check again after await response.json()
+    if (signal.aborted) {
+      onState?.("Aborted");
+      return;
+    }
+
     const data =
       llm === "openai"
         ? res.data[0].openai_response
         : res.data[0].gemini_response;
 
-    if (data) onResponse?.(data);
+    // Check before firing callback
+    if (data && !signal.aborted) {
+      onResponse?.(data);
+    }
+
+    // --- FIX ---
+    // Final check before marking as "Done"
+    if (signal.aborted) {
+      onState?.("Aborted");
+      return;
+    }
 
     onState?.("Done");
     onEnd?.();
   }
 
-  async function callStreaming(url, options, { onToken, onState, onEnd, onError }) {
-    const response = await fetch(url, options);
+  async function callStreaming(url, options, { onToken, onState, onEnd, onError, signal }) {
+    const response = await fetch(url, options); // This will throw AbortError
+
+    // --- FIX ---
+    if (signal.aborted) {
+      onState?.("Aborted");
+      return;
+    }
+
     if (!response.ok) {
       onError?.(new Error("Fetch error"));
       return;
@@ -117,7 +162,15 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
     let buffer = "";
 
     while (true) {
-      const { done, value } = await reader.read();
+      // --- FIX ---
+      // Check at the start of every loop
+      if (signal.aborted) {
+        reader.cancel("Aborted by user");
+        onState?.("Aborted");
+        break;
+      }
+
+      const { done, value } = await reader.read(); // This will throw AbortError
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
@@ -125,23 +178,38 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
       buffer = lines.pop();
 
       for (const line of lines) {
+        if (signal.aborted) break; // Stop processing lines
         if (!line.trim()) continue;
+        
         const event = JSON.parse(line);
 
         if (event.event === "add_message") {
           const text = event.data?.text;
-          if (text?.trim() && event.data?.sender !== "User") {
+          // --- FIX --- Check before firing callback
+          if (text?.trim() && event.data?.sender !== "User" && !signal.aborted) {
             onState?.("Writing...");
             onToken?.(text);
           }
-        } else if (event.event === "end") {
+        } else if (event.event === "end" && !signal.aborted) { // Check before callback
           onState?.("Done");
         }
       }
+      if (signal.aborted) break; // Exit main while loop
+    }
+
+    // --- FIX ---
+    // Final check before onEnd
+    if (signal.aborted) {
+      onState?.("Aborted");
+      return;
     }
 
     onEnd?.();
   }
 
-  return { sendPrompt };
+  function abort() {
+    abortController?.abort();
+  }
+
+  return { sendPrompt, abort };
 }
