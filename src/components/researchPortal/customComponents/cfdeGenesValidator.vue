@@ -158,7 +158,7 @@
 								<span class="option-badge">Workflow Analysis</span>
 							</div>
 							<div class="option-description">
-								<p>Open the Playbook Workflow Builder to perform comprehensive gene set enrichment analysis across multiple CFDE databases. The workflow automatically analyzes your genes against 7 different databases and generates interactive visualizations.</p>
+								<p>Open the Playbook Workflow Builder, a tool fueled by the CFDE Data Resource Center, to perform comprehensive gene set enrichment analysis across multiple CFDE databases. The workflow automatically analyzes your genes against 7 different databases and generates interactive visualizations.</p>
 							</div>
 							<div class="option-details">
 								<ul>
@@ -186,7 +186,7 @@
 						<!-- Option 3: Hypothesis Alignment and Research Gap Score -->
 						<div v-if="hasHypothesis" class="gene-option-card">
 							<div class="option-header">
-								<h5>Hypothesis Alignment & Research Gap Score</h5>
+								<h5>Hypothesis Relevance & Innovation Score</h5>
 								<span class="option-badge">AI Analysis</span>
 							</div>
 							<div class="option-description">
@@ -194,8 +194,8 @@
 							</div>
 							<div class="option-details">
 								<ul>
-									<li>Hypothesis Alignment Score (1-10)</li>
-									<li>Research Gap Score (1-10)</li>
+									<li>Hypothesis Relevance (1-10)</li>
+									<li>Innovation Score (1-10)</li>
 									<li>Molecular rationale for each gene</li>
 									<li>AI-generated context and justification</li>
 								</ul>
@@ -289,7 +289,7 @@
 			<!-- Loading Banner (simplified like validation planner) -->
 			<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
 				<span class="loading-spinner-small"></span>
-				<span class="loading-text">Generating gene to hypothesis novelty and relevance scores... ({{ geneNoveltyElapsedTime }})</span>
+				<span class="loading-text">Generating gene to hypothesis relevance & innovation score... ({{ geneNoveltyElapsedTime }})</span>
 			</div>
 			
 			<div class="table-container">
@@ -297,8 +297,8 @@
 					<thead>
 						<tr>
 							<th>Gene/Target</th>
-							<th>Hypothesis Alignment</th>
-							<th>Research Gap Score</th>
+							<th>Hypothesis Relevance</th>
+							<th>Innovation Score</th>
 							<th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
 							<th v-if="!hasManualGenes">Associations</th>
 						</tr>
