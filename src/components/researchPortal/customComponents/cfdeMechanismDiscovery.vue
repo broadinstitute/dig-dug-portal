@@ -10,22 +10,22 @@
         <div style="display:flex; flex-direction: column; gap:5px">
             <div style="display:flex; align-items: baseline; justify-content: space-between; position: relative;">
                 <div class="dot dot1 on"></div>
-                <div style="font-size: 1.2em; font-weight: bold;">Tell us what you're studying or curious about:</div>
+                <div style="font-size: 1.2em; font-weight: bold; color: #FF6600;">Tell us what you're studying or curious about:</div>
                 <fieldset style="display:flex; align-items: center; gap:10px">
                     <div>mode:</div>
-                    <div style="display: flex; align-items: center; gap:5px">
+                    <div style="display: flex; align-items: center; gap:5px;">
                         <input type="radio" id="search_auto" name="search_mode" value="auto" v-model="searchMode"/>
                         <label for="search_auto">auto <span class="info-icon" v-b-tooltip.hover="'Allow this tool to run automatically to the end.'">?</span></label>
                     </div>
-                    <div style="display: flex; align-items: center; gap:5px">
-                        <input type="radio" id="seach_step" name="search_mode" value="step" v-model="searchMode" disabled/>
-                        <label for="seach_step" style="opacity: 0.6;">step <span class="info-icon" v-b-tooltip.hover="'Tool will pause and confirm with you at each step before proceeding.'">?</span></label>
+                    <div style="display: flex; align-items: center; gap:5px;">
+                        <input type="radio" id="seach_step" name="search_mode" value="step" v-model="searchMode"/>
+                        <label for="seach_step">step <span class="info-icon" v-b-tooltip.hover="'Tool will pause and confirm with you at each step before proceeding.'">?</span></label>
                     </div>
                 </fieldset>
             </div>
             <div style="display:flex; gap:10px">
                 <input type="textarea" placeholder="search query" ref="query" style="flex:1; padding: 10px;" v-model="userQuery"></input>
-                <button style="width: 200px;" @click="queryParse($refs.query.value)">Search</button>
+                <button class="btn btn-primary" style="width: 200px;" @click="queryParse($refs.query.value)">Search</button>
             </div>
             <!-- SEARCH TYPE SELECTOR
             <div style="display:flex; gap: 5px; align-items: center; justify-content: space-between;">
@@ -53,7 +53,7 @@
         <div style="position: relative;">
             <div class="dot dot2"></div>
             <div v-if="search_step < 1" style="display:flex; flex-direction: column; gap:5px; min-height: 75px">
-                <div style="font-size:1.2em; font-weight: bold;">We'll understand your query.</div>
+                <div style="font-size:1.2em; font-weight: bold; color: #FF6600;">We'll understand your query.</div>
                 <div>
                     <div></div>
                     <div>You don't need to sift through keywords or ontologies in order to get going.</div>
@@ -67,9 +67,9 @@
                 </div>
     
                 <div v-if="searchCriteria" style="display:flex; flex-direction: column; gap: 5px">
-                    <div style="font-size: 1.2em; font-weight: bold;">Extracted research criteria from your Query</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: #FF6600;">Extracted research criteria from your Query</div>
                     <div class="section-header" @click="display_search_criteria = !display_search_criteria">
-                        <div style="display: grid; gap: 5px; max-width: 90%;">
+                        <div style="display: grid; gap: 5px; width: calc(100% - 200px);">
                             <div style="display:grid; grid-template-columns: 170px auto; gap:5px;">
                                 <strong>Search Terms: </strong> 
                                 <div style="display:flex; flex-wrap: wrap; gap: 5px">
@@ -95,9 +95,13 @@
                     </div>
                 </div>
     
-                <div :class="{collapsed: !display_search_criteria}" style="padding: 0 40px; display:flex; flex-direction: column; gap: 10px;">
+                <div :class="{collapsed: !display_search_criteria, editing: edit_search_criteria}" style="padding: 0 40px; display:flex; flex-direction: column; gap: 10px;">
                     <div style="display:flex; align-items: center; justify-content: flex-end;">
-                        <button @click="alert('TODO: implement editing search criteria')">✎ Edit search criteria</button>
+                        <button v-if="!edit_search_criteria" @click="editSearchCriteria()" class="btn btn-info">✎ Edit search criteria</button>
+                        <div v-if="edit_search_criteria" style="display: flex; gap: 5px;">
+                            <button @click="cancelEditSearchCriteria()" class="btn btn-warning">Cancel</button>
+                            <button @click="saveSearchCriteria()" class="btn btn-success">Save search criteria</button>
+                        </div>
                     </div>
                     <div style="display:flex; align-items: center;">
                         <div style="font-size: 1.2em; font-weight: bold;">The values below will be used to inform subsequent steps</div>
@@ -111,15 +115,20 @@
                         head-variant="light"
                     >
                         <template #cell(values)="row">
-                            <span v-if="Array.isArray(row.item.values)" style="display:inline-flex; gap: 5px; flex-wrap: wrap;"><span class="pill" v-for="item in row.item.values">{{ item }}</span></span>
-                            <span v-else class="pill">{{ row.item.values }}</span>
+                            <span v-if="Array.isArray(row.item.values)" style="display:inline-flex; gap: 5px; flex-wrap: wrap;">
+                                <span class="pill" :class="{editable: edit_search_criteria}" v-for="item in row.item.values" @click="removeSearchTerm(item)">{{ item }}</span>
+                                <input class="pill new" placeholder="+" v-if="edit_search_criteria" @keyup.enter="addSearchTerm($event)" @blur="addSearchTerm($event)"/>
+                            </span>
+                            <textarea id="context-edit-1" v-else class="pill" style="width:100%; field-sizing: content;" :disabled="!edit_search_criteria" v-model="row.item.values"></textarea>
                         </template>
                         <template #cell(why)="data">
                             <span v-html="data.value"></span>
                         </template>
                     </b-table>
-                    <div v-if="searchMode==='step'" style="display:flex; align-items: center; justify-content: flex-end;">
-                        <button @click="associationSearch(searchTerm);">Continue</button>
+                    <div style="display:flex; align-items: center; justify-content: flex-end;">
+                        <button @click="associationSearch(searchTerm);" class="btn btn-primary" :disabled="edit_search_criteria || search_step>1 || (search_step>1 && !user_edited_search_criteria)">
+                            {{ searchMode==="step" ? "Continue" : "Re-search" }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -130,7 +139,7 @@
         <div style="position: relative;">
             <div class="dot dot3"></div>
             <div v-if="search_step < 2" :class="{muted: search_step > 0}" style="display:flex; flex-direction: column; gap:5px; position: relative; min-height: 75px">
-                <div style="font-size:1.2em; font-weight: bold;">Retrieve relevant associations.</div>
+                <div style="font-size:1.2em; font-weight: bold; color: #FF6600;">Retrieve relevant associations.</div>
                 <div>
                     <div>Our associations contain over 6,000 common & rare disease phenotypes and 150,000 signatures.</div>
                     <div>We use <a role="button" onClick="alert('TODO: documentation on semantic search')">semantic search</a> to find those most relevant, and gather the strongest links.</div>
@@ -144,12 +153,16 @@
                     </div>
                 </div>
     
-                <div v-if="associations && total_relevant_associations" style="display:flex; flex-direction: column; gap: 5px">
-                    <div style="font-size: 1.2em; font-weight: bold;">Found <strong>{{ associations.length }} phenotype↔signature</strong> associations related to the Search Terms</div>
+                <div v-if="associations && relevantAssociations" style="display:flex; flex-direction: column; gap: 5px">
+                    <div style="font-size: 1.2em; font-weight: bold; color: #FF6600;">Found <strong>{{ associations.length }} phenotype↔signature</strong> associations related to the Search Terms</div>
                     <div class="section-header" @click="display_associations = !display_associations">
-                        <div>Across <strong>{{ total_phenotypes }} phenotypes</strong>, <strong>{{ total_signatures }} signatures</strong>, and <strong>{{ total_programs }} CFDE programs</strong>.</div>
+                        <div style="max-width: calc(100% - 200px);">Across <strong>{{ total_phenotypes }} phenotypes</strong>, and <strong>{{ total_signatures }} expression signatures</strong>, and <strong>{{ total_programs }} CFDE programs</strong>.</div>
+                        <div style="max-width: calc(100% - 200px);">Selected <strong>{{ relevantAssociations.length }}</strong> associations.
+                        
+                        <!--
                         <div>Including <strong>{{ total_strong_associations }} strong</strong>, <strong>{{ total_moderate_associations }} moderate</strong>, and <strong>{{ total_low_associations }} low</strong> association stengths.</div>
                         <div>Selected <strong>{{ total_relevant_associations }} <span v-for="(strength, idx) in filtered_association_strengths" style="text-transform: lowercase;">{{ association_strengths_list[strength].label }}{{ idx < filtered_association_strengths.length-1 ? ',' : '' }}</span></strong> associations.
+                        -->
                             <!--
                             <template v-if="filtered_programs.length>0">
                                 from <strong>
@@ -167,34 +180,34 @@
     
                 <div :class="{collapsed: !display_associations}" style="display:flex; flex-direction: column; gap:10px; padding: 0 40px;">
                     <div style="display:flex; align-items: center; justify-content: flex-end;">
-                        <button @click="alert('TODO: implement editing association selection')">✎ Edit selected associations</button>
+                        <button v-if="!edit_associations" @click="editAssociations()" class="btn btn-info">✎ Edit selected associations</button>
+                        <div v-if="edit_associations" style="display: flex; gap: 5px;">
+                            <button @click="cancelEditAssociations()" class="btn btn-warning">Cancel</button>
+                            <button @click="saveAssociations()" class="btn btn-success">Apply {{ temp_selected_associations }} selected associations</button>
+                        </div>
                     </div>
                     <!-- FILTERS hidden -->
-                    <div style="display: none; flex-direction: column; gap: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; margin: 10px 0;">
+                    <div v-if="edit_associations" style="display: flex; flex-direction: column; gap: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; margin: 10px 0;">
                         <div style="display:flex; gap: 20px">
-                            <div style="display:flex; flex-direction: column; width:120px">
-                                <div style="font-weight: bold;">Filter</div>
-                                <div></div>
+                            <div style="display:flex; flex-direction: column; width:120px; gap: 5px;">
+                                <div style="font-weight: bold;">Select</div>
                             </div>
-                            <div style="display:flex; flex-direction: column;">
-                                <div><strong>Phenotypes</strong> {{ `${filtered_phenotypes.length}/${phenotypes_list.length}` }}</div>
-                                <div style="height:75px; overflow: auto; background: #ddd; padding: 0 5px;">
-                                    <!--
-                                    <select v-model="filtered_phenotypes" multiple>
-                                        <option v-for="option in phenotypes_list" v-bind:value="option">
-                                            {{ filtered_phenotypes.includes(option) ? "✔ " : "✕ " }}{{ option }}
-                                        </option>
-                                    </select>
-                                    -->
+                            <div style="display:flex; flex-direction: column; flex:1; gap:5px">
+                                <div style="display:flex; justify-content: space-between;"><strong>Phenotypes</strong> {{ `${filtered_phenotypes.length}/${phenotypes_list.length}` }}</div>
+                                <div style="height:100px; display:flex; flex-direction: column; gap: 3px; overflow: auto; background: #eee; padding: 5px 10px;">
                                     <div v-for="(option, idx) in phenotypes_list" :key="option" style="display:flex; gap:5px">
                                         <input type="checkbox" :id="`phenotype_${idx}`" :value="option" v-model="filtered_phenotypes">
                                         <label :for="`phenotype_${idx}`">{{ option }}</label>
                                     </div>
                                 </div>
+                                <div style="display:flex; gap: 10px; justify-content: flex-end;">
+                                    <button @click="selectAll('phenotypes')" class="btn btn-sm btn-outline-dark">All</button>
+                                    <button @click="deselectAll('phenotypes')" class="btn btn-sm btn-outline-dark">None</button>
+                                </div>
                             </div>
-                            <div style="display:flex; flex-direction: column;">
-                                <div><strong>Association strength</strong>  {{ `${filtered_association_strengths.length}/${association_strengths_list.length}` }}</div>
-                                <div style="height:75px; overflow: auto; background: #ddd; padding: 0 5px;">
+                            <div style="display:flex; flex-direction: column; width:300px; gap:5px">
+                                <div style="display:flex; justify-content: space-between;"><strong>Association strength</strong>  {{ `${filtered_association_strengths.length}/${association_strengths_list.length}` }}</div>
+                                <div style="height:100px; display:flex; flex-direction: column; gap: 3px; overflow: auto; background: #eee; padding: 5px 10px;">
                                     <div v-for="(option, idx) in association_strengths_list" :key="idx" style="display:flex; gap:5px">
                                         <input type="checkbox" :id="`strength_${idx}`" :value="idx" v-model="filtered_association_strengths">
                                         <label :for="`strength_${idx}`" style="display:flex; justify-content: space-between; width: 100%;">
@@ -203,24 +216,26 @@
                                         </label>
                                     </div>
                                 </div>
+                                <div style="display:flex; gap: 10px; justify-content: flex-end;">
+                                    <button @click="selectAll('strengths')" class="btn btn-sm btn-outline-dark">All</button>
+                                    <button @click="deselectAll('strengths')" class="btn btn-sm btn-outline-dark">None</button>
+                                </div>
                             </div>
-                            <div style="display:flex; flex-direction: column;">
-                                <div><strong>Sources</strong> {{ `${filtered_programs.length}/${programs_list.length}` }}</div>
-                                <div style="height:75px; overflow:auto; background: #ddd; padding: 0 5px;">
-                                    <!--
-                                    <select v-model="filtered_programs" multiple>
-                                        <option v-for="option in programs_list" v-bind:value="option">
-                                            {{ filtered_programs.includes(option) ? "✔ " : "✕ " }}{{ option }}
-                                        </option>
-                                    </select>
-                                    -->
+                            <div style="display:flex; flex-direction: column; width: 300px; gap:5px">
+                                <div style="display:flex; justify-content: space-between;"><strong>Sources</strong> {{ `${filtered_programs.length}/${programs_list.length}` }}</div>
+                                <div style="height:100px; display:flex; flex-direction: column; gap: 3px; overflow:auto; background: #eee; padding: 5px 10px;">
                                     <div v-for="(option, idx) in programs_list" :key="option" style="display:flex; gap:5px">
                                         <input type="checkbox" :id="`program_${idx}`" :value="option" v-model="filtered_programs">
                                         <label :for="`program_${idx}`">{{ option }}</label>
                                     </div>
                                 </div>
+                                <div style="display:flex; gap: 10px; justify-content: flex-end;">
+                                    <button @click="selectAll('sources')" class="btn btn-sm btn-outline-dark">All</button>
+                                    <button @click="deselectAll('sources')" class="btn btn-sm btn-outline-dark">None</button>
+                                </div>
                             </div>
                         </div>
+                        <!--
                         <div style="display:flex; gap: 20px">
                             <div style="font-weight: bold; width:120px">Select for analysis</div>
                             <div style="display:flex; gap: 10px">
@@ -239,19 +254,24 @@
                                 </div>
                             </div>
                         </div>
+                        -->
                     </div>
                     <div style="display:flex; align-items: center;">
                         <div style="font-size: 1.2em; font-weight: bold;">All associations for <em>{{ searchTerm }}</em></div>
                     </div>
+                    <!--
+                        :filter="all_filters"
+                        :filter-function="associationsFilter"
+                    -->
                     <b-table 
                         :items="associations"
                         :fields="[
                             {key: 'selected', label: 'Select', thStyle: { width: '70px' }},
-                            'phenotype', 
-                            {key: 'beta_uncorrected', label: 'Association (beta uncorrected)'}, 
+                            {key: 'phenotype', label: 'Phenotype', sortable: true}, 
+                            {key: 'beta_uncorrected', label: 'Association (beta uncorrected)', sortable: true}, 
                             {key: 'gene_set', label: 'Signature (gene set)'}, 
                             //{key: 'genes_in_set', label: 'Genes'},
-                            'source',
+                            {key: 'source', label: 'Source', sortable: true},
                             'actions'
                         ]"
                         small
@@ -260,6 +280,9 @@
                         responsive="sm"
                         head-variant="light"
                         sticky-header="400px"
+                        sort-icon-left
+                        sort-by="beta_uncorrected"
+                        :sort-desc="true"
                         show-details
                         >
                             <template #head(selected)="data">
@@ -283,7 +306,7 @@
                             
                             <template #cell(selected)="row">
                                 <div style="text-align: center;">
-                                    <input type="checkbox" v-model="row.item.selected" disabled/>
+                                    <input type="checkbox" v-model="row.item.selected" :disabled="!edit_associations"/>
                                 </div>
                             </template>
                             <template #cell(beta_uncorrected)="row">
@@ -304,8 +327,8 @@
                             </template>
                             <template #cell(actions)="row">
                                 <div style="display:flex; flex-direction: column;">
-                                    <a role="button" onClick="alert('TODO: load and show genes for signature')">View Genes</a>
-                                    <a role="button" onClick="alert('NEED: links to source datasets')">View Datasets</a>
+                                    <!--<a role="button" onClick="alert('TODO: load and show genes for signature')">View Genes</a>-->
+                                    <a :href="getsetLink(row.item)" target="_blank" disabled>View Geneset</a>
                                 </div>
                             </template>
                             <template #row-details="{ item }">
@@ -317,8 +340,10 @@
                                 />
                             </template>
                     </b-table>
-                    <div v-if="searchMode==='step'" style="display:flex; align-items: center; justify-content: flex-end;">
-                        <button @click="mechanismsReveal()">Continue</button>
+                    <div style="display:flex; align-items: center; justify-content: flex-end;">
+                        <button @click="mechanismsReveal()" class="btn btn-primary" :disabled="edit_associations || search_step>2 || (search_step>2 && !user_selected_associations)">
+                            {{ searchMode==="step" ? "Continue" : "Re-analyze" }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -327,7 +352,7 @@
         <div style="position: relative;">
             <div class="dot dot4"></div>
             <div v-if="search_step < 3" :class="{muted:search_step > 0}" style="display:flex; flex-direction: column; gap:5px; position: relative; min-height: 75px">
-                <div style="font-size:1.2em; font-weight: bold;">Interpret the results.</div>
+                <div style="font-size:1.2em; font-weight: bold; color: #FF6600;">Interpret the results.</div>
                 <div>
                     <div>An expert LLM reviews the data and proposes mechanistic hypotheses in the context of your research.</div>
                     <div>You can explore or validate the results with access to the underlying source data.</div>
@@ -335,32 +360,46 @@
             </div>
             <div v-if="search_step >= 3" style="display: flex; flex-direction: column; gap:10px">
                 <div v-if="loading_genes" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
-                    <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes of associations </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ total_relevant_associations }}</div>
+                    <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes of associations </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ relevantAssociations.length }}</div>
                 </div>
                 <div v-if="loading_mechanisms" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
                     <div style="font-size:1.2em;"><strong>Action:</strong> Generating mechanistic hypotheses </div><div v-if="elapsed" style="font-size: 1em;">{{ `${elapsed}` }} (usually takes  about 1 minute)</div>
                 </div>
 
                 <div v-if="mechanisms" style="display:flex; flex-direction: column; gap: 5px">
-                    <div style="font-size: 1.2em; font-weight: bold;">Generated {{ mechanisms.length }} mechanistic hypotheses.</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: #FF6600;">Generated {{ mechanisms.length }} mechanistic hypotheses.</div>
                     <div class="section-header" @click="display_mechanisms = !display_mechanisms">
-                        <div>From <strong>{{ total_relevant_associations }}</strong> associations.</div>
+                        <div style="max-width: calc(100% - 200px);">In the context of <strong>{{ searchCriteria[1].values }}</strong></div>
                         <div class="section-header-state">
                             {{ !display_mechanisms ? 'show more' : 'show less' }}
                         </div>
                     </div>
                 </div>
     
-                <div :class="{collapsed: !display_mechanisms}" style="display:flex; flex-direction: column; gap:5px; padding: 0 40px;">
+                <div :class="{collapsed: !display_mechanisms, editing: edit_search_criteria}" style="display:flex; flex-direction: column; gap:5px; padding: 0 40px;">
                     <div v-if="mechanisms" style="display:flex; flex-direction: column; gap: 20px">
+                        <div style="display: flex; gap:20px;">
+                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                <strong>The following mechanistic hypotheses were generated using the selected associations in the context of:</strong>
+                                <input id="context-edit-2" class="pill" style="width:100%; height:100%; align-items: center;" v-model="searchCriteria[1].values" :disabled="!edit_context">
+                            </div>
+                            <div style="display:flex; flex-direction: column; gap:5px; align-self: flex-end;">
+                                <button v-if="!edit_context" @click="editContext()" class="btn btn-info">✎ Edit context</button>
+                                <button v-else @click="cancelEditContext()" class="btn btn-warning">Cancel</button>
+                                <button :disabled="!edit_context" @click="mechanismsReveal()" class="btn btn-primary">Re-analyze</button>
+                            </div>
+                        </div>
                         <div v-if="mechanisms_summary" style="display:flex; flex-direction: column;">
+                            <strong>Summary:</strong>
                             <div>{{ mechanisms_summary }}</div>
                         </div>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 40px">
                             <div v-for="mechanism in mechanisms" style="display:flex; flex-direction: column; gap:5px; border: 1px solid #ccc; padding:10px; border-radius: 10px;">
                                 <div style="font-size:1.2em; line-height: 1.2em; font-weight: bold;">{{ mechanism.group_name }}</div>
                                 <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em; font-weight: bold;">hypothesis</div>
+                                    <div style="font-size: .8em;">
+                                        <div style="font-weight: bold;">hypothesis <span class="info-icon" v-b-tooltip.hover="`Why? ${mechanism.relevance}`">!</span></div>
+                                    </div>
                                     <div>{{ mechanism.hypothesis }}</div>
                                 </div>
                                 <div style="display:flex; flex-direction: column; padding: 5px;">
@@ -371,28 +410,37 @@
                                 </div>
                                 <div style="display:flex; flex-direction: column; padding: 5px;">
                                     <div style="font-size: .8em; font-weight: bold;">linking genes</div>
-                                    <div style="display: flex; gap:5px;">
-                                        <span v-for="gene in mechanism.genes">{{ gene }}</span>
+                                    <div style="display: flex; gap:5px; flex-wrap: wrap;">
+                                        <span v-for="gene in mechanism.genes" style="white-space: nowrap;">{{ gene }}</span>
                                     </div>
                                 </div>
+                                <!--
                                 <div style="display:flex; flex-direction: column; padding: 5px;">
                                     <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_relevance = !mechanism.display_relevance">why it might interest you?</div>
                                     <div :class="{collapsed: !mechanism.display_relevance}">{{ mechanism.relevance }}</div>
                                 </div>
+                                -->
                                 <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_associations = !mechanism.display_associations">relevant associations</div>
-                                    <div :class="{collapsed: !mechanism.display_associations}">
+                                    <div style="font-size: .8em;">
+                                        <div style="font-weight: bold;">relevant associations <span class="info-icon" v-b-tooltip.hover="`Why? ${mechanism.justification}`">!</span></div>
+                                    </div>
+                                    <div>
                                         <b-table
                                             small
                                             sticky-header="225px"
                                             :items="mechanism.associations"
-                                            :fields="['phenotype', 'gene_set', 'source']"
-                                        />
-                                        <div style="display:flex;     justify-content: flex-end;">
-                                            <a role="button" onClick="alert('NEED: links to source data')">view datasets</a>
-                                        </div> 
+                                            :fields="['phenotype', 'gene_set', 'source', 'actions']"
+                                            style="font-size: 0.9em;"
+                                        >
+                                        <template #cell(actions)="row">
+                                            <div style="display:flex; flex-direction: column;">
+                                                <a :href="getsetLink(row.item)" target="_blank" disabled style="white-space: nowrap;">View Geneset</a>
+                                            </div>
+                                        </template>
+                                        </b-table>
                                     </div>
                                 </div>
+                                <!--
                                 <div style="display:flex; flex-direction: column; padding: 5px;">
                                     <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_justification = !mechanism.display_justification">why these associations?</div>
                                     <div :class="{collapsed: !mechanism.display_justification}">{{ mechanism.justification }}</div>
@@ -401,8 +449,13 @@
                                     <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_validation = !mechanism.display_validation">how to validate?</div>
                                     <div :class="{collapsed: !mechanism.display_validation}">{{ mechanism.validation }}</div>
                                 </div>
-                                <div style="padding: 5px">
-                                    <a :href="validationLink(mechanism)" target="_blank">plan a validation experiment</a> for this hypothesis.
+                                -->
+                                <div style="display:flex; flex-direction: column; padding: 5px; margin-top: auto;">
+                                    <div style="font-size: .8em; font-weight: bold;">next steps</div>
+                                    <div style="display: flex; gap:10px;">
+                                        <a :href="genesLink(mechanism)" target="_blank" class="next_step">explore genes from this hypothesis</a>
+                                        <a :href="validationLink(mechanism)" target="_blank" class="next_step">plan a validation experiment</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -422,10 +475,12 @@ import Vue from "vue";
 import BootstrapVue from "bootstrap-vue";
 
 import keyParams from "@/utils/keyParams";
+import { kcURL } from "@/utils/cfdeUtils";
 import { createLLMClient } from "@/utils/llmClient";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+
 
 Vue.use(BootstrapVue);
 
@@ -448,6 +503,7 @@ export default Vue.component("cfde-mechanism-discovery", {
             userQuery: 'i am studying energy balance with indirect calorimetry',
             searchCriteria: null,
             associations: null,
+            filteredAssociations: null,
             associationGroups: null,
             mechanisms: null,
             mechanisms_summary: null,
@@ -464,6 +520,10 @@ export default Vue.component("cfde-mechanism-discovery", {
             display_associations: false,
             display_mechanisms: true,
 
+            edit_search_criteria: false,
+            edit_associations: false,
+            edit_context: false,
+
             total_strong_associations: null,
             total_moderate_associations: null,
             total_low_associations: null,
@@ -471,14 +531,25 @@ export default Vue.component("cfde-mechanism-discovery", {
             relevantAssociations: null,
             phenotypes_list: [],
             association_strengths_list: [
-                { label: "Strong", text: ">=1" },
+                { label: "Strong", text: ">1.0" },
                 { label: "Moderate ", text: "~0.1" },
                 { label: "Low", text: "<0.1" }
             ],
+            strengths_list: [0,1,2],
             programs_list: [],
+            all_filters: null,
             filtered_phenotypes: [],
             filtered_association_strengths: [],
             filtered_programs: [],
+
+            prev_associations: null,
+            prev_filtered_phenotypes: [],
+            prev_filtered_association_strengths: [],
+            prev_filtered_programs: [],
+            prev_context: null,
+            prev_search_criteria: null,
+            user_selected_associations: false,
+            user_edited_search_criteria: false,
 
             select_list: ["All", "Filtered", "Custom", "None"],
             selected_select: "Filtered",
@@ -739,13 +810,35 @@ Return a structured **JSON object** following this schema:
     },
 
     computed: {
-        
+        temp_selected_associations(){
+            if(!this.associations) return;
+            return this.associations.filter(item => item.selected).length;
+        }
     },
 
     watch: {
+        filtered_programs: 'updateSelectedRows',
+        filtered_phenotypes: 'updateSelectedRows',
+        filtered_association_strengths: 'updateSelectedRows',
+        /*filtered_programs(newVal) {
+            if(this.all_filters?.sources){
+                this.all_filters.sources = newVal;
+            }
+        },
+        filtered_phenotypes(newVal) {
+            if(this.all_filters?.phenotypes){
+                this.all_filters.phenotypes = newVal;
+            }
+        },
+        filtered_association_strengths(newVal) {
+            if(this.all_filters?.strengths){
+                this.all_filters.strengths = newVal;
+            }
+        }*/
     },
 
     methods: {
+        kcURL,
         alert(text){
             alert(text);
         },
@@ -758,7 +851,9 @@ Return a structured **JSON object** following this schema:
 
             this.searchCriteria = null;
             this.associations = null;
+            this.filteredAssociations = null;
             this.associationGroups = null;
+            this.response = null;
             this.mechanisms = null;
             this.mechanisms_summary = null;
             this.association_genes_loaded = 0;
@@ -772,9 +867,19 @@ Return a structured **JSON object** following this schema:
             this.relevantAssociations = null;
             this.phenotypes_list = [];
             this.programs_list = [];
+            this.all_filters = null;
             this.filtered_phenotypes = [];
             this.filtered_association_strengths = [];
             this.filtered_programs = [];
+
+            this.prev_associations = null;
+            this.prev_filtered_phenotypes = [];
+            this.prev_filtered_association_strengths = [];
+            this.prev_filtered_programs = [];
+            this.prev_context = null;
+            this.prev_search_criteria = null;
+            this.user_selected_associations = false;
+            this.user_edited_search_criteria = false;
 
             this.selected_select = "Filtered";
             this.selected_show = "All";
@@ -786,6 +891,10 @@ Return a structured **JSON object** following this schema:
             this.loading_associations = false;
             this.loading_genes = false;
             this.loading_mechanisms = false;
+
+            this.edit_search_criteria = false;
+            this.edit_associations = false;
+            this.edit_context = false;
 
             this.display_search_criteria = false;
             this.display_associations = false;
@@ -822,6 +931,72 @@ Return a structured **JSON object** following this schema:
                 onError: this.onExtractError,
                 onEnd: this.onExtractEnd
             });
+        },
+
+        editSearchCriteria(){
+            this.prev_search_criteria = JSON.parse(JSON.stringify(this.searchCriteria));
+            this.edit_search_criteria = true;
+            this.user_edited_search_criteria = false;
+        },
+        cancelEditSearchCriteria(){
+            this.edit_search_criteria = false;
+            this.searchCriteria = JSON.parse(JSON.stringify(this.prev_search_criteria));
+        },
+        removeSearchTerm(term){
+            if(!edit_search_criteria) return;
+            const idx = this.searchCriteria[0].values.indexOf(term);
+            if (idx !== -1) {
+                this.searchCriteria[0].values.splice(idx, 1);
+            }
+        },
+        addSearchTerm(event){
+            const val = event.target.value;
+            if(val.trim() !== ''){
+                this.searchCriteria[0].values.push(event.target.value);
+            }
+            event.target.value = "";
+            event.target.blur();
+        },
+        saveSearchCriteria(){
+            this.edit_search_criteria = false;
+            this.user_edited_search_criteria = true;
+            this.searchTerm = this.searchCriteria[0].values.join(', ');
+            this.updateStep(1, 'end');
+        },
+
+        editAssociations(){
+            this.prev_associations = this.associations;
+            this.prev_filtered_phenotypes = this.filtered_phenotypes;
+            this.prev_filtered_programs = this.filtered_programs;
+            this.prev_filtered_association_strengths = this.filtered_association_strengths;
+            this.edit_associations = true;
+            this.user_selected_associations = false;
+        },
+        cancelEditAssociations(){
+            this.filtered_association_strengths = this.prev_filtered_association_strengths;
+            this.filtered_programs = this.prev_filtered_programs;
+            this.filtered_phenotypes = this.prev_filtered_phenotypes;
+            this.associations = this.prev_associations;
+            this.edit_associations = false;
+        },
+        saveAssociations(){
+            this.user_selected_associations = true;
+            this.relevantAssociations = this.associations.filter(item => item.selected);
+            this.edit_associations = false;
+            this.updateStep(2, 'end');
+        },
+
+        editContext(){
+            this.prev_context = this.searchCriteria[1].values;
+            this.edit_context = true;
+            this.$nextTick(() => {
+                const input = document.querySelector('#context-edit-2')
+                input.focus();
+            });
+        },
+        cancelEditContext(){
+            this.edit_context = false;
+            this.searchCriteria[1].values = this.prev_context;
         },
 
         async phenotypeSearch(term){
@@ -917,9 +1092,11 @@ Return a structured **JSON object** following this schema:
                 console.log('associations by phenotype transformed', phenotypeAssociationsTransformed);
                 this.associations = phenotypeAssociationsTransformed;
             }
-            await this.wait(3000);
+            //await this.wait(3000);
 
             console.log('transformed search results', this.associations);
+
+            //initial filtering for analysis
 
             const allPhenotypeGroup = this.groupBy(this.associations, 'phenotype');
             const allSenesetGroup = this.groupBy(this.associations, 'gene_set');
@@ -927,12 +1104,20 @@ Return a structured **JSON object** following this schema:
 
             this.total_phenotypes = Object.keys(allPhenotypeGroup).length;
             this.total_signatures = Object.keys(allSenesetGroup).length;
-            this.total_programs = Object.keys(allSourceGroup).length;
+            //this.total_programs = Object.keys(allSourceGroup).length;
 
             console.log({allPhenotypeGroup, allSenesetGroup, allSourceGroup})
 
             this.phenotypes_list = Object.keys(allPhenotypeGroup).sort();
             this.programs_list = Object.keys(allSourceGroup).sort();
+
+            this.total_programs = [...new Set(this.programs_list.flatMap(s => s.split('_x_')))].length;
+
+            this.all_filters = {
+                phenotypes: this.filtered_phenotypes, 
+                strengths: this.filtered_association_strengths,
+                sources: this.filtered_programs
+            }
 
             this.filtered_phenotypes = this.phenotypes_list;
 
@@ -970,6 +1155,8 @@ Return a structured **JSON object** following this schema:
                 this.filtered_programs = this.programs_list;
             }
 
+            console.log('filters', this.all_filters)
+
             this.total_strong_associations = strongAssociations.length;
             this.total_moderate_associations = moderateAssociations.length;
             this.total_low_associations = lowAssociations.length;
@@ -1004,9 +1191,89 @@ Return a structured **JSON object** following this schema:
             }
         },
 
+        updateSelectedRows() {
+            if(!this.associations) return;
+
+            const sources = this.filtered_programs;
+            const phenotypes = this.filtered_phenotypes;
+            const strengths = this.filtered_association_strengths;
+            const strengthRanges = {
+                0: [1, Infinity],   // strong
+                1: [0.1, 1],        // moderate
+                2: [0, 0.1]         // low
+            };
+
+            this.associations.forEach(row => {
+                const beta = parseFloat(row.beta_uncorrected);
+
+                const sourceMatch = sources.length > 0 && sources.includes(row.source);
+                const phenoMatch  = phenotypes.length > 0 && phenotypes.includes(row.phenotype);
+                const strengthMatch =
+                strengths.length > 0 &&
+                strengths.some(opt => {
+                    const [min, max] = strengthRanges[opt];
+                    return beta >= min && beta <= max;
+                });
+
+                row.selected = sourceMatch && phenoMatch && strengthMatch;
+            });
+        },
+        selectAll(group){
+            if(group==='sources') this.filtered_programs = this.programs_list;
+            if(group==='phenotypes') this.filtered_phenotypes = this.phenotypes_list;
+            if(group==='strengths') this.filtered_association_strengths = this.strengths_list;
+            this.updateSelectedRows();
+        },
+        deselectAll(group){
+            if(group==='sources') this.filtered_programs = [];
+            if(group==='phenotypes') this.filtered_phenotypes = [];
+            if(group==='strengths') this.filtered_association_strengths = [];
+            this.updateSelectedRows();
+        },
+
+        associationsFilter(row, filters) {
+            // guard against missing filter object
+            if (!filters) return true;
+
+            // beta_uncorrected / strength range filter (if defined)
+
+            if (Array.isArray(filters.strengths) && filters.strengths.length) {
+                const beta = parseFloat(row.beta_uncorrected);
+                let min = 0;
+                if(filters.strengths.includes(2)) min = 0;
+                if(filters.strengths.includes(1)) min = 0.1;
+                if(filters.strengths.includes(0)) min = 1;
+                let max = Infinity
+                if(filters.strengths.includes(2)) max = 0.1;
+                if(filters.strengths.includes(1)) max = 1;
+                if(filters.strengths.includes(0)) max = Infinity;
+                console.log({min, max})
+                if (isFinite(min) && beta < min) return false;
+                if (isFinite(max) && beta > max) return false;
+            }
+
+            // phenotype filter
+            if (filters.phenotypes?.length && !filters.phenotypes.includes(row.phenotype)) {
+                return false;
+            }
+
+            // source filter
+            if (filters.sources?.length && !filters.sources.includes(row.source)) {
+                return false;
+            }
+
+            return true;
+        },
+
         async mechanismsReveal(){
             this.updateStep(3, 'start');
             this.display_associations = false;
+            this.display_mechanisms = true;
+            this.association_genes_loaded = 0;
+            this.mechanisms = null;
+            this.mechanisms_summary = null;
+            this.response = null;
+            this.edit_context = false;
 
             console.log('getting genes for strong associations');
 
@@ -1015,7 +1282,9 @@ Return a structured **JSON object** following this schema:
             await Promise.all(
                 relevantAssociations.map(async item => {
                     const genes = await this.fetchGenesForTerm(item.phenotype_id, item.gene_set);
-                    const geneArray = genes.map(gene => gene.gene);
+                    const filtered = genes.filter(g => g.combined > 2);
+                    const sorted = filtered.sort((a, b) => b.combined - a.combined)
+                    const geneArray = sorted.map(gene => gene.gene);
                     item.genes = geneArray;
                     this.association_genes_loaded += 1;
                 })
@@ -1148,7 +1417,7 @@ Return a structured **JSON object** following this schema:
         async fetchGenesForTerm(phenotype, geneset){
             console.log('getting genes for', phenotype, geneset);
 
-            const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${phenotype},${geneset}&limit=100`
+            const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${phenotype},${geneset},cfde&limit=100`
             const response =  await fetch(url);
 
             if (!response.ok) {
@@ -1158,10 +1427,14 @@ Return a structured **JSON object** following this schema:
 
             const res = await response.json();
             const data = res.data;
+
+            return data;
+            /*
             const filtered = data.filter(g => g.combined > 2);
             const sorted = filtered.sort((a, b) => b.combined - a.combined)
 
             return sorted;
+            */
         },
 
         updateStep(step, status, note=null){
@@ -1170,17 +1443,19 @@ Return a structured **JSON object** following this schema:
             if(step===1){
                 if(status==='start'){
                     this.loading_search_criteria = true;
-                    this.setLineAnimated(step);
+                    this.setLineAnimated(1);
                     document.querySelector(`.dot${step+1}`).classList.add("loading");
                 }
                 if(status==='end'){
                     this.loading_search_criteria = false;
-                    this.setLineSolid(step);
+                    this.setLineSolid(1);
+                    this.setLineDotted(2);
+                    this.setLineDotted(3);
                     document.querySelector(`.dot${step+1}`).classList.remove("loading");
                     document.querySelector(`.dot${step+1}`).classList.add("on");
                 }
                 if(status==='error'){
-                    this.setLineError(step);
+                    this.setLineError(1);
                     document.querySelector(`.dot${step+1}`).classList.remove("loading");
                     document.querySelector(`.dot${step+1}`).classList.add("error");
                 }
@@ -1188,17 +1463,18 @@ Return a structured **JSON object** following this schema:
             if(step===2){
                 if(status==='start'){
                     this.loading_associations = true;
-                    this.setLineAnimated(step);
+                    this.setLineAnimated(2);
                     document.querySelector(`.dot${step+1}`).classList.add("loading");
                 }
                 if(status==='end'){
                     this.loading_associations = false;
-                    this.setLineSolid(step);
+                    this.setLineSolid(2);
+                    this.setLineDotted(3);
                     document.querySelector(`.dot${step+1}`).classList.remove("loading");
                     document.querySelector(`.dot${step+1}`).classList.add("on");
                 }
                 if(status==='error'){
-                    this.setLineError(step);
+                    this.setLineError(2);
                     document.querySelector(`.dot${step+1}`).classList.remove("loading");
                     document.querySelector(`.dot${step+1}`).classList.add("error");
                 }
@@ -1242,6 +1518,20 @@ Return a structured **JSON object** following this schema:
             
         },
 
+        getsetLink(association){
+            const geneset = `${association.phenotype},${association.gene_set},${association.source}`
+            const url = kcURL(`/r/cfde_explore?associations=${geneset}`);
+            return url;
+        },
+
+        genesLink(mechanism){
+            const genes = mechanism.associations.flatMap(item => item.genes);
+            const url = kcURL(`/r/cfde_explore?genes=${genes}`);
+            return url;
+        },
+
+        //https://dev.cfdeknowledge.org/r/cfde_explore?hypothesis=Coordinated%20downregulation%20of%20core%20mitochondrial%20OXPHOS%20genes%20in%20brown%20adipose,%20brain,%20and%20heart%20reduces%20oxidative%20phosphorylation%20capacity,%20lowering%20whole-body%20VO2%20and%20increasing%20reliance%20on%20carbohydrate%20oxidation%20(higher%20RER).&associations=disorder%20of%20energy%20metabolism,gtex_brain-amygdala_MHSEPSIS_down,kc_diffexp;rare%20inborn%20errors%20of%20metabolism,T69-Brown-Adipose_Male_8W_Down,motrpac;disorder%20of%20energy%20metabolism,gtex_brain-ch_MHTXCEXP_up,kc_diffexp;disorder%20of%20energy%20metabolism,gtex_heart-aa_MONDO_0007915_down,kc_diffexp&genes=MT-ATP8,MCCC2,HADHB,NDUFS1,COX4I1,SPG7,ELOVL5,UROD,ATP1A1,NDUFS2,PPARG
+
         validationLink(mechanism){
             const hypothesis = mechanism.hypothesis;
             const associations = mechanism.associations.map(item => {
@@ -1251,7 +1541,8 @@ Return a structured **JSON object** following this schema:
                     const source = item.source || "";
                     return `${phenotype},${geneSet},${source}`;
                 }).join(';');
-            return `/research.html?pageid=cfde_design&hypothesis=${hypothesis}&associations=${associations}`
+            const url = kcURL(`/r/cfde_design?hypothesis=${hypothesis}&associations=${associations}`);
+            return url;
         },
 
 
@@ -1372,7 +1663,7 @@ Return a structured **JSON object** following this schema:
                         purpose: 'These terms will be used to search for related phenotype↔signature associations via semantic search.'
                     },
                     {
-                        search_criteria: 'research context',
+                        search_criteria: 'Research Context',
                         values: json.research_context,
                         why: 'We inferred this from on your search query.',
                         purpose: 'This context will be used to tailor mechanistic hypotheses to your research.'
@@ -1503,8 +1794,23 @@ Return a structured **JSON object** following this schema:
 </script>
 
 <style scoped>
+/*
+::v-deep .btn-primary:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+::v-deep .btn-info:hover:not(:disabled) {
+    background-color: #157d8e;
+}
+::v-deep .btn-success:hover:not(:disabled) {
+    background-color: #237d37;
+}
+::v-deep .btn-warning:hover:not(:disabled) {
+    background-color: #d5a40e;
+}
+*/
+
 .section-header{
-    border: 1px solid gray;
+    background: #eee;
     border-radius: 5px;
     padding: 10px 5px;
     cursor: pointer;
@@ -1522,7 +1828,7 @@ Return a structured **JSON object** following this schema:
     top: 50%;
     right: 20px;
     transform: translateY(-50%);
-    color: #007bff;
+    color: #ff6600;
 }
 
 .query-sample {
@@ -1545,6 +1851,49 @@ Return a structured **JSON object** following this schema:
     border: 0.5px solid #ddd;
     display: inline-flex;
     width: fit-content;
+    position: relative;
+}
+.pill.editable:hover:after {
+    content: '✖';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border-radius: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: red;
+    cursor: pointer;
+}
+.pill.new{
+    text-align: center;
+    width: 50px;
+}
+.pill.new:focus{
+    width: 100px;
+}
+.editing .pill {
+    border: 1px solid #ff6600;
+}
+
+.next_step {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    color: black !important;
+    font-weight: bold;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+.next_step:hover{
+    background: #ccc;
 }
 
 .collapsed{
@@ -1572,9 +1921,11 @@ label{
     margin-bottom: 0;
 }
 
+/*
 button:hover{
     background: #ddd;
 }
+*/
 
 .muted{
     opacity: 1;
@@ -1626,7 +1977,7 @@ button:hover{
 .dot {
     position: absolute;
     background: #eee;
-    border: 2px solid black;
+    border: 2px solid #35669a;
     width: 8px;
     height: 8px;
     top: 1.2em;
@@ -1635,7 +1986,7 @@ button:hover{
     z-index: 1;
 }
 .dot.on{
-    background: black;
+    background: #35669a;
 }
 .dot.loading {
     border-bottom-color: transparent;
@@ -1665,16 +2016,18 @@ button:hover{
     pointer-events: none;
 }
 ::v-deep line {
-    stroke: black;
+    stroke: #ff6600;
     stroke-width: 1;
 }
 ::v-deep line.dotted {
+    stroke: black;
     stroke-dasharray: 4, 6;
 }
 ::v-deep line.error {
     stroke: red;
 }
 ::v-deep line.animated {
+    stroke: black;
     stroke-dasharray: 4, 6;
     stroke-dashoffset: 16;
     animation: dash-move 1s linear infinite;
