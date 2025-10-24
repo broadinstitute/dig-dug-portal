@@ -202,7 +202,7 @@
                     <div class="table-container">
                     <div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
                         <span class="loading-spinner-small"></span>
-                        <span class="loading-text">Generating gene to hypothesis novelty and relevance scores... ({{ geneNoveltyElapsedTime }})</span>
+                        <span class="loading-text">Generating gene to hypothesis relevance & innovation score... ({{ geneNoveltyElapsedTime }})</span>
                     </div>
                         <table class="gene-data-table">
                             <thead>
@@ -211,8 +211,8 @@
                                         
                                     </th>
                                     <th>Gene/Target</th>
-                                    <th>Hypothesis Alignment</th>
-                                    <th>Research Gap Score</th>
+                                    <th>Hypothesis Relevance</th>
+                                    <th>Innovation Score</th>
                                     <th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
                                     <th v-if="!hasManualGenes">Associations</th>
                                 </tr>
