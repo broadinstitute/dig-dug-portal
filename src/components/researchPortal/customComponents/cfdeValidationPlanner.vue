@@ -275,9 +275,8 @@
                                                         <tr>
                                                             <th>Phenotype</th>
                                                             <th>Gene Set</th>
-                                                            <th>Combined Genetic Support</th>
-                                                            <th>Direct Genetic Support</th>
-                                                            <th>Indirect Genetic Support</th>
+                                                            <th>Source</th>
+                                                            <th>Explore Further</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -285,9 +284,16 @@
                                                             <tr :key="`${item.gene}-evidence-${index}`">
                                                                 <td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
                                                                 <td>{{ evidence.gene_set }}</td>
-                                                                <td>{{ evidence.combined ? evidence.combined.toFixed(2) : 'N/A' }}</td>
-                                                                <td>{{ evidence.log_bf ? evidence.log_bf.toFixed(2) : 'N/A' }}</td>
-                                                                <td>{{ evidence.prior ? evidence.prior.toFixed(2) : 'N/A' }}</td>
+                                                                <td>{{ evidence.source || 'N/A' }}</td>
+                                                                <td>
+                                                                    <button 
+                                                                        @click="openWithGenesFromAssociation(evidence)"
+                                                                        class="btn btn-sm btn-outline-primary explore-btn"
+                                                                        title="Open with genes from this association"
+                                                                    >
+                                                                        Open with genes from association
+                                                                    </button>
+                                                                </td>
                                                             </tr>
                                                         </template>
                                                     </tbody>
@@ -1722,6 +1728,23 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			evidenceData.sort((a, b) => (b.combined || 0) - (a.combined || 0));
 			
 			return evidenceData;
+		},
+		openWithGenesFromAssociation(evidence) {
+			// Get the human-readable phenotype name instead of ID
+			const phenotypeDisplayName = this.getPhenotypeDisplayNames(evidence.phenotype);
+			
+			// Create the association string in the format: phenotype_name,gene_set,program
+			const associationString = `${phenotypeDisplayName},${evidence.gene_set},${evidence.source || 'N/A'}`;
+			
+			// Encode the parameters for URL
+			const hypothesisParam = encodeURIComponent(this.phenotypeSearch || '');
+			const associationsParam = encodeURIComponent(associationString);
+			
+			// Create the CFDE explore URL
+			const exploreUrl = `/r/cfde_explore?hypothesis=${hypothesisParam}&associations=${associationsParam}`;
+			
+			// Open in new tab
+			window.open(exploreUrl, '_blank');
 		},
 		updateFilteredGenes() {
 			// Start with all genes
@@ -5167,16 +5190,38 @@ a {
     font-weight: 600;
     color: #495057;
     border: 1px solid #dee2e6;
+    width: 25%;
 }
 
 .evidence-table td {
     padding: 6px 8px;
     border: 1px solid #dee2e6;
     background: white;
+    width: 25%;
 }
 
 .evidence-table tr:nth-child(even) td {
     background: #f8f9fa;
+}
+
+.explore-btn {
+    display: block;
+    background-color: #55aaee !important;
+    border: solid 1px #3388cc;
+    font-size: 12px !important;
+    color: #ffffff;
+    padding: 1px 10px !important;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    -webkit-transition: all 0.2s ease;
+    transition: all 0.2s ease;
+}
+
+.explore-btn:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+    transform: translateY(-1px);
 }
 
 /* URL Choice Dialog Styles */

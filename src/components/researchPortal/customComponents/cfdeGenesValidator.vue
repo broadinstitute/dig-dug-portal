@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div class="cfde-explore">
 		<!-- URL Parameter Choice Dialog -->
 		<div v-if="showUrlChoiceDialog" class="url-choice-dialog-overlay">
 			<div class="url-choice-dialog">
@@ -46,60 +46,58 @@
 			</div>
 		</div>
 		
-        <!-- Two Column Layout for Upper Half -->
-        <div class="upper-layout">
-            <!-- Left Column (70%) - Hypothesis Section -->
-            <div>
-                <!-- Hypothesis to Validate Section -->
-                <div id="hypothesis-section" class="hypothesis-container section-wrapper">
-            
-                    <div class="hypothesis-content">
-						<div class="section-header">
-							<h4>Hypothesis</h4>
-						</div>
-						<small class="format-suggestion">Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.</small>
-                        
-                        <div class="textarea-container">
+		<!-- Two Column Layout for Upper Half -->
+		<div class="upper-layout">
+			<div class="left-column">
+				<!-- hypothesis section -->
+				<div class="section-header">
+					<h4>Hypothesis</h4>
+				</div>
+				<small class="format-suggestion">Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.</small>
+				<div class="textarea-container">
 			<textarea 
-                                v-model="phenotypeSearch" 
-                                placeholder="Enter your hypothesis..."
+						v-model="phenotypeSearch" 
+						placeholder="Enter your hypothesis..."
 				class="hypothesis-textarea"
 				rows="3"
 			></textarea>
-                    </div>
-                    <div class="gene-sets-input">
-                        <div v-if="!hideAssociationsInput">
-							<div class="section-header">
-								<h4>Phenotype Gene set Associations</h4>
-							</div>
-                            <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
-                            <textarea 
-                                id="gene-sets"
-                                v-model="geneSets" 
-                                placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
-                                class="gene-sets-field"
-                                rows="3"
-                            ></textarea>
-                        </div>
-                        <div v-if="!hideAssociationsInput && !showManualGeneInput && geneSets.trim() && (geneData.length === 0 || associationsModified)" class="load-genes-section">
-                            <button 
-                                @click="loadGenesFromAssociations" 
-                                class="btn btn-secondary load-genes-btn"
-                                :disabled="isLoadingGenes"
-                            >
-                                <span v-if="isLoadingGenes" class="loading-spinner-small"></span>
-                                {{ isLoadingGenes ? 'Loading genes...' : 'Load genes' }}
-                            </button>
-                            <small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
 		</div>
 
-		<!-- Gene Input Section (Primary) -->
-                        <div class="gene-input-section">
+		<small class="input-warning">Load genes from phenotype-gene set associations or enter genes manually to Genes input below</small>
+				<!-- associations section -->
 
-							<div class="section-header">
-								<h4>Genes</h4>
-							</div>
-			<small class="format-suggestion">Enter genes separated by commas (e.g., GENE1, GENE2, GENE3)</small>
+				<div class="gene-sets-input">
+					<div v-if="!hideAssociationsInput">
+						<div class="section-header">
+							<h4>Phenotype Gene set Associations</h4>
+						</div>
+						<small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
+						<textarea 
+							id="gene-sets"
+							v-model="geneSets" 
+							placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
+							class="gene-sets-field"
+							rows="3"
+						></textarea>
+					</div>
+					<div v-if="!hideAssociationsInput && !showManualGeneInput && geneSets.trim() && (geneData.length === 0 || associationsModified)" class="load-genes-section">
+						<button 
+							@click="loadGenesFromAssociations" 
+							class="btn btn-secondary load-genes-btn"
+							:disabled="isLoadingGenes"
+						>
+							<span v-if="isLoadingGenes" class="loading-spinner-small"></span>
+							{{ isLoadingGenes ? 'Loading genes...' : 'Load genes' }}
+						</button>
+						<small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
+					</div>
+
+					<!-- Gene Input Section (Primary) -->
+					<div class="gene-input-section">
+						<div class="section-header">
+							<h4>Genes</h4>
+						</div>
+						<small class="format-suggestion">Enter genes separated by commas (e.g., GENE1, GENE2, GENE3)</small>
 			<textarea 
 				id="manual-genes"
 				v-model="manualGenes" 
@@ -107,110 +105,116 @@
 				class="manual-genes-field"
 				rows="2"
 			></textarea>
-			<!-- Gene actions will be moved to user options -->
+						<!-- Gene actions will be moved to user options -->
+					</div>
+				</div>
+
+			</div>
+			<div class="right-column">
+				<!-- Gene Exploration Options -->
+				<div class="gene-options-section">
+					<div class="gene-options-header">
+						<h4>Explore Further with your genes</h4>
+						<small class="format-suggestion">Choose how you'd like to analyze the genes in your list. Enter genes above to enable the options below{{ hasHypothesis ? '' : ' (hypothesis scoring not available without hypothesis parameter)' }}:</small>
+					</div>
+					
+					<div class="gene-options-grid">
+						<!-- Option 1: GTEx Expression Analysis -->
+						<div class="gene-option-card">
+							<div class="option-header">
+								<h5>GTEx Tissue Expression Analysis</h5>
+								<span class="option-badge">Expression Data</span>
+							</div>
+							<div class="option-description">
+								<p>Open the GTEx browser to explore gene expression patterns across human tissues. Visualize where your genes are most highly expressed and identify tissue-specific patterns using the official GTEx portal.</p>
+							</div>
+							<div class="option-details">
+								<ul>
+									<li>Expression across 54 human tissues</li>
+									<li>Interactive heatmaps and plots</li>
+									<li>Tissue-specific expression patterns</li>
+									<li>Comparative analysis between genes</li>
+								</ul>
+							</div>
+							<div class="option-actions">
+				<button 
+									@click="exploreGTExExpression"
+									class="btn btn-primary option-btn"
+									:disabled="!manualGenes.trim()"
+								>
+									Open GTEx Browser
+				</button>
+								<span class="option-note">{{ getGeneCount() > 50 ? 'First 50 genes will be used' : 'Opens in new tab' }}</span>
 			</div>
 		</div>
 
-		<!-- Gene Exploration Options -->
-		<div class="gene-options-section">
-			<div class="gene-options-header">
-				<h4>Explore Your Genes</h4>
-				<small class="format-suggestion">Choose how you'd like to analyze the genes in your list. Enter genes above to enable the options below{{ hasHypothesis ? '' : ' (hypothesis scoring not available without hypothesis parameter)' }}:</small>
+						<!-- Option 2: Playbook Workflow Builder -->
+						<div class="gene-option-card">
+							<div class="option-header">
+								<h5>Explore genes in Playbook Workflow Builder</h5>
+								<span class="option-badge">Workflow Analysis</span>
+							</div>
+							<div class="option-description">
+								<p>Open the Playbook Workflow Builder to perform comprehensive gene set enrichment analysis across multiple CFDE databases. The workflow automatically analyzes your genes against 7 different databases and generates interactive visualizations.</p>
+							</div>
+							<div class="option-details">
+								<ul>
+									<li><strong>GTEx Tissues V8 2023:</strong> Tissue expression signatures</li>
+									<li><strong>LINCS L1000:</strong> Chemical perturbation signatures</li>
+									<li><strong>IDG Drug Targets 2022:</strong> Drug target analysis</li>
+									<li><strong>HuBMAP ASCTplusB 2022:</strong> Cell type biomarkers</li>
+									<li><strong>GlyGen 2022:</strong> Glycosylated protein analysis</li>
+									<li><strong>Metabolomics Workbench 2022:</strong> Metabolite associations</li>
+									<li><strong>MoTrPAC 2023:</strong> Exercise response signatures</li>
+								</ul>
+							</div>
+							<div class="option-actions">
+								<button 
+									@click="enrichGenes" 
+									class="btn btn-primary option-btn"
+									:disabled="!manualGenes.trim()"
+								>
+									Open Playbook Workflow Builder
+								</button>
+								<span class="option-note">7 database analyses • Interactive charts • Opens in new tab</span>
+							</div>
+						</div>
+
+						<!-- Option 3: Hypothesis Alignment and Research Gap Score -->
+						<div v-if="hasHypothesis" class="gene-option-card">
+							<div class="option-header">
+								<h5>Hypothesis Alignment & Research Gap Score</h5>
+								<span class="option-badge">AI Analysis</span>
+							</div>
+							<div class="option-description">
+								<p>Generate AI-powered scores showing how relevant and novel each gene is to your specific hypothesis. This will help prioritize which genes are most important for your research.</p>
+							</div>
+							<div class="option-details">
+								<ul>
+									<li>Hypothesis Alignment Score (1-10)</li>
+									<li>Research Gap Score (1-10)</li>
+									<li>Molecular rationale for each gene</li>
+									<li>AI-generated context and justification</li>
+								</ul>
+							</div>
+							<div class="option-actions">
+				<button 
+									@click="generateHypothesisAlignment"
+									class="btn btn-primary option-btn"
+									:disabled="!manualGenes.trim() || isGettingGeneNovelty"
+								>
+									<span v-if="isGettingGeneNovelty" class="loading-spinner-small"></span>
+									Generate Scores
+				</button>
+								<span class="option-note">Requires hypothesis input</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 			</div>
 			
-			<div class="gene-options-grid">
-				<!-- Option 1: Hypothesis Alignment and Research Gap Score -->
-				<div v-if="hasHypothesis" class="gene-option-card">
-					<div class="option-header">
-						<h5>Hypothesis Alignment & Research Gap Score</h5>
-						<span class="option-badge">AI Analysis</span>
-					</div>
-					<div class="option-description">
-						<p>Generate AI-powered scores showing how relevant and novel each gene is to your specific hypothesis. This will help prioritize which genes are most important for your research.</p>
-					</div>
-					<div class="option-details">
-						<ul>
-							<li>Hypothesis Alignment Score (1-10)</li>
-							<li>Research Gap Score (1-10)</li>
-							<li>Molecular rationale for each gene</li>
-							<li>AI-generated context and justification</li>
-						</ul>
-					</div>
-					<div class="option-actions">
-				<button 
-							@click="generateHypothesisAlignment"
-							class="btn btn-primary option-btn"
-							:disabled="!manualGenes.trim() || isGettingGeneNovelty"
-						>
-							<span v-if="isGettingGeneNovelty" class="loading-spinner-small"></span>
-							Generate Scores
-				</button>
-						<span class="option-note">Requires hypothesis input</span>
-					</div>
-				</div>
-
-				<!-- Option 2: GTEx Expression Analysis -->
-				<div class="gene-option-card">
-					<div class="option-header">
-						<h5>GTEx Tissue Expression Analysis</h5>
-						<span class="option-badge">Expression Data</span>
-					</div>
-					<div class="option-description">
-						<p>Open the GTEx browser to explore gene expression patterns across human tissues. Visualize where your genes are most highly expressed and identify tissue-specific patterns using the official GTEx portal.</p>
-					</div>
-					<div class="option-details">
-						<ul>
-							<li>Expression across 54 human tissues</li>
-							<li>Interactive heatmaps and plots</li>
-							<li>Tissue-specific expression patterns</li>
-							<li>Comparative analysis between genes</li>
-						</ul>
-					</div>
-					<div class="option-actions">
-				<button 
-                            @click="exploreGTExExpression"
-                            class="btn btn-primary option-btn"
-                            :disabled="!manualGenes.trim()"
-                        >
-                            Open GTEx Browser
-				</button>
-                        <span class="option-note">{{ getGeneCount() > 50 ? 'First 50 genes will be used' : 'Opens in new tab' }}</span>
-			</div>
-		</div>
-
-				<!-- Option 3: Playbook Workflow Builder -->
-				<div class="gene-option-card">
-					<div class="option-header">
-						<h5>Explore genes in Playbook Workflow Builder</h5>
-						<span class="option-badge">Workflow Analysis</span>
-					</div>
-					<div class="option-description">
-						<p>Open the Playbook Workflow Builder to perform comprehensive gene set enrichment analysis across multiple CFDE databases. The workflow automatically analyzes your genes against 7 different databases and generates interactive visualizations.</p>
-					</div>
-					<div class="option-details">
-						<ul>
-							<li><strong>GTEx Tissues V8 2023:</strong> Tissue expression signatures</li>
-							<li><strong>LINCS L1000:</strong> Chemical perturbation signatures</li>
-							<li><strong>IDG Drug Targets 2022:</strong> Drug target analysis</li>
-							<li><strong>HuBMAP ASCTplusB 2022:</strong> Cell type biomarkers</li>
-							<li><strong>GlyGen 2022:</strong> Glycosylated protein analysis</li>
-							<li><strong>Metabolomics Workbench 2022:</strong> Metabolite associations</li>
-							<li><strong>MoTrPAC 2023:</strong> Exercise response signatures</li>
-						</ul>
-					</div>
-					<div class="option-actions">
-						<button 
-							@click="enrichGenes" 
-							class="btn btn-primary option-btn"
-							:disabled="!manualGenes.trim()"
-						>
-							Open Playbook Workflow Builder
-						</button>
-						<span class="option-note">7 database analyses • Interactive charts • Opens in new tab</span>
-					</div>
-				</div>
-			</div>
-			</div>
+		
 			
 		<!-- Welcome Popup for New Users -->
 		<div v-if="showWelcomePopup" class="welcome-popup-overlay">
@@ -223,11 +227,16 @@
 					<p>This tool helps you explore and analyze genes for your research. Here's what you need to get started:</p>
 					
 					<div class="welcome-requirements">
-						<div class="requirement-item">
+						<div class="requirement-item" :class="{ 'found': urlHasGenes }">
+							<div class="requirement-icon">
+								<span v-if="urlHasGenes" class="check-icon">✓</span>
+								<span v-else class="missing-icon">○</span>
+							</div>
 							<div class="requirement-content">
-								<h4>Genes List (Required)</h4>
-								<p>You need a list of genes to explore. You can:</p>
-								<ul>
+								<h4>Genes List (Required) <span v-if="urlHasGenes" class="status-found">✓ Found in URL</span></h4>
+								<p v-if="urlHasGenes">Great! We found genes in your URL parameters.</p>
+								<p v-else>You need a list of genes to explore. You can:</p>
+								<ul v-if="!urlHasGenes">
 									<li>Enter genes manually in the "Genes" field above</li>
 									<li>Load genes from phenotype-gene set associations</li>
 									<li>Use genes from URL parameters (if available)</li>
@@ -235,18 +244,26 @@
 							</div>
 						</div>
 						
-						<div class="requirement-item">
+						<div class="requirement-item" :class="{ 'found': urlHasHypothesis }">
+							<div class="requirement-icon">
+								<span v-if="urlHasHypothesis" class="check-icon">✓</span>
+								<span v-else class="missing-icon">○</span>
+							</div>
 							<div class="requirement-content">
-								<h4>Hypothesis (Optional)</h4>
-								<p>To generate AI-powered Hypothesis Alignment & Research Gap Scores, you need:</p>
-								<ul>
+								<h4>Hypothesis (Optional) <span v-if="urlHasHypothesis" class="status-found">✓ Found in URL</span></h4>
+								<p v-if="urlHasHypothesis">Perfect! We found your hypothesis in the URL parameters.</p>
+								<p v-else>To generate AI-powered Hypothesis Alignment & Research Gap Scores, you need:</p>
+								<ul v-if="!urlHasHypothesis">
 									<li>A research hypothesis in the "Hypothesis" field above</li>
 									<li>This enables AI analysis of gene relevance to your specific research question</li>
 								</ul>
 							</div>
 						</div>
 						
-						<div class="requirement-item">
+						<div class="requirement-item options">
+							<div class="requirement-icon">
+								<span class="info-icon">ℹ</span>
+							</div>
 							<div class="requirement-content">
 								<h4>Exploration Options</h4>
 								<p>Once you have genes, you can:</p>
@@ -269,110 +286,98 @@
 		<!-- Gene Data Table -->
 		<div v-if="geneData.length > 0" class="gene-data-table-section">
 			<!-- Loading Banner (simplified like validation planner) -->
-			<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
-				<span class="loading-spinner-small"></span>
+				<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
+					<span class="loading-spinner-small"></span>
 				<span class="loading-text">Generating gene to hypothesis novelty and relevance scores... ({{ geneNoveltyElapsedTime }})</span>
-			</div>
+				</div>
 				
-			
 			<div class="table-container">
 				<table class="gene-data-table">
 					<thead>
 						<tr>
-                                    <th>
-                                        
-                                    </th>
-                                    <th>Gene/Target</th>
-                                    <th>Hypothesis Alignment</th>
-                                    <th>Research Gap Score</th>
-                                    <th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
-                                    <th v-if="!hasManualGenes">Associations</th>
+							<th>Gene/Target</th>
+							<th>Hypothesis Alignment</th>
+							<th>Research Gap Score</th>
+							<th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
+							<th v-if="!hasManualGenes">Associations</th>
 						</tr>
 					</thead>
 					<tbody>
-                                <tr v-for="row in tableRows" :key="row.key">
-                                    <!-- Gene row -->
-                                    <template v-if="row.type === 'gene'">
-                                        <td>
-                                            <input 
-                                                type="checkbox" 
-                                                :value="row.item.gene"
-                                                v-model="selectedGenes"
-                                                class="gene-checkbox"
-                                            />
-                                        </td>
-                                        <td>{{ row.item.gene }}</td>
+						<tr v-for="row in tableRows" :key="row.key">
+							<!-- Gene row -->
+							<template v-if="row.type === 'gene'">
+								<td>{{ row.item.gene }}</td>
 							<td>
 								<div class="relevance-cell">
-                                                <div v-if="getRelevance(row.item.gene)" class="score-content" :class="{ 'high-score': getRelevance(row.item.gene).score >= 7 }">
-                                                    <div class="score-value">{{ getRelevanceScore(row.item.gene) }}</div>
+										<div v-if="getRelevance(row.item.gene)" class="score-content" :class="{ 'high-score': getRelevance(row.item.gene).score >= 7 }">
+											<div class="score-value">{{ getRelevanceScore(row.item.gene) }}</div>
 									</div>
-									<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
 									<span v-else>TBD</span>
 								</div>
 							</td>
 							<td>
 								<div class="novelty-cell">
-                                                <div v-if="getNovelty(row.item.gene)" class="score-content" :class="{ 'high-score': getNovelty(row.item.gene).score >= 7 }">
-                                                    <div class="score-value">{{ getNoveltyScore(row.item.gene) }}</div>
+										<div v-if="getNovelty(row.item.gene)" class="score-content" :class="{ 'high-score': getNovelty(row.item.gene).score >= 7 }">
+											<div class="score-value">{{ getNoveltyScore(row.item.gene) }}</div>
 									</div>
-									<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
 									<span v-else>TBD</span>
 								</div>
 							</td>
 							<td>
 								<div class="reason-cell">
-                                                <div v-if="getNovelty(row.item.gene)" class="reason-content">
-                                                    {{ getNovelty(row.item.gene).context }}
+										<div v-if="getNovelty(row.item.gene)" class="reason-content">
+											{{ getNovelty(row.item.gene).context }}
 									</div>
-									<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
 									<span v-else>TBD</span>
 								</div>
 							</td>
-                                        <td v-if="!hasManualGenes">
-                                            <button 
-                                                @click="toggleEvidenceView(row.item.gene)"
-                                                class="view-button"
-                                                :class="{ active: expandedGenes.includes(row.item.gene) }"
-                                            >
-                                                {{ expandedGenes.includes(row.item.gene) ? 'Hide' : 'View' }}
-                                            </button>
-                                        </td>
-                                    </template>
-                                    
-                                    <!-- Evidence row -->
-                                    <template v-else-if="row.type === 'evidence'">
-                                        <td :colspan="hasManualGenes ? 5 : 6">
-                                            <div class="evidence-subtable">
-                                                <table class="evidence-table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Phenotype</th>
-                                                            <th>Gene Set</th>
-                                                            <th>Combined Genetic Support</th>
-                                                            <th>Direct Genetic Support</th>
-                                                            <th>Indirect Genetic Support</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr v-for="(evidence, index) in getEvidenceData(row.item)" :key="`${row.item.gene}-evidence-${index}`">
-                                                                <td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
-                                                                <td>{{ evidence.gene_set }}</td>
-                                                                <td>{{ evidence.combined ? evidence.combined.toFixed(2) : 'N/A' }}</td>
-                                                                <td>{{ evidence.log_bf ? evidence.log_bf.toFixed(2) : 'N/A' }}</td>
-                                                                <td>{{ evidence.prior ? evidence.prior.toFixed(2) : 'N/A' }}</td>
-                                                            </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </td>
-                                    </template>
+								<td v-if="!hasManualGenes">
+									<button 
+										@click="toggleEvidenceView(row.item.gene)"
+										class="view-button"
+										:class="{ active: expandedGenes.includes(row.item.gene) }"
+									>
+										{{ expandedGenes.includes(row.item.gene) ? 'Hide' : 'View' }}
+									</button>
+								</td>
+							</template>
+							
+							<!-- Evidence row -->
+							<template v-else-if="row.type === 'evidence'">
+								<td :colspan="hasManualGenes ? 5 : 6">
+									<div class="evidence-subtable">
+										<table class="evidence-table">
+											<thead>
+												<tr>
+													<th>Phenotype</th>
+													<th>Gene Set</th>
+													<th>Combined Genetic Support</th>
+													<th>Direct Genetic Support</th>
+													<th>Indirect Genetic Support</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr v-for="(evidence, index) in getEvidenceData(row.item)" :key="`${row.item.gene}-evidence-${index}`">
+													<td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
+													<td>{{ evidence.gene_set }}</td>
+													<td>{{ evidence.combined ? evidence.combined.toFixed(2) : 'N/A' }}</td>
+													<td>{{ evidence.log_bf ? evidence.log_bf.toFixed(2) : 'N/A' }}</td>
+													<td>{{ evidence.prior ? evidence.prior.toFixed(2) : 'N/A' }}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</td>
+							</template>
 						</tr>
 					</tbody>
 				</table>
 				
 				<!-- Pagination -->
-                        <div class="pagination-container">
+				<div class="pagination-container">
 					<div class="pagination-info">
 						Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, geneData.length) }} of {{ geneData.length }} entries
 					</div>
@@ -420,12 +425,6 @@
 					</div>
 				</div>
 			</div>
-			
-                </div>
-				</div>
-			</div>
-		</div>
-
 		</div>
 	</div>
 </template>
@@ -514,8 +513,11 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				associations: null,
 				genes: null
 			},
-			// Welcome popup for new users
-			showWelcomePopup: false,
+		// Welcome popup for new users
+		showWelcomePopup: false,
+		// URL parameter detection for welcome popup
+		urlHasGenes: false,
+		urlHasHypothesis: false,
 			// Gene scoring state (simplified like validation planner)
 			isGettingGeneNovelty: false,
 			geneNoveltyStartTime: null,
@@ -546,12 +548,29 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		this.geneNoveltyStartTime = null;
 		this.geneNoveltyElapsedTime = '0:00';
 		
-		// Show welcome popup if no URL parameters are present
+		// Show welcome popup in these cases:
+		// 1. No URL parameters at all
+		// 2. Only hypothesis parameter (no genes/associations)
+		// 3. Only genes/associations parameters (no hypothesis)
 		const urlParams = new URLSearchParams(window.location.search);
 		const hasGenes = urlParams.has('genes') && urlParams.get('genes').trim() !== '';
+		const hasAssociations = urlParams.has('associations') && urlParams.get('associations').trim() !== '';
+		const hasGeneSets = urlParams.has('geneSets') && urlParams.get('geneSets').trim() !== '';
 		const hasHypothesis = urlParams.has('hypothesis') && urlParams.get('hypothesis').trim() !== '';
 		
-		if (!hasGenes && !hasHypothesis) {
+		const hasAnyGeneSource = hasGenes || hasAssociations || hasGeneSets;
+		
+		// Set flags for welcome popup display
+		this.urlHasGenes = hasAnyGeneSource;
+		this.urlHasHypothesis = hasHypothesis;
+		
+		// Show popup if:
+		// - No parameters at all, OR
+		// - Only hypothesis (no gene sources), OR  
+		// - Only gene sources (no hypothesis)
+		if ((!hasAnyGeneSource && !hasHypothesis) || 
+			(hasHypothesis && !hasAnyGeneSource) || 
+			(hasAnyGeneSource && !hasHypothesis)) {
 			this.showWelcomePopup = true;
 		}
 		
@@ -1318,6 +1337,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				for (const query of geneQueries) {
 					try {
 						const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)},cfde`;
+
+						console.log('URL:', url);
 						
 						const response = await fetch(url);
 						
@@ -1627,7 +1648,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			try {
 				// Add genes to the table first (similar to addManualGenes but without clearing input)
 				const genesToAdd = genesToProcess.map(gene => ({
-					gene: gene,
+							gene: gene,
 					log_bf: null,
 					prior: null,
 					combined: null,
@@ -1635,8 +1656,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					indirectPPA: null,
 					source: 'Manual Input',
 					phenotype: 'Manual Input',
-					isManual: true
-				}));
+							isManual: true
+						}));
 						
 				// Add to existing gene data
 				this.geneData = [...this.geneData, ...genesToAdd];
@@ -1714,10 +1735,29 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 </script>
 
 <style scoped>
+.cfde-explore {
+	padding: 20px;
+}
 /* Main Background - CFDE Knowledge Center Style */
 body {
     background-color: #F8F8F8;
 }
+/*
+.upper-layout {
+	display:flex;
+	gap: 20px;
+}
+
+.upper-layout > .left-column {
+	width: 600px;
+	padding: 15px
+}
+
+.upper-layout > .right-column {
+	width: calc(100% - 600px);
+	padding: 15px
+}
+	*/
 
 .section-header h4 {
     color: #333333;
@@ -2011,12 +2051,55 @@ a {
     padding: 12px;
     background: #f8f9fa;
     border-left: 4px solid #FF6600;
+    transition: all 0.2s ease;
+}
+
+.requirement-item.found {
+    background: #f8f9fa;
+    border-left-color: #28a745;
+}
+
+.requirement-item.options {
+    background: #f8f9fa;
+    border-left-color: #679dd4;
 }
 
 .requirement-icon {
     font-size: 24px;
     flex-shrink: 0;
     margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e9ecef;
+}
+
+.check-icon {
+    color: #28a745;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.missing-icon {
+    color: #6c757d;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.info-icon {
+    color: #007bff;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.status-found {
+    color: #28a745;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-left: 8px;
 }
 
 .requirement-content h4 {
@@ -2136,7 +2219,7 @@ a {
     text-decoration: underline;
 }
 
-small.format-suggestion {
+small.format-suggestion, small.input-warning {
     display: block;
     color: #777777;
     font-size: 12px;
@@ -2145,6 +2228,12 @@ small.format-suggestion {
     padding: 4px 8px;
     background-color: #F8F8F8;
     border-left: 3px solid #7c757d;
+}
+
+small.input-warning {
+    border-left: 3px solid #FF6600;
+	color: #FF6600;
+	font-size: 13px;
 }
 
 .section-header {
@@ -2158,7 +2247,7 @@ small.format-suggestion {
     font-size: 16px;
 }
 
-.manual-genes-field, .hypothesis-textarea {
+.manual-genes-field, .hypothesis-textarea, .gene-sets-field {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid #ced4da;
@@ -2166,26 +2255,18 @@ small.format-suggestion {
     font-size: 14px;
     font-family: inherit;
     resize: vertical;
-    min-height: 60px;
+    min-height: 50px;
     margin-bottom: 10px;
+}
+
+.manual-genes-field {
+	min-height: 150px;
 }
 
 .manual-genes-field:focus {
     outline: none;
     border-color: #FF6600;
     box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.2);
-}
-
-.gene-sets-field {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 14px;
-    font-family: inherit;
-    resize: vertical;
-    min-height: 80px;
-    margin-bottom: 10px;
 }
 
 .gene-sets-field:focus {
@@ -2347,7 +2428,7 @@ small.format-suggestion {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 20px;
+    padding: 5px 10px;
     font-size: 0.95em;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -2439,17 +2520,15 @@ small.format-suggestion {
 }
 
 .score-content {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
+	color: #777777;
+    font-size: 14px;
+	line-height: 1.3;
+	font-weight: 600;
 }
 
 .score-content.high-score {
-    background: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
+    color: #007BFF;
+    font-weight: 700;
 }
 
 .score-value {
@@ -2458,14 +2537,12 @@ small.format-suggestion {
 }
 
 .reason-cell {
-    max-width: 300px;
     word-wrap: break-word;
 }
 
 .reason-content {
-    font-size: 0.85em;
+    font-size: 14px;
     line-height: 1.3;
-    color: #555;
 }
 
 .loading-text {
@@ -2525,18 +2602,29 @@ small.format-suggestion {
     background: #f1f3f4;
 }
 
-/* Pagination */
+/* Pagination Styles */
 .pagination-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
-    padding: 15px 0;
+    margin-top: 15px;
+    padding: 10px 0;
 }
 
 .pagination-info {
-    color: #666;
-    font-size: 0.9em;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.filtered-out-info {
+    color: #dc3545;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.overlap-filtered-info {
+    color: #fd7e14;
+    font-weight: 500;
 }
 
 .pagination-controls {
@@ -2546,30 +2634,32 @@ small.format-suggestion {
 }
 
 .pagination-btn {
-    background: white;
-    border: 1px solid #ddd;
-    color: #333;
     padding: 6px 12px;
-    border-radius: 4px;
+    min-width: 32px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #495057;
+    border-radius: 16px;
     cursor: pointer;
-    font-size: 0.85em;
-    transition: all 0.2s;
+    font-size: 13px;
+    transition: all 0.2s ease;
 }
 
 .pagination-btn:hover:not(:disabled) {
     background: #f8f9fa;
-    border-color: #FF6600;
+    border-color: #adb5bd;
 }
 
 .pagination-btn:disabled {
-    background: #f8f9fa;
-    color: #999;
+    opacity: 0.5;
     cursor: not-allowed;
-    border-color: #e9ecef;
 }
 
 .first-last-btn {
+    padding: 6px 8px;
     font-weight: bold;
+    font-size: 12px;
 }
 
 .page-numbers {
@@ -2578,27 +2668,32 @@ small.format-suggestion {
 }
 
 .page-btn {
-    background: white;
-    border: 1px solid #ddd;
-    color: #333;
     padding: 6px 10px;
-    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #495057;
+    border-radius: 17px;
     cursor: pointer;
-    font-size: 0.85em;
-    min-width: 32px;
+    font-size: 13px;
+    min-width: 33.5px;
     text-align: center;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .page-btn:hover {
     background: #f8f9fa;
-    border-color: #FF6600;
+    border-color: #adb5bd;
 }
 
 .page-btn.active {
-    background: #FF6600;
+    background: #55AAEE;
     color: white;
-    border-color: #FF6600;
+    border-color: #55AAEE;
+}
+
+.page-btn.active:hover {
+    background: #55AAEE;
+    border-color: #55AAEE;
 }
 
 /* Loading Spinner */
@@ -2607,7 +2702,7 @@ small.format-suggestion {
     width: 12px;
     height: 12px;
     border: 2px solid #f3f3f3;
-    border-top: 2px solid #FF6600;
+    border-top: 2px solid #000000;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
