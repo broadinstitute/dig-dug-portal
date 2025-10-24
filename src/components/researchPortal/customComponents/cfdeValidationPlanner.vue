@@ -49,86 +49,91 @@
         <!-- Two Column Layout for Upper Half -->
         <div class="upper-layout">
             <!-- Left Column (70%) - Hypothesis Section -->
-            <div class="left-column">
+            <div>
                 <!-- Hypothesis to Validate Section -->
                 <div id="hypothesis-section" class="hypothesis-container section-wrapper">
             
-            <div class="section-header">
-                    <h4>Hypothesis to Validate</h4>
-        </div>
-            <div class="hypothesis-content">
-                <h5>Your Hypothesis (Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.)</h5>
-                <div class="textarea-container">
-                    <textarea 
-                        v-model="phenotypeSearch" 
-                        placeholder="Enter your hypothesis..."
-                        class="hypothesis-textarea"
-                        rows="3"
-                    ></textarea>
-        </div>
-                <div class="gene-sets-input">
-                    <div v-if="!showManualGeneInput">
-                        <label for="gene-sets">Load Genes from Phenotype Gene set Associations <a href="#" @click.prevent="toggleManualGeneInput" class="manual-add-link">(manually add genes)</a></label>
-                        <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
-                        <textarea 
-                            id="gene-sets"
-                            v-model="geneSets" 
-                            placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
-                            class="gene-sets-field"
-                            rows="3"
-                        ></textarea>
+                    <div class="section-header">
+                            <h4>Hypothesis to Validate</h4>
                     </div>
-                    <div v-if="!showManualGeneInput && geneSets.trim() && (geneData.length === 0 || associationsModified)" class="load-genes-section">
-                        <button 
-                            @click="loadGenesFromAssociations" 
-                            class="btn btn-secondary load-genes-btn"
-                            :disabled="isLoadingGenes"
-                        >
-                            <span v-if="isLoadingGenes" class="loading-spinner-small"></span>
-                            {{ isLoadingGenes ? 'Loading genes...' : 'Load genes' }}
-                        </button>
-                        <small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
+                    <div class="hypothesis-content">
+                        <h5>Your Hypothesis (Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.)</h5>
+                        <div class="textarea-container">
+                            <textarea 
+                                v-model="phenotypeSearch" 
+                                placeholder="Enter your hypothesis..."
+                                class="hypothesis-textarea"
+                                rows="3"
+                            ></textarea>
                     </div>
-                    
-                    <!-- Manual Gene Input Section -->
-                    <div v-if="showManualGeneInput" class="manual-gene-input-section">
-                        <label for="manual-genes">Add Genes Manually</label>
-                        <small class="format-suggestion">Enter gene symbols separated by commas (e.g., GENE1, GENE2, GENE3)</small>
-                        <textarea 
-                            id="manual-genes"
-                            v-model="manualGenes" 
-                            placeholder="e.g., TP53, BRCA1, MYC, EGFR"
-                            class="manual-genes-field"
-                            rows="2"
-                        ></textarea>
-                        <div class="manual-gene-actions">
+                    <div class="gene-sets-input">
+                        <div v-if="!showManualGeneInput">
+                            <label for="gene-sets">Load Genes from Phenotype Gene set Associations <a href="#" @click.prevent="toggleManualGeneInput" class="manual-add-link">(manually add genes)</a></label>
+                            <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
+                            <textarea 
+                                id="gene-sets"
+                                v-model="geneSets" 
+                                placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
+                                class="gene-sets-field"
+                                rows="3"
+                            ></textarea>
+                        </div>
+                        <div v-if="!showManualGeneInput && geneSets.trim() && (geneData.length === 0 || associationsModified)" class="load-genes-section">
                             <button 
-                                @click="addManualGenes" 
-                                class="btn btn-primary add-genes-btn"
-                                :disabled="!manualGenes.trim()"
+                                @click="loadGenesFromAssociations" 
+                                class="btn btn-secondary load-genes-btn"
+                                :disabled="isLoadingGenes"
                             >
-                                Add Genes
+                                <span v-if="isLoadingGenes" class="loading-spinner-small"></span>
+                                {{ isLoadingGenes ? 'Loading genes...' : 'Load genes' }}
                             </button>
-                            <button 
-                                @click="cancelManualGeneInput" 
-                                class="btn btn-outline-secondary cancel-btn"
-                            >
-                                Cancel
-                            </button>
+                            <small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
+                        </div>
+                        
+                        <!-- Manual Gene Input Section -->
+                        <div v-if="showManualGeneInput" class="manual-gene-input-section">
+                            <div class="manual-gene-header">
+                                <label for="manual-genes">Add Genes Manually <a href="#" @click.prevent="switchToAssociationsInput" class="switch-to-associations-link">
+                                    (Load Genes from Phenotype Gene set Associations)
+                                </a></label>
+                                
+                            </div>
+                            <small class="format-suggestion">Enter gene symbols separated by commas (e.g., GENE1, GENE2, GENE3)</small>
+                            <textarea 
+                                id="manual-genes"
+                                v-model="manualGenes" 
+                                placeholder="e.g., TP53, BRCA1, MYC, EGFR"
+                                class="manual-genes-field"
+                                rows="2"
+                            ></textarea>
+                            <div class="manual-gene-actions">
+                                <button 
+                                    @click="addManualGenes" 
+                                    class="btn btn-primary add-genes-btn"
+                                    :disabled="!manualGenes.trim()"
+                                >
+                                    Add Genes
+                                </button>
+                                <button 
+                                    @click="cancelManualGeneInput" 
+                                    class="btn btn-outline-secondary cancel-btn"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
                     </div>
-        </div>
                 
                 <!-- Gene Data Table -->
                 <div v-if="geneData.length > 0" class="gene-data-table-section">
                     <div class="gene-data-header">
-                        <label class="gene-data-label">Gene Association Data - Select genes to generate experiment plans</label>
-	</div>
+                        <label class="gene-data-label">Select genes to generate experiment plans</label>
+	                </div>
                     <small class="gene-data-description">
                         Review the gene associations below and select the genes you want to include in your experiment plan. 
                         Each selected gene will be used to generate targeted validation experiments.
                         <br><br>
-                        <strong>Note:</strong> The 'Novelty' and 'Relevance' scores shown in the table are generated by AI and represent how novel/relevant each gene is to your specific hypothesis. These are different from the genetic novelty score used for sorting the table, which is based on gene-to-phenotype associations.
+                        <strong>Note:</strong> The 'Hypothesis Alignment' and 'Research Gap Score' shown in the table are generated by AI and represent how relevant/novel each gene is to your specific hypothesis. These are different from the genetic novelty score used for sorting the table, which is based on gene-to-phenotype associations.
                     </small>
                     
                     <!-- Gene Filter Section (hidden for manual genes) -->
@@ -203,19 +208,13 @@
                             <thead>
                                 <tr>
                                     <th>
-                                        <!---<input 
-                                            type="checkbox" 
-                                            @change="toggleAllGenes" 
-                                            :checked="allGenesSelected"
-                                            class="select-all-checkbox"
-                                        />
-                                        -->
+                                        
                                     </th>
-                                    <th>Gene</th>
-                                    <th>Relevance</th>
-                                    <th>Novelty</th>
-                                    <th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Reason</th>
-                                    <th v-if="!hasManualGenes">Evidence</th>
+                                    <th>Gene/Target</th>
+                                    <th>Hypothesis Alignment</th>
+                                    <th>Research Gap Score</th>
+                                    <th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
+                                    <th v-if="!hasManualGenes">Associations</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -350,34 +349,18 @@
                         </div>
                     </div>
                     
-                    <!-- Selected Genes Actions -->
-                    <!--<div v-if="selectedGenes.length > 0" class="selected-genes-actions">
-                        <div class="selected-count">
-                            <strong>{{ selectedGenes.length }}</strong> gene{{ selectedGenes.length > 1 ? 's' : '' }} selected
-                        </div>
-                        <div class="selected-genes-list">
-                            <span v-for="gene in selectedGenes" :key="gene" class="selected-gene-tag">
-                                {{ gene }}
-                                <button @click="removeGene(gene)" class="remove-gene-btn">×</button>
-                            </span>
-                        </div>
-                        <div class="gene-actions">
-                            <button @click="clearSelectedGenes" class="btn btn-sm btn-outline-secondary">Clear Selection</button>
-                            <button @click="exportSelectedGenes" class="btn btn-sm btn-primary">Export Selected Genes</button>
-                        </div>
-                    </div>-->
                 </div>
             </div>
         </div>
             </div>
 
-            <!-- Right Column (30%) - Configuration Section -->
-            <div class="right-column">
-                <div id="planner-search-ui" class="section-wrapper">
-            <div class="section-header">
-                <h4>Configure Experiment Parameters</h4>
-            </div>
-            <div class="section-content">
+             <!-- Right Column (30%) - Configuration Section -->
+             <div>
+                 <div id="planner-search-ui" class="section-wrapper">
+                     <div class="configuration-header" @click="toggleConfigurationSection">
+                         <h4><span class="configuration-toggle">{{ showConfigurationSection ? '−' : '+' }}</span> Configure Experiment Parameters (Optional) </h4>
+                     </div>
+                     <div v-if="showConfigurationSection" class="configuration-content">
                 <!-- User Guidance -->
                 <div class="user-guidance">
                     <p><strong>💡 Tip:</strong> You can leave any input fields empty if you want the AI to determine the best options for your experiments. The AI will automatically select optimal assay types, cell types, and other parameters based on your hypothesis and data.</p>
@@ -527,18 +510,17 @@
                         rows="4"
                     ></textarea>
                 </div>
-            </div>
-            
+                    </div>
+                </div>
             </div>
         </div>
-            </div>
         </div>
 
         <div>
         <!-- Action Buttons -->
             <div class="action-buttons">
                 <button @click="draftValidationPlan" class="btn btn-primary">
-                    Draft Validation Plan
+                    Review & Generate Experiment Plan
                 </button>
                 <button @click="resetAllSelections" class="btn btn-secondary">
                     Reset
@@ -549,7 +531,7 @@
         <!-- Experiment Plan Summary Section (Full Width) -->
         <div id="planner-search-draft" class="section-wrapper" v-if="showExperimentSummary">
             <div class="section-header">
-                <h4>Experiment Plan Summary</h4>
+                <h4>Review Your Selections & Generate Experiment Plan</h4>
             </div>
             <div class="section-content">
                 <!-- Summary -->
@@ -646,6 +628,7 @@
                         
                         <div class="experiment-actions">
                             <button @click="generateExperiment" class="btn btn-primary" :disabled="isGenerating || selectedGenes.length === 0">
+                                <span v-if="isGenerating" class="loading-spinner-small"></span>
                                 {{ isGenerating ? `Generating Experiments (${elapsedTime})` : 
                                    selectedGenes.length === 0 ? '⚠️ Select Genes First' : 'Generate Experiment' }}
                             </button>
@@ -1446,6 +1429,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
             associationsModified: false,
             // Citation popup state
             showCitationPopup: false,
+            // Configuration section state
+            showConfigurationSection: false,
 			// Manual gene input state
 			showManualGeneInput: false,
 			manualGenes: '',
@@ -2210,6 +2195,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				this.manualGenes = '';
 			}
 		},
+		switchToAssociationsInput() {
+			this.showManualGeneInput = false;
+			this.manualGenes = '';
+		},
 		cancelManualGeneInput() {
 			this.showManualGeneInput = false;
 			this.manualGenes = '';
@@ -2326,6 +2315,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		
 		async addGenesFromUrl(geneList) {
 			try {
+				// Show manual gene input UI when genes are loaded from URL
+				this.showManualGeneInput = true;
+				
 				// Check for duplicate genes
 				const existingGenes = this.geneData.map(g => g.gene);
 				const duplicateGenes = geneList.filter(gene => existingGenes.includes(gene));
@@ -2413,7 +2405,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				
 				for (const query of geneQueries) {
 					try {
-						const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)}`;
+						const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)},cfde`;
 						
 						const response = await fetch(url);
 						
@@ -2843,6 +2835,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		hideCitationInfo() {
 			this.showCitationPopup = false;
 		},
+		toggleConfigurationSection() {
+			this.showConfigurationSection = !this.showConfigurationSection;
+		},
 		formatExperimentForDownload() {
 			let content = '';
 			
@@ -3046,21 +3041,40 @@ a {
 
 /* Two Column Layout */
 .upper-layout {
-    display: flex;
-    gap: 20px;
     margin-bottom: 20px;
 }
 
-.left-column {
-    /*flex: 0 0 70%;
-    max-width: 70%;*/
-    width: calc(100% - 400px);
+/* Configuration Section Styles */
+.configuration-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    cursor: pointer;
 }
 
-.right-column {
-    /*flex: 0 0 30%;*/
-    max-width: 400px;
-    width: 400px;
+.configuration-header:hover {
+    background: #e9ecef;
+}
+
+.configuration-header h4 {
+    color: #FF6600;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.configuration-toggle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #6c757d;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Responsive Design */
@@ -3084,10 +3098,6 @@ a {
     /*border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: 1px solid #e9ecef;*/
-}
-
-.hypothesis-container {
-    border-right: 1px solid #e9ecef;
 }
 
 /* Section Headers - CFDE Orange Style */
@@ -3914,8 +3924,6 @@ a {
     align-items: flex-start;
     gap: 12px;
     padding: 12px;
-    border: 1px solid #e9ecef;
-    background: #f8f9fa;
     transition: all 0.2s ease;
 }
 
@@ -4091,7 +4099,6 @@ a {
 
 .experiment-card {
     background: #ffffff;
-    border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -4346,7 +4353,6 @@ a {
 }
 
 #planner-search-draft {
-    border-top: 1px solid #e9ecef;
     margin-top: 20px;
 }
 
@@ -4680,7 +4686,6 @@ a {
     margin-top: 20px;
     padding: 15px;
     background: #f8f9fa;
-    border: 1px solid #e9ecef;
     border-radius: 6px;
 }
 
@@ -4843,6 +4848,31 @@ a {
 .manual-add-link:hover {
     text-decoration: underline;
     color: #0056b3;
+}
+
+.manual-gene-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.manual-gene-header label {
+    margin: 0;
+    font-weight: 600;
+    color: #333;
+}
+
+.switch-to-associations-link {
+    color: #FF6600;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.switch-to-associations-link:hover {
+    color: #e55a00;
+    text-decoration: underline;
 }
 
 .manual-gene-input-section label {
@@ -5029,6 +5059,7 @@ a {
     border-top: 2px solid #1976d2;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    margin-right: 8px;
 }
 
 .loading-text {

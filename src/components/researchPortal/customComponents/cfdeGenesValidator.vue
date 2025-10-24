@@ -1,27 +1,105 @@
 <template>
-	<div class="genes-validator">
-		<!-- Header -->
-		<div class="validator-header">
-			<h3>Gene Validator</h3>
-			<p class="validator-description">Validate genes against your hypothesis by getting their relevance and novelty contexts.</p>
+	<div>
+		<!-- URL Parameter Choice Dialog -->
+		<div v-if="showUrlChoiceDialog" class="url-choice-dialog-overlay">
+			<div class="url-choice-dialog">
+				<div class="url-choice-header">
+					<h3>Choose Gene Source</h3>
+					<p>Both associations and genes parameters were found in the URL. Please choose which gene source you'd like to use for validation:</p>
+				</div>
+				
+				<div class="url-choice-options">
+					<div class="url-choice-option">
+						<div class="url-choice-title">
+							<h4>Genes from Associations</h4>
+							<p>Fetch genes from phenotype-gene set associations</p>
+						</div>
+						<div class="url-choice-preview">
+							<strong>Associations data:</strong>
+							<pre>{{ urlChoiceOptions.associations }}</pre>
+						</div>
+						<button @click="chooseAssociations" class="btn btn-primary url-choice-btn">
+							Use Associations
+						</button>
+					</div>
+					
+					<div class="url-choice-option">
+						<div class="url-choice-title">
+							<h4>Genes from URL Parameter</h4>
+							<p>Use the specific genes provided in the URL</p>
+						</div>
+						<div class="url-choice-preview">
+							<strong>Genes:</strong>
+							<span class="genes-list">{{ urlChoiceOptions.genes.join(', ') }}</span>
+						</div>
+						<button @click="chooseGenes" class="btn btn-primary url-choice-btn">
+							Use Genes
+						</button>
+					</div>
+				</div>
+				
+				<div class="url-choice-actions">
+					<button @click="cancelUrlChoice" class="btn btn-outline-secondary">
+						Cancel
+					</button>
+				</div>
+			</div>
 		</div>
-
-		<!-- Hypothesis Section -->
-		<div class="hypothesis-section">
-			<label for="hypothesis">Your Hypothesis</label>
+		
+        <!-- Two Column Layout for Upper Half -->
+        <div class="upper-layout">
+            <!-- Left Column (70%) - Hypothesis Section -->
+            <div>
+                <!-- Hypothesis to Validate Section -->
+                <div id="hypothesis-section" class="hypothesis-container section-wrapper">
+            
+                    <div class="hypothesis-content">
+						<div class="section-header">
+							<h4>Hypothesis</h4>
+						</div>
+						<small class="format-suggestion">Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.</small>
+                        
+                        <div class="textarea-container">
 			<textarea 
-				id="hypothesis"
-				v-model="hypothesis" 
-				placeholder="Enter your hypothesis to validate genes against..."
+                                v-model="phenotypeSearch" 
+                                placeholder="Enter your hypothesis..."
 				class="hypothesis-textarea"
 				rows="3"
 			></textarea>
+                    </div>
+                    <div class="gene-sets-input">
+                        <div v-if="!hideAssociationsInput">
+							<div class="section-header">
+								<h4>Phenotype Gene set Associations</h4>
+							</div>
+                            <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
+                            <textarea 
+                                id="gene-sets"
+                                v-model="geneSets" 
+                                placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
+                                class="gene-sets-field"
+                                rows="3"
+                            ></textarea>
+                        </div>
+                        <div v-if="!hideAssociationsInput && !showManualGeneInput && geneSets.trim() && (geneData.length === 0 || associationsModified)" class="load-genes-section">
+                            <button 
+                                @click="loadGenesFromAssociations" 
+                                class="btn btn-secondary load-genes-btn"
+                                :disabled="isLoadingGenes"
+                            >
+                                <span v-if="isLoadingGenes" class="loading-spinner-small"></span>
+                                {{ isLoadingGenes ? 'Loading genes...' : 'Load genes' }}
+                            </button>
+                            <small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
 		</div>
 
-		<!-- Manual Gene Input Section -->
-		<div class="manual-gene-section">
-			<label for="manual-genes">Add Genes to Validate</label>
-			<small class="format-suggestion">Enter gene symbols separated by commas (e.g., GENE1, GENE2, GENE3)</small>
+		<!-- Gene Input Section (Primary) -->
+                        <div class="gene-input-section">
+
+							<div class="section-header">
+								<h4>Genes</h4>
+							</div>
+			<small class="format-suggestion">Enter genes separated by commas (e.g., GENE1, GENE2, GENE3)</small>
 			<textarea 
 				id="manual-genes"
 				v-model="manualGenes" 
@@ -29,84 +107,272 @@
 				class="manual-genes-field"
 				rows="2"
 			></textarea>
-			<div class="manual-gene-actions">
+			<!-- Gene actions will be moved to user options -->
+			</div>
+		</div>
+
+		<!-- Gene Exploration Options -->
+		<div class="gene-options-section">
+			<div class="gene-options-header">
+				<h4>Explore Your Genes</h4>
+				<small class="format-suggestion">Choose how you'd like to analyze the genes in your list. Enter genes above to enable the options below{{ hasHypothesis ? '' : ' (hypothesis scoring not available without hypothesis parameter)' }}:</small>
+			</div>
+			
+			<div class="gene-options-grid">
+				<!-- Option 1: Hypothesis Alignment and Research Gap Score -->
+				<div v-if="hasHypothesis" class="gene-option-card">
+					<div class="option-header">
+						<h5>Hypothesis Alignment & Research Gap Score</h5>
+						<span class="option-badge">AI Analysis</span>
+					</div>
+					<div class="option-description">
+						<p>Generate AI-powered scores showing how relevant and novel each gene is to your specific hypothesis. This will help prioritize which genes are most important for your research.</p>
+					</div>
+					<div class="option-details">
+						<ul>
+							<li>Hypothesis Alignment Score (1-10)</li>
+							<li>Research Gap Score (1-10)</li>
+							<li>Molecular rationale for each gene</li>
+							<li>AI-generated context and justification</li>
+						</ul>
+					</div>
+					<div class="option-actions">
 				<button 
-					@click="addManualGenes" 
-					class="btn btn-primary add-genes-btn"
-					:disabled="!manualGenes.trim() || !hypothesis.trim()"
-				>
-					Add Genes
+							@click="generateHypothesisAlignment"
+							class="btn btn-primary option-btn"
+							:disabled="!manualGenes.trim() || isGettingGeneNovelty"
+						>
+							<span v-if="isGettingGeneNovelty" class="loading-spinner-small"></span>
+							Generate Scores
 				</button>
+						<span class="option-note">Requires hypothesis input</span>
+					</div>
+				</div>
+
+				<!-- Option 2: GTEx Expression Analysis -->
+				<div class="gene-option-card">
+					<div class="option-header">
+						<h5>GTEx Tissue Expression Analysis</h5>
+						<span class="option-badge">Expression Data</span>
+					</div>
+					<div class="option-description">
+						<p>Open the GTEx browser to explore gene expression patterns across human tissues. Visualize where your genes are most highly expressed and identify tissue-specific patterns using the official GTEx portal.</p>
+					</div>
+					<div class="option-details">
+						<ul>
+							<li>Expression across 54 human tissues</li>
+							<li>Interactive heatmaps and plots</li>
+							<li>Tissue-specific expression patterns</li>
+							<li>Comparative analysis between genes</li>
+						</ul>
+					</div>
+					<div class="option-actions">
 				<button 
-					@click="clearAllGenes" 
-					class="btn btn-outline-secondary clear-btn"
-					:disabled="geneData.length === 0"
-				>
-					Clear All
+                            @click="exploreGTExExpression"
+                            class="btn btn-primary option-btn"
+                            :disabled="!manualGenes.trim()"
+                        >
+                            Open GTEx Browser
 				</button>
+                        <span class="option-note">{{ getGeneCount() > 50 ? 'First 50 genes will be used' : 'Opens in new tab' }}</span>
+			</div>
+		</div>
+
+				<!-- Option 3: Playbook Workflow Builder -->
+				<div class="gene-option-card">
+					<div class="option-header">
+						<h5>Explore genes in Playbook Workflow Builder</h5>
+						<span class="option-badge">Workflow Analysis</span>
+					</div>
+					<div class="option-description">
+						<p>Open the Playbook Workflow Builder to perform comprehensive gene set enrichment analysis across multiple CFDE databases. The workflow automatically analyzes your genes against 7 different databases and generates interactive visualizations.</p>
+					</div>
+					<div class="option-details">
+						<ul>
+							<li><strong>GTEx Tissues V8 2023:</strong> Tissue expression signatures</li>
+							<li><strong>LINCS L1000:</strong> Chemical perturbation signatures</li>
+							<li><strong>IDG Drug Targets 2022:</strong> Drug target analysis</li>
+							<li><strong>HuBMAP ASCTplusB 2022:</strong> Cell type biomarkers</li>
+							<li><strong>GlyGen 2022:</strong> Glycosylated protein analysis</li>
+							<li><strong>Metabolomics Workbench 2022:</strong> Metabolite associations</li>
+							<li><strong>MoTrPAC 2023:</strong> Exercise response signatures</li>
+						</ul>
+					</div>
+					<div class="option-actions">
+						<button 
+							@click="enrichGenes" 
+							class="btn btn-primary option-btn"
+							:disabled="!manualGenes.trim()"
+						>
+							Open Playbook Workflow Builder
+						</button>
+						<span class="option-note">7 database analyses • Interactive charts • Opens in new tab</span>
+					</div>
+				</div>
+			</div>
+			</div>
+			
+		<!-- Welcome Popup for New Users -->
+		<div v-if="showWelcomePopup" class="welcome-popup-overlay">
+			<div class="welcome-popup">
+				<div class="welcome-popup-header">
+					<h3>Welcome to CFDE-EXPLORE</h3>
+					<button @click="closeWelcomePopup" class="close-btn">&times;</button>
+				</div>
+				<div class="welcome-popup-content">
+					<p>This tool helps you explore and analyze genes for your research. Here's what you need to get started:</p>
+					
+					<div class="welcome-requirements">
+						<div class="requirement-item">
+							<div class="requirement-content">
+								<h4>Genes List (Required)</h4>
+								<p>You need a list of genes to explore. You can:</p>
+								<ul>
+									<li>Enter genes manually in the "Genes" field above</li>
+									<li>Load genes from phenotype-gene set associations</li>
+									<li>Use genes from URL parameters (if available)</li>
+								</ul>
+							</div>
+						</div>
+						
+						<div class="requirement-item">
+							<div class="requirement-content">
+								<h4>Hypothesis (Optional)</h4>
+								<p>To generate AI-powered Hypothesis Alignment & Research Gap Scores, you need:</p>
+								<ul>
+									<li>A research hypothesis in the "Hypothesis" field above</li>
+									<li>This enables AI analysis of gene relevance to your specific research question</li>
+								</ul>
+							</div>
+						</div>
+						
+						<div class="requirement-item">
+							<div class="requirement-content">
+								<h4>Exploration Options</h4>
+								<p>Once you have genes, you can:</p>
+								<ul>
+									<li><strong>Generate Scores:</strong> AI analysis of gene relevance (requires hypothesis)</li>
+									<li><strong>GTEx Analysis:</strong> Explore gene expression across human tissues</li>
+									<li><strong>Playbook Workflow:</strong> Comprehensive gene set enrichment analysis</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					
+					<div class="welcome-actions">
+						<button @click="closeWelcomePopup" class="btn btn-primary">Got it, let's start!</button>
+					</div>
+				</div>
 			</div>
 		</div>
 
 		<!-- Gene Data Table -->
 		<div v-if="geneData.length > 0" class="gene-data-table-section">
-			<div class="gene-data-header">
-				<label class="gene-data-label">Gene Validation Results</label>
-				<small class="gene-data-description">
-					Review the novelty and relevance scores for each gene. These scores are generated by AI and represent how novel/relevant each gene is to your specific hypothesis.
-				</small>
+			<!-- Loading Banner (simplified like validation planner) -->
+			<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
+				<span class="loading-spinner-small"></span>
+				<span class="loading-text">Generating gene to hypothesis novelty and relevance scores... ({{ geneNoveltyElapsedTime }})</span>
 			</div>
+				
 			
 			<div class="table-container">
-				<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
-					<span class="loading-spinner-small"></span>
-					<span class="loading-text">Generating gene novelty and relevance scores... ({{ geneNoveltyElapsedTime }})</span>
-				</div>
-				
 				<table class="gene-data-table">
 					<thead>
 						<tr>
-							<th>Gene</th>
-							<th>Relevance</th>
-							<th>Novelty</th>
-							<th style="width: 70%;">Reason</th>
+                                    <th>
+                                        
+                                    </th>
+                                    <th>Gene/Target</th>
+                                    <th>Hypothesis Alignment</th>
+                                    <th>Research Gap Score</th>
+                                    <th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
+                                    <th v-if="!hasManualGenes">Associations</th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="item in paginatedGenes" :key="item.gene">
-							<td>{{ item.gene }}</td>
+                                <tr v-for="row in tableRows" :key="row.key">
+                                    <!-- Gene row -->
+                                    <template v-if="row.type === 'gene'">
+                                        <td>
+                                            <input 
+                                                type="checkbox" 
+                                                :value="row.item.gene"
+                                                v-model="selectedGenes"
+                                                class="gene-checkbox"
+                                            />
+                                        </td>
+                                        <td>{{ row.item.gene }}</td>
 							<td>
 								<div class="relevance-cell">
-									<span v-if="isGettingGeneNovelty && !getRelevance(item.gene)" class="loading-text">Loading...</span>
-									<div v-else-if="getRelevance(item.gene)" class="score-content" :class="{ 'high-score': getRelevance(item.gene).score >= 7 }">
-										<div class="score-value">{{ getRelevanceScore(item.gene) }}</div>
+                                                <div v-if="getRelevance(row.item.gene)" class="score-content" :class="{ 'high-score': getRelevance(row.item.gene).score >= 7 }">
+                                                    <div class="score-value">{{ getRelevanceScore(row.item.gene) }}</div>
 									</div>
+									<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
 									<span v-else>TBD</span>
 								</div>
 							</td>
 							<td>
 								<div class="novelty-cell">
-									<span v-if="isGettingGeneNovelty && !getNovelty(item.gene)" class="loading-text">Loading...</span>
-									<div v-else-if="getNovelty(item.gene)" class="score-content" :class="{ 'high-score': getNovelty(item.gene).score >= 7 }">
-										<div class="score-value">{{ getNoveltyScore(item.gene) }}</div>
+                                                <div v-if="getNovelty(row.item.gene)" class="score-content" :class="{ 'high-score': getNovelty(row.item.gene).score >= 7 }">
+                                                    <div class="score-value">{{ getNoveltyScore(row.item.gene) }}</div>
 									</div>
+									<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
 									<span v-else>TBD</span>
 								</div>
 							</td>
 							<td>
 								<div class="reason-cell">
-									<span v-if="isGettingGeneNovelty && !getNovelty(item.gene)" class="loading-text">Loading...</span>
-									<div v-else-if="getNovelty(item.gene)" class="reason-content">
-										{{ getNovelty(item.gene).context }}
+                                                <div v-if="getNovelty(row.item.gene)" class="reason-content">
+                                                    {{ getNovelty(row.item.gene).context }}
 									</div>
+									<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
 									<span v-else>TBD</span>
 								</div>
 							</td>
+                                        <td v-if="!hasManualGenes">
+                                            <button 
+                                                @click="toggleEvidenceView(row.item.gene)"
+                                                class="view-button"
+                                                :class="{ active: expandedGenes.includes(row.item.gene) }"
+                                            >
+                                                {{ expandedGenes.includes(row.item.gene) ? 'Hide' : 'View' }}
+                                            </button>
+                                        </td>
+                                    </template>
+                                    
+                                    <!-- Evidence row -->
+                                    <template v-else-if="row.type === 'evidence'">
+                                        <td :colspan="hasManualGenes ? 5 : 6">
+                                            <div class="evidence-subtable">
+                                                <table class="evidence-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Phenotype</th>
+                                                            <th>Gene Set</th>
+                                                            <th>Combined Genetic Support</th>
+                                                            <th>Direct Genetic Support</th>
+                                                            <th>Indirect Genetic Support</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="(evidence, index) in getEvidenceData(row.item)" :key="`${row.item.gene}-evidence-${index}`">
+                                                                <td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
+                                                                <td>{{ evidence.gene_set }}</td>
+                                                                <td>{{ evidence.combined ? evidence.combined.toFixed(2) : 'N/A' }}</td>
+                                                                <td>{{ evidence.log_bf ? evidence.log_bf.toFixed(2) : 'N/A' }}</td>
+                                                                <td>{{ evidence.prior ? evidence.prior.toFixed(2) : 'N/A' }}</td>
+                                                            </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </template>
 						</tr>
 					</tbody>
 				</table>
 				
 				<!-- Pagination -->
-				<div v-if="totalPages > 1" class="pagination-container">
+                        <div class="pagination-container">
 					<div class="pagination-info">
 						Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, geneData.length) }} of {{ geneData.length }} entries
 					</div>
@@ -155,59 +421,32 @@
 				</div>
 			</div>
 			
-			<!-- What's Next Information Box -->
-			<div v-if="geneData.length > 0" class="whats-next-box">
-				<div class="whats-next-content">
-					<span class="whats-next-text">Explore gene expression patterns across human tissues using GTEx data (max 50 genes)</span>
-					<a :href="gtexUrl" target="_blank" class="whats-next-link">
-						Open
-					</a>
+                </div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Empty State -->
-		<div v-else class="empty-state">
-			<p>No genes added yet. Enter your hypothesis and add genes to get started.</p>
 		</div>
 	</div>
 </template>
 
 <script>
-import { createLLMClient } from '@/utils/llmClient';
+import Vue from "vue";
+import { BootstrapVueIcons } from "bootstrap-vue";
+import { createLLMClient } from "@/utils/llmClient";
+import cfdeValidationUtils, { findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeValidationUtils";
+import drcUtils from "@/utils/drcUtils";
+
+Vue.use(BootstrapVueIcons);
 
 export default {
-	name: 'CFDEGenesValidator',
+	props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
+	components: {
+	},
 	data() {
 		return {
-			// Hypothesis
-			hypothesis: '',
-			
-			// Manual gene input
-			manualGenes: '',
-			
-			// Gene data
-			geneData: [],
-			
-			// Pagination properties
-			currentPage: 1,
-			itemsPerPage: 10,
-			
-			// Gene novelty and relevance cache
-			geneNovelty: {},
-			geneRelevance: {},
-			
-			// Gene novelty request state
-			isGettingGeneNovelty: false,
-			geneNoveltyTimeout: null,
-			geneNoveltyStartTime: null,
-			geneNoveltyTimer: null,
-			geneNoveltyElapsedTime: '0:00',
-			
-			// LLM client
-			getGeneNovelty: null,
-			
-			// Gene novelty prompt
+            cfdeValidationUtils: cfdeValidationUtils,
+
 			gene_novelty_prompt: `Generate a JSON array for up to 10 genes based on the hypothesis below.
 
 **Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
@@ -230,48 +469,208 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
     "reason": "<max 25 words: justification for both scores>"
   },
   ...
-]`
+]`,
+
+               
+            
+            // UI state
+            phenotypeSearch: '',
+            geneSets: '',
+            
+            selectedAssociationGroups: [],
+            associationGroups: [],
+            ignoreAssociations: false,
+            
+            // Gene data table properties
+            geneData: [],
+            originalGeneData: [], // Store original data before merging
+            fetchedGeneData: [], // Store fetched data before user adds to table
+            currentPage: 1,
+            itemsPerPage: 10,
+            selectedGenes: [],
+            // COMMENTED OUT: Gene experiment strategy
+            // geneExperimentStrategy: 'individual', // 'individual' or 'all_together'
+            // Gene novelty and relevance cache
+            geneNovelty: {},
+            geneRelevance: {},
+            // Evidence view state
+            expandedGenes: [],
+            // Gene loading state
+            isLoadingGenes: false,
+            // Track if associations have been modified since last gene load
+            associationsModified: false,
+            // COMMENTED OUT: Citation popup state
+            // showCitationPopup: false,
+            // COMMENTED OUT: Configuration section state
+            // showConfigurationSection: false,
+			// Manual gene input state
+			showManualGeneInput: false,
+			manualGenes: '',
+			// Hide associations input when genes come from URL
+			hideAssociationsInput: false,
+			// URL parameter choice dialog
+			showUrlChoiceDialog: false,
+			urlChoiceOptions: {
+				associations: null,
+				genes: null
+			},
+			// Welcome popup for new users
+			showWelcomePopup: false,
+			// Gene scoring state (simplified like validation planner)
+			isGettingGeneNovelty: false,
+			geneNoveltyStartTime: null,
+			geneNoveltyTimer: null,
+			geneNoveltyElapsedTime: '0:00'
 		};
 	},
+	modules: {
+	},
+
 	created() {
 		this.getGeneNovelty = createLLMClient({
 			llm: "openai",
 			model: "gpt-5-mini",
 			system_prompt: this.gene_novelty_prompt
 		});
+
+        this.buildExperiments = createLLMClient({
+            llm: "openai",
+            model: "gpt-5-mini",
+            system_prompt: this.experiment_prompt
+		});
 	},
-	mounted() {
-		this.initializeFromUrlParams();
-		// Check if there are genes that need scores after initialization
-		this.$nextTick(() => {
-			this.checkAndFetchScoresForCurrentPage();
+
+	mounted: async function () {
+		// Reset scoring state on mount
+		this.isGettingGeneNovelty = false;
+		this.geneNoveltyStartTime = null;
+		this.geneNoveltyElapsedTime = '0:00';
+		
+		// Show welcome popup if no URL parameters are present
+		const urlParams = new URLSearchParams(window.location.search);
+		const hasGenes = urlParams.has('genes') && urlParams.get('genes').trim() !== '';
+		const hasHypothesis = urlParams.has('hypothesis') && urlParams.get('hypothesis').trim() !== '';
+		
+		if (!hasGenes && !hasHypothesis) {
+			this.showWelcomePopup = true;
+		}
+		
+		// Check for URL parameters and populate fields
+		// Use nextTick to ensure utilsBox is fully loaded
+		this.$nextTick(async () => {
+			await this.initializeFromKeyParams();
 		});
 	},
 	beforeDestroy() {
 		// Clean up timer when component is destroyed
+		this.clearGenerationTimer();
 		this.clearGeneNoveltyTimer();
-		// Clean up gene novelty timeout
-		if (this.geneNoveltyTimeout) {
-			clearTimeout(this.geneNoveltyTimeout);
-		}
 	},
 	computed: {
-		gtexUrl() {
-			if (this.geneData.length === 0) return '';
+		hasManualGenes() {
+			return this.geneData.some(gene => gene.isManual === true);
+		},
+		hasHypothesis() {
+			return this.phenotypeSearch && this.phenotypeSearch.trim() !== '';
+		},
+		searchPlanText() {
+			let text = '<p>Your experiment plan will be created using the following approach:</p>';
 			
-			// Extract gene symbols from the gene data (limit to first 50 genes)
-			const geneSymbols = this.geneData.slice(0, 50).map(gene => gene.gene).join(',');
+			if (this.selectedGenes.length > 0 && this.phenotypeSearch.trim() !== '') {
+				text += '<p><strong>Hypothesis + Selected Genes Strategy:</strong></p>';
+				text += '<ol>';
+				text += '<li><strong>Analyze hypothesis:</strong> ';
+				text += `Process the provided hypothesis "${this.phenotypeSearch.trim()}" to identify key biological concepts and mechanisms.</li>`;
+				
+				text += '<li><strong>Generate gene-specific experiments:</strong> ';
+				text += `Create ${this.selectedGenes.length} separate experiment protocol${this.selectedGenes.length > 1 ? 's' : ''} - one for each selected gene (${this.selectedGenes.join(', ')}) in combination with your hypothesis.</li>`;
+				
+				text += '<li><strong>Apply user preferences:</strong> ';
+				if (this.selectedAssayTypes.length > 0 || this.selectedCellTypes.length > 0 || this.selectedReadouts.length > 0) {
+					text += 'Incorporate selected assay types, cell types, and readouts into each gene-specific experiment design.</li>';
+				} else {
+					text += 'Design experiments using optimal assay types, cell types, and readouts for each gene validation target.</li>';
+				}
+				text += '</ol>';
+			} else if (this.selectedGenes.length > 0) {
+				text += '<p><strong>Selected Genes Strategy:</strong></p>';
+				text += '<ol>';
+				text += '<li><strong>Generate gene-specific experiments:</strong> ';
+				text += `Create ${this.selectedGenes.length} separate experiment protocol${this.selectedGenes.length > 1 ? 's' : ''} - one for each selected gene (${this.selectedGenes.join(', ')}) to validate their biological functions.</li>`;
+				
+				text += '<li><strong>Apply user preferences:</strong> ';
+				if (this.selectedAssayTypes.length > 0 || this.selectedCellTypes.length > 0 || this.selectedReadouts.length > 0) {
+					text += 'Incorporate selected assay types, cell types, and readouts into each gene-specific experiment design.</li>';
+				} else {
+					text += 'Design experiments using optimal assay types, cell types, and readouts for each gene validation target.</li>';
+				}
+				text += '</ol>';
+			} else if (this.phenotypeSearch.trim() !== '') {
+				text += '<p><strong>Hypothesis-Only Strategy:</strong></p>';
+				text += '<ol>';
+				text += '<li><strong>Analyze hypothesis:</strong> ';
+				text += `Process the provided hypothesis "${this.phenotypeSearch.trim()}" to identify key biological concepts and mechanisms.</li>`;
+				
+				text += '<li><strong>Build an experiment plan:</strong> ';
+				text += 'Design targeted validation experiments to test the hypothesis and establish causal relationships.</li>';
+				text += '</ol>';
+			} else {
+				text += '<p><em>Please provide a hypothesis and/or select genes to generate experiment plans.</em></p>';
+			}
 			
-			// Create GTEx multi-gene query URL
-			return `https://www.gtexportal.org/home/multiGeneQueryPage/${geneSymbols}`;
+			// Additional context based on other selections
+			if (this.selectedAssayTypes.length > 0) {
+				text += '<p><strong>Assay Types:</strong> ';
+				text += `Focus on ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')} experiments for validation.</p>`;
+			}
+			
+			if (this.selectedReadouts.length > 0) {
+				text += '<p><strong>Readouts:</strong> ';
+				text += 'Target specific readouts: ' + this.selectedReadouts.join(', ') + ' for comprehensive analysis.</p>';
+			}
+			
+			return text;
+		},
+		parsedExperimentResults() {
+			if (this.isValidExperimentJSON(this.experimentResults)) {
+				try {
+					return JSON.parse(this.experimentResults).resultModel;
+				} catch (error) {
+					console.error('Error parsing experiment results:', error);
+					return [];
+				}
+			}
+			return [];
 		},
 		totalPages() {
 			return Math.ceil(this.geneData.length / this.itemsPerPage);
 		},
-		paginatedGenes() {
+		paginatedGeneData() {
 			const start = (this.currentPage - 1) * this.itemsPerPage;
 			const end = start + this.itemsPerPage;
 			return this.geneData.slice(start, end);
+		},
+		// Create rows with evidence for proper table structure
+		tableRows() {
+			const rows = [];
+			this.paginatedGeneData.forEach(item => {
+				// Add the main gene row
+				rows.push({
+					type: 'gene',
+					item: item,
+					key: `${item.gene}-${item.combined || 0}`
+				});
+				
+				// Add evidence row if expanded and not manual genes
+				if (!this.hasManualGenes && this.expandedGenes.includes(item.gene)) {
+					rows.push({
+						type: 'evidence',
+						item: item,
+						key: `${item.gene}-evidence-${item.combined || 0}`
+					});
+				}
+			});
+			return rows;
 		},
 		visiblePages() {
 			const pages = [];
@@ -292,19 +691,428 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			}
 			
 			return pages;
-		}
+		},
+		allGenesSelected() {
+			const geneRows = this.tableRows.filter(row => row.type === 'gene');
+			return geneRows.length > 0 && 
+				   geneRows.every(row => this.selectedGenes.includes(row.item.gene));
+		},
+		hasOnlyOneAssociation() {
+			// Check if there's only one association in the geneSets
+			if (!this.geneSets.trim()) {
+				return false;
+			}
+			
+			const lines = this.geneSets.split('\n').filter(line => line.trim());
+			return lines.length === 1;
+		},
+		hasOnlyOneAssociationFromData() {
+			// Check if there's only one association based on the actual gene data
+			// Count unique phenotype-geneSet combinations in originalGeneData
+			const associations = new Set();
+			this.originalGeneData.forEach(item => {
+				if (item.phenotype && item.gene_set) {
+					associations.add(`${item.phenotype}-${item.gene_set}`);
+				}
+			});
+			return associations.size === 1;
+		},
+	},
+		watch: {
+			utilsBox: {
+				handler(newVal) {
+					if (newVal && newVal.keyParams) {
+						this.initializeFromKeyParams();
+					}
+				},
+				immediate: true
+			},
+			geneSets(newVal, oldVal) {
+				// Track when associations are modified
+				if (oldVal !== undefined && newVal !== oldVal) {
+					// If geneSets is cleared, reset the modified flag
+					if (!newVal.trim()) {
+						this.associationsModified = false;
+						console.log('Associations cleared, Load Genes button hidden');
+					} else {
+						this.associationsModified = true;
+						console.log('Associations modified, Load Genes button should appear');
+					}
+				}
+			},
+			currentPage() {
+				// Generate scores for genes on current page that don't have scores yet
+				this.getNoveltyForCurrentPage();
+			},
 	},
 	methods: {
-		async addManualGenes() {
-			// Check if there are genes in the manual-genes field
-			if (!this.manualGenes.trim()) {
-				alert('Please enter gene symbols in the manual genes field.');
+		getPhenotypeById(phenotypeId) {
+			return findPhenotypeById(phenotypeId);
+		},
+		calculatePPA(x) {
+			// PPA formula: exp(x + log(5/95))/(1 + exp(x + log(5/95)))
+			const logOdds = Math.log(5/95);
+			const exponent = x + logOdds;
+			const expValue = Math.exp(exponent);
+			return expValue / (1 + expValue);
+		},
+		getPhenotypeDisplayNames(phenotypeString) {
+			if (!phenotypeString) return '';
+			
+			// Split by comma and convert each phenotype ID to human-readable name
+			const phenotypeIds = phenotypeString.split(', ').map(id => id.trim());
+			const displayNames = phenotypeIds.map(id => {
+				const humanReadableName = findPhenotypeById(id);
+				return humanReadableName || id; // Fallback to original ID if not found
+			});
+			
+			return displayNames.join(', ');
+		},
+		getNovelty(geneSymbol) {
+			if (!geneSymbol) return null;
+			return this.geneNovelty[geneSymbol] || null;
+		},
+		getRelevance(geneSymbol) {
+			if (!geneSymbol) return null;
+			return this.geneRelevance[geneSymbol] || null;
+		},
+		getNoveltyScore(geneSymbol) {
+			const novelty = this.getNovelty(geneSymbol);
+			return novelty ? `${novelty.score}/10` : 'N/A';
+		},
+		getRelevanceScore(geneSymbol) {
+			const relevance = this.getRelevance(geneSymbol);
+			return relevance ? `${relevance.score}/10` : 'N/A';
+		},
+		toggleEvidenceView(geneSymbol) {
+			const index = this.expandedGenes.indexOf(geneSymbol);
+			if (index > -1) {
+				this.expandedGenes.splice(index, 1);
+			} else {
+				this.expandedGenes.push(geneSymbol);
+			}
+		},
+		getEvidenceData(gene) {
+			// Return the original evidence data for this gene before merging
+			// Filter originalGeneData to get all entries for this specific gene
+			const evidenceData = this.originalGeneData.filter(item => item.gene === gene.gene);
+			
+			// Sort by combined score (descending) to show highest scores first
+			evidenceData.sort((a, b) => (b.combined || 0) - (a.combined || 0));
+			
+			return evidenceData;
+		},
+		
+		toggleAllGenes() {
+			const geneRows = this.tableRows.filter(row => row.type === 'gene');
+			if (this.allGenesSelected) {
+				// Unselect all genes on current page
+				geneRows.forEach(row => {
+					const index = this.selectedGenes.indexOf(row.item.gene);
+					if (index > -1) {
+						this.selectedGenes.splice(index, 1);
+					}
+				});
+			} else {
+				// Select all genes on current page
+				geneRows.forEach(row => {
+					if (!this.selectedGenes.includes(row.item.gene)) {
+						this.selectedGenes.push(row.item.gene);
+					}
+				});
+			}
+		},
+		removeGene(gene) {
+			const index = this.selectedGenes.indexOf(gene);
+			if (index > -1) {
+				this.selectedGenes.splice(index, 1);
+			}
+		},
+		clearSelectedGenes() {
+			this.selectedGenes = [];
+		},
+		exportSelectedGenes() {
+			if (this.selectedGenes.length === 0) {
+				alert('No genes selected to export.');
 				return;
 			}
 			
-			// Check if hypothesis is provided
-			if (!this.hypothesis.trim()) {
-				alert('Please enter a hypothesis to validate genes against.');
+			// Create a simple text file with selected genes
+			const content = this.selectedGenes.join('\n');
+			const blob = new Blob([content], { type: 'text/plain' });
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = 'selected_genes.txt';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
+		},
+		sortAndGroupGeneData(geneData) {
+			// First, sort by Combined score (descending - highest first)
+			const sortedByCombined = geneData.sort((a, b) => {
+				const combinedA = a.combined || 0;
+				const combinedB = b.combined || 0;
+				return combinedB - combinedA; // Descending order
+			});
+			
+			// Group by Gene and merge rows
+			const groupedByGene = {};
+			const result = [];
+			
+			sortedByCombined.forEach(item => {
+				const gene = item.gene;
+				if (!groupedByGene[gene]) {
+					// First occurrence of this gene - keep this row as the base
+					groupedByGene[gene] = {
+						...item,
+						phenotypes: new Set([item.phenotype]),
+						geneSets: new Set([item.gene_set])
+					};
+				} else {
+					// Merge with existing gene data
+					groupedByGene[gene].phenotypes.add(item.phenotype);
+					groupedByGene[gene].geneSets.add(item.gene_set);
+					
+					// Update other fields if this row has higher combined score
+					const currentCombined = groupedByGene[gene].combined || 0;
+					const newCombined = item.combined || 0;
+					if (newCombined > currentCombined) {
+						// Update with the row that has higher combined score
+						Object.assign(groupedByGene[gene], {
+							combined: item.combined,
+							prior: item.prior,
+							beta: item.beta,
+							log_bf: item.log_bf,
+							source: item.source,
+							summary: item.summary
+						});
+					}
+				}
+			});
+			
+			// Convert Sets back to arrays and create final result
+			Object.keys(groupedByGene).forEach(gene => {
+				const mergedItem = groupedByGene[gene];
+				
+				// Calculate PPA scores for this gene
+				const logBf = mergedItem.log_bf || 0;
+				const prior = mergedItem.prior || 0;
+				const directPPA = this.calculatePPA(logBf);
+				const indirectPPA = this.calculatePPA(prior);
+				
+				result.push({
+					...mergedItem,
+					phenotype: Array.from(mergedItem.phenotypes).join(', '),
+					gene_set: Array.from(mergedItem.geneSets).join(', '),
+					// Add PPA calculations
+					directPPA: directPPA,
+					indirectPPA: indirectPPA,
+					// Remove the temporary Set properties
+					phenotypes: undefined,
+					geneSets: undefined
+				});
+			});
+			
+			// Sort the final result by Combined score (descending)
+			result.sort((a, b) => {
+				const combinedA = a.combined || 0;
+				const combinedB = b.combined || 0;
+				return combinedB - combinedA;
+			});
+			
+			
+			return result;
+		},
+		parseAssociations(associationsString) {
+			// Split by semicolon to get individual rows
+			const rows = associationsString.split(';').map(row => row.trim());
+			
+			let formatted = '';
+			
+			// Process each row
+			rows.forEach(row => {
+				// Split by comma to get phenotype, gene set, and source
+				const parts = row.split(',').map(part => part.trim());
+				
+				// Ensure we have at least 3 parts, pad with empty strings if needed
+				const phenotype = parts[0] || '';
+				const geneSet = parts[1] || '';
+				const source = parts[2] || '';
+				
+				// Add comma-separated row
+				formatted += `${phenotype}, ${geneSet}, ${source}\n`;
+			});
+			
+			return formatted.trim();
+		},
+		parseTextareaContent(textareaContent) {
+			// If ignore associations is enabled, return empty string
+			if (this.ignoreAssociations) {
+				return '';
+			}
+			
+			// Check if content is formatted as CSV (has comma-separated values)
+			if (textareaContent.includes(',')) {
+				// Group associations by phenotype + source
+				const lines = textareaContent.split('\n').filter(line => line.trim());
+				const groups = {};
+				
+				// Process all lines (no header row assumption for CSV)
+				for (let i = 0; i < lines.length; i++) {
+					const line = lines[i].trim();
+					if (line) {
+						const parts = line.split(',').map(part => part.trim());
+						if (parts.length >= 3) {
+							const phenotype = parts[0] || 'N/A';
+							const geneSet = parts[1] || 'N/A';
+							const source = parts[2] || 'N/A';
+							
+							const groupKey = `${phenotype} + ${source}`;
+							
+							// Only include groups that are selected
+							if (this.selectedAssociationGroups.length === 0 || this.selectedAssociationGroups.includes(groupKey)) {
+								if (!groups[groupKey]) {
+									groups[groupKey] = {
+										phenotype: phenotype,
+										source: source,
+										geneSets: []
+									};
+								}
+								groups[groupKey].geneSets.push(geneSet);
+							}
+						}
+					}
+				}
+				
+				// Format grouped associations for the LLM
+				let formatted = 'PHENOTYPE-GENE SET ASSOCIATIONS (grouped by phenotype + source):\n\n';
+				
+				Object.keys(groups).forEach(groupKey => {
+					const group = groups[groupKey];
+					formatted += `**Group: ${groupKey}**\n`;
+					formatted += `- Phenotype: ${group.phenotype}\n`;
+					formatted += `- Source: ${group.source}\n`;
+					formatted += `- Gene Sets: ${group.geneSets.join(', ')}\n\n`;
+				});
+				
+				return formatted.trim();
+			} else {
+				// If not a CSV format, return as-is with some basic formatting
+				return textareaContent.split('\n').map(line => `- ${line}`).join('\n');
+			}
+		},
+		async initializeFromKeyParams() {
+			// Check if keyParams exist and populate fields
+			if (this.utilsBox && this.utilsBox.keyParams) {
+				
+				let hypothesisFound = false;
+				let hasAssociations = false;
+				let hasGenes = false;
+				
+				// Populate hypothesis field if keyParams['hypothesis'] exists
+				if (this.utilsBox.keyParams['hypothesis'] && typeof this.utilsBox.keyParams['hypothesis'] === 'string') {
+					this.phenotypeSearch = this.utilsBox.keyParams['hypothesis'];
+					hypothesisFound = true;
+				}
+				
+				// Check for associations parameter
+				if (this.utilsBox.keyParams['geneSets'] && typeof this.utilsBox.keyParams['geneSets'] === 'string') {
+					this.geneSets = this.utilsBox.keyParams['geneSets'];
+					hasAssociations = true;
+				}
+				
+				// Check for associations parameter (alternative)
+				if (this.utilsBox.keyParams['associations'] && typeof this.utilsBox.keyParams['associations'] === 'string') {
+					this.geneSets = this.parseAssociations(this.utilsBox.keyParams['associations']);
+					hasAssociations = true;
+				}
+				
+				// Check for genes parameter
+				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
+					const geneList = this.utilsBox.keyParams['genes'].split(',').map(gene => gene.trim()).filter(gene => gene);
+					if (geneList.length > 0) {
+						hasGenes = true;
+						this.urlChoiceOptions.genes = geneList;
+					}
+				}
+				
+				// If both associations and genes are present, show choice dialog
+				if (hasAssociations && hasGenes) {
+					this.urlChoiceOptions.associations = this.geneSets;
+					this.showUrlChoiceDialog = true;
+					return; // Wait for user choice
+				}
+				
+				// If only associations, proceed with associations
+				if (hasAssociations && !hasGenes) {
+					await this.fetchGenesFromAssociations();
+				}
+				
+				// If only genes, proceed with genes
+				if (!hasAssociations && hasGenes) {
+					await this.addGenesFromUrl(this.urlChoiceOptions.genes);
+				}
+				
+				// If hypothesis was found, open the configure panel instead of generating draft
+				if (hypothesisFound) {
+					// Configuration panel is now always visible
+					// Scroll disabled to allow users to see genes getting fetched
+					// this.$nextTick(() => {
+					// 	setTimeout(() => {
+					// 		const configurePanel = document.getElementById('planner-search-ui');
+					// 		if (configurePanel) {
+					// 			configurePanel.scrollIntoView({ 
+					// 				behavior: 'smooth', 
+					// 				block: 'start',
+					// 				inline: 'nearest'
+					// 			});
+					// 		}
+					// 	}, 500); // Wait for panel to open
+					// });
+				}
+			}
+		},
+		async loadGenesFromAssociations() {
+			try {
+				this.isLoadingGenes = true;
+				await this.fetchGenesFromAssociations();
+				// Reset the modified flag after successful gene loading
+				this.associationsModified = false;
+				console.log('Genes loaded successfully, associations modified flag reset');
+			} catch (error) {
+				console.error('Error loading genes from associations:', error);
+			} finally {
+				this.isLoadingGenes = false;
+			}
+		},
+		toggleManualGeneInput() {
+			this.showManualGeneInput = !this.showManualGeneInput;
+			if (!this.showManualGeneInput) {
+				this.manualGenes = '';
+			}
+		},
+		switchToAssociationsInput() {
+			this.showManualGeneInput = false;
+			this.manualGenes = '';
+			this.hideAssociationsInput = false;
+			this.fetchedGeneData = [];
+		},
+		clearGeneInput() {
+			this.manualGenes = '';
+			this.fetchedGeneData = [];
+			// Reset scoring state
+			this.isGettingGeneNovelty = false;
+			this.clearGeneNoveltyTimer();
+		},
+		closeWelcomePopup() {
+			this.showWelcomePopup = false;
+		},
+		async addManualGenes() {
+			// Check if there are genes in the manual-genes field
+			if (!this.manualGenes.trim()) {
+				alert('Please enter gene symbols in the gene input field.');
 				return;
 			}
 			
@@ -324,33 +1132,59 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				return;
 			}
 			
-			// Create gene data entries for manual genes
-			const manualGeneData = geneList.map(gene => ({
+			// Check if we have fetched gene data that matches the input
+			let genesToAdd = [];
+			
+			if (this.fetchedGeneData.length > 0) {
+				// Use fetched data if available and genes match
+				const fetchedGenes = this.fetchedGeneData.map(g => g.gene);
+				const matchingGenes = geneList.filter(gene => fetchedGenes.includes(gene));
+				
+				if (matchingGenes.length === geneList.length) {
+					// All genes match fetched data, use the full fetched data
+					genesToAdd = this.fetchedGeneData;
+					console.log('Using fetched gene data for table');
+				} else {
+					// Some genes don't match, create manual entries
+					genesToAdd = geneList.map(gene => ({
 				gene: gene,
+						log_bf: null,
+						prior: null,
+						combined: null,
+						directPPA: null,
+						indirectPPA: null,
 				source: 'Manual Input',
-				isManual: true // Flag to identify manual genes
-			}));
+						phenotype: 'Manual Input',
+						isManual: true
+					}));
+					console.log('Using manual gene data for table');
+				}
+			} else {
+				// No fetched data, create manual entries
+				genesToAdd = geneList.map(gene => ({
+					gene: gene,
+					log_bf: null,
+					prior: null,
+					combined: null,
+					directPPA: null,
+					indirectPPA: null,
+					source: 'Manual Input',
+					phenotype: 'Manual Input',
+					isManual: true
+				}));
+				console.log('Using manual gene data for table');
+			}
 			
 			// Add to existing gene data
-			this.geneData = [...this.geneData, ...manualGeneData];
+			this.geneData = [...this.geneData, ...genesToAdd];
+			this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
 			
-			// Reset pagination to first page
-			this.currentPage = 1;
-			
-			// Get novelty scores for manually added genes
-			await this.getNoveltyForManualGenes(geneList);
-			
-			// Clear manual input
+			// Clear the gene input field and fetched data after adding
 			this.manualGenes = '';
+			this.fetchedGeneData = [];
 			
-			console.log(`Added ${geneList.length} manual genes: ${geneList.join(', ')}`);
-			
-			// Check if current page has genes that need scores
-			this.$nextTick(() => {
-				this.checkAndFetchScoresForCurrentPage();
-			});
+			console.log(`Added ${genesToAdd.length} genes to table: ${geneList.join(', ')}`);
 		},
-		
 		async getNoveltyForManualGenes(geneList) {
 			try {
 				// Limit to 10 genes as per prompt constraints
@@ -362,23 +1196,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				
 				// Prepare the prompt
 				const prompt = this.gene_novelty_prompt
-					.replace('[INSERT YOUR HYPOTHESIS HERE]', this.hypothesis.trim())
+					.replace('[INSERT YOUR HYPOTHESIS HERE]', this.phenotypeSearch.trim() || 'No specific hypothesis provided')
 					.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]', genesToProcess.join(', '));
-				
-				// Set loading state
-				this.isGettingGeneNovelty = true;
-				this.geneNoveltyStartTime = Date.now();
-				this.geneNoveltyElapsedTime = '0:00';
-				
-				// Start timer to update elapsed time every second
-				this.geneNoveltyTimer = setInterval(() => {
-					if (this.isGettingGeneNovelty && this.geneNoveltyStartTime) {
-						const elapsed = Math.floor((Date.now() - this.geneNoveltyStartTime) / 1000);
-						const minutes = Math.floor(elapsed / 60);
-						const seconds = elapsed % 60;
-						this.geneNoveltyElapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-					}
-				}, 1000);
 				
 				// Call the LLM
 				this.getGeneNovelty.sendPrompt({
@@ -409,17 +1228,14 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 								}
 							});
 							
-							console.log(`Novelty scores updated for ${noveltyData.length} manual genes`);
+							console.log(`Gene novelty updated for ${noveltyData.length} genes`);
 							
 						} catch (error) {
-							console.error('Error parsing manual gene novelty response:', error);
-						} finally {
-							this.isGettingGeneNovelty = false;
-							this.clearGeneNoveltyTimer();
+							console.error('Error parsing gene novelty response:', error);
 						}
 					},
 					onError: (error) => {
-						console.error('Error getting novelty for manual genes:', error);
+						console.error('Error getting gene novelty:', error);
 						this.isGettingGeneNovelty = false;
 						this.clearGeneNoveltyTimer();
 					},
@@ -435,120 +1251,462 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			}
 		},
 		
-		clearAllGenes() {
-			this.geneData = [];
-			this.geneNovelty = {};
-			this.geneRelevance = {};
-			this.manualGenes = '';
-			this.currentPage = 1;
-		},
-		
-		getNovelty(geneSymbol) {
-			if (!geneSymbol) return null;
-			return this.geneNovelty[geneSymbol] || null;
-		},
-		
-		getRelevance(geneSymbol) {
-			if (!geneSymbol) return null;
-			return this.geneRelevance[geneSymbol] || null;
-		},
-		
-		getNoveltyScore(geneSymbol) {
-			const novelty = this.getNovelty(geneSymbol);
-			return novelty ? `${novelty.score}/10` : 'N/A';
-		},
-		
-		getRelevanceScore(geneSymbol) {
-			const relevance = this.getRelevance(geneSymbol);
-			return relevance ? `${relevance.score}/10` : 'N/A';
-		},
-		
-		clearGeneNoveltyTimer() {
-			if (this.geneNoveltyTimer) {
-				clearInterval(this.geneNoveltyTimer);
-				this.geneNoveltyTimer = null;
+		async addGenesFromUrl(geneList) {
+			try {
+				// Hide associations input when genes come from URL
+				this.hideAssociationsInput = true;
+				
+				// Populate the gene input field with URL genes
+				this.manualGenes = geneList.join(', ');
+				
+				console.log(`Genes from URL parameters populated in gene input: ${geneList.join(', ')}`);
+				console.log('Table will not show until user clicks Add Genes');
+				
+			} catch (error) {
+				console.error('Error adding genes from URL parameters:', error);
 			}
 		},
 		
-		// Pagination methods
+		async chooseAssociations() {
+			this.showUrlChoiceDialog = false;
+			this.geneSets = this.urlChoiceOptions.associations;
+			await this.fetchGenesFromAssociations();
+		},
+		
+		async chooseGenes() {
+			this.showUrlChoiceDialog = false;
+			this.hideAssociationsInput = true;
+			await this.addGenesFromUrl(this.urlChoiceOptions.genes);
+		},
+		
+		cancelUrlChoice() {
+			this.showUrlChoiceDialog = false;
+			// Clear the options
+			this.urlChoiceOptions.associations = null;
+			this.urlChoiceOptions.genes = null;
+		},
+		async fetchGenesFromAssociations() {
+			try {
+				console.log('Starting fetchGenesFromAssociations with geneSets:', this.geneSets);
+				// Parse the gene sets data to extract phenotype and gene set information
+				const lines = this.geneSets.split('\n').filter(line => line.trim());
+				console.log('Parsed lines:', lines);
+				const geneQueries = [];
+				
+				// Extract phenotype and gene set pairs for API queries
+				for (const line of lines) {
+					const parts = line.split(',').map(part => part.trim());
+					console.log('Processing line:', line, 'Parts:', parts);
+					if (parts.length >= 2) {
+						const phenotype = findPhenotypeByName(parts[0]);
+						const geneSet = parts[1];
+						console.log('Phenotype lookup:', parts[0], '->', phenotype);
+						if (phenotype && geneSet) {
+							geneQueries.push({ phenotype, geneSet });
+						} else {
+							console.log('Skipping line - phenotype or geneSet missing:', { phenotype, geneSet });
+						}
+					}
+				}
+				
+				console.log('Gene queries to process:', geneQueries);
+				
+				// Fetch genes for each phenotype-gene set pair
+				const allGenes = new Set();
+				const allGeneData = [];
+				
+				for (const query of geneQueries) {
+					try {
+						const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)},cfde`;
+						
+						const response = await fetch(url);
+						
+						const data = await response.json();
+						
+						// Extract genes and full data from the response
+						console.log(`API response for ${query.phenotype}-${query.geneSet}:`, data);
+						if (data.data && Array.isArray(data.data)) {
+							data.data.forEach(item => {
+								if (item.gene) {
+									allGenes.add(item.gene);
+									allGeneData.push(item);
+								}
+							});
+							console.log(`Found ${data.data.length} genes for ${query.phenotype}-${query.geneSet}`);
+						} else {
+							console.log(`No data found for ${query.phenotype}-${query.geneSet}`);
+						}
+					} catch (error) {
+						console.error(`❌ Error fetching genes for ${query.phenotype}-${query.geneSet}:`, error);
+					}
+				}
+				
+				// Store original data before merging (no prefiltering)
+				this.originalGeneData = allGeneData;
+				
+				// Sort by Combined score (descending) first, then group by Gene
+				const sortedAndGroupedData = this.sortAndGroupGeneData(allGeneData);
+				
+				// Store the fetched gene data for later use (don't populate table yet)
+				this.fetchedGeneData = sortedAndGroupedData;
+				
+				// Populate the gene input field with fetched genes
+				const geneSymbols = sortedAndGroupedData.map(g => g.gene).join(', ');
+				this.manualGenes = geneSymbols;
+				
+				console.log('Genes fetched successfully and populated in input field:', {
+					originalCount: allGeneData.length,
+					groupedCount: sortedAndGroupedData.length,
+					genes: sortedAndGroupedData.map(g => g.gene),
+					populatedGeneInput: geneSymbols,
+					note: 'Table will not show until user clicks Add Genes'
+				});
+				
+			} catch (error) {
+				console.error('Error fetching genes from associations:', error);
+			}
+		},
 		previousPage() {
 			if (this.currentPage > 1) {
 				this.currentPage--;
-				this.checkAndFetchScoresForCurrentPage();
 			}
 		},
 		nextPage() {
 			if (this.currentPage < this.totalPages) {
 				this.currentPage++;
-				this.checkAndFetchScoresForCurrentPage();
 			}
 		},
 		goToPage(page) {
 			if (page >= 1 && page <= this.totalPages) {
 				this.currentPage = page;
-				this.checkAndFetchScoresForCurrentPage();
 			}
 		},
 		goToFirstPage() {
 			this.currentPage = 1;
-			this.checkAndFetchScoresForCurrentPage();
 		},
 		goToLastPage() {
 			this.currentPage = this.totalPages;
-			this.checkAndFetchScoresForCurrentPage();
+		},
+		removeAssayType(assayType) {
+			this.selectedAssayTypes = this.selectedAssayTypes.filter(a => a !== assayType);
+		},
+		removeCellType(cellType) {
+			this.selectedCellTypes = this.selectedCellTypes.filter(c => c !== cellType);
+		},
+		removeReadout(readout) {
+			this.selectedReadouts = this.selectedReadouts.filter(r => r !== readout);
 		},
 		
-		checkAndFetchScoresForCurrentPage() {
-			// Get genes on current page that don't have novelty scores yet
-			const genesWithoutScores = this.paginatedGenes.filter(gene => 
-				!this.getNovelty(gene.gene) && !this.getRelevance(gene.gene)
-			);
+		onIgnoreAssociationsChange() {
+			// When ignore associations is checked, clear selected groups
+			if (this.ignoreAssociations) {
+				this.selectedAssociationGroups = [];
+			} else {
+				// When unchecked, auto-select all groups
+				this.selectedAssociationGroups = this.associationGroups.map(group => group.groupKey);
+			}
+		},
+		populateAssociationGroups() {
+			// Clear existing groups
+			this.associationGroups = [];
 			
-			if (genesWithoutScores.length > 0) {
-				const geneList = genesWithoutScores.map(gene => gene.gene);
-				console.log(`Fetching scores for ${geneList.length} genes on page ${this.currentPage}: ${geneList.join(', ')}`);
-				this.getNoveltyForManualGenes(geneList);
+			if (!this.geneSets.trim()) {
+				return;
+			}
+			
+			const textareaContent = this.geneSets.trim();
+			
+			// Check if content is formatted as CSV (has comma-separated values)
+			if (textareaContent.includes(',')) {
+				// Group associations by phenotype + source
+				const lines = textareaContent.split('\n').filter(line => line.trim());
+				const groups = {};
+				
+				// Process all lines (no header row assumption for CSV)
+				for (let i = 0; i < lines.length; i++) {
+					const line = lines[i].trim();
+					if (line) {
+						const parts = line.split(',').map(part => part.trim());
+						if (parts.length >= 3) {
+							const phenotype = parts[0] || 'N/A';
+							const geneSet = parts[1] || 'N/A';
+							const source = parts[2] || 'N/A';
+							
+							const groupKey = `${phenotype} + ${source}`;
+							if (!groups[groupKey]) {
+								groups[groupKey] = {
+									phenotype: phenotype,
+									source: source,
+									geneSets: []
+								};
+							}
+							groups[groupKey].geneSets.push(geneSet);
+						}
+					}
+				}
+				
+				// Convert groups object to array
+				Object.keys(groups).forEach(groupKey => {
+					const group = groups[groupKey];
+					this.associationGroups.push({
+						groupKey: groupKey,
+						phenotype: group.phenotype,
+						source: group.source,
+						geneSets: group.geneSets
+					});
+				});
+			}
+		},
+		resetAllSelections() {
+			// Reset all selections
+			this.selectedAssayTypes = [];
+			this.selectedCellTypes = [];
+			this.selectedReadouts = [];
+			this.selectedThroughput = '';
+			this.selectedSpecies = '';
+			this.selectedTimeBudget = '';
+			this.experimentNotes = '';
+			this.phenotypeSearch = '';
+			this.geneSets = '';
+			this.selectedAssociationGroups = [];
+			this.associationGroups = [];
+			this.ignoreAssociations = false;
+			this.selectedGenes = [];
+			this.experimentResults = '';
+			this.isGenerating = false;
+			this.showExperimentSummary = false;
+			// Reset associations modified flag
+			this.associationsModified = false;
+			// Reset gene scoring state
+			this.isGettingGeneNovelty = false;
+			this.clearGenerationTimer();
+			this.clearGeneNoveltyTimer();
+		},
+		extractSystemPrompt() {
+			return "You are a system for extracting and processing phenotype-gene associations from research queries.";
+		},
+		
+		isValidExperimentJSON(str) {
+			if (!str || typeof str !== 'string') return false;
+			try {
+				const parsed = JSON.parse(str);
+				return parsed && parsed.resultModel && Array.isArray(parsed.resultModel) && parsed.resultModel.length > 0;
+			} catch (error) {
+				return false;
 			}
 		},
 		
-		initializeFromUrlParams() {
+		clearGenerationTimer() {
+			if (this.generationTimer) {
+				clearInterval(this.generationTimer);
+				this.generationTimer = null;
+			}
+			this.generationStartTime = null;
+			this.elapsedTime = '0:00';
+		},
+		clearGeneNoveltyTimer() {
+			if (this.geneNoveltyTimer) {
+				clearInterval(this.geneNoveltyTimer);
+				this.geneNoveltyTimer = null;
+			}
+			this.geneNoveltyStartTime = null;
+			this.geneNoveltyElapsedTime = '0:00';
+		},
+		async getNoveltyForCurrentPage() {
+			// Only proceed if we have a hypothesis and genes
+			if (!this.phenotypeSearch.trim() || this.geneData.length === 0) {
+				return;
+			}
+
+			// Get genes on current page that don't have novelty scores yet
+			const currentPageGenes = this.paginatedGeneData;
+			const genesNeedingScores = currentPageGenes.filter(gene =>
+				!this.geneNovelty[gene.gene] && gene.gene && gene.isManual
+			);
+
+			if (genesNeedingScores.length === 0) {
+				return; // All genes on this page already have scores
+			}
+
+			// Limit to 10 genes as per prompt constraints
+			const genesToProcess = genesNeedingScores.slice(0, 10).map(g => g.gene);
+
+			if (genesToProcess.length === 0) {
+				return;
+			}
+
+			console.log(`Generating scores for ${genesToProcess.length} genes on page ${this.currentPage}:`, genesToProcess);
+
+			// Set loading state and start timer (like in generateHypothesisAlignment)
+			this.isGettingGeneNovelty = true;
+			this.geneNoveltyStartTime = Date.now();
+			this.geneNoveltyElapsedTime = '0:00';
+
+			// Start timer to update elapsed time every second
+			this.geneNoveltyTimer = setInterval(() => {
+				if (this.isGettingGeneNovelty && this.geneNoveltyStartTime) {
+					const elapsed = Math.floor((Date.now() - this.geneNoveltyStartTime) / 1000);
+					const minutes = Math.floor(elapsed / 60);
+					const seconds = elapsed % 60;
+					this.geneNoveltyElapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+				}
+			}, 1000);
+
 			try {
-				const urlParams = new URLSearchParams(window.location.search);
-				
-				// Get hypothesis from URL parameters
-				const hypothesisParam = urlParams.get('hypothesis');
-				if (hypothesisParam) {
-					this.hypothesis = decodeURIComponent(hypothesisParam);
-				}
-				
-				// Get genes from URL parameters
-				const genesParam = urlParams.get('genes');
-				if (genesParam) {
-					const geneList = decodeURIComponent(genesParam).split(',').map(gene => gene.trim()).filter(gene => gene);
-					
-					if (geneList.length > 0) {
-						// Add genes to the table
-						const manualGeneData = geneList.map(gene => ({
-							gene: gene,
-							source: 'URL Parameters',
-							isManual: true
-						}));
-						
-						this.geneData = [...this.geneData, ...manualGeneData];
-						
-						// Get novelty scores for the genes
-						this.getNoveltyForManualGenes(geneList);
-						
-						console.log(`Initialized with ${geneList.length} genes from URL parameters: ${geneList.join(', ')}`);
-						
-						// Check if current page has genes that need scores
-						this.$nextTick(() => {
-							this.checkAndFetchScoresForCurrentPage();
-						});
-					}
-				}
+				await this.getNoveltyForManualGenes(genesToProcess);
 			} catch (error) {
-				console.error('Error initializing from URL parameters:', error);
+				console.error('Error generating scores for current page:', error);
+				// Reset loading state on error
+				this.isGettingGeneNovelty = false;
+				this.clearGeneNoveltyTimer();
+			}
+		},
+		// Gene exploration methods
+		getGeneCount() {
+			if (!this.manualGenes.trim()) return 0;
+			return this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene).length;
+		},
+		async generateHypothesisAlignment() {
+			// Check if hypothesis is provided
+			if (!this.phenotypeSearch.trim()) {
+				alert('Please provide a hypothesis in the "Hypothesis to Validate" section before generating scores.');
+				return;
+			}
+
+			// Check if genes are provided
+			if (!this.manualGenes.trim()) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// Parse the manual genes input
+			const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
+
+			if (geneList.length === 0) {
+				alert('Please enter valid gene symbols separated by commas.');
+				return;
+			}
+
+			// Get existing genes in the table
+			const existingGenes = this.geneData.map(gene => gene.gene);
+			
+			// Find new genes that aren't already in the table
+			const newGenes = geneList.filter(gene => !existingGenes.includes(gene));
+			
+			if (newGenes.length === 0) {
+				alert('All genes in your input are already in the table. No new genes to process.');
+				return;
+			}
+
+			// If there are existing genes, show info about what we're doing
+			if (existingGenes.length > 0) {
+				alert(`Found ${newGenes.length} new genes to process (${geneList.length - newGenes.length} genes already in table). Processing new genes...`);
+			}
+
+			// Process only new genes, but generate scores for first 10 initially
+			const genesToProcess = newGenes;
+			if (newGenes.length > 10) {
+				alert(`Processing ${newGenes.length} new genes. Scores for the first 10 genes will be generated initially, and scores for remaining genes will be generated as you navigate through pages.`);
+			}
+
+			// Set loading state and start timer (simplified like validation planner)
+			this.isGettingGeneNovelty = true;
+			this.geneNoveltyStartTime = Date.now();
+			this.geneNoveltyElapsedTime = '0:00';
+
+			// Start timer to update elapsed time every second
+			this.geneNoveltyTimer = setInterval(() => {
+				if (this.isGettingGeneNovelty && this.geneNoveltyStartTime) {
+					const elapsed = Math.floor((Date.now() - this.geneNoveltyStartTime) / 1000);
+					const minutes = Math.floor(elapsed / 60);
+					const seconds = elapsed % 60;
+					this.geneNoveltyElapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+				}
+			}, 1000);
+
+			try {
+				// Add genes to the table first (similar to addManualGenes but without clearing input)
+				const genesToAdd = genesToProcess.map(gene => ({
+					gene: gene,
+					log_bf: null,
+					prior: null,
+					combined: null,
+					directPPA: null,
+					indirectPPA: null,
+					source: 'Manual Input',
+					phenotype: 'Manual Input',
+					isManual: true
+				}));
+						
+				// Add to existing gene data
+				this.geneData = [...this.geneData, ...genesToAdd];
+				this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
+
+				// Keep genes in input field for other explore options
+
+				// Generate scores for first 10 genes initially
+				const firstBatch = genesToProcess.slice(0, 10);
+				await this.getNoveltyForManualGenes(firstBatch);
+
+			} catch (error) {
+				console.error('Error generating hypothesis alignment:', error);
+				alert('Error generating hypothesis alignment. Please try again.');
+				// Reset loading state and clear timer on error
+				this.isGettingGeneNovelty = false;
+				this.clearGeneNoveltyTimer();
+			}
+		},
+		exploreGTExExpression() {
+			// Parse genes from manual input
+			const geneList = this.manualGenes
+				.split(',')
+				.map(gene => gene.trim())
+				.filter(gene => gene);
+
+			if (geneList.length === 0) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// Take only the first 50 genes if there are more than 50
+			const genesToUse = geneList.slice(0, 50);
+			
+			// Show info message if more than 50 genes were provided
+			if (geneList.length > 50) {
+				console.log(`GTEx browser supports a maximum of 50 genes. Using the first 50 genes: ${genesToUse.join(', ')}`);
+			}
+
+			// Create GTEx browser URL with genes
+			const genesParam = genesToUse.join(',');
+			const gtexUrl = `https://www.gtexportal.org/home/multiGeneQueryPage/${genesParam}`;
+			
+			// Open in new tab
+			window.open(gtexUrl, '_blank');
+		},
+		async enrichGenes() {
+			// Parse genes from manual input
+			const geneList = this.manualGenes
+				.split(',')
+				.map(gene => gene.trim())
+				.filter(gene => gene);
+
+			if (geneList.length === 0) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			try {
+				// Create description for the gene set
+				const description = `Gene set from CFDE Genes Validator: ${geneList.join(', ')}`;
+				
+				// Create Playbook Workflow Builder URL
+				const workflowUrl = await drcUtils.create_pwb_gene_set_workflow(geneList, description);
+				
+				// Open in new tab
+				window.open(workflowUrl, '_blank');
+			} catch (error) {
+				console.error('Error creating Playbook workflow:', error);
+				alert('Error opening Playbook Workflow Builder. Please try again.');
 			}
 		}
 	}
@@ -561,80 +1719,424 @@ body {
     background-color: #F8F8F8;
 }
 
-a {
-    color: #FF6600 !important;
-}
-
-.genes-validator {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Section Wrappers - CFDE Card Style */
-.validator-header, .hypothesis-section, .manual-gene-section, .gene-data-table-section {
-    background: #ffffff;
-    padding: 20px;
-}
-
-.validator-header h3 {
-    color: #FF6600;
-    font-size: 24px;
+.section-header h4 {
+    color: #333333;
+    font-size: 18px;
     font-weight: 700;
-    margin: 0 0 10px 0;
-    text-transform: uppercase;
+    margin: 0 0 15px 0;
     letter-spacing: 0.5px;
 }
 
-.validator-description {
-    color: #666;
-    font-size: 16px;
-    margin: 0;
+a {
+    color: #FF6600 !important;
+}
+/* URL Choice Dialog Styles */
+.url-choice-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-.hypothesis-section label {
-    display: block;
-    margin-top: 0 !important;
-    margin-bottom: 15px !important;
-    color: #333333;
-    font-size: 14px;
+.url-choice-dialog {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: dialogSlideIn 0.3s ease-out;
+}
+
+@keyframes dialogSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.url-choice-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.url-choice-header h3 {
+    margin: 0 0 8px 0;
+    color: #FF6600;
+    font-size: 24px;
     font-weight: 600;
 }
 
-.hypothesis-textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+.url-choice-header p {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.url-choice-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 24px;
+}
+
+.url-choice-option {
+    border: 1px solid #e9ecef;
+    padding: 20px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.url-choice-option:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.url-choice-title {
+    margin-bottom: 16px;
+}
+
+.url-choice-title h4 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.url-choice-title p {
+    margin: 0;
+    color: #666;
     font-size: 14px;
-    font-family: inherit;
-    resize: vertical;
-    min-height: 60px;
-    background-color: white;
+    line-height: 1.4;
 }
 
-.hypothesis-textarea:focus {
-    outline: none;
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+.url-choice-preview {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
 }
 
-.manual-gene-section {
-    margin-bottom: 30px;
+.url-choice-preview strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.url-choice-preview pre {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.genes-list {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #333;
+    word-break: break-word;
+}
+
+.url-choice-btn {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.url-choice-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.url-choice-actions {
+    padding: 16px 24px 24px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.url-choice-actions .btn {
+    padding: 10px 24px;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .url-choice-dialog {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .url-choice-options {
+        grid-template-columns: 1fr;
+        gap: 16px;
     padding: 20px;
 }
 
-.manual-gene-section label {
-    display: block;
-    margin-top: 0 !important;
-    margin-bottom: 15px !important;
-    color: #333333;
-    font-size: 14px;
+    .url-choice-option {
+        padding: 16px;
+    }
+    
+    .url-choice-header {
+        padding: 20px 20px 16px;
+    }
+    
+    .url-choice-header h3 {
+        font-size: 20px;
+    }
+    
+    .url-choice-header p {
+        font-size: 14px;
+    }
+}
+
+/* Welcome Popup Styles */
+.welcome-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.welcome-popup {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.welcome-popup-header {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.welcome-popup-header h3 {
+    margin: 0;
+    color: #FF6600;
+    font-size: 22px;
     font-weight: 600;
 }
 
-.format-suggestion {
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #f8f9fa;
+    color: #333;
+}
+
+.welcome-popup-content {
+    padding: 20px;
+}
+
+.welcome-popup-content > p {
+    margin: 0 0 18px 0;
+    color: #666;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.welcome-requirements {
+    margin-bottom: 18px;
+}
+
+.requirement-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-left: 4px solid #FF6600;
+}
+
+.requirement-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.requirement-content h4 {
+    margin: 0 0 6px 0;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.requirement-content p {
+    margin: 0 0 6px 0;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.requirement-content ul {
+    margin: 0;
+    padding-left: 16px;
+    color: #555;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.requirement-content li {
+    margin-bottom: 2px;
+}
+
+.welcome-actions {
+    text-align: center;
+    padding-top: 12px;
+    border-top: 1px solid #e9ecef;
+}
+
+.welcome-actions .btn {
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .welcome-popup {
+        width: 95%;
+        margin: 15px;
+        max-height: 90vh;
+    }
+    
+    .welcome-popup-header {
+        padding: 16px 16px 10px;
+    }
+    
+    .welcome-popup-header h3 {
+        font-size: 18px;
+    }
+    
+    .welcome-popup-content {
+        padding: 16px;
+    }
+    
+    .requirement-item {
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+    
+    .requirement-icon {
+        font-size: 18px;
+        margin-top: 0;
+    }
+}
+
+/* Gene Sets Input Section */
+.gene-sets-input {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gene-sets-input label {
+    font-weight: 500;
+    color: #333333;
+    font-size: 14px;
+}
+
+/* Gene Input Section (Primary) */
+.gene-input-section {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gene-input-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.gene-input-header label {
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.switch-to-associations-link {
+    color: #FF6600;
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: normal;
+}
+
+.switch-to-associations-link:hover {
+    text-decoration: underline;
+}
+
+small.format-suggestion {
     display: block;
     color: #777777;
     font-size: 12px;
@@ -645,297 +2147,396 @@ a {
     border-left: 3px solid #7c757d;
 }
 
-.manual-genes-field {
+.section-header {
+    margin-bottom: 10px;
+}
+
+.section-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.manual-genes-field, .hypothesis-textarea {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 14px;
-    margin-bottom: 15px;
+    font-family: inherit;
     resize: vertical;
     min-height: 60px;
+    margin-bottom: 10px;
 }
 
 .manual-genes-field:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: #FF6600;
+    box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.2);
 }
 
-.manual-gene-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-start;
-}
-
-/* Button Styles - CFDE Style */
-.btn {
-    padding: 8px 16px;
-    border: none;
+.gene-sets-field {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
     border-radius: 4px;
-    cursor: pointer;
     font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 10px;
+}
+
+.gene-sets-field:focus {
+    outline: none;
+    border-color: #FF6600;
+    box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.2);
+}
+
+.load-genes-section {
     margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
 }
 
-.btn-primary {
-    background-color: #007bff;
-    color: white;
+.load-genes-btn {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.btn-primary:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
+.load-genes-hint {
+    color: #666;
+    font-size: 0.85em;
+    margin: 0;
 }
 
-.btn-primary:hover:not(:disabled) {
-    background-color: #0056b3;
+.manual-add-link {
+    color: #FF6600;
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: normal;
 }
 
-.btn-outline-secondary {
-    background-color: transparent;
-    color: #6c757d;
-    border: 1px solid #6c757d;
+.manual-add-link:hover {
+    text-decoration: underline;
 }
 
-.btn-outline-secondary:hover:not(:disabled) {
-    background-color: #6c757d;
-    color: white;
+/* Gene Options Section */
+.gene-options-section {
+    margin: 30px 0;
 }
 
-.btn-outline-secondary:disabled {
-    background-color: #f9fafb;
-    color: #d1d5db;
-    cursor: not-allowed;
+.gene-options-header {
+    margin-bottom: 20px;
 }
 
-.add-genes-btn {
-    min-width: 100px;
+.gene-options-header h4 {
+    color: #FF6600;
+    margin: 0 0 8px 0;
+	text-transform: uppercase;
+    font-size: 1.2em;
 }
 
-.clear-btn {
-    min-width: 100px;
+.gene-options-description {
+    color: #666;
+    margin: 0;
+    font-size: 0.95em;
+    line-height: 1.4;
 }
 
+.gene-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.gene-option-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.gene-option-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.option-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.option-header h5 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.2em;
+    line-height: 1.4;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.option-badge {
+    background: #679dd4;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.8em;
+    font-weight: 700;
+    margin-left: 10px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid rgba(25, 118, 210, 0.2);
+}
+
+.option-description {
+    margin-bottom: 15px;
+}
+
+.option-description p {
+    margin: 0;
+    color: #4a5568;
+    font-size: 0.95em;
+    line-height: 1.6;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+.option-details {
+    margin-bottom: 15px;
+}
+
+.option-details ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #4a5568;
+    font-size: 0.9em;
+    line-height: 1.5;
+    font-weight: 400;
+}
+
+.option-details li {
+    margin-bottom: 6px;
+    position: relative;
+}
+
+.option-details li::marker {
+    color: #FF6600;
+    font-weight: 600;
+}
+
+.option-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.option-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 0.95em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    transition: all 0.2s ease;
+}
+
+.option-note {
+    color: #718096;
+    font-size: 0.85em;
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+/* Gene Data Table Section */
 .gene-data-table-section {
     margin-top: 30px;
 }
 
-.gene-data-header {
+.summary-loading-indicator {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    padding: 12px 16px;
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gene-data-header {
+    margin-bottom: 15px;
 }
 
 .gene-data-label {
-    display: block;
-    margin-top: 0 !important;
-    margin-bottom: 15px !important;
-    color: #333333;
-    font-size: 14px;
     font-weight: 600;
+    color: #333;
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
 }
 
 .gene-data-description {
-    display: block;
-    color: #777777;
-    font-size: 12px;
-    font-style: italic;
-    margin: 4px 0 8px 0;
-    padding: 4px 8px;
-    background-color: #F8F8F8;
-    border-left: 3px solid #7c757d;
+    color: #666;
+    margin: 0;
+    font-size: 0.9em;
+    line-height: 1.4;
 }
 
 .table-container {
     overflow-x: auto;
-    border-radius: 6px;
-    background: white;
+    margin-bottom: 20px;
 }
 
 .gene-data-table {
     width: 100%;
     border-collapse: collapse;
     background: white;
-    border: 1px solid #CCCCCC;
-    border-radius: 6px;
-    overflow: hidden;
+    border: 1px solid #ddd;
 }
 
 .gene-data-table th {
+    background: #f8f9fa;
+    color: #333;
+    font-weight: 600;
     padding: 12px 8px;
     text-align: left;
-    font-weight: 600;
-    font-size: 13px;
-    color: #333333;
-    border-bottom: 1px solid #CCCCCC;
-    white-space: nowrap;
+    border-bottom: 2px solid #dee2e6;
+    font-size: 0.9em;
 }
 
 .gene-data-table td {
     padding: 10px 8px;
-    border-bottom: 1px solid #EEEEEE;
-    font-size: 13px;
-    color: #333333;
+    border-bottom: 1px solid #dee2e6;
     vertical-align: top;
+    font-size: 0.9em;
 }
 
 .gene-data-table tr:hover {
-    background-color: #EFEFEF;
+    background: #f8f9fa;
 }
 
-.gene-data-table tr:last-child td {
-    border-bottom: none;
-}
-
-.summary-loading-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 8px;
-    background: #e3f2fd;
-    border: 1px solid #bbdefb;
-    border-radius: 4px;
-    font-size: 12px;
-    color: #1976d2;
-}
-
-.loading-spinner-small {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #1976d2;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-right: 8px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-text {
-    font-weight: 500;
-    white-space: nowrap;
-    color: #6c757d;
-    font-size: 14px;
-}
-
-/* Novelty & Relevance Column Styles */
-.novelty-cell,
-.relevance-cell,
-.reason-cell {
-    display: flex;
-    align-items: center;
-    min-height: 20px;
-}
-
-.score-content {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    font-size: 11px;
-    line-height: 1.2;
-    width: 100%;
-}
-
-.score-value {
-    font-weight: 700;
-    font-size: 13px;
-}
-
-/* High Score Text Color */
-.novelty-cell .score-content .score-value,
-.relevance-cell .score-content .score-value {
-    color: #777777;
-}
-
-.novelty-cell .score-content.high-score .score-value,
-.relevance-cell .score-content.high-score .score-value {
-    color: #007BFF;
-    font-weight: 700;
-}
-
-.reason-content {
-    color: #495057;
-    font-size: 14px;
-    line-height: 1.3;
-    word-wrap: break-word;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #6b7280;
-    font-size: 16px;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-}
-
-.empty-state p {
+.gene-checkbox {
     margin: 0;
 }
 
-/* What's Next Information Box */
-.whats-next-box {
-    margin-top: 20px;
-    padding: 15px 20px;
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-left: 3px solid #FF6600;
+.relevance-cell, .novelty-cell {
+    text-align: center;
+    min-width: 80px;
 }
 
-.whats-next-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-}
-
-.whats-next-text {
-    color: #495057;
-    font-size: 14px;
-    font-weight: 500;
-    flex: 1;
-}
-
-.whats-next-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 32px;
-    background: #FF6600;
-    color: white !important;
-    text-decoration: none;
+.score-content {
+    display: inline-block;
+    padding: 4px 8px;
     border-radius: 4px;
-    font-size: 12px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.score-content.high-score {
+    background: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.score-value {
     font-weight: 600;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    padding: 0 10px;
+    font-size: 0.9em;
 }
 
-.whats-next-link:hover {
-    background: #954835;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+.reason-cell {
+    max-width: 300px;
+    word-wrap: break-word;
 }
 
-/* Pagination Styles */
+.reason-content {
+    font-size: 0.85em;
+    line-height: 1.3;
+    color: #555;
+}
+
+.loading-text {
+    color: #666;
+    font-style: italic;
+    font-size: 0.85em;
+}
+
+.view-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.view-button:hover {
+    background: #0056b3;
+}
+
+.view-button.active {
+    background: #6c757d;
+}
+
+.evidence-subtable {
+    margin: 10px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.evidence-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+}
+
+.evidence-table th {
+    background: #e9ecef;
+    color: #333;
+    font-weight: 600;
+    padding: 8px 6px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.evidence-table td {
+    padding: 6px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.evidence-table tr:hover {
+    background: #f1f3f4;
+}
+
+/* Pagination */
 .pagination-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 20px;
     padding: 15px 0;
-    border-top: 1px solid #e9ecef;
 }
 
 .pagination-info {
-    font-size: 14px;
-    color: #6c757d;
+    color: #666;
+    font-size: 0.9em;
 }
 
 .pagination-controls {
@@ -945,32 +2546,30 @@ a {
 }
 
 .pagination-btn {
-    padding: 6px 12px;
-    min-width: 32px;
-    text-align: center;
-    border: 1px solid #dee2e6;
     background: white;
-    color: #495057;
-    border-radius: 16px;
+    border: 1px solid #ddd;
+    color: #333;
+    padding: 6px 12px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
-    transition: all 0.2s ease;
+    font-size: 0.85em;
+    transition: all 0.2s;
 }
 
 .pagination-btn:hover:not(:disabled) {
     background: #f8f9fa;
-    border-color: #adb5bd;
+    border-color: #FF6600;
 }
 
 .pagination-btn:disabled {
-    opacity: 0.5;
+    background: #f8f9fa;
+    color: #999;
     cursor: not-allowed;
+    border-color: #e9ecef;
 }
 
 .first-last-btn {
-    padding: 6px 8px;
     font-weight: bold;
-    font-size: 12px;
 }
 
 .page-numbers {
@@ -979,31 +2578,64 @@ a {
 }
 
 .page-btn {
-    padding: 6px 10px;
-    border: 1px solid #dee2e6;
     background: white;
-    color: #495057;
-    border-radius: 17px;
+    border: 1px solid #ddd;
+    color: #333;
+    padding: 6px 10px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
-    min-width: 33.5px;
+    font-size: 0.85em;
+    min-width: 32px;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
 
 .page-btn:hover {
     background: #f8f9fa;
-    border-color: #adb5bd;
+    border-color: #FF6600;
 }
 
 .page-btn.active {
-    background: #55AAEE;
+    background: #FF6600;
     color: white;
-    border-color: #55AAEE;
+    border-color: #FF6600;
 }
 
-.page-btn.active:hover {
-    background: #55AAEE;
-    border-color: #55AAEE;
+/* Loading Spinner */
+.loading-spinner-small {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #FF6600;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .gene-options-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .gene-option-card {
+        padding: 15px;
+    }
+    
+    .option-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .option-badge {
+        margin-left: 0;
+        align-self: flex-start;
+    }
 }
 </style>
