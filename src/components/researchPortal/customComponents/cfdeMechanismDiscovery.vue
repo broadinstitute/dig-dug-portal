@@ -1271,13 +1271,17 @@ Return a structured **JSON object** following this schema:
             const allHaveGenes = relevantAssociations.every(obj => Array.isArray(obj.genes));
 
             if(!allHaveGenes){
-                await Promise.all(
+                await Promise.allSettled(
                     relevantAssociations.map(async item => {
                         const genes = await this.fetchGenesForTerm(item.phenotype_id, item.gene_set);
-                        const filtered = genes.filter(g => g.combined > 2);
-                        const sorted = filtered.sort((a, b) => b.combined - a.combined)
-                        const geneArray = sorted.map(gene => gene.gene);
-                        item.genes = geneArray;
+                        if(genes.length>0){
+                            const filtered = genes.filter(g => g.combined > 2);
+                            const sorted = filtered.sort((a, b) => b.combined - a.combined)
+                            const geneArray = sorted.map(gene => gene.gene);
+                            item.genes = geneArray;
+                        }else{
+                            item.genes = [];
+                        }
                         this.association_genes_loaded += 1;
                     })
                 )
@@ -1413,23 +1417,21 @@ Return a structured **JSON object** following this schema:
             console.log('getting genes for', phenotype, geneset);
 
             const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${phenotype},${geneset},cfde&limit=100`
-            const response =  await fetch(url);
-
-            if (!response.ok) {
-                new Error("Fetch error:" + response.statusText);
-                return;
+            try{
+                const response =  await fetch(url);
+    
+                if (!response.ok) {
+                    //new Error("Fetch error:" + response.statusText);
+                    return [];
+                }
+    
+                const res = await response.json();
+                const data = res.data;
+    
+                return data;
+            }catch(error){
+                return [];
             }
-
-            const res = await response.json();
-            const data = res.data;
-
-            return data;
-            /*
-            const filtered = data.filter(g => g.combined > 2);
-            const sorted = filtered.sort((a, b) => b.combined - a.combined)
-
-            return sorted;
-            */
         },
 
         //

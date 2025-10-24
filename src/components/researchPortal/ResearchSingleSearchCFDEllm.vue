@@ -9,6 +9,10 @@
 				<div>Ask about the Common Fund, its Centers, or its Programs.</div>
 				<div>Tell me what you're researching or curious about.</div>
 				<div>Just describe what you're looking for.</div>
+				<a role="button" @click="display_examples = !display_examples">{{!display_examples ? 'show' : 'hide'}} examples</a>
+				<div :class="{collapsed: !display_examples}" style="display:flex; flex-direction: column; gap:5px; padding:10px 20px">
+					<div v-for="example in exampleQueries" class="query-sample" @click="useExample(example)">{{ example }}</div>
+				</div>
 			</div>
 			<div v-if="searchInitiated" class="search-results" style="gap:40px">
 				<!--
@@ -134,7 +138,7 @@
 			</span>
 			-->
 			<template v-if="singleSearchMethod == 'ss_keyword'"> 
-				<input class="form-control byor-single-search" type="text" id="byor_single_search" v-model="singleSearchParam"
+				<input class="form-control byor-single-search" type="text" ref="search" id="byor_single_search" v-model="singleSearchParam"
 					:placeholder="!hasFocus?'Click here to begin':''" @keyup.enter="onSearch" @focus="onFocus" @blur="onBlur"
 					autocomplete="off" />
 				<div style="position:absolute; top:50%; right:10px; transform: translateY(-50%);">
@@ -557,6 +561,8 @@ export default Vue.component("research-single-search-cfde-llm", {
 			availableTissues: null,
 			availableDiseases: null,
 
+			display_examples: false,
+
 			searchInitiated: false,
 			singleSearchParam: null,
 			singleSearchMethod: 'ss_keyword',
@@ -577,6 +583,15 @@ export default Vue.component("research-single-search-cfde-llm", {
 			meaningSearchScore: 0.5,
 			meaningSearchParam: null,
 			meaningSearchOptions: [],
+
+			exampleQueries: [
+                "I'm a common disease researcher looking for mechanisms underlying diabetes and Alzheimer's disease",
+                "MoTrPAC",
+                "BDH2",
+                "Bipolar disorder",
+                "I study the FTO gene, its role in body mass index, and mechanistic underpinnings",
+				"PPARG expression in adipose in type 2 diabetes and effects of exercise"
+            ],
 
 			programLinks: {
 				"4DN": "https://data.4dnucleome.org/",
@@ -968,6 +983,11 @@ export default Vue.component("research-single-search-cfde-llm", {
 
 			}
 		},
+
+		useExample(text){
+            this.singleSearchParam = text;
+			this.$refs.search.focus();
+        },
 
 		resetSearch() {
 			this.singleSearchParam = null;
@@ -1447,6 +1467,20 @@ export default Vue.component("research-single-search-cfde-llm", {
 @keyframes rotation {
     0% {transform: rotate(0deg);}
     100% {transform: rotate(360deg);}
+}
+
+.collapsed{
+    display: none !important;
+}
+.query-sample {
+    background: #ddd;
+    padding: 3px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+	color: black;
+}
+.query-sample:hover{
+    background: #ccc;
 }
 
 /* alert UI */
