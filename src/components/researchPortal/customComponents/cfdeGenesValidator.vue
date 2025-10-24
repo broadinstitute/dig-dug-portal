@@ -151,7 +151,38 @@
 							</div>
 						</div>
 
-						<!-- Option 2: Playbook Workflow Builder -->
+						<!-- Option 2: Jupiter Notebook for MoTrPAC -->
+						<div class="gene-option-card">
+							<div class="option-header">
+								<h5>MoTrPAC Exercise Response Analysis</h5>
+								<span class="option-badge">Jupyter Notebook</span>
+							</div>
+							<div class="option-description">
+								<p>Explore how your genes respond to endurance exercise across 20 tissues and 7 omics platforms in the MoTrPAC rat study. What you'll get:</p>
+							</div>
+							<div class="option-details">
+								<ul>
+									<li><strong>Dataset Overview:</strong> Visualize all available omics data</li>
+									<li><strong>Gene Coverage:</strong> Map your genes across omics platforms and tissues</li>
+									<li><strong>Interactive Tables:</strong> Searchable, filterable results</li>
+									<li><strong>Trajectory Plots:</strong> Visualize how your genes change over an exercise training time course</li>
+									<li><strong>Heatmaps:</strong> Sex-specific comparison of gene responses across tissues and time points</li>
+									<li><strong>Multi-Tissue Insights:</strong> Tissue- and sex-specific exercise responses</li>
+								</ul>
+							</div>
+							<div class="option-actions">
+								<button 
+									@click="openMoTrPACNotebook" 
+									class="btn btn-primary option-btn"
+									:disabled="!manualGenes.trim()"
+								>
+									Open Jupyter Notebook
+								</button>
+								<span class="option-note">MoTrPAC data • Interactive analysis • Opens in new tab</span>
+							</div>
+						</div>
+
+						<!-- Option 3: Playbook Workflow Builder -->
 						<div class="gene-option-card">
 							<div class="option-header">
 								<h5>Explore genes in Playbook Workflow Builder</h5>
@@ -183,7 +214,7 @@
 							</div>
 						</div>
 
-						<!-- Option 3: Hypothesis Alignment and Research Gap Score -->
+						<!-- Option 4: Hypothesis Alignment and Research Gap Score -->
 						<div v-if="hasHypothesis" class="gene-option-card">
 							<div class="option-header">
 								<h5>Hypothesis Relevance & Innovation Score</h5>
@@ -279,6 +310,30 @@
 					
 					<div class="welcome-actions">
 						<button @click="closeWelcomePopup" class="btn btn-primary">Got it, let's start!</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- No Genes Found Popup -->
+		<div v-if="showNoGenesPopup" class="no-genes-popup-overlay">
+			<div class="no-genes-popup">
+				<div class="no-genes-popup-header">
+					<h3>No Genes Found</h3>
+					<button @click="closeNoGenesPopup" class="close-btn">&times;</button>
+				</div>
+				<div class="no-genes-popup-content">
+					<div class="no-genes-icon">
+						<span class="warning-icon">⚠️</span>
+					</div>
+					<p>No genes were returned for the specified phenotype-gene set associations. The CFDE Knowledge Center is still working on generating the gene lists for these associations.</p>
+					<p><strong>What you can do:</strong></p>
+					<ul>
+						<li>Enter genes manually in the "Genes" field above to continue exploring</li>
+						<li>Try again later once the gene generation is complete</li>
+					</ul>
+					<div class="no-genes-actions">
+						<button @click="closeNoGenesPopup" class="btn btn-primary">Got it</button>
 					</div>
 				</div>
 			</div>
@@ -519,6 +574,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		// URL parameter detection for welcome popup
 		urlHasGenes: false,
 		urlHasHypothesis: false,
+		// No genes found popup
+		showNoGenesPopup: false,
 			// Gene scoring state (simplified like validation planner)
 			isGettingGeneNovelty: false,
 			geneNoveltyStartTime: null,
@@ -1129,6 +1186,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		closeWelcomePopup() {
 			this.showWelcomePopup = false;
 		},
+		closeNoGenesPopup() {
+			this.showNoGenesPopup = false;
+		},
 		async addManualGenes() {
 			// Check if there are genes in the manual-genes field
 			if (!this.manualGenes.trim()) {
@@ -1368,6 +1428,13 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				
 				// Sort by Combined score (descending) first, then group by Gene
 				const sortedAndGroupedData = this.sortAndGroupGeneData(allGeneData);
+				
+				// Check if no genes were found
+				if (sortedAndGroupedData.length === 0) {
+					console.log('No genes found for the specified associations');
+					this.showNoGenesPopup = true;
+					return;
+				}
 				
 				// Store the fetched gene data for later use (don't populate table yet)
 				this.fetchedGeneData = sortedAndGroupedData;
@@ -1704,6 +1771,26 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			
 			// Open in new tab
 			window.open(gtexUrl, '_blank');
+		},
+		openMoTrPACNotebook() {
+			// Parse genes from manual input
+			const geneList = this.manualGenes
+				.split(',')
+				.map(gene => gene.trim())
+				.filter(gene => gene);
+
+			if (geneList.length === 0) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// TODO: Replace with actual Jupyter notebook URL when available
+			// For now, show a placeholder message
+			alert('MoTrPAC Jupyter Notebook integration is coming soon! The notebook will allow you to visualize your genes using MoTrPAC exercise response data.');
+			
+			// Placeholder for future implementation:
+			// const notebookUrl = `https://your-jupyter-notebook-url.com?genes=${geneList.join(',')}`;
+			// window.open(notebookUrl, '_blank');
 		},
 		async enrichGenes() {
 			// Parse genes from manual input
@@ -2141,6 +2228,94 @@ a {
     font-weight: 600;
 }
 
+/* No Genes Found Popup Styles */
+.no-genes-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.no-genes-popup {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.no-genes-popup-header {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.no-genes-popup-header h3 {
+    margin: 0;
+    color: #dc3545;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.no-genes-popup-content {
+    padding: 20px;
+    text-align: center;
+}
+
+.no-genes-icon {
+    margin-bottom: 16px;
+}
+
+.warning-icon {
+    font-size: 48px;
+    display: block;
+}
+
+.no-genes-popup-content p {
+    margin: 0 0 12px 0;
+    color: #666;
+    font-size: 15px;
+    line-height: 1.4;
+    text-align: left;
+}
+
+.no-genes-popup-content ul {
+    margin: 0 0 16px 0;
+    padding-left: 20px;
+    color: #555;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.no-genes-popup-content li {
+    margin-bottom: 4px;
+}
+
+.no-genes-actions {
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid #e9ecef;
+}
+
+.no-genes-actions .btn {
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .welcome-popup {
@@ -2171,6 +2346,24 @@ a {
     .requirement-icon {
         font-size: 18px;
         margin-top: 0;
+    }
+    
+    .no-genes-popup {
+        width: 95%;
+        margin: 15px;
+        max-height: 90vh;
+    }
+    
+    .no-genes-popup-header {
+        padding: 16px 16px 10px;
+    }
+    
+    .no-genes-popup-header h3 {
+        font-size: 18px;
+    }
+    
+    .no-genes-popup-content {
+        padding: 16px;
     }
 }
 
