@@ -1,6 +1,6 @@
 <template>
     <div class="reset">
-        <div>
+        <div style="display:none">
             <div style="font-size: 2em; font-weight: bold; line-height: 1em;">CFDE REVEAL</div>
             <div style="font-size: 1.2em; font-weight: bold;">Turn your research question into mechanistic leads</div>
             <div style="width: 450px; margin: 5px 0 0">Explore gene expression signatures linked to phenotypes, <br/>and get evidence-backed hypotheses about the biology behind them.</div>
@@ -268,9 +268,9 @@
                         :fields="[
                             {key: 'selected', label: 'Select', thStyle: { width: '70px' }},
                             {key: 'phenotype', label: 'Phenotype', sortable: true}, 
+                            {key: 'score', label: 'Similarity Score', sortable: true},
                             {key: 'beta_uncorrected', label: 'Association (beta uncorrected)', sortable: true}, 
                             {key: 'gene_set_label', label: 'Signature (gene set)'}, 
-                            //{key: 'genes_in_set', label: 'Genes'},
                             {key: 'source_label', label: 'Source', sortable: true},
                             'actions'
                         ]"
@@ -281,7 +281,7 @@
                         head-variant="light"
                         sticky-header="400px"
                         sort-icon-left
-                        sort-by="beta_uncorrected"
+                        sort-by="score"
                         :sort-desc="true"
                         show-details
                         >
@@ -290,6 +290,9 @@
                             </template>
                             <template #head(phenotype)="data">
                                 {{ data.label }} <span class="info-icon" v-b-tooltip.hover="'The trait or condition linked to the genes in this signature.'">?</span>
+                            </template>
+                            <template #head(score)="data">
+                                {{ data.label }} <span class="info-icon" v-b-tooltip.hover="'Semantic similarity of search terms to phenotype.'">?</span>
                             </template>
                             <template #head(beta_uncorrected)="data">
                                 {{ data.label }} <span class="info-icon" v-b-tooltip.hover="'How strongly the signature\'s genes overlap with the genes linked to the phenotype.'">?</span>
@@ -369,7 +372,7 @@
                     <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes of selected associations </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ relevantAssociations.length }}</div>
                 </div>
                 <div v-if="loading_mechanisms" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
-                    <div style="font-size:1.2em;"><strong>Action:</strong> Generating mechanistic hypotheses </div><div v-if="elapsed" style="font-size: 1em;">{{ `${elapsed}` }} (usually takes  about 1 minute)</div>
+                    <div style="font-size:1.2em;"><strong>Action:</strong> Generating mechanistic hypotheses </div><div v-if="elapsed" style="font-size: 1em;">{{ `${elapsed}` }} (usually takes  about 1-2 minutes)</div>
                 </div>
                 <div v-if="error_mechanisms" style="display:flex; align-items: baseline; gap:5px; min-height: 75px;">
                     <div style="font-size:1.2em; color:red"><strong>Error:</strong> {{ error_msg_mechanisms }}</div><button @click="mechanismsReveal()" class="btn btn-sm btn-primary">Retry</button>
@@ -489,6 +492,7 @@ import { createLLMClient } from "@/utils/llmClient";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import { geoAlbers } from "d3";
 
 
 Vue.use(BootstrapVue);
@@ -736,11 +740,12 @@ energy balance with indirect calorimetry
 
             groupSystemPrompt2: `You are an expert in **bioinformatics** and **semantic annotation**.
 
-You will be given a list of **gene set-phenotype associations**, each with:
+You will be given a csv table of **gene set-phenotype associations**, each with:
 
 * a unique **id**
-* an **association** containing a gene expression signature and a phenotype it is associated with
 * a **source** representing the CFDE program the signature was derived from
+* a **phenotype** containing a phenotype
+* a **signature** containing a gene expression signature
 * a list of **genes** which are associated with both the signature and the phenotype
 
 You will also be given a **research context** describing the biological topic of interest.
@@ -1031,7 +1036,8 @@ Return a structured **JSON object** following this schema:
                 })
             )
 
-            const sortedArray = [...associations].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
+            //const sortedArray = [...associations].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
+            const sortedArray = [...associations].sort((a, b) => b.score - a.score);
 
             //console.log('associations by phenotype', sortedArray);
 
@@ -1057,8 +1063,9 @@ Return a structured **JSON object** following this schema:
                 console.log('raw term search results', data);
     
                 //sort by similarity score
-                const sortedArray = [...data].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
-    
+                //const sortedArray = [...data].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
+                const sortedArray = [...data].sort((a, b) => b.score - a.score);
+
                 //console.log('associations by term', sortedArray)
     
                 return sortedArray;
@@ -1118,7 +1125,12 @@ Return a structured **JSON object** following this schema:
             }
 
             this.filtered_phenotypes = this.phenotypes_list;
+        
+            this.filtered_association_strengths = [0,1,2];
+            this.filtered_programs = this.programs_list;
 
+            let relevantAssociations = [];
+            /*
             console.log('getting strong associations');
 
             //first get only strong associations
@@ -1126,8 +1138,6 @@ Return a structured **JSON object** following this schema:
             const strongAssociations = this.associations.filter(association => association.beta_uncorrected >= 1);
             const moderateAssociations = this.associations.filter(association => association.beta_uncorrected >= 0.1 && association.beta_uncorrected < 1);
             const lowAssociations = this.associations.filter(association => association.beta_uncorrected < 0.1);
-
-            let relevantAssociations = [];
 
             if(strongAssociations.length>0){
                 this.filtered_association_strengths.push(0);
@@ -1163,6 +1173,8 @@ Return a structured **JSON object** following this schema:
                 console.log(`selected ${relevantAssociations.length} associations, trimming down to 300`);
                 relevantAssociations.splice(300);
             }
+            */
+            relevantAssociations = this.associations.slice(0, 300);
 
             this.total_relevant_associations = relevantAssociations.length;
 
@@ -1344,7 +1356,7 @@ Return a structured **JSON object** following this schema:
             
             console.log('fullPrompt', fullPrompt);
 
-            this.startTimer(2, () => {this.handleAnalyzeTimeout()});
+            this.startTimer(3, () => {this.handleAnalyzeTimeout()});
 
             this.llmAnalyze.sendPrompt({
                 userPrompt: fullPrompt,
@@ -1363,9 +1375,10 @@ Return a structured **JSON object** following this schema:
                             : item.gene_set
                 let geneSetName, phenotypeName, sourceName;
                 if(this.searchApi==="new"){
-                    const term = item.term.split(';');
-                    geneSetName = term.length > 1 ? `${term[0]} & ${term[1]}` : term[0];
-                    phenotypeName = term.length > 1 ? term[1].split('.')[1] : term[0].split('.')[1]
+                    const lastDotIdx = item.term.lastIndexOf('.');
+                    const set = item.term.slice(0, lastDotIdx + 1);
+                    geneSetName = set.replace(';', " & ");
+                    phenotypeName = item.term.slice(lastDotIdx + 1).trim();
                     sourceName = item.source.replace(';', ' x ');
                 }else{
                     // Extract phenotype name from term
@@ -1940,7 +1953,11 @@ Return a structured **JSON object** following this schema:
                 if(json && json.hypotheses.length>0){
                     const updated = json.hypotheses.map(item => {
                         const associations = this.associations.filter(a => item.ids.includes(a.id));
-                        const programs = [...new Set(associations.map(a => a.source))];
+                        const allPrograms = associations.flatMap(a => {
+                            if(this.searchApi==="new") return a.source.split(';')
+                            return a.source.split('_x_')
+                        });
+                        const programs = [...new Set(allPrograms)];
                         return {
                             ...item,
                             associations,
