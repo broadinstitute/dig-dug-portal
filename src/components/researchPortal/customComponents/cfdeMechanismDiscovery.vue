@@ -30,15 +30,15 @@
             
             <div style="display:flex; gap: 5px; align-items: center; justify-content: space-between;">
                 <a role="button" @click="display_examples = !display_examples">{{!display_examples ? 'show' : 'hide'}} examples</a>
-                <fieldset style="display:none; align-items: center; gap:10px">
-                    <div>(DEV) search by:</div>
+                <fieldset style="display:flex; align-items: center; gap:10px">
+                    <div>(DEV) semantic api:</div>
                     <div style="display: flex; align-items: center; gap:5px">
-                        <input type="radio" id="search_phenotypes" name="seach_type" value="phenotypes" v-model="searchType"/>
-                        <label for="search_phenotypes">phenotypes <span class="info-icon" v-b-tooltip.hover="'Runs semantic search against phenotypes, then gets associated gene-sets for each.'">?</span></label>
+                        <input type="radio" id="search_phenotypes" name="seach_type" value="old" v-model="searchApi"/>
+                        <label for="search_phenotypes">old <span style="display:none" class="info-icon" v-b-tooltip.hover="'Runs semantic search against phenotypes, then gets associated gene-sets for each.'">?</span></label>
                     </div>
                     <div style="display: flex; align-items: center; gap:5px">
-                        <input type="radio" id="seach_terms" name="seach_type" value="terms" v-model="searchType"/>
-                        <label for="seach_terms">terms <span class="info-icon" v-b-tooltip.hover="'Runs semantic search against phenotype/gene-set associations.'">?</span></label>
+                        <input type="radio" id="seach_terms" name="seach_type" value="new" v-model="searchApi"/>
+                        <label for="seach_terms">new <span style="display:none" class="info-icon" v-b-tooltip.hover="'Runs semantic search against phenotype/gene-set associations.'">?</span></label>
                     </div>
                 </fieldset>
             </div>
@@ -226,7 +226,7 @@
                                 <div style="height:100px; display:flex; flex-direction: column; gap: 3px; overflow:auto; background: #eee; padding: 5px 10px;">
                                     <div v-for="(option, idx) in programs_list" :key="option" style="display:flex; gap:5px">
                                         <input type="checkbox" :id="`program_${idx}`" :value="option" v-model="filtered_programs">
-                                        <label :for="`program_${idx}`">{{ option }}</label>
+                                        <label :for="`program_${idx}`">{{ option.replace(';', ' x ') }}</label>
                                     </div>
                                 </div>
                                 <div style="display:flex; gap: 10px; justify-content: flex-end;">
@@ -269,9 +269,9 @@
                             {key: 'selected', label: 'Select', thStyle: { width: '70px' }},
                             {key: 'phenotype', label: 'Phenotype', sortable: true}, 
                             {key: 'beta_uncorrected', label: 'Association (beta uncorrected)', sortable: true}, 
-                            {key: 'gene_set', label: 'Signature (gene set)'}, 
+                            {key: 'gene_set_label', label: 'Signature (gene set)'}, 
                             //{key: 'genes_in_set', label: 'Genes'},
-                            {key: 'source', label: 'Source', sortable: true},
+                            {key: 'source_label', label: 'Source', sortable: true},
                             'actions'
                         ]"
                         small
@@ -297,7 +297,13 @@
                             <template #head(gene_set)="data">
                                 {{ data.label }} <span class="info-icon" v-b-tooltip.hover="'The set of genes that turned on or off in a specific dataset or experiment giving a snapshot of a biological state. The label encodes the source (e.g. dataset, tissue, condition) and whether genes are up- or down-regulated.'">?</span>
                             </template>
+                            <template #head(gene_set_label)="data">
+                                {{ data.label }} <span class="info-icon" v-b-tooltip.hover="'The set of genes that turned on or off in a specific dataset or experiment giving a snapshot of a biological state. The label encodes the source (e.g. dataset, tissue, condition) and whether genes are up- or down-regulated.'">?</span>
+                            </template>
                             <template #head(source)="data">
+                                {{ data.label }} <span class="info-icon" v-b-tooltip.hover="'Which CFDE program this signature came from so you know the context of the data.'">?</span>
+                            </template>
+                            <template #head(source_label)="data">
                                 {{ data.label }} <span class="info-icon" v-b-tooltip.hover="'Which CFDE program this signature came from so you know the context of the data.'">?</span>
                             </template>
                             <template #head(datasets)="data">
@@ -432,7 +438,7 @@
                                             small
                                             sticky-header="225px"
                                             :items="mechanism.associations"
-                                            :fields="['phenotype', 'gene_set', 'source', 'actions']"
+                                            :fields="['phenotype', 'gene_set_label', 'source_label', 'actions']"
                                             style="font-size: 0.9em;"
                                         >
                                         <template #cell(actions)="row">
@@ -502,6 +508,7 @@ export default Vue.component("cfde-mechanism-discovery", {
             search_step: 0, //0: search not started, 1: parsing query; 2: getting associations; 3: generating hypotheses
             searchMode: "auto",
             searchType: "terms",
+            searchApi: "old",
 
             userQuery: '',
             searchCriteria: null,
@@ -1033,7 +1040,8 @@ Return a structured **JSON object** following this schema:
 
         async termSearch(term){
             //semantic search for trait associations
-            const url = `https://api.kpndataregistry.org:8000/api/search/terms?q=${encodeURIComponent(term)}&similarity_threshold=-0.5`
+            const url = this.searchApi==='new' ? `https://api.kpndataregistry.org:5002/api/search/terms?q=${encodeURIComponent(term)}&similarity_threshold=-0.5`
+                                          : `https://api.kpndataregistry.org:8000/api/search/terms?q=${encodeURIComponent(term)}&similarity_threshold=-0.5`
             try{
                 const response =  await fetch(url);
     
@@ -1100,7 +1108,8 @@ Return a structured **JSON object** following this schema:
             this.phenotypes_list = Object.keys(allPhenotypeGroup).sort();
             this.programs_list = Object.keys(allSourceGroup).sort();
 
-            this.total_programs = [...new Set(this.programs_list.flatMap(s => s.split('_x_')))].length;
+            //this.total_programs = [...new Set(this.programs_list.flatMap(s => s.split('_x_')))].length;
+            this.total_programs = [...new Set(this.programs_list.flatMap(s => s.split(' x ')))].length;
 
             this.all_filters = {
                 phenotypes: this.filtered_phenotypes, 
@@ -1166,6 +1175,10 @@ Return a structured **JSON object** following this schema:
                     item.selected = true;
                 }
             });
+
+            this.associations = [...this.associations];
+
+            //console.log('selected associations', this.associations.filter(item => item.selected).length);
 
             this.relevantAssociations = relevantAssociations;
 
@@ -1345,9 +1358,23 @@ Return a structured **JSON object** following this schema:
 
         transformTermAssociations(arr) {
             return arr.map(item => {
-                // Extract phenotype name from term
-                const match = item.term.match(/associated with (.+)$/i);
-                const phenotypeName = match ? match[1].trim() : null;
+                const geneSet = item.gene_set.includes(":")
+                            ? item.gene_set.split(":")[0]
+                            : item.gene_set
+                let geneSetName, phenotypeName, sourceName;
+                if(this.searchApi==="new"){
+                    const term = item.term.split(';');
+                    geneSetName = term.length > 1 ? `${term[0]} & ${term[1]}` : term[0];
+                    phenotypeName = term.length > 1 ? term[1].split('.')[1] : term[0].split('.')[1]
+                    sourceName = item.source.replace(';', ' x ');
+                }else{
+                    // Extract phenotype name from term
+                    const match = item.term.match(/associated with (.+)$/i);
+                    phenotypeName = match ? match[1].trim() : null;
+                    geneSetName = geneSet;
+                    sourceName = item.source.replace('_x_', ' x ');
+                }
+                
                 return {
                     ...item,
                     //used for selection for analysis
@@ -1357,9 +1384,9 @@ Return a structured **JSON object** following this schema:
                     // 2. add phenotype (extracted text)
                     phenotype: phenotypeName,
                     // 3. gene_set without ":" and everything after
-                    gene_set: item.gene_set.includes(":")
-                        ? item.gene_set.split(":")[0]
-                        : item.gene_set
+                    gene_set: geneSet,
+                    gene_set_label: geneSetName,
+                    source_label: sourceName
                 };
             });
         },
