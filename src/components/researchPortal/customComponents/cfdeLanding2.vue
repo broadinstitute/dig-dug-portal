@@ -301,7 +301,7 @@
                             exploration.
                         </div>
                         <a
-                            href="/r/kc_gene_set_browser_source?source=all&model=cfde"
+                            href="/r/kc_gsb?source=all"
                             style="align-self: flex-end"
                             >Start here</a
                         >

@@ -30,7 +30,7 @@
             
             <div style="display:flex; gap: 5px; align-items: center; justify-content: space-between;">
                 <a role="button" @click="display_examples = !display_examples">{{!display_examples ? 'show' : 'hide'}} examples</a>
-                <fieldset style="display:flex; align-items: center; gap:10px">
+                <fieldset style="display:none; align-items: center; gap:10px">
                     <div>(DEV) semantic api:</div>
                     <div style="display: flex; align-items: center; gap:5px">
                         <input type="radio" id="search_phenotypes" name="seach_type" value="old" v-model="searchApi"/>
@@ -512,7 +512,7 @@ export default Vue.component("cfde-mechanism-discovery", {
             search_step: 0, //0: search not started, 1: parsing query; 2: getting associations; 3: generating hypotheses
             searchMode: "auto",
             searchType: "terms",
-            searchApi: "old",
+            searchApi: "new",
 
             userQuery: '',
             searchCriteria: null,
@@ -1320,7 +1320,8 @@ Return a structured **JSON object** following this schema:
                 return { 
                     id: item.id,
                     source: item.source,
-                    association: item.term,
+                    phenotype: item.phenotype,
+                    signature: item.gene_set_label,
                     genes: item.genes.join(";")
                 }
             });
