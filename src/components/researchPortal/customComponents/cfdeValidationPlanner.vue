@@ -1,5 +1,9 @@
 <template>
 	<div>
+		<!-- Fixed top-right per-gene generation status -->
+		<div v-if="isGenerating && perGeneMode" class="generation-status-fixed">
+			(Generating protocol: ({{ elapsedTime }}) {{ currentGeneName || '...' }} Remaining genes {{ remainingGenesCount }} ({{ remainingGeneSymbols.join(', ') }}))
+		</div>
 		<!-- URL Parameter Choice Dialog -->
 		<div v-if="showUrlChoiceDialog" class="url-choice-dialog-overlay">
 			<div class="url-choice-dialog">
@@ -643,24 +647,31 @@
                 </div>
             </div>
         </div>
-        <div id="planner-search-results" class="section-wrapper" v-if="experimentResults">
+		<div id="planner-search-results" class="section-wrapper" v-if="finalExperimentResults.length > 0 || isGenerating">
             <div class="protocol-header">
                 <h4>Generated Experiment Protocol</h4>
-                <div class="protocol-actions">
+				<div class="protocol-actions">
+					
                     <button v-if="!isGenerating" @click="downloadExperiment" class="btn btn-sm btn-primary download-btn">
                         Download Experiment Plan
                     </button>
                     <button v-if="!isGenerating" @click="showCitationInfo" class="btn btn-sm btn-success citation-btn">
                         Citation Information
                     </button>
+                    <button v-if="!isGenerating" @click="showDisclaimer = !showDisclaimer" class="btn btn-sm btn-alert">
+						Important Disclaimer
+					</button>
                 </div>
             </div>
-            <div v-if="isGenerating" class="loading-message">
+			<div v-if="isGenerating && perGeneMode" class="loading-message">
+				<p>Generating per-gene protocols ({{ perGeneCompleted + 1 }} / {{ perGeneTotal }}) · Remaining: {{ remainingGenesCount }} · Current: {{ currentGeneName || '...' }} · {{ elapsedTime }}</p>
+			</div>
+			<div v-if="isGenerating" class="loading-message">
                 <p>Creating your experiment protocol...</p>
             </div>
-            <div v-else class="experiment-results">
-                <!-- Disclaimer Section -->
-                <div class="experiment-disclaimer">
+			<div class="experiment-results">
+				<!-- Disclaimer Section -->
+				<div v-if="showDisclaimer" class="experiment-disclaimer">
                     <div class="disclaimer-header">
                         <h5>⚠️ Important Disclaimer</h5>
                     </div>
@@ -678,8 +689,8 @@
                     </div>
                 </div>
                 
-                <div class="experiment-plan">
-                    <div v-for="(experiment, index) in parsedExperimentResults" :key="index" class="experiment-card">
+				<div class="experiment-plan">
+					<div v-for="(experiment, index) in finalExperimentResults" :key="index" class="experiment-card">
 
                         <!-- Biological Assertion -->
                         <div class="experiment-section">
@@ -703,24 +714,43 @@
                         <!-- Suggested Experiment -->
                         <div class="experiment-section">
                             <h6 class="section-title">Suggested Experiment</h6>
-                            <div class="experiment-description">
-                                {{ experiment.suggested_experiment.experiment }}
-                            </div>
+						<div class="experiment-description">
+							<template v-if="Array.isArray(experiment.suggested_experiment.experiment)">
+								<ul class="setup-list">
+									<li v-for="(item, idx) in experiment.suggested_experiment.experiment" :key="`se-${idx}`">{{ item }}</li>
+								</ul>
+							</template>
+							<template v-else>
+								{{ experiment.suggested_experiment.experiment }}
+							</template>
+						</div>
                         </div>
 
                         <!-- Why Validate -->
                         <div class="experiment-section">
                             <h6 class="section-title">Why Validate</h6>
                             <div class="validation-reasons">
-                                <div class="reason-item">
-                                    <strong>Feasibility:</strong> {{ experiment.Why_validate.feasibility }}
-                                </div>
-                                <div class="reason-item">
-                                    <strong>Impact:</strong> {{ experiment.Why_validate.Impact }}
-                                </div>
-                                <div class="reason-item">
-                                    <strong>Novelty:</strong> {{ experiment.Why_validate.Novelty }}
-                                </div>
+							<div class="reason-item">
+								<strong>Feasibility:</strong>
+								<template v-if="Array.isArray(experiment.Why_validate.feasibility)">
+									<ul class="setup-list"><li v-for="(x, i) in experiment.Why_validate.feasibility" :key="`wvf-${i}`">{{ x }}</li></ul>
+								</template>
+								<template v-else>{{ experiment.Why_validate.feasibility }}</template>
+							</div>
+							<div class="reason-item">
+								<strong>Impact:</strong>
+								<template v-if="Array.isArray(experiment.Why_validate.Impact)">
+									<ul class="setup-list"><li v-for="(x, i) in experiment.Why_validate.Impact" :key="`wvi-${i}`">{{ x }}</li></ul>
+								</template>
+								<template v-else>{{ experiment.Why_validate.Impact }}</template>
+							</div>
+							<div class="reason-item">
+								<strong>Novelty:</strong>
+								<template v-if="Array.isArray(experiment.Why_validate.Novelty)">
+									<ul class="setup-list"><li v-for="(x, i) in experiment.Why_validate.Novelty" :key="`wvn-${i}`">{{ x }}</li></ul>
+								</template>
+								<template v-else>{{ experiment.Why_validate.Novelty }}</template>
+							</div>
                             </div>
                         </div>
 
@@ -734,15 +764,27 @@
                                 <div class="protocol-item">
                                     <strong>Perturbation:</strong> {{ experiment.protocol_sketch.perturbation }}
                                 </div>
-                                <div class="protocol-item">
-                                    <strong>Readouts:</strong> {{ experiment.protocol_sketch.readouts }}
-                                </div>
-                                <div class="protocol-item">
-                                    <strong>Controls:</strong> {{ experiment.protocol_sketch.controls }}
-                                </div>
-                                <div class="protocol-item">
-                                    <strong>Analysis:</strong> {{ experiment.protocol_sketch.analysis }}
-                                </div>
+						<div class="protocol-item">
+							<strong>Readouts:</strong>
+							<template v-if="Array.isArray(experiment.protocol_sketch.readouts)">
+								<ul class="setup-list"><li v-for="(r, rIdx) in experiment.protocol_sketch.readouts" :key="`ro-${rIdx}`">{{ r }}</li></ul>
+							</template>
+							<template v-else>{{ experiment.protocol_sketch.readouts }}</template>
+						</div>
+						<div class="protocol-item">
+							<strong>Controls:</strong>
+							<template v-if="Array.isArray(experiment.protocol_sketch.controls)">
+								<ul class="setup-list"><li v-for="(c, cIdx) in experiment.protocol_sketch.controls" :key="`ct-${cIdx}`">{{ c }}</li></ul>
+							</template>
+							<template v-else>{{ experiment.protocol_sketch.controls }}</template>
+						</div>
+						<div class="protocol-item">
+							<strong>Analysis:</strong>
+							<template v-if="Array.isArray(experiment.protocol_sketch.analysis)">
+								<ul class="setup-list"><li v-for="(a, aIdx) in experiment.protocol_sketch.analysis" :key="`an-${aIdx}`">{{ a }}</li></ul>
+							</template>
+							<template v-else>{{ experiment.protocol_sketch.analysis }}</template>
+						</div>
                             </div>
                         </div>
 
@@ -815,11 +857,16 @@
                         <!-- Provenance -->
                         <div class="experiment-section">
                             <h6 class="section-title">Provenance</h6>
-                            <div class="provenance-text">{{ experiment.provenance }}</div>
+						<div class="provenance-text">
+							<template v-if="Array.isArray(experiment.provenance)">
+								<ul class="setup-list"><li v-for="(p, pIdx) in experiment.provenance" :key="`pv-${pIdx}`">{{ p }}</li></ul>
+							</template>
+							<template v-else>{{ experiment.provenance }}</template>
+						</div>
                         </div>
                     </div>
                     <!-- Download button for multiple protocols -->
-                    <div v-if="parsedExperimentResults.length > 1" class="protocol-footer">
+					<div v-if="finalExperimentResults.length > 1" class="protocol-footer">
                         <button @click="downloadExperiment" class="btn btn-sm btn-primary download-btn">
                             Download All Experiments
                         </button>
@@ -850,7 +897,7 @@
                     </ul>
                     
                     <p><strong>Citation Policies:</strong></p>
-                    <p>Citation policies for each page or analysis on the Knowledge Center are available here: <a href="https://cfdeknowledge.org/r/cfdekc_policies_citation" target="_blank">https://cfdeknowledge.org/r/cfdekc_policies_citation</a></p>
+                    <p>Citation policies for each page or analysis on the Knowledge Center are available here: <a :href="setSimpleLink('https://cfdeknowledge.org/r/cfdekc_policies_citation')" target="_blank">https://cfdeknowledge.org/r/cfdekc_policies_citation</a></p>
                 </div>
                 <div class="citation-popup-footer">
                     <button @click="hideCitationInfo" class="btn btn-primary">Close</button>
@@ -865,6 +912,7 @@ import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import { createLLMClient } from "@/utils/llmClient";
 import { setSimpleLink } from "@/utils/cfdeUtils";
+import { kcURL } from "@/utils/cfdeUtils";
 import cfdeValidationUtils, { findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeValidationUtils";
 
 Vue.use(BootstrapVueIcons);
@@ -1390,7 +1438,14 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
             selectedTimeBudget: '',
             experimentNotes: '',
             isGenerating: false,
-            experimentResults: '',
+			experimentResults: '',
+			experimentResultsList: [],
+			perGeneMode: false,
+			perGeneTotal: 0,
+			perGeneCompleted: 0,
+			currentGeneName: '',
+			perGeneInFlight: 0,
+			perGeneDelayMs: 5000,
             showExperimentSummary: false,
             generationStartTime: null,
             generationTimer: null,
@@ -1438,6 +1493,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
             showCitationPopup: false,
             // Configuration section state
             showConfigurationSection: false,
+			// Disclaimer toggle state
+			showDisclaimer: false,
 			// Manual gene input state
 			showManualGeneInput: false,
 			manualGenes: '',
@@ -1453,17 +1510,35 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 	},
 
     created() {
-        this.getGeneNovelty = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.gene_novelty_prompt
-        });
+        console.log(this.sectionConfigs);
+        if(this.sectionConfigs.llm === "gemini") {
+            this.getGeneNovelty = createLLMClient({
+                llm: "gemini",
+                model: "gemini-2.5-flash",
+                system_prompt: this.gene_novelty_prompt
+            });
 
-        this.buildExperiments = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.experiment_prompt
-        });
+            this.buildExperiments = createLLMClient({
+                llm: "gemini",
+                model: "gemini-2.5-flash",
+                system_prompt: this.experiment_prompt
+            });
+
+        } else if(this.sectionConfigs.llm === "openai") {
+            this.getGeneNovelty = createLLMClient({
+                llm: "openai",
+                model: "gpt-5-mini",
+                system_prompt: this.gene_novelty_prompt
+            });
+
+            this.buildExperiments = createLLMClient({
+                llm: "openai",
+                model: "gpt-5-mini",
+                system_prompt: this.experiment_prompt
+            });
+        }
+        /**/
+        
     },
 
 	mounted: async function () {
@@ -1545,15 +1620,25 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			return text;
 		},
 		parsedExperimentResults() {
-			if (this.isValidExperimentJSON(this.experimentResults)) {
-				try {
-					return JSON.parse(this.experimentResults).resultModel;
-				} catch (error) {
-					console.error('Error parsing experiment results:', error);
-					return [];
-				}
+			if (!this.experimentResults || typeof this.experimentResults !== 'string') return [];
+			const obj = this.extractExperimentJson(this.experimentResults);
+			return obj && Array.isArray(obj.resultModel) ? obj.resultModel : [];
+		},
+		finalExperimentResults() {
+			// Prefer accumulated per-gene results when present
+			if (Array.isArray(this.experimentResultsList) && this.experimentResultsList.length > 0) {
+				return this.experimentResultsList;
 			}
-			return [];
+			return this.parsedExperimentResults;
+		},
+		remainingGenesCount() {
+			const remaining = (this.perGeneTotal || 0) - (this.perGeneCompleted || 0) - (this.isGenerating && this.perGeneMode ? 1 : 0);
+			return remaining > 0 ? remaining : 0;
+		},
+		remainingGeneSymbols() {
+			if (!this.perGeneMode) return [];
+			const startIdx = Math.min((this.perGeneCompleted || 0) + 1, this.selectedGenes.length);
+			return this.selectedGenes.slice(startIdx);
 		},
 		totalPages() {
 			return Math.ceil(this.filteredGenes.length / this.itemsPerPage);
@@ -1674,14 +1759,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
         }
 	},
 	methods: {
+        kcURL,
 		setSimpleLink,
-        setLink(link,parameters){
-            //const geneset = `${association.phenotype},${association.gene_set},${association.source}`
-            //const url = kcURL(`/r/cfde_explore?associations=${geneset}`);
-            const url = setSimpleLink(`${link}`);
-            console.log(url);
-            return url;
-        },
 		getPhenotypeById(phenotypeId) {
 			return findPhenotypeById(phenotypeId);
 		},
@@ -1720,6 +1799,56 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			const relevance = this.getRelevance(geneSymbol);
 			return relevance ? `${relevance.score}/10` : 'N/A';
 		},
+		extractJsonArray(responseText) {
+			try {
+				if (!responseText || typeof responseText !== 'string') return null;
+				let text = responseText.trim();
+				// Strip markdown fences if present
+				if (text.startsWith('```')) {
+					text = text.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim();
+				}
+				// If it's a bare array
+				if (text.startsWith('[') && text.endsWith(']')) {
+					return JSON.parse(text);
+				}
+				// Find first JSON array in the text
+				const match = text.match(/\[[\s\S]*\]/);
+				if (match && match[0]) {
+					return JSON.parse(match[0]);
+				}
+				return null;
+			} catch (e) {
+				console.warn('Failed to extract JSON array from LLM response:', e);
+				return null;
+			}
+		},
+		extractExperimentJson(responseText) {
+			try {
+				if (!responseText || typeof responseText !== 'string') return null;
+				let text = responseText.trim();
+				// Strip markdown code fences if present
+				if (text.startsWith('```')) {
+					text = text.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim();
+				}
+				// Try plain parse first
+				try {
+					const obj = JSON.parse(text);
+					if (obj && obj.resultModel && Array.isArray(obj.resultModel)) return obj;
+				} catch (e) {
+					// ignore and try regex extraction
+				}
+				// Find a JSON object containing resultModel array
+				const match = text.match(/\{[\s\S]*?"resultModel"\s*:\s*\[[\s\S]*?\}[\s\S]*?\}/);
+				if (match && match[0]) {
+					const obj = JSON.parse(match[0]);
+					if (obj && obj.resultModel && Array.isArray(obj.resultModel)) return obj;
+				}
+				return null;
+			} catch (e) {
+				console.warn('Failed to extract experiment JSON from LLM response:', e);
+				return null;
+			}
+		},
 		toggleEvidenceView(geneSymbol) {
 			const index = this.expandedGenes.indexOf(geneSymbol);
 			if (index > -1) {
@@ -1750,7 +1879,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			const associationsParam = encodeURIComponent(associationString);
 			
 			// Create the CFDE explore URL
-			const exploreUrl = `/r/cfde_explore?hypothesis=${hypothesisParam}&associations=${associationsParam}`;
+			const exploreUrl = kcURL(`/r/cfde_explore?hypothesis=${hypothesisParam}&associations=${associationsParam}`);
 			
 			// Open in new tab
 			window.open(exploreUrl, '_blank');
@@ -1887,10 +2016,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Call the LLM
 				this.getGeneNovelty.sendPrompt({
 					userPrompt: prompt,
-					onResponse: (response) => {
+						onResponse: (response) => {
 						try {
-							// Parse the JSON response
-							const noveltyData = JSON.parse(response);
+								// Parse JSON robustly; tolerate extra text/wrappers
+								const noveltyData = this.extractJsonArray(response) || [];
 							
 							// Update the geneNovelty and geneRelevance cache
 							noveltyData.forEach(item => {
@@ -2304,10 +2433,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Call the LLM
 				this.getGeneNovelty.sendPrompt({
 					userPrompt: prompt,
-					onResponse: (response) => {
+						onResponse: (response) => {
 						try {
-							// Parse the JSON response
-							const noveltyData = JSON.parse(response);
+								// Parse JSON robustly; tolerate extra text/wrappers
+								const noveltyData = this.extractJsonArray(response) || [];
 							
 							// Update the geneNovelty and geneRelevance cache
 							noveltyData.forEach(item => {
@@ -2748,12 +2877,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		},
 		isValidExperimentJSON(str) {
 			if (!str || typeof str !== 'string') return false;
-			try {
-				const parsed = JSON.parse(str);
-				return parsed && parsed.resultModel && Array.isArray(parsed.resultModel) && parsed.resultModel.length > 0;
-			} catch (error) {
-				return false;
-			}
+			const obj = this.extractExperimentJson(str);
+			return !!(obj && obj.resultModel && Array.isArray(obj.resultModel) && obj.resultModel.length > 0);
 		},
 		async generateExperiment() {
 			try {
@@ -2763,17 +2888,12 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					return;
 				}
 				
+				// Reset per-gene accumulator for a fresh run
+				this.experimentResultsList = [];
+				
 				// Show loading state and start timer
 				this.isGenerating = true;
 				this.generationStartTime = Date.now();
-                
-				// Choose the appropriate prompt based on gene strategy
-				let prompt;
-				if (this.selectedGenes.length > 0 && this.geneExperimentStrategy === 'all_together') {
-					prompt = this.experimentPromptGenes();
-				} else {
-					prompt = this.experimentPrompt();
-				}
 				
 				// Start timer to update elapsed time every second
 				this.generationTimer = setInterval(() => {
@@ -2785,26 +2905,123 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					}
 				}, 1000);
 				
-				// Generate experiment using the LLM client
-				this.buildExperiments.sendPrompt({
-					userPrompt: prompt.trim() || 'Generate validation experiments based on the selected parameters',
-					onResponse: (response) => {
-						// Store the response for display
-						this.experimentResults = response;
-						// Collapse the search draft section when response is received
-						// Experiment plan summary is now always visible
-					},
-					onError: (error) => {
-						console.error('Error generating experiment:', error);
-						this.experimentResults = 'Error generating experiment. Please try again.';
-						// Also collapse on error to show the error message
-						// Experiment plan summary is now always visible
-					},
-					onEnd: () => {
-						this.isGenerating = false;
-						this.clearGenerationTimer();
-					}
-				});
+				// If combined strategy or <=1 gene, keep single-call behavior
+				if (this.geneExperimentStrategy === 'all_together' || this.selectedGenes.length <= 1) {
+					console.log('[Planner] Using single-call generation (combined strategy or ≤1 gene).');
+					const prompt = this.geneExperimentStrategy === 'all_together' ? this.experimentPromptGenes() : this.experimentPrompt();
+					this.buildExperiments.sendPrompt({
+						userPrompt: prompt.trim() || 'Generate validation experiments based on the selected parameters',
+							onResponse: (response) => {
+								console.log('[Planner] Protocol API raw response (single-call):', response);
+								const obj = this.extractExperimentJson(response);
+								this.experimentResults = obj ? JSON.stringify(obj) : response;
+						},
+						onError: (error) => {
+							console.error('Error generating experiment:', error);
+							this.experimentResults = 'Error generating experiment. Please try again.';
+						},
+						onEnd: () => {
+							this.isGenerating = false;
+							this.clearGenerationTimer();
+						}
+					});
+					return;
+				}
+				
+				// Individual strategy with multiple genes: run per gene sequentially
+				const genes = [...this.selectedGenes];
+				console.log(`[Planner] Starting per-gene experiment generation for ${genes.length} genes: ${genes.join(', ')}`);
+				this.perGeneMode = true;
+				this.perGeneTotal = genes.length;
+				this.perGeneCompleted = 0;
+				this.perGeneInFlight = 0;
+				this.currentGeneName = '';
+				for (let i = 0; i < genes.length; i++) {
+					const gene = genes[i];
+					console.log(`[Planner] (${i + 1}/${genes.length}) Generating experiment for gene: ${gene}`);
+					this.currentGeneName = gene;
+					this.generationStartTime = Date.now();
+					this.elapsedTime = '0:00';
+					await new Promise((resolve) => {
+						let prompt = this.experiment_prompt;
+						prompt += '\n\n**Current Search Context:**\n';
+						if (this.phenotypeSearch.trim() !== '') {
+							prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
+						}
+						prompt += `**Selected Genes:** ${gene}\n`;
+						if (this.selectedAssayTypes.length > 0) {
+							prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
+						}
+						if (this.selectedCellTypes.length > 0) {
+							prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
+						}
+						if (this.selectedReadouts.length > 0) {
+							prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
+						}
+						if (this.selectedThroughput) {
+							prompt += `**Throughput:** ${this.selectedThroughput}\n`;
+						}
+						if (this.selectedSpecies) {
+							prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
+						}
+						if (this.selectedTimeBudget) {
+							prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
+						}
+						if (this.experimentNotes.trim() !== '') {
+							prompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
+						}
+						prompt += '\nGenerate exactly ONE experiment in resultModel for the single gene above.';
+						this.buildExperiments.sendPrompt({
+							userPrompt: prompt,
+							onResponse: (response) => {
+								console.log(`[Planner] Protocol API raw response (gene: ${gene}):`, response);
+								try {
+									const res = this.extractExperimentJson(response);
+									if (res && res.resultModel && Array.isArray(res.resultModel) && res.resultModel.length > 0) {
+										this.experimentResultsList = [...this.experimentResultsList, res.resultModel[0]];
+										// Scroll to the newly added experiment card
+										this.$nextTick(() => {
+											try {
+												const cards = document.querySelectorAll('.experiment-card');
+												const lastCard = cards && cards.length > 0 ? cards[cards.length - 1] : null;
+												if (lastCard && typeof lastCard.scrollIntoView === 'function') {
+													lastCard.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+												}
+											} catch (scrollErr) {
+												console.warn('[Planner] Scroll to new experiment failed:', scrollErr);
+											}
+										});
+										console.log(`[Planner] (${i + 1}/${genes.length}) Received experiment for gene: ${gene}`);
+									} else {
+										console.warn('[Planner] Non-JSON or invalid experiment response for gene:', gene);
+									}
+								} catch (e) {
+									console.error('[Planner] Error parsing per-gene experiment response for gene', gene, e);
+								}
+							},
+							onError: (error) => {
+								console.error(`[Planner] Error generating experiment for ${gene}:`, error);
+							},
+							onEnd: () => {
+								console.log(`[Planner] (${i + 1}/${genes.length}) Completed request for gene: ${gene}`);
+								this.perGeneCompleted = Math.min(this.perGeneTotal, this.perGeneCompleted + 1);
+								resolve();
+							}
+						});
+					});
+				}
+				console.log('[Planner] Finished per-gene experiment generation for all selected genes.');
+				this.isGenerating = false;
+				this.clearGenerationTimer();
+				this.perGeneMode = false;
+				this.currentGeneName = '';
+				
+				// All genes processed
+				console.log('[Planner] Finished per-gene experiment generation for all selected genes.');
+				this.isGenerating = false;
+				this.clearGenerationTimer();
+				this.perGeneMode = false;
+				this.currentGeneName = '';
 				
 			} catch (error) {
 				console.error('Error generating experiment:', error);
@@ -2915,8 +3132,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			content += '\n';
 			
 			// Add experiment results
-			if (this.isValidExperimentJSON(this.experimentResults)) {
-				const experiments = this.parsedExperimentResults;
+			if ((Array.isArray(this.finalExperimentResults) && this.finalExperimentResults.length > 0)) {
+				const experiments = this.finalExperimentResults;
 				experiments.forEach((experiment, index) => {
 					content += `EXPERIMENT ${index + 1}\n`;
 					content += '==================\n\n';
@@ -4122,6 +4339,20 @@ a {
     text-align: center;
 }
 
+/* Fixed per-gene generation status (top-right) */
+.generation-status-fixed {
+	position: fixed;
+	top: 10px;
+	right: 10px;
+	background: #e3f2fd;
+	border: 1px solid #bbdefb;
+	color: #1976d2;
+	padding: 8px 12px;
+	border-radius: 6px;
+	z-index: 2000;
+	font-size: 12px;
+}
+
 /* Experiment Plan Layout Styles */
 .experiment-plan {
     display: flex;
@@ -4133,6 +4364,7 @@ a {
     background: #ffffff;
     border-radius: 8px;
     padding: 20px;
+    border: 1px solid #aaaaaa;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

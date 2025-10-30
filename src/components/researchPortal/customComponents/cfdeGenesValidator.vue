@@ -490,6 +490,7 @@ import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import { createLLMClient } from "@/utils/llmClient";
 import { kcURL } from "@/utils/cfdeUtils";
+import { setSimpleLink } from "@/utils/cfdeUtils";
 import cfdeValidationUtils, { findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeValidationUtils";
 import drcUtils from "@/utils/drcUtils";
 
@@ -829,6 +830,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 	},
 	methods: {
 		kcURL,
+		setSimpleLink,
 		getPhenotypeById(phenotypeId) {
 			return findPhenotypeById(phenotypeId);
 		},
