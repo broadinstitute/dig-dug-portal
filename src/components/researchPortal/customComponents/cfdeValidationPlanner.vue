@@ -57,7 +57,7 @@
                             <h4>Hypothesis to Validate</h4>
                     </div>
                     <div class="hypothesis-content">
-                        <h5>Your Hypothesis (Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.)</h5>
+                        <h5>Your Hypothesis (Use the <a :href="setSimpleLink('/r/cfde_reveal')" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.)</h5>
                         <div class="textarea-container">
                             <textarea 
                                 v-model="phenotypeSearch" 
@@ -864,6 +864,7 @@
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import { createLLMClient } from "@/utils/llmClient";
+import { setSimpleLink } from "@/utils/cfdeUtils";
 import cfdeValidationUtils, { findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeValidationUtils";
 
 Vue.use(BootstrapVueIcons);
@@ -1633,46 +1634,54 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			return this.hasOnlyOneAssociation || this.hasOnlyOneAssociationFromData || this.hasManualGenes;
 		},
 	},
-		watch: {
-			utilsBox: {
-				handler(newVal) {
-					if (newVal && newVal.keyParams) {
-						this.initializeFromKeyParams();
-					}
-				},
-				immediate: true
-			},
-			geneSets(newVal, oldVal) {
-				// Track when associations are modified
-				if (oldVal !== undefined && newVal !== oldVal) {
-					// If geneSets is cleared, reset the modified flag
-					if (!newVal.trim()) {
-						this.associationsModified = false;
-						console.log('Associations cleared, Load Genes button hidden');
-					} else {
-						this.associationsModified = true;
-						console.log('Associations modified, Load Genes button should appear');
-					}
-				}
-			},
-			priorWeight(newVal, oldVal) {
-				// Update filtered genes when slider value changes
-				console.log(`Prior weight changed from ${oldVal} to ${newVal}`);
-				this.updateFilteredGenes();
-			},
-			currentPage() {
-				// Get gene novelty when page changes
-				this.getGeneNoveltyForCurrentPage();
-			},
-			shouldDisableOverlappingFilter(newVal) {
-				// If overlapping filter should be disabled, turn it off
-				if (newVal && this.showOnlyOverlappingGenes) {
-					this.showOnlyOverlappingGenes = false;
-					this.updateFilteredGenes();
-				}
-			}
+    watch: {
+        utilsBox: {
+            handler(newVal) {
+                if (newVal && newVal.keyParams) {
+                    this.initializeFromKeyParams();
+                }
+            },
+            immediate: true
+        },
+        geneSets(newVal, oldVal) {
+            // Track when associations are modified
+            if (oldVal !== undefined && newVal !== oldVal) {
+                // If geneSets is cleared, reset the modified flag
+                if (!newVal.trim()) {
+                    this.associationsModified = false;
+                    console.log('Associations cleared, Load Genes button hidden');
+                } else {
+                    this.associationsModified = true;
+                    console.log('Associations modified, Load Genes button should appear');
+                }
+            }
+        },
+        priorWeight(newVal, oldVal) {
+            // Update filtered genes when slider value changes
+            console.log(`Prior weight changed from ${oldVal} to ${newVal}`);
+            this.updateFilteredGenes();
+        },
+        currentPage() {
+            // Get gene novelty when page changes
+            this.getGeneNoveltyForCurrentPage();
+        },
+        shouldDisableOverlappingFilter(newVal) {
+            // If overlapping filter should be disabled, turn it off
+            if (newVal && this.showOnlyOverlappingGenes) {
+                this.showOnlyOverlappingGenes = false;
+                this.updateFilteredGenes();
+            }
+        }
 	},
 	methods: {
+		setSimpleLink,
+        setLink(link,parameters){
+            //const geneset = `${association.phenotype},${association.gene_set},${association.source}`
+            //const url = kcURL(`/r/cfde_explore?associations=${geneset}`);
+            const url = setSimpleLink(`${link}`);
+            console.log(url);
+            return url;
+        },
 		getPhenotypeById(phenotypeId) {
 			return findPhenotypeById(phenotypeId);
 		},

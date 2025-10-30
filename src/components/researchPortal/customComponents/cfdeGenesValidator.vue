@@ -489,6 +489,7 @@
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import { createLLMClient } from "@/utils/llmClient";
+import { kcURL } from "@/utils/cfdeUtils";
 import cfdeValidationUtils, { findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeValidationUtils";
 import drcUtils from "@/utils/drcUtils";
 
@@ -501,30 +502,9 @@ export default {
 	data() {
 		return {
             cfdeValidationUtils: cfdeValidationUtils,
-
-			gene_novelty_prompt: `Generate a JSON array for up to 10 genes based on the hypothesis below.
-
-**Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
-**Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]
-
-**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 25 words) that justifies both scores.
-
-**Workflow:** Prioritize speed. Determine all scores/reasoning concurrently across the gene list.
-***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance) AND contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator vs. Accessory Factor), justifying its research standing.***
-***If information is unavailable for a gene, set both scores to "N/A" and explain why in 'reason' (≤25 words).***
-
-Novelty Score (1=Highly Studied, 10=Poorly Studied).
-Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
-
-[
-  {
-    "gene": "<symbol>",
-    "relevance_score": "<1-10 or N/A>",
-    "novelty_score": "<1-10 or N/A>",
-    "reason": "<max 25 words: justification for both scores>"
-  },
-  ...
-]`,
+            
+            // Configurable batch size for novelty scoring
+            noveltyScoreBatchSize: 10,
 
                
             
@@ -649,6 +629,31 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		},
 		hasHypothesis() {
 			return this.phenotypeSearch && this.phenotypeSearch.trim() !== '';
+		},
+		gene_novelty_prompt() {
+			return `Generate a JSON array for up to ${this.noveltyScoreBatchSize} genes based on the hypothesis below.
+
+**Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
+**Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX ${this.noveltyScoreBatchSize})]
+
+**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 25 words) that justifies both scores.
+
+**Workflow:** Prioritize speed. Determine all scores/reasoning concurrently across the gene list.
+***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance) AND contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator vs. Accessory Factor), justifying its research standing.***
+***If information is unavailable for a gene, set both scores to "N/A" and explain why in 'reason' (≤25 words).***
+
+Novelty Score (1=Highly Studied, 10=Poorly Studied).
+Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
+
+[
+  {
+    "gene": "<symbol>",
+    "relevance_score": "<1-10 or N/A>",
+    "novelty_score": "<1-10 or N/A>",
+    "reason": "<max 25 words: justification for both scores>"
+  },
+  ...
+]`;
 		},
 		searchPlanText() {
 			let text = '<p>Your experiment plan will be created using the following approach:</p>';
@@ -823,6 +828,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			},
 	},
 	methods: {
+		kcURL,
 		getPhenotypeById(phenotypeId) {
 			return findPhenotypeById(phenotypeId);
 		},
@@ -1267,8 +1273,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		},
 		async getNoveltyForManualGenes(geneList) {
 			try {
-				// Limit to 10 genes as per prompt constraints
-				const genesToProcess = geneList.slice(0, 10);
+				// Limit to 50 genes as per prompt constraints
+				const genesToProcess = geneList.slice(0, this.noveltyScoreBatchSize);
 				
 				if (genesToProcess.length === 0) {
 					return;
@@ -1277,7 +1283,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Prepare the prompt
 				const prompt = this.gene_novelty_prompt
 					.replace('[INSERT YOUR HYPOTHESIS HERE]', this.phenotypeSearch.trim() || 'No specific hypothesis provided')
-					.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]', genesToProcess.join(', '));
+					.replace(`[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX ${this.noveltyScoreBatchSize})]`, genesToProcess.join(', '));
 				
 				// Call the LLM
 				this.getGeneNovelty.sendPrompt({
@@ -1617,8 +1623,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				return; // All genes on this page already have scores
 			}
 
-			// Limit to 10 genes as per prompt constraints
-			const genesToProcess = genesNeedingScores.slice(0, 10).map(g => g.gene);
+		// Limit to noveltyScoreBatchSize genes as per prompt constraints
+		const genesToProcess = genesNeedingScores.slice(0, this.noveltyScoreBatchSize).map(g => g.gene);
 
 			if (genesToProcess.length === 0) {
 				return;
@@ -1692,11 +1698,11 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				alert(`Found ${newGenes.length} new genes to process (${geneList.length - newGenes.length} genes already in table). Processing new genes...`);
 			}
 
-			// Process only new genes, but generate scores for first 10 initially
-			const genesToProcess = newGenes;
-			if (newGenes.length > 10) {
-				alert(`Processing ${newGenes.length} new genes. Scores for the first 10 genes will be generated initially, and scores for remaining genes will be generated as you navigate through pages.`);
-			}
+		// Process only new genes, but generate scores for first batch initially
+		const genesToProcess = newGenes;
+		if (newGenes.length > this.noveltyScoreBatchSize) {
+			alert(`Processing ${newGenes.length} new genes. Scores for the first ${this.noveltyScoreBatchSize} genes will be generated initially, and scores for remaining genes will be generated as you navigate through pages.`);
+		}
 
 			// Set loading state and start timer (simplified like validation planner)
 			this.isGettingGeneNovelty = true;
@@ -1733,8 +1739,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 
 				// Keep genes in input field for other explore options
 
-				// Generate scores for first 10 genes initially
-				const firstBatch = genesToProcess.slice(0, 10);
+				// Generate scores for first batch initially
+				const firstBatch = genesToProcess.slice(0, this.noveltyScoreBatchSize);
 				await this.getNoveltyForManualGenes(firstBatch);
 
 			} catch (error) {
