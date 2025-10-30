@@ -205,6 +205,13 @@ let pages = {
         filename: "cypher.html",
         title: "Cypher",
         chunks: ["chunk-vendors", "chunk-common", "cypher"]
+    },
+    llm: {
+        entry: "src/portals/PanKbase/views/LLM/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "llm.html",
+        title: "LLM",
+        chunks: ["chunk-vendors", "chunk-common", "llm"]
     }
 };
 
