@@ -208,7 +208,7 @@ new Vue({
             extras: [
                 {
                     title: "Available Funding",
-                    body: "PanKbase plans to offer annual pilot funding opportunities to support the timely adoption of rapid advancements in artificial intelligence (AI) and data science into the PanKbase platform.<br>See <a href='/funding.html'>here</a> for more information.",
+                    body: "See <a href='/funding.html'>here</a> for more information about funding opportunities relevant to T1D and pancreatic research.",
                     icon: "https://hugeampkpncms.org/sites/default/files/images/pankbase/icons/funding_icon.svg"
                 },
                 {
