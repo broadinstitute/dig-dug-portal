@@ -911,9 +911,7 @@
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import { createLLMClient } from "@/utils/llmClient";
-import { setSimpleLink } from "@/utils/cfdeUtils";
-import { kcURL } from "@/utils/cfdeUtils";
-import cfdeValidationUtils, { findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeValidationUtils";
+import { kcURL, setSimpleLink, findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeUtils";
 
 Vue.use(BootstrapVueIcons);
 
@@ -923,7 +921,6 @@ export default {
 	},
 	data() {
 		return {
-            cfdeValidationUtils: cfdeValidationUtils,
             "assay_types": {
                 "label": "Experimental Assay",
                 "ontology": "Ontology for Biomedical Investigations (OBI)",
@@ -1406,11 +1403,11 @@ export default {
 **Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
 **Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]
 
-**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 25 words) that justifies both scores.
+**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 40 words) that justifies both scores.
 
 **Workflow:** Prioritize speed. Determine all scores/reasoning concurrently across the gene list.
-***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance) AND contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator vs. Accessory Factor), justifying its research standing.***
-***If information is unavailable for a gene, set both scores to "N/A" and explain why in 'reason' (≤25 words).***
+***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance). The LLM MUST first identify the RELEVANT TISSUE(S) mentioned in the Hypothesis (e.g., "brown adipose," "brain," and "heart") and explicitly integrate the role of ANY of the identified tissue(s) into the relevance justification. Contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator), justifying its research standing.***
+***If information is unavailable for a gene, set both scores to "N/A" and explain why in 'reason' (≤40 words).***
 
 Novelty Score (1=Highly Studied, 10=Poorly Studied).
 Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
@@ -1420,7 +1417,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
     "gene": "<symbol>",
     "relevance_score": "<1-10 or N/A>",
     "novelty_score": "<1-10 or N/A>",
-    "reason": "<max 25 words: justification for both scores>"
+    "reason": "<max 40 words: justification for both scores.>"
   },
   ...
 ]`,
@@ -1510,7 +1507,6 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 	},
 
     created() {
-        console.log(this.sectionConfigs);
         if(this.sectionConfigs.llm === "gemini") {
             this.getGeneNovelty = createLLMClient({
                 llm: "gemini",
@@ -1537,7 +1533,6 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
                 system_prompt: this.experiment_prompt
             });
         }
-        /**/
         
     },
 
@@ -1760,7 +1755,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 	},
 	methods: {
         kcURL,
-		setSimpleLink,
+        setSimpleLink,
+        findPhenotypeByName,
+        findPhenotypeById,
 		getPhenotypeById(phenotypeId) {
 			return findPhenotypeById(phenotypeId);
 		},

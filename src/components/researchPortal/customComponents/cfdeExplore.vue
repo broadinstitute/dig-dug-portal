@@ -99,8 +99,107 @@
 				<!-- hypothesis section -->
 				 <div class="gene-sets-input">
 					<div class="section-header">
-						<h4>Hypothesis (Optional)</h4>
+						<h4>
+							Hypothesis (Optional)
+							<button 
+								v-if="showGenerateHypothesisButton"
+								@click="openPhenotypeSelection"
+								class="btn btn-sm btn-primary generate-hypothesis-btn-inline"
+								:disabled="isFetchingPhenotypes || isGeneratingHypothesis"
+							>
+								<span v-if="isFetchingPhenotypes || isGeneratingHypothesis" class="loading-spinner-small"></span>
+								{{ isFetchingPhenotypes ? 'Fetching...' : (isGeneratingHypothesis ? `Generating... (${hypothesisGenerationElapsedTime})` : 'Generate Hypothesis') }}
+							</button>
+						</h4>
 					</div>
+					
+					<!-- Collapsible phenotype selection table -->
+					<div v-if="hypothesisPhenotypes.length > 0" class="hypothesis-phenotypes-section">
+						<div 
+							class="hypothesis-phenotypes-header"
+							@click="showHypothesisPhenotypes = !showHypothesisPhenotypes"
+						>
+							<span class="collapse-icon">{{ showHypothesisPhenotypes ? '▼' : '▶' }}</span>
+							<span class="hypothesis-phenotypes-label">Phenotype / gene sets of interest.</span>
+							<span class="hypothesis-phenotypes-count">({{ hypothesisPhenotypes.length }} phenotype{{ hypothesisPhenotypes.length !== 1 ? 's' : '' }})</span>
+							<button 
+								@click.stop="openPhenotypeSelection"
+								class="btn btn-sm btn-secondary update-hypothesis-btn"
+								:disabled="isFetchingPhenotypes || isGeneratingHypothesis"
+							>
+								Update Hypothesis.
+							</button>
+						</div>
+						<div v-if="showHypothesisPhenotypes && hypothesisPhenotypes.length > 0" class="hypothesis-phenotypes-content">
+							<div class="table-container">
+								<table class="hypothesis-phenotypes-table">
+									<thead>
+										<tr>
+											<th v-for="key in getOrderedColumnKeys(hypothesisPhenotypes[0])" :key="key" style="text-align: left;">
+												{{ formatColumnHeader(key) }}
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr v-for="(phenotype, index) in paginatedHypothesisPhenotypes" :key="index">
+											<td v-for="key in getOrderedColumnKeys(phenotype)" :key="key">
+												{{ formatCellValue(phenotype[key]) }}
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<!-- Pagination for hypothesis phenotypes table -->
+							<div v-if="hypothesisPhenotypesTotalPages > 1" class="hypothesis-phenotypes-pagination">
+								<div class="pagination-info">
+									Showing {{ (hypothesisPhenotypesPage - 1) * (hypothesisPhenotypesItemsPerPage === 'all' ? hypothesisPhenotypes.length : hypothesisPhenotypesItemsPerPage) + 1 }} to {{ Math.min(hypothesisPhenotypesPage * (hypothesisPhenotypesItemsPerPage === 'all' ? hypothesisPhenotypes.length : hypothesisPhenotypesItemsPerPage), hypothesisPhenotypes.length) }} of {{ hypothesisPhenotypes.length }} entries
+								</div>
+								<div class="pagination-controls">
+									<button 
+										@click="hypothesisPhenotypesPage = 1" 
+										:disabled="hypothesisPhenotypesPage === 1"
+										class="pagination-btn first-last-btn"
+										title="First page"
+									>
+										««
+									</button>
+									<button 
+										@click="hypothesisPhenotypesPage--" 
+										:disabled="hypothesisPhenotypesPage === 1"
+										class="pagination-btn"
+									>
+										Previous
+									</button>
+									<span class="page-numbers">
+										<button 
+											v-for="page in getVisiblePages(hypothesisPhenotypesPage, hypothesisPhenotypesTotalPages)" 
+											:key="page"
+											@click="hypothesisPhenotypesPage = page"
+											:class="['page-btn', { 'active': page === hypothesisPhenotypesPage }]"
+										>
+											{{ page }}
+										</button>
+									</span>
+									<button 
+										@click="hypothesisPhenotypesPage++" 
+										:disabled="hypothesisPhenotypesPage === hypothesisPhenotypesTotalPages"
+										class="pagination-btn"
+									>
+										Next
+									</button>
+									<button 
+										@click="hypothesisPhenotypesPage = hypothesisPhenotypesTotalPages" 
+										:disabled="hypothesisPhenotypesPage === hypothesisPhenotypesTotalPages"
+										class="pagination-btn first-last-btn"
+										title="Last page"
+									>
+										»»
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					
 					<small class="format-suggestion">Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.</small>
 					<div class="textarea-container">
 						<textarea 
@@ -122,125 +221,29 @@
 					</div>
 					
 					<div class="gene-options-grid">
-						<!-- Option 1: GTEx Expression Analysis -->
-						<div class="gene-option-card">
+						<div v-for="card in visibleExplorationCards" :key="card['card label']" class="gene-option-card">
 							<div class="option-header">
-								<h5>GTEx Tissue Expression Analysis</h5>
-								<span class="option-badge">Expression Data</span>
+								<h5>{{ card['card label'] }}</h5>
+								<span class="option-badge">{{ card.badge }}</span>
 							</div>
 							<div class="option-description">
-								<p>Open the GTEx browser to explore gene expression patterns across human tissues. Visualize where your genes are most highly expressed and identify tissue-specific patterns using the official GTEx portal.</p>
+								<p>{{ card['card description'] }}</p>
 							</div>
 							<div class="option-details">
 								<ul>
-									<li>Expression across 54 human tissues</li>
-									<li>Interactive heatmaps and plots</li>
-									<li>Tissue-specific expression patterns</li>
-									<li>Comparative analysis between genes</li>
+									<li v-for="(detail, idx) in card.details" :key="`detail-${idx}`" v-html="detail"></li>
 								</ul>
 							</div>
 							<div class="option-actions">
 								<button 
-									@click="exploreGTExExpression"
+									@click="handleCardClick(card)"
 									class="btn btn-primary option-btn"
-									:disabled="!manualGenes.trim()"
+									:disabled="!manualGenes.trim() || (card['card label'] === 'Hypothesis Relevance & Innovation Score' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)"
 								>
-									Open GTEx Browser
+									<span v-if="(card['card label'] === 'Hypothesis Relevance & Innovation Score' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)" class="loading-spinner-small"></span>
+									{{ card['open label'] }}
 								</button>
-								<span class="option-note">{{ getGeneCount() > 50 ? 'First 50 genes will be used' : 'Opens in new tab' }}</span>
-							</div>
-						</div>
-
-						<!-- Option 2: Jupiter Notebook for MoTrPAC -->
-						<div v-if="sectionConfigs && sectionConfigs.links && sectionConfigs.links.motrpac" class="gene-option-card">
-							<div class="option-header">
-								<h5>MoTrPAC Exercise Response Analysis</h5>
-								<span class="option-badge">Jupyter Notebook</span>
-							</div>
-							<div class="option-description">
-								<p>Explore how your genes respond to endurance exercise across 20 tissues and 7 omics platforms in the MoTrPAC rat study. What you'll get:</p>
-							</div>
-							<div class="option-details">
-								<ul>
-									<li><strong>Dataset Overview:</strong> Visualize all available omics data</li>
-									<li><strong>Gene Coverage:</strong> Map your genes across omics platforms and tissues</li>
-									<li><strong>Interactive Tables:</strong> Searchable, filterable results</li>
-									<li><strong>Trajectory Plots:</strong> Visualize how your genes change over an exercise training time course</li>
-									<li><strong>Heatmaps:</strong> Sex-specific comparison of gene responses across tissues and time points</li>
-									<li><strong>Multi-Tissue Insights:</strong> Tissue- and sex-specific exercise responses</li>
-								</ul>
-							</div>
-							<div class="option-actions">
-								<button 
-									@click="openMoTrPACNotebook" 
-									class="btn btn-primary option-btn"
-									:disabled="!manualGenes.trim()"
-								>
-									Open Jupyter Notebook
-								</button>
-								<span class="option-note">MoTrPAC data • Interactive analysis • Opens in new tab</span>
-							</div>
-						</div>
-
-						<!-- Option 3: Playbook Workflow Builder -->
-						<div class="gene-option-card">
-							<div class="option-header">
-								<h5>Explore genes in Playbook Workflow Builder</h5>
-								<span class="option-badge">Workflow Analysis</span>
-							</div>
-							<div class="option-description">
-								<p>Open the Playbook Workflow Builder, a tool fueled by the CFDE Data Resource Center, to perform comprehensive gene set enrichment analysis across multiple CFDE databases. The workflow automatically analyzes your genes against 7 different databases and generates interactive visualizations.</p>
-							</div>
-							<div class="option-details">
-								<ul>
-									<li><strong>GTEx Tissues V8 2023:</strong> Tissue expression signatures</li>
-									<li><strong>LINCS L1000:</strong> Chemical perturbation signatures</li>
-									<li><strong>IDG Drug Targets 2022:</strong> Drug target analysis</li>
-									<li><strong>HuBMAP ASCTplusB 2022:</strong> Cell type biomarkers</li>
-									<li><strong>GlyGen 2022:</strong> Glycosylated protein analysis</li>
-									<li><strong>Metabolomics Workbench 2022:</strong> Metabolite associations</li>
-									<li><strong>MoTrPAC 2023:</strong> Exercise response signatures</li>
-								</ul>
-							</div>
-							<div class="option-actions">
-								<button 
-									@click="enrichGenes" 
-									class="btn btn-primary option-btn"
-									:disabled="!manualGenes.trim()"
-								>
-									Open Playbook Workflow Builder
-								</button>
-								<span class="option-note">7 database analyses • Interactive charts • Opens in new tab</span>
-							</div>
-						</div>
-
-						<!-- Option 4: Hypothesis Alignment and Research Gap Score -->
-						<div v-if="hasHypothesis" class="gene-option-card">
-							<div class="option-header">
-								<h5>Hypothesis Relevance & Innovation Score</h5>
-								<span class="option-badge">AI Analysis</span>
-							</div>
-							<div class="option-description">
-								<p>Generate AI-powered scores showing how relevant and novel each gene is to your specific hypothesis. This will help prioritize which genes are most important for your research.</p>
-							</div>
-							<div class="option-details">
-								<ul>
-									<li>Hypothesis Relevance (1-10)</li>
-									<li>Innovation Score (1-10)</li>
-									<li>Molecular rationale for each gene</li>
-									<li>AI-generated context and justification</li>
-								</ul>
-							</div>
-							<div class="option-actions">
-								<button 
-									@click="generateHypothesisAlignment"
-									class="btn btn-primary option-btn"
-									:disabled="!manualGenes.trim() || isGettingGeneNovelty"
-								>
-									<span v-if="isGettingGeneNovelty" class="loading-spinner-small"></span>
-									Generate Scores
-								</button>
-								<span class="option-note">Requires hypothesis input</span>
+								<span class="option-note">{{ getCardTip(card) }}</span>
 							</div>
 						</div>
 					</div>
@@ -289,6 +292,16 @@
 									<li>A research hypothesis in the "Hypothesis" field above</li>
 									<li>This enables AI analysis of gene relevance to your specific research question</li>
 								</ul>
+								<div v-if="(urlHasGenes || manualGenes.trim()) && !urlHasHypothesis" style="margin-top: 12px;">
+									<button 
+										@click="closeWelcomePopup(); openPhenotypeSelection()"
+										class="btn btn-sm btn-primary"
+										:disabled="isFetchingPhenotypes || isGeneratingHypothesis"
+									>
+										<span v-if="isFetchingPhenotypes || isGeneratingHypothesis" class="loading-spinner-small"></span>
+										{{ isFetchingPhenotypes ? 'Fetching...' : (isGeneratingHypothesis ? `Generating... (${hypothesisGenerationElapsedTime})` : 'Generate Hypothesis') }}
+									</button>
+								</div>
 							</div>
 						</div>
 						
@@ -334,6 +347,146 @@
 					</ul>
 					<div class="no-genes-actions">
 						<button @click="closeNoGenesPopup" class="btn btn-primary">Got it</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Phenotype Selection Dialog -->
+		<div v-if="showPhenotypeDialog" class="phenotype-dialog-overlay">
+			<div class="phenotype-dialog">
+				<div class="phenotype-dialog-header">
+					<h3>Select Phenotypes for Hypothesis Generation</h3>
+					<button @click="closePhenotypeDialog" class="close-btn">&times;</button>
+				</div>
+				<div class="phenotype-dialog-content">
+					<div v-if="isFetchingPhenotypes" class="loading-message">
+						<span class="loading-spinner-small"></span>
+						<span>Fetching phenotypes from Translator API...</span>
+					</div>
+					<div v-else-if="phenotypeData.length === 0" class="no-data-message">
+						<p>No phenotypes found for the provided genes.</p>
+					</div>
+					<div v-else class="phenotype-table-container">
+						<div class="phenotype-selection-info">
+							<p><strong>{{ selectedPhenotypes.length }}</strong> phenotype(s) selected (first 5 selected by default)</p>
+							<div class="rows-per-page-selector">
+								<label for="select-first-n">Select phenotypes for hypothesis:</label>
+								<select 
+									id="select-first-n"
+									:value="phenotypeSelectionCount"
+									@change="selectFirstNRows($event.target.value)"
+									class="form-control form-control-sm"
+									style="display: inline-block; width: auto; margin-left: 8px;"
+								>
+									<option :value="5">5</option>
+									<option :value="10">10</option>
+									<option :value="15">15</option>
+									<option :value="20">20</option>
+								</select>
+								<button 
+									@click="generateHypothesisFromSelectedPhenotypes" 
+									class="btn btn-sm btn-primary generate-hypothesis-dialog-btn"
+									:disabled="selectedPhenotypes.length === 0 || isGeneratingHypothesis"
+									style="margin-left: 12px;"
+								>
+									<span v-if="isGeneratingHypothesis" class="loading-spinner-small"></span>
+									{{ isGeneratingHypothesis ? `Generating... (${hypothesisGenerationElapsedTime})` : 'Generate Hypothesis' }}
+								</button>
+							</div>
+						</div>
+						<div class="table-container">
+							<table class="phenotype-table" v-if="phenotypeData.length > 0">
+								<thead>
+									<tr>
+										<th style="width: 40px;">
+											<input 
+												ref="selectAllCheckbox"
+												type="checkbox" 
+												@change="toggleAllPhenotypes"
+												:checked="allPhenotypesSelected"
+											/>
+										</th>
+										<th v-for="key in getOrderedColumnKeys(phenotypeData[0])" :key="key" style="text-align: left;">
+											{{ formatColumnHeader(key) }}
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr v-for="(phenotype, paginatedIndex) in paginatedPhenotypeData" :key="paginatedIndex" :class="{ 'selected-row': isPhenotypeSelected(getFullIndex(paginatedIndex)) }">
+										<td>
+											<input 
+												type="checkbox" 
+												:checked="isPhenotypeSelected(getFullIndex(paginatedIndex))"
+												@change="togglePhenotypeSelection(getFullIndex(paginatedIndex))"
+											/>
+										</td>
+										<td v-for="key in getOrderedColumnKeys(phenotype)" :key="key">
+											{{ formatCellValue(phenotype[key]) }}
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<!-- Pagination for phenotype dialog -->
+						<div v-if="phenotypeDialogTotalPages > 1" class="phenotype-dialog-pagination">
+							<div class="pagination-info">
+								Showing {{ (phenotypeDialogPage - 1) * phenotypeDialogItemsPerPage + 1 }} to {{ Math.min(phenotypeDialogPage * phenotypeDialogItemsPerPage, phenotypeData.length) }} of {{ phenotypeData.length }} entries
+							</div>
+							<div class="pagination-controls">
+								<button 
+									@click="phenotypeDialogPage = 1" 
+									:disabled="phenotypeDialogPage === 1"
+									class="pagination-btn first-last-btn"
+									title="First page"
+								>
+									««
+								</button>
+								<button 
+									@click="phenotypeDialogPage--" 
+									:disabled="phenotypeDialogPage === 1"
+									class="pagination-btn"
+								>
+									Previous
+								</button>
+								<span class="page-numbers">
+									<button 
+										v-for="page in getVisiblePages(phenotypeDialogPage, phenotypeDialogTotalPages)" 
+										:key="page"
+										@click="phenotypeDialogPage = page"
+										:class="['page-btn', { 'active': page === phenotypeDialogPage }]"
+									>
+										{{ page }}
+									</button>
+								</span>
+								<button 
+									@click="phenotypeDialogPage++" 
+									:disabled="phenotypeDialogPage === phenotypeDialogTotalPages"
+									class="pagination-btn"
+								>
+									Next
+								</button>
+								<button 
+									@click="phenotypeDialogPage = phenotypeDialogTotalPages" 
+									:disabled="phenotypeDialogPage === phenotypeDialogTotalPages"
+									class="pagination-btn first-last-btn"
+									title="Last page"
+								>
+									»»
+								</button>
+							</div>
+						</div>
+						<div class="phenotype-dialog-actions">
+							<button @click="closePhenotypeDialog" class="btn btn-outline-secondary">Cancel</button>
+							<button 
+								@click="generateHypothesisFromSelectedPhenotypes" 
+								class="btn btn-primary"
+								:disabled="selectedPhenotypes.length === 0 || isGeneratingHypothesis"
+							>
+								<span v-if="isGeneratingHypothesis" class="loading-spinner-small"></span>
+								{{ isGeneratingHypothesis ? `Generating... (${hypothesisGenerationElapsedTime})` : `Generate Hypothesis (${selectedPhenotypes.length})` }}
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -489,9 +642,7 @@
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import { createLLMClient } from "@/utils/llmClient";
-import { kcURL } from "@/utils/cfdeUtils";
-import { setSimpleLink } from "@/utils/cfdeUtils";
-import cfdeValidationUtils, { findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeValidationUtils";
+import { kcURL, setSimpleLink, findPhenotypeByName, findPhenotypeById } from "@/utils/cfdeUtils";
 import drcUtils from "@/utils/drcUtils";
 
 Vue.use(BootstrapVueIcons);
@@ -502,13 +653,109 @@ export default {
 	},
 	data() {
 		return {
-            cfdeValidationUtils: cfdeValidationUtils,
             
             // Configurable batch size for novelty scoring
             noveltyScoreBatchSize: 10,
 
+            // Exploration cards configuration
+            explorationCards: [
+                {
+                    "card label": "GTEx Tissue Expression Analysis",
+                    "card description": "Open the GTEx browser to explore gene expression patterns across human tissues. Visualize where your genes are most highly expressed and identify tissue-specific patterns using the official GTEx portal.",
+                    "details": [
+                        "Expression across 54 human tissues",
+                        "Interactive heatmaps and plots",
+                        "Tissue-specific expression patterns",
+                        "Comparative analysis between genes"
+                    ],
+                    "open label": "Open GTEx Browser",
+                    "link": "https://www.gtexportal.org/home/multiGeneQueryPage/",
+                    "link tip": "First 50 genes will be used",
+                    "required parameters": ["genes"],
+                    "handler": "exploreGTExExpression",
+                    "badge": "Expression Data",
+                    "linkType": "path", // genes appended to path, not query param
+                    "maxGenes": 50,
+                    "condition": null
+                },
+                {
+                    "card label": "MoTrPAC Exercise Response Analysis",
+                    "card description": "Explore how your genes respond to endurance exercise across 20 tissues and 7 omics platforms in the MoTrPAC rat study. What you'll get:",
+                    "details": [
+                        "Dataset Overview: Visualize all available omics data",
+                        "Gene Coverage: Map your genes across omics platforms and tissues",
+                        "Interactive Tables: Searchable, filterable results",
+                        "Trajectory Plots: Visualize how your genes change over an exercise training time course",
+                        "Heatmaps: Sex-specific comparison of gene responses across tissues and time points",
+                        "Multi-Tissue Insights: Tissue- and sex-specific exercise responses"
+                    ],
+                    "open label": "Open Jupyter Notebook",
+                    "link": "http://ec2-3-84-117-219.compute-1.amazonaws.com:3838/?genes=", // Uses sectionConfigs.links.motrpac
+                    "link tip": "MoTrPAC data • Interactive analysis • Opens in new tab",
+                    "required parameters": ["genes"],
+                    "handler": "openMoTrPACNotebook",
+                    "badge": "Jupyter Notebook",
+                    "linkType": "query",
+                    "condition": "motrpac"
+                },
+                {
+                    "card label": "Explore genes in Playbook Workflow Builder",
+                    "card description": "Open the Playbook Workflow Builder, a tool fueled by the CFDE Data Resource Center, to perform comprehensive gene set enrichment analysis across multiple CFDE databases. The workflow automatically analyzes your genes against 7 different databases and generates interactive visualizations.",
+                    "details": [
+                        "GTEx Tissues V8 2023: Tissue expression signatures",
+                        "LINCS L1000: Chemical perturbation signatures",
+                        "IDG Drug Targets 2022: Drug target analysis",
+                        "HuBMAP ASCTplusB 2022: Cell type biomarkers",
+                        "GlyGen 2022: Glycosylated protein analysis",
+                        "Metabolomics Workbench 2022: Metabolite associations",
+                        "MoTrPAC 2023: Exercise response signatures"
+                    ],
+                    "open label": "Open Playbook Workflow Builder",
+                    "link": null, // Uses drcUtils to generate URL
+                    "link tip": "7 database analyses • Interactive charts • Opens in new tab",
+                    "required parameters": ["genes"],
+                    "handler": "enrichGenes",
+                    "badge": "Workflow Analysis",
+                    "linkType": "special", // Uses async drcUtils method
+                    "condition": null
+                },
+                {
+                    "card label": "BYOGL: Link your own gene set to CFDE programs and human traits",
+                    "card description": "Using PIGEAN, a new statistical approach, this module identifies gene sets within CFDE that predict membership in your input gene list. It uses these gene sets to predict additional genes within your gene list and to identify human traits that share genes with your input list",
+                    "details": [
+                        "Genes predicted to be in your gene list",
+                        "CFDE gene sets that predict membership in your gene list",
+                        "Human traits that share genes with your input list"
+                    ],
+                    "open label": "Open BYOGL",
+                    "link": "/r/kc_byogl?genes=",
+                    "link tip": "Multi-resource analysis • Interactive exploration • Opens in new tab",
+                    "required parameters": ["genes"],
+                    "handler": "openBYOGL",
+                    "badge": "Gene set Analysis",
+                    "linkType": "query",
+                    "condition": null
+                },
+                {
+                    "card label": "Hypothesis Relevance & Innovation Score",
+                    "card description": "Generate AI-powered scores showing how relevant and novel each gene is to your specific hypothesis. This will help prioritize which genes are most important for your research.",
+                    "details": [
+                        "Hypothesis Relevance (1-10)",
+                        "Innovation Score (1-10)",
+                        "Molecular rationale for each gene",
+                        "AI-generated context and justification"
+                    ],
+                    "open label": "Generate Scores",
+                    "link": null,
+                    "link tip": "Requires hypothesis input",
+                    "required parameters": ["genes", "hypothesis"],
+                    "handler": "generateHypothesisAlignment",
+                    "badge": "AI Analysis",
+                    "linkType": "action", // Not a link, triggers an action
+                    "condition": "hypothesis"
+                }
+            ],
                
-            
             // UI state
             phenotypeSearch: '',
             geneSets: '',
@@ -561,24 +808,75 @@ export default {
 			isGettingGeneNovelty: false,
 			geneNoveltyStartTime: null,
 			geneNoveltyTimer: null,
-			geneNoveltyElapsedTime: '0:00'
+			geneNoveltyElapsedTime: '0:00',
+			// Hypothesis generation state
+			isGeneratingHypothesis: false,
+			hypothesisGenerationTimer: null,
+			hypothesisGenerationElapsedTime: '0:00',
+			hypothesisGenerationStartTime: null,
+			// Phenotype selection dialog state
+			showPhenotypeDialog: false,
+			phenotypeData: [],
+			selectedPhenotypes: [],
+			isFetchingPhenotypes: false,
+			// Pagination for phenotype dialog table (for viewing, not selection)
+			phenotypeDialogPage: 1,
+			phenotypeDialogItemsPerPage: 20, // Fixed at 20 for pagination display
+			// Selection count for hypothesis generation
+			phenotypeSelectionCount: 5, // Can be 5, 10, 15, or 20 - controls how many phenotypes to select
+			// Pagination for hypothesis phenotypes table
+			hypothesisPhenotypesPage: 1,
+			hypothesisPhenotypesItemsPerPage: 20, // Can be 20, 40, 60, or 'all'
+			// Selected phenotypes for hypothesis (stored after selection)
+			hypothesisPhenotypes: [],
+			// Collapsible section state
+			showHypothesisPhenotypes: false,
+			// Cache for fetched phenotypes (keyed by gene list)
+			phenotypeCache: {}
 		};
 	},
 	modules: {
 	},
 
 	created() {
-		this.getGeneNovelty = createLLMClient({
-			llm: "openai",
-			model: "gpt-5-mini",
-			system_prompt: this.gene_novelty_prompt
-		});
+		if(this.sectionConfigs.llm === "gemini") {
+            this.getGeneNovelty = createLLMClient({
+                llm: "gemini",
+                model: "gemini-2.5-flash",
+                system_prompt: this.gene_novelty_prompt
+            });
 
-        this.buildExperiments = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.experiment_prompt
-		});
+            this.buildExperiments = createLLMClient({
+                llm: "gemini",
+                model: "gemini-2.5-flash",
+                system_prompt: this.experiment_prompt
+            });
+
+            this.generateHypothesis = createLLMClient({
+                llm: "gemini",
+                model: "gemini-2.5-flash",
+                system_prompt: this.hypothesis_generation_prompt
+            });
+
+        } else if(this.sectionConfigs.llm === "openai") {
+            this.getGeneNovelty = createLLMClient({
+				llm: "openai",
+				model: "gpt-5-mini",
+				system_prompt: this.gene_novelty_prompt
+			});
+
+			this.buildExperiments = createLLMClient({
+				llm: "openai",
+				model: "gpt-5-mini",
+				system_prompt: this.experiment_prompt
+			});
+
+			this.generateHypothesis = createLLMClient({
+				llm: "openai",
+				model: "gpt-5-mini",
+				system_prompt: this.hypothesis_generation_prompt
+			});
+        }
 	},
 
 	mounted: async function () {
@@ -631,17 +929,33 @@ export default {
 		hasHypothesis() {
 			return this.phenotypeSearch && this.phenotypeSearch.trim() !== '';
 		},
+		showGenerateHypothesisButton() {
+			// Show button when there are genes but no hypothesis
+			return this.manualGenes.trim() !== '' && !this.hasHypothesis;
+		},
+		visibleExplorationCards() {
+			return this.explorationCards.filter(card => {
+				// Check condition-based visibility
+				if (card.condition === 'motrpac') {
+					return this.sectionConfigs && this.sectionConfigs.links && this.sectionConfigs.links.motrpac;
+				}
+				if (card.condition === 'hypothesis') {
+					return this.hasHypothesis;
+				}
+				return true; // No condition, always show
+			});
+		},
 		gene_novelty_prompt() {
 			return `Generate a JSON array for up to ${this.noveltyScoreBatchSize} genes based on the hypothesis below.
 
 **Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
 **Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX ${this.noveltyScoreBatchSize})]
 
-**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 25 words) that justifies both scores.
+**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 40 words) that justifies both scores.
 
 **Workflow:** Prioritize speed. Determine all scores/reasoning concurrently across the gene list.
-***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance) AND contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator vs. Accessory Factor), justifying its research standing.***
-***If information is unavailable for a gene, set both scores to "N/A" and explain why in 'reason' (≤25 words).***
+***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance). The LLM MUST first identify the RELEVANT TISSUE(S) mentioned in the Hypothesis (e.g., "brown adipose," "brain," and "heart") and explicitly integrate the role of ANY of the identified tissue(s) into the relevance justification. Contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator), justifying its research standing.***
+***If information is unavailable for a gene, set both scores to "N/A" and explain why in 'reason' (≤40 words).***
 
 Novelty Score (1=Highly Studied, 10=Poorly Studied).
 Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
@@ -651,10 +965,33 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
     "gene": "<symbol>",
     "relevance_score": "<1-10 or N/A>",
     "novelty_score": "<1-10 or N/A>",
-    "reason": "<max 25 words: justification for both scores>"
+    "reason": "<max 40 words: justification for both scores.>"
   },
   ...
 ]`;
+		},
+		hypothesis_generation_prompt() {
+			return `You are a scientific hypothesis generator. Your task is to generate a coherent, testable research hypothesis based on phenotypes and gene sets associated with a list of genes.
+
+**Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE]
+**Phenotypes and Gene Sets:** [INSERT PHENOTYPES AND GENE SETS DATA HERE]
+
+**Task:** Generate a single, well-formed research hypothesis that:
+1. Integrates the biological connections between the provided genes
+2. Incorporates the phenotype descriptions and associated gene sets
+3. Is testable and specific enough for experimental validation
+4. Explains the mechanistic relationship between genes, phenotypes, and gene sets
+5. Is written in clear, scientific language suitable for research planning
+
+**Output Format:** Respond with ONLY the hypothesis text. Do not include any prefix, labels, or additional formatting. Just provide the hypothesis statement directly.
+
+**Guidelines:**
+- Make the hypothesis specific and mechanistic
+- Connect multiple genes if provided
+- Reference relevant phenotypes and gene sets
+- Ensure the hypothesis is testable through experiments
+- Keep it concise but comprehensive (2-4 sentences typically)
+`;
 		},
 		searchPlanText() {
 			let text = '<p>Your experiment plan will be created using the following approach:</p>';
@@ -800,6 +1137,34 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			});
 			return associations.size === 1;
 		},
+		allPhenotypesSelected() {
+			return this.phenotypeData.length > 0 && this.selectedPhenotypes.length === this.phenotypeData.length;
+		},
+		somePhenotypesSelected() {
+			return this.selectedPhenotypes.length > 0 && this.selectedPhenotypes.length < this.phenotypeData.length;
+		},
+		// Pagination for phenotype dialog table (fixed at 20 rows per page for viewing)
+		paginatedPhenotypeData() {
+			const start = (this.phenotypeDialogPage - 1) * this.phenotypeDialogItemsPerPage;
+			const end = start + this.phenotypeDialogItemsPerPage;
+			return this.phenotypeData.slice(start, end);
+		},
+		phenotypeDialogTotalPages() {
+			return Math.ceil(this.phenotypeData.length / this.phenotypeDialogItemsPerPage);
+		},
+		// Pagination for hypothesis phenotypes table
+		paginatedHypothesisPhenotypes() {
+			if (this.hypothesisPhenotypesItemsPerPage === 'all') {
+				return this.hypothesisPhenotypes;
+			}
+			const start = (this.hypothesisPhenotypesPage - 1) * this.hypothesisPhenotypesItemsPerPage;
+			const end = start + this.hypothesisPhenotypesItemsPerPage;
+			return this.hypothesisPhenotypes.slice(start, end);
+		},
+		hypothesisPhenotypesTotalPages() {
+			if (this.hypothesisPhenotypesItemsPerPage === 'all') return 1;
+			return Math.ceil(this.hypothesisPhenotypes.length / this.hypothesisPhenotypesItemsPerPage);
+		},
 	},
 		watch: {
 			utilsBox: {
@@ -827,10 +1192,45 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Generate scores for genes on current page that don't have scores yet
 				this.getNoveltyForCurrentPage();
 			},
+			selectedPhenotypes() {
+				// Update indeterminate state of select-all checkbox
+				this.$nextTick(() => {
+					if (this.$refs.selectAllCheckbox) {
+						this.$refs.selectAllCheckbox.indeterminate = this.somePhenotypesSelected && !this.allPhenotypesSelected;
+					}
+				});
+			},
+			showPhenotypeDialog(newVal) {
+				// Update indeterminate state when dialog opens
+				if (newVal) {
+					this.$nextTick(() => {
+						if (this.$refs.selectAllCheckbox) {
+							this.$refs.selectAllCheckbox.indeterminate = this.somePhenotypesSelected && !this.allPhenotypesSelected;
+						}
+					});
+				}
+			},
 	},
 	methods: {
 		kcURL,
+		findPhenotypeByName,
+		findPhenotypeById,
 		setSimpleLink,
+		handleCardClick(card) {
+			// Route to the appropriate handler method based on card config
+			if (card.handler && typeof this[card.handler] === 'function') {
+				this[card.handler]();
+			} else {
+				console.error(`Handler method "${card.handler}" not found for card "${card['card label']}"`);
+			}
+		},
+		getCardTip(card) {
+			// Handle dynamic tips (like GTEx which changes based on gene count)
+			if (card['card label'] === 'GTEx Tissue Expression Analysis') {
+				return this.getGeneCount() > 50 ? card['link tip'] : 'Opens in new tab';
+			}
+			return card['link tip'];
+		},
 		getPhenotypeById(phenotypeId) {
 			return findPhenotypeById(phenotypeId);
 		},
@@ -1117,9 +1517,11 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Check for genes parameter
 				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
 					const geneList = this.utilsBox.keyParams['genes'].split(',').map(gene => gene.trim()).filter(gene => gene);
-					if (geneList.length > 0) {
+					// Remove duplicates while preserving order
+					const uniqueGeneList = [...new Set(geneList)];
+					if (uniqueGeneList.length > 0) {
 						hasGenes = true;
-						this.urlChoiceOptions.genes = geneList;
+						this.urlChoiceOptions.genes = uniqueGeneList;
 					}
 				}
 				
@@ -1293,7 +1695,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					onResponse: (response) => {
 						try {
 							// Parse the JSON response
-							const noveltyData = JSON.parse(response);
+							const responseString = response.replaceAll('```json', '').replaceAll('```', '');
+							console.log('Response string:', responseString);
+							const noveltyData = JSON.parse(responseString);
 							
 							// Update the geneNovelty and geneRelevance cache
 							noveltyData.forEach(item => {
@@ -1341,13 +1745,19 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		
 		async addGenesFromUrl(geneList) {
 			try {
+				// Remove duplicates while preserving order
+				const uniqueGeneList = [...new Set(geneList)];
+				
 				// Hide associations input when genes come from URL
 				this.hideAssociationsInput = true;
 				
-				// Populate the gene input field with URL genes
-				this.manualGenes = geneList.join(', ');
+				// Populate the gene input field with URL genes (unique only)
+				this.manualGenes = uniqueGeneList.join(', ');
 				
-				console.log(`Genes from URL parameters populated in gene input: ${geneList.join(', ')}`);
+				console.log(`Genes from URL parameters populated in gene input: ${uniqueGeneList.join(', ')}`);
+				if (geneList.length !== uniqueGeneList.length) {
+					console.log(`Removed ${geneList.length - uniqueGeneList.length} duplicate gene(s) from URL parameters`);
+				}
 				console.log('Table will not show until user clicks Add Genes');
 				
 			} catch (error) {
@@ -1609,6 +2019,14 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			this.geneNoveltyStartTime = null;
 			this.geneNoveltyElapsedTime = '0:00';
 		},
+		clearHypothesisGenerationTimer() {
+			if (this.hypothesisGenerationTimer) {
+				clearInterval(this.hypothesisGenerationTimer);
+				this.hypothesisGenerationTimer = null;
+			}
+			this.hypothesisGenerationStartTime = null;
+			this.hypothesisGenerationElapsedTime = '0:00';
+		},
 		async getNoveltyForCurrentPage() {
 			// Only proceed if we have a hypothesis and genes
 			if (!this.phenotypeSearch.trim() || this.geneData.length === 0) {
@@ -1792,18 +2210,25 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				return;
 			}
 
-			// Check if sectionConfigs and the MoTrPAC link are available
-			if (!this.sectionConfigs || !this.sectionConfigs.links || !this.sectionConfigs.links.motrpac) {
+			// Get card config
+			const cardConfig = this.explorationCards.find(card => card.handler === 'openMoTrPACNotebook');
+			
+			// Use link from config if available, otherwise fall back to sectionConfigs
+			let baseUrl = null;
+			if (cardConfig && cardConfig.link) {
+				baseUrl = cardConfig.link;
+			} else if (this.sectionConfigs && this.sectionConfigs.links && this.sectionConfigs.links.motrpac) {
+				baseUrl = this.sectionConfigs.links.motrpac;
+			}
+
+			if (!baseUrl) {
 				alert('MoTrPAC notebook link is not available. Please try again later.');
 				return;
 			}
 
-			// Get the base URL from sectionConfigs
-			const baseUrl = this.sectionConfigs.links.motrpac;
-			
-			// Add genes as URL parameter
+			// Add genes as URL parameter (link already has ?genes= prefix)
 			const genesParam = geneList.join(',');
-			const notebookUrl = `${baseUrl}?genes=${encodeURIComponent(genesParam)}`;
+			const notebookUrl = `${baseUrl}${encodeURIComponent(genesParam)}`;
 			
 			// Open in new tab
 			window.open(notebookUrl, '_blank');
@@ -1832,6 +2257,537 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			} catch (error) {
 				console.error('Error creating Playbook workflow:', error);
 				alert('Error opening Playbook Workflow Builder. Please try again.');
+			}
+		},
+		openBYOGL() {
+			// Parse genes from manual input
+			const geneList = this.manualGenes
+				.split(',')
+				.map(gene => gene.trim())
+				.filter(gene => gene);
+
+			if (geneList.length === 0) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// Get card config
+			const cardConfig = this.explorationCards.find(card => card.handler === 'openBYOGL');
+			
+			// Use link from config if available, otherwise use default
+			let link = '/r/kc_byogl?genes=';
+			if (cardConfig && cardConfig.link) {
+				link = cardConfig.link;
+			}
+
+			// Join genes with commas for URL parameter
+			const genesParam = geneList.join(',');
+			
+			// Create BYOGL URL using kcURL helper (for relative paths starting with /r/)
+			let byoglUrl;
+			if (link.startsWith('/r/')) {
+				byoglUrl = this.kcURL(`${link}${encodeURIComponent(genesParam)}`);
+			} else {
+				// For absolute URLs, use directly
+				byoglUrl = `${link}${encodeURIComponent(genesParam)}`;
+			}
+			
+			// Open in new tab
+			window.open(byoglUrl, '_blank');
+		},
+		async openPhenotypeSelection() {
+			// Parse genes from manual input and remove duplicates
+			const geneList = this.manualGenes
+				.split(',')
+				.map(gene => gene.trim())
+				.filter(gene => gene);
+			
+			// Remove duplicates while preserving order
+			const uniqueGeneList = [...new Set(geneList)];
+
+			if (uniqueGeneList.length === 0) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// Create cache key from sorted unique gene list
+			const cacheKey = uniqueGeneList.slice().sort().join(',');
+
+			// Open dialog
+			this.showPhenotypeDialog = true;
+			this.selectedPhenotypes = [];
+
+			// Check cache first
+			if (this.phenotypeCache[cacheKey]) {
+				console.log(`[Generate Hypothesis] Using cached phenotypes for genes: ${uniqueGeneList.join(', ')}`);
+				// Process cached data to add Description and Phenotype id fields
+				this.phenotypeData = this.processPhenotypeData(this.phenotypeCache[cacheKey]);
+				// Pre-select based on current selection count
+				const n = this.phenotypeSelectionCount;
+				this.selectedPhenotypes = Array.from({ length: Math.min(n, this.phenotypeData.length) }, (_, i) => i);
+				return;
+			}
+
+			// Fetch phenotypes if not in cache
+			this.isFetchingPhenotypes = true;
+			this.phenotypeData = [];
+
+			try {
+				console.log(`[Generate Hypothesis] Fetching phenotypes for genes: ${uniqueGeneList.join(', ')}`);
+				if (geneList.length !== uniqueGeneList.length) {
+					console.log(`[Generate Hypothesis] Removed ${geneList.length - uniqueGeneList.length} duplicate gene(s) before querying phenotypes`);
+				}
+				
+				const translatorUrl = 'https://translator.broadinstitute.org/genetics_provider/bayes_gene/phenotypes';
+				const requestBody = {
+					genes: uniqueGeneList
+				};
+
+				const response = await fetch(translatorUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(requestBody)
+				});
+
+				if (!response.ok) {
+					throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+				}
+
+				const data = await response.json();
+				console.log('[Generate Hypothesis] Translator API response:', data);
+
+				// Process the response - expect array of phenotype objects
+				let rawData = [];
+				if (data && Array.isArray(data)) {
+					rawData = data;
+				} else if (data && typeof data === 'object') {
+					// If it's an object, try to extract array from common properties
+					const phenotypes = data.phenotypes || data.data || data.results || [data];
+					if (Array.isArray(phenotypes)) {
+						rawData = phenotypes;
+					}
+				}
+
+				// Process data to split phenotype into Description and Phenotype id
+				const processedData = this.processPhenotypeData(rawData);
+
+				// Store raw data in cache (without processing) for consistency
+				this.phenotypeCache[cacheKey] = rawData;
+				// Set processed data for display
+				this.phenotypeData = processedData;
+				
+				// Pre-select based on current selection count
+				const n = this.phenotypeSelectionCount;
+				this.selectedPhenotypes = Array.from({ length: Math.min(n, this.phenotypeData.length) }, (_, i) => i);
+
+				console.log(`[Generate Hypothesis] Loaded ${this.phenotypeData.length} phenotypes, selected first ${this.selectedPhenotypes.length}`);
+
+			} catch (error) {
+				console.error('[Generate Hypothesis] Error fetching phenotypes:', error);
+				alert(`Error fetching phenotype data: ${error.message}. Please try again.`);
+				this.phenotypeData = [];
+			} finally {
+				this.isFetchingPhenotypes = false;
+			}
+		},
+		closePhenotypeDialog() {
+			this.showPhenotypeDialog = false;
+			this.phenotypeData = [];
+			this.selectedPhenotypes = [];
+		},
+		togglePhenotypeSelection(index) {
+			const idx = this.selectedPhenotypes.indexOf(index);
+			if (idx > -1) {
+				this.selectedPhenotypes.splice(idx, 1);
+			} else {
+				this.selectedPhenotypes.push(index);
+			}
+		},
+		isPhenotypeSelected(index) {
+			return this.selectedPhenotypes.includes(index);
+		},
+		toggleAllPhenotypes(event) {
+			if (event.target.checked) {
+				this.selectedPhenotypes = this.phenotypeData.map((_, index) => index);
+			} else {
+				this.selectedPhenotypes = [];
+			}
+		},
+		selectFirst20() {
+			const maxIndex = Math.min(20, this.phenotypeData.length);
+			this.selectedPhenotypes = Array.from({ length: maxIndex }, (_, i) => i);
+		},
+		clearSelection() {
+			this.selectedPhenotypes = [];
+		},
+		selectFirstNRows(value) {
+			const n = parseInt(value, 10);
+			this.phenotypeSelectionCount = n;
+			// Select first N phenotypes (for hypothesis generation)
+			this.selectedPhenotypes = Array.from({ length: Math.min(n, this.phenotypeData.length) }, (_, i) => i);
+		},
+		processPhenotypeData(data) {
+			// Process phenotype data to split phenotype into Description and Phenotype id
+			if (!Array.isArray(data)) {
+				return data;
+			}
+			
+			return data.map(item => {
+				if (!item || typeof item !== 'object') {
+					return item;
+				}
+				
+				// Create a copy to avoid mutating original
+				const processed = { ...item };
+				
+				// Find the phenotype field (case-insensitive)
+				let phenotypeValue = null;
+				let phenotypeKey = null;
+				
+				for (const key in item) {
+					const lowerKey = key.toLowerCase();
+					if (lowerKey === 'phenotype' || lowerKey.includes('phenotype')) {
+						phenotypeValue = item[key];
+						phenotypeKey = key;
+						break;
+					}
+				}
+				
+				if (phenotypeValue !== null && phenotypeValue !== undefined) {
+					const phenotypeStr = String(phenotypeValue);
+					let description = '';
+					let phenotypeId = '';
+					
+					// Check if Orphanet is in the value
+					const orphanetIndex = phenotypeStr.indexOf('Orphanet');
+					if (orphanetIndex !== -1) {
+						// Text before Orphanet is description
+						description = phenotypeStr.substring(0, orphanetIndex).trim();
+						// Text from Orphanet onwards is phenotype id
+						phenotypeId = phenotypeStr.substring(orphanetIndex).trim();
+					} else {
+						// All other cases: same value for both
+						description = phenotypeStr;
+						phenotypeId = phenotypeStr;
+					}
+					
+					// Clean up description: remove 'gcat_trait' first, then replace '_'
+					description = description
+						.replace(/gcat_trait/gi, '')  // Remove gcat_trait (case-insensitive) first
+						.replace(/_/g, ' ')  // Replace underscores with spaces
+						.replace(/\s+/g, ' ')  // Replace multiple spaces with single space
+						.trim();
+					
+					// Add Description and Phenotype id fields
+					processed['Description'] = description;
+					processed['Phenotype id'] = phenotypeId;
+					
+					// Keep original phenotype field for reference
+				} else {
+					// If no phenotype field found, add empty Description and Phenotype id
+					processed['Description'] = '';
+					processed['Phenotype id'] = '';
+				}
+				
+				return processed;
+			});
+		},
+		getOrderedColumnKeys(phenotypeObj) {
+			if (!phenotypeObj || typeof phenotypeObj !== 'object') {
+				return [];
+			}
+			
+			const keys = Object.keys(phenotypeObj);
+			const orderedKeys = [];
+			const otherKeys = [];
+			
+			// Find exact matches first (case-insensitive)
+			let descriptionKey = null;
+			let phenotypeIdKey = null;
+			let pValueKey = null;
+			
+			keys.forEach(key => {
+				const lowerKey = key.toLowerCase();
+				// Exact match for Description
+				if (lowerKey === 'description' && !descriptionKey) {
+					descriptionKey = key;
+				}
+				// Exact match for Phenotype id
+				else if ((lowerKey === 'phenotype id' || lowerKey === 'phenotype_id') && !phenotypeIdKey) {
+					phenotypeIdKey = key;
+				}
+				// Exact match for p-value variations
+				else if ((lowerKey === 'p-value' || lowerKey === 'p_value' || lowerKey === 'pvalue') && !pValueKey) {
+					pValueKey = key;
+				}
+				// Partial match for description (if exact not found)
+				else if (!descriptionKey && lowerKey.includes('description')) {
+					descriptionKey = key;
+				}
+				// Partial match for phenotype id (if exact not found)
+				else if (!phenotypeIdKey && (lowerKey.includes('phenotype id') || lowerKey.includes('phenotype_id'))) {
+					phenotypeIdKey = key;
+				}
+				// Partial match for p-value (if exact not found)
+				else if (!pValueKey && (lowerKey.includes('p-value') || lowerKey.includes('p_value'))) {
+					pValueKey = key;
+				}
+				// Exclude original phenotype column (but keep Description and Phenotype id)
+				// Only exclude if it's exactly "phenotype" (not "phenotype id" or "phenotype_id")
+				else if (lowerKey === 'phenotype') {
+					// Skip original phenotype column - don't add to otherKeys
+					return;
+				}
+				// All other keys
+				else {
+					otherKeys.push(key);
+				}
+			});
+			
+			// Add Description first, then Phenotype id, then p-value, then others
+			if (descriptionKey) orderedKeys.push(descriptionKey);
+			if (phenotypeIdKey && phenotypeIdKey !== descriptionKey) orderedKeys.push(phenotypeIdKey);
+			if (pValueKey && pValueKey !== descriptionKey && pValueKey !== phenotypeIdKey) orderedKeys.push(pValueKey);
+			
+			// Add remaining keys in original order
+			orderedKeys.push(...otherKeys);
+			
+			return orderedKeys;
+		},
+		formatColumnHeader(key) {
+			// Handle special cases first - P-value formatting
+			const lowerKey = key.toLowerCase();
+			// Match exact p-value variations (p-value, p_value, pvalue)
+			if (lowerKey === 'p-value' || lowerKey === 'p_value' || lowerKey === 'pvalue') {
+				return 'P-value';
+			}
+			
+			// Convert snake_case to Title Case
+			// Special handling: replace underscores with spaces, then capitalize
+			return key
+				.split('_')
+				.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+				.join(' ');
+		},
+		formatCellValue(value) {
+			if (value === null || value === undefined) {
+				return 'N/A';
+			}
+			// Handle arrays (like gene sets) by joining with commas
+			if (Array.isArray(value)) {
+				return value.length > 0 ? value.join(', ') : 'None';
+			}
+			if (typeof value === 'object') {
+				return JSON.stringify(value);
+			}
+			if (typeof value === 'number') {
+				// Format numbers, especially p-values
+				if (value < 0.001) {
+					return value.toExponential(2);
+				}
+				return value.toFixed(4);
+			}
+			return String(value);
+		},
+		getFullIndex(paginatedIndex) {
+			// Convert paginated index to full array index (pagination is fixed at 20 rows per page)
+			return (this.phenotypeDialogPage - 1) * this.phenotypeDialogItemsPerPage + paginatedIndex;
+		},
+		getVisiblePages(currentPage, totalPages) {
+			// Show up to 5 page numbers
+			const pages = [];
+			let start = Math.max(1, currentPage - 2);
+			let end = Math.min(totalPages, start + 4);
+			
+			// Adjust start if we're near the end
+			if (end - start < 4) {
+				start = Math.max(1, end - 4);
+			}
+			
+			for (let i = start; i <= end; i++) {
+				pages.push(i);
+			}
+			
+			return pages;
+		},
+		async fetchGeneSetsForPhenotype(phenotypeId) {
+			// Fetch gene sets associated with a phenotype from CFDE API
+			try {
+				const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=${encodeURIComponent(phenotypeId)},cfde&limit=10000`;
+				console.log(`[Fetch Gene Sets] Querying CFDE API for phenotype: ${phenotypeId}`);
+				
+				const response = await fetch(url, {
+					method: 'GET',
+					headers: {
+						'Accept': 'application/json'
+					}
+				});
+				
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				
+				const data = await response.json();
+				console.log(`[Fetch Gene Sets] API response for ${phenotypeId}:`, data);
+				
+				// Filter rows with beta >= 0.01 and collect first 5 gene_set values
+				if (data.data && Array.isArray(data.data)) {
+					const geneSets = data.data
+						.filter(row => {
+							// Check if beta exists and is >= 0.01
+							const beta = row.beta;
+							return beta !== null && beta !== undefined && typeof beta === 'number' && beta >= 0.01;
+						})
+						.map(row => row.gene_set)
+						.filter(geneSet => geneSet !== null && geneSet !== undefined) // Remove null/undefined values
+						.slice(0, 5); // Take only first 5
+					
+					console.log(`[Fetch Gene Sets] Found ${geneSets.length} gene sets (first 5 with beta >= 0.01) for ${phenotypeId}`);
+					return geneSets;
+				}
+				
+				return [];
+			} catch (error) {
+				console.error(`[Fetch Gene Sets] Error fetching gene sets for phenotype ${phenotypeId}:`, error);
+				return []; // Return empty array on error
+			}
+		},
+		async generateHypothesisFromSelectedPhenotypes() {
+			if (this.selectedPhenotypes.length === 0) {
+				alert('Please select at least one phenotype.');
+				return;
+			}
+
+			// Parse genes from manual input and remove duplicates
+			const geneList = this.manualGenes
+				.split(',')
+				.map(gene => gene.trim())
+				.filter(gene => gene);
+			
+			// Remove duplicates while preserving order
+			const uniqueGeneList = [...new Set(geneList)];
+
+			if (uniqueGeneList.length === 0) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// Get all selected phenotypes (no limit, 20 is just the default selection)
+			const selectedPhenotypeData = this.selectedPhenotypes.map(index => ({ ...this.phenotypeData[index] }));
+
+			// Fetch gene sets for each phenotype
+			console.log('[Generate Hypothesis] Fetching gene sets for', selectedPhenotypeData.length, 'phenotypes');
+			this.isGeneratingHypothesis = true;
+			
+			// Start timer for hypothesis generation
+			this.hypothesisGenerationStartTime = Date.now();
+			this.hypothesisGenerationElapsedTime = '0:00';
+			
+			// Start timer to update elapsed time every second
+			this.hypothesisGenerationTimer = setInterval(() => {
+				if (this.isGeneratingHypothesis && this.hypothesisGenerationStartTime) {
+					const elapsed = Math.floor((Date.now() - this.hypothesisGenerationStartTime) / 1000);
+					const minutes = Math.floor(elapsed / 60);
+					const seconds = elapsed % 60;
+					this.hypothesisGenerationElapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+				}
+			}, 1000);
+			
+			try {
+				// Fetch gene sets for all phenotypes in parallel
+				const geneSetPromises = selectedPhenotypeData.map(async (phenotype) => {
+					const phenotypeId = phenotype['Phenotype id'] || phenotype['phenotype_id'] || phenotype['Phenotype Id'];
+					if (phenotypeId) {
+						const geneSets = await this.fetchGeneSetsForPhenotype(phenotypeId);
+						// Add associated gene sets to phenotype data
+						phenotype['Associated gene sets'] = geneSets;
+						return geneSets;
+					}
+					return [];
+				});
+				
+				await Promise.all(geneSetPromises);
+				console.log('[Generate Hypothesis] Finished fetching gene sets for all phenotypes');
+
+				// Store selected phenotypes (with gene sets) for display
+				this.hypothesisPhenotypes = selectedPhenotypeData;
+				// Keep the collapsible section collapsed by default
+				this.showHypothesisPhenotypes = false;
+
+				// Format phenotype data for LLM (only Description and Gene Sets)
+				const phenotypeDataString = selectedPhenotypeData.map((phenotype, idx) => {
+					const description = phenotype['Description'] || '';
+					const geneSets = phenotype['Associated gene sets'] || [];
+					const geneSetsString = Array.isArray(geneSets) && geneSets.length > 0 
+						? geneSets.join(', ') 
+						: 'None';
+					return `Phenotype ${idx + 1}: Description: ${description}; Gene Sets: ${geneSetsString}`;
+				}).join('\n');
+
+				// Generate hypothesis using LLM
+				const prompt = this.hypothesis_generation_prompt
+					.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE]', uniqueGeneList.join(', '))
+					.replace('[INSERT PHENOTYPES AND GENE SETS DATA HERE]', phenotypeDataString);
+
+				console.log('[Generate Hypothesis] Full prompt sent to LLM:', prompt);
+				if (geneList.length !== uniqueGeneList.length) {
+					console.log(`[Generate Hypothesis] Removed ${geneList.length - uniqueGeneList.length} duplicate gene(s) before generating hypothesis`);
+				}
+				console.log('[Generate Hypothesis] Sending prompt to LLM with', selectedPhenotypeData.length, 'phenotypes');
+
+				// Call LLM to generate hypothesis
+				this.generateHypothesis.sendPrompt({
+					userPrompt: prompt.trim(),
+					onResponse: (hypothesisResponse) => {
+						console.log('[Generate Hypothesis] LLM response:', hypothesisResponse);
+						
+						try {
+							// Clean up the response
+							let hypothesis = hypothesisResponse.trim();
+							
+							// Remove markdown code fences if present
+							if (hypothesis.startsWith('```')) {
+								hypothesis = hypothesis.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim();
+							}
+							
+							// Remove common prefixes
+							hypothesis = hypothesis.replace(/^(Hypothesis|Generated Hypothesis|Research Hypothesis):\s*/i, '').trim();
+							
+							// Update the hypothesis field
+							if (hypothesis) {
+								this.phenotypeSearch = hypothesis;
+								console.log('[Generate Hypothesis] Hypothesis generated and populated');
+								// Close the dialog
+								this.closePhenotypeDialog();
+							} else {
+								console.warn('[Generate Hypothesis] Empty hypothesis generated');
+								alert('A hypothesis could not be generated. Please try again.');
+							}
+						} catch (error) {
+							console.error('[Generate Hypothesis] Error processing LLM response:', error);
+							alert('Error processing the generated hypothesis. Please try again.');
+						}
+					},
+					onError: (error) => {
+						console.error('[Generate Hypothesis] Error generating hypothesis:', error);
+						alert('Error generating hypothesis. Please try again.');
+						this.isGeneratingHypothesis = false;
+						this.clearHypothesisGenerationTimer();
+					},
+					onEnd: () => {
+						this.isGeneratingHypothesis = false;
+						this.clearHypothesisGenerationTimer();
+						console.log('[Generate Hypothesis] Hypothesis generation completed');
+					}
+				});
+
+			} catch (error) {
+				console.error('[Generate Hypothesis] Error fetching gene sets or generating hypothesis:', error);
+				alert(`Error generating hypothesis: ${error.message}. Please try again.`);
+				this.isGeneratingHypothesis = false;
+				this.clearHypothesisGenerationTimer();
 			}
 		}
 	}
@@ -2456,6 +3412,7 @@ small.input-warning {
     font-weight: 600;
     color: #333;
     font-size: 16px;
+    display: inline-block;
 }
 
 .manual-genes-field, .hypothesis-textarea, .gene-sets-field {
@@ -2942,6 +3899,326 @@ small.input-warning {
     .option-badge {
         margin-left: 0;
         align-self: flex-start;
+    }
+}
+
+/* Generate Hypothesis Button */
+.generate-hypothesis-btn {
+    padding: 4px 12px;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.generate-hypothesis-btn-inline {
+    padding: 4px 12px;
+    font-size: 0.85em;
+    margin-left: 12px;
+    vertical-align: middle;
+}
+
+/* Hypothesis Phenotypes Section */
+.hypothesis-phenotypes-section {
+    margin: 15px 0;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background: #f8f9fa;
+}
+
+.hypothesis-phenotypes-header {
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 6px 6px 0 0;
+    transition: background-color 0.2s;
+}
+
+.hypothesis-phenotypes-header:hover {
+    background: #f8f9fa;
+}
+
+.collapse-icon {
+    font-size: 0.8em;
+    color: #666;
+    width: 16px;
+    text-align: center;
+}
+
+.hypothesis-phenotypes-label {
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+}
+
+.hypothesis-phenotypes-count {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.update-hypothesis-btn {
+    margin-left: auto;
+    padding: 4px 10px;
+    font-size: 0.85em;
+}
+
+.hypothesis-phenotypes-content {
+    padding: 15px;
+    background: white;
+}
+
+.hypothesis-phenotypes-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #ddd;
+    font-size: 13px;
+}
+
+.hypothesis-phenotypes-table th {
+    background: #f8f9fa;
+    color: #333;
+    font-weight: 600;
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+    font-size: 13px;
+}
+
+.hypothesis-phenotypes-table td {
+    padding: 8px;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: top;
+    font-size: 13px;
+}
+
+.hypothesis-phenotypes-table tr:hover {
+    background: #f8f9fa;
+}
+
+.hypothesis-phenotypes-pagination {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rows-per-page-selector {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.rows-per-page-selector label {
+    margin: 0;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.phenotype-dialog-pagination {
+    margin-top: 15px;
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #f8f9fa;
+}
+
+.phenotype-dialog-pagination .pagination-info {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.phenotype-dialog-pagination .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Phenotype Selection Dialog Styles */
+.phenotype-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.phenotype-dialog {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 90vw;
+    width: 1200px;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.phenotype-dialog-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.phenotype-dialog-header h3 {
+    margin: 0;
+    color: #FF6600;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.phenotype-dialog-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+}
+
+.loading-message, .no-data-message {
+    padding: 40px 20px;
+    text-align: center;
+    color: #666;
+}
+
+.loading-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.phenotype-selection-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.phenotype-selection-info p {
+    margin: 0;
+    flex: 1;
+}
+
+.phenotype-table-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.phenotype-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #ddd;
+    font-size: 13px;
+}
+
+.phenotype-table th {
+    background: #f8f9fa;
+    color: #333;
+    font-weight: 600;
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 13px;
+}
+
+.phenotype-table td {
+    padding: 8px;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: top;
+    font-size: 13px;
+}
+
+.phenotype-table tr:hover {
+    background: #f8f9fa;
+}
+
+.phenotype-table tr.selected-row {
+    background: #e3f2fd;
+}
+
+.phenotype-table tr.selected-row:hover {
+    background: #bbdefb;
+}
+
+.phenotype-table input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.phenotype-dialog-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.phenotype-dialog-actions .btn {
+    padding: 8px 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .phenotype-dialog {
+        max-width: 95vw;
+        width: 100%;
+        max-height: 90vh;
+    }
+    
+    .phenotype-dialog-header {
+        padding: 16px;
+    }
+    
+    .phenotype-dialog-header h3 {
+        font-size: 18px;
+    }
+    
+    .phenotype-dialog-content {
+        padding: 16px;
+    }
+    
+    .phenotype-selection-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .phenotype-table {
+        font-size: 13px;
+    }
+    
+    .phenotype-table th,
+    .phenotype-table td {
+        padding: 6px 4px;
+        font-size: 13px;
     }
 }
 </style>

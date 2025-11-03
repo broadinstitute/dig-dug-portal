@@ -16,20 +16,20 @@ import $ from "jquery";
 
 import cfdeEcoSystem from "@/components/researchPortal/customComponents/cfdeEcoSystem.vue";
 import cfdeLanding from "@/components/researchPortal/customComponents/cfdeLanding.vue";
-import cfdeValidationPlanner from "@/components/researchPortal/customComponents/cfdeValidationPlanner.vue";
+import cfdeDesign from "@/components/researchPortal/customComponents/cfdeDesign.vue";
 import cfdeLanding2 from "@/components/researchPortal/customComponents/cfdeLanding2.vue";
 import cfdeMechanismDiscovery from "@/components/researchPortal/customComponents/cfdeMechanismDiscovery.vue";
-import cfdeGenesValidator from "@/components/researchPortal/customComponents/cfdeGenesValidator.vue";
+import cfdeExplore from "@/components/researchPortal/customComponents/cfdeExplore.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
 	components: {
 		cfdeEcoSystem,
 		cfdeLanding,
-		cfdeValidationPlanner,
+		cfdeDesign,
 		cfdeLanding2,
 		cfdeMechanismDiscovery,
-		cfdeGenesValidator
+		cfdeExplore
 	},
 	data() {
 		return {
@@ -47,8 +47,11 @@ console.log('this.component', this.component);
 			case 'cfdeLanding':
 				this.currentComponent = cfdeLanding;
 				break;
-			case 'cfdeValidationPlanner':
-				this.currentComponent = cfdeValidationPlanner;
+			case 'cfdeValidationPlanner'://remove after update
+				this.currentComponent = cfdeDesign;
+				break;
+			case 'cfdeDesign':
+				this.currentComponent = cfdeDesign;
 				break;
 			case 'cfdeLanding2':
 				this.currentComponent = cfdeLanding2;
@@ -56,8 +59,11 @@ console.log('this.component', this.component);
 			case 'cfdeMechanismDiscovery':
 				this.currentComponent = cfdeMechanismDiscovery;
 				break;
-			case 'cfdeGenesValidator':
-				this.currentComponent = cfdeGenesValidator;
+			case 'cfdeGenesValidator'://remove after update
+				this.currentComponent = cfdeExplore;
+				break;
+			case 'cfdeExplore':
+				this.currentComponent = cfdeExplore;
 				break;
 		}
 	},
