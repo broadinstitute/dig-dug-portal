@@ -283,38 +283,33 @@ export default Vue.component("research-splice-track", {
 									xonWidth,
 									20
 								);
-
-						/* gene.exons.map((exon) => {
-
-							if (exon.start < xMax && exon.end > xMin) {
-								let xonStartPos =
-									exon.start > xMin
-										? xStart +
-										(exon.start - xMin) * xPosByPixel
-										: xStart;
-								let xonEndPos =
-									exon.end < xMax
-										? xStart +
-										(exon.end - xMin) * xPosByPixel
-										: xStart + (xMax - xMin) * xPosByPixel;
-
-								let xonWidth =
-									xonEndPos - xonStartPos <= 1
-										? 1
-										: xonEndPos - xonStartPos;
-
-								ctx.fillRect(
-									xonStartPos,
-									yPos + 10,
-									xonWidth,
-									20
-								);
-							}
-						}); */
 					})
 				});
+				// Add splicing events
+				for (let i = 0; i < this.spliceData.length; i++){
+					let splice = this.spliceData[i];
+					let spliceMidpoint = xStart + (splice.midpoint - xMin) * xPosByPixel;
+					let spliceStart = xStart + (splice.splice_start - xMin) * xPosByPixel;
+					let spliceEnd = xStart + (splice.splice_end - xMin) * xPosByPixel;
+					let spliceWidth = spliceEnd - spliceStart;
+					let yPos = this.adjPlotMargin.top;
+					this.renderDot(ctx, spliceStart, yPos, "#00FF00");
+					this.renderDot(ctx, spliceEnd, yPos, "#FF0000");
+					ctx.fillStyle = "#efefef99";
+					console.log(JSON.stringify(this.colors));
+					ctx.fillRect(spliceStart,yPos,spliceWidth,20);
+				}
 			}			
 			
+		},
+		renderDot(CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
+			// Taken from ResearchRegionPlot
+			CTX.fillStyle = DOT_COLOR;
+			CTX.lineWidth = 0;
+			CTX.beginPath();
+			let width = !!WIDTH? WIDTH: 9;
+			CTX.arc(XPOS, YPOS, width, 0, 2 * Math.PI);
+			CTX.fill();
 		},
 		async getSplices(ensembl, tissue){
 			let splices = await fetch(`${this.biHost}/splices?q=${ensembl},${tissue}`)

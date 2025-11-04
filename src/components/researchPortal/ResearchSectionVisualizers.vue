@@ -211,6 +211,7 @@
 			:regionZoom="0"
 			:regionViewArea="regionViewArea"
 			:utils="utils"
+			:colors="colors"
 			:sectionId="sectionId">
 			</research-splice-track>
 	</div>
