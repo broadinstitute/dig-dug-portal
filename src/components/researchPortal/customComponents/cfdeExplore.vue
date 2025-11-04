@@ -971,26 +971,24 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 ]`;
 		},
 		hypothesis_generation_prompt() {
-			return `You are a scientific hypothesis generator. Your task is to generate a coherent, testable research hypothesis based on phenotypes and gene sets associated with a list of genes.
+			return `You are a scientific hypothesis generator specializing in **physiological regulation and systemic metabolism**. Your task is to generate a coherent, testable research hypothesis based on the provided genes, phenotypes, and associated gene sets.
 
 **Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE]
 **Phenotypes and Gene Sets:** [INSERT PHENOTYPES AND GENE SETS DATA HERE]
 
-**Task:** Generate a single, well-formed research hypothesis that:
-1. Integrates the biological connections between the provided genes
-2. Incorporates the phenotype descriptions and associated gene sets
-3. Is testable and specific enough for experimental validation
-4. Explains the mechanistic relationship between genes, phenotypes, and gene sets
-5. Is written in clear, scientific language suitable for research planning
+### Pre-Processing Steps (Required for Synthesis)
+1.  **Gene Trimming & Functional Grouping:** Analyze the full gene list. **Trim the list** to focus only on the core functional groups (e.g., OXPHOS, FAO, Biogenesis) that are directly regulated by or essential for the listed Gene Sets (e.g., TFAM targets, UCP1 in thermogenesis). Ignore long-tail genes, pseudogenes, and genes with weak relevance.
+2.  **Tissue Extraction:** Based on the primary function of the trimmed genes and the descriptions of the Phenotypes and Gene Sets (e.g., "Myopathy," "UCP1 in Thermogenesis"), **identify the primary, high-energy-demand tissue(s)** crucial for the resulting phenotype (e.g., Skeletal Muscle, Brown Adipose Tissue).
+3.  **Action Determination:** Determine the overarching **regulatory action** implied by the phenotypes (e.g., a *defect* leads to a *disorder*) and reframe it as a **testable physiological *change*** (e.g., a *defect* in OXPHOS $\to$ *reduction* in $\text{VO}_2$).
+
+### Hypothesis Generation Task
+Generate a single, well-formed research hypothesis that:
+1.  **Proposes a regulated or adaptive mechanism** using the trimmed gene groups and identified tissue(s).
+2.  Connects this mechanism to **measurable systemic and physiological readouts** (e.g., $\text{VO}_2$, RER, Exercise Tolerance) derived from the phenotypes.
+3.  Is testable, specific, concise, and written in the style of a **systemic regulatory hypothesis** (like Hypothesis 1).
+4.  Avoids using specific Gene Ontology (GO) terms (e.g., $\text{GOBP\_...}$) or specific gene names in the final output, focusing instead on **functional categories**.
 
 **Output Format:** Respond with ONLY the hypothesis text. Do not include any prefix, labels, or additional formatting. Just provide the hypothesis statement directly.
-
-**Guidelines:**
-- Make the hypothesis specific and mechanistic
-- Connect multiple genes if provided
-- Reference relevant phenotypes and gene sets
-- Ensure the hypothesis is testable through experiments
-- Keep it concise but comprehensive (2-4 sentences typically)
 `;
 		},
 		searchPlanText() {
