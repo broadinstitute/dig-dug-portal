@@ -717,55 +717,6 @@ export default Vue.component("VariantSearch", {
                 
                 
                 for (let i = 0; i < this.variants.length; i++) {
-                    //console.log(this.variants[i].varId);
-                    //get data from HP record AllSamples
-                    /*let AllSamples = this.variants[i].hprecords.find(
-                        (x) => x.HP === "AllSamples"
-                    );
-                    //copy all properties from AllSamples to variants[i]
-                    for (let prop in AllSamples) {
-                        this.variants[i][prop] = AllSamples[prop];
-                    } */
-
-                    //this.variants[i].allelecount =this.variants[i].alleleCount;
-                    //this.variants[i].allelnumber = this.variants[i].alleleNumber;
-                    //this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
-                    //this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
-                    /*if (this.variants[i].gnomAD_info) {
-                        this.variants[i].gnomAD_exomes_AC =
-                            this.variants[i].gnomAD_info.gnomADg_AC;
-                        this.variants[i].gnomAD_exomes_AN =
-                            this.variants[i].gnomAD_info.gnomADg_AN;
-                        this.variants[i].gnomAD_exomes_AF =
-                            this.variants[i].gnomAD_info.gnomADg_AF;
-                        //alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
-                    }*/
-
-                    /*for (let m = 0;m < this.variants[i].hprecords.length; m++) {
-                        let hp = this.variants[i].hprecords[m];
-                        if (hp.HP == "AllSamples") {
-                            this.variants[i].c_allelecount = hp.alleleCount;
-                            this.variants[i].allelecount +=
-                                this.variants[i].c_allelecount;
-                            this.variants[i].c_allelnumber = hp.alleleNumber;
-                            this.variants[i].allelnumber +=
-                                this.variants[i].c_allelnumber;
-                            this.variants[i].allelefrequency = hp.alleleFrequency;
-                            // this.variants[i].allelefrequency =
-                            //     this.variants[i].allelefrequency.toExponential(
-                            //         2
-                            //     );
-                            //this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
-                            //this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
-                            //this.variants[i].c_TWO_ALT_GENO_CTS =hp.n_hom_var_case;
-                            this.variants[i].homozygouscount = parseInt(
-                                hp.heterozygousCount
-                                //this.variants[i].n_hom_var_case
-                            );
-                        } 
-                    }*/
-                    //do we need vep count?
-                    //this.variants[i].vep = this.variants[i].veprecords.length;
                     if (this.variants[i].vepRecords.length > 0) {
                         //console.log("vepRecords:"+this.variants[i].vepRecords.length);
                         let varrecords = this.variants[i].vepRecords;
@@ -887,6 +838,12 @@ export default Vue.component("VariantSearch", {
                 this.variantData = structuredClone(this.variants); //copy data
 
                 //add showButton property to each variant
+                this.variantData = this.variantData.sort(function (a, b) {
+                            return (
+                                a.position - b.position
+                            );
+                        });
+
                 this.variantData.map((variant) => {
                     variant.showButton = 0;
                 });
