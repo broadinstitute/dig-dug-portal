@@ -3,6 +3,9 @@
 			<span v-if="!!this.selectedSplice">
 				Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}
 			</span>
+			<span v-else>
+				Select a splice track to view from the table below.
+			</span>
 		<div class="col-md-12">
 			<!-- place info modal here-->
 			<div
@@ -59,6 +62,7 @@ export default Vue.component("research-splice-track", {
 		}
 	},
 	created() {
+		console.log("Making the research splice track");
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -217,7 +221,7 @@ export default Vue.component("research-splice-track", {
 			if (!!document.getElementById("spliceTrackWrapper"+this.sectionId)) {
 
 				
-				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
+				let eachGeneTrackHeight = 45; // 10: gene track, 5: space between tracks
 
 				canvasRenderWidth = !!this.plotConfig.width
 					? this.plotConfig.width * 2 +
@@ -305,20 +309,6 @@ export default Vue.component("research-splice-track", {
 								? gene.gene_name + " " + right
 								: left + " " + gene.gene_name;
 
-						ctx.fillText(
-							geneName,
-							gene.xStartPos + (gene.xEndPos - gene.xStartPos) / 2,
-							yPos
-						);
-
-						/* ctx.beginPath();
-						ctx.lineWidth = 1;
-						ctx.strokeStyle = "#000000";
-						ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
-
-						ctx.moveTo(gene.xStartPos, yPos + 20);
-						ctx.lineTo(gene.xEndPos, yPos + 20);
-						ctx.stroke(); */
 						let xonWidth =
 									gene.xEndPos - gene.xStartPos <= 1
 										? 1
