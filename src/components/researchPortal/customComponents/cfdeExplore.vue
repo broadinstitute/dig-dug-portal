@@ -2643,7 +2643,26 @@ Generate a single, well-formed research hypothesis that:
 			}
 			// Handle arrays (like gene sets) by joining with commas
 			if (Array.isArray(value)) {
-				return value.length > 0 ? value.join(', ') : 'None';
+				if (value.length === 0) {
+					return 'None';
+				}
+				// Check if array contains objects (like gene sets with descriptions)
+				if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null) {
+					// Extract descriptions from gene set objects
+					const descriptions = value
+						.map(item => {
+							if (item.gene_set_description) {
+								return item.gene_set_description;
+							} else if (item.gene_set) {
+								return item.gene_set;
+							}
+							return null;
+						})
+						.filter(desc => desc !== null);
+					return descriptions.length > 0 ? descriptions.join(', ') : 'None';
+				}
+				// Handle array of strings or other primitives
+				return value.join(', ');
 			}
 			if (typeof value === 'object') {
 				return JSON.stringify(value);
@@ -2681,7 +2700,7 @@ Generate a single, well-formed research hypothesis that:
 		async fetchGeneSetsForPhenotype(phenotypeId) {
 			// Fetch gene sets associated with a phenotype from CFDE API
 			try {
-				const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=${encodeURIComponent(phenotypeId)},cfde&limit=10000`;
+				const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=${encodeURIComponent(phenotypeId)},cfde&limit=10`;
 				console.log(`[Fetch Gene Sets] Querying CFDE API for phenotype: ${phenotypeId}`);
 				
 				const response = await fetch(url, {
@@ -2698,7 +2717,7 @@ Generate a single, well-formed research hypothesis that:
 				const data = await response.json();
 				console.log(`[Fetch Gene Sets] API response for ${phenotypeId}:`, data);
 				
-				// Filter rows with beta >= 0.01 and collect first 5 gene_set values
+				// Filter rows with beta >= 0.01 and collect first 5 gene sets with descriptions
 				if (data.data && Array.isArray(data.data)) {
 					const geneSets = data.data
 						.filter(row => {
@@ -2706,8 +2725,11 @@ Generate a single, well-formed research hypothesis that:
 							const beta = row.beta;
 							return beta !== null && beta !== undefined && typeof beta === 'number' && beta >= 0.01;
 						})
-						.map(row => row.gene_set)
-						.filter(geneSet => geneSet !== null && geneSet !== undefined) // Remove null/undefined values
+						.map(row => ({
+							gene_set: row.gene_set,
+							gene_set_description: row.gene_set_description || row.gene_set || 'No description available'
+						}))
+						.filter(geneSet => geneSet.gene_set !== null && geneSet.gene_set !== undefined) // Remove null/undefined values
 						.slice(0, 5); // Take only first 5
 					
 					console.log(`[Fetch Gene Sets] Found ${geneSets.length} gene sets (first 5 with beta >= 0.01) for ${phenotypeId}`);
@@ -2798,13 +2820,28 @@ Generate a single, well-formed research hypothesis that:
 				// Keep the collapsible section collapsed by default
 				this.showHypothesisPhenotypes = false;
 
-				// Format phenotype data for LLM (only Description and Gene Sets)
+				// Format phenotype data for LLM (only Description and Gene Set Descriptions)
 				const phenotypeDataString = selectedPhenotypeData.map((phenotype, idx) => {
 					const description = phenotype['Description'] || '';
 					const geneSets = phenotype['Associated gene sets'] || [];
-					const geneSetsString = Array.isArray(geneSets) && geneSets.length > 0 
-						? geneSets.join(', ') 
-						: 'None';
+					let geneSetsString = 'None';
+					if (Array.isArray(geneSets) && geneSets.length > 0) {
+						// Extract gene_set_description from each gene set object
+						const descriptions = geneSets
+							.map(gs => {
+								// Handle both old format (string) and new format (object)
+								if (typeof gs === 'string') {
+									return gs;
+								} else if (gs && gs.gene_set_description) {
+									return gs.gene_set_description;
+								} else if (gs && gs.gene_set) {
+									return gs.gene_set;
+								}
+								return null;
+							})
+							.filter(desc => desc !== null);
+						geneSetsString = descriptions.length > 0 ? descriptions.join(', ') : 'None';
+					}
 					return `Phenotype ${idx + 1}: Description: ${description}; Gene Sets: ${geneSetsString}`;
 				}).join('\n');
 
