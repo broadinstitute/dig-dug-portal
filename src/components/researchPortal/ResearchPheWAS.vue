@@ -773,6 +773,7 @@ export default Vue.component("ResearchPhewasPlot", {
                 let groupsArr = Object.keys(groups).sort();
 
                 let dotIndex = 0;
+                let pigeanColors = {};
 
                 if (totalNum > 1) {
                     for (const [key, value] of Object.entries(renderData)) {
@@ -780,7 +781,7 @@ export default Vue.component("ResearchPhewasPlot", {
                             groupsArr.indexOf(key) % this.colors.length;
                         let fillColor = this.colors[keyIndex];
                         let strokeColor = "#00000075"; //this.colors[keyIndex];
-
+                        pigeanColors[key] = fillColor;
                         let labelIndex = 0;
                         let labelOrigin = 0;
                         let maxWidthPerGroup =
@@ -947,6 +948,7 @@ export default Vue.component("ResearchPhewasPlot", {
                         let keyIndex =
                             groupsArr.indexOf(key) % this.colors.length;
                         let fillColor = this.colors[keyIndex];
+                        pigeanColors[key] = fillColor;
                         let strokeColor = "#00000075"; //this.colors[keyIndex];
                         value.map((p) => {
                             let xPos = canvasWidth / 2;
@@ -1028,6 +1030,7 @@ export default Vue.component("ResearchPhewasPlot", {
                         });
                     }
                 }
+                this.$emit("pigeanColors", pigeanColors);
             }
         },
 
