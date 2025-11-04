@@ -131,6 +131,13 @@
 							</button>
 						</div>
 						<div v-if="showHypothesisPhenotypes && hypothesisPhenotypes.length > 0" class="hypothesis-phenotypes-content">
+							<!-- Research Context Display -->
+							<div v-if="researchContext.trim()" class="research-context-display" style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-left: 3px solid #FF6600; border-radius: 4px;">
+								<strong style="color: #333; font-size: 13px;">Research Context:</strong>
+								<p style="margin: 8px 0 0 0; color: #666; font-size: 13px; line-height: 1.5;">{{ researchContext }}</p>
+								<small style="color: #999; font-size: 11px; font-style: italic;">This context was used to generate the hypothesis.</small>
+							</div>
+							
 							<div class="table-container">
 								<table class="hypothesis-phenotypes-table">
 									<thead>
@@ -368,8 +375,24 @@
 						<p>No phenotypes found for the provided genes.</p>
 					</div>
 					<div v-else class="phenotype-table-container">
+						<!-- Research Context Field -->
+						<div class="research-context-section" style="margin-bottom: 20px;">
+							<div class="section-header">
+								<h4>Research Context (Optional)</h4>
+							</div>
+							<small class="format-suggestion">Provide additional context about your research goals or focus area (e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease.")</small>
+							<div class="textarea-container">
+								<textarea 
+									v-model="researchContext" 
+									placeholder="Enter your research context..."
+									class="hypothesis-textarea"
+									rows="2"
+								></textarea>
+							</div>
+						</div>
+						
 						<div class="phenotype-selection-info">
-							<p><strong>{{ selectedPhenotypes.length }}</strong> phenotype(s) selected (first 5 selected by default)</p>
+							<p><strong>{{ selectedPhenotypes.length }}</strong> phenotype(s) selected (first 20 selected by default)</p>
 							<div class="rows-per-page-selector">
 								<label for="select-first-n">Select phenotypes for hypothesis:</label>
 								<select 
@@ -381,8 +404,8 @@
 								>
 									<option :value="5">5</option>
 									<option :value="10">10</option>
-									<option :value="15">15</option>
 									<option :value="20">20</option>
+									<option :value="30">30</option>
 								</select>
 								<button 
 									@click="generateHypothesisFromSelectedPhenotypes" 
@@ -394,6 +417,12 @@
 									{{ isGeneratingHypothesis ? `Generating... (${hypothesisGenerationElapsedTime})` : 'Generate Hypothesis' }}
 								</button>
 							</div>
+							
+						</div>
+						<!-- Hypothesis generation progress indicator -->
+						<div v-if="isGeneratingHypothesis && hypothesisGenerationStep" class="gene-sets-progress" style="margin-top: 20px; padding: 8px 12px; background: #e3f2fd; border-left: 3px solid #1976d2; border-radius: 4px; font-size: 13px; color: #1976d2;">
+								<span class="loading-spinner-small"></span>
+								{{ hypothesisGenerationStep }}
 						</div>
 						<div class="table-container">
 							<table class="phenotype-table" v-if="phenotypeData.length > 0">
@@ -493,7 +522,7 @@
 		</div>
 
 		<!-- Gene Data Table -->
-		<div v-if="geneData.length > 0" class="gene-data-table-section">
+		<div v-if="geneData.length > 0" id="gene-data-table-section" class="gene-data-table-section">
 			<!-- Loading Banner (simplified like validation planner) -->
 			<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
 				<span class="loading-spinner-small"></span>
@@ -660,6 +689,24 @@ export default {
             // Exploration cards configuration
             explorationCards: [
                 {
+                    "card label": "Hypothesis Relevance & Innovation Score",
+                    "card description": "Generate AI-powered scores showing how relevant and novel each gene is to your specific hypothesis. This will help prioritize which genes are most important for your research.",
+                    "details": [
+                        "Hypothesis Relevance (1-10)",
+                        "Innovation Score (1-10)",
+                        "Molecular rationale for each gene",
+                        "AI-generated context and justification"
+                    ],
+                    "open label": "Generate Scores",
+                    "link": null,
+                    "link tip": "Requires hypothesis input",
+                    "required parameters": ["genes", "hypothesis"],
+                    "handler": "generateHypothesisAlignment",
+                    "badge": "AI Analysis",
+                    "linkType": "action", // Not a link, triggers an action
+                    "condition": "hypothesis"
+                },
+                {
                     "card label": "GTEx Tissue Expression Analysis",
                     "card description": "Open the GTEx browser to explore gene expression patterns across human tissues. Visualize where your genes are most highly expressed and identify tissue-specific patterns using the official GTEx portal.",
                     "details": [
@@ -735,24 +782,6 @@ export default {
                     "badge": "Gene set Analysis",
                     "linkType": "query",
                     "condition": null
-                },
-                {
-                    "card label": "Hypothesis Relevance & Innovation Score",
-                    "card description": "Generate AI-powered scores showing how relevant and novel each gene is to your specific hypothesis. This will help prioritize which genes are most important for your research.",
-                    "details": [
-                        "Hypothesis Relevance (1-10)",
-                        "Innovation Score (1-10)",
-                        "Molecular rationale for each gene",
-                        "AI-generated context and justification"
-                    ],
-                    "open label": "Generate Scores",
-                    "link": null,
-                    "link tip": "Requires hypothesis input",
-                    "required parameters": ["genes", "hypothesis"],
-                    "handler": "generateHypothesisAlignment",
-                    "badge": "AI Analysis",
-                    "linkType": "action", // Not a link, triggers an action
-                    "condition": "hypothesis"
                 }
             ],
                
@@ -823,7 +852,7 @@ export default {
 			phenotypeDialogPage: 1,
 			phenotypeDialogItemsPerPage: 20, // Fixed at 20 for pagination display
 			// Selection count for hypothesis generation
-			phenotypeSelectionCount: 5, // Can be 5, 10, 15, or 20 - controls how many phenotypes to select
+			phenotypeSelectionCount: 20, // Can be 5, 10, 15, or 20 - controls how many phenotypes to select
 			// Pagination for hypothesis phenotypes table
 			hypothesisPhenotypesPage: 1,
 			hypothesisPhenotypesItemsPerPage: 20, // Can be 20, 40, 60, or 'all'
@@ -832,7 +861,13 @@ export default {
 			// Collapsible section state
 			showHypothesisPhenotypes: false,
 			// Cache for fetched phenotypes (keyed by gene list)
-			phenotypeCache: {}
+			phenotypeCache: {},
+			// Research context for hypothesis generation
+			researchContext: '',
+			// Gene set download progress tracking
+			geneSetsDownloadedCount: 0,
+			// Current step message for hypothesis generation
+			hypothesisGenerationStep: ''
 		};
 	},
 	modules: {
@@ -971,22 +1006,28 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 ]`;
 		},
 		hypothesis_generation_prompt() {
-			return `You are a scientific hypothesis generator specializing in **physiological regulation and systemic metabolism**. Your task is to generate a coherent, testable research hypothesis based on the provided genes, phenotypes, and associated gene sets.
+			return `You are a scientific hypothesis generator specializing in physiological regulation and systemic causal inference. Your task is to generate a coherent, testable, high-impact research hypothesis based on the provided genes, phenotypes, associated gene sets, and the optional research context.
 
+**Research Context (Optional):** [INSERT RESEARCH CONTEXT HERE, e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease."]
 **Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE]
 **Phenotypes and Gene Sets:** [INSERT PHENOTYPES AND GENE SETS DATA HERE]
 
-### Pre-Processing Steps (Required for Synthesis)
-1.  **Gene Trimming & Functional Grouping:** Analyze the full gene list. **Trim the list** to focus only on the core functional groups (e.g., OXPHOS, FAO, Biogenesis) that are directly regulated by or essential for the listed Gene Sets (e.g., TFAM targets, UCP1 in thermogenesis). Ignore long-tail genes, pseudogenes, and genes with weak relevance.
-2.  **Tissue Extraction:** Based on the primary function of the trimmed genes and the descriptions of the Phenotypes and Gene Sets (e.g., "Myopathy," "UCP1 in Thermogenesis"), **identify the primary, high-energy-demand tissue(s)** crucial for the resulting phenotype (e.g., Skeletal Muscle, Brown Adipose Tissue).
-3.  **Action Determination:** Determine the overarching **regulatory action** implied by the phenotypes (e.g., a *defect* leads to a *disorder*) and reframe it as a **testable physiological *change*** (e.g., a *defect* in OXPHOS $\to$ *reduction* in $\text{VO}_2$).
+### I. Pre-Processing Steps (Required for Synthesis)
 
-### Hypothesis Generation Task
+1.  **Gene Trimming & Functional Grouping:** Analyze the full gene list. **Trim the list** to focus only on the core functional groups (e.g., OXPHOS, FAO, Biogenesis) that are directly regulated by or essential for the listed Gene Sets. Ignore long-tail genes, pseudogenes, and genes with weak relevance.
+2.  **Tissue Extraction:** Based on the primary function of the trimmed genes and the descriptions of the Phenotypes and Gene Sets, **identify the primary, high-energy-demand tissue(s)** crucial for the resulting phenotype (e.g., Skeletal Muscle, Cardiac Muscle, Brown Adipose Tissue).
+3.  **Action Determination & Causal Reframing:** Determine the overarching **regulatory failure** or **adaptive mechanism** implied by the phenotypes (e.g., a *defect* leads to a *disorder*) and reframe it as a **precise, testable causal mechanism** (e.g., *transcriptional suppression*, *post-translational destabilization*, or *substrate shunting*).
+
+### II. Hypothesis Generation Task
+
 Generate a single, well-formed research hypothesis that:
-1.  **Proposes a regulated or adaptive mechanism** using the trimmed gene groups and identified tissue(s).
-2.  Connects this mechanism to **measurable systemic and physiological readouts** (e.g., $\text{VO}_2$, RER, Exercise Tolerance) derived from the phenotypes.
-3.  Is testable, specific, concise, and written in the style of a **systemic regulatory hypothesis** (like Hypothesis 1).
-4.  Avoids using specific Gene Ontology (GO) terms (e.g., $\text{GOBP\_...}$) or specific gene names in the final output, focusing instead on **functional categories**.
+
+1.  **Integrates Contextual Focus:** If the **Research Context** is provided, the hypothesis must align with the context's goal (e.g., focus on a *reversible* mechanism for a drug target study, or an *environmental trigger* for an epidemiological study).
+2.  **Proposes a Direct Causal Link:** Proposes a **direct causal link** between the **malfunction of the trimmed functional gene groups** and the **onset of tissue dysfunction** in the identified high-energy tissue(s).
+3.  **Predicts Hierarchical Outcomes:** Connects this mechanism to at least **two distinct classes of measurable readouts:** a **proximal functional readout** at the tissue level (e.g., reduced mitochondrial oxygen flux, decreased cardiac ejection fraction) and a **distal, systemic outcome** (e.g., VO2 max, exercise tolerance).
+4.  **Identifies a Limiting Step/Compensation:** Ensures the hypothesis identifies a specific **limiting step** (e.g., Complex I activity, AMPK signaling) or a **compensatory mechanism** (e.g., substrate shunting, protective mitophagy) that provides mechanistic depth.
+5.  **Formatting and Impact:** Is **testable, highly specific, and predictive**, framed as a **singular, high-impact research prediction** suitable for a primary aim in a grant proposal.
+6.  **Avoids Jargon/Listing:** Avoids using specific Gene Ontology (GO) terms or specific gene names (e.g., NDUFS1), focusing instead on **functional categories** in the final output.
 
 **Output Format:** Respond with ONLY the hypothesis text. Do not include any prefix, labels, or additional formatting. Just provide the hypothesis statement directly.
 `;
@@ -1990,6 +2031,16 @@ Generate a single, well-formed research hypothesis that:
 		extractSystemPrompt() {
 			return "You are a system for extracting and processing phenotype-gene associations from research queries.";
 		},
+		updateURLParameter(key, value) {
+			// Update URL parameter without page reload
+			const url = new URL(window.location.href);
+			if (value && value.trim() !== '') {
+				url.searchParams.set(key, value);
+			} else {
+				url.searchParams.delete(key);
+			}
+			window.history.pushState({}, '', url);
+		},
 		
 		isValidExperimentJSON(str) {
 			if (!str || typeof str !== 'string') return false;
@@ -2157,6 +2208,18 @@ Generate a single, well-formed research hypothesis that:
 
 				// Keep genes in input field for other explore options
 
+				// Scroll to gene data table
+				this.$nextTick(() => {
+					const geneTableSection = document.getElementById('gene-data-table-section');
+					if (geneTableSection) {
+						geneTableSection.scrollIntoView({ 
+							behavior: 'smooth', 
+							block: 'start',
+							inline: 'nearest'
+						});
+					}
+				});
+
 				// Generate scores for first batch initially
 				const firstBatch = genesToProcess.slice(0, this.noveltyScoreBatchSize);
 				await this.getNoveltyForManualGenes(firstBatch);
@@ -2308,6 +2371,9 @@ Generate a single, well-formed research hypothesis that:
 				return;
 			}
 
+			// Update URL with genes parameter
+			this.updateURLParameter('genes', uniqueGeneList.join(', '));
+
 			// Create cache key from sorted unique gene list
 			const cacheKey = uniqueGeneList.slice().sort().join(',');
 
@@ -2394,6 +2460,8 @@ Generate a single, well-formed research hypothesis that:
 			this.showPhenotypeDialog = false;
 			this.phenotypeData = [];
 			this.selectedPhenotypes = [];
+			this.geneSetsDownloadedCount = 0;
+			this.hypothesisGenerationStep = '';
 		},
 		togglePhenotypeSelection(index) {
 			const idx = this.selectedPhenotypes.indexOf(index);
@@ -2678,6 +2746,8 @@ Generate a single, well-formed research hypothesis that:
 			// Fetch gene sets for each phenotype
 			console.log('[Generate Hypothesis] Fetching gene sets for', selectedPhenotypeData.length, 'phenotypes');
 			this.isGeneratingHypothesis = true;
+			this.geneSetsDownloadedCount = 0; // Reset counter
+			this.hypothesisGenerationStep = ''; // Reset step message
 			
 			// Start timer for hypothesis generation
 			this.hypothesisGenerationStartTime = Date.now();
@@ -2694,20 +2764,34 @@ Generate a single, well-formed research hypothesis that:
 			}, 1000);
 			
 			try {
-				// Fetch gene sets for all phenotypes in parallel
-				const geneSetPromises = selectedPhenotypeData.map(async (phenotype) => {
+				// Set initial step message
+				this.hypothesisGenerationStep = `Downloading gene sets (0/${selectedPhenotypeData.length} phenotypes)`;
+				
+				// Fetch gene sets for all phenotypes in parallel, tracking progress
+				const geneSetPromises = selectedPhenotypeData.map(async (phenotype, index) => {
 					const phenotypeId = phenotype['Phenotype id'] || phenotype['phenotype_id'] || phenotype['Phenotype Id'];
 					if (phenotypeId) {
 						const geneSets = await this.fetchGeneSetsForPhenotype(phenotypeId);
+						// Increment counter when gene sets are downloaded
+						this.geneSetsDownloadedCount++;
+						// Update step message with current progress
+						this.hypothesisGenerationStep = `Downloading gene sets (${this.geneSetsDownloadedCount}/${selectedPhenotypeData.length} phenotypes, trimming to 5 per phenotype)`;
 						// Add associated gene sets to phenotype data
 						phenotype['Associated gene sets'] = geneSets;
 						return geneSets;
+					} else {
+						// Even if no phenotype ID, increment counter
+						this.geneSetsDownloadedCount++;
+						this.hypothesisGenerationStep = `Downloading gene sets (${this.geneSetsDownloadedCount}/${selectedPhenotypeData.length} phenotypes, trimming to 5 per phenotype)`;
+						return [];
 					}
-					return [];
 				});
 				
 				await Promise.all(geneSetPromises);
 				console.log('[Generate Hypothesis] Finished fetching gene sets for all phenotypes');
+				
+				// Update step message after gene sets are downloaded
+				this.hypothesisGenerationStep = 'Trimming gene sets to 5 per phenotype';
 
 				// Store selected phenotypes (with gene sets) for display
 				this.hypothesisPhenotypes = selectedPhenotypeData;
@@ -2725,7 +2809,9 @@ Generate a single, well-formed research hypothesis that:
 				}).join('\n');
 
 				// Generate hypothesis using LLM
+				const researchContextValue = this.researchContext.trim() || 'No specific research context provided.';
 				const prompt = this.hypothesis_generation_prompt
+					.replace('[INSERT RESEARCH CONTEXT HERE, e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease."]', researchContextValue)
 					.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE]', uniqueGeneList.join(', '))
 					.replace('[INSERT PHENOTYPES AND GENE SETS DATA HERE]', phenotypeDataString);
 
@@ -2734,6 +2820,9 @@ Generate a single, well-formed research hypothesis that:
 					console.log(`[Generate Hypothesis] Removed ${geneList.length - uniqueGeneList.length} duplicate gene(s) before generating hypothesis`);
 				}
 				console.log('[Generate Hypothesis] Sending prompt to LLM with', selectedPhenotypeData.length, 'phenotypes');
+
+				// Update step message for AI prompting
+				this.hypothesisGenerationStep = 'Prompting AI to generate hypothesis...';
 
 				// Call LLM to generate hypothesis
 				this.generateHypothesis.sendPrompt({
@@ -2757,6 +2846,10 @@ Generate a single, well-formed research hypothesis that:
 							if (hypothesis) {
 								this.phenotypeSearch = hypothesis;
 								console.log('[Generate Hypothesis] Hypothesis generated and populated');
+								
+								// Update URL with hypothesis parameter
+								this.updateURLParameter('hypothesis', hypothesis);
+								
 								// Close the dialog
 								this.closePhenotypeDialog();
 							} else {
@@ -2772,10 +2865,14 @@ Generate a single, well-formed research hypothesis that:
 						console.error('[Generate Hypothesis] Error generating hypothesis:', error);
 						alert('Error generating hypothesis. Please try again.');
 						this.isGeneratingHypothesis = false;
+						this.geneSetsDownloadedCount = 0;
+						this.hypothesisGenerationStep = '';
 						this.clearHypothesisGenerationTimer();
 					},
 					onEnd: () => {
 						this.isGeneratingHypothesis = false;
+						this.geneSetsDownloadedCount = 0;
+						this.hypothesisGenerationStep = '';
 						this.clearHypothesisGenerationTimer();
 						console.log('[Generate Hypothesis] Hypothesis generation completed');
 					}
@@ -2785,6 +2882,8 @@ Generate a single, well-formed research hypothesis that:
 				console.error('[Generate Hypothesis] Error fetching gene sets or generating hypothesis:', error);
 				alert(`Error generating hypothesis: ${error.message}. Please try again.`);
 				this.isGeneratingHypothesis = false;
+				this.geneSetsDownloadedCount = 0;
+				this.hypothesisGenerationStep = '';
 				this.clearHypothesisGenerationTimer();
 			}
 		}
