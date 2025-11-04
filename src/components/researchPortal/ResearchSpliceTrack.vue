@@ -125,6 +125,7 @@ export default Vue.component("research-splice-track", {
 			let tissue = spliceParams[2];
 			this.gene = await(this.getGene(gene));
 			this.spliceData = await(this.getSplices(ensembl, tissue));
+			console.log(JSON.stringify(this.spliceData[0]));
 			this.exonData = await(this.getExons(gene));
 			this.calculatePlot();
 			this.renderTrack(this.exonData);
@@ -160,45 +161,7 @@ export default Vue.component("research-splice-track", {
 				gIndex ++;
 			})
 
-			GENES.map(g => {
-				if( true) {
-					if (tracks[0].length == 0 || true) { // let's just sort them all in one bucket for now
-						tracks[0].push(g);
-					} else {
-						let gTaken = false;
-						tracks.map(t => {
-							if (t.length > 0 && gTaken == false) {
-
-								let lastGene = t[t.length - 1];
-
-								//measuring if the regioon of the last gene is bigger than the gene label
-								
-								let lastGeneWidth = lastGene.xEndPos - lastGene.xStartPos;
-								let newGeneWidth = g.xEndPos - g.xStartPos;
-								
-
-								let geneLabelWidth = this.getWidth(context, g.gene_name + " " +"\u{2190}", 24, "Arial");
-
-								let endPos = (lastGeneWidth <= geneLabelWidth) ? ((geneLabelWidth - lastGeneWidth)/2)+lastGene.xEndPos: lastGene.xEndPos;
-								let startPos = (newGeneWidth <= geneLabelWidth) ? g.xStartPos - ((geneLabelWidth - newGeneWidth) / 2) : g.xStartPos;
-
-								/*
-								let endPos = (lastGeneWidth <= 100) ? ((100- lastGeneWidth)/2)+lastGene.xEndPos: lastGene.xEndPos;
-								let startPos = (newGeneWidth <= 100) ? g.xStartPos - ((100 - newGeneWidth) / 2) : g.xStartPos;
-								*/
-
-								if (endPos <= startPos) {
-									t.push(g)
-									gTaken = true;
-								}
-							} else if (t.length == 0 && gTaken == false) {
-								t.push(g)
-								gTaken = true;
-							}
-						})
-					}
-				}
-			})
+			GENES.map(g => tracks[0].push(g));
 
 			tracks = tracks.filter(t => t.length > 0);
 
@@ -356,7 +319,14 @@ export default Vue.component("research-splice-track", {
 		async getSplices(ensembl, tissue){
 			let splices = await fetch(`${this.biHost}/splices?q=${ensembl},${tissue}`)
 				.then(resp => resp.json());
-			return splices.data;
+			return this.getSpliceMidpoints(splices.data);
+		},
+		getSpliceMidpoints(splices){
+			let output = structuredClone(splices);
+			for (let i = 0; i < output.length; i++){
+				output[i].midpoint = (output[i].splice_start + output[i].splice_end)/2;
+			}
+			return output;
 		},
 		async getExons(gene){
 			let exons = await fetch(`${this.biHost}/exons?q=${gene}`)
