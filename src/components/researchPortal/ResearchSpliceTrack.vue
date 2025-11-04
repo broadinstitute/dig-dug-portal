@@ -12,7 +12,7 @@
 				:id="'spliceTrackWrapper' + sectionId"
 				class="genes-plot-wrapper"
 			>
-				<canvas
+				<canvas :class="!exonData ? 'hidden' : ''"
 					:id="'spliceTrack'+sectionId"
 					@resize="onResize"
 					width=""
@@ -211,7 +211,7 @@ export default Vue.component("research-splice-track", {
 		},
 
 		renderTrack(GENES) {
-			console.log(GENES.length);
+			console.log("Number of exons:", GENES.length);
 			if (this.gene === null){
 				return;
 			}
@@ -455,6 +455,9 @@ $(function () {});
 .genes-plot-wrapper {
 	padding: 0 !important;
 	width: 100% !important;
+}
+.hidden {
+	display: none;
 }
 </style>
 
