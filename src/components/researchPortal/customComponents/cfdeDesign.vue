@@ -2292,9 +2292,12 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Check for genes parameter
 				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
 					const geneList = this.utilsBox.keyParams['genes'].split(',').map(gene => gene.trim()).filter(gene => gene);
-					if (geneList.length > 0) {
+					// Remove duplicates and sort alphabetically
+					const uniqueGeneList = [...new Set(geneList)];
+					const sortedGeneList = uniqueGeneList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+					if (sortedGeneList.length > 0) {
 						hasGenes = true;
-						this.urlChoiceOptions.genes = geneList;
+						this.urlChoiceOptions.genes = sortedGeneList;
 					}
 				}
 				
@@ -2476,10 +2479,14 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Show manual gene input UI when genes are loaded from URL
 				this.showManualGeneInput = true;
 				
-				// Check for duplicate genes
+				// Remove duplicates within the incoming gene list and sort alphabetically
+				const uniqueGeneList = [...new Set(geneList)];
+				const sortedGeneList = uniqueGeneList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+				
+				// Check for duplicate genes against existing genes in the table
 				const existingGenes = this.geneData.map(g => g.gene);
-				const duplicateGenes = geneList.filter(gene => existingGenes.includes(gene));
-				const newGenes = geneList.filter(gene => !existingGenes.includes(gene));
+				const duplicateGenes = sortedGeneList.filter(gene => existingGenes.includes(gene));
+				const newGenes = sortedGeneList.filter(gene => !existingGenes.includes(gene));
 				
 				if (duplicateGenes.length > 0) {
 					console.log(`Skipping duplicate genes from URL: ${duplicateGenes.join(', ')}`);
@@ -2490,7 +2497,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					return;
 				}
 				
-				// Create gene data entries for URL genes
+				// Create gene data entries for URL genes (already sorted)
 				const urlGeneData = newGenes.map(gene => ({
 					gene: gene,
 					log_bf: null, // null indicates manual gene

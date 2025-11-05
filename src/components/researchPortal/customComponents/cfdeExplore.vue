@@ -521,6 +521,147 @@
 			</div>
 		</div>
 
+		<!-- Design Tool Dialog -->
+		<div v-if="showDesignToolDialog" class="phenotype-dialog-overlay">
+			<div class="phenotype-dialog">
+				<div class="phenotype-dialog-header">
+					<h3>Prepare for Design Tool</h3>
+					<button @click="closeDesignToolDialog" class="close-btn">&times;</button>
+				</div>
+				<div class="phenotype-dialog-content">
+					<!-- Research Context Section -->
+					<div class="research-context-section" style="margin-bottom: 20px;">
+						<div class="section-header">
+							<h4>Research Context <span style="color: #666; font-weight: normal;">(Optional)</span></h4>
+						</div>
+						<small class="format-suggestion">Provide additional context about your research goals or focus area (e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease.")</small>
+						<div class="textarea-container">
+							<textarea 
+								v-model="designToolResearchContext" 
+								placeholder="Enter your research context..."
+								class="hypothesis-textarea"
+								rows="3"
+							></textarea>
+						</div>
+					</div>
+
+					<!-- Hypothesis Display -->
+					<div class="design-info-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+						<div class="section-header">
+							<h4>Hypothesis</h4>
+						</div>
+						<p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">{{ phenotypeSearch || 'No hypothesis provided' }}</p>
+					</div>
+
+					<!-- Genes Display -->
+					<div class="design-info-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+						<div class="section-header">
+							<h4>Genes</h4>
+						</div>
+						<p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">{{ manualGenes || 'No genes provided' }}</p>
+					</div>
+
+					<!-- Progress Indicator (when ranking genes) -->
+					<div v-if="isRankingGenes" class="gene-sets-progress" style="margin-bottom: 20px; padding: 12px 16px; background: #e3f2fd; border-left: 3px solid #1976d2; border-radius: 4px; font-size: 13px; color: #1976d2;">
+						<span class="loading-spinner-small"></span>
+						<span v-if="geneRankingStep">{{ geneRankingStep }} ({{ geneRankingElapsedTime }})</span>
+						<span v-else>Ranking candidate genes... ({{ geneRankingElapsedTime }})</span>
+					</div>
+
+					<!-- Candidate Genes Table (if available) -->
+					<div v-if="candidateGenes.length > 0" class="candidate-genes-section" style="margin-bottom: 20px;">
+						<div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+							<h4>Candidate Genes Selected ({{ selectedCandidateGenes.length }} of {{ candidateGenes.length }} selected)</h4>
+							<button 
+								@click="toggleAllCandidateGenes"
+								class="btn btn-sm btn-outline-secondary"
+								style="padding: 4px 12px; font-size: 12px;"
+							>
+								{{ allCandidateGenesSelected() ? 'Deselect All' : 'Select All' }}
+							</button>
+						</div>
+						<div class="table-container">
+							<table class="candidate-genes-table" style="width: 100%; border-collapse: collapse; background: white; border: 1px solid #ddd; font-size: 13px;">
+								<thead>
+									<tr>
+										<th style="width: 40px; padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+											<input 
+												ref="selectAllCandidateGenesCheckbox"
+												type="checkbox" 
+												@change="toggleAllCandidateGenes"
+												:checked="allCandidateGenesSelected()"
+											/>
+										</th>
+										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Gene</th>
+										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Classification</th>
+										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Relevance Score</th>
+										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Novelty Score</th>
+										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Reason</th>
+										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Hypothesis Validation</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr v-for="(candidate, index) in candidateGenes" :key="index" :class="{ 'selected-row': isCandidateGeneSelected(index) }">
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6;">
+											<input 
+												type="checkbox" 
+												:checked="isCandidateGeneSelected(index)"
+												@change="toggleCandidateGeneSelection(index)"
+											/>
+										</td>
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #333;">{{ candidate.gene || 'N/A' }}</td>
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666;">{{ candidate.classification || 'N/A' }}</td>
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #666;">
+											<span v-if="candidate.relevance_score !== undefined && candidate.relevance_score !== null && candidate.relevance_score !== 'N/A'" 
+												:class="{ 'high-score': typeof candidate.relevance_score === 'number' && candidate.relevance_score >= 7 }"
+												style="font-weight: 600;"
+											>
+												{{ candidate.relevance_score }}{{ typeof candidate.relevance_score === 'number' ? '/10' : '' }}
+											</span>
+											<span v-else>N/A</span>
+										</td>
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #666;">
+											<span v-if="candidate.novelty_score !== undefined && candidate.novelty_score !== null && candidate.novelty_score !== 'N/A'"
+												:class="{ 'high-score': typeof candidate.novelty_score === 'number' && candidate.novelty_score >= 7 }"
+												style="font-weight: 600;"
+											>
+												{{ candidate.novelty_score }}{{ typeof candidate.novelty_score === 'number' ? '/10' : '' }}
+											</span>
+											<span v-else>N/A</span>
+										</td>
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666; line-height: 1.5;">{{ candidate.reason || 'N/A' }}</td>
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666; line-height: 1.5;">{{ candidate.hypothesis_validation || 'N/A' }}</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<small style="color: #666; font-size: 12px; display: block; margin-top: 8px;">{{ candidateGenes.length }} candidate gene(s) selected from {{ getGeneCount() }} total genes</small>
+					</div>
+
+					<div class="phenotype-dialog-actions">
+						<button @click="closeDesignToolDialog" class="btn btn-outline-secondary">Cancel</button>
+						<button 
+							v-if="candidateGenes.length === 0"
+							@click="prepareForDesign" 
+							class="btn btn-primary"
+							:disabled="isRankingGenes"
+						>
+							<span v-if="isRankingGenes" class="loading-spinner-small"></span>
+							{{ isRankingGenes ? `Ranking genes... (${geneRankingElapsedTime})` : 'Prepare for DESIGN' }}
+						</button>
+						<button 
+							v-else
+							@click="openDesignToolWithSelectedGenes" 
+							class="btn btn-primary"
+							:disabled="selectedCandidateGenes.length === 0"
+						>
+							Open CFDE DESIGN ({{ selectedCandidateGenes.length }} gene{{ selectedCandidateGenes.length !== 1 ? 's' : '' }})
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<!-- Gene Data Table -->
 		<div v-if="geneData.length > 0" id="gene-data-table-section" class="gene-data-table-section">
 			<!-- Loading Banner (simplified like validation planner) -->
@@ -707,6 +848,25 @@ export default {
                     "condition": "hypothesis"
                 },
                 {
+                    "card label": "Design Validation Experiments",
+                    "card description": "Generate AI-powered validation experiment protocols for your genes and hypothesis. Design comprehensive experiments to test your hypothesis with customizable assay types, cell types, and readouts.",
+                    "details": [
+                        "AI-generated experiment protocols",
+                        "Customizable assay types and cell types",
+                        "Multiple readout options",
+                        "Feasibility analysis and timelines",
+                        "Strategic validation recommendations"
+                    ],
+                    "open label": "Open Design Tool",
+                    "link": "/r/cfde_design",
+                    "link tip": "Requires genes and hypothesis • Opens in new tab",
+                    "required parameters": ["genes", "hypothesis"],
+                    "handler": "openDesignTool",
+                    "badge": "Experiment Design",
+                    "linkType": "query", // Uses query parameters for genes and hypothesis
+                    "condition": "hypothesis"
+                },
+                {
                     "card label": "GTEx Tissue Expression Analysis",
                     "card description": "Open the GTEx browser to explore gene expression patterns across human tissues. Visualize where your genes are most highly expressed and identify tissue-specific patterns using the official GTEx portal.",
                     "details": [
@@ -867,7 +1027,18 @@ export default {
 			// Gene set download progress tracking
 			geneSetsDownloadedCount: 0,
 			// Current step message for hypothesis generation
-			hypothesisGenerationStep: ''
+			hypothesisGenerationStep: '',
+			// Design tool dialog state
+			showDesignToolDialog: false,
+			designToolResearchContext: '',
+			// Gene ranking state
+			isRankingGenes: false,
+			candidateGenes: [], // Stores full candidate gene objects with all fields
+			selectedCandidateGenes: [], // Stores indices of selected candidate genes
+			geneRankingTimer: null,
+			geneRankingElapsedTime: '0:00',
+			geneRankingStartTime: null,
+			geneRankingStep: '' // Current step message for gene ranking
 		};
 	},
 	modules: {
@@ -893,6 +1064,12 @@ export default {
                 system_prompt: this.hypothesis_generation_prompt
             });
 
+            this.rankGenes = createLLMClient({
+                llm: "gemini",
+                model: "gemini-2.5-flash",
+                system_prompt: this.gene_ranking_prompt
+            });
+
         } else if(this.sectionConfigs.llm === "openai") {
             this.getGeneNovelty = createLLMClient({
 				llm: "openai",
@@ -910,6 +1087,37 @@ export default {
 				llm: "openai",
 				model: "gpt-5-mini",
 				system_prompt: this.hypothesis_generation_prompt
+			});
+
+			this.rankGenes = createLLMClient({
+				llm: "openai",
+				model: "gpt-5-mini",
+				system_prompt: this.gene_ranking_prompt
+			});
+        } else {
+			// Default to Gemini if LLM config is missing
+			this.getGeneNovelty = createLLMClient({
+				llm: "gemini",
+				model: "gemini-2.5-flash",
+				system_prompt: this.gene_novelty_prompt
+			});
+
+			this.buildExperiments = createLLMClient({
+				llm: "gemini",
+				model: "gemini-2.5-flash",
+				system_prompt: this.experiment_prompt
+			});
+
+			this.generateHypothesis = createLLMClient({
+				llm: "gemini",
+				model: "gemini-2.5-flash",
+				system_prompt: this.hypothesis_generation_prompt
+			});
+
+			this.rankGenes = createLLMClient({
+				llm: "gemini",
+				model: "gemini-2.5-flash",
+				system_prompt: this.gene_ranking_prompt
 			});
         }
 	},
@@ -956,6 +1164,8 @@ export default {
 		// Clean up timer when component is destroyed
 		this.clearGenerationTimer();
 		this.clearGeneNoveltyTimer();
+		this.clearHypothesisGenerationTimer();
+		this.clearGeneRankingTimer();
 	},
 	computed: {
 		hasManualGenes() {
@@ -1031,6 +1241,48 @@ Generate a single, well-formed research hypothesis that:
 
 **Output Format:** Respond with ONLY the hypothesis text. Do not include any prefix, labels, or additional formatting. Just provide the hypothesis statement directly.
 `;
+		},
+		gene_ranking_prompt() {
+			return `You are an expert computational biologist and domain specialist. Your task is to analyze a list of candidate genes against a specific scientific hypothesis and research context.
+
+**Hypothesis:** [Insert Specific Hypothesis Here.]
+
+**Gene List:** [Insert comma-separated Gene List Here.]
+
+**Research Context:** [Insert Specific Research Context Here.]
+
+---
+**Gene Novelty/Prioritization Criteria:**
+**Pre-Processing Step: Gene Trimming & Functional Grouping:** Analyze the full gene list. **Trim the list** to focus only on the core functional groups (e.g., OXPHOS, FAO, Biogenesis) that are directly regulated by or essential for the listed Gene Sets. Ignore long-tail genes, pseudogenes, and genes with weak relevance.
+
+Prioritize genes based on high experimental novelty. Genes are considered **novel** if they fall into one of these categories:
+1.  **Tissue-Specific Novelty:** Genes known to cause pathology in one organ (e.g., sperm-only defect) but are novel candidates for the other systemic pathologies (e.g., respiratory/laterality defects).
+2.  **Mechanistic Novelty:** Genes encoding regulatory factors, signal transducers, or transcription factors whose exact pathway linkage to the core structural/motor components is not fully elucidated.
+3.  **Contextual Novelty (Most Important):** Genes whose known function provides a direct, non-generic mechanism for interaction with the specific factor mentioned in the **Research Context**.
+
+Genes that are already **well-studied core components** (e.g., highly characterized dynein arms or core assembly factors like DNAI1, DNAH5, or components of highly characterized general pathways) should be **excluded**, unless they meet the Contextual Novelty criterion.
+---
+
+**Task:**
+1.  **Analyze and Select:** From the provided list, select **all** genes that meet all three requirements: **1. Relevant** to the hypothesis's mechanism, **2. Meet** the **Research Context** requirement, and **3. Possess High Experimental Novelty** based on the criteria above. Do not limit the selection to a fixed number.
+2.  **Generate JSON Output:** For each selected gene, generate a JSON object with the four required fields as described below.
+
+**JSON Output Format:**
+
+[
+  {
+    "gene": "[Gene Symbol]",
+    "classification": "[Category based on its primary function in the context of the hypothesis, e.g., 'Core Motor Component', 'Signaling Kinase', 'Regulatory Transcription Factor', or 'Structural Scaffolding Protein']",
+    "relevance_score": "[1-10 or N/A]",
+    "novelty_score": "[1-10 or N/A]",
+    "reason": "[A concise, 1-2 sentence justification for selection, focusing on its known function and why it meets the **Novelty/Contextual** requirements.]",
+    "hypothesis_validation": "[A concise, 1-2 sentence statement detailing *how* an experimental result for this gene would support or refine the core hypothesis and specifically address the **Research Context**.]"
+  }
+  // ... (Continue adding objects for all relevant genes)
+]
+
+**Output format: The output must not include any introductory text, explanation, or conversational filler outside of the final JSON object. The output must be a well-formed JSON array. The gene field must contain an official gene symbol found in the provided Gene List. The content of the reason and hypothesis_validation fields must be concise (maximum 2 sentences each).**
+			`
 		},
 		searchPlanText() {
 			let text = '<p>Your experiment plan will be created using the following approach:</p>';
@@ -1249,7 +1501,23 @@ Generate a single, well-formed research hypothesis that:
 					});
 				}
 			},
-	},
+			selectedCandidateGenes() {
+				// Update indeterminate state of select-all checkbox
+				this.$nextTick(() => {
+					if (this.$refs.selectAllCandidateGenesCheckbox) {
+						this.$refs.selectAllCandidateGenesCheckbox.indeterminate = this.someCandidateGenesSelected() && !this.allCandidateGenesSelected();
+					}
+				});
+			},
+			candidateGenes() {
+				// When candidate genes are loaded, update checkbox state
+				this.$nextTick(() => {
+					if (this.$refs.selectAllCandidateGenesCheckbox) {
+						this.$refs.selectAllCandidateGenesCheckbox.indeterminate = this.someCandidateGenesSelected() && !this.allCandidateGenesSelected();
+					}
+				});
+			},
+		},
 	methods: {
 		kcURL,
 		findPhenotypeByName,
@@ -1556,11 +1824,12 @@ Generate a single, well-formed research hypothesis that:
 				// Check for genes parameter
 				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
 					const geneList = this.utilsBox.keyParams['genes'].split(',').map(gene => gene.trim()).filter(gene => gene);
-					// Remove duplicates while preserving order
+					// Remove duplicates and sort alphabetically
 					const uniqueGeneList = [...new Set(geneList)];
-					if (uniqueGeneList.length > 0) {
+					const sortedGeneList = uniqueGeneList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+					if (sortedGeneList.length > 0) {
 						hasGenes = true;
-						this.urlChoiceOptions.genes = uniqueGeneList;
+						this.urlChoiceOptions.genes = sortedGeneList;
 					}
 				}
 				
@@ -1787,13 +2056,16 @@ Generate a single, well-formed research hypothesis that:
 				// Remove duplicates while preserving order
 				const uniqueGeneList = [...new Set(geneList)];
 				
+				// Sort alphabetically for easier reading
+				const sortedGeneList = uniqueGeneList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+				
 				// Hide associations input when genes come from URL
 				this.hideAssociationsInput = true;
 				
-				// Populate the gene input field with URL genes (unique only)
-				this.manualGenes = uniqueGeneList.join(', ');
+				// Populate the gene input field with URL genes (unique and sorted)
+				this.manualGenes = sortedGeneList.join(', ');
 				
-				console.log(`Genes from URL parameters populated in gene input: ${uniqueGeneList.join(', ')}`);
+				console.log(`Genes from URL parameters populated in gene input: ${sortedGeneList.join(', ')}`);
 				if (geneList.length !== uniqueGeneList.length) {
 					console.log(`Removed ${geneList.length - uniqueGeneList.length} duplicate gene(s) from URL parameters`);
 				}
@@ -2355,6 +2627,277 @@ Generate a single, well-formed research hypothesis that:
 			
 			// Open in new tab
 			window.open(byoglUrl, '_blank');
+		},
+		openDesignTool() {
+			// Parse genes from manual input
+			const geneList = this.manualGenes
+				.split(',')
+				.map(gene => gene.trim())
+				.filter(gene => gene);
+
+			if (geneList.length === 0) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// Check if hypothesis is provided
+			if (!this.phenotypeSearch.trim()) {
+				alert('Please provide a hypothesis before opening the Design Tool.');
+				return;
+			}
+
+			// Initialize dialog with current values
+			// Initialize research context if not already set, or update if it changed
+			if (!this.designToolResearchContext || this.designToolResearchContext !== this.researchContext) {
+				this.designToolResearchContext = this.researchContext || '';
+			}
+			// Retain candidateGenes and selectedCandidateGenes - don't clear them
+			// They will only be cleared when user clicks "Prepare for DESIGN" again
+			this.isRankingGenes = false;
+			
+			// Show the design tool dialog
+			this.showDesignToolDialog = true;
+		},
+		closeDesignToolDialog() {
+			this.showDesignToolDialog = false;
+			// Don't clear candidateGenes, selectedCandidateGenes, or designToolResearchContext
+			// They should be retained for when user reopens the dialog
+			this.isRankingGenes = false;
+			this.clearGeneRankingTimer();
+		},
+		clearGeneRankingTimer() {
+			if (this.geneRankingTimer) {
+				clearInterval(this.geneRankingTimer);
+				this.geneRankingTimer = null;
+			}
+			this.geneRankingStartTime = null;
+			this.geneRankingElapsedTime = '0:00';
+			this.geneRankingStep = '';
+		},
+		async prepareForDesign() {
+			// Parse genes from manual input
+			const geneList = this.manualGenes
+				.split(',')
+				.map(gene => gene.trim())
+				.filter(gene => gene);
+
+			if (geneList.length === 0) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// Check if hypothesis is provided
+			if (!this.phenotypeSearch.trim()) {
+				alert('Please provide a hypothesis before preparing for design.');
+				return;
+			}
+
+			// Check if LLM client is initialized
+			if (!this.rankGenes || typeof this.rankGenes.sendPrompt !== 'function') {
+				console.error('rankGenes LLM client is not initialized');
+				alert('LLM client is not initialized. Please refresh the page and try again.');
+				return;
+			}
+
+			// Set loading state
+			this.isRankingGenes = true;
+			// Clear previous candidate genes when regenerating
+			this.candidateGenes = [];
+			this.selectedCandidateGenes = [];
+			this.geneRankingStep = '';
+
+			// Start timer for gene ranking
+			this.geneRankingStartTime = Date.now();
+			this.geneRankingElapsedTime = '0:00';
+			
+			// Start timer to update elapsed time every second
+			this.geneRankingTimer = setInterval(() => {
+				if (this.isRankingGenes && this.geneRankingStartTime) {
+					const elapsed = Math.floor((Date.now() - this.geneRankingStartTime) / 1000);
+					const minutes = Math.floor(elapsed / 60);
+					const seconds = elapsed % 60;
+					this.geneRankingElapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+				}
+			}, 1000);
+
+			try {
+				// Update step message
+				this.geneRankingStep = `Analyzing ${geneList.length} gene(s) against hypothesis and research context...`;
+				
+				// Get research context (use dialog input or existing context)
+				const researchContextValue = this.designToolResearchContext.trim() || this.researchContext.trim() || 'No specific research context provided.';
+				
+				// Prepare the prompt
+				const prompt = this.gene_ranking_prompt
+					.replace('[Insert Specific Hypothesis Here.]', this.phenotypeSearch.trim())
+					.replace('[Insert comma-separated Gene List Here.]', geneList.join(', '))
+					.replace('[Insert Specific Research Context Here.]', researchContextValue);
+
+				console.log('[Prepare for Design] Full prompt sent to LLM:', prompt);
+
+				// Update step message
+				this.geneRankingStep = 'Evaluating gene relevance and novelty scores...';
+
+				// Call LLM to rank genes
+				this.rankGenes.sendPrompt({
+					userPrompt: prompt.trim(),
+					onResponse: (response) => {
+						console.log('[Prepare for Design] LLM response:', response);
+						
+						try {
+							// Update step message
+							this.geneRankingStep = 'Processing AI response and selecting candidate genes...';
+							
+							// Extract JSON from response (handle markdown code fences)
+							let responseText = response.trim();
+							if (responseText.startsWith('```')) {
+								responseText = responseText.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim();
+							}
+							
+							// Parse JSON array
+							const candidateGenesData = JSON.parse(responseText);
+							
+							if (Array.isArray(candidateGenesData) && candidateGenesData.length > 0) {
+								// Update step message
+								this.geneRankingStep = `Found ${candidateGenesData.length} candidate gene(s). Finalizing selection...`;
+								
+								// Store full candidate gene objects with all fields
+								this.candidateGenes = candidateGenesData.filter(item => item.gene && item.gene.trim());
+								// Pre-select all candidate genes by default
+								this.selectedCandidateGenes = this.candidateGenes.map((_, index) => index);
+								console.log(`[Prepare for Design] Found ${this.candidateGenes.length} candidate genes:`, this.candidateGenes);
+							} else {
+								console.warn('[Prepare for Design] No candidate genes found in LLM response');
+								alert('No candidate genes were selected. Please try again or use all genes.');
+								this.candidateGenes = [];
+								this.selectedCandidateGenes = [];
+								this.geneRankingStep = '';
+							}
+						} catch (error) {
+							console.error('[Prepare for Design] Error parsing LLM response:', error);
+							alert('Error processing candidate genes. Please try again.');
+							this.candidateGenes = [];
+							this.selectedCandidateGenes = [];
+							this.geneRankingStep = '';
+						}
+					},
+					onError: (error) => {
+						console.error('[Prepare for Design] Error ranking genes:', error);
+						alert('Error ranking genes. Please try again.');
+						this.isRankingGenes = false;
+						this.candidateGenes = [];
+						this.selectedCandidateGenes = [];
+						this.geneRankingStep = '';
+						this.clearGeneRankingTimer();
+					},
+					onEnd: () => {
+						this.isRankingGenes = false;
+						this.geneRankingStep = '';
+						this.clearGeneRankingTimer();
+						console.log('[Prepare for Design] Gene ranking completed');
+					}
+				});
+
+			} catch (error) {
+				console.error('[Prepare for Design] Error preparing for design:', error);
+				alert(`Error preparing for design: ${error.message}. Please try again.`);
+				this.isRankingGenes = false;
+				this.geneRankingStep = '';
+				this.clearGeneRankingTimer();
+			}
+		},
+		toggleCandidateGeneSelection(index) {
+			const idx = this.selectedCandidateGenes.indexOf(index);
+			if (idx > -1) {
+				this.selectedCandidateGenes.splice(idx, 1);
+			} else {
+				this.selectedCandidateGenes.push(index);
+			}
+		},
+		isCandidateGeneSelected(index) {
+			return this.selectedCandidateGenes.includes(index);
+		},
+		toggleAllCandidateGenes() {
+			if (this.selectedCandidateGenes.length === this.candidateGenes.length) {
+				// Deselect all
+				this.selectedCandidateGenes = [];
+			} else {
+				// Select all
+				this.selectedCandidateGenes = this.candidateGenes.map((_, index) => index);
+			}
+		},
+		allCandidateGenesSelected() {
+			return this.candidateGenes.length > 0 && this.selectedCandidateGenes.length === this.candidateGenes.length;
+		},
+		someCandidateGenesSelected() {
+			return this.selectedCandidateGenes.length > 0 && this.selectedCandidateGenes.length < this.candidateGenes.length;
+		},
+		openDesignToolWithSelectedGenes() {
+			// Get selected genes from candidate genes
+			if (this.selectedCandidateGenes.length === 0) {
+				alert('Please select at least one gene to proceed.');
+				return;
+			}
+
+			// Extract gene symbols from selected candidate genes
+			const selectedGenes = this.selectedCandidateGenes
+				.map(index => this.candidateGenes[index])
+				.filter(item => item && item.gene)
+				.map(item => item.gene);
+
+			if (selectedGenes.length === 0) {
+				alert('No valid genes selected. Please try again.');
+				return;
+			}
+
+			// Get card config
+			const cardConfig = this.explorationCards.find(card => card.handler === 'openDesignTool');
+			
+			// Use link from config if available, otherwise use default
+			let link = '/r/cfde_design';
+			if (cardConfig && cardConfig.link) {
+				link = cardConfig.link;
+			}
+
+			// Join genes with commas for URL parameter
+			const genesParam = selectedGenes.join(',');
+			const hypothesisParam = this.phenotypeSearch.trim();
+			// Get research context (use dialog input or existing context)
+			const researchContextParam = this.designToolResearchContext.trim() || this.researchContext.trim() || '';
+			
+			// Create Design Tool URL with genes, hypothesis, and researchContext as query parameters
+			let designUrl;
+			if (link.startsWith('/r/')) {
+				// Construct the full path with query parameters, then pass to kcURL
+				// kcURL will handle server-specific conversion (localhost vs dev/prod)
+				const params = new URLSearchParams({
+					genes: genesParam,
+					hypothesis: hypothesisParam
+				});
+				// Add researchContext only if it's not empty
+				if (researchContextParam) {
+					params.set('researchContext', researchContextParam);
+				}
+				const fullPath = `${link}?${params.toString()}`;
+				designUrl = this.kcURL(fullPath);
+			} else {
+				// For absolute URLs, construct query string manually
+				const params = new URLSearchParams({
+					genes: genesParam,
+					hypothesis: hypothesisParam
+				});
+				// Add researchContext only if it's not empty
+				if (researchContextParam) {
+					params.set('researchContext', researchContextParam);
+				}
+				designUrl = `${link}?${params.toString()}`;
+			}
+			
+			// Close the dialog
+			this.closeDesignToolDialog();
+			
+			// Open in new tab
+			window.open(designUrl, '_blank');
 		},
 		async openPhenotypeSelection() {
 			// Parse genes from manual input and remove duplicates
@@ -3833,6 +4376,11 @@ small.input-warning {
     font-weight: 700;
 }
 
+.high-score {
+    color: #007BFF;
+    font-weight: 700;
+}
+
 .score-value {
     font-weight: 600;
     font-size: 0.9em;
@@ -4301,6 +4849,18 @@ small.input-warning {
 
 .phenotype-table tr.selected-row:hover {
     background: #bbdefb;
+}
+
+.candidate-genes-table tr.selected-row {
+    background: #e3f2fd;
+}
+
+.candidate-genes-table tr.selected-row:hover {
+    background: #bbdefb;
+}
+
+.candidate-genes-table tr:hover {
+    background: #f8f9fa;
 }
 
 .phenotype-table input[type="checkbox"] {
