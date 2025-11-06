@@ -207,7 +207,6 @@
 						</div>
 					</div>
 					
-					<small class="format-suggestion">Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.</small>
 					<div class="textarea-container">
 						<textarea 
 							v-model="phenotypeSearch" 
@@ -245,9 +244,9 @@
 								<button 
 									@click="handleCardClick(card)"
 									class="btn btn-primary option-btn"
-									:disabled="!manualGenes.trim() || (card['card label'] === 'Hypothesis Relevance & Innovation Score' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)"
+									:disabled="!manualGenes.trim() || (card['card label'] === 'Gene Relevance & Novelty Scoring' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)"
 								>
-									<span v-if="(card['card label'] === 'Hypothesis Relevance & Innovation Score' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)" class="loading-spinner-small"></span>
+									<span v-if="(card['card label'] === 'Gene Relevance & Novelty Scoring' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)" class="loading-spinner-small"></span>
 									{{ card['open label'] }}
 								</button>
 								<span class="option-note">{{ getCardTip(card) }}</span>
@@ -320,7 +319,7 @@
 								<h4>Exploration Options</h4>
 								<p>Once you have genes, you can:</p>
 								<ul>
-									<li><strong>Generate Scores:</strong> AI analysis of gene relevance (requires hypothesis)</li>
+									<li><strong>Score Genes:</strong> AI analysis of gene relevance and novelty (requires hypothesis)</li>
 									<li><strong>GTEx Analysis:</strong> Explore gene expression across human tissues</li>
 									<li><strong>Playbook Workflow:</strong> Comprehensive gene set enrichment analysis</li>
 								</ul>
@@ -521,11 +520,241 @@
 			</div>
 		</div>
 
+		<!-- Score Generation Dialog -->
+		<div v-if="showScoreGenerationDialog" class="phenotype-dialog-overlay">
+			<div class="phenotype-dialog">
+				<div class="phenotype-dialog-header">
+					<h3>Gene Relevance & Novelty Scoring</h3>
+					<button @click="closeScoreGenerationDialog" class="close-btn">&times;</button>
+				</div>
+				<div class="phenotype-dialog-content">
+					<!-- Research Context Section -->
+					<div class="research-context-section" style="margin-bottom: 20px;">
+						<div class="section-header">
+							<h4>Research Context <span style="color: #666; font-weight: normal;">(Optional)</span></h4>
+						</div>
+						<small class="format-suggestion">Provide additional context about your research goals or focus area (e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease.")</small>
+						<div class="textarea-container">
+							<textarea 
+								v-model="scoreGenerationResearchContext" 
+								placeholder="Enter your research context..."
+								class="hypothesis-textarea"
+								rows="3"
+							></textarea>
+						</div>
+					</div>
+
+					<!-- Hypothesis Display -->
+					<div class="design-info-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+						<div class="section-header">
+							<h4>Hypothesis</h4>
+						</div>
+						<p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">{{ phenotypeSearch || 'No hypothesis provided' }}</p>
+					</div>
+
+					<!-- Genes Display -->
+					<div class="design-info-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+						<div class="section-header">
+							<h4>Genes</h4>
+						</div>
+						<p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">{{ manualGenes || 'No genes provided' }}</p>
+					</div>
+
+					<!-- Generate Scores Button and Info -->
+					<div style="margin-bottom: 20px;">
+						<div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+							<button 
+								@click="generateScores" 
+								class="btn btn-primary"
+								:disabled="isGettingGeneNovelty || !manualGenes.trim() || !phenotypeSearch.trim() || (geneData.length > 0 && genesNeedingScoresCount === 0 && !hasNewGenesToAdd)"
+							>
+								<span v-if="isGettingGeneNovelty" class="loading-spinner-small"></span>
+								<span v-if="isGettingGeneNovelty">
+									Generating scores... ({{ geneNoveltyElapsedTime }})
+								</span>
+								<span v-else-if="hasNewGenesToAdd">
+									Add Genes & Generate First Batch
+								</span>
+								<span v-else-if="genesNeedingScoresCount > 0">
+									Generate Scores for Current Page
+								</span>
+								<span v-else>
+									All Genes Scored
+								</span>
+							</button>
+							<div v-if="geneData.length > 0" style="color: #666; font-size: 13px;">
+								<span v-if="genesWithScoresCount > 0 || genesNeedingScoresCount > 0">
+									<strong>{{ genesWithScoresCount }}</strong> of <strong>{{ geneData.length }}</strong> genes scored
+									<span v-if="genesNeedingScoresCount > 0" style="color: #ff6600; margin-left: 8px;">
+										({{ genesNeedingScoresCount }} remaining)
+									</span>
+								</span>
+							</div>
+						</div>
+						<div v-if="geneData.length === 0 || hasNewGenesToAdd" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-left: 3px solid #1976d2; border-radius: 4px; font-size: 12px; color: #1976d2;">
+							<strong>Note:</strong> Scores are generated in batches of {{ noveltyScoreBatchSize }} genes. After the first batch, scores will be generated automatically as you navigate through pages.
+						</div>
+						<div v-else-if="genesNeedingScoresCount > 0" style="margin-top: 10px; padding: 10px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 4px; font-size: 12px; color: #856404;">
+							<strong>Tip:</strong> Navigate through pages to automatically generate scores for remaining genes, or click the button above to generate scores for genes on the current page.
+						</div>
+					</div>
+
+					<!-- Loading Banner -->
+					<div v-if="isGettingGeneNovelty" class="summary-loading-indicator" style="margin-bottom: 20px;">
+						<span class="loading-spinner-small"></span>
+						<span class="loading-text">Generating gene to hypothesis relevance & innovation score... ({{ geneNoveltyElapsedTime }})</span>
+					</div>
+
+					<!-- Gene Data Table -->
+					<div v-if="geneData.length > 0" class="table-container">
+						<table class="gene-data-table">
+							<thead>
+								<tr>
+									<th>Gene/Target</th>
+									<th>Hypothesis Relevance</th>
+									<th>Innovation Score</th>
+									<th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
+									<th v-if="!hasManualGenes">Associations</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="row in tableRows" :key="row.key">
+									<!-- Gene row -->
+									<template v-if="row.type === 'gene'">
+										<td>{{ row.item.gene }}</td>
+										<td>
+											<div class="relevance-cell">
+												<div v-if="getRelevance(row.item.gene)" class="score-content" :class="{ 'high-score': getRelevance(row.item.gene).score >= 7 }">
+													<div class="score-value">{{ getRelevanceScore(row.item.gene) }}</div>
+												</div>
+												<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+												<span v-else>TBD</span>
+											</div>
+										</td>
+										<td>
+											<div class="novelty-cell">
+												<div v-if="getNovelty(row.item.gene)" class="score-content" :class="{ 'high-score': getNovelty(row.item.gene).score >= 7 }">
+													<div class="score-value">{{ getNoveltyScore(row.item.gene) }}</div>
+												</div>
+												<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+												<span v-else>TBD</span>
+											</div>
+										</td>
+										<td>
+											<div class="reason-cell">
+												<div v-if="getNovelty(row.item.gene)" class="reason-content">
+													{{ getNovelty(row.item.gene).context }}
+												</div>
+												<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+												<span v-else>TBD</span>
+											</div>
+										</td>
+										<td v-if="!hasManualGenes">
+											<button 
+												@click="toggleEvidenceView(row.item.gene)"
+												class="view-button"
+												:class="{ active: expandedGenes.includes(row.item.gene) }"
+											>
+												{{ expandedGenes.includes(row.item.gene) ? 'Hide' : 'View' }}
+											</button>
+										</td>
+									</template>
+									
+									<!-- Evidence row -->
+									<template v-else-if="row.type === 'evidence'">
+										<td :colspan="hasManualGenes ? 5 : 6">
+											<div class="evidence-subtable">
+												<table class="evidence-table">
+													<thead>
+														<tr>
+															<th>Phenotype</th>
+															<th>Gene Set</th>
+															<th>Combined Genetic Support</th>
+															<th>Direct Genetic Support</th>
+															<th>Indirect Genetic Support</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr v-for="(evidence, index) in getEvidenceData(row.item)" :key="`${row.item.gene}-evidence-${index}`">
+															<td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
+															<td>{{ evidence.gene_set }}</td>
+															<td>{{ evidence.combined ? evidence.combined.toFixed(2) : 'N/A' }}</td>
+															<td>{{ evidence.log_bf ? evidence.log_bf.toFixed(2) : 'N/A' }}</td>
+															<td>{{ evidence.prior ? evidence.prior.toFixed(2) : 'N/A' }}</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</td>
+									</template>
+								</tr>
+							</tbody>
+						</table>
+						
+						<!-- Pagination -->
+						<div class="pagination-container">
+							<div class="pagination-info">
+								Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, geneData.length) }} of {{ geneData.length }} entries
+							</div>
+							<div class="pagination-controls">
+								<button 
+									@click="goToFirstPage" 
+									:disabled="currentPage === 1"
+									class="pagination-btn first-last-btn"
+									title="First page"
+								>
+									««
+								</button>
+								<button 
+									@click="previousPage" 
+									:disabled="currentPage === 1"
+									class="pagination-btn"
+								>
+									Previous
+								</button>
+								<span class="page-numbers">
+									<button 
+										v-for="page in visiblePages" 
+										:key="page"
+										@click="goToPage(page)"
+										:class="['page-btn', { 'active': page === currentPage }]"
+									>
+										{{ page }}
+									</button>
+								</span>
+								<button 
+									@click="nextPage" 
+									:disabled="currentPage === totalPages"
+									class="pagination-btn"
+								>
+									Next
+								</button>
+								<button 
+									@click="goToLastPage" 
+									:disabled="currentPage === totalPages"
+									class="pagination-btn first-last-btn"
+									title="Last page"
+								>
+									»»
+								</button>
+							</div>
+						</div>
+					</div>
+					<div v-else style="padding: 40px 20px; text-align: center; color: #666;">
+						<p>No genes in table. Click "Generate Scores" to add genes and generate scores.</p>
+					</div>
+				</div>
+				<div class="phenotype-dialog-actions">
+					<button @click="closeScoreGenerationDialog" class="btn btn-outline-secondary">Close</button>
+				</div>
+			</div>
+		</div>
+
 		<!-- Design Tool Dialog -->
 		<div v-if="showDesignToolDialog" class="phenotype-dialog-overlay">
 			<div class="phenotype-dialog">
 				<div class="phenotype-dialog-header">
-					<h3>Prepare for Design Tool</h3>
+					<h3>Candidate Gene Selection & Ranking</h3>
 					<button @click="closeDesignToolDialog" class="close-btn">&times;</button>
 				</div>
 				<div class="phenotype-dialog-content">
@@ -580,6 +809,30 @@
 								{{ allCandidateGenesSelected() ? 'Deselect All' : 'Select All' }}
 							</button>
 						</div>
+						
+						<!-- TDL Legend -->
+						<div class="tdl-legend" style="margin-bottom: 15px; padding: 12px 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+							<div style="margin-bottom: 8px; font-weight: 600; color: #333; font-size: 13px;">Target Development Level (TDL) Classification:</div>
+							<div style="display: flex; flex-wrap: nowrap; gap: 12px 20px; font-size: 12px;">
+								<div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+									<span class="tdl-badge tclin" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white; background: #007bff; flex-shrink: 0;">Tclin</span>
+									<span style="color: #666; flex: 1;">Targets of approved drugs</span>
+								</div>
+								<div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+									<span class="tdl-badge tchem" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white; background: #17a2b8; flex-shrink: 0;">Tchem</span>
+									<span style="color: #666; flex: 1;">Bind small molecules with high potency</span>
+								</div>
+								<div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+									<span class="tdl-badge tbio" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white; background: #fd7e14; flex-shrink: 0;">Tbio</span>
+									<span style="color: #666; flex: 1;">Linked to biological processes relevant to disease</span>
+								</div>
+								<div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+									<span class="tdl-badge tdark" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white; background: #dc3545; flex-shrink: 0;">Tdark</span>
+									<span style="color: #666; flex: 1;">No clinical, chemical, or biological links to disease</span>
+								</div>
+							</div>
+						</div>
+						
 						<div class="table-container">
 							<table class="candidate-genes-table" style="width: 100%; border-collapse: collapse; background: white; border: 1px solid #ddd; font-size: 13px;">
 								<thead>
@@ -596,41 +849,119 @@
 										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Classification</th>
 										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Relevance Score</th>
 										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Novelty Score</th>
+										
 										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Reason</th>
 										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Hypothesis Validation</th>
+										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">IDG Novelty</th>
+										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">IDG Evidence</th>
 									</tr>
 								</thead>
 								<tbody>
-									<tr v-for="(candidate, index) in candidateGenes" :key="index" :class="{ 'selected-row': isCandidateGeneSelected(index) }">
-										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6;">
-											<input 
-												type="checkbox" 
-												:checked="isCandidateGeneSelected(index)"
-												@change="toggleCandidateGeneSelection(index)"
-											/>
-										</td>
-										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #333;">{{ candidate.gene || 'N/A' }}</td>
-										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666;">{{ candidate.classification || 'N/A' }}</td>
-										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #666;">
-											<span v-if="candidate.relevance_score !== undefined && candidate.relevance_score !== null && candidate.relevance_score !== 'N/A'" 
-												:class="{ 'high-score': typeof candidate.relevance_score === 'number' && candidate.relevance_score >= 7 }"
-												style="font-weight: 600;"
-											>
-												{{ candidate.relevance_score }}{{ typeof candidate.relevance_score === 'number' ? '/10' : '' }}
-											</span>
-											<span v-else>N/A</span>
-										</td>
-										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #666;">
-											<span v-if="candidate.novelty_score !== undefined && candidate.novelty_score !== null && candidate.novelty_score !== 'N/A'"
-												:class="{ 'high-score': typeof candidate.novelty_score === 'number' && candidate.novelty_score >= 7 }"
-												style="font-weight: 600;"
-											>
-												{{ candidate.novelty_score }}{{ typeof candidate.novelty_score === 'number' ? '/10' : '' }}
-											</span>
-											<span v-else>N/A</span>
-										</td>
-										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666; line-height: 1.5;">{{ candidate.reason || 'N/A' }}</td>
-										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666; line-height: 1.5;">{{ candidate.hypothesis_validation || 'N/A' }}</td>
+									<tr v-for="row in candidateGenesTableRows" :key="row.key" :class="{ 'selected-row': row.type === 'candidate' && isCandidateGeneSelected(row.index) }">
+										<!-- Candidate Gene Row -->
+										<template v-if="row.type === 'candidate'">
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6;">
+												<input 
+													type="checkbox" 
+													:checked="isCandidateGeneSelected(row.index)"
+													@change="toggleCandidateGeneSelection(row.index)"
+												/>
+											</td>
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #333;">{{ row.candidate.gene || 'N/A' }}</td>
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666;">{{ row.candidate.classification || 'N/A' }}</td>
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #666;">
+												<span v-if="row.candidate.relevance_score !== undefined && row.candidate.relevance_score !== null && row.candidate.relevance_score !== 'N/A'" 
+													:class="{ 'high-score': typeof row.candidate.relevance_score === 'number' && row.candidate.relevance_score >= 7 }"
+													style="font-weight: 600;"
+												>
+													{{ row.candidate.relevance_score }}{{ typeof row.candidate.relevance_score === 'number' ? '/10' : '' }}
+												</span>
+												<span v-else>N/A</span>
+											</td>
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #666;">
+												<span v-if="row.candidate.novelty_score !== undefined && row.candidate.novelty_score !== null && row.candidate.novelty_score !== 'N/A'"
+													:class="{ 'high-score': typeof row.candidate.novelty_score === 'number' && row.candidate.novelty_score >= 7 }"
+													style="font-weight: 600;"
+												>
+													{{ row.candidate.novelty_score }}{{ typeof row.candidate.novelty_score === 'number' ? '/10' : '' }}
+												</span>
+												<span v-else>N/A</span>
+											</td>
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666; line-height: 1.5;">{{ row.candidate.reason || 'N/A' }}</td>
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; color: #666; line-height: 1.5;">{{ row.candidate.hypothesis_validation || 'N/A' }}</td>
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center; color: #666;">
+												<template v-if="row.candidate.idg_tdl">
+													<span :class="getTDLClass(row.candidate.idg_tdl)" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white;">{{ row.candidate.idg_tdl }}</span>
+													<!--<span>{{ row.candidate.idg_novelty !== null && row.candidate.idg_novelty !== undefined ? ` (${row.candidate.idg_novelty})` : '' }}</span>
+													-->
+												</template>
+												<span v-else-if="row.candidate.idg_tdl === undefined" style="color: #999; font-style: italic;">
+													Loading...
+												</span>
+												<span v-else>N/A</span>
+											</td>
+											<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center;">
+												<button 
+													v-if="row.candidate.idg_fullData"
+													@click="toggleIDGEvidenceView(row.candidate.gene)"
+													class="idg-view-button"
+													:class="{ active: expandedIDGGenes.includes(row.candidate.gene) }"
+												>
+													{{ expandedIDGGenes.includes(row.candidate.gene) ? 'Hide' : 'View' }}
+												</button>
+												<span v-else-if="row.candidate.idg_fullData === undefined" style="color: #999; font-style: italic; font-size: 12px;">Loading...</span>
+												<span v-else style="color: #999; font-size: 12px;">N/A</span>
+											</td>
+										</template>
+										<!-- IDG Evidence Subtable Row -->
+										<template v-else-if="row.type === 'idg-evidence'">
+											<td :colspan="9" style="padding: 0; border-bottom: 1px solid #dee2e6;">
+												<div class="idg-evidence-subtable">
+													<table class="idg-evidence-table">
+														<thead>
+															<tr>
+																<th>Gene Symbol</th>
+																<th>Name</th>
+																<th>Family</th>
+																<th>TDL</th>
+																<th>Description</th>
+																<th>Novelty</th>
+																<th>Visit Pharos</th>
+															</tr>
+														</thead>
+														<tbody>
+															<tr>
+																<td>{{ row.candidate.idg_fullData.sym || 'N/A' }}</td>
+																<td>{{ row.candidate.idg_fullData.name || 'N/A' }}</td>
+																<td>{{ row.candidate.idg_fullData.fam || 'N/A' }}</td>
+																<td>
+																	<span v-if="row.candidate.idg_fullData.tdl" 
+																		:class="getTDLClass(row.candidate.idg_fullData.tdl)"
+																		style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white;"
+																	>
+																		{{ row.candidate.idg_fullData.tdl }}
+																	</span>
+																	<span v-else>N/A</span>
+																</td>
+																<td style="max-width: 400px; word-wrap: break-word;">{{ row.candidate.idg_fullData.description || 'N/A' }}</td>
+																<td>{{ row.candidate.idg_fullData.novelty !== null && row.candidate.idg_fullData.novelty !== undefined ? row.candidate.idg_fullData.novelty : 'N/A' }}</td>
+																<td>
+																	<a 
+																		v-if="row.candidate.idg_fullData.sym"
+																		:href="`https://pharos.nih.gov/targets/${row.candidate.idg_fullData.sym}`"
+																		target="_blank"
+																		style="color: #FF6600; text-decoration: none; font-weight: 600;"
+																	>
+																		Open
+																	</a>
+																	<span v-else>N/A</span>
+																</td>
+															</tr>
+														</tbody>
+													</table>
+												</div>
+											</td>
+										</template>
 									</tr>
 								</tbody>
 							</table>
@@ -647,7 +978,7 @@
 							:disabled="isRankingGenes"
 						>
 							<span v-if="isRankingGenes" class="loading-spinner-small"></span>
-							{{ isRankingGenes ? `Ranking genes... (${geneRankingElapsedTime})` : 'Prepare for DESIGN' }}
+							{{ isRankingGenes ? `Ranking genes... (${geneRankingElapsedTime})` : 'Rank Genes' }}
 						</button>
 						<button 
 							v-else
@@ -662,149 +993,6 @@
 			</div>
 		</div>
 
-		<!-- Gene Data Table -->
-		<div v-if="geneData.length > 0" id="gene-data-table-section" class="gene-data-table-section">
-			<!-- Loading Banner (simplified like validation planner) -->
-			<div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
-				<span class="loading-spinner-small"></span>
-				<span class="loading-text">Generating gene to hypothesis relevance & innovation score... ({{ geneNoveltyElapsedTime }})</span>
-			</div>
-			
-			<div class="table-container">
-				<table class="gene-data-table">
-					<thead>
-						<tr>
-							<th>Gene/Target</th>
-							<th>Hypothesis Relevance</th>
-							<th>Innovation Score</th>
-							<th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
-							<th v-if="!hasManualGenes">Associations</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="row in tableRows" :key="row.key">
-							<!-- Gene row -->
-							<template v-if="row.type === 'gene'">
-								<td>{{ row.item.gene }}</td>
-								<td>
-									<div class="relevance-cell">
-										<div v-if="getRelevance(row.item.gene)" class="score-content" :class="{ 'high-score': getRelevance(row.item.gene).score >= 7 }">
-											<div class="score-value">{{ getRelevanceScore(row.item.gene) }}</div>
-										</div>
-										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
-										<span v-else>TBD</span>
-									</div>
-								</td>
-								<td>
-									<div class="novelty-cell">
-										<div v-if="getNovelty(row.item.gene)" class="score-content" :class="{ 'high-score': getNovelty(row.item.gene).score >= 7 }">
-											<div class="score-value">{{ getNoveltyScore(row.item.gene) }}</div>
-										</div>
-										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
-										<span v-else>TBD</span>
-									</div>
-								</td>
-								<td>
-									<div class="reason-cell">
-										<div v-if="getNovelty(row.item.gene)" class="reason-content">
-											{{ getNovelty(row.item.gene).context }}
-										</div>
-										<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
-										<span v-else>TBD</span>
-									</div>
-								</td>
-								<td v-if="!hasManualGenes">
-									<button 
-										@click="toggleEvidenceView(row.item.gene)"
-										class="view-button"
-										:class="{ active: expandedGenes.includes(row.item.gene) }"
-									>
-										{{ expandedGenes.includes(row.item.gene) ? 'Hide' : 'View' }}
-									</button>
-								</td>
-							</template>
-							
-							<!-- Evidence row -->
-							<template v-else-if="row.type === 'evidence'">
-								<td :colspan="hasManualGenes ? 5 : 6">
-									<div class="evidence-subtable">
-										<table class="evidence-table">
-											<thead>
-												<tr>
-													<th>Phenotype</th>
-													<th>Gene Set</th>
-													<th>Combined Genetic Support</th>
-													<th>Direct Genetic Support</th>
-													<th>Indirect Genetic Support</th>
-												</tr>
-											</thead>
-											<tbody>
-												<tr v-for="(evidence, index) in getEvidenceData(row.item)" :key="`${row.item.gene}-evidence-${index}`">
-													<td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
-													<td>{{ evidence.gene_set }}</td>
-													<td>{{ evidence.combined ? evidence.combined.toFixed(2) : 'N/A' }}</td>
-													<td>{{ evidence.log_bf ? evidence.log_bf.toFixed(2) : 'N/A' }}</td>
-													<td>{{ evidence.prior ? evidence.prior.toFixed(2) : 'N/A' }}</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</td>
-							</template>
-						</tr>
-					</tbody>
-				</table>
-				
-				<!-- Pagination -->
-				<div class="pagination-container">
-					<div class="pagination-info">
-						Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, geneData.length) }} of {{ geneData.length }} entries
-					</div>
-					<div class="pagination-controls">
-						<button 
-							@click="goToFirstPage" 
-							:disabled="currentPage === 1"
-							class="pagination-btn first-last-btn"
-							title="First page"
-						>
-							««
-						</button>
-						<button 
-							@click="previousPage" 
-							:disabled="currentPage === 1"
-							class="pagination-btn"
-						>
-							Previous
-						</button>
-						<span class="page-numbers">
-							<button 
-								v-for="page in visiblePages" 
-								:key="page"
-								@click="goToPage(page)"
-								:class="['page-btn', { 'active': page === currentPage }]"
-							>
-								{{ page }}
-							</button>
-						</span>
-						<button 
-							@click="nextPage" 
-							:disabled="currentPage === totalPages"
-							class="pagination-btn"
-						>
-							Next
-						</button>
-						<button 
-							@click="goToLastPage" 
-							:disabled="currentPage === totalPages"
-							class="pagination-btn first-last-btn"
-							title="Last page"
-						>
-							»»
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
 	</div>
 </template>
 
@@ -830,15 +1018,16 @@ export default {
             // Exploration cards configuration
             explorationCards: [
                 {
-                    "card label": "Hypothesis Relevance & Innovation Score",
-                    "card description": "Generate AI-powered scores showing how relevant and novel each gene is to your specific hypothesis. This will help prioritize which genes are most important for your research.",
+                    "card label": "Gene Relevance & Novelty Scoring",
+                    "card description": "Evaluate all genes in your list by generating AI-powered relevance and novelty scores based on your hypothesis and research context. The system identifies relevant tissues from your hypothesis, links each gene's function to the hypothesis mechanism, and assesses research standing to help prioritize genes for your study.",
                     "details": [
-                        "Hypothesis Relevance (1-10)",
-                        "Innovation Score (1-10)",
-                        "Molecular rationale for each gene",
-                        "AI-generated context and justification"
+                        "Relevance Score (1-10): Links gene function to hypothesis and identifies relevant tissues",
+                        "Novelty Score (1-10): Classifies gene role and evaluates research standing",
+                        "Research context integration: Considers your research goals (e.g., drug targets, mechanistic understanding)",
+                        "Molecular rationale: AI-generated justification (max 40 words) for both scores",
+                        "Batch processing: Scores generated automatically as you navigate through pages"
                     ],
-                    "open label": "Generate Scores",
+                    "open label": "Score Genes",
                     "link": null,
                     "link tip": "Requires hypothesis input",
                     "required parameters": ["genes", "hypothesis"],
@@ -848,21 +1037,22 @@ export default {
                     "condition": "hypothesis"
                 },
                 {
-                    "card label": "Design Validation Experiments",
-                    "card description": "Generate AI-powered validation experiment protocols for your genes and hypothesis. Design comprehensive experiments to test your hypothesis with customizable assay types, cell types, and readouts.",
+                    "card label": "Candidate Gene Selection & Ranking",
+                    "card description": "Select and rank candidate genes from your list that meet three criteria: relevance to hypothesis mechanism, alignment with research context goals, and high experimental novelty (tissue-specific, mechanistic, or contextual). The system trims to core functional groups, evaluates each gene, and provides classification and hypothesis validation potential before opening the Design Tool.",
                     "details": [
-                        "AI-generated experiment protocols",
-                        "Customizable assay types and cell types",
-                        "Multiple readout options",
-                        "Feasibility analysis and timelines",
-                        "Strategic validation recommendations"
+                        "Gene filtering: Trims to core functional groups, excludes well-studied components",
+                        "Novelty evaluation: Tissue-specific, mechanistic, or contextual (based on research context)",
+                        "Selection criteria: Relevant + meets research context + high experimental novelty",
+                        "Gene classification: Core components, signaling kinases, regulatory factors, etc.",
+                        "IDG data integration: Target Development Level (TDL) and novelty scores",
+                        "Opens Design Tool with selected candidate genes to generate experiment protocols"
                     ],
-                    "open label": "Open Design Tool",
+                    "open label": "Select Candidate Genes",
                     "link": "/r/cfde_design",
                     "link tip": "Requires genes and hypothesis • Opens in new tab",
                     "required parameters": ["genes", "hypothesis"],
                     "handler": "openDesignTool",
-                    "badge": "Experiment Design",
+                    "badge": "Gene Selection",
                     "linkType": "query", // Uses query parameters for genes and hypothesis
                     "condition": "hypothesis"
                 },
@@ -1031,6 +1221,9 @@ export default {
 			// Design tool dialog state
 			showDesignToolDialog: false,
 			designToolResearchContext: '',
+			// Score generation dialog state
+			showScoreGenerationDialog: false,
+			scoreGenerationResearchContext: '',
 			// Gene ranking state
 			isRankingGenes: false,
 			candidateGenes: [], // Stores full candidate gene objects with all fields
@@ -1038,7 +1231,8 @@ export default {
 			geneRankingTimer: null,
 			geneRankingElapsedTime: '0:00',
 			geneRankingStartTime: null,
-			geneRankingStep: '' // Current step message for gene ranking
+			geneRankingStep: '', // Current step message for gene ranking
+			expandedIDGGenes: [] // Track which candidate genes have IDG evidence expanded
 		};
 	},
 	modules: {
@@ -1191,15 +1385,16 @@ export default {
 			});
 		},
 		gene_novelty_prompt() {
-			return `Generate a JSON array for up to ${this.noveltyScoreBatchSize} genes based on the hypothesis below.
+			return `Generate a JSON array for up to ${this.noveltyScoreBatchSize} genes based on the hypothesis and research context below.
 
 **Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
+**Research Context (Optional):** [INSERT RESEARCH CONTEXT HERE, e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease."]
 **Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX ${this.noveltyScoreBatchSize})]
 
 **Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 40 words) that justifies both scores.
 
 **Workflow:** Prioritize speed. Determine all scores/reasoning concurrently across the gene list.
-***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance). The LLM MUST first identify the RELEVANT TISSUE(S) mentioned in the Hypothesis (e.g., "brown adipose," "brain," and "heart") and explicitly integrate the role of ANY of the identified tissue(s) into the relevance justification. Contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator), justifying its research standing.***
+***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance). The LLM MUST first identify the RELEVANT TISSUE(S) mentioned in the Hypothesis (e.g., "brown adipose," "brain," and "heart") and explicitly integrate the role of ANY of the identified tissue(s) into the relevance justification. If **Research Context** is provided, the relevance and novelty scores must also consider how the gene's function aligns with the specific goals or focus areas mentioned in the Research Context (e.g., drug target identification, mechanistic understanding, therapeutic intervention). Contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator), justifying its research standing, and considering its potential within the Research Context if provided.***
 ***If information is unavailable for a gene, set both scores to "N/A" and explain why in 'reason' (≤40 words).***
 
 Novelty Score (1=Highly Studied, 10=Poorly Studied).
@@ -1456,8 +1651,54 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			if (this.hypothesisPhenotypesItemsPerPage === 'all') return 1;
 			return Math.ceil(this.hypothesisPhenotypes.length / this.hypothesisPhenotypesItemsPerPage);
 		},
+		candidateGenesTableRows() {
+			// Create rows with IDG evidence for proper table structure
+			const rows = [];
+			this.candidateGenes.forEach((candidate, index) => {
+				// Add the main candidate gene row
+				rows.push({
+					type: 'candidate',
+					candidate: candidate,
+					index: index,
+					key: `candidate-${index}-${candidate.gene}`
+				});
+				
+				// Add IDG evidence row if expanded
+				if (this.expandedIDGGenes.includes(candidate.gene) && candidate.idg_fullData) {
+					rows.push({
+						type: 'idg-evidence',
+						candidate: candidate,
+						index: index,
+						key: `idg-evidence-${index}-${candidate.gene}`
+					});
+				}
+			});
+			return rows;
+		},
+		genesWithScoresCount() {
+			// Count how many genes in the table have scores
+			return this.geneData.filter(gene => 
+				gene.gene && 
+				(this.geneNovelty[gene.gene] || this.geneRelevance[gene.gene])
+			).length;
+		},
+		genesNeedingScoresCount() {
+			// Count how many genes in the table still need scores
+			return this.geneData.filter(gene => 
+				gene.gene && 
+				!this.geneNovelty[gene.gene] && 
+				!this.geneRelevance[gene.gene]
+			).length;
+		},
+		hasNewGenesToAdd() {
+			// Check if there are genes in manualGenes that aren't in the table yet
+			if (!this.manualGenes.trim()) return false;
+			const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
+			const existingGenes = this.geneData.map(gene => gene.gene);
+			return geneList.some(gene => !existingGenes.includes(gene));
+		},
 	},
-		watch: {
+	watch: {
 			utilsBox: {
 				handler(newVal) {
 					if (newVal && newVal.keyParams) {
@@ -1809,6 +2050,12 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 					hypothesisFound = true;
 				}
 				
+				// Populate research context field if keyParams['researchContext'] exists
+				if (this.utilsBox.keyParams['researchContext'] && typeof this.utilsBox.keyParams['researchContext'] === 'string') {
+					this.researchContext = this.utilsBox.keyParams['researchContext'];
+					this.designToolResearchContext = this.utilsBox.keyParams['researchContext'];
+				}
+				
 				// Check for associations parameter
 				if (this.utilsBox.keyParams['geneSets'] && typeof this.utilsBox.keyParams['geneSets'] === 'string') {
 					this.geneSets = this.utilsBox.keyParams['geneSets'];
@@ -1992,9 +2239,13 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 					return;
 				}
 				
+				// Get research context (use score generation dialog context or main context)
+				const researchContextValue = this.scoreGenerationResearchContext.trim() || this.researchContext.trim() || 'No specific research context provided.';
+				
 				// Prepare the prompt
 				const prompt = this.gene_novelty_prompt
 					.replace('[INSERT YOUR HYPOTHESIS HERE]', this.phenotypeSearch.trim() || 'No specific hypothesis provided')
+					.replace('[INSERT RESEARCH CONTEXT HERE, e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease."]', researchContextValue)
 					.replace(`[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX ${this.noveltyScoreBatchSize})]`, genesToProcess.join(', '));
 				
 				// Call the LLM
@@ -2402,10 +2653,35 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			if (!this.manualGenes.trim()) return 0;
 			return this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene).length;
 		},
-		async generateHypothesisAlignment() {
+		openScoreGenerationDialog() {
 			// Check if hypothesis is provided
 			if (!this.phenotypeSearch.trim()) {
 				alert('Please provide a hypothesis in the "Hypothesis to Validate" section before generating scores.');
+				return;
+			}
+
+			// Check if genes are provided
+			if (!this.manualGenes.trim()) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// Initialize research context if not already set
+			if (!this.scoreGenerationResearchContext) {
+				this.scoreGenerationResearchContext = this.researchContext || '';
+			}
+
+			// Show the dialog
+			this.showScoreGenerationDialog = true;
+		},
+		closeScoreGenerationDialog() {
+			this.showScoreGenerationDialog = false;
+			// Don't clear geneData or scores - they should persist
+		},
+		async generateScores() {
+			// Check if hypothesis is provided
+			if (!this.phenotypeSearch.trim()) {
+				alert('Please provide a hypothesis before generating scores.');
 				return;
 			}
 
@@ -2429,23 +2705,20 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			// Find new genes that aren't already in the table
 			const newGenes = geneList.filter(gene => !existingGenes.includes(gene));
 			
-			if (newGenes.length === 0) {
-				alert('All genes in your input are already in the table. No new genes to process.');
+			if (newGenes.length === 0 && existingGenes.length > 0) {
+				alert('All genes in your input are already in the table. Scores will be generated for existing genes as you navigate through pages.');
+				// Still allow generating scores for existing genes on current page
+				await this.getNoveltyForCurrentPage();
 				return;
 			}
 
-			// If there are existing genes, show info about what we're doing
-			if (existingGenes.length > 0) {
-				alert(`Found ${newGenes.length} new genes to process (${geneList.length - newGenes.length} genes already in table). Processing new genes...`);
+			// Process only new genes, but generate scores for first batch initially
+			const genesToProcess = newGenes;
+			if (newGenes.length > this.noveltyScoreBatchSize) {
+				console.log(`Processing ${newGenes.length} new genes. Scores for the first ${this.noveltyScoreBatchSize} genes will be generated initially, and scores for remaining genes will be generated as you navigate through pages.`);
 			}
 
-		// Process only new genes, but generate scores for first batch initially
-		const genesToProcess = newGenes;
-		if (newGenes.length > this.noveltyScoreBatchSize) {
-			alert(`Processing ${newGenes.length} new genes. Scores for the first ${this.noveltyScoreBatchSize} genes will be generated initially, and scores for remaining genes will be generated as you navigate through pages.`);
-		}
-
-			// Set loading state and start timer (simplified like validation planner)
+			// Set loading state and start timer
 			this.isGettingGeneNovelty = true;
 			this.geneNoveltyStartTime = Date.now();
 			this.geneNoveltyElapsedTime = '0:00';
@@ -2462,47 +2735,44 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 
 			try {
 				// Add genes to the table first (similar to addManualGenes but without clearing input)
-				const genesToAdd = genesToProcess.map(gene => ({
-							gene: gene,
-					log_bf: null,
-					prior: null,
-					combined: null,
-					directPPA: null,
-					indirectPPA: null,
-					source: 'Manual Input',
-					phenotype: 'Manual Input',
-							isManual: true
-						}));
-						
-				// Add to existing gene data
-				this.geneData = [...this.geneData, ...genesToAdd];
-				this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
-
-				// Keep genes in input field for other explore options
-
-				// Scroll to gene data table
-				this.$nextTick(() => {
-					const geneTableSection = document.getElementById('gene-data-table-section');
-					if (geneTableSection) {
-						geneTableSection.scrollIntoView({ 
-							behavior: 'smooth', 
-							block: 'start',
-							inline: 'nearest'
-						});
-					}
-				});
+				if (genesToProcess.length > 0) {
+					const genesToAdd = genesToProcess.map(gene => ({
+						gene: gene,
+						log_bf: null,
+						prior: null,
+						combined: null,
+						directPPA: null,
+						indirectPPA: null,
+						source: 'Manual Input',
+						phenotype: 'Manual Input',
+						isManual: true
+					}));
+					
+					// Add to existing gene data
+					this.geneData = [...this.geneData, ...genesToAdd];
+					this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
+				}
 
 				// Generate scores for first batch initially
-				const firstBatch = genesToProcess.slice(0, this.noveltyScoreBatchSize);
-				await this.getNoveltyForManualGenes(firstBatch);
+				if (genesToProcess.length > 0) {
+					const firstBatch = genesToProcess.slice(0, this.noveltyScoreBatchSize);
+					await this.getNoveltyForManualGenes(firstBatch);
+				} else {
+					// If no new genes, generate scores for current page
+					await this.getNoveltyForCurrentPage();
+				}
 
 			} catch (error) {
-				console.error('Error generating hypothesis alignment:', error);
-				alert('Error generating hypothesis alignment. Please try again.');
+				console.error('Error generating scores:', error);
+				alert('Error generating scores. Please try again.');
 				// Reset loading state and clear timer on error
 				this.isGettingGeneNovelty = false;
 				this.clearGeneNoveltyTimer();
 			}
+		},
+		async generateHypothesisAlignment() {
+			// Open the score generation dialog instead of generating scores directly
+			this.openScoreGenerationDialog();
 		},
 		exploreGTExExpression() {
 			// Parse genes from manual input
@@ -2727,6 +2997,13 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				// Get research context (use dialog input or existing context)
 				const researchContextValue = this.designToolResearchContext.trim() || this.researchContext.trim() || 'No specific research context provided.';
 				
+				// Update URL with researchContext parameter if provided
+				if (this.designToolResearchContext.trim()) {
+					this.updateURLParameter('researchContext', this.designToolResearchContext.trim());
+				} else if (this.researchContext.trim()) {
+					this.updateURLParameter('researchContext', this.researchContext.trim());
+				}
+				
 				// Prepare the prompt
 				const prompt = this.gene_ranking_prompt
 					.replace('[Insert Specific Hypothesis Here.]', this.phenotypeSearch.trim())
@@ -2736,7 +3013,7 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				console.log('[Prepare for Design] Full prompt sent to LLM:', prompt);
 
 				// Update step message
-				this.geneRankingStep = 'Evaluating gene relevance and novelty scores...';
+				this.geneRankingStep = 'AI filtering and ranking genes by relevance and novelty to hypothesis and research context...';
 
 				// Call LLM to rank genes
 				this.rankGenes.sendPrompt({
@@ -2762,10 +3039,25 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 								this.geneRankingStep = `Found ${candidateGenesData.length} candidate gene(s). Finalizing selection...`;
 								
 								// Store full candidate gene objects with all fields
-								this.candidateGenes = candidateGenesData.filter(item => item.gene && item.gene.trim());
+								let filteredGenes = candidateGenesData.filter(item => item.gene && item.gene.trim());
+								
+								// Sort by combined score (relevance_score + novelty_score) in descending order
+								filteredGenes.sort((a, b) => {
+									const scoreA = this.getCombinedScore(a);
+									const scoreB = this.getCombinedScore(b);
+									return scoreB - scoreA; // Descending order
+								});
+								
+								this.candidateGenes = filteredGenes;
 								// Pre-select all candidate genes by default
 								this.selectedCandidateGenes = this.candidateGenes.map((_, index) => index);
-								console.log(`[Prepare for Design] Found ${this.candidateGenes.length} candidate genes:`, this.candidateGenes);
+								console.log(`[Prepare for Design] Found ${this.candidateGenes.length} candidate genes (sorted by combined score):`, this.candidateGenes);
+								
+								// Fetch IDG data for all candidate genes
+								this.fetchIDGDataForCandidateGenes().then(() => {
+									// Clear step message after IDG data is fetched
+									this.geneRankingStep = '';
+								});
 							} else {
 								console.warn('[Prepare for Design] No candidate genes found in LLM response');
 								alert('No candidate genes were selected. Please try again or use all genes.');
@@ -2831,6 +3123,126 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 		},
 		someCandidateGenesSelected() {
 			return this.selectedCandidateGenes.length > 0 && this.selectedCandidateGenes.length < this.candidateGenes.length;
+		},
+		getTDLClass(tdl) {
+			// Return CSS class based on TDL value for styling
+			if (!tdl) return '';
+			const tdlUpper = String(tdl).toUpperCase();
+			if (tdlUpper === 'TCLIN') return 'tdl-badge tclin';
+			if (tdlUpper === 'TCHEM') return 'tdl-badge tchem';
+			if (tdlUpper === 'TBIO') return 'tdl-badge tbio';
+			if (tdlUpper === 'TDARK') return 'tdl-badge tdark';
+			return 'tdl-badge';
+		},
+		getCombinedScore(candidate) {
+			// Calculate combined score from relevance_score and novelty_score
+			let relevance = 0;
+			let novelty = 0;
+			
+			if (candidate.relevance_score !== undefined && candidate.relevance_score !== null && candidate.relevance_score !== 'N/A') {
+				relevance = typeof candidate.relevance_score === 'number' ? candidate.relevance_score : 0;
+			}
+			
+			if (candidate.novelty_score !== undefined && candidate.novelty_score !== null && candidate.novelty_score !== 'N/A') {
+				novelty = typeof candidate.novelty_score === 'number' ? candidate.novelty_score : 0;
+			}
+			
+			return relevance + novelty;
+		},
+		toggleIDGEvidenceView(geneSymbol) {
+			// Toggle IDG evidence view for a candidate gene
+			const index = this.expandedIDGGenes.indexOf(geneSymbol);
+			if (index > -1) {
+				this.expandedIDGGenes.splice(index, 1);
+			} else {
+				this.expandedIDGGenes.push(geneSymbol);
+			}
+		},
+		getIDGDataForGene(geneSymbol) {
+			// Get IDG data for a specific gene from candidate genes
+			const candidate = this.candidateGenes.find(c => c.gene === geneSymbol);
+			return candidate && candidate.idg_fullData ? candidate.idg_fullData : null;
+		},
+		async queryIDGForGene(geneSymbol) {
+			// Query IDG/Pharos GraphQL API for a single gene
+			try {
+				const graphqlUrl = 'https://pharos-api.ncats.io/graphql';
+				const queryString = `query targetDetails{\n\n target(q: { sym: \"${geneSymbol}\" }) {\n\n name\n\n tdl\n\n fam\n\n sym\n\n description\n\n novelty }}`;
+				
+				const response = await fetch(graphqlUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ query: queryString })
+				});
+
+				if (!response.ok) {
+					throw new Error(`GraphQL request failed with status ${response.status}`);
+				}
+
+				const data = await response.json();
+				
+				// Extract target data using data wrapper path: ["data", "target"]
+				if (data && data.data && data.data.target) {
+					return data.data.target;
+				}
+				
+				return null;
+			} catch (error) {
+				console.error(`[IDG Query] Error fetching IDG data for gene ${geneSymbol}:`, error);
+				return null;
+			}
+		},
+		async fetchIDGDataForCandidateGenes() {
+			// Fetch IDG data for all candidate genes in parallel
+			if (!this.candidateGenes || this.candidateGenes.length === 0) {
+				return;
+			}
+
+			// Update step message
+			this.geneRankingStep = `Fetching IDG novelty data for ${this.candidateGenes.length} gene(s)...`;
+
+			try {
+				// Fetch IDG data for all genes in parallel
+				const idgPromises = this.candidateGenes.map(async (candidate, index) => {
+					if (!candidate.gene) {
+						return { index, idgData: null };
+					}
+
+					const idgData = await this.queryIDGForGene(candidate.gene);
+					
+					// Update progress
+					this.geneRankingStep = `Fetching IDG novelty data (${index + 1}/${this.candidateGenes.length} genes)...`;
+					
+					return { index, idgData };
+				});
+
+				const results = await Promise.all(idgPromises);
+
+				// Add IDG data to candidate genes
+				results.forEach(({ index, idgData }) => {
+					if (this.candidateGenes[index]) {
+						if (idgData) {
+							// Store full IDG data object for subtable display
+							this.$set(this.candidateGenes[index], 'idg_fullData', idgData);
+							// Add TDL (novelty score) to the candidate gene object
+							this.$set(this.candidateGenes[index], 'idg_tdl', idgData.tdl || null);
+							this.$set(this.candidateGenes[index], 'idg_novelty', idgData.novelty || null);
+						} else {
+							// Mark as fetched but no data available
+							this.$set(this.candidateGenes[index], 'idg_fullData', null);
+							this.$set(this.candidateGenes[index], 'idg_tdl', null);
+							this.$set(this.candidateGenes[index], 'idg_novelty', null);
+							this.$set(this.candidateGenes[index], 'idg_fetched', true);
+						}
+					}
+				});
+
+				console.log('[IDG Query] Finished fetching IDG data for all candidate genes');
+			} catch (error) {
+				console.error('[IDG Query] Error fetching IDG data:', error);
+			}
 		},
 		openDesignToolWithSelectedGenes() {
 			// Get selected genes from candidate genes
@@ -3390,6 +3802,12 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 
 				// Generate hypothesis using LLM
 				const researchContextValue = this.researchContext.trim() || 'No specific research context provided.';
+				
+				// Update URL with researchContext parameter if provided
+				if (this.researchContext.trim()) {
+					this.updateURLParameter('researchContext', this.researchContext.trim());
+				}
+				
 				const prompt = this.hypothesis_generation_prompt
 					.replace('[INSERT RESEARCH CONTEXT HERE, e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease."]', researchContextValue)
 					.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE]', uniqueGeneList.join(', '))
@@ -3432,6 +3850,9 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 								
 								// Close the dialog
 								this.closePhenotypeDialog();
+								
+								// Show alert message
+								alert('A hypothesis has been generated and placed in the hypothesis field. To update the hypothesis, use the "Update Hypothesis" button.');
 							} else {
 								console.warn('[Generate Hypothesis] Empty hypothesis generated');
 								alert('A hypothesis could not be generated. Please try again.');
@@ -4420,12 +4841,63 @@ small.input-warning {
     background: #6c757d;
 }
 
+.idg-view-button {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.idg-view-button:hover {
+    background: #5a6268;
+}
+
+.idg-view-button.active {
+    background: #495057;
+}
+
 .evidence-subtable {
     margin: 10px 0;
     padding: 15px;
     background: #f8f9fa;
     border: 1px solid #dee2e6;
     border-radius: 4px;
+}
+
+.idg-evidence-subtable {
+    margin: 10px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.idg-evidence-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+}
+
+.idg-evidence-table th {
+    background: #e9ecef;
+    color: #333;
+    font-weight: 600;
+    padding: 8px 6px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.idg-evidence-table td {
+    padding: 6px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.idg-evidence-table tr:hover {
+    background: #f1f3f4;
 }
 
 .evidence-table {
@@ -4861,6 +5333,35 @@ small.input-warning {
 
 .candidate-genes-table tr:hover {
     background: #f8f9fa;
+}
+
+/* TDL Badge Styles */
+.tdl-badge {
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-weight: 600;
+	font-size: 11px;
+	color: white;
+}
+
+.tdl-badge.tclin {
+    background: #007bff !important;
+    color: white !important;
+}
+
+.tdl-badge.tchem {
+    background: #17a2b8 !important;
+    color: white !important;
+}
+
+.tdl-badge.tbio {
+    background: #fd7e14 !important;
+    color: white !important;
+}
+
+.tdl-badge.tdark {
+    background: #dc3545 !important;
+    color: white !important;
 }
 
 .phenotype-table input[type="checkbox"] {
