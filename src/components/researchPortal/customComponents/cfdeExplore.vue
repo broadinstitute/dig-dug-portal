@@ -79,21 +79,61 @@
 						<small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
 					</div>
 
-					<!-- Gene Input Section (Primary) -->
-					<div class="gene-input-section">
-						<div class="section-header">
-							<h4>Genes</h4>
-						</div>
-						<small class="format-suggestion">Enter genes separated by commas (e.g., GENE1, GENE2, GENE3)</small>
-						<textarea 
-							id="manual-genes"
-							v-model="manualGenes" 
-							placeholder="e.g., TP53, BRCA1, MYC, EGFR"
-							class="manual-genes-field"
-							rows="2"
-						></textarea>
-						<!-- Gene actions will be moved to user options -->
+				<!-- Gene Input Section (Primary) -->
+				<div class="gene-input-section">
+					<div class="section-header">
+						<h4>Genes</h4>
 					</div>
+					
+					<!-- Gene Filter Section -->
+					<div v-if="(fetchedGeneData.length > 0 || geneData.length > 0) && !hasManualGenes" class="gene-filter-section">
+						<div class="filter-checkboxes-column">
+							<div class="overlap-filter">
+								<label class="overlap-checkbox-label">
+									<input 
+										type="checkbox" 
+										v-model="showOnlyLogBfGenes"
+										@change="updateFilteredGenesAndInput"
+										class="overlap-checkbox"
+									/>
+									Filter out {{ genesWithLogBfZero }} genes with direct genetic support score == 0
+								</label>
+							</div>
+							<div class="overlap-filter">
+								<label class="overlap-checkbox-label" :class="{ 'disabled': shouldDisableOverlappingFilter }">
+									<input 
+										type="checkbox" 
+										v-model="showOnlyOverlappingGenes"
+										@change="updateFilteredGenesAndInput"
+										class="overlap-checkbox"
+										:disabled="shouldDisableOverlappingFilter"
+									/>
+									<span v-if="!shouldDisableOverlappingFilter">
+										Show {{ overlappingGenesCount }} overlapping genes only
+									</span>
+									<span v-else class="disabled-text">
+										Overlapping genes filter (disabled - only one association or manual genes)
+									</span>
+								</label>
+							</div>
+						</div>
+					</div>
+					
+					<small class="format-suggestion">
+						Enter genes separated by commas (e.g., GENE1, GENE2, GENE3)
+						<span v-if="getGeneCountFromInput() > 0" style="margin-left: 8px; font-weight: 600; color: #333;">
+							({{ getGeneCountFromInput() }} gene{{ getGeneCountFromInput() !== 1 ? 's' : '' }})
+						</span>
+					</small>
+					<textarea 
+						id="manual-genes"
+						v-model="manualGenes" 
+						placeholder="e.g., TP53, BRCA1, MYC, EGFR"
+						class="manual-genes-field"
+						rows="2"
+					></textarea>
+					<!-- Gene actions will be moved to user options -->
+				</div>
 				</div>
 
 				<!-- hypothesis section -->
@@ -694,7 +734,7 @@
 						<!-- Pagination -->
 						<div class="pagination-container">
 							<div class="pagination-info">
-								Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, geneData.length) }} of {{ geneData.length }} entries
+								Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredGenes.length) }} of {{ filteredGenes.length }} entries
 							</div>
 							<div class="pagination-controls">
 								<button 
@@ -1145,8 +1185,14 @@ export default {
             
             // Gene data table properties
             geneData: [],
-            originalGeneData: [], // Store original data before merging
-            fetchedGeneData: [], // Store fetched data before user adds to table
+            originalGeneData: [], // Store original raw association data (one entry per gene-association pair) for filtering
+            fetchedGeneData: [], // Store fetched grouped data before user adds to table
+            fetchedRawGeneData: [], // Store raw association data from API before grouping (for filtering)
+            filteredGenes: [],
+            filteredOutCount: 0, // Count of genes filtered out due to log_bf = 0
+            overlappingFilteredCount: 0, // Count of genes filtered out by overlapping filter
+            showOnlyLogBfGenes: true, // Filter to show only genes with log_bf > 0
+            showOnlyOverlappingGenes: true, // Filter to show only overlapping genes
             currentPage: 1,
             itemsPerPage: 10,
             selectedGenes: [],
@@ -1264,6 +1310,12 @@ export default {
                 system_prompt: this.gene_ranking_prompt
             });
 
+            this.filterGenes = createLLMClient({
+                llm: "gemini",
+                model: "gemini-2.5-flash",
+                system_prompt: this.gene_filtering_prompt
+            });
+
         } else if(this.sectionConfigs.llm === "openai") {
             this.getGeneNovelty = createLLMClient({
 				llm: "openai",
@@ -1287,6 +1339,12 @@ export default {
 				llm: "openai",
 				model: "gpt-5-mini",
 				system_prompt: this.gene_ranking_prompt
+			});
+
+			this.filterGenes = createLLMClient({
+				llm: "openai",
+				model: "gpt-5-mini",
+				system_prompt: this.gene_filtering_prompt
 			});
         } else {
 			// Default to Gemini if LLM config is missing
@@ -1312,6 +1370,12 @@ export default {
 				llm: "gemini",
 				model: "gemini-2.5-flash",
 				system_prompt: this.gene_ranking_prompt
+			});
+
+			this.filterGenes = createLLMClient({
+				llm: "gemini",
+				model: "gemini-2.5-flash",
+				system_prompt: this.gene_filtering_prompt
 			});
         }
 	},
@@ -1437,6 +1501,34 @@ Generate a single, well-formed research hypothesis that:
 **Output Format:** Respond with ONLY the hypothesis text. Do not include any prefix, labels, or additional formatting. Just provide the hypothesis statement directly.
 `;
 		},
+		gene_filtering_prompt() {
+			return `You are an expert computational biologist and domain specialist. Your task is to filter a list of genes to identify those that are relevant to a specific scientific hypothesis and research context.
+
+**Hypothesis:** [Insert Specific Hypothesis Here.]
+
+**Gene List:** [Insert comma-separated Gene List Here.]
+
+**Research Context:** [Insert Specific Research Context Here.]
+
+---
+**Filtering Criteria:**
+From the provided gene list, select **all** genes that are:
+1. **Relevant** to the hypothesis's mechanism - genes whose function directly relates to the biological processes, pathways, or mechanisms described in the hypothesis.
+2. **Aligned with Research Context** - if Research Context is provided, genes whose function aligns with the specific goals or focus areas mentioned (e.g., drug target identification, mechanistic understanding, therapeutic intervention).
+
+**Important:** Include all genes that meet these relevance criteria. Do not filter based on novelty at this stage - that will be done in a subsequent ranking step.
+
+---
+
+**Output Format:**
+Respond **ONLY** with a valid JSON array of gene symbols. The output must be a well-formed JSON array containing only gene symbols (strings) that are found in the provided Gene List.
+
+Example output format:
+["GENE1", "GENE2", "GENE3", ...]
+
+**Output format: The output must not include any introductory text, explanation, or conversational filler outside of the final JSON array. The output must be a well-formed JSON array containing only gene symbols from the provided Gene List.**
+			`
+		},
 		gene_ranking_prompt() {
 			return `You are an expert computational biologist and domain specialist. Your task is to analyze a list of candidate genes against a specific scientific hypothesis and research context.
 
@@ -1549,12 +1641,39 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			return [];
 		},
 		totalPages() {
-			return Math.ceil(this.geneData.length / this.itemsPerPage);
+			return Math.ceil(this.filteredGenes.length / this.itemsPerPage);
 		},
 		paginatedGeneData() {
 			const start = (this.currentPage - 1) * this.itemsPerPage;
 			const end = start + this.itemsPerPage;
-			return this.geneData.slice(start, end);
+			return this.filteredGenes.slice(start, end);
+		},
+		filteredGeneCount() {
+			return this.filteredGenes.length;
+		},
+		genesWithLogBfZero() {
+			// Count genes with log_bf = 0
+			// Use geneData if available, otherwise use fetchedGeneData
+			const dataToCheck = this.geneData.length > 0 ? this.geneData : this.fetchedGeneData;
+			return dataToCheck.filter(gene => gene.log_bf === 0).length;
+		},
+		overlappingGenesCount() {
+			// Count genes that appear in multiple associations
+			const geneCounts = {};
+			// Use originalGeneData if available, otherwise use fetchedRawGeneData
+			const rawDataToCheck = this.originalGeneData.length > 0 ? this.originalGeneData : this.fetchedRawGeneData;
+			rawDataToCheck.forEach(item => {
+				if (item.gene) {
+					geneCounts[item.gene] = (geneCounts[item.gene] || 0) + 1;
+				}
+			});
+			// Use geneData if available, otherwise use fetchedGeneData
+			const dataToCheck = this.geneData.length > 0 ? this.geneData : this.fetchedGeneData;
+			return dataToCheck.filter(gene => geneCounts[gene.gene] > 1).length;
+		},
+		shouldDisableOverlappingFilter() {
+			// Disable overlapping filter if there's only one association or if it's manual genes
+			return this.hasOnlyOneAssociation || this.hasOnlyOneAssociationFromData || this.hasManualGenes;
 		},
 		// Create rows with evidence for proper table structure
 		tableRows() {
@@ -1724,6 +1843,19 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				// Generate scores for genes on current page that don't have scores yet
 				this.getNoveltyForCurrentPage();
 			},
+			geneData() {
+				// Update filtered genes when gene data changes
+				if (this.geneData.length > 0) {
+					this.updateFilteredGenes();
+				}
+			},
+			showOnlyOverlappingGenes(newVal) {
+				// If overlapping filter is enabled but should be disabled, turn it off
+				if (newVal && this.shouldDisableOverlappingFilter) {
+					this.showOnlyOverlappingGenes = false;
+					this.updateFilteredGenes();
+				}
+			},
 			selectedPhenotypes() {
 				// Update indeterminate state of select-all checkbox
 				this.$nextTick(() => {
@@ -1881,6 +2013,99 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			link.click();
 			document.body.removeChild(link);
 			window.URL.revokeObjectURL(url);
+		},
+		updateFilteredGenes() {
+			// Start with all genes
+			let genesToFilter = this.geneData;
+			
+			// Apply log_bf filter if enabled (but skip for manual genes)
+			if (this.showOnlyLogBfGenes) {
+				const beforeLogBfFilter = this.geneData.length;
+				genesToFilter = this.geneData.filter(gene => gene.isManual || gene.log_bf > 0);
+				this.filteredOutCount = beforeLogBfFilter - genesToFilter.length;
+				console.log(`Log_bf filter: ${genesToFilter.length} genes with log_bf > 0 or manual (${this.filteredOutCount} filtered out)`);
+			} else {
+				this.filteredOutCount = 0;
+			}
+			
+			// Apply overlapping genes filter if enabled AND there are multiple associations (but skip for manual genes)
+			if (this.showOnlyOverlappingGenes && !this.shouldDisableOverlappingFilter) {
+				// Count gene occurrences in original data
+				const geneCounts = {};
+				this.originalGeneData.forEach(item => {
+					if (item.gene) {
+						geneCounts[item.gene] = (geneCounts[item.gene] || 0) + 1;
+					}
+				});
+				
+				// Filter to only genes that appear more than once OR are manual genes
+				const beforeOverlapFilter = genesToFilter.length;
+				genesToFilter = genesToFilter.filter(gene => gene.isManual || geneCounts[gene.gene] > 1);
+				this.overlappingFilteredCount = beforeOverlapFilter - genesToFilter.length;
+				
+				console.log(`Overlapping genes filter: ${genesToFilter.length} genes appear in multiple associations or are manual (${this.overlappingFilteredCount} filtered out)`);
+			} else {
+				this.overlappingFilteredCount = 0;
+				if (this.shouldDisableOverlappingFilter) {
+					console.log(`Overlapping genes filter disabled - only one association or manual genes`);
+				}
+			}
+			
+			// Sort filtered genes alphabetically by gene symbol
+			genesToFilter.sort((a, b) => {
+				if (!a.gene || !b.gene) return 0;
+				return a.gene.localeCompare(b.gene, undefined, { sensitivity: 'base' });
+			});
+			
+			// Update filtered genes
+			this.$set(this, 'filteredGenes', genesToFilter);
+			
+			// Reset to first page when filter changes
+			this.currentPage = 1;
+			
+			console.log(`Filter updated: ${this.filteredGenes.length} genes shown (${this.geneData.length} total)`);
+		},
+		updateFilteredGenesAndInput() {
+			// First update the filtered genes for the table
+			this.updateFilteredGenes();
+			
+			// If we have fetched gene data (genes from associations), update the input field
+			if (this.fetchedGeneData.length > 0 && !this.hasManualGenes) {
+				// Get the data source to filter (fetchedGeneData if not in table yet, otherwise geneData)
+				const dataSource = this.geneData.length > 0 ? this.geneData : this.fetchedGeneData;
+				const rawDataSource = this.originalGeneData.length > 0 ? this.originalGeneData : this.fetchedRawGeneData;
+				
+				// Apply the same filters to the data source
+				let genesToFilter = [...dataSource];
+				
+				// Apply log_bf filter if enabled
+				if (this.showOnlyLogBfGenes) {
+					genesToFilter = genesToFilter.filter(gene => gene.log_bf > 0);
+				}
+				
+				// Apply overlapping genes filter if enabled
+				if (this.showOnlyOverlappingGenes && !this.shouldDisableOverlappingFilter) {
+					// Count gene occurrences in raw data
+					const geneCounts = {};
+					rawDataSource.forEach(item => {
+						if (item.gene) {
+							geneCounts[item.gene] = (geneCounts[item.gene] || 0) + 1;
+						}
+					});
+					
+					// Filter to only genes that appear more than once
+					genesToFilter = genesToFilter.filter(gene => geneCounts[gene.gene] > 1);
+				}
+				
+				// Extract unique gene symbols, sort alphabetically
+				const uniqueGenes = [...new Set(genesToFilter.map(g => g.gene).filter(g => g))];
+				const sortedGenes = uniqueGenes.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+				
+				// Update the genes input field
+				this.manualGenes = sortedGenes.join(', ');
+				
+				console.log(`Filter applied to input field: ${sortedGenes.length} genes shown`);
+			}
 		},
 		sortAndGroupGeneData(geneData) {
 			// First, sort by Combined score (descending - highest first)
@@ -2140,10 +2365,12 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			this.manualGenes = '';
 			this.hideAssociationsInput = false;
 			this.fetchedGeneData = [];
+			this.fetchedRawGeneData = [];
 		},
 		clearGeneInput() {
 			this.manualGenes = '';
 			this.fetchedGeneData = [];
+			this.fetchedRawGeneData = [];
 			// Reset scoring state
 			this.isGettingGeneNovelty = false;
 			this.clearGeneNoveltyTimer();
@@ -2179,6 +2406,7 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			
 			// Check if we have fetched gene data that matches the input
 			let genesToAdd = [];
+			let rawDataToAdd = [];
 			
 			if (this.fetchedGeneData.length > 0) {
 				// Use fetched data if available and genes match
@@ -2186,22 +2414,26 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				const matchingGenes = geneList.filter(gene => fetchedGenes.includes(gene));
 				
 				if (matchingGenes.length === geneList.length) {
-					// All genes match fetched data, use the full fetched data
+					// All genes match fetched data, use the full fetched grouped data for display
 					genesToAdd = this.fetchedGeneData;
-					console.log('Using fetched gene data for table');
+					// Add the raw association data to originalGeneData for filtering
+					rawDataToAdd = this.fetchedRawGeneData;
+					console.log('Using fetched gene data for table (with raw association data preserved for filtering)');
 				} else {
 					// Some genes don't match, create manual entries
 					genesToAdd = geneList.map(gene => ({
-				gene: gene,
+						gene: gene,
 						log_bf: null,
 						prior: null,
 						combined: null,
 						directPPA: null,
 						indirectPPA: null,
-				source: 'Manual Input',
+						source: 'Manual Input',
 						phenotype: 'Manual Input',
 						isManual: true
 					}));
+					// For manual genes, add same entries to raw data (they're already single entries)
+					rawDataToAdd = genesToAdd;
 					console.log('Using manual gene data for table');
 				}
 			} else {
@@ -2217,16 +2449,23 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 					phenotype: 'Manual Input',
 					isManual: true
 				}));
+				// For manual genes, add same entries to raw data (they're already single entries)
+				rawDataToAdd = genesToAdd;
 				console.log('Using manual gene data for table');
 			}
 			
-			// Add to existing gene data
+			// Add to existing gene data (grouped data for display)
 			this.geneData = [...this.geneData, ...genesToAdd];
-			this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
+			// Add raw association data to originalGeneData (for filtering)
+			this.originalGeneData = [...this.originalGeneData, ...rawDataToAdd];
+			
+			// Update filtered genes after adding
+			this.updateFilteredGenes();
 			
 			// Clear the gene input field and fetched data after adding
 			this.manualGenes = '';
 			this.fetchedGeneData = [];
+			this.fetchedRawGeneData = [];
 			
 			console.log(`Added ${genesToAdd.length} genes to table: ${geneList.join(', ')}`);
 		},
@@ -2403,8 +2642,8 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 					}
 				}
 				
-				// Store original data before merging (no prefiltering)
-				this.originalGeneData = allGeneData;
+				// Store raw association data (one entry per gene-association pair) for filtering
+				this.fetchedRawGeneData = allGeneData;
 				
 				// Sort by Combined score (descending) first, then group by Gene
 				const sortedAndGroupedData = this.sortAndGroupGeneData(allGeneData);
@@ -2416,19 +2655,48 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 					return;
 				}
 				
-				// Store the fetched gene data for later use (don't populate table yet)
+				// Store the fetched grouped gene data for later use (don't populate table yet)
 				this.fetchedGeneData = sortedAndGroupedData;
 				
-				// Populate the gene input field with fetched genes
-				const geneSymbols = sortedAndGroupedData.map(g => g.gene).join(', ');
+				// Reset overlapping filter if there's only one association
+				// Note: We need to check this after we have the data, but before user adds to table
+				// The check will happen when genes are added via updateFilteredGenes
+				
+				// Apply filters to the fetched genes and populate the gene input field
+				let genesToFilter = [...sortedAndGroupedData];
+				
+				// Apply log_bf filter if enabled
+				if (this.showOnlyLogBfGenes) {
+					genesToFilter = genesToFilter.filter(gene => gene.log_bf > 0);
+				}
+				
+				// Apply overlapping genes filter if enabled
+				if (this.showOnlyOverlappingGenes && !this.shouldDisableOverlappingFilter) {
+					// Count gene occurrences in raw data
+					const geneCounts = {};
+					allGeneData.forEach(item => {
+						if (item.gene) {
+							geneCounts[item.gene] = (geneCounts[item.gene] || 0) + 1;
+						}
+					});
+					
+					// Filter to only genes that appear more than once
+					genesToFilter = genesToFilter.filter(gene => geneCounts[gene.gene] > 1);
+				}
+				
+				// Extract unique gene symbols, sort alphabetically
+				const uniqueGenes = [...new Set(genesToFilter.map(g => g.gene).filter(g => g))];
+				const sortedGenes = uniqueGenes.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+				const geneSymbols = sortedGenes.join(', ');
 				this.manualGenes = geneSymbols;
 				
 				console.log('Genes fetched successfully and populated in input field:', {
 					originalCount: allGeneData.length,
 					groupedCount: sortedAndGroupedData.length,
-					genes: sortedAndGroupedData.map(g => g.gene),
+					filteredCount: sortedGenes.length,
+					genes: sortedGenes,
 					populatedGeneInput: geneSymbols,
-					note: 'Table will not show until user clicks Add Genes'
+					note: 'Genes are filtered, sorted alphabetically and deduplicated. Table will not show until user clicks Add Genes'
 				});
 				
 			} catch (error) {
@@ -2653,6 +2921,13 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			if (!this.manualGenes.trim()) return 0;
 			return this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene).length;
 		},
+		getGeneCountFromInput() {
+			// Get count of genes in the input field (manualGenes)
+			if (!this.manualGenes.trim()) return 0;
+			const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
+			// Return unique count to avoid counting duplicates
+			return new Set(geneList).size;
+		},
 		openScoreGenerationDialog() {
 			// Check if hypothesis is provided
 			if (!this.phenotypeSearch.trim()) {
@@ -2751,6 +3026,9 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 					// Add to existing gene data
 					this.geneData = [...this.geneData, ...genesToAdd];
 					this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
+					
+					// Update filtered genes after adding
+					this.updateFilteredGenes();
 				}
 
 				// Generate scores for first batch initially
@@ -2962,7 +3240,12 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				return;
 			}
 
-			// Check if LLM client is initialized
+			// Check if LLM clients are initialized
+			if (!this.filterGenes || typeof this.filterGenes.sendPrompt !== 'function') {
+				console.error('filterGenes LLM client is not initialized');
+				alert('LLM client is not initialized. Please refresh the page and try again.');
+				return;
+			}
 			if (!this.rankGenes || typeof this.rankGenes.sendPrompt !== 'function') {
 				console.error('rankGenes LLM client is not initialized');
 				alert('LLM client is not initialized. Please refresh the page and try again.');
@@ -2991,9 +3274,6 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			}, 1000);
 
 			try {
-				// Update step message
-				this.geneRankingStep = `Analyzing ${geneList.length} gene(s) against hypothesis and research context...`;
-				
 				// Get research context (use dialog input or existing context)
 				const researchContextValue = this.designToolResearchContext.trim() || this.researchContext.trim() || 'No specific research context provided.';
 				
@@ -3003,92 +3283,197 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				} else if (this.researchContext.trim()) {
 					this.updateURLParameter('researchContext', this.researchContext.trim());
 				}
-				
-				// Prepare the prompt
-				const prompt = this.gene_ranking_prompt
+
+				// STEP 1: Filter genes by relevance
+				this.geneRankingStep = `Filtering ${geneList.length} gene(s) by relevance to hypothesis and research context...`;
+				console.log(`[Prepare for Design] Step 1: Filtering ${geneList.length} genes by relevance`);
+
+				// Prepare the filter prompt
+				const filterPrompt = this.gene_filtering_prompt
 					.replace('[Insert Specific Hypothesis Here.]', this.phenotypeSearch.trim())
 					.replace('[Insert comma-separated Gene List Here.]', geneList.join(', '))
 					.replace('[Insert Specific Research Context Here.]', researchContextValue);
 
-				console.log('[Prepare for Design] Full prompt sent to LLM:', prompt);
+				console.log(`[Prepare for Design] Step 1 - Filter prompt sent to LLM:`, filterPrompt);
 
-				// Update step message
-				this.geneRankingStep = 'AI filtering and ranking genes by relevance and novelty to hypothesis and research context...';
-
-				// Call LLM to rank genes
-				this.rankGenes.sendPrompt({
-					userPrompt: prompt.trim(),
-					onResponse: (response) => {
-						console.log('[Prepare for Design] LLM response:', response);
-						
-						try {
-							// Update step message
-							this.geneRankingStep = 'Processing AI response and selecting candidate genes...';
+				// Call LLM to filter genes
+				const filteredGeneList = await new Promise((resolve, reject) => {
+					this.filterGenes.sendPrompt({
+						userPrompt: filterPrompt.trim(),
+						onResponse: (response) => {
+							console.log(`[Prepare for Design] Step 1 - Filter LLM response:`, response);
 							
-							// Extract JSON from response (handle markdown code fences)
-							let responseText = response.trim();
-							if (responseText.startsWith('```')) {
-								responseText = responseText.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim();
+							try {
+								// Extract JSON array from response (handle markdown code fences)
+								let responseText = response.trim();
+								if (responseText.startsWith('```')) {
+									responseText = responseText.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim();
+								}
+								
+								// Parse JSON array of gene symbols
+								const filteredGenes = JSON.parse(responseText);
+								
+								if (Array.isArray(filteredGenes) && filteredGenes.length > 0) {
+									// Filter valid gene symbols
+									const validGenes = filteredGenes.filter(gene => gene && typeof gene === 'string' && gene.trim());
+									console.log(`[Prepare for Design] Step 1 - Filtered to ${validGenes.length} relevant genes:`, validGenes);
+									resolve(validGenes);
+								} else {
+									console.warn(`[Prepare for Design] Step 1 - No relevant genes found in filter response`);
+									resolve([]); // Return empty array if no genes found
+								}
+							} catch (error) {
+								console.error(`[Prepare for Design] Step 1 - Error parsing filter response:`, error);
+								reject(error);
 							}
-							
-							// Parse JSON array
-							const candidateGenesData = JSON.parse(responseText);
-							
-							if (Array.isArray(candidateGenesData) && candidateGenesData.length > 0) {
-								// Update step message
-								this.geneRankingStep = `Found ${candidateGenesData.length} candidate gene(s). Finalizing selection...`;
-								
-								// Store full candidate gene objects with all fields
-								let filteredGenes = candidateGenesData.filter(item => item.gene && item.gene.trim());
-								
-								// Sort by combined score (relevance_score + novelty_score) in descending order
-								filteredGenes.sort((a, b) => {
-									const scoreA = this.getCombinedScore(a);
-									const scoreB = this.getCombinedScore(b);
-									return scoreB - scoreA; // Descending order
-								});
-								
-								this.candidateGenes = filteredGenes;
-								// Pre-select all candidate genes by default
-								this.selectedCandidateGenes = this.candidateGenes.map((_, index) => index);
-								console.log(`[Prepare for Design] Found ${this.candidateGenes.length} candidate genes (sorted by combined score):`, this.candidateGenes);
-								
-								// Fetch IDG data for all candidate genes
-								this.fetchIDGDataForCandidateGenes().then(() => {
-									// Clear step message after IDG data is fetched
-									this.geneRankingStep = '';
-								});
-							} else {
-								console.warn('[Prepare for Design] No candidate genes found in LLM response');
-								alert('No candidate genes were selected. Please try again or use all genes.');
-								this.candidateGenes = [];
-								this.selectedCandidateGenes = [];
-								this.geneRankingStep = '';
-							}
-						} catch (error) {
-							console.error('[Prepare for Design] Error parsing LLM response:', error);
-							alert('Error processing candidate genes. Please try again.');
-							this.candidateGenes = [];
-							this.selectedCandidateGenes = [];
-							this.geneRankingStep = '';
+						},
+						onError: (error) => {
+							console.error(`[Prepare for Design] Step 1 - Error filtering genes:`, error);
+							reject(error);
+						},
+						onEnd: () => {
+							// If onResponse didn't resolve, resolve with empty array
+							resolve([]);
 						}
-					},
-					onError: (error) => {
-						console.error('[Prepare for Design] Error ranking genes:', error);
-						alert('Error ranking genes. Please try again.');
-						this.isRankingGenes = false;
-						this.candidateGenes = [];
-						this.selectedCandidateGenes = [];
-						this.geneRankingStep = '';
-						this.clearGeneRankingTimer();
-					},
-					onEnd: () => {
-						this.isRankingGenes = false;
-						this.geneRankingStep = '';
-						this.clearGeneRankingTimer();
-						console.log('[Prepare for Design] Gene ranking completed');
-					}
+					});
 				});
+
+				if (filteredGeneList.length === 0) {
+					console.warn('[Prepare for Design] No relevant genes found after filtering');
+					alert('No relevant genes were found after filtering. Please try with different genes or adjust your hypothesis/research context.');
+					this.isRankingGenes = false;
+					this.geneRankingStep = '';
+					this.clearGeneRankingTimer();
+					return;
+				}
+
+				// Update step message to show filtering results
+				this.geneRankingStep = `Filtered ${geneList.length} gene(s) to ${filteredGeneList.length} relevant gene(s). Starting ranking...`;
+				console.log(`[Prepare for Design] Step 2: Ranking ${filteredGeneList.length} filtered genes (from ${geneList.length} original genes)`);
+
+				// STEP 2: Rank filtered genes in batches of 25
+				const batchSize = 25;
+				const geneBatches = [];
+				for (let i = 0; i < filteredGeneList.length; i += batchSize) {
+					geneBatches.push(filteredGeneList.slice(i, i + batchSize));
+				}
+
+				console.log(`[Prepare for Design] Step 2: Processing ${filteredGeneList.length} filtered genes in ${geneBatches.length} batch(es) of up to ${batchSize} genes each`);
+
+				// Process each batch sequentially
+				for (let batchIndex = 0; batchIndex < geneBatches.length; batchIndex++) {
+					const batch = geneBatches[batchIndex];
+					
+					// Update step message
+					this.geneRankingStep = `Ranking batch ${batchIndex + 1}/${geneBatches.length} (${batch.length} gene(s)) by relevance and novelty...`;
+
+					// Prepare the ranking prompt for this batch
+					const rankingPrompt = this.gene_ranking_prompt
+						.replace('[Insert Specific Hypothesis Here.]', this.phenotypeSearch.trim())
+						.replace('[Insert comma-separated Gene List Here.]', batch.join(', '))
+						.replace('[Insert Specific Research Context Here.]', researchContextValue);
+
+					console.log(`[Prepare for Design] Step 2 - Batch ${batchIndex + 1}/${geneBatches.length} - Ranking prompt sent to LLM:`, rankingPrompt);
+
+					// Update step message
+					this.geneRankingStep = `AI ranking batch ${batchIndex + 1}/${geneBatches.length} (${batch.length} genes) by relevance and novelty...`;
+
+					// Call LLM to rank genes for this batch
+					await new Promise((resolve, reject) => {
+						this.rankGenes.sendPrompt({
+							userPrompt: rankingPrompt.trim(),
+							onResponse: (response) => {
+								console.log(`[Prepare for Design] Step 2 - Batch ${batchIndex + 1}/${geneBatches.length} - Ranking LLM response:`, response);
+								
+								try {
+									// Update step message
+									this.geneRankingStep = `Processing ranking response for batch ${batchIndex + 1}/${geneBatches.length}...`;
+									
+									// Extract JSON from response (handle markdown code fences)
+									let responseText = response.trim();
+									if (responseText.startsWith('```')) {
+										responseText = responseText.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim();
+									}
+									
+									// Parse JSON array
+									const candidateGenesData = JSON.parse(responseText);
+									
+									if (Array.isArray(candidateGenesData) && candidateGenesData.length > 0) {
+										// Filter valid genes
+										const filteredGenes = candidateGenesData.filter(item => item.gene && item.gene.trim());
+										
+										// Track currently selected genes by symbol (before adding new ones)
+										const selectedGeneSymbols = new Set(
+											this.selectedCandidateGenes.map(idx => this.candidateGenes[idx]?.gene).filter(Boolean)
+										);
+										
+										// Add new candidate genes to the existing list
+										this.candidateGenes = [...this.candidateGenes, ...filteredGenes];
+										
+										// Sort all candidate genes by combined score (relevance_score + novelty_score) in descending order
+										this.candidateGenes.sort((a, b) => {
+											const scoreA = this.getCombinedScore(a);
+											const scoreB = this.getCombinedScore(b);
+											return scoreB - scoreA; // Descending order
+										});
+										
+										// Rebuild selectedCandidateGenes based on gene symbols after sorting
+										// Include previously selected genes and all new genes
+										this.selectedCandidateGenes = this.candidateGenes
+											.map((candidate, idx) => {
+												// Select if it was previously selected OR if it's a new gene
+												return selectedGeneSymbols.has(candidate.gene) || filteredGenes.some(fg => fg.gene === candidate.gene) ? idx : null;
+											})
+											.filter(idx => idx !== null);
+										
+										console.log(`[Prepare for Design] Step 2 - Batch ${batchIndex + 1}/${geneBatches.length} - Added ${filteredGenes.length} candidate genes. Total: ${this.candidateGenes.length} (sorted by combined score)`);
+										
+										resolve();
+									} else {
+										console.warn(`[Prepare for Design] Step 2 - Batch ${batchIndex + 1}/${geneBatches.length} - No candidate genes found in ranking response`);
+										resolve(); // Continue to next batch even if this one returned no results
+									}
+								} catch (error) {
+									console.error(`[Prepare for Design] Step 2 - Batch ${batchIndex + 1}/${geneBatches.length} - Error parsing ranking response:`, error);
+									reject(error);
+								}
+							},
+							onError: (error) => {
+								console.error(`[Prepare for Design] Step 2 - Batch ${batchIndex + 1}/${geneBatches.length} - Error ranking genes:`, error);
+								reject(error);
+							},
+							onEnd: () => {
+								// Batch completed
+								resolve();
+							}
+						});
+					});
+				}
+
+				// All batches completed
+				if (this.candidateGenes.length > 0) {
+					// Update step message
+					this.geneRankingStep = `Found ${this.candidateGenes.length} candidate gene(s) total. Finalizing selection...`;
+					
+					// Pre-select all candidate genes by default (if not already selected)
+					if (this.selectedCandidateGenes.length === 0) {
+						this.selectedCandidateGenes = this.candidateGenes.map((_, index) => index);
+					}
+					
+					console.log(`[Prepare for Design] All batches completed. Total ${this.candidateGenes.length} candidate genes (sorted by combined score):`, this.candidateGenes);
+					
+					// Fetch IDG data for all candidate genes
+					await this.fetchIDGDataForCandidateGenes();
+					
+					// Clear step message after IDG data is fetched
+					this.geneRankingStep = '';
+				} else {
+					console.warn('[Prepare for Design] No candidate genes found across all batches');
+					alert('No candidate genes were selected. Please try again or use all genes.');
+					this.candidateGenes = [];
+					this.selectedCandidateGenes = [];
+					this.geneRankingStep = '';
+				}
 
 			} catch (error) {
 				console.error('[Prepare for Design] Error preparing for design:', error);
@@ -3096,6 +3481,11 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				this.isRankingGenes = false;
 				this.geneRankingStep = '';
 				this.clearGeneRankingTimer();
+			} finally {
+				this.isRankingGenes = false;
+				this.geneRankingStep = '';
+				this.clearGeneRankingTimer();
+				console.log('[Prepare for Design] Gene ranking completed');
 			}
 		},
 		toggleCandidateGeneSelection(index) {
@@ -5415,5 +5805,60 @@ small.input-warning {
         padding: 6px 4px;
         font-size: 13px;
     }
+}
+
+/* Gene Filter Section Styles */
+.gene-filter-section {
+    margin: 15px 0;
+    padding: 15px;
+    background: #EFEFEF;
+    border-left: 3px solid #FF6600;
+    border-radius: 4px;
+}
+
+.filter-checkboxes-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.overlap-filter {
+    margin-bottom: 0;
+}
+
+.overlap-checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: #495057;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.overlap-checkbox-label.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.overlap-checkbox-label.disabled .overlap-checkbox {
+    cursor: not-allowed;
+}
+
+.disabled-text {
+    color: #999;
+    font-style: italic;
+}
+
+.overlap-checkbox {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #FF6600;
+}
+
+.overlap-checkbox:checked {
+    color: #FFFFFF;
 }
 </style>

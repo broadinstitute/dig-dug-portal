@@ -50,6 +50,80 @@
 			</div>
 		</div>
 		
+		<!-- Welcome Popup for New Users -->
+		<div v-if="showWelcomePopup" class="welcome-popup-overlay">
+			<div class="welcome-popup">
+				<div class="welcome-popup-header">
+					<h3>Welcome to CFDE-DESIGN</h3>
+					<button @click="closeWelcomePopup" class="close-btn">&times;</button>
+				</div>
+				<div class="welcome-popup-content">
+					<p>This tool helps you generate experiment protocols for validating genes against your hypothesis. Here's what you need to get started:</p>
+					
+					<div class="welcome-requirements">
+						<!-- Case 1: No genes nor hypothesis -->
+						<div v-if="!urlHasGenes && !urlHasHypothesis" class="requirement-item">
+							<div class="requirement-icon">
+								<span class="info-icon">ℹ</span>
+							</div>
+							<div class="requirement-content">
+								<h4>Get Started with CFDE-REVEAL</h4>
+								<p>To generate experiment protocols, you'll need genes and a hypothesis. We recommend starting with <a :href="setSimpleLink('/r/cfde_reveal')" target="_blank">CFDE-REVEAL</a> to generate a gene set based on your research interest.</p>
+								<p><strong>Next steps:</strong></p>
+								<ul>
+									<li>Use <a :href="setSimpleLink('/r/cfde_reveal')" target="_blank">CFDE-REVEAL</a> to explore gene expression signatures and generate a hypothesis</li>
+									<li>Then use <a :href="kcURL('/r/cfde_explore')" target="_blank">CFDE-EXPLORE</a> to prepare your genes</li>
+									<li>Finally, return here to generate experiment protocols</li>
+								</ul>
+							</div>
+						</div>
+						
+						<!-- Case 2: Only genes (no hypothesis) -->
+						<div v-else-if="urlHasGenes && !urlHasHypothesis" class="requirement-item">
+							<div class="requirement-icon">
+								<span class="check-icon">✓</span>
+							</div>
+							<div class="requirement-content">
+								<h4>Genes Found <span class="status-found">✓ Found in URL</span></h4>
+								<p>Great! We found genes in your URL parameters. However, to generate experiment protocols, you also need a hypothesis.</p>
+								<p><strong>We recommend using <a :href="getExploreUrlWithGenes()" target="_blank">CFDE-EXPLORE</a> to:</strong></p>
+								<ul>
+									<li>Generate a hypothesis from your genes</li>
+									<li>Generate relevance and novelty scores for your genes</li>
+									<li>Filter and rank candidate genes</li>
+									<li>Then return here to generate experiment protocols</li>
+								</ul>
+							</div>
+						</div>
+						
+						<!-- Case 3: Genes and hypothesis provided -->
+						<div v-else-if="urlHasGenes && urlHasHypothesis" class="requirement-item found">
+							<div class="requirement-icon">
+								<span class="check-icon">✓</span>
+							</div>
+							<div class="requirement-content">
+								<h4>Ready to Generate Protocols <span class="status-found">✓ Genes & Hypothesis Found</span></h4>
+								<p>Perfect! You have both genes and a hypothesis. You're ready to generate experiment protocols.</p>
+								<p><strong>What you can do:</strong></p>
+								<ul>
+									<li>Review and configure experiment parameters (optional)</li>
+									<li>Select genes from the table below</li>
+									<li>Click "Review & Generate Experiment Plan" to create protocols</li>
+								</ul>
+								<p v-if="urlHasResearchContext" style="margin-top: 12px; color: #28a745;">
+									<strong>✓ Research Context:</strong> Your research context has been loaded and will be used in protocol generation.
+								</p>
+							</div>
+						</div>
+					</div>
+					
+					<div class="welcome-actions">
+						<button @click="closeWelcomePopup" class="btn btn-primary">Got it, let's start!</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
         <!-- Two Column Layout for Upper Half -->
         <div class="upper-layout">
             <!-- Left Column (70%) - Hypothesis Section -->
@@ -1500,7 +1574,13 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			urlChoiceOptions: {
 				associations: null,
 				genes: null
-			}
+			},
+			// Welcome popup for new users
+			showWelcomePopup: false,
+			// URL parameter detection for welcome popup
+			urlHasGenes: false,
+			urlHasHypothesis: false,
+			urlHasResearchContext: false
 		};
 	},
 	modules: {
@@ -1537,6 +1617,32 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
     },
 
 	mounted: async function () {
+		// Check for URL parameters to determine welcome popup display
+		const urlParams = new URLSearchParams(window.location.search);
+		const hasGenes = urlParams.has('genes') && urlParams.get('genes').trim() !== '';
+		const hasAssociations = urlParams.has('associations') && urlParams.get('associations').trim() !== '';
+		const hasGeneSets = urlParams.has('geneSets') && urlParams.get('geneSets').trim() !== '';
+		const hasHypothesis = urlParams.has('hypothesis') && urlParams.get('hypothesis').trim() !== '';
+		const hasResearchContext = urlParams.has('researchContext') && urlParams.get('researchContext').trim() !== '';
+		
+		const hasAnyGeneSource = hasGenes || hasAssociations || hasGeneSets;
+		
+		// Set flags for welcome popup display
+		this.urlHasGenes = hasAnyGeneSource;
+		this.urlHasHypothesis = hasHypothesis;
+		this.urlHasResearchContext = hasResearchContext;
+		
+		// Show popup if:
+		// - No genes nor hypothesis, OR
+		// - Only genes (no hypothesis)
+		// Don't show if both genes and hypothesis are present (case 3 will show guidance)
+		if ((!hasAnyGeneSource && !hasHypothesis) || (hasAnyGeneSource && !hasHypothesis)) {
+			this.showWelcomePopup = true;
+		} else if (hasAnyGeneSource && hasHypothesis) {
+			// Show popup for case 3 (genes + hypothesis) to provide guidance
+			this.showWelcomePopup = true;
+		}
+		
 		// Check for URL parameters and populate fields
 		// Use nextTick to ensure utilsBox is fully loaded
 		this.$nextTick(async () => {
@@ -2299,6 +2405,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						hasGenes = true;
 						this.urlChoiceOptions.genes = sortedGeneList;
 					}
+
 				}
 				
 				// If both associations and genes are present, show choice dialog
@@ -2756,6 +2863,25 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					});
 				});
 			}
+		},
+		closeWelcomePopup() {
+			this.showWelcomePopup = false;
+		},
+		getExploreUrlWithGenes() {
+			// Get genes from URL parameters or manual input
+			let genesParam = '';
+			if (this.utilsBox && this.utilsBox.keyParams && this.utilsBox.keyParams['genes']) {
+				genesParam = this.utilsBox.keyParams['genes'];
+			} else if (this.manualGenes.trim()) {
+				genesParam = this.manualGenes.split(',').map(g => g.trim()).filter(g => g).join(',');
+			} else if (this.geneData.length > 0) {
+				genesParam = this.geneData.map(g => g.gene).filter(g => g).join(',');
+			}
+			
+			if (genesParam) {
+				return this.kcURL(`/r/cfde_explore?genes=${encodeURIComponent(genesParam)}`);
+			}
+			return this.kcURL('/r/cfde_explore');
 		},
 		resetAllSelections() {
 			// Reset all selections
@@ -5651,5 +5777,237 @@ a {
 }
 
 
+/* Welcome Popup Styles */
+.welcome-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.welcome-popup {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.welcome-popup-header {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.welcome-popup-header h3 {
+    margin: 0;
+    color: #FF6600;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #f8f9fa;
+    color: #333;
+}
+
+.welcome-popup-content {
+    padding: 20px;
+}
+
+.welcome-popup-content > p {
+    margin: 0 0 18px 0;
+    color: #666;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.welcome-requirements {
+    margin-bottom: 18px;
+}
+
+.requirement-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-left: 4px solid #FF6600;
+    transition: all 0.2s ease;
+}
+
+.requirement-item.found {
+    background: #f8f9fa;
+    border-left-color: #28a745;
+}
+
+.requirement-item.options {
+    background: #f8f9fa;
+    border-left-color: #679dd4;
+}
+
+.requirement-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e9ecef;
+}
+
+.check-icon {
+    color: #28a745;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.missing-icon {
+    color: #6c757d;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.info-icon {
+    color: #007bff;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.status-found {
+    color: #28a745;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.requirement-content h4 {
+    margin: 0 0 6px 0;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.requirement-content p {
+    margin: 0 0 6px 0;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.requirement-content ul {
+    margin: 0;
+    padding-left: 16px;
+    color: #555;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.requirement-content li {
+    margin-bottom: 2px;
+}
+
+.requirement-content a {
+    color: #FF6600;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.requirement-content a:hover {
+    text-decoration: underline;
+}
+
+.welcome-actions {
+    text-align: center;
+    padding-top: 12px;
+    border-top: 1px solid #e9ecef;
+}
+
+.welcome-actions .btn {
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .welcome-popup {
+        width: 95%;
+        margin: 15px;
+        max-height: 90vh;
+    }
+    
+    .welcome-popup-header {
+        padding: 16px 16px 10px;
+    }
+    
+    .welcome-popup-header h3 {
+        font-size: 18px;
+    }
+    
+    .welcome-popup-content {
+        padding: 16px;
+    }
+    
+    .requirement-item {
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+    
+    .requirement-icon {
+        font-size: 18px;
+        margin-top: 0;
+    }
+}
 </style>
+
 
