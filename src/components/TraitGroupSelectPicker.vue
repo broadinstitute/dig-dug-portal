@@ -43,6 +43,7 @@ export default Vue.component("trait-group-selectpicker", {
         keyParamsTraitGroup(newKey) {
             // do we need this?
             if (this.size === null) {
+                console.log("Is this thing firing?");
                 this.size = newKey;
             }
         },
