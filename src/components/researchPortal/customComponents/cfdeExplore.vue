@@ -622,16 +622,21 @@
 									All Genes Scored
 								</span>
 							</button>
-							<div v-if="geneData.length > 0" style="color: #666; font-size: 13px;">
+							<div v-if="scoredGenes.length > 0 || geneData.length > 0" style="color: #666; font-size: 13px;">
 								<span v-if="genesWithScoresCount > 0 || genesNeedingScoresCount > 0">
-									<strong>{{ genesWithScoresCount }}</strong> of <strong>{{ geneData.length }}</strong> genes scored
+									<template v-if="scoredGenes.length > 0">
+										<strong>{{ genesWithScoresCount }}</strong> of <strong>{{ getGeneCountFromInput() }}</strong> genes scored
+									</template>
+									<template v-else>
+										<strong>{{ genesWithScoresCount }}</strong> of <strong>{{ geneData.length }}</strong> genes scored
+									</template>
 									<span v-if="genesNeedingScoresCount > 0" style="color: #ff6600; margin-left: 8px;">
 										({{ genesNeedingScoresCount }} remaining)
 									</span>
 								</span>
 							</div>
 						</div>
-						<div v-if="geneData.length === 0 || hasNewGenesToAdd" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-left: 3px solid #1976d2; border-radius: 4px; font-size: 12px; color: #1976d2;">
+						<div v-if="(scoredGenes.length === 0 && geneData.length === 0) || hasNewGenesToAdd" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-left: 3px solid #1976d2; border-radius: 4px; font-size: 12px; color: #1976d2;">
 							<strong>Note:</strong> Scores are generated in batches of {{ noveltyScoreBatchSize }} genes. After the first batch, scores will be generated automatically as you navigate through pages.
 						</div>
 						<div v-else-if="genesNeedingScoresCount > 0" style="margin-top: 10px; padding: 10px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 4px; font-size: 12px; color: #856404;">
@@ -646,95 +651,157 @@
 					</div>
 
 					<!-- Gene Data Table -->
-					<div v-if="geneData.length > 0" class="table-container">
+					<div v-if="scoredGenes.length > 0 || (geneData.length > 0 && !hasManualGenes)" class="table-container">
 						<table class="gene-data-table">
 							<thead>
 								<tr>
 									<th>Gene/Target</th>
+									<th v-if="scoredGenes.length > 0">Classification</th>
 									<th>Hypothesis Relevance</th>
 									<th>Innovation Score</th>
 									<th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
+									<th v-if="scoredGenes.length > 0">Hypothesis Validation</th>
 									<th v-if="!hasManualGenes">Associations</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="row in tableRows" :key="row.key">
-									<!-- Gene row -->
-									<template v-if="row.type === 'gene'">
-										<td>{{ row.item.gene }}</td>
+								<!-- Scored genes from LLM response (for manual genes) -->
+								<template v-if="scoredGenes.length > 0">
+									<tr v-for="scoredGene in paginatedScoredGenes" :key="`scored-${scoredGene.gene}`">
+										<td style="font-weight: 600; color: #333;">{{ scoredGene.gene || 'N/A' }}</td>
+										<td style="color: #666;">{{ scoredGene.classification || 'N/A' }}</td>
 										<td>
 											<div class="relevance-cell">
-												<div v-if="getRelevance(row.item.gene)" class="score-content" :class="{ 'high-score': getRelevance(row.item.gene).score >= 7 }">
-													<div class="score-value">{{ getRelevanceScore(row.item.gene) }}</div>
-												</div>
-												<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+												<span v-if="scoredGene.relevance_score !== undefined && scoredGene.relevance_score !== null && scoredGene.relevance_score !== 'N/A'" 
+													:class="{ 'high-score': typeof scoredGene.relevance_score === 'number' && scoredGene.relevance_score >= 7 }"
+													class="score-content"
+													style="font-weight: 600;"
+												>
+													{{ scoredGene.relevance_score }}{{ typeof scoredGene.relevance_score === 'number' ? '/10' : '' }}
+												</span>
+												<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
 												<span v-else>TBD</span>
 											</div>
 										</td>
 										<td>
 											<div class="novelty-cell">
-												<div v-if="getNovelty(row.item.gene)" class="score-content" :class="{ 'high-score': getNovelty(row.item.gene).score >= 7 }">
-													<div class="score-value">{{ getNoveltyScore(row.item.gene) }}</div>
-												</div>
-												<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+												<span v-if="scoredGene.novelty_score !== undefined && scoredGene.novelty_score !== null && scoredGene.novelty_score !== 'N/A'"
+													:class="{ 'high-score': typeof scoredGene.novelty_score === 'number' && scoredGene.novelty_score >= 7 }"
+													class="score-content"
+													style="font-weight: 600;"
+												>
+													{{ scoredGene.novelty_score }}{{ typeof scoredGene.novelty_score === 'number' ? '/10' : '' }}
+												</span>
+												<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
 												<span v-else>TBD</span>
 											</div>
 										</td>
 										<td>
 											<div class="reason-cell">
-												<div v-if="getNovelty(row.item.gene)" class="reason-content">
-													{{ getNovelty(row.item.gene).context }}
+												<div v-if="scoredGene.reason" class="reason-content">
+													{{ scoredGene.reason }}
 												</div>
-												<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+												<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
 												<span v-else>TBD</span>
 											</div>
 										</td>
-										<td v-if="!hasManualGenes">
-											<button 
-												@click="toggleEvidenceView(row.item.gene)"
-												class="view-button"
-												:class="{ active: expandedGenes.includes(row.item.gene) }"
-											>
-												{{ expandedGenes.includes(row.item.gene) ? 'Hide' : 'View' }}
-											</button>
-										</td>
-									</template>
-									
-									<!-- Evidence row -->
-									<template v-else-if="row.type === 'evidence'">
-										<td :colspan="hasManualGenes ? 5 : 6">
-											<div class="evidence-subtable">
-												<table class="evidence-table">
-													<thead>
-														<tr>
-															<th>Phenotype</th>
-															<th>Gene Set</th>
-															<th>Combined Genetic Support</th>
-															<th>Direct Genetic Support</th>
-															<th>Indirect Genetic Support</th>
-														</tr>
-													</thead>
-													<tbody>
-														<tr v-for="(evidence, index) in getEvidenceData(row.item)" :key="`${row.item.gene}-evidence-${index}`">
-															<td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
-															<td>{{ evidence.gene_set }}</td>
-															<td>{{ evidence.combined ? evidence.combined.toFixed(2) : 'N/A' }}</td>
-															<td>{{ evidence.log_bf ? evidence.log_bf.toFixed(2) : 'N/A' }}</td>
-															<td>{{ evidence.prior ? evidence.prior.toFixed(2) : 'N/A' }}</td>
-														</tr>
-													</tbody>
-												</table>
+										<td>
+											<div class="reason-cell">
+												<div v-if="scoredGene.hypothesis_validation" class="reason-content">
+													{{ scoredGene.hypothesis_validation }}
+												</div>
+												<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
+												<span v-else>TBD</span>
 											</div>
 										</td>
-									</template>
-								</tr>
+									</tr>
+								</template>
+								
+								<!-- Association-based genes (legacy support) -->
+								<template v-else>
+									<tr v-for="row in allTableRows" :key="row.key">
+										<!-- Gene row -->
+										<template v-if="row.type === 'gene'">
+											<td>{{ row.item.gene }}</td>
+											<td>
+												<div class="relevance-cell">
+													<div v-if="getRelevance(row.item.gene)" class="score-content" :class="{ 'high-score': getRelevance(row.item.gene).score >= 7 }">
+														<div class="score-value">{{ getRelevanceScore(row.item.gene) }}</div>
+													</div>
+													<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+													<span v-else>TBD</span>
+												</div>
+											</td>
+											<td>
+												<div class="novelty-cell">
+													<div v-if="getNovelty(row.item.gene)" class="score-content" :class="{ 'high-score': getNovelty(row.item.gene).score >= 7 }">
+														<div class="score-value">{{ getNoveltyScore(row.item.gene) }}</div>
+													</div>
+													<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+													<span v-else>TBD</span>
+												</div>
+											</td>
+											<td>
+												<div class="reason-cell">
+													<div v-if="getNovelty(row.item.gene)" class="reason-content">
+														{{ getNovelty(row.item.gene).context }}
+													</div>
+													<span v-else-if="isGettingGeneNovelty && !getRelevance(row.item.gene)" class="loading-text">Loading...</span>
+													<span v-else>TBD</span>
+												</div>
+											</td>
+											<td>
+												<button 
+													@click="toggleEvidenceView(row.item.gene)"
+													class="view-button"
+													:class="{ active: expandedGenes.includes(row.item.gene) }"
+												>
+													{{ expandedGenes.includes(row.item.gene) ? 'Hide' : 'View' }}
+												</button>
+											</td>
+										</template>
+									
+										<!-- Evidence row -->
+										<template v-else-if="row.type === 'evidence'">
+											<td :colspan="hasManualGenes ? 5 : 6">
+												<div class="evidence-subtable">
+													<table class="evidence-table">
+														<thead>
+															<tr>
+																<th>Phenotype</th>
+																<th>Gene Set</th>
+																<th>Combined Genetic Support</th>
+																<th>Direct Genetic Support</th>
+																<th>Indirect Genetic Support</th>
+															</tr>
+														</thead>
+														<tbody>
+															<tr v-for="(evidence, index) in getEvidenceData(row.item)" :key="`${row.item.gene}-evidence-${index}`">
+																<td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
+																<td>{{ evidence.gene_set }}</td>
+																<td>{{ evidence.combined ? evidence.combined.toFixed(2) : 'N/A' }}</td>
+																<td>{{ evidence.log_bf ? evidence.log_bf.toFixed(2) : 'N/A' }}</td>
+																<td>{{ evidence.prior ? evidence.prior.toFixed(2) : 'N/A' }}</td>
+															</tr>
+														</tbody>
+													</table>
+												</div>
+											</td>
+										</template>
+									</tr>
+								</template>
 							</tbody>
 						</table>
 						
 						<!-- Pagination -->
 						<div class="pagination-container">
 							<div class="pagination-info">
-								Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredGenes.length) }} of {{ filteredGenes.length }} entries
+								<template v-if="scoredGenes.length > 0">
+									Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, scoredGenes.length) }} of {{ scoredGenes.length }} entries
+								</template>
+								<template v-else>
+									Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredGenes.length) }} of {{ filteredGenes.length }} entries
+								</template>
 							</div>
 							<div class="pagination-controls">
 								<button 
@@ -1278,7 +1345,9 @@ export default {
 			geneRankingElapsedTime: '0:00',
 			geneRankingStartTime: null,
 			geneRankingStep: '', // Current step message for gene ranking
-			expandedIDGGenes: [] // Track which candidate genes have IDG evidence expanded
+			expandedIDGGenes: [], // Track which candidate genes have IDG evidence expanded
+			// Scored genes from gene_novelty_prompt response
+			scoredGenes: [] // Stores full scored gene objects with all fields from LLM response
 		};
 	},
 	modules: {
@@ -1455,23 +1524,35 @@ export default {
 **Research Context (Optional):** [INSERT RESEARCH CONTEXT HERE, e.g., "The study is focused on identifying novel drug targets for non-alcoholic fatty liver disease."]
 **Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX ${this.noveltyScoreBatchSize})]
 
-**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 40 words) that justifies both scores.
+**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores, a functional classification, and narrative justifications.
 
-**Workflow:** Prioritize speed. Determine all scores/reasoning concurrently across the gene list.
-***Reasoning Requirement: The 'reason' field must clearly link the gene's function to the hypothesis (relevance). The LLM MUST first identify the RELEVANT TISSUE(S) mentioned in the Hypothesis (e.g., "brown adipose," "brain," and "heart") and explicitly integrate the role of ANY of the identified tissue(s) into the relevance justification. If **Research Context** is provided, the relevance and novelty scores must also consider how the gene's function aligns with the specific goals or focus areas mentioned in the Research Context (e.g., drug target identification, mechanistic understanding, therapeutic intervention). Contextualize the novelty score by classifying the gene's role (e.g., Core Functional Enzyme vs. Upstream Regulator), justifying its research standing, and considering its potential within the Research Context if provided.***
-***If information is unavailable for a gene, set both scores to "N/A" and explain why in 'reason' (≤40 words).***
+---
+**Gene Novelty/Prioritization Criteria (Scores must reflect these):**
+Genes are considered **highly novel (Score 8-10)** if they meet one of these categories specific to the Hypothesis/Research Context:
+1.  **Tissue-Specific Novelty:** Known for pathology in one organ but novel candidates for the specific tissue/systemic pathology in the Hypothesis.
+2.  **Mechanistic Novelty:** Encodes regulatory factors (e.g., signal transducers, TFs) whose exact pathway linkage to the core components is not fully elucidated.
+3.  **Contextual Novelty (Priority):** Function provides a direct, non-generic mechanism for interaction with the specific factor mentioned in the **Research Context**.
+**Genes that are highly characterized core components (e.g., highly studied housekeeping genes or general pathway components) should typically score 5 or lower on Novelty.**
+---
 
-Novelty Score (1=Highly Studied, 10=Poorly Studied).
-Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
+**Workflow & Reasoning Requirements:**
+1.  **Relevance Justification:** The 'reason' field must clearly link the gene's function to the hypothesis. The LLM **MUST** first identify the RELEVANT TISSUE(S) mentioned in the Hypothesis and explicitly integrate its role in ANY of the identified tissue(s).
+2.  **Score Context:** Relevance and Novelty scores must consider alignment with the specific goals or focus areas mentioned in the **Research Context**.
+3.  **Validation:** The 'hypothesis\_validation' field must concisely detail *how* an experimental result for this gene would specifically support or refine the core hypothesis and address the **Research Context**.
+
+Novelty Score (1=Highly Studied/Generic Function, 10=High Contextual Novelty).
+Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant/Directly implicated).
 
 [
   {
     "gene": "<symbol>",
+    "classification": "[Category based on its primary function, e.g., 'Signaling Kinase', 'Core Motor Component', or 'Structural Scaffolding Protein']",
     "relevance_score": "<1-10 or N/A>",
     "novelty_score": "<1-10 or N/A>",
-    "reason": "<max 40 words: justification for both scores.>"
-  },
-  ...
+    "reason": "[max 40 words: justification linking function, scores, and tissue context.]",
+    "hypothesis_validation": "[A concise, 1-2 sentence statement detailing *how* an experimental result for this gene would support the core hypothesis and address the Research Context.]"
+  }
+  // ... (Continue adding objects for all genes in the batch)
 ]`;
 		},
 		hypothesis_generation_prompt() {
@@ -1641,12 +1722,53 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			return [];
 		},
 		totalPages() {
-			return Math.ceil(this.filteredGenes.length / this.itemsPerPage);
+			// Use scoredGenes if available, otherwise use filteredGenes
+			// Access both arrays to ensure reactivity
+			const scoredLength = this.scoredGenes ? this.scoredGenes.length : 0;
+			const filteredLength = this.filteredGenes ? this.filteredGenes.length : 0;
+			const dataSourceLength = scoredLength > 0 ? scoredLength : filteredLength;
+			const total = Math.ceil(dataSourceLength / this.itemsPerPage);
+			// Ensure at least 1 page
+			return Math.max(1, total);
 		},
 		paginatedGeneData() {
 			const start = (this.currentPage - 1) * this.itemsPerPage;
 			const end = start + this.itemsPerPage;
 			return this.filteredGenes.slice(start, end);
+		},
+		paginatedScoredGenes() {
+			// Paginate scoredGenes for display
+			const start = (this.currentPage - 1) * this.itemsPerPage;
+			const end = start + this.itemsPerPage;
+			return this.scoredGenes.slice(start, end);
+		},
+		scoredGenesTableRows() {
+			// Return scoredGenes for table display (similar to candidateGenesTableRows)
+			// This is used for the v-if condition, actual rows are generated in template
+			return this.scoredGenes.length > 0;
+		},
+		allTableRows() {
+			// Generate all table rows for association-based genes (legacy support)
+			// Similar to tableRows but returns a flat list
+			const rows = [];
+			this.paginatedGeneData.forEach(item => {
+				// Add the main gene row
+				rows.push({
+					type: 'gene',
+					item: item,
+					key: `${item.gene}-${item.combined || 0}`
+				});
+				
+				// Add evidence row if expanded and not manual genes
+				if (!this.hasManualGenes && this.expandedGenes.includes(item.gene)) {
+					rows.push({
+						type: 'evidence',
+						item: item,
+						key: `${item.gene}-evidence-${item.combined || 0}`
+					});
+				}
+			});
+			return rows;
 		},
 		filteredGeneCount() {
 			return this.filteredGenes.length;
@@ -1701,6 +1823,11 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			const pages = [];
 			const total = this.totalPages;
 			const current = this.currentPage;
+			
+			// If total pages is 0 or 1, return just [1]
+			if (total <= 1) {
+				return [1];
+			}
 			
 			// Show up to 5 page numbers
 			let start = Math.max(1, current - 2);
@@ -1795,14 +1922,25 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			return rows;
 		},
 		genesWithScoresCount() {
-			// Count how many genes in the table have scores
+			// If using scoredGenes, return the count of scored genes
+			if (this.scoredGenes.length > 0) {
+				return this.scoredGenes.length;
+			}
+			// Otherwise, count how many genes in geneData have scores (legacy support)
 			return this.geneData.filter(gene => 
 				gene.gene && 
 				(this.geneNovelty[gene.gene] || this.geneRelevance[gene.gene])
 			).length;
 		},
 		genesNeedingScoresCount() {
-			// Count how many genes in the table still need scores
+			// If using scoredGenes, check if there are genes in manualGenes that aren't scored yet
+			if (this.scoredGenes.length > 0) {
+				if (!this.manualGenes.trim()) return 0;
+				const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
+				const scoredGeneSymbols = new Set(this.scoredGenes.map(g => g.gene));
+				return geneList.filter(gene => !scoredGeneSymbols.has(gene)).length;
+			}
+			// Otherwise, count how many genes in geneData still need scores (legacy support)
 			return this.geneData.filter(gene => 
 				gene.gene && 
 				!this.geneNovelty[gene.gene] && 
@@ -1810,9 +1948,14 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			).length;
 		},
 		hasNewGenesToAdd() {
-			// Check if there are genes in manualGenes that aren't in the table yet
+			// Check if there are genes in manualGenes that aren't in scoredGenes yet
 			if (!this.manualGenes.trim()) return false;
 			const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
+			if (this.scoredGenes.length > 0) {
+				const scoredGeneSymbols = new Set(this.scoredGenes.map(g => g.gene));
+				return geneList.some(gene => !scoredGeneSymbols.has(gene));
+			}
+			// Legacy support: check against geneData
 			const existingGenes = this.geneData.map(gene => gene.gene);
 			return geneList.some(gene => !existingGenes.includes(gene));
 		},
@@ -1842,6 +1985,18 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			currentPage() {
 				// Generate scores for genes on current page that don't have scores yet
 				this.getNoveltyForCurrentPage();
+			},
+			scoredGenes() {
+				// Reset to page 1 when scoredGenes changes (new scores added)
+				// Only reset if we're not already on page 1 and scoredGenes was previously empty
+				if (this.scoredGenes.length > 0 && this.currentPage > 1) {
+					// Check if this is a new batch being added (not just updating existing)
+					// We'll reset to page 1 only if it makes sense
+					const totalPages = Math.ceil(this.scoredGenes.length / this.itemsPerPage);
+					if (this.currentPage > totalPages) {
+						this.currentPage = 1;
+					}
+				}
 			},
 			geneData() {
 				// Update filtered genes when gene data changes
@@ -2497,28 +2652,61 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 							console.log('Response string:', responseString);
 							const noveltyData = JSON.parse(responseString);
 							
-							// Update the geneNovelty and geneRelevance cache
+							// Store full scored gene objects in scoredGenes array (similar to candidateGenes)
 							noveltyData.forEach(item => {
 								if (item.gene) {
-									// Handle novelty score
-									if (item.novelty_score !== undefined) {
-										this.$set(this.geneNovelty, item.gene, {
-											score: item.novelty_score,
-											context: item.reason || 'No context provided'
+									// Check if this gene already exists in scoredGenes
+									const existingIndex = this.scoredGenes.findIndex(g => g.gene === item.gene);
+									
+									if (existingIndex >= 0) {
+										// Update existing entry with new data
+										this.$set(this.scoredGenes, existingIndex, {
+											...this.scoredGenes[existingIndex],
+											...item
+										});
+									} else {
+										// Add new scored gene object
+										this.scoredGenes.push({
+											gene: item.gene,
+											classification: item.classification || null,
+											relevance_score: item.relevance_score || null,
+											novelty_score: item.novelty_score || null,
+											reason: item.reason || null,
+											hypothesis_validation: item.hypothesis_validation || null
 										});
 									}
 									
-									// Handle relevance score
+									// Also update the geneNovelty and geneRelevance cache for backward compatibility
+									if (item.novelty_score !== undefined) {
+										this.$set(this.geneNovelty, item.gene, {
+											score: item.novelty_score,
+											context: item.reason || 'No context provided',
+											classification: item.classification || null,
+											hypothesis_validation: item.hypothesis_validation || null
+										});
+									}
+									
 									if (item.relevance_score !== undefined) {
 										this.$set(this.geneRelevance, item.gene, {
 											score: item.relevance_score,
-											context: item.reason || 'No context provided'
+											context: item.reason || 'No context provided',
+											classification: item.classification || null,
+											hypothesis_validation: item.hypothesis_validation || null
 										});
 									}
 								}
 							});
 							
-							console.log(`Gene novelty updated for ${noveltyData.length} genes`);
+							// Sort scoredGenes by combined score (relevance + novelty) in descending order
+							this.scoredGenes.sort((a, b) => {
+								const scoreA = (typeof a.relevance_score === 'number' ? a.relevance_score : 0) + 
+											   (typeof a.novelty_score === 'number' ? a.novelty_score : 0);
+								const scoreB = (typeof b.relevance_score === 'number' ? b.relevance_score : 0) + 
+											   (typeof b.novelty_score === 'number' ? b.novelty_score : 0);
+								return scoreB - scoreA; // Descending order
+							});
+							
+							console.log(`Gene novelty updated for ${noveltyData.length} genes. Total scored genes: ${this.scoredGenes.length}`);
 							
 						} catch (error) {
 							console.error('Error parsing gene novelty response:', error);
@@ -2869,25 +3057,43 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 		},
 		async getNoveltyForCurrentPage() {
 			// Only proceed if we have a hypothesis and genes
-			if (!this.phenotypeSearch.trim() || this.geneData.length === 0) {
+			if (!this.phenotypeSearch.trim()) {
 				return;
 			}
 
-			// Get genes on current page that don't have novelty scores yet
-			const currentPageGenes = this.paginatedGeneData;
-			const genesNeedingScores = currentPageGenes.filter(gene =>
-				!this.geneNovelty[gene.gene] && gene.gene && gene.isManual
-			);
-
-			if (genesNeedingScores.length === 0) {
-				return; // All genes on this page already have scores
+			// Determine which genes need scores
+			let genesToProcess = [];
+			
+			if (this.scoredGenes.length > 0) {
+				// Using scoredGenes - get genes from manualGenes that aren't scored yet
+				if (!this.manualGenes.trim()) {
+					return;
+				}
+				const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
+				const scoredGeneSymbols = new Set(this.scoredGenes.map(g => g.gene));
+				const unscoredGenes = geneList.filter(gene => !scoredGeneSymbols.has(gene));
+				
+				// Get genes for current page (based on pagination of unscored genes)
+				const start = (this.currentPage - 1) * this.itemsPerPage;
+				const end = start + this.itemsPerPage;
+				const paginatedUnscoredGenes = unscoredGenes.slice(start, end);
+				
+				// Limit to noveltyScoreBatchSize genes as per prompt constraints
+				genesToProcess = paginatedUnscoredGenes.slice(0, this.noveltyScoreBatchSize);
+			} else {
+				// Legacy support: using geneData
+				if (this.geneData.length === 0) {
+					return;
+				}
+				const currentPageGenes = this.paginatedGeneData;
+				const genesNeedingScores = currentPageGenes.filter(gene =>
+					!this.geneNovelty[gene.gene] && gene.gene && gene.isManual
+				);
+				genesToProcess = genesNeedingScores.slice(0, this.noveltyScoreBatchSize).map(g => g.gene);
 			}
-
-		// Limit to noveltyScoreBatchSize genes as per prompt constraints
-		const genesToProcess = genesNeedingScores.slice(0, this.noveltyScoreBatchSize).map(g => g.gene);
 
 			if (genesToProcess.length === 0) {
-				return;
+				return; // All genes on this page already have scores
 			}
 
 			console.log(`Generating scores for ${genesToProcess.length} genes on page ${this.currentPage}:`, genesToProcess);
@@ -2974,15 +3180,17 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				return;
 			}
 
-			// Get existing genes in the table
-			const existingGenes = this.geneData.map(gene => gene.gene);
+			// Get existing genes - check scoredGenes first, then geneData (legacy)
+			const existingGenes = this.scoredGenes.length > 0 
+				? new Set(this.scoredGenes.map(g => g.gene))
+				: new Set(this.geneData.map(gene => gene.gene));
 			
-			// Find new genes that aren't already in the table
-			const newGenes = geneList.filter(gene => !existingGenes.includes(gene));
+			// Find new genes that aren't already scored
+			const newGenes = geneList.filter(gene => !existingGenes.has(gene));
 			
-			if (newGenes.length === 0 && existingGenes.length > 0) {
-				alert('All genes in your input are already in the table. Scores will be generated for existing genes as you navigate through pages.');
-				// Still allow generating scores for existing genes on current page
+			if (newGenes.length === 0 && (this.scoredGenes.length > 0 || this.geneData.length > 0)) {
+				alert('All genes in your input are already scored. Scores will be generated for remaining genes as you navigate through pages.');
+				// Still allow generating scores for remaining genes on current page
 				await this.getNoveltyForCurrentPage();
 				return;
 			}
@@ -3009,29 +3217,8 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			}, 1000);
 
 			try {
-				// Add genes to the table first (similar to addManualGenes but without clearing input)
-				if (genesToProcess.length > 0) {
-					const genesToAdd = genesToProcess.map(gene => ({
-						gene: gene,
-						log_bf: null,
-						prior: null,
-						combined: null,
-						directPPA: null,
-						indirectPPA: null,
-						source: 'Manual Input',
-						phenotype: 'Manual Input',
-						isManual: true
-					}));
-					
-					// Add to existing gene data
-					this.geneData = [...this.geneData, ...genesToAdd];
-					this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
-					
-					// Update filtered genes after adding
-					this.updateFilteredGenes();
-				}
-
 				// Generate scores for first batch initially
+				// Note: scoredGenes will be populated directly from the LLM response
 				if (genesToProcess.length > 0) {
 					const firstBatch = genesToProcess.slice(0, this.noveltyScoreBatchSize);
 					await this.getNoveltyForManualGenes(firstBatch);
