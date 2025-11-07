@@ -204,14 +204,20 @@
                     <div class="home-section f-col">
                         <div class="analysis-figure">
                             <img
-                                src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/gene_set.png"
+                                src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/kc_reveal.png"
                             />
                         </div>
                         <h2>CFDE REVEAL</h2>
                         <div style="flex:1">
-                            Turn your research question into mechanistic leads by
-                            exploring gene expression signatures linked to phenotypes,
-                            and get evidence-backed hypotheses about the biology behind them.
+                            <strong>Turn your research question into mechanistic leads.</strong>
+                            <div>CFDE-REVEAL is the <em>entry point</em> — it interprets a natural-language question, 
+                                searches across CFDE resources and A2FKP gene-trait evidence, and identifies 
+                                mechanistic hypotheses.    
+                            </div>
+                            <div>
+                                It uses semantic search, Bayesian genetics (via PIGEAN), and LLM-assisted 
+                                reasoning to reveal hidden biological connections.
+                            </div>
                         </div>
                         <a
                             href="/r/cfde_reveal"
@@ -222,13 +228,27 @@
                     <div class="home-section f-col">
                         <div class="analysis-figure">
                             <img
-                                src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/dge.png"
+                                src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/kc_design.png"
                             />
                         </div>
                         <h2>CFDE DESIGN</h2>
                         <div style="flex:1">
-                            Find ways to validate your mechanistic hypothesis
-                            of Common Fund Data with the tools available to you.
+                            <strong>Turn mechanistic leads into experiments</strong>
+                            <div>
+                                CFDE-DESIGN is the <em>follow-through</em> — it builds on hypotheses from REVEAL to recommend 
+                                experimental next steps, such as:    
+                            </div>
+                            <ul>
+                                <li>plausible assays (e.g., RNA-seq, proteomics, CRISPR perturbation)</li>
+                                <li>relevant cell or tissue contexts</li>
+                                <li>candidate biomarkers or interventions</li>
+                                <li>CFDE datasets suited for validation</li>
+                            </ul>
+                            <div>
+                                It acts as an LLM-guided experimental planner, helping users move from what 
+                                we think to how to test it.
+                            </div>
+
                         </div>
                         <a
                             href="/r/cfde_design"
@@ -281,7 +301,7 @@
                             exploration.
                         </div>
                         <a
-                            href="/r/kc_gene_set_browser_source?source=all&model=cfde"
+                            href="/r/kc_gsb?source=all"
                             style="align-self: flex-end"
                             >Start here</a
                         >
@@ -585,24 +605,6 @@ export default Vue.component("cfde-landing-2", {
 
             centersData: [
                 {
-                    label: "COORDINATION",
-                    logo: "https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/center_coordination.png",
-                    link: "https://cfdeconnect.org/",
-                    name: "CFDE Connect: Integration & Coordination Center",
-                    info: "Connect ICC's role in coordinating the activities of various stakeholders and facilitating collaboration significantly enhances the CFDE's potential to revolutionize biomedical research."
-                },{
-                    label: "TRAINING",
-                    logo: "https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/center_training.png",
-                    link: "https://orau.org/cfde-trainingcenter/",
-                    name: "CFDE Training Center",
-                    info: "The CFDE Training Center provides training in basic and advanced computational and data analytic skills for data science learners and users interested in CFDE data, tools, and resources."
-                },{
-                    label: "KNOWLEDGE",
-                    logo: "https://hugeampkpncms.org/sites/default/files/users/user32/cfde_kc_logo_c.svg",
-                    link: null,
-                    name: "CFDE Knowledge Center",
-                    info: "The Knowledge Center integrates data and knowledge generated by ground-breaking research programs in the NIH Common Fund Data Ecosystem."
-                },{
                     label: "DATA",
                     logo: "https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/center_data.png",
                     link: "https://info.cfde.cloud/",
@@ -614,6 +616,24 @@ export default Vue.component("cfde-landing-2", {
                     link: "https://cfdeworkspace.org/",
                     name: "CFDE Cloud Workspace Implementation Center",
                     info: "This platform provides researchers with powerful tools for data analysis, integration, and collaboration while leveraging free computational resources to accelerate scientific discoveries."
+                },{
+                    label: "KNOWLEDGE",
+                    logo: "https://hugeampkpncms.org/sites/default/files/users/user32/cfde_kc_logo_c.svg",
+                    link: null,
+                    name: "CFDE Knowledge Center",
+                    info: "The Knowledge Center integrates data and knowledge generated by ground-breaking research programs in the NIH Common Fund Data Ecosystem."
+                },{
+                    label: "TRAINING",
+                    logo: "https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/center_training.png",
+                    link: "https://orau.org/cfde-trainingcenter/",
+                    name: "CFDE Training Center",
+                    info: "The CFDE Training Center provides training in basic and advanced computational and data analytic skills for data science learners and users interested in CFDE data, tools, and resources."
+                },{
+                    label: "COORDINATION",
+                    logo: "https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/center_coordination.png",
+                    link: "https://cfdeconnect.org/",
+                    name: "CFDE Connect: Integration & Coordination Center",
+                    info: "Connect ICC's role in coordinating the activities of various stakeholders and facilitating collaboration significantly enhances the CFDE's potential to revolutionize biomedical research."
                 }
             ]
         };
