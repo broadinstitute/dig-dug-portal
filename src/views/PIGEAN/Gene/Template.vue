@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import bioIndexUtils from '../../../utils/bioIndexUtils';
+
+</script>
+
 <template>
     <div>
         <!-- Header -->
@@ -89,7 +94,10 @@
 
             <div class="card mdkp-card">
                 <div class="card-body pigean-title">
-                    <h4 class="card-title">Traits with genetic support</h4>
+                    <h4 class="card-title">Traits with genetic support 
+                        (trait group: {{ !!bioIndexUtils.TRAIT_GROUPS[$store.state.traitGroup] 
+                            ? bioIndexUtils.TRAIT_GROUPS[$store.state.traitGroup]
+                            : $parent.tissueFormatter($store.state.traitGroup).toUpperCase()}})</h4>
                     <div>
                         Combined genetic support is composed of direct support
                         (from GWAS associations near the gene) and indirect
