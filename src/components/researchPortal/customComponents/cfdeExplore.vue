@@ -600,28 +600,9 @@
 						<p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">{{ manualGenes || 'No genes provided' }}</p>
 					</div>
 
-					<!-- Generate Scores Button and Info -->
+					<!-- Score Progress Info -->
 					<div style="margin-bottom: 20px;">
 						<div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-							<button 
-								@click="generateScores" 
-								class="btn btn-primary"
-								:disabled="isGettingGeneNovelty || !manualGenes.trim() || !phenotypeSearch.trim() || (geneData.length > 0 && genesNeedingScoresCount === 0 && !hasNewGenesToAdd)"
-							>
-								<span v-if="isGettingGeneNovelty" class="loading-spinner-small"></span>
-								<span v-if="isGettingGeneNovelty">
-									Generating scores... ({{ geneNoveltyElapsedTime }})
-								</span>
-								<span v-else-if="hasNewGenesToAdd">
-									Add Genes & Generate First Batch
-								</span>
-								<span v-else-if="genesNeedingScoresCount > 0">
-									Generate Scores for Current Page
-								</span>
-								<span v-else>
-									All Genes Scored
-								</span>
-							</button>
 							<div v-if="scoredGenes.length > 0 || geneData.length > 0" style="color: #666; font-size: 13px;">
 								<span v-if="genesWithScoresCount > 0 || genesNeedingScoresCount > 0">
 									<template v-if="scoredGenes.length > 0">
@@ -636,11 +617,8 @@
 								</span>
 							</div>
 						</div>
-						<div v-if="(scoredGenes.length === 0 && geneData.length === 0) || hasNewGenesToAdd" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-left: 3px solid #1976d2; border-radius: 4px; font-size: 12px; color: #1976d2;">
-							<strong>Note:</strong> Scores are generated in batches of {{ noveltyScoreBatchSize }} genes. After the first batch, scores will be generated automatically as you navigate through pages.
-						</div>
-						<div v-else-if="genesNeedingScoresCount > 0" style="margin-top: 10px; padding: 10px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 4px; font-size: 12px; color: #856404;">
-							<strong>Tip:</strong> Navigate through pages to automatically generate scores for remaining genes, or click the button above to generate scores for genes on the current page.
+						<div v-if="genesNeedingScoresCount > 0" style="margin-top: 10px; padding: 10px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 4px; font-size: 12px; color: #856404;">
+							<strong>Tip:</strong> Scores are generated automatically as you navigate through pages. The first batch is generated when the dialog opens.
 						</div>
 					</div>
 
@@ -652,27 +630,89 @@
 
 					<!-- Gene Data Table -->
 					<div v-if="scoredGenes.length > 0 || (geneData.length > 0 && !hasManualGenes)" class="table-container">
+						<!-- TDL Legend (only for scored genes) -->
+						<div v-if="scoredGenes.length > 0" class="tdl-legend" style="margin-bottom: 15px; padding: 12px 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+							<div style="margin-bottom: 8px; font-weight: 600; color: #333; font-size: 13px;">Target Development Level (TDL) Classification:</div>
+							<div style="display: flex; flex-wrap: nowrap; gap: 12px 20px; font-size: 12px;">
+								<div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+									<span class="tdl-badge tclin" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white; background: #007bff; flex-shrink: 0;">Tclin</span>
+									<span style="color: #666; flex: 1;">Targets of approved drugs</span>
+								</div>
+								<div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+									<span class="tdl-badge tchem" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white; background: #17a2b8; flex-shrink: 0;">Tchem</span>
+									<span style="color: #666; flex: 1;">Bind small molecules with high potency</span>
+								</div>
+								<div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+									<span class="tdl-badge tbio" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white; background: #fd7e14; flex-shrink: 0;">Tbio</span>
+									<span style="color: #666; flex: 1;">Linked to biological processes relevant to disease</span>
+								</div>
+								<div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+									<span class="tdl-badge tdark" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white; background: #dc3545; flex-shrink: 0;">Tdark</span>
+									<span style="color: #666; flex: 1;">No clinical, chemical, or biological links to disease</span>
+								</div>
+							</div>
+						</div>
+						
+						<!-- Show only selected checkbox (only for scored genes) -->
+						<div v-if="scoredGenes.length > 0" style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+							<input 
+								type="checkbox" 
+								id="showOnlySelectedScoredGenes"
+								v-model="showOnlySelectedScoredGenes"
+								:disabled="selectedScoredGenes.length === 0"
+							/>
+							<label for="showOnlySelectedScoredGenes" style="font-size: 13px; color: #333; cursor: pointer;">
+								Show only selected
+							</label>
+							<span v-if="selectedScoredGenes.length > 0" style="font-size: 12px; color: #666; margin-left: 8px;">
+								({{ selectedScoredGenes.length }} selected)
+							</span>
+						</div>
+						
 						<table class="gene-data-table">
 							<thead>
 								<tr>
-									<th>Gene/Target</th>
+									<th v-if="scoredGenes.length > 0" style="width: 40px; text-align: center;">
+										<input 
+											ref="selectAllScoredGenesCheckbox"
+											type="checkbox" 
+											@change="toggleAllScoredGenes"
+											:checked="allScoredGenesSelected()"
+										/>
+									</th>
+									<th>Gene</th>
 									<th v-if="scoredGenes.length > 0">Classification</th>
-									<th>Hypothesis Relevance</th>
-									<th>Innovation Score</th>
-									<th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
-									<th v-if="scoredGenes.length > 0">Hypothesis Validation</th>
-									<th v-if="!hasManualGenes">Associations</th>
+									<th>Relevance Score</th>
+									<th>Novelty Score</th>
+									<th :style="hasManualGenes ? 'width: 30%;' : 'width: 30%;'">Reason</th>
+									<th v-if="scoredGenes.length > 0" style="width: 30%;">Hypothesis Validation</th>
+									<th v-if="scoredGenes.length > 0">IDG Novelty</th>
+									<th v-if="scoredGenes.length > 0">IDG Evidence</th>
 								</tr>
 							</thead>
 							<tbody>
 								<!-- Scored genes from LLM response (for manual genes) -->
 								<template v-if="scoredGenes.length > 0">
-									<tr v-for="scoredGene in paginatedScoredGenes" :key="`scored-${scoredGene.gene}`">
+									<template v-for="scoredGene in paginatedScoredGenes">
+										<tr :key="`scored-${scoredGene.gene}`" :class="{ 'selected-row': isScoredGeneSelected(scoredGene.gene) }">
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center;">
+											<input 
+												type="checkbox" 
+												:checked="isScoredGeneSelected(scoredGene.gene)"
+												@change="toggleScoredGeneSelection(scoredGene.gene)"
+											/>
+										</td>
 										<td style="font-weight: 600; color: #333;">{{ scoredGene.gene || 'N/A' }}</td>
-										<td style="color: #666;">{{ scoredGene.classification || 'N/A' }}</td>
+										<td style="color: #666;">
+											<span v-if="scoredGene.classification && scoredGene.classification !== 'To be generated'">
+												{{ scoredGene.classification }}
+											</span>
+											<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
+											<span v-else>To be generated</span>
+										</td>
 										<td>
 											<div class="relevance-cell">
-												<span v-if="scoredGene.relevance_score !== undefined && scoredGene.relevance_score !== null && scoredGene.relevance_score !== 'N/A'" 
+												<span v-if="scoredGene.relevance_score !== undefined && scoredGene.relevance_score !== null && scoredGene.relevance_score !== 'N/A' && scoredGene.relevance_score !== 'To be generated'" 
 													:class="{ 'high-score': typeof scoredGene.relevance_score === 'number' && scoredGene.relevance_score >= 7 }"
 													class="score-content"
 													style="font-weight: 600;"
@@ -680,12 +720,12 @@
 													{{ scoredGene.relevance_score }}{{ typeof scoredGene.relevance_score === 'number' ? '/10' : '' }}
 												</span>
 												<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
-												<span v-else>TBD</span>
+												<span v-else>To be generated</span>
 											</div>
 										</td>
 										<td>
 											<div class="novelty-cell">
-												<span v-if="scoredGene.novelty_score !== undefined && scoredGene.novelty_score !== null && scoredGene.novelty_score !== 'N/A'"
+												<span v-if="scoredGene.novelty_score !== undefined && scoredGene.novelty_score !== null && scoredGene.novelty_score !== 'N/A' && scoredGene.novelty_score !== 'To be generated'"
 													:class="{ 'high-score': typeof scoredGene.novelty_score === 'number' && scoredGene.novelty_score >= 7 }"
 													class="score-content"
 													style="font-weight: 600;"
@@ -693,28 +733,98 @@
 													{{ scoredGene.novelty_score }}{{ typeof scoredGene.novelty_score === 'number' ? '/10' : '' }}
 												</span>
 												<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
-												<span v-else>TBD</span>
+												<span v-else>To be generated</span>
 											</div>
 										</td>
 										<td>
 											<div class="reason-cell">
-												<div v-if="scoredGene.reason" class="reason-content">
+												<div v-if="scoredGene.reason && scoredGene.reason !== 'To be generated'" class="reason-content">
 													{{ scoredGene.reason }}
 												</div>
 												<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
-												<span v-else>TBD</span>
+												<span v-else>To be generated</span>
 											</div>
 										</td>
 										<td>
 											<div class="reason-cell">
-												<div v-if="scoredGene.hypothesis_validation" class="reason-content">
+												<div v-if="scoredGene.hypothesis_validation && scoredGene.hypothesis_validation !== 'To be generated'" class="reason-content">
 													{{ scoredGene.hypothesis_validation }}
 												</div>
 												<span v-else-if="isGettingGeneNovelty" class="loading-text">Loading...</span>
-												<span v-else>TBD</span>
+												<span v-else>To be generated</span>
+											</div>
+										</td>
+										<td>
+											<template v-if="scoredGene.idg_tdl">
+												<span :class="getTDLClass(scoredGene.idg_tdl)" style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white;">{{ scoredGene.idg_tdl }}</span>
+											</template>
+											<span v-else-if="scoredGene.idg_fetched" style="color: #999; font-style: italic;">N/A</span>
+											<span v-else-if="scoredGene.relevance_score !== 'To be generated'" style="color: #999; font-style: italic;">Loading...</span>
+											<span v-else style="color: #999; font-style: italic;">To be generated</span>
+										</td>
+										<td style="padding: 10px 8px; border-bottom: 1px solid #dee2e6; text-align: center;">
+											<button 
+												v-if="scoredGene.idg_fullData"
+												@click="toggleScoredGeneIDGEvidenceView(scoredGene.gene)"
+												class="idg-view-button"
+												:class="{ active: expandedScoredGenesIDG.includes(scoredGene.gene) }"
+											>
+												{{ expandedScoredGenesIDG.includes(scoredGene.gene) ? 'Hide' : 'View' }}
+											</button>
+											<span v-else-if="scoredGene.idg_fetched === false && scoredGene.relevance_score !== 'To be generated'" style="color: #999; font-style: italic; font-size: 12px;">Loading...</span>
+											<span v-else-if="scoredGene.idg_fetched === true" style="color: #999; font-size: 12px;">N/A</span>
+											<span v-else style="color: #999; font-size: 12px;">-</span>
+										</td>
+									</tr>
+									<!-- IDG Evidence Subtable Row for Scored Genes -->
+									<tr v-if="expandedScoredGenesIDG.includes(scoredGene.gene) && scoredGene.idg_fullData" :key="`idg-evidence-${scoredGene.gene}`">
+										<td :colspan="scoredGenes.length > 0 ? 9 : 6" style="padding: 0; border-bottom: 1px solid #dee2e6;">
+											<div class="idg-evidence-subtable">
+												<table class="idg-evidence-table">
+													<thead>
+														<tr>
+															<th>Gene</th>
+															<th>Name</th>
+															<th>Family</th>
+															<th>TDL</th>
+															<th>Description</th>
+															<th>Novelty</th>
+															<th>Visit Pharos</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr>
+															<td>{{ scoredGene.idg_fullData.sym || 'N/A' }}</td>
+															<td>{{ scoredGene.idg_fullData.name || 'N/A' }}</td>
+															<td>{{ scoredGene.idg_fullData.fam || 'N/A' }}</td>
+															<td>
+																<span v-if="scoredGene.idg_fullData.tdl" 
+																	:class="getTDLClass(scoredGene.idg_fullData.tdl)"
+																	style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; color: white;"
+																>
+																	{{ scoredGene.idg_fullData.tdl }}
+																</span>
+																<span v-else>N/A</span>
+															</td>
+															<td>{{ scoredGene.idg_fullData.description || 'N/A' }}</td>
+															<td>{{ scoredGene.idg_fullData.novelty || 'N/A' }}</td>
+															<td>
+																<a v-if="scoredGene.idg_fullData.sym" 
+																	:href="`https://pharos.nih.gov/targets/${scoredGene.idg_fullData.sym}`" 
+																	target="_blank"
+																	style="color: #1976d2; text-decoration: none;"
+																>
+																	Open
+																</a>
+																<span v-else>N/A</span>
+															</td>
+														</tr>
+													</tbody>
+												</table>
 											</div>
 										</td>
 									</tr>
+									</template>
 								</template>
 								
 								<!-- Association-based genes (legacy support) -->
@@ -750,20 +860,11 @@
 													<span v-else>TBD</span>
 												</div>
 											</td>
-											<td>
-												<button 
-													@click="toggleEvidenceView(row.item.gene)"
-													class="view-button"
-													:class="{ active: expandedGenes.includes(row.item.gene) }"
-												>
-													{{ expandedGenes.includes(row.item.gene) ? 'Hide' : 'View' }}
-												</button>
-											</td>
 										</template>
 									
 										<!-- Evidence row -->
 										<template v-else-if="row.type === 'evidence'">
-											<td :colspan="hasManualGenes ? 5 : 6">
+											<td :colspan="hasManualGenes ? 4 : 5">
 												<div class="evidence-subtable">
 													<table class="evidence-table">
 														<thead>
@@ -797,7 +898,12 @@
 						<div class="pagination-container">
 							<div class="pagination-info">
 								<template v-if="scoredGenes.length > 0">
-									Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, scoredGenes.length) }} of {{ scoredGenes.length }} entries
+									<template v-if="showOnlySelectedScoredGenes && selectedScoredGenes.length > 0">
+										Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, selectedScoredGenes.length) }} of {{ selectedScoredGenes.length }} selected entries
+									</template>
+									<template v-else>
+										Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, scoredGenes.length) }} of {{ scoredGenes.length }} entries
+									</template>
 								</template>
 								<template v-else>
 									Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredGenes.length) }} of {{ filteredGenes.length }} entries
@@ -957,8 +1063,8 @@
 										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Relevance Score</th>
 										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Novelty Score</th>
 										
-										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Reason</th>
-										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">Hypothesis Validation</th>
+										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600; width: 30%;">Reason</th>
+										<th style="padding: 10px 8px; text-align: left; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600; width: 30%;">Hypothesis Validation</th>
 										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">IDG Novelty</th>
 										<th style="padding: 10px 8px; text-align: center; background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 600;">IDG Evidence</th>
 									</tr>
@@ -1027,7 +1133,7 @@
 													<table class="idg-evidence-table">
 														<thead>
 															<tr>
-																<th>Gene Symbol</th>
+																<th>Gene</th>
 																<th>Name</th>
 																<th>Family</th>
 																<th>TDL</th>
@@ -1346,8 +1452,11 @@ export default {
 			geneRankingStartTime: null,
 			geneRankingStep: '', // Current step message for gene ranking
 			expandedIDGGenes: [], // Track which candidate genes have IDG evidence expanded
+			expandedScoredGenesIDG: [], // Track which scored genes have IDG evidence expanded in scoring dialog
 			// Scored genes from gene_novelty_prompt response
-			scoredGenes: [] // Stores full scored gene objects with all fields from LLM response
+			scoredGenes: [], // Stores full scored gene objects with all fields from LLM response
+			selectedScoredGenes: [], // Stores gene symbols of selected scored genes
+			showOnlySelectedScoredGenes: false // Filter to show only selected scored genes
 		};
 	},
 	modules: {
@@ -1724,7 +1833,12 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 		totalPages() {
 			// Use scoredGenes if available, otherwise use filteredGenes
 			// Access both arrays to ensure reactivity
-			const scoredLength = this.scoredGenes ? this.scoredGenes.length : 0;
+			let scoredLength = this.scoredGenes ? this.scoredGenes.length : 0;
+			// If filtering by selected genes, use filtered length
+			if (this.showOnlySelectedScoredGenes && this.selectedScoredGenes.length > 0 && scoredLength > 0) {
+				const selectedSet = new Set(this.selectedScoredGenes);
+				scoredLength = this.scoredGenes.filter(gene => selectedSet.has(gene.gene)).length;
+			}
 			const filteredLength = this.filteredGenes ? this.filteredGenes.length : 0;
 			const dataSourceLength = scoredLength > 0 ? scoredLength : filteredLength;
 			const total = Math.ceil(dataSourceLength / this.itemsPerPage);
@@ -1737,10 +1851,16 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			return this.filteredGenes.slice(start, end);
 		},
 		paginatedScoredGenes() {
+			// Filter to show only selected genes if filter is enabled
+			let genesToPaginate = this.scoredGenes;
+			if (this.showOnlySelectedScoredGenes && this.selectedScoredGenes.length > 0) {
+				const selectedSet = new Set(this.selectedScoredGenes);
+				genesToPaginate = this.scoredGenes.filter(gene => selectedSet.has(gene.gene));
+			}
 			// Paginate scoredGenes for display
 			const start = (this.currentPage - 1) * this.itemsPerPage;
 			const end = start + this.itemsPerPage;
-			return this.scoredGenes.slice(start, end);
+			return genesToPaginate.slice(start, end);
 		},
 		scoredGenesTableRows() {
 			// Return scoredGenes for table display (similar to candidateGenesTableRows)
@@ -1922,9 +2042,15 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			return rows;
 		},
 		genesWithScoresCount() {
-			// If using scoredGenes, return the count of scored genes
+			// If using scoredGenes, return the count of genes that have actual scores (not "To be generated")
 			if (this.scoredGenes.length > 0) {
-				return this.scoredGenes.length;
+				return this.scoredGenes.filter(gene => 
+					gene.gene && 
+					gene.relevance_score !== 'To be generated' &&
+					gene.relevance_score !== null &&
+					gene.relevance_score !== undefined &&
+					gene.relevance_score !== 'N/A'
+				).length;
 			}
 			// Otherwise, count how many genes in geneData have scores (legacy support)
 			return this.geneData.filter(gene => 
@@ -1933,12 +2059,16 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			).length;
 		},
 		genesNeedingScoresCount() {
-			// If using scoredGenes, check if there are genes in manualGenes that aren't scored yet
+			// If using scoredGenes, check if there are genes that don't have actual scores yet
 			if (this.scoredGenes.length > 0) {
-				if (!this.manualGenes.trim()) return 0;
-				const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
-				const scoredGeneSymbols = new Set(this.scoredGenes.map(g => g.gene));
-				return geneList.filter(gene => !scoredGeneSymbols.has(gene)).length;
+				return this.scoredGenes.filter(gene => 
+					gene.gene && (
+						gene.relevance_score === 'To be generated' ||
+						gene.relevance_score === null ||
+						gene.relevance_score === undefined ||
+						gene.relevance_score === 'N/A'
+					)
+				).length;
 			}
 			// Otherwise, count how many genes in geneData still need scores (legacy support)
 			return this.geneData.filter(gene => 
@@ -1982,21 +2112,35 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 					}
 				}
 			},
+			selectedScoredGenes() {
+				// Update indeterminate state of select-all checkbox for scored genes
+				this.$nextTick(() => {
+					if (this.$refs.selectAllScoredGenesCheckbox) {
+						this.$refs.selectAllScoredGenesCheckbox.indeterminate = this.someScoredGenesSelected() && !this.allScoredGenesSelected();
+					}
+				});
+			},
+			showOnlySelectedScoredGenes() {
+				// Reset to page 1 when filter is toggled
+				if (this.currentPage > 1) {
+					this.currentPage = 1;
+				}
+			},
 			currentPage() {
 				// Generate scores for genes on current page that don't have scores yet
 				this.getNoveltyForCurrentPage();
 			},
-			scoredGenes() {
-				// Reset to page 1 when scoredGenes changes (new scores added)
-				// Only reset if we're not already on page 1 and scoredGenes was previously empty
-				if (this.scoredGenes.length > 0 && this.currentPage > 1) {
-					// Check if this is a new batch being added (not just updating existing)
-					// We'll reset to page 1 only if it makes sense
-					const totalPages = Math.ceil(this.scoredGenes.length / this.itemsPerPage);
-					if (this.currentPage > totalPages) {
-						this.currentPage = 1;
+			scoredGenes: {
+				handler(newVal, oldVal) {
+					// Only adjust currentPage if it's out of bounds after scoredGenes changes
+					if (newVal && newVal.length > 0) {
+						const totalPages = Math.ceil(newVal.length / this.itemsPerPage);
+						if (this.currentPage > totalPages) {
+							this.currentPage = 1;
+						}
 					}
-				}
+				},
+				deep: true
 			},
 			geneData() {
 				// Update filtered genes when gene data changes
@@ -2053,7 +2197,9 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 		setSimpleLink,
 		handleCardClick(card) {
 			// Route to the appropriate handler method based on card config
+			console.log(`[Card Click] Card: ${card['card label']}, Handler: ${card.handler}`);
 			if (card.handler && typeof this[card.handler] === 'function') {
+				console.log(`[Card Click] Calling handler method: ${card.handler}`);
 				this[card.handler]();
 			} else {
 				console.error(`Handler method "${card.handler}" not found for card "${card['card label']}"`);
@@ -2697,16 +2843,16 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 								}
 							});
 							
-							// Sort scoredGenes by combined score (relevance + novelty) in descending order
-							this.scoredGenes.sort((a, b) => {
-								const scoreA = (typeof a.relevance_score === 'number' ? a.relevance_score : 0) + 
-											   (typeof a.novelty_score === 'number' ? a.novelty_score : 0);
-								const scoreB = (typeof b.relevance_score === 'number' ? b.relevance_score : 0) + 
-											   (typeof b.novelty_score === 'number' ? b.novelty_score : 0);
-								return scoreB - scoreA; // Descending order
-							});
+							// Don't sort - maintain original order from input
+							// (Sorting removed per user request)
 							
 							console.log(`Gene novelty updated for ${noveltyData.length} genes. Total scored genes: ${this.scoredGenes.length}`);
+							
+							// After scores are generated, fetch IDG data for the scored genes on current page
+							// This will be called after getNoveltyForManualGenes completes
+							this.$nextTick(() => {
+								this.fetchIDGDataForScoredGenesOnPage();
+							});
 							
 						} catch (error) {
 							console.error('Error parsing gene novelty response:', error);
@@ -3055,9 +3201,65 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			this.hypothesisGenerationStartTime = null;
 			this.hypothesisGenerationElapsedTime = '0:00';
 		},
+		async autoGenerateFirstBatch() {
+			// Auto-generate scores for the first batch when dialog opens
+			if (!this.showScoreGenerationDialog) {
+				return;
+			}
+
+			// Find genes that need scoring (those with "To be generated")
+			const genesNeedingScores = this.scoredGenes.filter(gene => 
+				gene.gene && 
+				gene.relevance_score === 'To be generated'
+			);
+
+			if (genesNeedingScores.length === 0) {
+				return; // All genes already scored
+			}
+
+			// Get first batch
+			const firstBatch = genesNeedingScores.slice(0, this.noveltyScoreBatchSize).map(g => g.gene);
+
+			if (firstBatch.length === 0) {
+				return;
+			}
+
+			console.log(`[Auto-generate] Generating scores for first batch of ${firstBatch.length} genes`);
+
+			// Set loading state and start timer
+			this.isGettingGeneNovelty = true;
+			this.geneNoveltyStartTime = Date.now();
+			this.geneNoveltyElapsedTime = '0:00';
+
+			// Start timer to update elapsed time every second
+			this.geneNoveltyTimer = setInterval(() => {
+				if (this.isGettingGeneNovelty && this.geneNoveltyStartTime) {
+					const elapsed = Math.floor((Date.now() - this.geneNoveltyStartTime) / 1000);
+					const minutes = Math.floor(elapsed / 60);
+					const seconds = elapsed % 60;
+					this.geneNoveltyElapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+				}
+			}, 1000);
+
+			try {
+				await this.getNoveltyForManualGenes(firstBatch);
+				
+				// After scores are generated, fetch IDG data for the first batch
+				await this.fetchIDGDataForScoredGenesOnPage();
+			} catch (error) {
+				console.error('Error auto-generating first batch:', error);
+				this.isGettingGeneNovelty = false;
+				this.clearGeneNoveltyTimer();
+			}
+		},
 		async getNoveltyForCurrentPage() {
 			// Only proceed if we have a hypothesis and genes
 			if (!this.phenotypeSearch.trim()) {
+				return;
+			}
+
+			// Only proceed if dialog is open
+			if (!this.showScoreGenerationDialog) {
 				return;
 			}
 
@@ -3065,21 +3267,18 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			let genesToProcess = [];
 			
 			if (this.scoredGenes.length > 0) {
-				// Using scoredGenes - get genes from manualGenes that aren't scored yet
-				if (!this.manualGenes.trim()) {
-					return;
-				}
-				const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
-				const scoredGeneSymbols = new Set(this.scoredGenes.map(g => g.gene));
-				const unscoredGenes = geneList.filter(gene => !scoredGeneSymbols.has(gene));
+				// Using scoredGenes - get genes on current page that need scoring
+				// Get genes on current page from paginatedScoredGenes
+				const pageGenes = this.paginatedScoredGenes;
 				
-				// Get genes for current page (based on pagination of unscored genes)
-				const start = (this.currentPage - 1) * this.itemsPerPage;
-				const end = start + this.itemsPerPage;
-				const paginatedUnscoredGenes = unscoredGenes.slice(start, end);
+				// Filter to find genes that need scoring (have "To be generated")
+				const genesNeedingScores = pageGenes.filter(gene => 
+					gene.gene && 
+					gene.relevance_score === 'To be generated'
+				);
 				
 				// Limit to noveltyScoreBatchSize genes as per prompt constraints
-				genesToProcess = paginatedUnscoredGenes.slice(0, this.noveltyScoreBatchSize);
+				genesToProcess = genesNeedingScores.slice(0, this.noveltyScoreBatchSize).map(g => g.gene);
 			} else {
 				// Legacy support: using geneData
 				if (this.geneData.length === 0) {
@@ -3115,12 +3314,125 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 
 			try {
 				await this.getNoveltyForManualGenes(genesToProcess);
+				
+				// After scores are generated, fetch IDG data for the genes on this page
+				await this.fetchIDGDataForScoredGenesOnPage();
 			} catch (error) {
 				console.error('Error generating scores for current page:', error);
 				// Reset loading state on error
 				this.isGettingGeneNovelty = false;
 				this.clearGeneNoveltyTimer();
 			}
+		},
+		async fetchIDGDataForScoredGenesOnPage() {
+			// Fetch IDG data for genes on the current page that have scores but no IDG data yet
+			if (!this.scoredGenes || this.scoredGenes.length === 0) {
+				return;
+			}
+
+			// Get genes on current page
+			const start = (this.currentPage - 1) * this.itemsPerPage;
+			const end = start + this.itemsPerPage;
+			const pageGenes = this.scoredGenes.slice(start, end);
+
+			// Filter genes that need IDG data (have scores but no IDG data)
+			const genesToFetch = pageGenes.filter(gene => 
+				gene.gene && 
+				gene.relevance_score !== 'To be generated' && 
+				gene.relevance_score !== undefined &&
+				gene.relevance_score !== null &&
+				!gene.idg_tdl && 
+				!gene.idg_fetched
+			);
+
+			if (genesToFetch.length === 0) {
+				return;
+			}
+
+			console.log(`[IDG Query] Fetching IDG data for ${genesToFetch.length} gene(s) on page ${this.currentPage}...`);
+
+			try {
+				// Fetch IDG data for all genes in parallel
+				const idgPromises = genesToFetch.map(async (geneObj) => {
+					if (!geneObj.gene) {
+						return { geneObj, idgData: null };
+					}
+
+					const idgData = await this.queryIDGForGene(geneObj.gene);
+					
+					return { geneObj, idgData };
+				});
+
+				const results = await Promise.all(idgPromises);
+
+				// Add IDG data to scored genes
+				results.forEach(({ geneObj, idgData }) => {
+					const geneIndex = this.scoredGenes.findIndex(g => g.gene === geneObj.gene);
+					if (geneIndex >= 0) {
+						if (idgData) {
+							// Store full IDG data object for potential future use
+							this.$set(this.scoredGenes[geneIndex], 'idg_fullData', idgData);
+							// Add TDL (novelty score) to the scored gene object
+							this.$set(this.scoredGenes[geneIndex], 'idg_tdl', idgData.tdl || null);
+							this.$set(this.scoredGenes[geneIndex], 'idg_novelty', idgData.novelty || null);
+						} else {
+							// Mark as fetched but no data available
+							this.$set(this.scoredGenes[geneIndex], 'idg_fullData', null);
+							this.$set(this.scoredGenes[geneIndex], 'idg_tdl', null);
+							this.$set(this.scoredGenes[geneIndex], 'idg_novelty', null);
+						}
+						this.$set(this.scoredGenes[geneIndex], 'idg_fetched', true);
+					}
+				});
+
+				console.log(`[IDG Query] Finished fetching IDG data for genes on page ${this.currentPage}`);
+			} catch (error) {
+				console.error('[IDG Query] Error fetching IDG data for page genes:', error);
+			}
+		},
+		toggleScoredGeneIDGEvidenceView(geneSymbol) {
+			// Toggle IDG evidence view for a scored gene
+			const index = this.expandedScoredGenesIDG.indexOf(geneSymbol);
+			if (index > -1) {
+				this.expandedScoredGenesIDG.splice(index, 1);
+			} else {
+				this.expandedScoredGenesIDG.push(geneSymbol);
+			}
+		},
+		toggleScoredGeneSelection(geneSymbol) {
+			// Toggle selection of a scored gene by gene symbol
+			const index = this.selectedScoredGenes.indexOf(geneSymbol);
+			if (index > -1) {
+				this.selectedScoredGenes.splice(index, 1);
+			} else {
+				this.selectedScoredGenes.push(geneSymbol);
+			}
+		},
+		isScoredGeneSelected(geneSymbol) {
+			// Check if a scored gene is selected
+			return this.selectedScoredGenes.includes(geneSymbol);
+		},
+		toggleAllScoredGenes() {
+			// Toggle selection of all scored genes
+			if (this.allScoredGenesSelected()) {
+				// Deselect all
+				this.selectedScoredGenes = [];
+			} else {
+				// Select all
+				this.selectedScoredGenes = this.scoredGenes
+					.filter(gene => gene.gene)
+					.map(gene => gene.gene);
+			}
+		},
+		allScoredGenesSelected() {
+			// Check if all scored genes are selected
+			const validGenes = this.scoredGenes.filter(gene => gene.gene);
+			return validGenes.length > 0 && validGenes.every(gene => this.selectedScoredGenes.includes(gene.gene));
+		},
+		someScoredGenesSelected() {
+			// Check if some (but not all) scored genes are selected
+			const validGenes = this.scoredGenes.filter(gene => gene.gene);
+			return this.selectedScoredGenes.length > 0 && this.selectedScoredGenes.length < validGenes.length;
 		},
 		// Gene exploration methods
 		getGeneCount() {
@@ -3135,6 +3447,7 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			return new Set(geneList).size;
 		},
 		openScoreGenerationDialog() {
+			console.log('[openScoreGenerationDialog] Called');
 			// Check if hypothesis is provided
 			if (!this.phenotypeSearch.trim()) {
 				alert('Please provide a hypothesis in the "Hypothesis to Validate" section before generating scores.');
@@ -3152,8 +3465,59 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				this.scoreGenerationResearchContext = this.researchContext || '';
 			}
 
+			// Parse genes from input and populate scoredGenes with "To be generated" placeholders
+			const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
+			
+			// Always initialize scoredGenes with genes from input when dialog opens
+			// This ensures the table shows immediately with "To be generated" placeholders
+			const existingGeneSymbols = new Set(this.scoredGenes.map(g => g.gene));
+			const newGenes = geneList.filter(gene => !existingGeneSymbols.has(gene));
+			
+			// If there are new genes or the count doesn't match, rebuild the list
+			if (newGenes.length > 0 || this.scoredGenes.length !== geneList.length) {
+				// Create a map of existing scored genes to preserve scores if they exist
+				const existingScoresMap = {};
+				this.scoredGenes.forEach(g => {
+					if (g.gene && g.relevance_score !== 'To be generated') {
+						existingScoresMap[g.gene] = g;
+					}
+				});
+				
+				// Clear and rebuild scoredGenes maintaining input order
+				this.scoredGenes = [];
+				
+				// Populate with genes from input, maintaining order
+				geneList.forEach(gene => {
+					// If we have existing scores for this gene, use them, otherwise create placeholder
+					if (existingScoresMap[gene]) {
+						this.scoredGenes.push(existingScoresMap[gene]);
+					} else {
+						this.scoredGenes.push({
+							gene: gene,
+							classification: 'To be generated',
+							relevance_score: 'To be generated',
+							novelty_score: 'To be generated',
+							reason: 'To be generated',
+							hypothesis_validation: 'To be generated',
+							idg_tdl: null,
+							idg_novelty: null,
+							idg_fullData: null
+						});
+					}
+				});
+			}
+
+			// Reset to page 1
+			this.currentPage = 1;
+
 			// Show the dialog
 			this.showScoreGenerationDialog = true;
+			console.log('[openScoreGenerationDialog] Dialog opened, showScoreGenerationDialog:', this.showScoreGenerationDialog);
+
+			// Auto-generate scores for first batch when dialog opens
+			this.$nextTick(() => {
+				this.autoGenerateFirstBatch();
+			});
 		},
 		closeScoreGenerationDialog() {
 			this.showScoreGenerationDialog = false;
@@ -3237,6 +3601,7 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 		},
 		async generateHypothesisAlignment() {
 			// Open the score generation dialog instead of generating scores directly
+			console.log('[generateHypothesisAlignment] Called');
 			this.openScoreGenerationDialog();
 		},
 		exploreGTExExpression() {
@@ -3364,6 +3729,7 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			window.open(byoglUrl, '_blank');
 		},
 		openDesignTool() {
+			console.log('[openDesignTool] Called');
 			// Parse genes from manual input
 			const geneList = this.manualGenes
 				.split(',')
@@ -3392,6 +3758,7 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			
 			// Show the design tool dialog
 			this.showDesignToolDialog = true;
+			console.log('[openDesignTool] Dialog opened, showDesignToolDialog:', this.showDesignToolDialog);
 		},
 		closeDesignToolDialog() {
 			this.showDesignToolDialog = false;
@@ -3819,6 +4186,65 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				console.log('[IDG Query] Finished fetching IDG data for all candidate genes');
 			} catch (error) {
 				console.error('[IDG Query] Error fetching IDG data:', error);
+			}
+		},
+		async fetchIDGDataForScoredGenes() {
+			// Fetch IDG data for all scored genes in parallel
+			if (!this.scoredGenes || this.scoredGenes.length === 0) {
+				return;
+			}
+
+			// Filter out genes that already have IDG data or are marked as "To be generated"
+			const genesToFetch = this.scoredGenes.filter(gene => 
+				gene.gene && 
+				gene.relevance_score !== 'To be generated' && 
+				!gene.idg_tdl && 
+				!gene.idg_fetched
+			);
+
+			if (genesToFetch.length === 0) {
+				return;
+			}
+
+			console.log(`[IDG Query] Fetching IDG data for ${genesToFetch.length} scored gene(s)...`);
+
+			try {
+				// Fetch IDG data for all genes in parallel
+				const idgPromises = genesToFetch.map(async (geneObj, index) => {
+					if (!geneObj.gene) {
+						return { geneObj, idgData: null };
+					}
+
+					const idgData = await this.queryIDGForGene(geneObj.gene);
+					
+					return { geneObj, idgData };
+				});
+
+				const results = await Promise.all(idgPromises);
+
+				// Add IDG data to scored genes
+				results.forEach(({ geneObj, idgData }) => {
+					const geneIndex = this.scoredGenes.findIndex(g => g.gene === geneObj.gene);
+					if (geneIndex >= 0) {
+						if (idgData) {
+							// Store full IDG data object for potential future use
+							this.$set(this.scoredGenes[geneIndex], 'idg_fullData', idgData);
+							// Add TDL (novelty score) to the scored gene object
+							this.$set(this.scoredGenes[geneIndex], 'idg_tdl', idgData.tdl || null);
+							this.$set(this.scoredGenes[geneIndex], 'idg_novelty', idgData.novelty || null);
+						} else {
+							// Mark as fetched but no data available
+							this.$set(this.scoredGenes[geneIndex], 'idg_fullData', null);
+							this.$set(this.scoredGenes[geneIndex], 'idg_tdl', null);
+							this.$set(this.scoredGenes[geneIndex], 'idg_novelty', null);
+						}
+						this.$set(this.scoredGenes[geneIndex], 'idg_fetched', true);
+					}
+				});
+
+				console.log('[IDG Query] Finished fetching IDG data for scored genes');
+			} catch (error) {
+				console.error('[IDG Query] Error fetching IDG data for scored genes:', error);
 			}
 		},
 		openDesignToolWithSelectedGenes() {
@@ -5339,14 +5765,14 @@ small.input-warning {
     padding: 12px 8px;
     text-align: left;
     border-bottom: 2px solid #dee2e6;
-    font-size: 0.9em;
+    font-size: 13px;
 }
 
 .gene-data-table td {
     padding: 10px 8px;
     border-bottom: 1px solid #dee2e6;
     vertical-align: top;
-    font-size: 0.9em;
+    font-size: 13px;
 }
 
 .gene-data-table tr:hover {
@@ -5449,14 +5875,15 @@ small.input-warning {
     margin: 10px 0;
     padding: 15px;
     background: #f8f9fa;
-    border: 1px solid #dee2e6;
+    border: none;
     border-radius: 4px;
 }
 
 .idg-evidence-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85em;
+    font-size: 13px;
+    border: none;
 }
 
 .idg-evidence-table th {
@@ -5466,11 +5893,13 @@ small.input-warning {
     padding: 8px 6px;
     text-align: left;
     border-bottom: 1px solid #dee2e6;
+    font-size: 13px;
 }
 
 .idg-evidence-table td {
     padding: 6px;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
 }
 
 .idg-evidence-table tr:hover {
@@ -5480,7 +5909,8 @@ small.input-warning {
 .evidence-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85em;
+    font-size: 13px;
+    border: none;
 }
 
 .evidence-table th {
@@ -5490,11 +5920,13 @@ small.input-warning {
     padding: 8px 6px;
     text-align: left;
     border-bottom: 1px solid #dee2e6;
+    font-size: 13px;
 }
 
 .evidence-table td {
     padding: 6px;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
 }
 
 .evidence-table tr:hover {
