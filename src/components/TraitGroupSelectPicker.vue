@@ -1,6 +1,7 @@
 <template>
     <select v-model="traitGroup" class="form-control">
         <option value="all">All</option>
+        <option value="all_but_hpo">All but HPO</option>
         <option v-for="group in groups" :value="group[0]">
             {{ group[1] }}
         </option>
