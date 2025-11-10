@@ -17,6 +17,13 @@ let pages = {
         title: "Home",
         chunks: ["chunk-vendors", "chunk-common", "login"],
     },
+    changepass: {
+        entry: "src/portals/Radiant/views/ChangePass/main.js",
+        template: "public/changepass.html",
+        filename: "changepass.html",
+        title: "Home",
+        chunks: ["chunk-vendors", "chunk-common", "changepass"],
+    },
     debug: {
         entry: "src/views/Debug/main.js",
         template: "public/index.html",
