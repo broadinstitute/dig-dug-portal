@@ -9,6 +9,7 @@ export const SignIn = async function(user, pass) {
     password: pass,
     group: "radiant"
   };
+  console.log(myData);
   postData('https://users.kpndataregistry.org/api/auth/login/', myData)
   .then(data => {
     //console.log('Success:', data);
@@ -22,6 +23,85 @@ export const SignIn = async function(user, pass) {
   .catch(error => {
     console.error('Failed to post data:', error);
   });
+};
+
+export const ChangePass = async function(user, pass, npass) { 
+  /*const myData = {
+    username: user,
+    password: pass,
+    group: "radiant"
+  };
+  postData('https://users.kpndataregistry.org/api/users/', myData)
+  .then(data => {
+    //console.log('Success:', data);
+    console.log("success:", data.access);
+    //Vue.prototype.$access = data.access;
+    localStorage.setItem('authToken', data.access);
+    //console.log("forward", Vue.prototype.$access);
+    location.href = 'index.html';
+    
+  })
+  .catch(error => {
+    console.error('Failed to post data:', error);
+  });*/
+  const access = localStorage.getItem('authToken');
+  console.log("authToken:"+access);
+  const url = "https://users.kpndataregistry.org/api/auth/verify/?group=radiant";
+  try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${access}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Verification result:", data);
+      const id = data.user.id;
+      const username = data.user.username;
+      if (username.toLowerCase() == user.toLowerCase()) {
+        const access1 = localStorage.getItem('authToken');
+        console.log("authToken:"+access1);
+        const userURL = "https://users.kpndataregistry.org/api/users/"+id+"/";
+        const newdata = {
+          "username": username,
+          "email": data.user.email,
+          "first_name": data.user.first_name,
+          "last_name": data.user.last_name,
+          "password": npass
+        };
+        console.log(newdata);
+        const response1 = await fetch(userURL, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            'Accept': 'application/json',
+            "Authorization": `Bearer ${access1}`
+          },
+          body:JSON.stringify(newdata)
+        });
+
+        if (!response1.ok) { // Check if the response was successful
+          throw new Error(`HTTP error! status: ${response1.status}`);
+        }
+
+        location.href = "login.html";
+    
+        //const responseData1 = await response1.json(); // Parse the JSON response
+        //return responseData1;
+
+      } else {
+        console.log("Cannot change password.");
+      }
+  } catch (error) {
+      console.error("Error verifying auth:", error);
+      location.href = 'login.html';
+  }
 };
 
 
@@ -86,34 +166,8 @@ export const CheckSignInStatus = async function(){
     console.log("Verification result:", data);
   } catch (error) {
     console.error("Error verifying auth:", error);
-    location_href = 'login.html';
+    location.href = 'login.html';
   }
-  /*const accounts = msalInstance.getAllAccounts();
-  //alert(accounts.length);
-  if(accounts.length === 0){
-      SignIn();
-  } else {
-    msalInstance.setActiveAccount(accounts[0]);
-    await msalInstance.acquireTokenSilent(loginRequest)
-      .then(function (accessTokenResponse) {
-        // Acquire token silent success
-        let accessToken = accessTokenResponse.accessToken;
-        // Call your API with token
-        let token = parseJwt(accessToken);
-        //console.log("token: "+token.sub);
-        Vue.prototype.$useremail = token.sub;
-        if (token.group != "AggregatorGroupMember"){
-          location.href = 'https://docs.google.com/forms/d/e/1FAIpQLSdNGINQBLhcSb77_X89Af-Tl6E9t609bFTiKOvw0UXmKyiWPw/viewform';
-        }
-      })
-      .catch(function (error) {
-        //Acquire token silent failure, and send an interactive request
-        alert("error: "+error);
-      }); 
-  }
-  //Vue.prototype.$useremail = 'test@childrens.harvard.edu';
-  //Vue.prototype.$sampleIDaccess = [];
-  Vue.prototype.$sampleIDaccess = ['han.zhang@childrens.harvard.edu', 'courtney.french@childrens.harvard.edu']; */
   
   
 };
