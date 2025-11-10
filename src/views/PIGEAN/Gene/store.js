@@ -93,8 +93,9 @@ export default new Vuex.Store({
                 } else {
                     // If ALL is selected, query all trait groups and get top results across all
                     let traitsData = [];
-                    for (let i = 0; i < bioIndexUtils.TRAIT_GROUPS.length; i++){
-                        let group = bioIndexUtils.TRAIT_GROUPS[i];
+                    let traits = Object.keys(bioIndexUtils.TRAIT_GROUPS);
+                    for (let i = 0; i < traits.length; i++){
+                        let group = traits[i];
                         let traitQuery = `${group},${context.state.geneName},${
                             bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
                         let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);

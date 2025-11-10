@@ -13,6 +13,7 @@ import pigeanUtils from "@/utils/pigeanUtils.js";
 import sessionUtils from "@/utils/sessionUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
@@ -47,13 +48,7 @@ new Vue({
     mixins: [pageMixin],
     data() {
         return {
-            plotColors: plotUtils.plotColors(),
             pigeanPhenotypeMap: {},
-            traitGroups: {
-                portal: "A2F",
-                gcat_trait:"GWAS Catalog",
-                rare_v2: "Orphanet"
-            },
             phewasPlotLabel: "",
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
@@ -297,6 +292,9 @@ new Vue({
                 return this.$store.state.diseaseInSession;
             }
         },
+        traitGroups(){
+            return bioIndexUtils.TRAIT_GROUPS;
+        },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
                 return this.$store.state.bioPortal.phenotypes;
@@ -337,6 +335,11 @@ new Vue({
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;
+        },
+        pigeanColors(){
+            let colors = {};
+            colors[this.$store.state.phenotype.group] = plotUtils.plotColors()[0];
+            return colors;
         }
 
     },

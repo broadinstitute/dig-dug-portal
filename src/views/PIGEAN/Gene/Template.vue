@@ -149,12 +149,14 @@
                                         :matchingHoverDots="
                                             $parent.hoverDotsToPhewas
                                         "
+                                        @pigeanColors="(colors) => $parent.storeColors(colors)"
                                     >
                                     </research-phewas-plot>
                                 </div>
                                 <div class="col-md-4">
                                     <pigean-plot
                                         v-if="$parent.plotReady"
+                                        :pigeanColors="$parent.pigeanColors"
                                         :pigean-data="
                                             $parent.pigeanFilteredData
                                         "
