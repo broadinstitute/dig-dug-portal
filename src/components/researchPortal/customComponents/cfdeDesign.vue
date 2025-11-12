@@ -126,15 +126,28 @@
 		
         <!-- Two Column Layout for Upper Half -->
         <div class="upper-layout">
-            <!-- Left Column (70%) - Hypothesis Section -->
+            <!-- Left Column (70%) - Input Section -->
             <div>
-                <!-- Hypothesis to Validate Section -->
                 <div id="hypothesis-section" class="hypothesis-container section-wrapper">
-            
                     <div class="section-header">
-                            <h4>Hypothesis to Validate</h4>
+                        <h4>Experiment Configuration</h4>
                     </div>
-                    <div class="hypothesis-content">
+                    
+                    <!-- 2-1. Research Context Field -->
+                    <div class="hypothesis-content" style="margin-bottom: 20px;">
+                        <h5>Research Context</h5>
+                        <div class="textarea-container">
+                            <textarea 
+                                v-model="researchContext" 
+                                placeholder="Enter your research context..."
+                                class="hypothesis-textarea"
+                                rows="3"
+                            ></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- 2-2. Hypothesis Field -->
+                    <div class="hypothesis-content" style="margin-bottom: 20px;">
                         <h5>Your Hypothesis (Use the <a :href="setSimpleLink('/r/cfde_reveal')" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.)</h5>
                         <div class="textarea-container">
                             <textarea 
@@ -143,20 +156,21 @@
                                 class="hypothesis-textarea"
                                 rows="3"
                             ></textarea>
-                    </div>
-                    <div class="gene-sets-input">
-                        <div v-if="!showManualGeneInput">
-                            <label for="gene-sets">Load Genes from Phenotype Gene set Associations <a href="#" @click.prevent="toggleManualGeneInput" class="manual-add-link">(manually add genes)</a></label>
-                            <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
-                            <textarea 
-                                id="gene-sets"
-                                v-model="geneSets" 
-                                placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
-                                class="gene-sets-field"
-                                rows="3"
-                            ></textarea>
                         </div>
-                        <div v-if="!showManualGeneInput && geneSets.trim() && (geneData.length === 0 || associationsModified)" class="load-genes-section">
+                    </div>
+                    
+                    <!-- 2-3. Phenotype-gene set associations Field -->
+                    <div class="gene-sets-input" style="margin-bottom: 20px;">
+                        <label for="gene-sets">Load Genes from Phenotype Gene set Associations</label>
+                        <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
+                        <textarea 
+                            id="gene-sets"
+                            v-model="geneSets" 
+                            placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
+                            class="gene-sets-field"
+                            rows="3"
+                        ></textarea>
+                        <div v-if="geneSets.trim() && (genesList.length === 0 || associationsModified)" class="load-genes-section">
                             <button 
                                 @click="loadGenesFromAssociations" 
                                 class="btn btn-secondary load-genes-btn"
@@ -167,279 +181,147 @@
                             </button>
                             <small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
                         </div>
-                        
-                        <!-- Manual Gene Input Section -->
-                        <div v-if="showManualGeneInput" class="manual-gene-input-section">
-                            <div class="manual-gene-header">
-                                <label for="manual-genes">Add Genes Manually <a href="#" @click.prevent="switchToAssociationsInput" class="switch-to-associations-link">
-                                    (Load Genes from Phenotype Gene set Associations)
-                                </a></label>
-                                
+                    </div>
+                    
+                    <!-- Gene Filter Section (only when genes are from associations, not manual/URL) -->
+                    <div v-if="geneData.length > 0 && !hasManualGenes" class="gene-filter-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+                        <h5 style="margin-top: 0; margin-bottom: 12px;">Filter Genes from Associations</h5>
+                        <div class="filter-checkboxes-column" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div class="overlap-filter">
+                                <label class="overlap-checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input 
+                                        type="checkbox" 
+                                        v-model="showOnlyLogBfGenes"
+                                        @change="updateGenesListFromFilters"
+                                        class="overlap-checkbox"
+                                        style="cursor: pointer;"
+                                    />
+                                    <span style="font-size: 14px; color: #333;">
+                                        Filter out {{ genesWithLogBfZero }} genes with direct genetic support score == 0
+                                    </span>
+                                </label>
                             </div>
+                            <div class="overlap-filter">
+                                <label class="overlap-checkbox-label" :class="{ 'disabled': shouldDisableOverlappingFilter }" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input 
+                                        type="checkbox" 
+                                        v-model="showOnlyOverlappingGenes"
+                                        @change="updateGenesListFromFilters"
+                                        class="overlap-checkbox"
+                                        :disabled="shouldDisableOverlappingFilter"
+                                        style="cursor: pointer;"
+                                    />
+                                    <span v-if="!shouldDisableOverlappingFilter" style="font-size: 14px; color: #333;">
+                                        Show {{ overlappingGenesCount }} overlapping genes only
+                                    </span>
+                                    <span v-else class="disabled-text" style="font-size: 14px; color: #999;">
+                                        Overlapping genes filter (disabled - only one association)
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="overlap-filter">
+                                <label class="overlap-checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input 
+                                        type="checkbox" 
+                                        v-model="sortByGeneticNovelty"
+                                        @change="updateGenesListFromFilters"
+                                        class="overlap-checkbox"
+                                        style="cursor: pointer;"
+                                    />
+                                    <span style="font-size: 14px; color: #333;">
+                                        Sort by genetic novelty
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div v-if="filteredGenes.length > 0" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #dee2e6;">
+                            <small style="color: #666; font-size: 12px;">
+                                Showing {{ filteredGenes.length }} of {{ geneData.length }} genes after filtering
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- 2-4. Genes Field (View/Edit Mode) -->
+                    <div class="genes-display-section" style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h5 style="margin: 0;">Genes</h5>
+                            <button 
+                                @click="genesEditMode = !genesEditMode"
+                                class="btn btn-sm"
+                                :class="genesEditMode ? 'btn-outline-secondary' : 'btn-primary'"
+                                style="padding: 4px 12px; font-size: 12px;"
+                            >
+                                {{ genesEditMode ? 'View' : 'Edit' }}
+                            </button>
+                        </div>
+                        
+                        <!-- View Mode: Gene Chips -->
+                        <div v-if="!genesEditMode" class="genes-view-mode" style="padding: 8px; background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6; max-height: 200px; overflow-y: auto;">
+                            <div v-if="organizedGenes.length > 0" class="gene-chips-container" style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                <span
+                                    v-for="gene in organizedGenes"
+                                    :key="gene.symbol"
+                                    class="gene-chip"
+                                    :class="{ 'gene-chip-selected': gene.isSelected }"
+                                    @click="toggleGeneSelection(gene.symbol)"
+                                    @mouseenter="hoveredGene = gene.symbol"
+                                    @mouseleave="hoveredGene = null"
+                                >
+                                    <span class="gene-chip-text">{{ gene.symbol }}</span>
+                                    <span 
+                                        v-if="gene.isSelected && hoveredGene === gene.symbol"
+                                        class="gene-chip-remove"
+                                        @click.stop="toggleGeneSelection(gene.symbol)"
+                                        title="Click to unselect"
+                                    >
+                                        ×
+                                    </span>
+                                </span>
+                            </div>
+                            <p v-else style="margin: 0; color: #999; font-size: 13px; font-style: italic; padding: 8px 0;">
+                                No genes added. Click Edit to add genes.
+                            </p>
+                        </div>
+                        
+                        <!-- Edit Mode: Textarea -->
+                        <div v-else class="genes-edit-mode">
                             <small class="format-suggestion">Enter gene symbols separated by commas (e.g., GENE1, GENE2, GENE3)</small>
                             <textarea 
-                                id="manual-genes"
-                                v-model="manualGenes" 
+                                v-model="genesListString"
+                                @input="updateGenesListFromString"
                                 placeholder="e.g., TP53, BRCA1, MYC, EGFR"
-                                class="manual-genes-field"
-                                rows="2"
+                                class="hypothesis-textarea"
+                                rows="3"
                             ></textarea>
-                            <div class="manual-gene-actions">
-                                <button 
-                                    @click="addManualGenes" 
-                                    class="btn btn-primary add-genes-btn"
-                                    :disabled="!manualGenes.trim()"
-                                >
-                                    Add Genes
-                                </button>
-                                <button 
-                                    @click="cancelManualGeneInput" 
-                                    class="btn btn-outline-secondary cancel-btn"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                
-                <!-- Gene Data Table -->
-                <div v-if="geneData.length > 0" class="gene-data-table-section">
-                    <div class="gene-data-header">
-                        <label class="gene-data-label">Select genes to generate experiment plans</label>
-	                </div>
-                    <small class="gene-data-description">
-                        Review the gene associations below and select the genes you want to include in your experiment plan. 
-                        Each selected gene will be used to generate targeted validation experiments.
-                        <br><br>
-                        <strong>Note:</strong> The 'Hypothesis Alignment' and 'Research Gap Score' shown in the table are generated by AI and represent how relevant/novel each gene is to your specific hypothesis. These are different from the genetic novelty score used for sorting the table, which is based on gene-to-phenotype associations.
-                    </small>
-                    
-                    <!-- Gene Filter Section (hidden for manual genes) -->
-                    <div v-if="!hasManualGenes" class="gene-filter-section">
-                        <div class="filter-grid">
-                            <!-- Left Column: Slider -->
-                            <div class="filter-slider-column">
-                                <div class="filter-header">
-                                    <label class="filter-label">Adjust slider to prioritize novel genetic discoveries (higher values = more emphasis on novelty)</label>
-                                    <!--<div class="filter-info">
-                                        <small>Adjust slider to prioritize novel genetic discoveries (higher values = more emphasis on novelty)</small>
-                                    </div>-->
-                                </div>
-                                <div class="slider-container">
-                                    <input 
-                                        type="range" 
-                                        v-model="priorWeight" 
-                                        min="0" 
-                                        max="1" 
-                                        step="0.1" 
-                                        class="score-slider"
-                                    />
-                                    <div class="slider-labels">
-                                        <span class="slider-label">0</span>
-                                        <span class="slider-label">1</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Right Column: Checkboxes -->
-                            <div class="filter-checkboxes-column">
-                                <div class="overlap-filter">
-                                    <label class="overlap-checkbox-label">
-                                        <input 
-                                            type="checkbox" 
-                                            v-model="showOnlyLogBfGenes"
-                                            @change="updateFilteredGenes"
-                                            class="overlap-checkbox"
-                                        />
-                                        Filter out {{ genesWithLogBfZero }} genes with direct genetic support score == 0
-                                    </label>
-                                    <!--<small class="overlap-description">Remove genes that have log_bf = 0</small>-->
-                                </div>
-                                <div class="overlap-filter">
-                                    <label class="overlap-checkbox-label" :class="{ 'disabled': shouldDisableOverlappingFilter }">
-                                        <input 
-                                            type="checkbox" 
-                                            v-model="showOnlyOverlappingGenes"
-                                            @change="updateFilteredGenes"
-                                            class="overlap-checkbox"
-                                            :disabled="shouldDisableOverlappingFilter"
-                                        />
-                                        <span v-if="!shouldDisableOverlappingFilter">
-                                            Show {{ overlappingGenesCount }} overlapping genes only
-                                        </span>
-                                        <span v-else class="disabled-text">
-                                            Overlapping genes filter (disabled - only one association or manual genes)
-                                        </span>
-                                    </label>
-                                    <!--<small class="overlap-description">Filter genes that appear in multiple associations</small>-->
-                                </div>
-                            </div>
                         </div>
                     </div>
                     
-                    <div class="table-container">
-                    <div v-if="isGettingGeneNovelty" class="summary-loading-indicator">
-                        <span class="loading-spinner-small"></span>
-                        <span class="loading-text">Generating gene to hypothesis relevance & innovation score... ({{ geneNoveltyElapsedTime }})</span>
-                    </div>
-                        <table class="gene-data-table">
-                            <thead>
-                                <tr>
-                                    <th>
-                                        
-                                    </th>
-                                    <th>Gene/Target</th>
-                                    <th>Hypothesis Relevance</th>
-                                    <th>Innovation Score</th>
-                                    <th :style="hasManualGenes ? 'width: 70%;' : 'width: 50%;'">Molecular Rationale</th>
-                                    <th v-if="!hasManualGenes">Associations</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-for="item in paginatedFilteredGenes">
-                                    <tr :key="`${item.gene}-${item.combined || 0}`">
-                                        <td>
-                                            <input 
-                                                type="checkbox" 
-                                                :value="item.gene"
-                                                v-model="selectedGenes"
-                                                class="gene-checkbox"
-                                            />
-                                        </td>
-                                        <td>{{ item.gene }}</td>
-                                        <td>
-                                            <div class="relevance-cell">
-                                                <span v-if="isGettingGeneNovelty && !getRelevance(item.gene)" class="loading-text">Loading...</span>
-                                                <div v-else-if="getRelevance(item.gene)" class="score-content" :class="{ 'high-score': getRelevance(item.gene).score >= 7 }">
-                                                    <div class="score-value">{{ getRelevanceScore(item.gene) }}</div>
-                                                </div>
-                                                <span v-else>TBD</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="novelty-cell">
-                                                <span v-if="isGettingGeneNovelty && !getNovelty(item.gene)" class="loading-text">Loading...</span>
-                                                <div v-else-if="getNovelty(item.gene)" class="score-content" :class="{ 'high-score': getNovelty(item.gene).score >= 7 }">
-                                                    <div class="score-value">{{ getNoveltyScore(item.gene) }}</div>
-                                                </div>
-                                                <span v-else>TBD</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="reason-cell">
-                                                <span v-if="isGettingGeneNovelty && !getNovelty(item.gene)" class="loading-text">Loading...</span>
-                                                <div v-else-if="getNovelty(item.gene)" class="reason-content">
-                                                    {{ getNovelty(item.gene).context }}
-                                                </div>
-                                                <span v-else>TBD</span>
-                                            </div>
-                                        </td>
-                                        <td v-if="!hasManualGenes">
-                                            <button 
-                                                @click="toggleEvidenceView(item.gene)"
-                                                class="view-button"
-                                                :class="{ active: expandedGenes.includes(item.gene) }"
-                                            >
-                                                {{ expandedGenes.includes(item.gene) ? 'Hide' : 'View' }}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <!-- Evidence subtable (hidden for manual genes) -->
-                                    <tr v-if="!hasManualGenes && expandedGenes.includes(item.gene)" class="evidence-row" :key="`${item.gene}-evidence-row`">
-                                        <td :colspan="hasManualGenes ? 5 : 6">
-                                            <div class="evidence-subtable">
-                                                <table class="evidence-table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Phenotype</th>
-                                                            <th>Gene Set</th>
-                                                            <th>Source</th>
-                                                            <th>Explore Further</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <template v-for="(evidence, index) in getEvidenceData(item)">
-                                                            <tr :key="`${item.gene}-evidence-${index}`">
-                                                                <td>{{ getPhenotypeDisplayNames(evidence.phenotype) }}</td>
-                                                                <td>{{ evidence.gene_set }}</td>
-                                                                <td>{{ evidence.source || 'N/A' }}</td>
-                                                                <td>
-                                                                    <button 
-                                                                        @click="openWithGenesFromAssociation(evidence)"
-                                                                        class="btn btn-sm btn-outline-primary explore-btn"
-                                                                        title="Open with genes from this association"
-                                                                    >
-                                                                        Open with genes from association
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        </template>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                        
-                        <!-- Pagination -->
-                        <div class="pagination-container">
-                            <div class="pagination-info">
-                                Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredGenes.length) }} of {{ filteredGenes.length }} entries
-                            </div>
-                            <div class="pagination-controls">
-                                <button 
-                                    @click="goToFirstPage" 
-                                    :disabled="currentPage === 1"
-                                    class="pagination-btn first-last-btn"
-                                    title="First page"
-                                >
-                                    ««
-                                </button>
-                                <button 
-                                    @click="previousPage" 
-                                    :disabled="currentPage === 1"
-                                    class="pagination-btn"
-                                >
-                                    Previous
-                                </button>
-                                <span class="page-numbers">
-                                    <button 
-                                        v-for="page in visiblePages" 
-                                        :key="page"
-                                        @click="goToPage(page)"
-                                        :class="['page-btn', { 'active': page === currentPage }]"
-                                    >
-                                        {{ page }}
-                                    </button>
-                                </span>
-                                <button 
-                                    @click="nextPage" 
-                                    :disabled="currentPage === totalPages"
-                                    class="pagination-btn"
-                                >
-                                    Next
-                                </button>
-                                <button 
-                                    @click="goToLastPage" 
-                                    :disabled="currentPage === totalPages"
-                                    class="pagination-btn first-last-btn"
-                                    title="Last page"
-                                >
-                                    »»
-                                </button>
-                            </div>
+                    <!-- 2-5. Score genes and Rank genes buttons -->
+                    <div class="gene-utility-section" style="margin-bottom: 20px;">
+                        <research-gene-set-utility
+                            v-if="genesList.length > 0 && phenotypeSearch.trim()"
+                            :genes="genesList"
+                            :hypothesis="phenotypeSearch"
+                            :research-context="researchContext"
+                            :selected-genes="selectedGenes"
+                            :llm-config="{
+                                llm: sectionConfigs.llm || 'gemini',
+                                model: sectionConfigs.llm === 'openai' ? 'gpt-5-mini' : 'gemini-2.5-flash'
+                            }"
+                            @update:selectedGenes="handleGenesSelected"
+                        />
+                        <div v-else style="padding: 12px; background: #fff3cd; border-radius: 6px; border: 1px solid #ffc107;">
+                            <p style="margin: 0; color: #856404; font-size: 14px;">
+                                <strong>Note:</strong> Please provide genes and a hypothesis to enable gene scoring and ranking.
+                            </p>
                         </div>
                     </div>
                     
                 </div>
             </div>
-        </div>
-            </div>
 
-             <!-- Right Column (30%) - Configuration Section -->
-             <div>
+            <!-- Right Column (30%) - Configuration Section -->
+            <div>
                  <div id="planner-search-ui" class="section-wrapper">
                      <div class="configuration-header" @click="toggleConfigurationSection">
                          <h4><span class="configuration-toggle">{{ showConfigurationSection ? '−' : '+' }}</span> Configure Experiment Parameters (Optional) </h4>
@@ -992,6 +874,7 @@ Vue.use(BootstrapVueIcons);
 export default {
 	props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
 	components: {
+		ResearchGeneSetUtility: () => import("@/components/researchPortal/researchGeneSetUtility.vue")
 	},
 	data() {
 		return {
@@ -1499,8 +1382,11 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
                
             
             // UI state
+            researchContext: '',
             phenotypeSearch: '',
             geneSets: '',
+            genesList: [], // List of genes from associations or manual input
+            genesListString: '', // String representation of genesList for editing
             selectedAssayTypes: [],
             selectedCellTypes: [],
             selectedReadouts: [],
@@ -1539,12 +1425,15 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
             currentPage: 1,
             itemsPerPage: 10,
             selectedGenes: [],
+            genesEditMode: false, // Toggle between view and edit mode for genes field
+            hoveredGene: null, // Track which gene chip is being hovered
             // Gene experiment strategy
             geneExperimentStrategy: 'individual', // 'individual' or 'all_together'
             // Gene filter properties
             priorWeight: 0,
             minScore: 0,
             showOnlyOverlappingGenes: true,
+            sortByGeneticNovelty: false, // Sort by genetic novelty (alpha = 1) or alphabetically (alpha = 0)
             // Gene novelty and relevance cache
             geneNovelty: {},
             geneRelevance: {},
@@ -1587,33 +1476,61 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 	},
 
     created() {
-        if(this.sectionConfigs.llm === "gemini") {
+        try {
+            const llm = (this.sectionConfigs && this.sectionConfigs.llm) || "gemini";
+            const model = llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash";
+            
+            // Ensure gene_novelty_prompt exists, use fallback if not
+            const genePrompt = this.gene_novelty_prompt || `Generate a JSON array for up to 10 genes based on the hypothesis below.
+
+**Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
+**Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]
+
+**Task & JSON Model:** Respond **ONLY** with a valid JSON array. For each gene, provide numeric scores for novelty and relevance, and a single 'reason' field (max 40 words) that justifies both scores.
+
+Novelty Score (1=Highly Studied, 10=Poorly Studied).
+Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
+
+[
+  {
+    "gene": "<symbol>",
+    "relevance_score": "<1-10 or N/A>",
+    "novelty_score": "<1-10 or N/A>",
+    "reason": "<max 40 words: justification for both scores.>"
+  },
+  ...
+]`;
+            
             this.getGeneNovelty = createLLMClient({
-                llm: "gemini",
-                model: "gemini-2.5-flash",
-                system_prompt: this.gene_novelty_prompt
+                llm: llm,
+                model: model,
+                system_prompt: genePrompt
             });
 
+            const experimentPrompt = this.experiment_prompt || '';
             this.buildExperiments = createLLMClient({
-                llm: "gemini",
-                model: "gemini-2.5-flash",
-                system_prompt: this.experiment_prompt
+                llm: llm,
+                model: model,
+                system_prompt: experimentPrompt
             });
+        } catch (error) {
+            console.error('Error initializing LLM clients:', error);
+            // Initialize with defaults even if there's an error
+            try {
+                const fallbackPrompt = `Generate a JSON array for up to 10 genes based on the hypothesis below.
 
-        } else if(this.sectionConfigs.llm === "openai") {
-            this.getGeneNovelty = createLLMClient({
-                llm: "openai",
-                model: "gpt-5-mini",
-                system_prompt: this.gene_novelty_prompt
-            });
-
-            this.buildExperiments = createLLMClient({
-                llm: "openai",
-                model: "gpt-5-mini",
-                system_prompt: this.experiment_prompt
-            });
+**Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
+**Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]`;
+                
+                this.getGeneNovelty = createLLMClient({
+                    llm: "gemini",
+                    model: "gemini-2.5-flash",
+                    system_prompt: fallbackPrompt
+                });
+            } catch (e) {
+                console.error('Failed to initialize getGeneNovelty:', e);
+            }
         }
-        
     },
 
 	mounted: async function () {
@@ -1661,6 +1578,25 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 	computed: {
 		hasManualGenes() {
 			return this.geneData.some(gene => gene.isManual === true);
+		},
+		organizedGenes() {
+			// Organize genes: selected first, then unselected
+			if (!this.genesList || this.genesList.length === 0) {
+				return [];
+			}
+			
+			const selectedSet = new Set(this.selectedGenes);
+			const genes = this.genesList.map(symbol => ({
+				symbol: symbol,
+				isSelected: selectedSet.has(symbol)
+			}));
+			
+			// Sort: selected first, then unselected (maintain original order within each group)
+			return genes.sort((a, b) => {
+				if (a.isSelected && !b.isSelected) return -1;
+				if (!a.isSelected && b.isSelected) return 1;
+				return 0; // Maintain original order within same selection status
+			});
 		},
 		searchPlanText() {
 			let text = '<p>Your experiment plan will be created using the following approach:</p>';
@@ -2110,6 +2046,29 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			}, 1000);
 
 			try {
+				// Check if getGeneNovelty is initialized, try to initialize if not
+				if (!this.getGeneNovelty) {
+					console.warn('getGeneNovelty is not initialized, attempting to initialize now...');
+					try {
+						const llm = (this.sectionConfigs && this.sectionConfigs.llm) || "gemini";
+						const model = llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash";
+						const genePrompt = this.gene_novelty_prompt || `Generate a JSON array for up to 10 genes based on the hypothesis below.
+
+**Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
+**Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]`;
+						
+						this.getGeneNovelty = createLLMClient({
+							llm: llm,
+							model: model,
+							system_prompt: genePrompt
+						});
+					} catch (error) {
+						console.error('Failed to initialize getGeneNovelty:', error);
+						this.isGettingGeneNovelty = false;
+						return;
+					}
+				}
+				
 				// Prepare the prompt
 				const geneList = genesToProcess.map(gene => gene.gene).join(', ');
 				const prompt = this.gene_novelty_prompt
@@ -2196,6 +2155,85 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		},
 		clearSelectedGenes() {
 			this.selectedGenes = [];
+		},
+		handleGenesSelected(selectedGeneSymbols) {
+			// Update selectedGenes when genes are selected in the utility component
+			this.selectedGenes = selectedGeneSymbols || [];
+		},
+		unselectGene(geneSymbol) {
+			// Remove gene from selectedGenes
+			const index = this.selectedGenes.indexOf(geneSymbol);
+			if (index > -1) {
+				this.selectedGenes.splice(index, 1);
+				// Emit update to parent component if needed
+				this.$emit('update:selectedGenes', this.selectedGenes);
+			}
+		},
+		toggleGeneSelection(geneSymbol) {
+			// Toggle gene selection: add if not selected, remove if selected
+			const index = this.selectedGenes.indexOf(geneSymbol);
+			if (index > -1) {
+				// Gene is selected, unselect it
+				this.selectedGenes.splice(index, 1);
+			} else {
+				// Gene is not selected, select it
+				this.selectedGenes.push(geneSymbol);
+			}
+			// Emit update to parent component if needed
+			this.$emit('update:selectedGenes', this.selectedGenes);
+		},
+		updateGenesListFromString() {
+			// Parse the string and update genesList
+			const geneList = this.genesListString.split(',').map(gene => gene.trim()).filter(gene => gene);
+			this.genesList = [...new Set(geneList)].sort();
+		},
+		updateGenesListFromFilters() {
+			// Update filteredGenes first
+			this.updateFilteredGenes();
+			
+			// Get the source data (filteredGenes or geneData)
+			const sourceData = this.filteredGenes.length > 0 ? this.filteredGenes : this.geneData;
+			
+			// Extract unique genes with their data
+			const geneMap = new Map();
+			sourceData.forEach(gene => {
+				if (gene.gene && !geneMap.has(gene.gene)) {
+					geneMap.set(gene.gene, gene);
+				}
+			});
+			
+			// Convert to array of gene objects
+			const genesWithData = Array.from(geneMap.values());
+			
+			// Sort based on sortByGeneticNovelty checkbox
+			let sortedGenes;
+			if (this.sortByGeneticNovelty) {
+				// Sort by genetic novelty: D * (1 - I) * alpha (where alpha = 1)
+				const alpha = 1;
+				genesWithData.forEach(gene => {
+					// Get direct and indirect PPAs (already calculated or calculate them)
+					const D = gene.directPPA !== undefined ? gene.directPPA : this.calculatePPA(gene.log_bf || 0);
+					const I = gene.indirectPPA !== undefined ? gene.indirectPPA : this.calculatePPA(gene.prior || 0);
+					// Calculate genetic novelty
+					gene.geneticNovelty = D * (1 - I) * alpha;
+				});
+				
+				// Sort by genetic novelty (descending - highest first)
+				sortedGenes = genesWithData.sort((a, b) => {
+					const noveltyA = a.geneticNovelty || 0;
+					const noveltyB = b.geneticNovelty || 0;
+					return noveltyB - noveltyA; // Descending order
+				}).map(g => g.gene);
+			} else {
+				// Sort alphabetically (alpha = 0)
+				sortedGenes = genesWithData.map(g => g.gene).sort((a, b) => 
+					a.localeCompare(b, undefined, { sensitivity: 'base' })
+				);
+			}
+			
+			// Update genesList and genesListString
+			this.genesList = sortedGenes;
+			this.genesListString = sortedGenes.join(', ');
 		},
 		exportSelectedGenes() {
 			if (this.selectedGenes.length === 0) {
@@ -2377,6 +2415,11 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				let hasAssociations = false;
 				let hasGenes = false;
 				
+				// Populate research context field if keyParams['researchContext'] exists
+				if (this.utilsBox.keyParams['researchContext'] && typeof this.utilsBox.keyParams['researchContext'] === 'string') {
+					this.researchContext = this.utilsBox.keyParams['researchContext'];
+				}
+				
 				// Populate hypothesis field if keyParams['hypothesis'] exists
 				if (this.utilsBox.keyParams['hypothesis'] && typeof this.utilsBox.keyParams['hypothesis'] === 'string') {
 					this.phenotypeSearch = this.utilsBox.keyParams['hypothesis'];
@@ -2487,10 +2530,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			}
 			
 			// Check for duplicate genes
-			const existingGenes = this.geneData.map(g => g.gene);
+			const existingGenes = this.genesList.length > 0 ? this.genesList : this.geneData.map(g => g.gene);
 			const duplicateGenes = geneList.filter(gene => existingGenes.includes(gene));
 			if (duplicateGenes.length > 0) {
-				alert(`The following genes are already in the table: ${duplicateGenes.join(', ')}. Please remove duplicates and try again.`);
+				alert(`The following genes are already in the list: ${duplicateGenes.join(', ')}. Please remove duplicates and try again.`);
 				return;
 			}
 			
@@ -2510,6 +2553,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			// Add to existing gene data
 			this.geneData = [...this.geneData, ...manualGeneData];
 			this.originalGeneData = [...this.originalGeneData, ...manualGeneData];
+			
+			// Update genesList for the utility component
+			this.genesList = [...this.genesList, ...geneList].filter((gene, index, self) => self.indexOf(gene) === index).sort();
+			this.genesListString = this.genesList.join(', ');
 			
 			// Update filtered genes
 			this.updateFilteredGenes();
@@ -2532,13 +2579,35 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					return;
 				}
 				
-				// Prepare the prompt
-				const prompt = this.gene_novelty_prompt
-					.replace('[INSERT YOUR HYPOTHESIS HERE]', this.phenotypeSearch.trim() || 'No specific hypothesis provided')
-					.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]', genesToProcess.join(', '));
-				
-				// Call the LLM
-				this.getGeneNovelty.sendPrompt({
+			// Check if getGeneNovelty is initialized, try to initialize if not
+			if (!this.getGeneNovelty) {
+				console.warn('getGeneNovelty is not initialized, attempting to initialize now...');
+				try {
+					const llm = (this.sectionConfigs && this.sectionConfigs.llm) || "gemini";
+					const model = llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash";
+					const genePrompt = this.gene_novelty_prompt || `Generate a JSON array for up to 10 genes based on the hypothesis below.
+
+**Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
+**Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]`;
+					
+					this.getGeneNovelty = createLLMClient({
+						llm: llm,
+						model: model,
+						system_prompt: genePrompt
+					});
+				} catch (error) {
+					console.error('Failed to initialize getGeneNovelty:', error);
+					return;
+				}
+			}
+			
+			// Prepare the prompt
+			const prompt = this.gene_novelty_prompt
+				.replace('[INSERT YOUR HYPOTHESIS HERE]', this.phenotypeSearch.trim() || 'No specific hypothesis provided')
+				.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]', genesToProcess.join(', '));
+			
+			// Call the LLM
+			this.getGeneNovelty.sendPrompt({
 					userPrompt: prompt,
 						onResponse: (response) => {
 						try {
@@ -2620,6 +2689,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				// Add to existing gene data
 				this.geneData = [...this.geneData, ...urlGeneData];
 				this.originalGeneData = [...this.originalGeneData, ...urlGeneData];
+				
+				// Update genesList for the utility component
+				this.genesList = [...this.genesList, ...newGenes].filter((gene, index, self) => self.indexOf(gene) === index).sort();
+				this.genesListString = this.genesList.join(', ');
 				
 				// Update filtered genes
 				this.updateFilteredGenes();
@@ -2714,6 +2787,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				
 				// Initialize filtered genes and apply initial filter
 				this.updateFilteredGenes();
+				// Update genesList from filtered genes (this will apply filters to the genes list)
+				this.updateGenesListFromFilters();
 				
 			// Get gene novelty for the first page
 			this.$nextTick(() => {
@@ -6008,6 +6083,95 @@ a {
         margin-top: 0;
     }
 }
+/* Gene Chips Styles */
+.gene-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 8px;
+	background: #ffffff;
+	border: 1px solid #dee2e6;
+	border-radius: 12px;
+	font-size: 12px;
+	color: #333;
+	transition: all 0.2s ease;
+	cursor: pointer;
+	position: relative;
+	line-height: 1.4;
+}
+
+.gene-chip:hover {
+	border-color: #adb5bd;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	transform: translateY(-1px);
+}
+
+.gene-chip-selected {
+	background: #e3f2fd;
+	border-color: #1976d2;
+	color: #1565c0;
+	font-weight: 500;
+}
+
+.gene-chip-selected:hover {
+	background: #bbdefb;
+	border-color: #1565c0;
+}
+
+.gene-chip-text {
+	user-select: none;
+}
+
+.gene-chip-remove {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #6c757d;
+	color: white;
+	font-size: 14px;
+	font-weight: bold;
+	line-height: 1;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	margin-left: 2px;
+	flex-shrink: 0;
+}
+
+.gene-chip-remove:hover {
+	background: #5a6268;
+	transform: scale(1.15);
+}
+
+.gene-chips-container {
+	line-height: 1.5;
+}
+
+.genes-view-mode {
+	scrollbar-width: thin;
+	scrollbar-color: #adb5bd #f8f9fa;
+}
+
+.genes-view-mode::-webkit-scrollbar {
+	width: 8px;
+}
+
+.genes-view-mode::-webkit-scrollbar-track {
+	background: #f8f9fa;
+	border-radius: 4px;
+}
+
+.genes-view-mode::-webkit-scrollbar-thumb {
+	background: #adb5bd;
+	border-radius: 4px;
+}
+
+.genes-view-mode::-webkit-scrollbar-thumb:hover {
+	background: #868e96;
+}
+
 </style>
 
 

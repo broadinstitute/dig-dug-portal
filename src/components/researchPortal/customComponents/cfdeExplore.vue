@@ -654,19 +654,29 @@
 						</div>
 						
 						<!-- Show only selected checkbox (only for scored genes) -->
-						<div v-if="scoredGenes.length > 0" style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-							<input 
-								type="checkbox" 
-								id="showOnlySelectedScoredGenes"
-								v-model="showOnlySelectedScoredGenes"
+						<div v-if="scoredGenes.length > 0" style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+							<div style="display: flex; align-items: center; gap: 8px;">
+								<input 
+									type="checkbox" 
+									id="showOnlySelectedScoredGenes"
+									v-model="showOnlySelectedScoredGenes"
+									:disabled="selectedScoredGenes.length === 0"
+								/>
+								<label for="showOnlySelectedScoredGenes" style="font-size: 13px; color: #333; cursor: pointer;">
+									Show only selected
+								</label>
+								<span v-if="selectedScoredGenes.length > 0" style="font-size: 12px; color: #666; margin-left: 8px;">
+									({{ selectedScoredGenes.length }} selected)
+								</span>
+							</div>
+							<button 
+								@click="downloadScoredGenes"
+								class="btn btn-sm btn-primary"
 								:disabled="selectedScoredGenes.length === 0"
-							/>
-							<label for="showOnlySelectedScoredGenes" style="font-size: 13px; color: #333; cursor: pointer;">
-								Show only selected
-							</label>
-							<span v-if="selectedScoredGenes.length > 0" style="font-size: 12px; color: #666; margin-left: 8px;">
-								({{ selectedScoredGenes.length }} selected)
-							</span>
+								style="padding: 6px 12px; font-size: 13px;"
+							>
+								Download Selected Genes
+							</button>
 						</div>
 						
 						<table class="gene-data-table">
@@ -1012,15 +1022,8 @@
 
 					<!-- Candidate Genes Table (if available) -->
 					<div v-if="candidateGenes.length > 0" class="candidate-genes-section" style="margin-bottom: 20px;">
-						<div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+						<div class="section-header" style="margin-bottom: 15px;">
 							<h4>Candidate Genes Selected ({{ selectedCandidateGenes.length }} of {{ candidateGenes.length }} selected)</h4>
-							<button 
-								@click="toggleAllCandidateGenes"
-								class="btn btn-sm btn-outline-secondary"
-								style="padding: 4px 12px; font-size: 12px;"
-							>
-								{{ allCandidateGenesSelected() ? 'Deselect All' : 'Select All' }}
-							</button>
 						</div>
 						
 						<!-- TDL Legend -->
@@ -1044,6 +1047,18 @@
 									<span style="color: #666; flex: 1;">No clinical, chemical, or biological links to disease</span>
 								</div>
 							</div>
+						</div>
+						
+						<!-- Download button for candidate genes -->
+						<div v-if="candidateGenes.length > 0" style="margin-bottom: 10px; display: flex; justify-content: flex-end;">
+							<button 
+								@click="downloadCandidateGenes"
+								class="btn btn-sm btn-primary"
+								:disabled="selectedCandidateGenes.length === 0"
+								style="padding: 6px 12px; font-size: 13px;"
+							>
+								Download Selected Genes
+							</button>
 						</div>
 						
 						<div class="table-container">
@@ -1706,17 +1721,14 @@ From the provided gene list, select **all** genes that are:
 1. **Relevant** to the hypothesis's mechanism - genes whose function directly relates to the biological processes, pathways, or mechanisms described in the hypothesis.
 2. **Aligned with Research Context** - if Research Context is provided, genes whose function aligns with the specific goals or focus areas mentioned (e.g., drug target identification, mechanistic understanding, therapeutic intervention).
 
-**Important:** Include all genes that meet these relevance criteria. Do not filter based on novelty at this stage - that will be done in a subsequent ranking step.
+**Important:** Include all genes that meet these relevance criteria.
 
 ---
 
-**Output Format:**
-Respond **ONLY** with a valid JSON array of gene symbols. The output must be a well-formed JSON array containing only gene symbols (strings) that are found in the provided Gene List.
+**Output format: The output must not include any introductory text, explanation, or conversational filler outside of the final JSON array. The output must be a well-formed JSON array containing only gene symbols from the provided Gene List.**
 
 Example output format:
 ["GENE1", "GENE2", "GENE3", ...]
-
-**Output format: The output must not include any introductory text, explanation, or conversational filler outside of the final JSON array. The output must be a well-formed JSON array containing only gene symbols from the provided Gene List.**
 			`
 		},
 		gene_ranking_prompt() {
@@ -2314,6 +2326,125 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			link.click();
 			document.body.removeChild(link);
 			window.URL.revokeObjectURL(url);
+		},
+		downloadScoredGenes() {
+			if (this.selectedScoredGenes.length === 0) {
+				alert('No genes selected to download.');
+				return;
+			}
+			
+			// Get selected scored genes
+			const selectedSet = new Set(this.selectedScoredGenes);
+			const selectedGenes = this.scoredGenes.filter(gene => selectedSet.has(gene.gene));
+			
+			// Build the content
+			let content = this.buildDownloadContent(selectedGenes, 'scored');
+			
+			// Download the file
+			const blob = new Blob([content], { type: 'text/plain' });
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = `scored_genes_${new Date().toISOString().split('T')[0]}.txt`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
+		},
+		downloadCandidateGenes() {
+			if (this.selectedCandidateGenes.length === 0) {
+				alert('No genes selected to download.');
+				return;
+			}
+			
+			// Get selected candidate genes
+			const selectedGenes = this.selectedCandidateGenes
+				.map(index => this.candidateGenes[index])
+				.filter(gene => gene != null);
+			
+			// Build the content
+			let content = this.buildDownloadContent(selectedGenes, 'candidate');
+			
+			// Download the file
+			const blob = new Blob([content], { type: 'text/plain' });
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = `candidate_genes_${new Date().toISOString().split('T')[0]}.txt`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
+		},
+		buildDownloadContent(genes, type) {
+			// Get current timestamp
+			const timestamp = new Date().toISOString();
+			const formattedTime = new Date().toLocaleString();
+			
+			// Get research context (use scoreGenerationResearchContext for scored genes, designToolResearchContext for candidate genes)
+			const researchContext = type === 'scored' 
+				? (this.scoreGenerationResearchContext || this.researchContext || 'Not provided')
+				: (this.designToolResearchContext || this.researchContext || 'Not provided');
+			
+			// Get hypothesis
+			const hypothesis = this.phenotypeSearch || 'Not provided';
+			
+			// Build header
+			let content = '='.repeat(80) + '\n';
+			content += 'GENE DATA EXPORT\n';
+			content += '='.repeat(80) + '\n\n';
+			content += `Export Time: ${formattedTime}\n`;
+			content += `Timestamp: ${timestamp}\n\n`;
+			content += `Research Context:\n${researchContext}\n\n`;
+			content += `Hypothesis:\n${hypothesis}\n\n`;
+			content += '='.repeat(80) + '\n';
+			content += `SELECTED GENES (${genes.length} gene${genes.length !== 1 ? 's' : ''})\n`;
+			content += '='.repeat(80) + '\n\n';
+			
+			// Build gene data
+			genes.forEach((gene, index) => {
+				content += `\n${'-'.repeat(80)}\n`;
+				content += `Gene ${index + 1}: ${gene.gene || 'N/A'}\n`;
+				content += `${'-'.repeat(80)}\n\n`;
+				
+				// Basic gene information
+				content += `Classification: ${gene.classification || 'N/A'}\n`;
+				content += `Relevance Score: ${gene.relevance_score !== undefined && gene.relevance_score !== null && gene.relevance_score !== 'N/A' && gene.relevance_score !== 'To be generated' 
+					? (typeof gene.relevance_score === 'number' ? `${gene.relevance_score}/10` : gene.relevance_score)
+					: 'N/A'}\n`;
+				content += `Novelty Score: ${gene.novelty_score !== undefined && gene.novelty_score !== null && gene.novelty_score !== 'N/A' && gene.novelty_score !== 'To be generated'
+					? (typeof gene.novelty_score === 'number' ? `${gene.novelty_score}/10` : gene.novelty_score)
+					: 'N/A'}\n`;
+				content += `Reason: ${gene.reason && gene.reason !== 'To be generated' ? gene.reason : 'N/A'}\n`;
+				content += `Hypothesis Validation: ${gene.hypothesis_validation && gene.hypothesis_validation !== 'To be generated' ? gene.hypothesis_validation : 'N/A'}\n\n`;
+				
+				// IDG Information
+				content += 'IDG (Illuminating the Druggable Genome) Information:\n';
+				if (gene.idg_fullData) {
+					const idg = gene.idg_fullData;
+					content += `  Gene Symbol: ${idg.sym || 'N/A'}\n`;
+					content += `  Gene Name: ${idg.name || 'N/A'}\n`;
+					content += `  Family: ${idg.fam || 'N/A'}\n`;
+					content += `  TDL (Target Development Level): ${idg.tdl || 'N/A'}\n`;
+					content += `  Description: ${idg.description || 'N/A'}\n`;
+					content += `  Novelty: ${idg.novelty !== null && idg.novelty !== undefined ? idg.novelty : 'N/A'}\n`;
+					content += `  Pharos Link: ${idg.sym ? `https://pharos.nih.gov/targets/${idg.sym}` : 'N/A'}\n`;
+				} else if (gene.idg_tdl) {
+					// If we only have TDL but not full data
+					content += `  TDL (Target Development Level): ${gene.idg_tdl}\n`;
+					content += `  IDG Novelty: ${gene.idg_novelty !== null && gene.idg_novelty !== undefined ? gene.idg_novelty : 'N/A'}\n`;
+					content += `  Full IDG Data: Not available\n`;
+				} else {
+					content += `  No IDG data available\n`;
+				}
+				content += '\n';
+			});
+			
+			content += '\n' + '='.repeat(80) + '\n';
+			content += 'END OF EXPORT\n';
+			content += '='.repeat(80) + '\n';
+			
+			return content;
 		},
 		updateFilteredGenes() {
 			// Start with all genes
