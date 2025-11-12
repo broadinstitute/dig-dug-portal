@@ -2,22 +2,95 @@
 	<div class="research-gene-set-utility">
 		<!-- Action Buttons -->
 		<div class="utility-actions" style="display: flex; gap: 10px; margin-bottom: 15px;">
-			<button 
-				@click="openScoreDialog"
-				class="btn btn-primary"
-				:disabled="!canGenerateScores"
-				style="padding: 8px 16px;"
-			>
-				Generate Gene Scores
-			</button>
-			<button 
-				@click="openRankDialog"
-				class="btn btn-primary"
-				:disabled="!canRankGenes"
-				style="padding: 8px 16px;"
-			>
-				Rank Genes
-			</button>
+			<div class="button-with-tooltip">
+				<button 
+					@click="openScoreDialog"
+					class="btn btn-primary"
+					:disabled="!canGenerateScores"
+					style="padding: 8px 16px; display: flex; align-items: center; gap: 6px;"
+				>
+					<span>Score genes for relevance and novelty</span>
+					<span class="info-icon">
+						ℹ️
+					</span>
+				</button>
+				<div class="tooltip tooltip-score">
+					<div class="tooltip-content">
+						<h5>Gene Relevance & Novelty Scoring</h5>
+						<p><strong>What it does:</strong> Scores each gene for relevance and novelty based on your hypothesis and research context.</p>
+						<p><strong>Relevance Score (1-10):</strong> Measures mechanistic linkage between the gene's function and your hypothesis, with explicit reference to relevant tissue(s).</p>
+						<ul>
+							<li><strong>2:</strong> Weak/indirect mechanism; unclear tissue link</li>
+							<li><strong>5:</strong> Plausible mechanism with partial support</li>
+							<li><strong>8:</strong> Strong mechanism with multiple evidence lines</li>
+							<li><strong>10:</strong> Direct, specific mechanism in exact tissue(s)</li>
+						</ul>
+						<p><strong>Novelty Score (1-10):</strong> Measures context-specific newness - how much testing this gene would yield new insight beyond well-trodden literature.</p>
+						<ul>
+							<li><strong>2:</strong> Heavily characterized core component</li>
+							<li><strong>5:</strong> Studied gene with limited work in this context</li>
+							<li><strong>8:</strong> Clear context-specific novelty</li>
+							<li><strong>10:</strong> Highly novel with little/no direct prior work</li>
+						</ul>
+						<p><strong>Output:</strong> For each gene, provides classification, relevance score, novelty score, novelty basis (Tissue-Specific/Mechanistic/Contextual), reason, and hypothesis validation suggestions.</p>
+					</div>
+				</div>
+			</div>
+			<div class="button-with-tooltip">
+				<button 
+					@click="openRankDialog"
+					class="btn btn-primary"
+					:disabled="!canRankGenes"
+					style="padding: 8px 16px; display: flex; align-items: center; gap: 6px;"
+				>
+					<span>Filter, Score, and Rank Genes</span>
+					<span class="info-icon">
+						ℹ️
+					</span>
+				</button>
+				<div class="tooltip tooltip-rank">
+					<div class="tooltip-content">
+						<h5>Filter, Score, and Rank Genes</h5>
+						<p><strong>What it does:</strong> A two-step process that first filters genes, then scores and ranks the filtered set.</p>
+						<p><strong>Step 1 - Filtering:</strong> Pre-filters genes based on relevance and novelty criteria, selecting genes that:</p>
+						<ul>
+							<li>Are mechanistically relevant to the hypothesis (relevance score ≥5)</li>
+							<li>Align with the research context</li>
+							<li>Have clear tissue links</li>
+							<li>Meet novelty considerations (excludes well-studied core components unless they have Contextual Novelty)</li>
+						</ul>
+						<p><strong>Step 2 - Ranking:</strong> Scores and ranks all filtered genes using the same scoring criteria as the scoring function, then orders them by combined relevance and novelty scores.</p>
+						<p><strong>Output:</strong> A ranked list of filtered genes with scores, classifications, reasons, and hypothesis validation suggestions, sorted by combined score (highest first).</p>
+					</div>
+				</div>
+			</div>
+			<div class="button-with-tooltip" v-if="canGroupGenes">
+				<button 
+					@click="openGroupDialog"
+					class="btn btn-group"
+					style="padding: 8px 16px; display: flex; align-items: center; gap: 6px;"
+				>
+					<span>Group and Tier Selected Genes</span>
+					<span class="info-icon">
+						ℹ️
+					</span>
+				</button>
+				<div class="tooltip tooltip-group">
+					<div class="tooltip-content">
+						<h5>Group and Tier Selected Genes</h5>
+						<p><strong>What it does:</strong> Groups selected genes that can be experimented together and organizes them into tiers for experiment workflows.</p>
+						<p><strong>Grouping:</strong> Identifies genes that share common experimental approaches, pathways, or mechanisms, making them suitable for combined experiments.</p>
+						<p><strong>Tiering:</strong> Organizes gene groups into priority tiers based on:</p>
+						<ul>
+							<li>Experimental feasibility and resource requirements</li>
+							<li>Scientific priority and impact potential</li>
+							<li>Dependencies between experiments</li>
+							<li>Workflow efficiency</li>
+						</ul>
+						<p><strong>Output:</strong> A structured JSON response with gene groups organized by tiers, including rationale for grouping and tier assignments.</p>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<!-- Score Generation Dialog -->
@@ -624,6 +697,108 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Group Generation Dialog -->
+		<div v-if="showGroupDialog" class="dialog-overlay" @click.self="closeGroupDialog">
+			<div class="dialog-container">
+				<div class="dialog-header">
+					<h3>Group and Tier Selected Genes</h3>
+					<button @click="closeGroupDialog" class="close-btn">&times;</button>
+				</div>
+				<div class="dialog-content">
+					<!-- Research Context Section -->
+					<div class="research-context-section" style="margin-bottom: 20px;">
+						<div class="section-header">
+							<h4>Research Context <span style="color: #666; font-weight: normal;">(Optional)</span></h4>
+						</div>
+						<p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">{{ researchContext || 'No research context provided' }}</p>
+					</div>
+
+					<!-- Hypothesis Display -->
+					<div class="info-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+						<h4>Hypothesis</h4>
+						<p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">{{ hypothesis || 'No hypothesis provided' }}</p>
+					</div>
+
+					<!-- Selected Genes Display -->
+					<div class="info-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+						<h4>Selected Genes ({{ selectedGenes.length }})</h4>
+						<p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">{{ selectedGenes.join(', ') }}</p>
+					</div>
+
+					<!-- Loading Indicator -->
+					<div v-if="isGroupingGenes" class="loading-indicator" style="margin-bottom: 20px; padding: 12px; background: #e3f2fd; border-left: 3px solid #1976d2; border-radius: 4px;">
+						<span class="loading-spinner-small"></span>
+						<span>Grouping and tiering genes... ({{ groupElapsedTime }})</span>
+					</div>
+
+					<!-- Grouped Genes Display -->
+					<div v-if="groupedGenes && !isGroupingGenes" class="grouped-results" style="margin-bottom: 20px;">
+						<!-- Summary -->
+						<div v-if="groupedGenes.summary" style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-left: 3px solid #1976d2; border-radius: 4px;">
+							<h4 style="margin: 0 0 10px 0; color: #1976d2; font-size: 16px;">Summary</h4>
+							<p style="margin: 0; color: #333; font-size: 14px; line-height: 1.6;">{{ groupedGenes.summary }}</p>
+						</div>
+
+						<!-- Tiers -->
+						<div v-for="tier in groupedGenes.tiers" :key="tier.tier" class="tier-section" style="margin-bottom: 25px; padding: 20px; background: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+							<div class="tier-header" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #dee2e6;">
+								<h4 style="margin: 0; color: #333; font-size: 18px; font-weight: 600;">
+									Tier {{ tier.tier }}: {{ tier.tierName }}
+								</h4>
+								<p v-if="tier.rationale" style="margin: 8px 0 0 0; color: #666; font-size: 14px; line-height: 1.5;">{{ tier.rationale }}</p>
+							</div>
+
+							<!-- Groups in this tier -->
+							<div v-for="(group, groupIndex) in tier.groups" :key="groupIndex" class="group-item" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #28a745;">
+								<h5 style="margin: 0 0 10px 0; color: #28a745; font-size: 16px; font-weight: 600;">{{ group.groupName }}</h5>
+								
+								<!-- Genes in group -->
+								<div style="margin-bottom: 10px;">
+									<strong style="color: #333; font-size: 13px;">Genes:</strong>
+									<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+										<span 
+											v-for="gene in group.genes" 
+											:key="gene"
+											style="display: inline-block; padding: 4px 10px; background: #28a745; color: white; border-radius: 12px; font-size: 12px; font-weight: 500;"
+										>
+											{{ gene }}
+										</span>
+									</div>
+								</div>
+
+								<!-- Grouping Rationale -->
+								<div v-if="group.groupingRationale" style="margin-bottom: 10px;">
+									<strong style="color: #333; font-size: 13px;">Grouping Rationale:</strong>
+									<p style="margin: 6px 0 0 0; color: #666; font-size: 13px; line-height: 1.5;">{{ group.groupingRationale }}</p>
+								</div>
+
+								<!-- Experimental Approach -->
+								<div v-if="group.experimentalApproach" style="margin-bottom: 10px;">
+									<strong style="color: #333; font-size: 13px;">Experimental Approach:</strong>
+									<p style="margin: 6px 0 0 0; color: #666; font-size: 13px; line-height: 1.5;">{{ group.experimentalApproach }}</p>
+								</div>
+
+								<!-- Resource Info -->
+								<div style="display: flex; gap: 20px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #dee2e6;">
+									<div v-if="group.estimatedResources">
+										<strong style="color: #333; font-size: 12px;">Resources:</strong>
+										<span style="color: #666; font-size: 12px; margin-left: 6px;">{{ group.estimatedResources }}</span>
+									</div>
+									<div v-if="group.estimatedTimeline">
+										<strong style="color: #333; font-size: 12px;">Timeline:</strong>
+										<span style="color: #666; font-size: 12px; margin-left: 6px;">{{ group.estimatedTimeline }}</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="dialog-actions">
+					<button @click="closeGroupDialog" class="btn btn-outline-secondary">Close</button>
+				</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -678,10 +853,12 @@ export default {
 			getGeneNovelty: null,
 			rankGenes: null,
 			filterGenes: null,
+			groupGenes: null,
 			
 			// Dialog state
 			showScoreDialog: false,
 			showRankDialog: false,
+			showGroupDialog: false,
 			
 			// Research context for dialogs
 			scoreResearchContext: '',
@@ -690,6 +867,7 @@ export default {
 			// State tracking
 			isGeneratingScores: false,
 			isRankingGenes: false,
+			isGroupingGenes: false,
 			scoreStartTime: null,
 			scoreTimer: null,
 			scoreElapsedTime: '0:00',
@@ -733,7 +911,14 @@ export default {
 			// Track which pages are currently being queried
 			queryingPages: new Set(),
 			// Reactive counter to trigger updates when Map changes
-			scoredGenesUpdateCounter: 0
+			scoredGenesUpdateCounter: 0,
+			
+			// Grouping results
+			groupedGenes: null,
+			groupStartTime: null,
+			groupTimer: null,
+			groupElapsedTime: '0:00',
+			
 		};
 	},
 	computed: {
@@ -745,6 +930,9 @@ export default {
 		},
 		canRankGenes() {
 			return this.genes && this.genes.length > 0 && this.hypothesis && this.hypothesis.trim();
+		},
+		canGroupGenes() {
+			return this.selectedGenes && this.selectedGenes.length > 2;
 		},
 		paginatedScoredGenes() {
 			let genesToPaginate = this.scoredGenes;
@@ -915,6 +1103,7 @@ export default {
 	beforeDestroy() {
 		this.clearScoreTimer();
 		this.clearRankTimer();
+		this.clearGroupTimer();
 	},
 	methods: {
 		scoring_canon() {
@@ -1081,6 +1270,104 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 
 — Output JSON array only. No trailing commas. No comments.`;
 		},
+		gene_grouping_prompt() {
+			return String.raw`You are an expert computational biologist and experimental design specialist. Your task is to group selected genes that can be experimented together PRACTICALLY and ECONOMICALLY, organizing them into tiers for cost-effective experiment workflows.
+
+**Hypothesis:** [Insert Specific Hypothesis Here.]
+
+**Selected Genes:** [Insert comma-separated list of selected genes here.]
+
+**Research Context:** [Insert Specific Research Context Here.]
+
+**CRITICAL CONSTRAINTS FOR PRACTICAL GROUPING:**
+
+1. **Group Size Limits:**
+   - PREFER groups of 2-3 genes maximum per group
+   - Only group 4+ genes if they share EXACTLY the same experimental protocol, reagents, and readouts (very rare)
+   - Smaller groups = lower costs, simpler logistics, clearer interpretation
+   - Larger groups increase experimental complexity exponentially and often require more controls
+
+2. **Economic Considerations:**
+   - Prioritize groups that can use shared reagents, controls, and equipment
+   - Consider per-sample costs: smaller groups reduce total sample numbers
+   - Avoid groups that require different cell lines, culture conditions, or specialized equipment
+   - Estimate realistic resource needs: be conservative and practical
+
+3. **Experimental Feasibility:**
+   - Only group genes if they can be tested with the SAME experimental protocol
+   - Same assay type, same readout, same time points, same controls
+   - Avoid grouping genes that require different experimental conditions
+   - Consider technical limitations: multiplexing has limits
+
+4. **Practical Workflow:**
+   - Smaller groups are easier to execute, troubleshoot, and interpret
+   - Groups should be manageable for a single experimenter or small team
+   - Consider parallel execution: can multiple small groups run simultaneously?
+
+**Task:**
+1. Analyze the selected genes and identify which genes can be PRACTICALLY experimented together based on:
+   - EXACT same experimental approach (assay, readout, conditions)
+   - Shared reagents and controls (cost savings)
+   - Similar resource requirements (equipment, expertise)
+   - Logical experimental dependencies
+   - **PRIORITIZE SMALLER GROUPS (2-3 genes) over larger ones**
+
+2. Organize gene groups into priority tiers based on:
+   - Cost-effectiveness (lower cost per gene = higher tier)
+   - Experimental simplicity (simpler protocols = higher tier)
+   - Scientific priority and impact potential
+   - Resource availability (common reagents/equipment = higher tier)
+   - Dependencies between experiments (prerequisites = lower tier)
+
+**Output Format:**
+You must return ONLY a valid JSON object with the following structure:
+
+{
+  "tiers": [
+    {
+      "tier": 1,
+      "tierName": "High Priority - Cost-Effective Initial Validation",
+      "rationale": "Brief explanation of why this tier is prioritized (focus on cost and simplicity)",
+      "groups": [
+        {
+          "groupName": "Group 1: Pathway A Genes (2 genes)",
+          "genes": ["GENE1", "GENE2"],
+          "groupingRationale": "Explanation of why these genes are grouped together, emphasizing shared protocol and cost savings",
+          "experimentalApproach": "Description of recommended experimental approach for this group (must be the SAME for all genes in group)",
+          "estimatedResources": "Low/Medium/High (be realistic and conservative)",
+          "estimatedTimeline": "e.g., 2-3 weeks"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "tierName": "Medium Priority - Secondary Validation",
+      "rationale": "Brief explanation of this tier",
+      "groups": [
+        {
+          "groupName": "Group 2: Pathway B Genes (2 genes)",
+          "genes": ["GENE3", "GENE4"],
+          "groupingRationale": "Explanation",
+          "experimentalApproach": "Description",
+          "estimatedResources": "Medium",
+          "estimatedTimeline": "e.g., 3-4 weeks"
+        }
+      ]
+    }
+  ],
+  "summary": "Overall summary of the grouping and tiering strategy, emphasizing practical and economic considerations"
+}
+
+**STRICT Guidelines:**
+- Each gene must appear in exactly one group
+- **Groups should contain 2-3 genes typically (prefer smaller groups)**
+- Only create groups of 4+ genes if they share EXACTLY the same experimental protocol and conditions
+- Tiers should be numbered starting from 1 (highest priority = most cost-effective)
+- Provide clear rationale emphasizing cost savings and experimental simplicity
+- Consider the hypothesis and research context when making decisions
+- Be realistic about resource estimates - err on the side of caution
+- Output JSON only. No text outside JSON. No trailing commas. No comments.`;
+		},
 		initializeLLMClients() {
 			const llm = this.llmConfig.llm || "gemini";
 			const model = this.llmConfig.model || "gemini-2.5-flash";
@@ -1101,6 +1388,12 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 				llm: llm,
 				model: model,
 				system_prompt: this.gene_filtering_prompt()
+			});
+
+			this.groupGenes = createLLMClient({
+				llm: llm,
+				model: model,
+				system_prompt: this.gene_grouping_prompt()
 			});
 		},
 		
@@ -1161,6 +1454,18 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 		},
 		closeRankDialog() {
 			this.showRankDialog = false;
+		},
+		openGroupDialog() {
+			this.showGroupDialog = true;
+			this.groupedGenes = null;
+			this.isGroupingGenes = false;
+			this.groupElapsedTime = '0:00';
+			// Start grouping automatically
+			this.handleGroupGenes();
+		},
+		closeGroupDialog() {
+			this.showGroupDialog = false;
+			this.clearGroupTimer();
 		},
 		
 		// Query genes for a specific page
@@ -1585,6 +1890,103 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 			await this.handleRankGenes();
 		},
 		
+		// Group and tier selected genes
+		async handleGroupGenes() {
+			try {
+				if (!this.selectedGenes || this.selectedGenes.length <= 2) {
+					console.warn('Need more than 2 selected genes to group');
+					return;
+				}
+				
+				this.isGroupingGenes = true;
+				this.groupStartTime = Date.now();
+				this.groupElapsedTime = '0:00';
+				
+				// Start timer
+				this.groupTimer = setInterval(() => {
+					if (this.isGroupingGenes && this.groupStartTime) {
+						const elapsed = Math.floor((Date.now() - this.groupStartTime) / 1000);
+						const minutes = Math.floor(elapsed / 60);
+						const seconds = elapsed % 60;
+						this.groupElapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+					}
+				}, 1000);
+				
+				const researchContextValue = this.researchContext.trim() || 'No specific research context provided.';
+				
+				// Prepare the prompt
+				const prompt = this.gene_grouping_prompt()
+					.replace('[Insert Specific Hypothesis Here.]', this.hypothesis.trim())
+					.replace('[Insert comma-separated list of selected genes here.]', this.selectedGenes.join(', '))
+					.replace('[Insert Specific Research Context Here.]', researchContextValue);
+				
+				// Call the LLM
+				const groupingResult = await new Promise((resolve, reject) => {
+					this.groupGenes.sendPrompt({
+						userPrompt: prompt.trim(),
+						onResponse: (response) => {
+							try {
+								// Robust JSON extraction
+								let responseText = response.trim();
+								// Remove markdown code fences
+								if (responseText.startsWith('```')) {
+									responseText = responseText.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim();
+								}
+								
+								// Try to find JSON object in the response
+								let groupData = null;
+								try {
+									// First try direct parse
+									groupData = JSON.parse(responseText);
+								} catch (e) {
+									// If that fails, try to extract JSON object
+									const objectMatch = responseText.match(/\{[\s\S]*\}/);
+									if (objectMatch) {
+										groupData = JSON.parse(objectMatch[0]);
+									} else {
+										throw new Error('No valid JSON found in response');
+									}
+								}
+								
+								// Validate structure
+								if (groupData && typeof groupData === 'object' && groupData.tiers && Array.isArray(groupData.tiers)) {
+									resolve(groupData);
+								} else {
+									reject(new Error('Invalid response format: expected object with tiers array'));
+								}
+							} catch (error) {
+								console.error('Error parsing grouping response:', error, 'Response:', response);
+								reject(error);
+							}
+						},
+						onError: (error) => {
+							console.error('Error in grouping request:', error);
+							reject(error);
+						},
+						onEnd: () => {
+							// If onEnd is called without onResponse, reject
+							reject(new Error('No response received from LLM'));
+						}
+					});
+				});
+				
+				// Store the result
+				this.groupedGenes = groupingResult;
+				console.log('Grouping complete:', groupingResult);
+				
+				// Emit grouped genes to parent component for protocol generation
+				this.$emit('grouped-genes', groupingResult);
+				
+			} catch (error) {
+				console.error('Error grouping genes:', error);
+				this.groupedGenes = null;
+				alert('Error grouping genes: ' + (error.message || 'An error occurred. Please try again.'));
+			} finally {
+				this.isGroupingGenes = false;
+				this.clearGroupTimer();
+			}
+		},
+		
 		// IDG data fetching for a specific page of genes
 		async fetchIDGDataForScoredGenesOnPage(pageGenes) {
 			if (!pageGenes || pageGenes.length === 0) return;
@@ -1972,6 +2374,14 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 				clearInterval(this.rankTimer);
 				this.rankTimer = null;
 			}
+		},
+		clearGroupTimer() {
+			if (this.groupTimer) {
+				clearInterval(this.groupTimer);
+				this.groupTimer = null;
+			}
+			this.groupStartTime = null;
+			this.groupElapsedTime = '0:00';
 		}
 	}
 };
@@ -2318,6 +2728,20 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 	cursor: not-allowed;
 }
 
+.btn-group {
+	background: #28a745;
+	color: white;
+}
+
+.btn-group:hover:not(:disabled) {
+	background: #218838;
+}
+
+.btn-group:disabled {
+	background: #ccc;
+	cursor: not-allowed;
+}
+
 .btn-outline-secondary {
 	background: white;
 	color: #6c757d;
@@ -2340,5 +2764,159 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 	gap: 10px;
 	font-size: 14px;
 	color: #1976d2;
+}
+
+/* Button with Tooltip */
+.button-with-tooltip {
+	position: relative;
+	display: inline-block;
+	/* Ensure tooltip area is included in hover detection */
+	padding-bottom: 0;
+}
+
+.info-icon {
+	cursor: help;
+	font-size: 14px;
+	opacity: 0.8;
+	transition: opacity 0.2s;
+	user-select: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.info-icon:hover {
+	opacity: 1;
+	background: rgba(255, 255, 255, 0.3);
+}
+
+/* Tooltip - Hidden by default, shown on hover */
+.tooltip {
+	position: absolute;
+	z-index: 1000;
+	top: calc(100% + 4px);
+	left: 0;
+	min-width: 400px;
+	max-width: 500px;
+	background: white;
+	border: 1px solid #dee2e6;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	padding: 0;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+	margin-top: 0;
+}
+
+/* Show tooltip on hover of container */
+.button-with-tooltip:hover .tooltip {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
+
+/* Invisible bridge area above tooltip to prevent gap */
+.tooltip::before {
+	content: '';
+	position: absolute;
+	bottom: 100%;
+	left: -20px;
+	right: -20px;
+	height: 4px;
+	background: transparent;
+	pointer-events: auto;
+}
+
+.tooltip-rank {
+	left: auto;
+	right: 0;
+}
+
+.tooltip-group {
+	left: auto;
+	right: 0;
+}
+
+@keyframes tooltipFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.tooltip-content {
+	padding: 16px;
+	max-height: 500px;
+	overflow-y: auto;
+}
+
+.tooltip-content h5 {
+	margin: 0 0 12px 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: #333;
+	border-bottom: 2px solid #007bff;
+	padding-bottom: 8px;
+}
+
+.tooltip-content p {
+	margin: 0 0 10px 0;
+	font-size: 13px;
+	line-height: 1.5;
+	color: #495057;
+}
+
+.tooltip-content p:last-child {
+	margin-bottom: 0;
+}
+
+.tooltip-content strong {
+	color: #333;
+	font-weight: 600;
+}
+
+.tooltip-content ul {
+	margin: 8px 0 12px 0;
+	padding-left: 20px;
+}
+
+.tooltip-content li {
+	margin: 4px 0;
+	font-size: 13px;
+	line-height: 1.4;
+	color: #495057;
+}
+
+.tooltip-content li strong {
+	color: #007bff;
+}
+
+/* Scrollbar for tooltip */
+.tooltip-content::-webkit-scrollbar {
+	width: 6px;
+}
+
+.tooltip-content::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 3px;
+}
+
+.tooltip-content::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 3px;
+}
+
+.tooltip-content::-webkit-scrollbar-thumb:hover {
+	background: #555;
 }
 </style>
