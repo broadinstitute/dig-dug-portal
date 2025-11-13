@@ -196,12 +196,12 @@
                             <div style="display:flex; flex-direction: column; width:120px; gap: 5px;">
                                 <div style="font-weight: bold;">Select</div>
                                 <div style="height:100px;">{{ temp_selected_associations }} of {{ associations.length }} associations selected</div>
-                                <!--
+                                
                                 <div style="display:flex; gap: 10px;">
                                     <button @click="selectAll()" class="btn btn-sm btn-outline-dark">All</button>
                                     <button @click="deselectAll()" class="btn btn-sm btn-outline-dark">None</button>
                                 </div>
-                                -->
+                                
                             </div>
                             <div style="display:flex; flex-direction: column; flex:1; gap:5px">
                                 <div style="display:flex; justify-content: space-between;"><strong>Phenotypes</strong> {{ `${filtered_phenotypes.length}/${phenotypes_list.length}` }}</div>
@@ -211,10 +211,12 @@
                                         <label :for="`phenotype_${idx}`">{{ option }}</label>
                                     </div>
                                 </div>
+                                <!--
                                 <div style="display:flex; gap: 10px; justify-content: flex-start;">
                                     <button @click="selectAll('phenotypes')" class="btn btn-sm btn-outline-dark">All</button>
                                     <button @click="deselectAll('phenotypes')" class="btn btn-sm btn-outline-dark">None</button>
                                 </div>
+                                -->
                             </div>
                             <div style="display:flex; flex-direction: column; width:300px; gap:5px">
                                 <div style="display:flex; justify-content: space-between;"><strong>Association strength</strong>  {{ `${filtered_association_strengths.length}/${association_strengths_list.length}` }}</div>
@@ -227,10 +229,12 @@
                                         </label>
                                     </div>
                                 </div>
+                                <!--
                                 <div style="display:flex; gap: 10px; justify-content: flex-start;">
                                     <button @click="selectAll('strengths')" class="btn btn-sm btn-outline-dark">All</button>
                                     <button @click="deselectAll('strengths')" class="btn btn-sm btn-outline-dark">None</button>
                                 </div>
+                                -->
                             </div>
                             <div style="display:flex; flex-direction: column; width: 300px; gap:5px">
                                 <div style="display:flex; justify-content: space-between;"><strong>Sources</strong> {{ `${filtered_programs.length}/${programs_list.length}` }}</div>
@@ -240,10 +244,12 @@
                                         <label :for="`program_${idx}`">{{ option.replace(';', ' x ') }}</label>
                                     </div>
                                 </div>
+                                <!--
                                 <div style="display:flex; gap: 10px; justify-content: flex-start;">
                                     <button @click="selectAll('sources')" class="btn btn-sm btn-outline-dark">All</button>
                                     <button @click="deselectAll('sources')" class="btn btn-sm btn-outline-dark">None</button>
                                 </div>
+                                -->
                             </div>
                         </div>
                         <!--
@@ -526,7 +532,7 @@ export default Vue.component("cfde-mechanism-discovery", {
 
             search_step: 0, //0: search not started, 1: parsing query; 2: getting associations; 3: generating hypotheses
             searchMode: "auto",
-            searchType: "terms",
+            searchType: "terms", //terms or phenotypes
             searchApi: "new",
 
             userQuery: '',
@@ -631,6 +637,8 @@ export default Vue.component("cfde-mechanism-discovery", {
             fullResults: null,
             textResults: null,
 
+            suppressFilterWatch: false,
+
             exampleQueries: [
                 "I study motor neuron degeneration and its role in progressive neuromotor disorders",
                 "Human accelerated regions and want to know how they contribute to neurodevelopment and cognition",
@@ -723,22 +731,22 @@ Return a JSON object with:
 
 * 'search_terms': a targeted list of keywords to use in a semantic search. (terms to output: min=1, max=5)
 * 'research_context': a short, self-contained description of the research setting that **includes the search terms naturally**.
+* 'search_type': a classification of whether the users query intent is centering on 'phenotypes' or 'mechanisms'
 
 Guidelines:
 
 * User queries may be verbose or contain multiple traits.
-* Context must be inferred from the users query, keep it short, dont add more context than absolutely necessary.
-* Search terms will be used in an embedding space consisting of labels like 'gene expression siganture association with phenotype'.
-  -Heres a tiny sample of the kinds of terms that sematic search will check against:
- 'abnormal sternum morphology mp associated with gcat trait bmi-adjusted hip circumference
-  npy6r idg gpcr archs4 coexpression heart - left ventricle female 70-79 up associated with cardiac mri latent space
-  heart - left ventricle female 40-49 up associated with cardiac mri latent space
-  gpr42 idg gpcr archs4 coexpression associated with crohn's disease
-  p2ry10 idg gpcr archs4 coexpression associated with eczematoid dermatitis'
- - search terms should be selected to work well against this type of embedding space. 
- - **always** use terms directly asked for in the users query.
- - **avoid** duplicate keywords in terms
- - **avoid** listing program names
+* 'Context' must be inferred from the users query, keep it short, dont add more context than absolutely necessary.
+* 'Search terms' will be used to search an embedding space consisting of either:
+ - a. 'phenotypes': phenotype labels
+ -- for example: 'Motor neuron disease', 'Parkinson's disease progression', etc.
+ - b. 'mechanisms': phenoptype and associated gene set signature labels
+ -- for example: 'Genetic neurodegenerative disease. Genes whose knockout in mice results in abnormal locomotor behavior.', 'Rare dementia. Genes whose knockout in mice results in abnormal locomotor behavior.'
+ - 'search terms' should be selected to work well against this type of embedding space. 
+ - **always** use 'search terms' directly asked for in the users query.
+ - **avoid** duplicate keywords in 'search terms'
+ - **avoid** listing program names in 'search terms'
+ - **avoid** 'search terms' that do not aid in searcing for a phenotype or expression signature
 * Return only JSON. No extra text or explanation.
 
 ---
@@ -751,8 +759,17 @@ energy balance with indirect calorimetry
 **Output:**
 {
   "search_terms": ["energy balance"],
-  "research_context": "investigating energy balance using indirect calorimetry"
+  "research_context": "investigating energy balance using indirect calorimetry",
+  "search_type": "mechanisms"
 }
+
+--
+
+**IMPORTANT**: if a users query is completely unrelated to the subject of biological research, return only the following:
+{
+   "error": "Query unrelated to biological research."
+}
+
 `,
 
             groupSystemPrompt2: `You are an expert in **bioinformatics** and **semantic annotation**.
@@ -785,7 +802,7 @@ Your task is to generate **mechanistic hypotheses** that integrate across associ
 * Include a 'validation' field suggesting a brief experiment or analysis that could be used to test the hypothesis.
 * Include a 'justification' field for each hypothesis that explains why this particular group of associations was selected from the overall set.
 * **Never** use 'term ids' in your explanations, mention either the 'signature' or 'phenotype' instead.
-* **Important** If an association does not contain any genes, **do not** use it in a mechanistic hypothesis.
+* **IMPORTANT** **NEVER** select any term / association for analysis that does not include genes
 ---
 
 ## CFDE Program Details
@@ -839,6 +856,7 @@ Return a structured **JSON object** following this schema:
 * Use only information from the input (no fabrication).
 * Every group must include at least one **term id** in 'ids'.
 * Always include at least **2-5 shared genes** in 'genes' if possible.
+* **NEVER** include genes that are not part of a term / association.
 * Return only the raw JSON array as plain text — no explanations, markdown, or code block syntax.`,
         };
     },
@@ -847,7 +865,7 @@ Return a structured **JSON object** following this schema:
         this.llmExtract = createLLMClient({
             llm: "openai",
             model: "gpt-5-nano",
-            system_prompt: this.extractSystemPropmpt
+            system_prompt: this.extractSystemPropmpt2
         });
 
         this.llmAnalyze = createLLMClient({
@@ -881,9 +899,24 @@ Return a structured **JSON object** following this schema:
     },
 
     watch: {
-        filtered_programs: 'updateSelectedRows',
+        /*filtered_programs: 'updateSelectedRows',
         filtered_phenotypes: 'updateSelectedRows',
-        filtered_association_strengths: 'updateSelectedRows',
+        filtered_association_strengths: 'updateSelectedRows',*/
+        filtered_phenotypes(newVal, oldVal) {
+            if (this.suppressFilterWatch) return;
+            const diff = this.diffArray(newVal, oldVal);
+            if (diff) this.updateSelectedRows('phenotype', diff);
+        },
+        filtered_programs(newVal, oldVal) {
+            if (this.suppressFilterWatch) return;
+            const diff = this.diffArray(newVal, oldVal);
+            if (diff) this.updateSelectedRows('source', diff);
+        },
+        filtered_association_strengths(newVal, oldVal) {
+            if (this.suppressFilterWatch) return;
+            const diff = this.diffArray(newVal, oldVal);
+            if (diff) this.updateSelectedRows('strength', diff);
+        }
     },
 
     methods: {
@@ -1029,7 +1062,7 @@ Return a structured **JSON object** following this schema:
 
         async phenotypeSearch(term){
             //semantic search for phenotypes
-            const url = `https://api.kpndataregistry.org:8000/api/search/phenotypes?q=${encodeURIComponent(term)}&similarity_threshold=-0.1`
+            const url = `https://api.kpndataregistry.org:5002/api/search/phenotypes?q=${encodeURIComponent(term)}&similarity_threshold=-0.1`
             const response =  await fetch(url);
 
             if (!response.ok) {
@@ -1039,23 +1072,28 @@ Return a structured **JSON object** following this schema:
 
             const res = await response.json();
             const data = res.data;
+            data.sort((a, b) => b.score - a.score);
+            console.log('raw phenotype search results', data);
 
-            if(data.length > 10){
+            const trimmedData = structuredClone(data);
+
+            //return;
+
+            if(trimmedData.length > 10){
                 console.log('more than 10 phenotypes returned, sorting by score and trimming to 10 max');
-                data.sort((a, b) => b.score - a.score);
-                data.splice(10);
+                trimmedData.splice(10);
             }
 
-            this.semanticPhenotypes = data;
+            console.log('trimmed phenotype search results', trimmedData);
 
-            console.log('raw phenotype search results', data);
+            this.semanticPhenotypes = trimmedData;
 
             const associations = [];
 
             //get the associations for those phenotypes
-            console.log(`getting associations for ${data.length} phenotypes`);
-            await Promise.all(
-                data.map(async item => {
+            console.log(`getting associations for ${trimmedData.length} phenotypes`);
+            await Promise.allSettled(
+                trimmedData.map(async item => {
                     const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=${item.id},cfde&limit=100`
                     const response =  await fetch(url);
 
@@ -1065,9 +1103,11 @@ Return a structured **JSON object** following this schema:
                     }
 
                     const res = await response.json();
-                    const data = res.data;
+                    //const data = res.data;
+                    const sortedData = res.data.sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
+                    const data = sortedData.map(d => ({ ...d, score: item.score, description: item.description }));
 
-                    associations.push(...data);
+                    associations.push(...data, item.score);
                 })
             )
 
@@ -1115,7 +1155,7 @@ Return a structured **JSON object** following this schema:
             this.updateStep(2, 'start');
             this.display_search_criteria = false;
             this.searchTerm = term;
-
+            console.log('searchType', this.searchType);
             if(this.searchType==="terms"){
                 const termAssociations = await this.termSearch(term);
                 console.log('associations by term', termAssociations);
@@ -1128,18 +1168,27 @@ Return a structured **JSON object** following this schema:
                 console.log('associations by phenotype', phenotypeAssociations);
                 if(!phenotypeAssociations || phenotypeAssociations.length===0) return;
                 const phenotypeAssociationsTransformed = this.transformPhenotypeAssociations(phenotypeAssociations);
-                console.log('associations by phenotype transformed', phenotypeAssociationsTransformed);
-                this.associations = phenotypeAssociationsTransformed;
+                const phenotypeAssociationsSorted = [...phenotypeAssociationsTransformed].sort((a, b) => {
+                    //console.log('score', typeof a.score);
+                    return (b.score ?? 0) - (a.score ?? 0)
+                });
+                console.log('associations by phenotype transformed', phenotypeAssociationsSorted);
+                this.associations = phenotypeAssociationsSorted;
             }
             //await this.wait(3000);
 
-            console.log('transformed search results', this.associations);
+            //console.log('transformed search results', this.associations);
 
             //initial filtering for analysis
 
             const allPhenotypeGroup = this.groupBy(this.associations, 'phenotype');
             const allSenesetGroup = this.groupBy(this.associations, 'gene_set');
-            const allSourceGroup = this.groupBy(this.associations, 'source');
+            let allSourceGroup = null;
+            if(this.searchType==="terms"){
+                allSourceGroup = this.groupBy(this.associations, 'source');
+            }else{
+                allSourceGroup = this.groupBy(this.associations, 'gene_set_program');
+            }
 
             this.total_phenotypes = Object.keys(allPhenotypeGroup).length;
             this.total_signatures = Object.keys(allSenesetGroup).length;
@@ -1152,6 +1201,7 @@ Return a structured **JSON object** following this schema:
 
             //this.total_programs = [...new Set(this.programs_list.flatMap(s => s.split('_x_')))].length;
             const programs_list_set = [...new Set(this.programs_list.flatMap(s => s.split(';')))];
+            
             this.total_programs = programs_list_set.length;
 
             console.log({programs_list_set});
@@ -1245,6 +1295,8 @@ Return a structured **JSON object** following this schema:
 
             this.relevantAssociations = relevantAssociations;
 
+            this.updateSelectedFilters();
+
             this.updateStep(2, 'end');
 
             //return;
@@ -1256,11 +1308,57 @@ Return a structured **JSON object** following this schema:
             }
         },
 
-        updateSelectedRows() {
+        diffArray(newVal, oldVal) {
+            const added   = newVal.filter(v => !oldVal.includes(v));
+            const removed = oldVal.filter(v => !newVal.includes(v));
+
+            if (added.length)   return { type: 'add', values: added };
+            if (removed.length) return { type: 'remove', values: removed };
+
+            return null;
+        },
+
+        updateSelectedFilters(doSuppressWatch=false){
+            //suppress watchers to prevent infinite loop
+            if(doSuppressWatch) this.suppressFilterWatch = true;
+
+            const strengthRanges = {
+                0: [1, Infinity],   // strong
+                1: [0.1, 1],        // moderate
+                2: [0, 0.1]         // low
+            };
+            const selectedAssociations = this.associations.filter(d => d.selected);
+            const selectedPhenotypes = [...new Set(selectedAssociations.map(d => d.phenotype))];
+            let selectedSources;
+            if(this.searchType==='terms'){
+                selectedSources = [...new Set(selectedAssociations.map(d => d.source))];
+            }else{
+                selectedSources = [...new Set(selectedAssociations.map(d => d.gene_set_program))];
+            }
+            const selectedStrengths = [...new Set(selectedAssociations.map(d => {
+                        const val = parseFloat(d.beta_uncorrected);
+
+                        // Find which range it falls into
+                        for (const [strength, [min, max]] of Object.entries(strengthRanges)) {
+                            if (val >= min && val < max) {
+                                return Number(strength);   // ensure numeric key
+                            }
+                        }
+                        return null; // fallback if no range matches
+                    }).filter(s => s !== null)
+                )
+            ];
+            this.filtered_programs = selectedSources;
+            this.filtered_phenotypes = selectedPhenotypes;
+            this.filtered_association_strengths = selectedStrengths;
+            
+            this.$nextTick(() => {
+                this.suppressFilterWatch = false;
+            });
+        },
+        updateSelectedRows(filterType=null, diff=null) {
             if(!this.associations) return;
             if(!this.edit_associations) return;
-
-            console.log('updated')
 
             const sources = this.filtered_programs;
             const phenotypes = this.filtered_phenotypes;
@@ -1271,21 +1369,61 @@ Return a structured **JSON object** following this schema:
                 2: [0, 0.1]         // low
             };
 
-            this.associations.forEach(row => {
-                const beta = parseFloat(row.beta_uncorrected);
-
-                const sourceMatch = sources.length > 0 && sources.includes(row.source);
-                const phenoMatch  = phenotypes.length > 0 && phenotypes.includes(row.phenotype);
-                const strengthMatch =
-                strengths.length > 0 &&
-                strengths.some(opt => {
-                    const [min, max] = strengthRanges[opt];
-                    return beta >= min && beta <= max;
+            if(!filterType && !diff){
+                this.associations.forEach(row => {
+                    const beta = parseFloat(row.beta_uncorrected);
+                    let rowSource = row.source;
+                    if(this.searchType!=='terms'){
+                        rowSource = row.gene_set_program;
+                    }
+                    const sourceMatch = sources.length > 0 && sources.includes(rowSource);
+                    const phenoMatch  = phenotypes.length > 0 && phenotypes.includes(row.phenotype);
+                    const strengthMatch =
+                    strengths.length > 0 &&
+                    strengths.some(opt => {
+                        const [min, max] = strengthRanges[opt];
+                        return beta >= min && beta <= max;
+                    });
+    
+                    row.selected = sourceMatch && phenoMatch && strengthMatch;
+                    //row.selected = phenoMatch;
                 });
+            }
 
-                row.selected = sourceMatch && phenoMatch && strengthMatch;
+            if(!diff) return;
+
+            const { type, values } = diff;
+
+            this.associations.forEach(row => {
+
+                if (filterType === 'phenotype') {
+                    if (type === 'add' && values.includes(row.phenotype)) row.selected = true;
+                    if (type === 'remove' && values.includes(row.phenotype)) row.selected = false;
+                }
+
+                if (filterType === 'source') {
+                    let rowSource = row.source
+                    if(this.searchType!=='terms'){
+                        rowSource = row.gene_set_program;
+                    }
+                    if (type === 'add' && values.includes(rowSource)) row.selected = true;
+                    if (type === 'remove' && values.includes(rowSource)) row.selected = false;
+                }
+
+                if (filterType === 'strength') {
+                    const beta = parseFloat(row.beta_uncorrected);
+                    const rowStrength = Object.entries(strengthRanges).find(([key, [min, max]]) => {
+                        return beta >= min && beta < max;
+                    })?.[0];
+
+                    if (type === 'add' && values.includes(Number(rowStrength))) row.selected = true;
+                    if (type === 'remove' && values.includes(Number(rowStrength))) row.selected = false;
+                }
             });
+
+            this.updateSelectedFilters(true);
         },
+
         selectAll(group=null){
             if(group==='sources' || !group) this.filtered_programs = this.programs_list;
             if(group==='phenotypes' || !group) this.filtered_phenotypes = this.phenotypes_list;
@@ -1297,9 +1435,6 @@ Return a structured **JSON object** following this schema:
             if(group==='phenotypes' || !group) this.filtered_phenotypes = [];
             if(group==='strengths' || !group) this.filtered_association_strengths = [];
             this.updateSelectedRows();
-        },
-        customSelect(){
-
         },
 
         associationsFilter(row, filters) {
@@ -1383,9 +1518,13 @@ Return a structured **JSON object** following this schema:
             console.log({relevantAssociations});
 
             const relevantAssociationsSimplified = relevantAssociations.map(item => {
+                let source = item.source;
+                if(this.searchType!=="terms"){
+                    source = item.gene_set_program;
+                }
                 return { 
                     id: item.id,
-                    source: item.source,
+                    source: source,
                     phenotype: item.phenotype,
                     signature: item.gene_set_label,
                     genes: item.genes.join(";")
@@ -1473,21 +1612,25 @@ Return a structured **JSON object** following this schema:
 
         transformPhenotypeAssociations(arr) {
             let count = 0;
-            return arr.map(item => {
-                const match = this.semanticPhenotypes.find(phenotype => phenotype.id===item.phenotype)
+            const objectOnlyArr = arr.filter(item => typeof item === 'object' && item !== null);
+            console.log(`objects only ${objectOnlyArr.length} of ${arr.length}`);
+            return objectOnlyArr.map(item => {
+                //const match = this.semanticPhenotypes.find(phenotype => phenotype.id===item.phenotype)
                 count++;
                 return {
                     ...item,
                     //id to match to later
                     id: `term_${count}`,
-                    //association term
-                    term: `${item.gene_set} associated with ${match.description}`,
                     //used for selection for analysis
                     selected: false,
                     // 1. rename phenotype → phenotype_id
                     phenotype_id: item.phenotype,
                     // 2. add phenotype (extracted text)
-                    phenotype: match.description
+                    phenotype: item.description,
+
+                    gene_set: item.gene_set,
+                    gene_set_label: item.gene_set_description,
+                    source_label: item.gene_set_program
                 };
             });
         },
@@ -1910,11 +2053,13 @@ Return a structured **JSON object** following this schema:
             if(response){
                 const json = this.parseLLMResponse(response);
                 console.log('response json', json);
+                //return;
                 if(json.error){
                     this.updateStep(this.search_step, 'error', json.error);
                     this.allow_retry = false;
                     return;
                 }
+                this.searchType = json.search_type==="mechanisms"?'terms':'phenotypes';
                 this.searchCriteria = [
                     {
                         search_criteria: 'Search Terms',
@@ -1927,7 +2072,7 @@ Return a structured **JSON object** following this schema:
                         values: json.research_context,
                         why: 'We inferred this from on your search query.',
                         purpose: 'This context will be used to tailor mechanistic hypotheses to your research.'
-                    },
+                    }
                     /*{
                         search_criteria: 'relevant cfde programs',
                         values: json.cfde_programs.map(p => p.program),
@@ -2021,8 +2166,15 @@ Return a structured **JSON object** following this schema:
                     const updated = json.hypotheses.map(item => {
                         const associations = this.associations.filter(a => item.ids.includes(a.id));
                         const allPrograms = associations.flatMap(a => {
-                            if(this.searchApi==="new") return a.source.split(';')
-                            return a.source.split('_x_')
+                            if(this.searchType==="terms"){
+                                if(this.searchApi==="new") {
+                                    return a.source.split(';');
+                                }
+                                return a.source.split('_x_');
+                            }else{
+                                return a.gene_set_program.split(';');
+                            }
+                            
                         });
                         const programs = [...new Set(allPrograms)];
                         return {
