@@ -25,7 +25,20 @@
                                 <label for="npassword">New Password: </label>
                                 <input type="password" id="npassword" v-model="$parent.input.npassword" />
                                 </div>
-                                <button class="btn btn-outline-dark" type="submit" v-on:click.prevent = "$parent.ChangePass($parent.input.username, $parent.input.password, $parent.input.npassword)">
+                                <div class="mb-3">
+                                <label for="npassword2">Confirm New Password: </label>
+                                <input type="password" id="npassword2" v-model="$parent.input.npassword2" />
+                                </div>
+                                <div class="mb-3">
+                                    <p style="color:red">{{ $parent.input.errormessage }}</p>
+                                </div>
+                                <button class="btn btn-outline-dark" type="submit" v-on:click.prevent = "
+                                    if( $parent.input.npassword == $parent.input.npassword2){
+                                        $parent.ChangePass($parent.input.username, $parent.input.password, $parent.input.npassword, $parent.input.npassword2);
+                                    } else {
+                                        $parent.input.errormessage = '* Please confirm the new password.';
+                                    }
+                                    ">
                                     Change Password
                                 </button>
                                 &nbsp;&nbsp;<a href="login.html">Back to Login</a>
