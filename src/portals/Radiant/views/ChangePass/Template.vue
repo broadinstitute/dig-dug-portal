@@ -34,7 +34,7 @@
                                 </div>
                                 <button class="btn btn-outline-dark" type="submit" v-on:click.prevent = "
                                     if( $parent.input.npassword == $parent.input.npassword2){
-                                        $parent.ChangePass($parent.input.username, $parent.input.password, $parent.input.npassword, $parent.input.npassword2);
+                                        $parent.ChangePass($parent.input.username, $parent.input.password, $parent.input.npassword);
                                     } else {
                                         $parent.input.errormessage = '* Please confirm the new password.';
                                     }
