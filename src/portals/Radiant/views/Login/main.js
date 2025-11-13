@@ -35,7 +35,8 @@ new Vue({
         return{
             input:{
                 username: "",
-                password: ""
+                password: "",
+                errormessage:""
             }
         }
       },
