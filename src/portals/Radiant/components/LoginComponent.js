@@ -22,28 +22,12 @@ export const SignIn = async function(user, pass) {
   })
   .catch(error => {
     console.error('Failed to post data:', error);
+    this.input.errormessage = "* Incorrect username or password, please try again.";
   });
 };
 
 export const ChangePass = async function(user, pass, npass) { 
-  /*const myData = {
-    username: user,
-    password: pass,
-    group: "radiant"
-  };
-  postData('https://users.kpndataregistry.org/api/users/', myData)
-  .then(data => {
-    //console.log('Success:', data);
-    console.log("success:", data.access);
-    //Vue.prototype.$access = data.access;
-    localStorage.setItem('authToken', data.access);
-    //console.log("forward", Vue.prototype.$access);
-    location.href = 'index.html';
-    
-  })
-  .catch(error => {
-    console.error('Failed to post data:', error);
-  });*/
+  
   const access = localStorage.getItem('authToken');
   console.log("authToken:"+access);
   const url = "https://users.kpndataregistry.org/api/auth/verify/?group=radiant";
@@ -87,7 +71,9 @@ export const ChangePass = async function(user, pass, npass) {
         });
 
         if (!response1.ok) { // Check if the response was successful
+          this.input.errormessage = "* Error change password, please try again.";
           throw new Error(`HTTP error! status: ${response1.status}`);
+
         }
 
         location.href = "login.html";
