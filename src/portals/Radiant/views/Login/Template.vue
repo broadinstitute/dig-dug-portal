@@ -21,6 +21,9 @@
                                 <label for="password">Password: </label>
                                 <input type="password" id="password" v-model="$parent.input.password" />
                                 </div>
+                                <div class="mb-3">
+                                    <p style="color:red">{{ $parent.input.errormessage }}</p>
+                                </div>
                                 <button class="btn btn-outline-dark" type="submit" v-on:click.prevent = "$parent.SignIn($parent.input.username, $parent.input.password)">
                                     Login
                                 </button>
