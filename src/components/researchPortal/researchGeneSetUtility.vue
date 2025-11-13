@@ -1,7 +1,7 @@
 <template>
 	<div class="research-gene-set-utility">
 		<!-- Action Buttons -->
-		<div class="utility-actions" style="display: flex; gap: 10px; margin-bottom: 15px;">
+		<div v-if="!hideButtons" class="utility-actions" style="display: flex; gap: 10px; margin-bottom: 15px;">
 			<div class="button-with-tooltip">
 				<button 
 					@click="openScoreDialog"
@@ -845,6 +845,12 @@ export default {
 			type: Number,
 			required: false,
 			default: 10
+		},
+		// Optional: Hide action buttons (dialogs still accessible programmatically)
+		hideButtons: {
+			type: Boolean,
+			required: false,
+			default: false
 		}
 	},
 	data() {

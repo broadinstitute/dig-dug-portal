@@ -136,6 +136,8 @@
 				</div>
 				
 				<!-- Gene Set Utility Component -->
+				<!-- Buttons hidden to encourage users to use explore option cards first -->
+				<!-- Dialogs still accessible programmatically via ref -->
 				<div v-if="manualGenes.trim() && hasHypothesis" class="gene-utility-section" style="margin-top: 20px;">
 					<research-gene-set-utility
 						ref="geneSetUtility"
@@ -145,6 +147,7 @@
 						:selectedGenes="selectedGenes"
 						:llmConfig="llmConfig"
 						:noveltyScoreBatchSize="noveltyScoreBatchSize"
+						:hideButtons="true"
 						@update:selectedGenes="handleGenesSelected"
 					/>
 				</div>
@@ -154,7 +157,7 @@
 				 <div class="gene-sets-input">
 					<div class="section-header">
 						<h4>
-							Hypothesis (Optional)
+							Hypothesis (Optional - Required for Gene Prioritization)
 							<button 
 								v-if="showGenerateHypothesisButton"
 								@click="openPhenotypeSelection"
@@ -280,11 +283,35 @@
 						<small class="format-suggestion">Choose how you'd like to analyze the genes in your list. Enter genes above to enable the options below{{ hasHypothesis ? '' : ' (hypothesis scoring not available without hypothesis parameter)' }}:</small>
 					</div>
 					
+					<!-- Category Filter Dropdown -->
+					<div class="card-category-filter" style="margin-bottom: 20px;">
+						<label for="card-category-select" style="margin-right: 10px; font-weight: 500; color: #333;">Filter by category:</label>
+						<select 
+							id="card-category-select"
+							v-model="selectedCardCategory"
+							class="form-control"
+							style="display: inline-block; width: auto; min-width: 200px; padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;"
+						>
+							<option value="all">All</option>
+							<option value="Gene Prioritization">Gene Prioritization</option>
+							<option value="Expression Analysis">Expression Analysis</option>
+							<option value="Discovery & Enrichment">Discovery & Enrichment</option>
+						</select>
+					</div>
+					
 					<div class="gene-options-grid">
-						<div v-for="card in visibleExplorationCards" :key="card['card label']" class="gene-option-card">
+						<div 
+							v-for="card in visibleExplorationCards" 
+							:key="card['card label']" 
+							class="gene-option-card"
+							:class="{ 'ai-analysis-card': card.category === 'Gene Prioritization' }"
+						>
 							<div class="option-header">
 								<h5>{{ card['card label'] }}</h5>
-								<span class="option-badge">{{ card.badge }}</span>
+								<span 
+									class="option-badge"
+									:class="{ 'ai-badge': card.category === 'Gene Prioritization' }"
+								>{{ card.badge }}</span>
 							</div>
 							<div class="option-description">
 								<p>{{ card['card description'] }}</p>
@@ -345,13 +372,9 @@
 								<span v-else class="missing-icon">○</span>
 							</div>
 							<div class="requirement-content">
-								<h4>Hypothesis (Optional) <span v-if="urlHasHypothesis" class="status-found">✓ Found in URL</span></h4>
+								<h4>Hypothesis (Optional - Required for Gene Prioritization) <span v-if="urlHasHypothesis" class="status-found">✓ Found in URL</span></h4>
 								<p v-if="urlHasHypothesis">Perfect! We found your hypothesis in the URL parameters.</p>
-								<p v-else>To generate AI-powered Hypothesis Alignment & Research Gap Scores, you need:</p>
-								<ul v-if="!urlHasHypothesis">
-									<li>A research hypothesis in the "Hypothesis" field above</li>
-									<li>This enables AI analysis of gene relevance to your specific research question</li>
-								</ul>
+								<p v-else style="margin: 0;">💡 <strong>Tip:</strong> Add a research hypothesis to use Gene Prioritization features (AI-powered scoring and ranking).</p>
 								<div v-if="(urlHasGenes || manualGenes.trim()) && !urlHasHypothesis" style="margin-top: 12px;">
 									<button 
 										@click="closeWelcomePopup(); openPhenotypeSelection()"
@@ -371,11 +394,11 @@
 							</div>
 							<div class="requirement-content">
 								<h4>Exploration Options</h4>
-								<p>Once you have genes, you can:</p>
+								<p>Once you have genes, you can explore them in three ways:</p>
 								<ul>
-									<li><strong>Score Genes:</strong> AI analysis of gene relevance and novelty (requires hypothesis)</li>
-									<li><strong>GTEx Analysis:</strong> Explore gene expression across human tissues</li>
-									<li><strong>Playbook Workflow:</strong> Comprehensive gene set enrichment analysis</li>
+									<li><strong>Gene Prioritization:</strong> AI-powered scoring and ranking to narrow down your gene list (requires hypothesis)</li>
+									<li><strong>Expression Analysis:</strong> Explore where and when genes are active across tissues and conditions</li>
+									<li><strong>Discovery & Enrichment:</strong> Find connections and patterns across multiple CFDE databases</li>
 								</ul>
 							</div>
 						</div>
@@ -1261,43 +1284,44 @@ export default {
             // Exploration cards configuration
             explorationCards: [
                 {
-                    "card label": "Gene Relevance & Novelty Scoring",
-                    "card description": "Evaluate all genes in your list by generating AI-powered relevance and novelty scores based on your hypothesis and research context. The system identifies relevant tissues from your hypothesis, links each gene's function to the hypothesis mechanism, and assesses research standing to help prioritize genes for your study.",
+                    "card label": "Mechanistic Assessment & Novelty",
+                    "card description": "Quantitatively assess mechanistic relevance and experimental novelty of genes relative to your hypothesis. Evaluates tissue-specific gene function, mechanistic linkage to hypothesis pathways, and research standing to prioritize candidates.",
                     "details": [
-                        "Relevance Score (1-10): Links gene function to hypothesis and identifies relevant tissues",
-                        "Novelty Score (1-10): Classifies gene role and evaluates research standing",
-                        "Research context integration: Considers your research goals (e.g., drug targets, mechanistic understanding)",
-                        "Molecular rationale: AI-generated justification (max 40 words) for both scores",
-                        "Batch processing: Scores generated automatically as you navigate through pages"
+                        "Relevance (1-10): Mechanistic linkage to hypothesis with tissue-specific function",
+                        "Novelty (1-10): Experimental novelty based on research standing and context",
+                        "Tissue identification: Extracts relevant tissues from hypothesis",
+                        "Molecular rationale: Mechanistic justification for scores",
+                        "Batch processing: Automatic scoring as you navigate"
                     ],
-                    "open label": "Score Genes",
+                    "open label": "Run Gene Scoring",
                     "link": null,
                     "link tip": "Requires hypothesis input",
                     "required parameters": ["genes", "hypothesis"],
                     "handler": "generateHypothesisAlignment",
                     "badge": "AI Analysis",
                     "linkType": "action", // Not a link, triggers an action
-                    "condition": "hypothesis"
+                    "condition": "hypothesis",
+                    "category": "Gene Prioritization"
                 },
                 {
-                    "card label": "Candidate Gene Selection & Ranking",
-                    "card description": "Select and rank candidate genes from your list that meet three criteria: relevance to hypothesis mechanism, alignment with research context goals, and high experimental novelty (tissue-specific, mechanistic, or contextual). The system trims to core functional groups, evaluates each gene, and provides classification and hypothesis validation potential before opening the Design Tool.",
+                    "card label": "Prioritize & Rank Validation Targets",
+                    "card description": "Filter and rank genes by mechanistic relevance, research context alignment, and experimental novelty. Applies functional group filtering, excludes well-characterized core components, and ranks by combined relevance-novelty scores for hypothesis validation.",
                     "details": [
-                        "Gene filtering: Trims to core functional groups, excludes well-studied components",
-                        "Novelty evaluation: Tissue-specific, mechanistic, or contextual (based on research context)",
-                        "Selection criteria: Relevant + meets research context + high experimental novelty",
-                        "Gene classification: Core components, signaling kinases, regulatory factors, etc.",
-                        "IDG data integration: Target Development Level (TDL) and novelty scores",
-                        "Opens Design Tool with selected candidate genes to generate experiment protocols"
+                        "Pre-filtering: Functional group selection, excludes well-studied core components",
+                        "Novelty assessment: Tissue-specific, mechanistic, or contextual novelty",
+                        "Ranking criteria: Combined relevance and novelty scores",
+                        "Functional classification: Gene role classification (core components, kinases, regulators)",
+                        "IDG integration: Target Development Level and druggability data"
                     ],
-                    "open label": "Select Candidate Genes",
+                    "open label": "Generate Target List",
                     "link": "/r/cfde_design",
                     "link tip": "Requires genes and hypothesis • Opens in new tab",
                     "required parameters": ["genes", "hypothesis"],
                     "handler": "openDesignTool",
                     "badge": "AI Analysis",
                     "linkType": "query", // Uses query parameters for genes and hypothesis
-                    "condition": "hypothesis"
+                    "condition": "hypothesis",
+                    "category": "Gene Prioritization"
                 },
                 {
                     "card label": "GTEx Tissue Expression Analysis",
@@ -1316,7 +1340,8 @@ export default {
                     "badge": "Expression Data",
                     "linkType": "path", // genes appended to path, not query param
                     "maxGenes": 50,
-                    "condition": null
+                    "condition": null,
+                    "category": "Expression Analysis"
                 },
                 {
                     "card label": "MoTrPAC Exercise Response Analysis",
@@ -1336,7 +1361,8 @@ export default {
                     "handler": "openMoTrPACNotebook",
                     "badge": "Jupyter Notebook",
                     "linkType": "query",
-                    "condition": "motrpac"
+                    "condition": "motrpac",
+                    "category": "Expression Analysis"
                 },
                 {
                     "card label": "Explore genes in Playbook Workflow Builder",
@@ -1357,7 +1383,8 @@ export default {
                     "handler": "enrichGenes",
                     "badge": "Workflow Analysis",
                     "linkType": "special", // Uses async drcUtils method
-                    "condition": null
+                    "condition": null,
+                    "category": "Discovery & Enrichment"
                 },
                 {
                     "card label": "BYOGL: Link your own gene set to CFDE programs and human traits",
@@ -1374,9 +1401,13 @@ export default {
                     "handler": "openBYOGL",
                     "badge": "Gene set Analysis",
                     "linkType": "query",
-                    "condition": null
+                    "condition": null,
+                    "category": "Discovery & Enrichment"
                 }
             ],
+            
+            // Card category filter
+            selectedCardCategory: 'all',
                
             // UI state
             phenotypeSearch: '',
@@ -1658,12 +1689,19 @@ export default {
 			return this.explorationCards.filter(card => {
 				// Check condition-based visibility
 				if (card.condition === 'motrpac') {
-					return this.sectionConfigs && this.sectionConfigs.links && this.sectionConfigs.links.motrpac;
+					const motrpacVisible = this.sectionConfigs && this.sectionConfigs.links && this.sectionConfigs.links.motrpac;
+					if (!motrpacVisible) return false;
 				}
 				if (card.condition === 'hypothesis') {
-					return this.hasHypothesis;
+					if (!this.hasHypothesis) return false;
 				}
-				return true; // No condition, always show
+				
+				// Check category filter
+				if (this.selectedCardCategory !== 'all') {
+					if (card.category !== this.selectedCardCategory) return false;
+				}
+				
+				return true;
 			});
 		},
 		gene_novelty_prompt() {
@@ -5768,6 +5806,13 @@ small.input-warning {
 
 .gene-option-card:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* AI Analysis badge - Orange color for Gene Prioritization category */
+.ai-analysis-card .ai-badge,
+.ai-badge {
+    background: #ff964f !important;
+    color: #ffffff;
 }
 
 .option-header {

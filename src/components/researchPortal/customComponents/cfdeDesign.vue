@@ -313,6 +313,7 @@
                                 llm: sectionConfigs.llm || 'gemini',
                                 model: sectionConfigs.llm === 'openai' ? 'gpt-5-mini' : 'gemini-2.5-flash'
                             }"
+                            :hide-buttons="false"
                             @update:selectedGenes="handleGenesSelected"
                             @grouped-genes="handleGroupedGenes"
                         />
