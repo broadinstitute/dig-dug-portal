@@ -229,10 +229,10 @@
 													Loading...
 												</span>
 												<span v-else-if="row.scoredGene.relevance_score !== undefined && row.scoredGene.relevance_score !== null && row.scoredGene.relevance_score !== 'N/A'" 
-													:class="{ 'high-score': typeof row.scoredGene.relevance_score === 'number' && row.scoredGene.relevance_score >= 7 }"
+													:class="{ 'high-score': (typeof row.scoredGene.relevance_score === 'number' ? row.scoredGene.relevance_score : parseFloat(row.scoredGene.relevance_score)) >= 7 }"
 													style="font-weight: 600;"
 												>
-													{{ row.scoredGene.relevance_score }}{{ typeof row.scoredGene.relevance_score === 'number' ? '/10' : '' }}
+													{{ row.scoredGene.relevance_score }}{{ (typeof row.scoredGene.relevance_score === 'number' || (typeof row.scoredGene.relevance_score === 'string' && !isNaN(parseFloat(row.scoredGene.relevance_score)))) ? '/10' : '' }}
 												</span>
 												<span v-else>N/A</span>
 											</td>
@@ -241,10 +241,10 @@
 													Loading...
 												</span>
 												<span v-else-if="row.scoredGene.novelty_score !== undefined && row.scoredGene.novelty_score !== null && row.scoredGene.novelty_score !== 'N/A'"
-													:class="{ 'high-score': typeof row.scoredGene.novelty_score === 'number' && row.scoredGene.novelty_score >= 7 }"
+													:class="{ 'high-score': (typeof row.scoredGene.novelty_score === 'number' ? row.scoredGene.novelty_score : parseFloat(row.scoredGene.novelty_score)) >= 7 }"
 													style="font-weight: 600;"
 												>
-													{{ row.scoredGene.novelty_score }}{{ typeof row.scoredGene.novelty_score === 'number' ? '/10' : '' }}
+													{{ row.scoredGene.novelty_score }}{{ (typeof row.scoredGene.novelty_score === 'number' || (typeof row.scoredGene.novelty_score === 'string' && !isNaN(parseFloat(row.scoredGene.novelty_score)))) ? '/10' : '' }}
 												</span>
 												<span v-else>N/A</span>
 											</td>
@@ -540,19 +540,19 @@
 											<td style="color: #666;">{{ row.candidate.classification || 'N/A' }}</td>
 											<td style="text-align: center; color: #666;">
 												<span v-if="row.candidate.relevance_score !== undefined && row.candidate.relevance_score !== null && row.candidate.relevance_score !== 'N/A'" 
-													:class="{ 'high-score': typeof row.candidate.relevance_score === 'number' && row.candidate.relevance_score >= 7 }"
+													:class="{ 'high-score': (typeof row.candidate.relevance_score === 'number' ? row.candidate.relevance_score : parseFloat(row.candidate.relevance_score)) >= 7 }"
 													style="font-weight: 600;"
 												>
-													{{ row.candidate.relevance_score }}{{ typeof row.candidate.relevance_score === 'number' ? '/10' : '' }}
+													{{ row.candidate.relevance_score }}{{ (typeof row.candidate.relevance_score === 'number' || (typeof row.candidate.relevance_score === 'string' && !isNaN(parseFloat(row.candidate.relevance_score)))) ? '/10' : '' }}
 												</span>
 												<span v-else>N/A</span>
 											</td>
 											<td style="text-align: center; color: #666;">
 												<span v-if="row.candidate.novelty_score !== undefined && row.candidate.novelty_score !== null && row.candidate.novelty_score !== 'N/A'"
-													:class="{ 'high-score': typeof row.candidate.novelty_score === 'number' && row.candidate.novelty_score >= 7 }"
+													:class="{ 'high-score': (typeof row.candidate.novelty_score === 'number' ? row.candidate.novelty_score : parseFloat(row.candidate.novelty_score)) >= 7 }"
 													style="font-weight: 600;"
 												>
-													{{ row.candidate.novelty_score }}{{ typeof row.candidate.novelty_score === 'number' ? '/10' : '' }}
+													{{ row.candidate.novelty_score }}{{ (typeof row.candidate.novelty_score === 'number' || (typeof row.candidate.novelty_score === 'string' && !isNaN(parseFloat(row.candidate.novelty_score)))) ? '/10' : '' }}
 												</span>
 												<span v-else>N/A</span>
 											</td>
@@ -1146,19 +1146,11 @@ F) Output Guardrails
 — Include "novelty_basis": one of ["Tissue-Specific", "Mechanistic", "Contextual"] for transparency.
 `;
 		},
-		gene_novelty_prompt() {
+		gene_novelty_system_prompt() {
 			const canon = this.scoring_canon();
 			return String.raw`You are an expert computational biologist. Score each gene for relevance and novelty using the **same rubric** as all other runs.
 
 ${canon}
-
-[MODE]: Batch scoring (no trimming). Score **up to ${this.noveltyScoreBatchSize} genes** from the provided list.
-
-**Hypothesis:** [INSERT YOUR HYPOTHESIS HERE]
-
-**Research Context (Optional):** [INSERT RESEARCH CONTEXT HERE]
-
-**Genes:** [INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX ${this.noveltyScoreBatchSize})]
 
 **Task & JSON Model:** Respond ONLY with a valid JSON array. For each gene, provide scores per the **Calibration v1.1**, a functional classification, and concise justifications.
 
@@ -1184,19 +1176,20 @@ ${canon}
 
 4) Output JSON array only; no prose. If a gene cannot be scored, use "N/A" for the specific score, with a brief rationale in "reason".`;
 		},
-		gene_filtering_prompt() {
+		gene_novelty_user_prompt(hypothesis, researchContext, genes) {
+			return String.raw`[MODE]: Batch scoring (no trimming). Score **up to ${this.noveltyScoreBatchSize} genes** from the provided list.
+
+**Hypothesis:** ${hypothesis}
+
+**Research Context (Optional):** ${researchContext}
+
+**Genes:** ${genes}`;
+		},
+		gene_filtering_system_prompt() {
 			const canon = this.scoring_canon();
 			return String.raw`You are an expert computational biologist. Filter genes using the **same standards** as scoring and ranking, applying Calibration v1.1 criteria.
 
 ${canon}
-
-[MODE]: Pre-filtering before ranking. Apply the same relevance and novelty standards, but return only gene symbols (no scores).
-
-**Hypothesis:** [Insert Specific Hypothesis Here.]
-
-**Gene List:** [Insert comma-separated Gene List Here.]
-
-**Research Context:** [Insert Specific Research Context Here.]
 
 **Filtering Criteria (must apply Calibration v1.1 standards):**
 
@@ -1215,28 +1208,30 @@ From the provided gene list, select **all** genes that simultaneously satisfy:
 - Exclude genes with only generic pathway overlap and unclear tissue links
 - Exclude well-studied core components that don't meet Contextual Novelty
 
-**Output format:** The output must not include any introductory text, explanation, or conversational filler outside of the final JSON array. The output must be a well-formed JSON array containing only gene symbols from the provided Gene List.
+**Output format:** The output must not include any introductory text, explanation, or conversational filler outside of the final JSON object. The output must be a well-formed JSON object containing only gene symbols from the provided Gene List and reason for filtering out the genes with couple examples.
 
-Example output format:
+**Output format:**
 {
 	"filteredGenes": ["GENE1", "GENE2", "GENE3", ...],
     "reason": "reason for filtering out the genes with couple examples."
 }
-			`;
+
+Output JSON only. No text outside JSON. No trailing commas. No comments.`;
 		},
-		gene_ranking_prompt() {
+		gene_filtering_user_prompt(hypothesis, researchContext, genes) {
+			return String.raw`[MODE]: Pre-filtering before ranking. Apply the same relevance and novelty standards, but return only gene symbols (no scores).
+
+**Hypothesis:** ${hypothesis}
+
+**Gene List:** ${genes}
+
+**Research Context:** ${researchContext}`;
+		},
+		gene_ranking_system_prompt() {
 			const canon = this.scoring_canon();
 			return String.raw`You are an expert computational biologist. Score and rank all genes in the provided list using the **same rubric** as all other runs.
 
 ${canon}
-
-[MODE]: Ranking and scoring. The gene list has already been filtered for relevance. Score and rank **all** genes provided.
-
-**Hypothesis:** [Insert Specific Hypothesis Here]
-
-**Gene List:** [Insert comma-separated Gene List Here]
-
-**Research Context:** [Insert Specific Research Context Here]
 
 **Task:**
 
@@ -1270,14 +1265,17 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 
 — Output JSON array only. No trailing commas. No comments.`;
 		},
-		gene_grouping_prompt() {
+		gene_ranking_user_prompt(hypothesis, researchContext, genes) {
+			return String.raw`[MODE]: Ranking and scoring. The gene list has already been filtered for relevance. Score and rank **all** genes provided.
+
+**Hypothesis:** ${hypothesis}
+
+**Gene List:** ${genes}
+
+**Research Context:** ${researchContext}`;
+		},
+		gene_grouping_system_prompt() {
 			return String.raw`You are an expert computational biologist and experimental design specialist. Your task is to group selected genes that can be experimented together PRACTICALLY and ECONOMICALLY, organizing them into tiers for cost-effective experiment workflows.
-
-**Hypothesis:** [Insert Specific Hypothesis Here.]
-
-**Selected Genes:** [Insert comma-separated list of selected genes here.]
-
-**Research Context:** [Insert Specific Research Context Here.]
 
 **CRITICAL CONSTRAINTS FOR PRACTICAL GROUPING:**
 
@@ -1368,6 +1366,13 @@ You must return ONLY a valid JSON object with the following structure:
 - Be realistic about resource estimates - err on the side of caution
 - Output JSON only. No text outside JSON. No trailing commas. No comments.`;
 		},
+		gene_grouping_user_prompt(hypothesis, researchContext, selectedGenes) {
+			return String.raw`**Hypothesis:** ${hypothesis}
+
+**Selected Genes:** ${selectedGenes}
+
+**Research Context:** ${researchContext}`;
+		},
 		initializeLLMClients() {
 			const llm = this.llmConfig.llm || "gemini";
 			const model = this.llmConfig.model || "gemini-2.5-flash";
@@ -1375,25 +1380,25 @@ You must return ONLY a valid JSON object with the following structure:
 			this.getGeneNovelty = createLLMClient({
 				llm: llm,
 				model: model,
-				system_prompt: this.gene_novelty_prompt()
+				system_prompt: this.gene_novelty_system_prompt()
 			});
 
 			this.rankGenes = createLLMClient({
 				llm: llm,
 				model: model,
-				system_prompt: this.gene_ranking_prompt()
+				system_prompt: this.gene_ranking_system_prompt()
 			});
 
 			this.filterGenes = createLLMClient({
 				llm: llm,
 				model: model,
-				system_prompt: this.gene_filtering_prompt()
+				system_prompt: this.gene_filtering_system_prompt()
 			});
 
 			this.groupGenes = createLLMClient({
 				llm: llm,
 				model: model,
-				system_prompt: this.gene_grouping_prompt()
+				system_prompt: this.gene_grouping_system_prompt()
 			});
 		},
 		
@@ -1517,16 +1522,17 @@ You must return ONLY a valid JSON object with the following structure:
 				for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
 					const batch = batches[batchIndex];
 					
-					// Prepare the prompt
-					const prompt = this.gene_novelty_prompt()
-						.replace('[INSERT YOUR HYPOTHESIS HERE]', this.hypothesis.trim())
-						.replace('[INSERT RESEARCH CONTEXT HERE]', researchContextValue)
-						.replace(`[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX ${this.noveltyScoreBatchSize})]`, batch.join(', '));
+					// Prepare the user prompt
+					const userPrompt = this.gene_novelty_user_prompt(
+						this.hypothesis.trim(),
+						researchContextValue,
+						batch.join(', ')
+					);
 					
 					// Call the LLM
 					const batchResults = await new Promise((resolve, reject) => {
 						this.getGeneNovelty.sendPrompt({
-							userPrompt: prompt,
+							userPrompt: userPrompt,
 							onResponse: (response) => {
 								try {
 									let responseString = response.replaceAll('```json', '').replaceAll('```', '').trim();
@@ -1672,14 +1678,15 @@ You must return ONLY a valid JSON object with the following structure:
 					const batch = filterBatches[batchIndex];
 					this.rankingStep = `Filtering batch ${batchIndex + 1}/${filterBatches.length} (${batch.length} gene(s))...`;
 					
-					const filterPrompt = this.gene_filtering_prompt()
-						.replace('[Insert Specific Hypothesis Here.]', this.hypothesis.trim())
-						.replace('[Insert comma-separated Gene List Here.]', batch.join(', '))
-						.replace('[Insert Specific Research Context Here.]', researchContextValue);
+					const filterUserPrompt = this.gene_filtering_user_prompt(
+						this.hypothesis.trim(),
+						researchContextValue,
+						batch.join(', ')
+					);
 					
 					const filterResult = await new Promise((resolve, reject) => {
 						this.filterGenes.sendPrompt({
-							userPrompt: filterPrompt.trim(),
+							userPrompt: filterUserPrompt.trim(),
 							onResponse: (response) => {
 								try {
 									// Robust JSON extraction
@@ -1786,14 +1793,15 @@ You must return ONLY a valid JSON object with the following structure:
 					const batch = geneBatches[batchIndex];
 					this.rankingStep = `Ranking batch ${batchIndex + 1}/${geneBatches.length} (${batch.length} gene(s))...`;
 					
-					const rankingPrompt = this.gene_ranking_prompt()
-						.replace('[Insert Specific Hypothesis Here]', this.hypothesis.trim())
-						.replace('[Insert comma-separated Gene List Here]', batch.join(', '))
-						.replace('[Insert Specific Research Context Here]', researchContextValue);
+					const rankingUserPrompt = this.gene_ranking_user_prompt(
+						this.hypothesis.trim(),
+						researchContextValue,
+						batch.join(', ')
+					);
 					
 					await new Promise((resolve, reject) => {
 						this.rankGenes.sendPrompt({
-							userPrompt: rankingPrompt.trim(),
+							userPrompt: rankingUserPrompt.trim(),
 							onResponse: (response) => {
 								try {
 									let responseText = response.trim();
@@ -1914,16 +1922,17 @@ You must return ONLY a valid JSON object with the following structure:
 				
 				const researchContextValue = this.researchContext.trim() || 'No specific research context provided.';
 				
-				// Prepare the prompt
-				const prompt = this.gene_grouping_prompt()
-					.replace('[Insert Specific Hypothesis Here.]', this.hypothesis.trim())
-					.replace('[Insert comma-separated list of selected genes here.]', this.selectedGenes.join(', '))
-					.replace('[Insert Specific Research Context Here.]', researchContextValue);
+				// Prepare the user prompt
+				const groupingUserPrompt = this.gene_grouping_user_prompt(
+					this.hypothesis.trim(),
+					researchContextValue,
+					this.selectedGenes.join(', ')
+				);
 				
 				// Call the LLM
 				const groupingResult = await new Promise((resolve, reject) => {
 					this.groupGenes.sendPrompt({
-						userPrompt: prompt.trim(),
+						userPrompt: groupingUserPrompt.trim(),
 						onResponse: (response) => {
 							try {
 								// Robust JSON extraction
@@ -2238,11 +2247,27 @@ You must return ONLY a valid JSON object with the following structure:
 			let novelty = 0;
 			
 			if (gene.relevance_score !== undefined && gene.relevance_score !== null && gene.relevance_score !== 'N/A') {
-				relevance = typeof gene.relevance_score === 'number' ? gene.relevance_score : 0;
+				if (typeof gene.relevance_score === 'number') {
+					relevance = gene.relevance_score;
+				} else if (typeof gene.relevance_score === 'string') {
+					// Convert string to number (handles "8", "10", etc.)
+					const parsed = parseFloat(gene.relevance_score);
+					relevance = isNaN(parsed) ? 0 : parsed;
+				} else {
+					relevance = 0;
+				}
 			}
 			
 			if (gene.novelty_score !== undefined && gene.novelty_score !== null && gene.novelty_score !== 'N/A') {
-				novelty = typeof gene.novelty_score === 'number' ? gene.novelty_score : 0;
+				if (typeof gene.novelty_score === 'number') {
+					novelty = gene.novelty_score;
+				} else if (typeof gene.novelty_score === 'string') {
+					// Convert string to number (handles "8", "10", etc.)
+					const parsed = parseFloat(gene.novelty_score);
+					novelty = isNaN(parsed) ? 0 : parsed;
+				} else {
+					novelty = 0;
+				}
 			}
 			
 			return relevance + novelty;

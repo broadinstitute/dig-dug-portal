@@ -134,6 +134,20 @@
 					></textarea>
 					<!-- Gene actions will be moved to user options -->
 				</div>
+				
+				<!-- Gene Set Utility Component -->
+				<div v-if="manualGenes.trim() && hasHypothesis" class="gene-utility-section" style="margin-top: 20px;">
+					<research-gene-set-utility
+						ref="geneSetUtility"
+						:genes="parsedGenes"
+						:hypothesis="phenotypeSearch"
+						:researchContext="researchContext"
+						:selectedGenes="selectedGenes"
+						:llmConfig="llmConfig"
+						:noveltyScoreBatchSize="noveltyScoreBatchSize"
+						@update:selectedGenes="handleGenesSelected"
+					/>
+				</div>
 				</div>
 
 				<!-- hypothesis section -->
@@ -1236,6 +1250,7 @@ Vue.use(BootstrapVueIcons);
 export default {
 	props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
 	components: {
+		ResearchGeneSetUtility: () => import("@/components/researchPortal/researchGeneSetUtility.vue")
 	},
 	data() {
 		return {
@@ -1280,7 +1295,7 @@ export default {
                     "link tip": "Requires genes and hypothesis • Opens in new tab",
                     "required parameters": ["genes", "hypothesis"],
                     "handler": "openDesignTool",
-                    "badge": "Gene Selection",
+                    "badge": "AI Analysis",
                     "linkType": "query", // Uses query parameters for genes and hypothesis
                     "condition": "hypothesis"
                 },
@@ -1619,6 +1634,16 @@ export default {
 		this.clearGeneRankingTimer();
 	},
 	computed: {
+		parsedGenes() {
+			if (!this.manualGenes.trim()) return [];
+			return this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
+		},
+		llmConfig() {
+			return {
+				llm: (this.sectionConfigs && this.sectionConfigs.llm) || "gemini",
+				model: (this.sectionConfigs && this.sectionConfigs.llm === "openai") ? "gpt-5-mini" : "gemini-2.5-flash"
+			};
+		},
 		hasManualGenes() {
 			return this.geneData.some(gene => gene.isManual === true);
 		},
@@ -3731,9 +3756,26 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			}
 		},
 		async generateHypothesisAlignment() {
-			// Open the score generation dialog instead of generating scores directly
-			console.log('[generateHypothesisAlignment] Called');
-			this.openScoreGenerationDialog();
+			// Check if hypothesis is provided
+			if (!this.phenotypeSearch.trim()) {
+				alert('Please provide a hypothesis in the "Hypothesis" section before generating scores.');
+				return;
+			}
+
+			// Check if genes are provided
+			if (!this.manualGenes.trim()) {
+				alert('Please enter gene symbols in the gene input field.');
+				return;
+			}
+
+			// The utility component will handle opening the dialog
+			// We need to trigger it programmatically
+			this.$nextTick(() => {
+				const utilityComponent = this.$refs.geneSetUtility;
+				if (utilityComponent && typeof utilityComponent.openScoreDialog === 'function') {
+					utilityComponent.openScoreDialog();
+				}
+			});
 		},
 		exploreGTExExpression() {
 			// Parse genes from manual input
@@ -3861,35 +3903,30 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 		},
 		openDesignTool() {
 			console.log('[openDesignTool] Called');
-			// Parse genes from manual input
-			const geneList = this.manualGenes
-				.split(',')
-				.map(gene => gene.trim())
-				.filter(gene => gene);
+			// Check if hypothesis is provided
+			if (!this.phenotypeSearch.trim()) {
+				alert('Please provide a hypothesis in the "Hypothesis" section before ranking genes.');
+				return;
+			}
 
-			if (geneList.length === 0) {
+			// Check if genes are provided
+			if (!this.manualGenes.trim()) {
 				alert('Please enter gene symbols in the gene input field.');
 				return;
 			}
 
-			// Check if hypothesis is provided
-			if (!this.phenotypeSearch.trim()) {
-				alert('Please provide a hypothesis before opening the Design Tool.');
-				return;
-			}
-
-			// Initialize dialog with current values
-			// Initialize research context if not already set, or update if it changed
-			if (!this.designToolResearchContext || this.designToolResearchContext !== this.researchContext) {
-				this.designToolResearchContext = this.researchContext || '';
-			}
-			// Retain candidateGenes and selectedCandidateGenes - don't clear them
-			// They will only be cleared when user clicks "Prepare for DESIGN" again
-			this.isRankingGenes = false;
-			
-			// Show the design tool dialog
-			this.showDesignToolDialog = true;
-			console.log('[openDesignTool] Dialog opened, showDesignToolDialog:', this.showDesignToolDialog);
+			// The utility component will handle opening the ranking dialog
+			// We need to trigger it programmatically
+			this.$nextTick(() => {
+				const utilityComponent = this.$refs.geneSetUtility;
+				if (utilityComponent && typeof utilityComponent.openRankDialog === 'function') {
+					utilityComponent.openRankDialog();
+				}
+			});
+		},
+		handleGenesSelected(selectedGenes) {
+			// Update selectedGenes from utility component
+			this.selectedGenes = selectedGenes;
 		},
 		closeDesignToolDialog() {
 			this.showDesignToolDialog = false;
@@ -4379,17 +4416,19 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			}
 		},
 		openDesignToolWithSelectedGenes() {
-			// Get selected genes from candidate genes
-			if (this.selectedCandidateGenes.length === 0) {
-				alert('Please select at least one gene to proceed.');
-				return;
+			// Get selected genes from utility component or fallback to selectedCandidateGenes
+			let selectedGenes = [];
+			
+			if (this.selectedGenes && this.selectedGenes.length > 0) {
+				// Use genes from utility component
+				selectedGenes = this.selectedGenes;
+			} else if (this.selectedCandidateGenes.length > 0) {
+				// Fallback to candidate genes (legacy support)
+				selectedGenes = this.selectedCandidateGenes
+					.map(index => this.candidateGenes[index])
+					.filter(item => item && item.gene)
+					.map(item => item.gene);
 			}
-
-			// Extract gene symbols from selected candidate genes
-			const selectedGenes = this.selectedCandidateGenes
-				.map(index => this.candidateGenes[index])
-				.filter(item => item && item.gene)
-				.map(item => item.gene);
 
 			if (selectedGenes.length === 0) {
 				alert('No valid genes selected. Please try again.');
@@ -4408,8 +4447,8 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			// Join genes with commas for URL parameter
 			const genesParam = selectedGenes.join(',');
 			const hypothesisParam = this.phenotypeSearch.trim();
-			// Get research context (use dialog input or existing context)
-			const researchContextParam = this.designToolResearchContext.trim() || this.researchContext.trim() || '';
+			// Get research context (use existing context)
+			const researchContextParam = this.researchContext.trim() || '';
 			
 			// Create Design Tool URL with genes, hypothesis, and researchContext as query parameters
 			let designUrl;
@@ -4584,7 +4623,9 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 			this.selectedPhenotypes = Array.from({ length: Math.min(n, this.phenotypeData.length) }, (_, i) => i);
 		},
 		processPhenotypeData(data) {
-			// Process phenotype data to split phenotype into Description and Phenotype id
+			// Process phenotype data using new API model:
+			// - 'phenotype' field -> Description column
+			// - 'phenotype_id' field -> Phenotype id column (formatted to remove text before 'Orphanet')
 			if (!Array.isArray(data)) {
 				return data;
 			}
@@ -4597,54 +4638,32 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				// Create a copy to avoid mutating original
 				const processed = { ...item };
 				
-				// Find the phenotype field (case-insensitive)
-				let phenotypeValue = null;
-				let phenotypeKey = null;
+				// Use 'phenotype' field directly for Description
+				const phenotypeValue = item.phenotype;
+				// Use 'phenotype_id' field directly for Phenotype id
+				let phenotypeIdValue = item.phenotype_id;
 				
-				for (const key in item) {
-					const lowerKey = key.toLowerCase();
-					if (lowerKey === 'phenotype' || lowerKey.includes('phenotype')) {
-						phenotypeValue = item[key];
-						phenotypeKey = key;
-						break;
-					}
-				}
-				
-				if (phenotypeValue !== null && phenotypeValue !== undefined) {
-					const phenotypeStr = String(phenotypeValue);
-					let description = '';
-					let phenotypeId = '';
-					
-					// Check if Orphanet is in the value
-					const orphanetIndex = phenotypeStr.indexOf('Orphanet');
+				// Format phenotype ID: remove anything before 'Orphanet' if 'Orphanet' is present
+				if (phenotypeIdValue !== null && phenotypeIdValue !== undefined) {
+					const phenotypeIdStr = String(phenotypeIdValue);
+					const orphanetIndex = phenotypeIdStr.indexOf('Orphanet');
 					if (orphanetIndex !== -1) {
-						// Text before Orphanet is description
-						description = phenotypeStr.substring(0, orphanetIndex).trim();
-						// Text from Orphanet onwards is phenotype id
-						phenotypeId = phenotypeStr.substring(orphanetIndex).trim();
-					} else {
-						// All other cases: same value for both
-						description = phenotypeStr;
-						phenotypeId = phenotypeStr;
+						// Keep only 'Orphanet' and everything after it
+						phenotypeIdValue = phenotypeIdStr.substring(orphanetIndex);
 					}
-					
-					// Clean up description: remove 'gcat_trait' first, then replace '_'
-					description = description
-						.replace(/gcat_trait/gi, '')  // Remove gcat_trait (case-insensitive) first
-						.replace(/_/g, ' ')  // Replace underscores with spaces
-						.replace(/\s+/g, ' ')  // Replace multiple spaces with single space
-						.trim();
-					
-					// Add Description and Phenotype id fields
-					processed['Description'] = description;
-					processed['Phenotype id'] = phenotypeId;
-					
-					// Keep original phenotype field for reference
-				} else {
-					// If no phenotype field found, add empty Description and Phenotype id
-					processed['Description'] = '';
-					processed['Phenotype id'] = '';
 				}
+				
+				// Add Description and Phenotype id fields
+				processed['Description'] = phenotypeValue !== null && phenotypeValue !== undefined 
+					? String(phenotypeValue) 
+					: '';
+				processed['Phenotype id'] = phenotypeIdValue !== null && phenotypeIdValue !== undefined 
+					? String(phenotypeIdValue) 
+					: '';
+				
+				// Remove original 'phenotype' and 'phenotype_id' fields to avoid duplicates
+				delete processed.phenotype;
+				delete processed.phenotype_id;
 				
 				return processed;
 			});
@@ -4689,10 +4708,10 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				else if (!pValueKey && (lowerKey.includes('p-value') || lowerKey.includes('p_value'))) {
 					pValueKey = key;
 				}
-				// Exclude original phenotype column (but keep Description and Phenotype id)
-				// Only exclude if it's exactly "phenotype" (not "phenotype id" or "phenotype_id")
-				else if (lowerKey === 'phenotype') {
-					// Skip original phenotype column - don't add to otherKeys
+				// Exclude original phenotype and phenotype_id columns (but keep Description and Phenotype id)
+				// Only exclude if it's exactly "phenotype" or "phenotype_id" (not "phenotype id" or "Phenotype id")
+				else if (lowerKey === 'phenotype' || lowerKey === 'phenotype_id') {
+					// Skip original phenotype/phenotype_id columns - don't add to otherKeys
 					return;
 				}
 				// All other keys
@@ -4880,7 +4899,8 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				
 				// Fetch gene sets for all phenotypes in parallel, tracking progress
 				const geneSetPromises = selectedPhenotypeData.map(async (phenotype, index) => {
-					const phenotypeId = phenotype['Phenotype id'] || phenotype['phenotype_id'] || phenotype['Phenotype Id'];
+					// Use 'Phenotype id' field (from processed data) or fallback to 'phenotype_id' (from raw API data)
+					const phenotypeId = phenotype['Phenotype id'] || phenotype.phenotype_id || phenotype['Phenotype Id'];
 					if (phenotypeId) {
 						const geneSets = await this.fetchGeneSetsForPhenotype(phenotypeId);
 						// Increment counter when gene sets are downloaded

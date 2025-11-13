@@ -1230,7 +1230,7 @@ export default {
                 ]
                 },
 
-                experiment_prompt: `Your task is to generate validation experiment proposals based on biological hypotheses and selected genes.
+                experiment_system_prompt: `Your task is to generate validation experiment proposals based on biological hypotheses and selected genes.
 
                 **EXPERIMENT GENERATION STRATEGY:**
 
@@ -1304,9 +1304,13 @@ export default {
                         }
                     ]
                 }
+
+                **OUTPUT REQUIREMENTS:**
+                - Output JSON only. No text outside JSON. No trailing commas. No comments.
+                - Return a well-formed JSON object with a "resultModel" array containing experiment objects.
                 `,
 
-                experiment_prompt_genes: `Your task is to generate validation experiment proposals based on biological hypotheses and selected genes.
+                experiment_genes_system_prompt: `Your task is to generate validation experiment proposals based on biological hypotheses and selected genes.
 
                 **EXPERIMENT GENERATION STRATEGY:**
 
@@ -1381,6 +1385,10 @@ export default {
                         }
                     ]
                 }
+
+                **OUTPUT REQUIREMENTS:**
+                - Output JSON only. No text outside JSON. No trailing commas. No comments.
+                - Return a well-formed JSON object with a "resultModel" array containing experiment objects.
                 `,
 
 
@@ -1479,11 +1487,11 @@ export default {
             const llm = (this.sectionConfigs && this.sectionConfigs.llm) || "gemini";
             const model = llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash";
 
-            const experimentPrompt = this.experiment_prompt || '';
+            const experimentSystemPrompt = this.experiment_system_prompt || '';
             this.buildExperiments = createLLMClient({
                 llm: llm,
                 model: model,
-                system_prompt: experimentPrompt
+                system_prompt: experimentSystemPrompt
             });
         } catch (error) {
             console.error('Error initializing LLM clients:', error);
@@ -2696,140 +2704,140 @@ export default {
 		extractSystemPrompt() {
 			return "You are a system for extracting and processing phenotype-gene associations from research queries.";
 		},
-		experimentPrompt() {
-			// Build the experiment prompt with captured search draft values
-			let prompt = this.experiment_prompt;
+		experimentUserPrompt() {
+			// Build the user prompt with captured search draft values
+			let userPrompt = '';
 			
 			// Add search context information
-			prompt += '\n\n**Current Search Context:**\n';
+			userPrompt += '**Current Search Context:**\n';
 			
 			if (this.phenotypeSearch.trim() !== '') {
-				prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
+				userPrompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
 			}
 			
 			if (this.selectedGenes.length > 0) {
-				prompt += `**Selected Genes:** ${this.selectedGenes.join(', ')}\n`;
+				userPrompt += `**Selected Genes:** ${this.selectedGenes.join(', ')}\n`;
 			}
 			
 			// Include grouped genes data if available
 			if (this.groupedGenes && this.groupedGenes.tiers && this.groupedGenes.tiers.length > 0) {
-				prompt += `\n**Gene Grouping and Tiering Strategy:**\n`;
+				userPrompt += `\n**Gene Grouping and Tiering Strategy:**\n`;
 				if (this.groupedGenes.summary) {
-					prompt += `Summary: ${this.groupedGenes.summary}\n`;
+					userPrompt += `Summary: ${this.groupedGenes.summary}\n`;
 				}
-				prompt += `The selected genes have been organized into ${this.groupedGenes.tiers.length} tier(s) with the following structure:\n`;
+				userPrompt += `The selected genes have been organized into ${this.groupedGenes.tiers.length} tier(s) with the following structure:\n`;
 				this.groupedGenes.tiers.forEach(tier => {
-					prompt += `\nTier ${tier.tier} (${tier.tierName}): ${tier.rationale || 'No rationale provided'}\n`;
+					userPrompt += `\nTier ${tier.tier} (${tier.tierName}): ${tier.rationale || 'No rationale provided'}\n`;
 					tier.groups.forEach((group, idx) => {
-						prompt += `  Group ${idx + 1}: ${group.groupName} - Genes: ${group.genes.join(', ')}\n`;
+						userPrompt += `  Group ${idx + 1}: ${group.groupName} - Genes: ${group.genes.join(', ')}\n`;
 						if (group.groupingRationale) {
-							prompt += `    Rationale: ${group.groupingRationale}\n`;
+							userPrompt += `    Rationale: ${group.groupingRationale}\n`;
 						}
 						if (group.experimentalApproach) {
-							prompt += `    Experimental Approach: ${group.experimentalApproach}\n`;
+							userPrompt += `    Experimental Approach: ${group.experimentalApproach}\n`;
 						}
 					});
 				});
-				prompt += `\nUse this grouping and tiering information to inform the experiment protocol generation, considering experimental dependencies, resource requirements, and workflow efficiency.\n`;
+				userPrompt += `\nUse this grouping and tiering information to inform the experiment protocol generation, considering experimental dependencies, resource requirements, and workflow efficiency.\n`;
 			}
 			
 			if (this.selectedAssayTypes.length > 0) {
-				prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
+				userPrompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
 			}
 			
 			if (this.selectedCellTypes.length > 0) {
-				prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
+				userPrompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
 			}
 			
 			if (this.selectedReadouts.length > 0) {
-				prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
+				userPrompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
 			}
 			
 			if (this.selectedThroughput) {
-				prompt += `**Throughput:** ${this.selectedThroughput}\n`;
+				userPrompt += `**Throughput:** ${this.selectedThroughput}\n`;
 			}
 			
 			if (this.selectedSpecies) {
-				prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
+				userPrompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
 			}
 			
 			if (this.selectedTimeBudget) {
-				prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
+				userPrompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
 			}
 			
 			if (this.experimentNotes.trim() !== '') {
-				prompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
+				userPrompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
 			}
 			
-			return prompt;
+			return userPrompt;
 		},
-		experimentPromptGenes() {
-			// Build the experiment prompt for combined gene experiments
-			let prompt = this.experiment_prompt_genes;
+		experimentUserPromptGenes() {
+			// Build the user prompt for combined gene experiments
+			let userPrompt = '';
 			
 			// Add search context information
-			prompt += '\n\n**Current Search Context:**\n';
+			userPrompt += '**Current Search Context:**\n';
 			
 			if (this.phenotypeSearch.trim() !== '') {
-				prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
+				userPrompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
 			}
 			
 			if (this.selectedGenes.length > 0) {
-				prompt += `**Selected Genes (ALL TOGETHER):** ${this.selectedGenes.join(', ')}\n`;
-				prompt += `**Strategy:** Generate ONE comprehensive experiment that tests all genes together\n`;
+				userPrompt += `**Selected Genes (ALL TOGETHER):** ${this.selectedGenes.join(', ')}\n`;
+				userPrompt += `**Strategy:** Generate ONE comprehensive experiment that tests all genes together\n`;
 			}
 			
 			// Include grouped genes data if available
 			if (this.groupedGenes && this.groupedGenes.tiers && this.groupedGenes.tiers.length > 0) {
-				prompt += `\n**Gene Grouping and Tiering Strategy:**\n`;
+				userPrompt += `\n**Gene Grouping and Tiering Strategy:**\n`;
 				if (this.groupedGenes.summary) {
-					prompt += `Summary: ${this.groupedGenes.summary}\n`;
+					userPrompt += `Summary: ${this.groupedGenes.summary}\n`;
 				}
-				prompt += `The selected genes have been organized into ${this.groupedGenes.tiers.length} tier(s) with the following structure:\n`;
+				userPrompt += `The selected genes have been organized into ${this.groupedGenes.tiers.length} tier(s) with the following structure:\n`;
 				this.groupedGenes.tiers.forEach(tier => {
-					prompt += `\nTier ${tier.tier} (${tier.tierName}): ${tier.rationale || 'No rationale provided'}\n`;
+					userPrompt += `\nTier ${tier.tier} (${tier.tierName}): ${tier.rationale || 'No rationale provided'}\n`;
 					tier.groups.forEach((group, idx) => {
-						prompt += `  Group ${idx + 1}: ${group.groupName} - Genes: ${group.genes.join(', ')}\n`;
+						userPrompt += `  Group ${idx + 1}: ${group.groupName} - Genes: ${group.genes.join(', ')}\n`;
 						if (group.groupingRationale) {
-							prompt += `    Rationale: ${group.groupingRationale}\n`;
+							userPrompt += `    Rationale: ${group.groupingRationale}\n`;
 						}
 						if (group.experimentalApproach) {
-							prompt += `    Experimental Approach: ${group.experimentalApproach}\n`;
+							userPrompt += `    Experimental Approach: ${group.experimentalApproach}\n`;
 						}
 					});
 				});
-				prompt += `\nUse this grouping and tiering information to inform the experiment protocol generation, considering experimental dependencies, resource requirements, and workflow efficiency.\n`;
+				userPrompt += `\nUse this grouping and tiering information to inform the experiment protocol generation, considering experimental dependencies, resource requirements, and workflow efficiency.\n`;
 			}
 			
 			if (this.selectedAssayTypes.length > 0) {
-				prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
+				userPrompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
 			}
 			
 			if (this.selectedCellTypes.length > 0) {
-				prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
+				userPrompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
 			}
 			
 			if (this.selectedReadouts.length > 0) {
-				prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
+				userPrompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
 			}
 			
 			if (this.selectedThroughput) {
-				prompt += `**Throughput:** ${this.selectedThroughput}\n`;
+				userPrompt += `**Throughput:** ${this.selectedThroughput}\n`;
 			}
 			
 			if (this.selectedSpecies) {
-				prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
+				userPrompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
 			}
 			
 			if (this.selectedTimeBudget) {
-				prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
+				userPrompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
 			}
 			
 			if (this.experimentNotes.trim() !== '') {
-				prompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
+				userPrompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
 			}
 			
-			return prompt;
+			return userPrompt;
 		},
 		isValidExperimentJSON(str) {
 			if (!str || typeof str !== 'string') return false;
@@ -2864,9 +2872,9 @@ export default {
 				// If combined strategy or <=1 gene, keep single-call behavior
 				if (this.geneExperimentStrategy === 'all_together' || (this.geneExperimentStrategy === 'individual' && this.selectedGenes.length <= 1)) {
 					console.log('[Planner] Using single-call generation (combined strategy or ≤1 gene).');
-					const prompt = this.geneExperimentStrategy === 'all_together' ? this.experimentPromptGenes() : this.experimentPrompt();
+					const userPrompt = this.geneExperimentStrategy === 'all_together' ? this.experimentUserPromptGenes() : this.experimentUserPrompt();
 					this.buildExperiments.sendPrompt({
-						userPrompt: prompt.trim() || 'Generate validation experiments based on the selected parameters',
+						userPrompt: userPrompt.trim() || 'Generate validation experiments based on the selected parameters',
 							onResponse: (response) => {
 								console.log('[Planner] Protocol API raw response (single-call):', response);
 								const obj = this.extractExperimentJson(response);
@@ -2919,56 +2927,56 @@ export default {
 						this.elapsedTime = '0:00';
 						
 						await new Promise((resolve) => {
-							let prompt = this.experiment_prompt;
-							prompt += '\n\n**Current Search Context:**\n';
+							// Build user prompt for this specific group
+							let userPrompt = '**Current Search Context:**\n';
 							if (this.phenotypeSearch.trim() !== '') {
-								prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
+								userPrompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
 							}
-							prompt += `**Selected Genes (Group):** ${groupGenes}\n`;
-							prompt += `**Group Information:**\n`;
-							prompt += `- Group Name: ${group.groupName}\n`;
-							prompt += `- Tier: ${tier.tier} (${tier.tierName})\n`;
+							userPrompt += `**Selected Genes (Group):** ${groupGenes}\n`;
+							userPrompt += `**Group Information:**\n`;
+							userPrompt += `- Group Name: ${group.groupName}\n`;
+							userPrompt += `- Tier: ${tier.tier} (${tier.tierName})\n`;
 							if (tier.rationale) {
-								prompt += `- Tier Rationale: ${tier.rationale}\n`;
+								userPrompt += `- Tier Rationale: ${tier.rationale}\n`;
 							}
 							if (group.groupingRationale) {
-								prompt += `- Grouping Rationale: ${group.groupingRationale}\n`;
+								userPrompt += `- Grouping Rationale: ${group.groupingRationale}\n`;
 							}
 							if (group.experimentalApproach) {
-								prompt += `- Recommended Experimental Approach: ${group.experimentalApproach}\n`;
+								userPrompt += `- Recommended Experimental Approach: ${group.experimentalApproach}\n`;
 							}
 							if (group.estimatedResources) {
-								prompt += `- Estimated Resources: ${group.estimatedResources}\n`;
+								userPrompt += `- Estimated Resources: ${group.estimatedResources}\n`;
 							}
 							if (group.estimatedTimeline) {
-								prompt += `- Estimated Timeline: ${group.estimatedTimeline}\n`;
+								userPrompt += `- Estimated Timeline: ${group.estimatedTimeline}\n`;
 							}
-							prompt += `\n**IMPORTANT:** Generate exactly ONE experiment in resultModel that tests ALL genes in this group (${groupGenes}) TOGETHER in a single experiment. Do NOT generate separate experiments for each gene. The experiment should test the entire group as a unit, considering the grouping rationale and recommended experimental approach.\n`;
+							userPrompt += `\n**IMPORTANT:** Generate exactly ONE experiment in resultModel that tests ALL genes in this group (${groupGenes}) TOGETHER in a single experiment. Do NOT generate separate experiments for each gene. The experiment should test the entire group as a unit, considering the grouping rationale and recommended experimental approach.\n`;
 							
 							if (this.selectedAssayTypes.length > 0) {
-								prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
+								userPrompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
 							}
 							if (this.selectedCellTypes.length > 0) {
-								prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
+								userPrompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
 							}
 							if (this.selectedReadouts.length > 0) {
-								prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
+								userPrompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
 							}
 							if (this.selectedThroughput) {
-								prompt += `**Throughput:** ${this.selectedThroughput}\n`;
+								userPrompt += `**Throughput:** ${this.selectedThroughput}\n`;
 							}
 							if (this.selectedSpecies) {
-								prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
+								userPrompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
 							}
 							if (this.selectedTimeBudget) {
-								prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
+								userPrompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
 							}
 							if (this.experimentNotes.trim() !== '') {
-								prompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
+								userPrompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
 							}
 							
 							this.buildExperiments.sendPrompt({
-								userPrompt: prompt.trim(),
+								userPrompt: userPrompt.trim(),
 								onResponse: (response) => {
 									console.log(`[Planner] Protocol API raw response for group ${i + 1}/${allGroups.length}:`, response);
 									const obj = this.extractExperimentJson(response);
@@ -3039,12 +3047,12 @@ export default {
 					this.generationStartTime = Date.now();
 					this.elapsedTime = '0:00';
 					await new Promise((resolve) => {
-						let prompt = this.experiment_prompt;
-						prompt += '\n\n**Current Search Context:**\n';
+						// Build user prompt for this specific gene
+						let userPrompt = '**Current Search Context:**\n';
 						if (this.phenotypeSearch.trim() !== '') {
-							prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
+							userPrompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
 						}
-						prompt += `**Selected Genes:** ${gene}\n`;
+						userPrompt += `**Selected Genes:** ${gene}\n`;
 						
 						// Include grouped genes data if available (for context)
 						if (this.groupedGenes && this.groupedGenes.tiers && this.groupedGenes.tiers.length > 0) {
@@ -3061,40 +3069,40 @@ export default {
 							}
 							
 							if (geneTierInfo) {
-								prompt += `\n**Gene Grouping Context:** This gene (${gene}) is part of Tier ${geneTierInfo.tier.tier} (${geneTierInfo.tier.tierName}) in ${geneTierInfo.group.groupName}.\n`;
+								userPrompt += `\n**Gene Grouping Context:** This gene (${gene}) is part of Tier ${geneTierInfo.tier.tier} (${geneTierInfo.tier.tierName}) in ${geneTierInfo.group.groupName}.\n`;
 								if (geneTierInfo.group.groupingRationale) {
-									prompt += `Grouping Rationale: ${geneTierInfo.group.groupingRationale}\n`;
+									userPrompt += `Grouping Rationale: ${geneTierInfo.group.groupingRationale}\n`;
 								}
 								if (geneTierInfo.group.experimentalApproach) {
-									prompt += `Recommended Experimental Approach: ${geneTierInfo.group.experimentalApproach}\n`;
+									userPrompt += `Recommended Experimental Approach: ${geneTierInfo.group.experimentalApproach}\n`;
 								}
 							}
 						}
 						
 						if (this.selectedAssayTypes.length > 0) {
-							prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
+							userPrompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
 						}
 						if (this.selectedCellTypes.length > 0) {
-							prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
+							userPrompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
 						}
 						if (this.selectedReadouts.length > 0) {
-							prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
+							userPrompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
 						}
 						if (this.selectedThroughput) {
-							prompt += `**Throughput:** ${this.selectedThroughput}\n`;
+							userPrompt += `**Throughput:** ${this.selectedThroughput}\n`;
 						}
 						if (this.selectedSpecies) {
-							prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
+							userPrompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
 						}
 						if (this.selectedTimeBudget) {
-							prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
+							userPrompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
 						}
 						if (this.experimentNotes.trim() !== '') {
-							prompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
+							userPrompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
 						}
-						prompt += '\nGenerate exactly ONE experiment in resultModel for the single gene above.';
+						userPrompt += '\nGenerate exactly ONE experiment in resultModel for the single gene above.';
 						this.buildExperiments.sendPrompt({
-							userPrompt: prompt,
+							userPrompt: userPrompt,
 							onResponse: (response) => {
 								console.log(`[Planner] Protocol API raw response (gene: ${gene}):`, response);
 								try {
