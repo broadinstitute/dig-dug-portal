@@ -36,7 +36,9 @@ new Vue({
             input:{
                 username: "",
                 password: "",
-                npassword: ""
+                npassword: "",
+                npassword2: "",
+                errormessage: ""
             }
         }
       },
