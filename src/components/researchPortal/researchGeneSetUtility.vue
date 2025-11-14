@@ -835,10 +835,14 @@ export default {
 		llmConfig: {
 			type: Object,
 			required: false,
-			default: () => ({
-				llm: "gemini",
-				model: "gemini-2.5-flash"
-			})
+			default: () => {
+				// Default values - will be overridden by sectionConfigs if available
+				const llm = "gemini";
+				return {
+					llm: llm,
+					model: llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash-lite"
+				};
+			}
 		},
 		// Optional: Batch size for scoring
 		noveltyScoreBatchSize: {
@@ -1381,7 +1385,7 @@ You must return ONLY a valid JSON object with the following structure:
 		},
 		initializeLLMClients() {
 			const llm = this.llmConfig.llm || "gemini";
-			const model = this.llmConfig.model || "gemini-2.5-flash";
+			const model = this.llmConfig.model || "gemini-2.5-flash-lite";
 			
 			this.getGeneNovelty = createLLMClient({
 				llm: llm,

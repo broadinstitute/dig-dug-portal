@@ -1524,99 +1524,38 @@ export default {
 	},
 
 	created() {
-		if(this.sectionConfigs.llm === "gemini") {
-            this.getGeneNovelty = createLLMClient({
-                llm: "gemini",
-                model: "gemini-2.5-flash",
-                system_prompt: this.gene_novelty_prompt
-            });
+		const llm = (this.sectionConfigs && this.sectionConfigs.llm) || "gemini";
+		const model = (this.sectionConfigs && this.sectionConfigs.model) || (llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash-lite");
+		
+		this.getGeneNovelty = createLLMClient({
+			llm: llm,
+			model: model,
+			system_prompt: this.gene_novelty_prompt
+		});
 
-            this.buildExperiments = createLLMClient({
-                llm: "gemini",
-                model: "gemini-2.5-flash",
-                system_prompt: this.experiment_prompt
-            });
+		this.buildExperiments = createLLMClient({
+			llm: llm,
+			model: model,
+			system_prompt: this.experiment_prompt
+		});
 
-            this.generateHypothesis = createLLMClient({
-                llm: "gemini",
-                model: "gemini-2.5-flash",
-                system_prompt: this.hypothesis_generation_prompt
-            });
+		this.generateHypothesis = createLLMClient({
+			llm: llm,
+			model: model,
+			system_prompt: this.hypothesis_generation_prompt
+		});
 
-            this.rankGenes = createLLMClient({
-                llm: "gemini",
-                model: "gemini-2.5-flash",
-                system_prompt: this.gene_ranking_prompt
-            });
+		this.rankGenes = createLLMClient({
+			llm: llm,
+			model: model,
+			system_prompt: this.gene_ranking_prompt
+		});
 
-            this.filterGenes = createLLMClient({
-                llm: "gemini",
-                model: "gemini-2.5-flash",
-                system_prompt: this.gene_filtering_prompt
-            });
-
-        } else if(this.sectionConfigs.llm === "openai") {
-            this.getGeneNovelty = createLLMClient({
-				llm: "openai",
-				model: "gpt-5-mini",
-				system_prompt: this.gene_novelty_prompt
-			});
-
-			this.buildExperiments = createLLMClient({
-				llm: "openai",
-				model: "gpt-5-mini",
-				system_prompt: this.experiment_prompt
-			});
-
-			this.generateHypothesis = createLLMClient({
-				llm: "openai",
-				model: "gpt-5-mini",
-				system_prompt: this.hypothesis_generation_prompt
-			});
-
-			this.rankGenes = createLLMClient({
-				llm: "openai",
-				model: "gpt-5-mini",
-				system_prompt: this.gene_ranking_prompt
-			});
-
-			this.filterGenes = createLLMClient({
-				llm: "openai",
-				model: "gpt-5-mini",
-				system_prompt: this.gene_filtering_prompt
-			});
-        } else {
-			// Default to Gemini if LLM config is missing
-			this.getGeneNovelty = createLLMClient({
-				llm: "gemini",
-				model: "gemini-2.5-flash",
-				system_prompt: this.gene_novelty_prompt
-			});
-
-			this.buildExperiments = createLLMClient({
-				llm: "gemini",
-				model: "gemini-2.5-flash",
-				system_prompt: this.experiment_prompt
-			});
-
-			this.generateHypothesis = createLLMClient({
-				llm: "gemini",
-				model: "gemini-2.5-flash",
-				system_prompt: this.hypothesis_generation_prompt
-			});
-
-			this.rankGenes = createLLMClient({
-				llm: "gemini",
-				model: "gemini-2.5-flash",
-				system_prompt: this.gene_ranking_prompt
-			});
-
-			this.filterGenes = createLLMClient({
-				llm: "gemini",
-				model: "gemini-2.5-flash",
-				system_prompt: this.gene_filtering_prompt
-			});
-        }
+		this.filterGenes = createLLMClient({
+			llm: llm,
+			model: model,
+			system_prompt: this.gene_filtering_prompt
+		});
 	},
 
 	mounted: async function () {
@@ -1670,9 +1609,10 @@ export default {
 			return this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
 		},
 		llmConfig() {
+			const llm = (this.sectionConfigs && this.sectionConfigs.llm) || "gemini";
 			return {
-				llm: (this.sectionConfigs && this.sectionConfigs.llm) || "gemini",
-				model: (this.sectionConfigs && this.sectionConfigs.llm === "openai") ? "gpt-5-mini" : "gemini-2.5-flash"
+				llm: llm,
+				model: (this.sectionConfigs && this.sectionConfigs.model) || (llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash-lite")
 			};
 		},
 		hasManualGenes() {

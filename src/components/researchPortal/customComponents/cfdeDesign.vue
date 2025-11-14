@@ -311,7 +311,7 @@
                             :selected-genes="selectedGenes"
                             :llm-config="{
                                 llm: sectionConfigs.llm || 'gemini',
-                                model: sectionConfigs.llm === 'openai' ? 'gpt-5-mini' : 'gemini-2.5-flash'
+                                model: sectionConfigs.model || (sectionConfigs.llm === 'openai' ? 'gpt-5-mini' : 'gemini-2.5-flash-lite')
                             }"
                             :hide-buttons="false"
                             @update:selectedGenes="handleGenesSelected"
@@ -1486,7 +1486,7 @@ export default {
     created() {
         try {
             const llm = (this.sectionConfigs && this.sectionConfigs.llm) || "gemini";
-            const model = llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash";
+            const model = (this.sectionConfigs && this.sectionConfigs.model) || (llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash-lite");
 
             const experimentSystemPrompt = this.experiment_system_prompt || '';
             this.buildExperiments = createLLMClient({
