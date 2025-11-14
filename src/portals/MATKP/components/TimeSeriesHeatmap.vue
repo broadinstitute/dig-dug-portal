@@ -54,15 +54,17 @@ export default Vue.component("time-series-heatmap", {
           maxExp: null,
           colorScaleArray: [],
           sampleGroups:[],
+          margin: {
+                top: 20,
+                bottom: 100,
+                left: 100,
+                right: 0,
+                bump: 0,
+                middleSpacing: 0,
+                legendSpacing: 35
+            },
+            plotData: null
         };
-    },
-    computed: {
-        plotData(){
-            if (!!this.filter){
-                return this.zNormData.filter(this.filter);
-            }
-            return this.zNormData;
-        }
     },
     methods: {
         ...sortUtils,
@@ -170,11 +172,11 @@ export default Vue.component("time-series-heatmap", {
         this.loading = false;
         },
         async getSampleIds(dataset){
-        let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
-            dataset}/fields.json.gz`;
+        let queryUrl = `https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/${this.timeSeriesId}/sample_metadata.json.gz`;
         try {
             const response = await fetch(queryUrl);
-            const data = await(response.json());
+            const data = await(response.text());
+            console.log(data);
             
             if(!!data) {
 
@@ -296,6 +298,7 @@ export default Vue.component("time-series-heatmap", {
             const bulkDataText = await response.text();
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
             console.log(JSON.stringify(bulkDataObject[0]));
+            this.plotData = bulkDataObject;
         },
     },
     watch: {
