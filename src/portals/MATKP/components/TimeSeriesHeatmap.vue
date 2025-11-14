@@ -30,6 +30,7 @@ import sortUtils from "@/utils/sortUtils";
 import "../assets/matkp-styles.css";
 import { ACCESSIBLE_RED, ACCESSIBLE_BLUE, ACCESSIBLE_GRAY } from "../utils/content.js";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
+import dataConvert from "@/utils/dataConvert";
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 const TIME_SERIES_RAW = "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/"
 export default Vue.component("time-series-heatmap", {
@@ -290,12 +291,10 @@ export default Vue.component("time-series-heatmap", {
             return `${value.sample} ${expr}`;
         },
         async getTimeSeries() {
-            let output = [];
-            let comparisons = {};
             let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/transcripts_by_sample.tsv`;
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
-            bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+            let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
             console.log(JSON.stringify(bulkDataObject[0]));
         },
     },
@@ -321,7 +320,7 @@ export default Vue.component("time-series-heatmap", {
         await this.getTimeSeries();
         this.chart = document.getElementById(this.plotId);
         this.chartWidth = this.chart.clientWidth;
-        //this.drawHeatMap();
+        this.drawHeatMap();
     }
 });
 </script>
