@@ -15,6 +15,7 @@ import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 import { TRACKS } from "@/portals/PanKbase/utils/tracks";
+import { STYLESHEETS, SCRIPTS } from "@/portals/PanKbase/utils/washU";
 
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 export default Vue.component("atac-seq", {
@@ -28,10 +29,10 @@ export default Vue.component("atac-seq", {
         };
     },
     mounted(){
-        const script = document.createElement("script");
-        script.src = this.washUScriptSrc;
-        document.body.appendChild(script);
-        this.buildAtacSeq();
+        this.setUpScripts();
+        const script2 = document.createElement("script");
+        script2.innerHTML = this.buildAtacSeq();
+        document.body.appendChild(script2);
     },
     computed: {
         utilsBox() {
@@ -108,7 +109,34 @@ export default Vue.component("atac-seq", {
                     tracks: allTracks,
                     metadataTerms: ["Sample"]
             };
-            renderBrowserInElement(contents, container);
+            return `const container = document.getElementById("embed");
+                const contents = ${JSON.stringify(contents)};
+                renderBrowserInElement(contents, container);`;
+        },
+        setUpScripts(){
+            SCRIPTS.forEach(thisScript => {
+                let scriptElement = document.body.createElement("script");
+                scriptElement.src = thisScript.src;
+                if (!!thisScript.crossorigin){
+                    scriptElement.src = thisScript.crossorigin;
+                }
+                if (!!thisScript.integrity){
+                    scriptElement.integrity = thisScript.integrity;
+                }
+                document.body.appendChild(scriptElement);
+            });
+            STYLESHEETS.forEach(thisSheet => {
+                let sheetElement = document.body.createElement("link");
+                sheetElement.rel = "stylesheet";
+                sheetElement.href = thisSheet.href;
+                if (!!thisSheet.crossorigin){
+                    sheetElement.src = thisSheet.crossorigin;
+                }
+                if (!!thisScript.integrity){
+                    sheetElement.integrity = thisSheet.integrity;
+                }
+                document.body.appendChild(sheetElement);
+            })
         }
     }
 });
