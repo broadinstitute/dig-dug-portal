@@ -212,6 +212,13 @@ let pages = {
         filename: "llm.html",
         title: "LLM",
         chunks: ["chunk-vendors", "chunk-common", "llm"]
+    },
+    atacseq: {
+        entry: "src/portals/PanKbase/views/AtacSeq/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "atacseq.html",
+        title: "ATAC-seq",
+        chunks: ["chunk-vendors", "chunk-common", "atacseq"]
     }
 };
 
