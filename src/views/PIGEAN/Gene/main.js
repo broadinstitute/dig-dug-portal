@@ -196,6 +196,7 @@ new Vue({
             pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
     methods: {
+        tissueFormatter: Formatters.tissueFormatter,
         // go to region page
         exploreRegion(expanded = 0) {
             let r = this.region;
