@@ -14,8 +14,8 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-import { TRACKS } from "@/portals/PanKbase/utils/tracks";
-import { STYLESHEETS, SCRIPTS } from "@/portals/PanKbase/utils/washU";
+import { TRACKS, SCRIPTS } from "@/portals/PanKbase/utils/tracks";
+//import { SCRIPTS } from "@/portals/PanKbase/utils/washU";
 
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 export default Vue.component("atac-seq", {
@@ -26,6 +26,41 @@ export default Vue.component("atac-seq", {
     data() {
         return {
             washUScriptSrc: "https://target.wustl.edu/dli/eg/epgg.js",
+            scripts: [
+    {
+        src: "https://aframe.io/releases/0.8.0/aframe.min.js"
+    },
+    {
+        src: "https://code.jquery.com/jquery-3.2.1.slim.min.js",
+        integrity: "sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN",
+        crossorigin: "anonymous"
+    },
+    {
+        src: "https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js",
+        integrity: "sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q",
+        crossorigin: "anonymous"
+    },
+    {
+        src: "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js",
+        integrity: "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl",
+        crossorigin: "anonymous"
+    },
+    {
+        src: "https://unpkg.com/react@16/umd/react.development.js",
+        crossorigin: true
+    },
+    {
+        src: "https://cdn.plot.ly/plotly-cartesian-latest.min.js",
+        crossorigin: true
+    },
+    {
+        src: "https://unpkg.com/react-plotly.js@2.3.0/dist/create-plotly-component.min.js",
+        crossorigin: true
+    },
+    {
+        src: "https://unpkg.com/epgg@53.6.0/umd/epgg.js"
+    }
+],
         };
     },
     mounted(){
@@ -114,8 +149,8 @@ export default Vue.component("atac-seq", {
                 renderBrowserInElement(contents, container);`;
         },
         setUpScripts(){
-            SCRIPTS.forEach(thisScript => {
-                let scriptElement = document.body.createElement("script");
+            this.scripts.forEach(thisScript => {
+                let scriptElement = document.createElement("script");
                 scriptElement.src = thisScript.src;
                 if (!!thisScript.crossorigin){
                     scriptElement.src = thisScript.crossorigin;
@@ -125,7 +160,7 @@ export default Vue.component("atac-seq", {
                 }
                 document.body.appendChild(scriptElement);
             });
-            STYLESHEETS.forEach(thisSheet => {
+            /* STYLESHEETS.forEach(thisSheet => {
                 let sheetElement = document.body.createElement("link");
                 sheetElement.rel = "stylesheet";
                 sheetElement.href = thisSheet.href;
@@ -136,7 +171,7 @@ export default Vue.component("atac-seq", {
                     sheetElement.integrity = thisSheet.integrity;
                 }
                 document.body.appendChild(sheetElement);
-            })
+            }); */
         }
     }
 });
