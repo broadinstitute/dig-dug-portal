@@ -3831,7 +3831,7 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 
 			try {
 				// Create description for the gene set
-				const description = `Gene set from CFDE Genes Validator: ${geneList.join(', ')}`;
+				const description = `Gene set from CFDE EXPLORE.}`;
 				
 				// Create Playbook Workflow Builder URL
 				const workflowUrl = await drcUtils.create_pwb_gene_set_workflow(geneList, description);

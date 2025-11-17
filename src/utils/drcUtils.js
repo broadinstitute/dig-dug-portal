@@ -9,6 +9,7 @@ async function create_pwb_workflow(props) {
         },
         body: JSON.stringify(props.body),
     })
+
     const res = await req.json()
     return `https://playbook-workflow-builder.cloud/${props.mode ?? 'report'}/${res}`
 }
