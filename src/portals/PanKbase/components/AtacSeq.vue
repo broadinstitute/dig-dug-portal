@@ -1,19 +1,20 @@
 <template>
   <div>
       <h4>ATAC-Seq coming soon</h4>
+    <div id="embed" style="width: 100%; height: 100vh;"></div>
+
   </div>
 </template>
 <script>
 import Vue from "vue";
 import Formatters from "@/utils/formatters";
-import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
-import BulkTable from "./BulkTable.vue";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
+import TRACKS from "@/utils/tracks";
 
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 export default Vue.component("atac-seq", {
@@ -25,6 +26,7 @@ export default Vue.component("atac-seq", {
         return {};
     },
     mounted(){
+        this.buildAtacSeq();
     },
     computed: {
         utilsBox() {
@@ -48,6 +50,63 @@ export default Vue.component("atac-seq", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
+        buildAtacSeq(){
+            const container = document.getElementById("embed");
+            
+            // Parse URL parameters FIRST
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedCells = urlParams.get('cells')?.split(',') || [];
+            const selectedTypes = urlParams.get('types')?.split(',') || [];
+            
+            // Load tracks from JSON file
+
+            // Filter tracks if URL parameters exist
+            let tracksToShow = TRACKS;
+            if (selectedCells.length > 0 || selectedTypes.length > 0) {
+                    tracksToShow = allTracksFromFile.filter(track => {
+                        // If types are specified, check if track type matches
+                        const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(track.type);
+                        
+                        // If cells are specified, check if track name contains any selected cell
+                        // Need to handle both "Alpha" and "Alpha_" patterns
+                        const cellMatch = selectedCells.length === 0 || 
+                                        selectedCells.some(cell => {
+                                            const trackNameLower = track.name.toLowerCase();
+                                            const cellLower = cell.toLowerCase();
+                                            // Match if track name contains the cell name followed by space, underscore, or nothing
+                                            return trackNameLower.includes(cellLower + ' ') || 
+                                                    trackNameLower.includes(cellLower + '_') ||
+                                                    trackNameLower.startsWith(cellLower);
+                                        });
+                        
+                        return typeMatch && cellMatch;
+                    });
+            }
+            const allTracks = [
+                    {
+                        "type": "geneannotation",
+                        "name": "refGene",
+                        "genome": "hg38"
+                    },
+                    {
+                        "type": "ruler",
+                        "name": "Ruler"
+                    },
+                    ...tracksToShow
+                ];
+            const contents = {
+                    genomeName: "hg38",
+                    displayRegion: "chr11:2150341-2238950",
+                    trackLegendWidth: 150,
+                    isShowingNavigator: true,
+                    tracks: allTracks,
+                    metadataTerms: ["Sample"]
+            };
+            renderBrowserInElement(contents, container);
+        }
+    }
+}
+        }
     },
 });
 </script>
