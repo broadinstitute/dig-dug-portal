@@ -14,7 +14,7 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-import TRACKS from "@/utils/tracks";
+import { TRACKS } from "@/portals/PanKbase/utils/tracks";
 
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 export default Vue.component("atac-seq", {
@@ -23,9 +23,14 @@ export default Vue.component("atac-seq", {
     props: [
     ],
     data() {
-        return {};
+        return {
+            washUScriptSrc: "https://target.wustl.edu/dli/eg/epgg.js",
+        };
     },
     mounted(){
+        const script = document.createElement("script");
+        script.src = this.washUScriptSrc;
+        document.body.appendChild(script);
         this.buildAtacSeq();
     },
     computed: {
@@ -53,17 +58,19 @@ export default Vue.component("atac-seq", {
         buildAtacSeq(){
             const container = document.getElementById("embed");
             
+            
             // Parse URL parameters FIRST
             const urlParams = new URLSearchParams(window.location.search);
             const selectedCells = urlParams.get('cells')?.split(',') || [];
             const selectedTypes = urlParams.get('types')?.split(',') || [];
-            
             // Load tracks from JSON file
 
             // Filter tracks if URL parameters exist
             let tracksToShow = TRACKS;
             if (selectedCells.length > 0 || selectedTypes.length > 0) {
-                    tracksToShow = allTracksFromFile.filter(track => {
+                console.log("we made it here");
+                    tracksToShow = tracksToShow.filter(track => {
+                        console.log("ok now we made it here");
                         // If types are specified, check if track type matches
                         const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(track.type);
                         
@@ -82,7 +89,7 @@ export default Vue.component("atac-seq", {
                         return typeMatch && cellMatch;
                     });
             }
-            const allTracks = [
+            let allTracks = [
                     {
                         "type": "geneannotation",
                         "name": "refGene",
@@ -91,10 +98,9 @@ export default Vue.component("atac-seq", {
                     {
                         "type": "ruler",
                         "name": "Ruler"
-                    },
-                    ...tracksToShow
-                ];
-            const contents = {
+                    }];
+            allTracks = allTracks.concat(tracksToShow);
+            let contents = {
                     genomeName: "hg38",
                     displayRegion: "chr11:2150341-2238950",
                     trackLegendWidth: 150,
@@ -105,10 +111,8 @@ export default Vue.component("atac-seq", {
             renderBrowserInElement(contents, container);
         }
     }
-}
-        }
-    },
 });
+    
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");
