@@ -1,0 +1,158 @@
+[
+  {
+    "type": "bigWig",
+    "name": "A_stellate ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/A_Stellate.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#B78E66",
+      "height": 50
+    },
+    "metadata": {
+      "Sample": "A_stellate"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Acinar ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Acinar.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#09850B",
+      "height": 100
+    },
+    "metadata": {
+      "Sample": "Acinar"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Alpha ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Alpha.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#F51646",
+      "height": 50
+    },
+    "metadata": {
+      "Sample": "Alpha"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Beta ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Beta.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#3F98E0",
+      "height": 100
+    },
+    "metadata": {
+      "Sample": "Beta"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Delta ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Delta.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#FFA946",
+      "height": 50
+    },
+    "metadata": {
+      "Sample": "Delta"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Ductal ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Ductal.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#F5DE6C",
+      "height": 100
+    },
+    "metadata": {
+      "Sample": "Ductal"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Endothelial ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Endothelial.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#752BBA",
+      "height": 50
+    },
+    "metadata": {
+      "Sample": "Endothelial"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Gamma ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Gamma.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#A1D99B",
+      "height": 100
+    },
+    "metadata": {
+      "Sample": "Gamma"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Immune ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Immune.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#F598C9",
+      "height": 50
+    },
+    "metadata": {
+      "Sample": "Immune"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Muc5b_ductal ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/MUC5B_Ductal.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#D66853",
+      "height": 100
+    },
+    "metadata": {
+      "Sample": "Muc5b_ductal"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Q_stellate ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Q_Stellate.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#583E23",
+      "height": 50
+    },
+    "metadata": {
+      "Sample": "Q_stellate"
+    }
+  },
+  {
+    "type": "bigWig",
+    "name": "Schwann ATAC signal",
+    "url": "https://s3-us-west-2.amazonaws.com/gaulton-lab-ucsc/rlmelton/washu_epigenome_browser_hpap/Schwann.scale_1e6.bw",
+    "showOnHubLoad": true,
+    "options": {
+      "color": "#93D7CD",
+      "height": 100
+    },
+    "metadata": {
+      "Sample": "Schwann"
+    }
+  }
+]

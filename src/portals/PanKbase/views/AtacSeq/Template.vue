@@ -1,20 +1,18 @@
 <template>
-  <div class="pkb-wrapper f-col fill-height align-h-center">
-      <!-- NAV -->
-      <pkb-header></pkb-header>
-      <!-- BODY -->
-      <div class="pkb-body">
-      <!-- Table of contents-->
-      <div class="card mdkp-card">
-        <div class="card-body">
-            <h4>ATAC-Seq</h4>
-            <atac-seq></atac-seq>
+    <div class="pkb-wrapper f-col fill-height align-h-center">
+        <!-- NAV -->
+        <pkb-header></pkb-header>
+        <!-- BODY -->
+        <div class="pkb-body">
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <atac-seq></atac-seq>
+                </div>
+            </div>
         </div>
-      </div>
+        <!-- FOOTER -->
+        <pkb-footer></pkb-footer>
     </div>
-    <!-- FOOTER -->
-    <pkb-footer></pkb-footer> 
-  </div>
 </template>
 <style scoped>
 .container {
@@ -102,14 +100,14 @@
     text-decoration: inherit !important;
 }
 .mdkp-card {
-  margin-top: 20px;
-  margin-bottom: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 .toc-item {
     padding: 10px;
     margin-bottom: 5px;
     background-color: #efefef;
     border: 1px solid #dddddd;
-    border-radius: 5px; 
+    border-radius: 5px;
 }
 </style>
