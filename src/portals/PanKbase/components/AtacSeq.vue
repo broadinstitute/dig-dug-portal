@@ -146,8 +146,6 @@ export default Vue.component("AtacSeq", {
 });
 </script>
 <style scoped>
-@import url("/css/effectorGenes.css");
-
 .atac-seq {
     margin-top: 20px;
     margin-bottom: 20px;
