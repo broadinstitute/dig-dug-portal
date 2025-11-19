@@ -6,10 +6,12 @@ import "../../assets/pkb-styles.css";
 import "../../assets/phewas.css";
 import "../../assets/filtering.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
+import AtacSeq from "../../components/AtacSeq.vue";
 new Vue({
     // Based on HuGeAMP Gene page.
     store,
     components: {
+        AtacSeq
     },
     mixins: [pankbaseMixin],
     data() {
