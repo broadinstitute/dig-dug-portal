@@ -5,6 +5,7 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import "../../assets/phewas.css";
 import "../../assets/filtering.css";
+import "../../assets/atacseq.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import AtacSeq from "../../components/AtacSeq.vue";
 new Vue({
