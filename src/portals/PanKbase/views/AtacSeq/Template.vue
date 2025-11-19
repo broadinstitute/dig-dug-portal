@@ -1,7 +1,7 @@
 <template>
     <div class="pkb-wrapper f-col fill-height align-h-center">
         <!-- NAV -->
-        <pkb-header></pkb-header>
+        <pkb-header z-index="0"></pkb-header>
         <!-- BODY -->
         <div class="pkb-body">
             <div class="card mdkp-card">

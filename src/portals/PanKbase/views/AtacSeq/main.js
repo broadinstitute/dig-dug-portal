@@ -18,7 +18,18 @@ new Vue({
     data() {
         return {};
     },
-    async created() {},
+    async created() {
+    },
+    computed: {
+        navbar() {
+            return document.getElementsByClassName("pkb-nav");
+        }
+    },
+    watch: {
+        navbar(newData){
+            console.log(newData.length);
+        }
+    },
     methods: {},
     render(createElement, context) {
         return createElement(Template);
