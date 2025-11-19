@@ -34,11 +34,54 @@
           </div>
         </div>
       </div>
+
+      <div class="pkb-body">
+        <div v-html="$parent.about"></div>
+        <div style="max-width: 800px; margin: 0 auto">
+          <h4>PanKgraph Search</h4>
+          <div style="display:flex; gap:10px;">
+            <input type="text" v-model="$parent.cypherQuery" @keyup.enter="$parent.runCypherQuery()" style="flex:1;" />
+            <button @click="$parent.runCypherQuery()" style="width:100px; padding:5px 10px">
+              <span v-if="$parent.llmCypherLoading" class="loader"></span>
+              <span v-else>Ask</span>
+            </button>
+          </div>
+          
+          <div v-if="!$parent.queryResponse && !$parent.llmQueryLoading" style="padding: 20px">
+            <!--
+            Examples:
+            <div style="display:flex; flex-direction: column; gap:5px">
+              <div class="query-example" v-for="query in $parent.queryExamples" @click="$parent.runQuery(query)">{{ query }}</div>
+            </div>
+          </div>
+          <div v-if="$parent.queryResponse" style="display:flex; flex-direction: column; gap:10px; padding: 20px;">
+            <div style="display:none">{{ $parent.queryResponse.note }}</div>
+            <div v-if="$parent.queryResponse.query">
+              <a :href="`${$parent.baseQueryURL}${$parent.queryResponse.query}`" target="_blank">
+                See Results
+              </a>
+              <div style="font-size: 0.8em;">{{ `${$parent.baseQueryURL}${$parent.queryResponse.query}` }}</div>
+            </div>
+            -->
+            <div v-if="$parent.cypherResponse" style="display:flex; flex-direction: column; gap:20px">
+              <div v-for="result in $parent.cypherResponse" style="display:flex; flex-direction: column; gap:10px">
+                <div>{{ result.info }}</div>
+                <pre style="padding:10px; background:#e4f0f1;">{{ result.query }}</pre>
+                <pre>{{ result.results }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- FOOTER -->
       <pkb-footer></pkb-footer> 
   </div>
 </template>
 <style scoped>
+pre{
+  white-space: break-spaces;
+  margin: 0;
+}
 .loader {
     width: 15px;
     height: 15px;

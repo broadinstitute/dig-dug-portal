@@ -386,7 +386,340 @@ SearchSchema:
                 "Retrieve HPAP measurement sets that use scRNA-seq.",
                 "Get principal analysis sets from HPAP.",
                 "List all PanKbase workflows.",
-            ]
+            ],
+
+
+            baseCypherURL: 'https://vcr7lwcrnh.execute-api.us-east-1.amazonaws.com/development/api',
+            cypherQuery: null,
+            llmCypher: null,
+            llmCypherLoading: false,
+            cypherResponse: null,
+            cypherSystemPrompt: `You are an expert Cypher query generator.
+
+Your task is to translate a natural-language question into one or more Cypher
+queries based on the graph schema provided in the "Graph Schema Appendix."
+
+You MUST follow these rules:
+
+# OUTPUT RULES
+1. Your output MUST be a valid JSON ARRAY.
+2. Each element in the array MUST be an object with:
+      {
+        "query": "<cypher or null>",
+        "info": "<one-sentence description>"
+      }
+3. The "info" field MUST be ONE short sentence describing what the query retrieves.
+4. You MUST NOT include any natural-language text outside of the JSON array.
+5. You MUST use ONLY the node labels, relationship types, and properties in the schema.
+6. You MUST follow relationship directions exactly as shown in the schema.
+7. You MUST NOT invent labels, relationships, or properties.
+8. For multi-label nodes (e.g., ["variants","sequence_variant","snp"]),
+      match using ALL labels:
+      MATCH (n:variants:sequence_variant:snp)
+
+
+
+OUTPUT RULES
+1. Your output MUST ALWAYS be a JSON array of objects.
+2. Each object MUST contain: { "query": <string|null>, "info": <short sentence> }.
+
+STRICT CONSTRAINTS
+1. NEVER invent labels, relationship types, properties, or node structures.
+2. ALWAYS respect the exact relationship directions and endpoints given in the schema.
+3. NEVER guess which labels a relationship connects; use ONLY what is present in the schema.
+4. ALWAYS bind relationship variables explicitly, e.g., MATCH (a)-[r:TYPE]->(b).
+5. ONLY reference properties that belong to the correct element:
+    - Node property → must match ~properties of the node type.
+    - Relationship property → must match ~properties of the relationship type.
+6. If a relationship type does NOT have target labels listed in the schema,
+    assume the target is a generic stats node and DO NOT guess or add labels.
+7. For multi-label nodes (e.g. ["variants","sequence_variant","snp"]),
+    include ALL labels when matching:
+      MATCH (n:variants:sequence_variant:snp)
+8. NEVER reuse variables that were not defined in the MATCH clause.
+9. If a question references concepts not available in the schema,
+    return a null query rather than inventing structure.
+10. ALWAYS bind relationship variables explicitly:
+      MATCH (a)-[r:RELTYPE]->(b)
+    Relationship properties MUST be referenced as r.<property>.
+11. NEVER reference r.<property> unless r is defined in MATCH.
+12. If the schema shows relationship properties for RELTYPE, 
+    they MUST be accessed on the relationship variable, not on nodes.
+13. ALWAYS include ORDER BY as a separate clause after RETURN.
+14. **IMPORTANT** When selecting a relationship type, you MUST choose the one whose properties
+    directly match the type of comparison or metric requested in the question.
+
+WORKFLOW FOR GENERATING QUERIES
+1. Identify which node labels the user question refers to.
+2. Identify which relationship types are relevant from the schema.
+3. Verify relationship endpoints EXACTLY match the schema.
+4. Verify all properties exist for the nodes/relationships involved.
+5. ONLY after validating schema connections, construct Cypher.
+
+# OUTPUT EXAMPLES
+
+### Example 1: Single query
+[
+  {
+    "query": "MATCH (g:gene {name:'PRKX'})-[:regulation]->(t) RETURN t",
+    "info": "Retrieve all targets regulated by the gene PRKX."
+  }
+]
+
+### Example 2: Multiple queries
+[
+  {
+    "query": "MATCH (v:variants:sequence_variant:snp {id:'rs123'}) RETURN v",
+    "info": "Retrieve the SNP node by ID."
+  },
+  {
+    "query": "MATCH (v:variants:sequence_variant:snp {id:'rs123'})-[:fine_mapped_eQTL]->(g) RETURN g",
+    "info": "Retrieve genes linked to the SNP via fine-mapped eQTL relationships."
+  }
+]
+
+### Example 3: No query possible
+[
+  {
+    "query": null,
+    "info": "No query can be constructed from the schema for this question."
+  }
+]
+
+# GRAPH SCHEMA APPENDIX
+
+NODE LABELS
+===========
+
+Label Combo: coding_elements, gene  (count=78687)
+Label Combo: variants, sequence_variant, snp  (count=19448)
+Label Combo: OCR  (count=18013)
+Label Combo: ontology, gene_ontology  (count=17448)
+Label Combo: cell_type, ontology  (count=8)
+Label Combo: ontology, disease  (count=1)
+Label Combo: test  (count=1)
+
+Label: OCR
+  Properties:
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+
+Label: cell_type
+  Properties:
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - definition (String, mandatory)
+    - id (String, mandatory)
+    - name (String, mandatory)
+    - synonyms (String, optional)
+    - url (String, mandatory)
+
+Label: coding_elements
+  Properties:
+    - GC_percentage (Number, mandatory)
+    - chr (String, mandatory)
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - description (String, optional)
+    - end_loc (Number, mandatory)
+    - gencode_annotation (String, optional)
+    - id (String, mandatory)
+    - id_version (Number, mandatory)
+    - link (String, mandatory)
+    - name (String, optional)
+    - start_loc (Number, mandatory)
+    - strand (String, mandatory)
+    - type (String, mandatory)
+
+Label: disease
+  Properties:
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - definition (String, mandatory)
+    - id (String, mandatory)
+    - name (String, mandatory)
+    - synonyms (String, mandatory)
+    - url (String, mandatory)
+
+Label: gene
+  Properties:
+    - GC_percentage (Number, mandatory)
+    - chr (String, mandatory)
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - description (String, optional)
+    - end_loc (Number, mandatory)
+    - gencode_annotation (String, optional)
+    - id (String, mandatory)
+    - id_version (Number, mandatory)
+    - link (String, mandatory)
+    - name (String, optional)
+    - start_loc (Number, mandatory)
+    - strand (String, mandatory)
+    - type (String, mandatory)
+
+Label: gene_ontology
+  Properties:
+    - data_version (String, mandatory)
+    - id (String, mandatory)
+    - link (String, mandatory)
+
+Label: ontology
+  Properties:
+    - data_source (String, optional)
+    - data_version (String, mandatory)
+    - definition (String, optional)
+    - id (String, mandatory)
+    - link (String, optional)
+    - name (String, optional)
+    - synonyms (String, optional)
+    - url (String, optional)
+
+Label: sequence_variant
+  Properties:
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - id (String, mandatory)
+    - link (String, mandatory)
+
+Label: snp
+  Properties:
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - id (String, mandatory)
+    - link (String, mandatory)
+
+Label: test
+  Properties: (none)
+
+Label: variants
+  Properties:
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - id (String, mandatory)
+    - link (String, mandatory)
+
+RELATIONSHIPS
+=============
+
+(:coding_elements:gene)-[:regulation]->(:coding_elements:gene)  (count=944145)
+  Properties:
+    - Entrez_ID_A (Number, mandatory)
+    - Entrez_ID_B (Number, mandatory)
+    - author (String, optional)
+    - biogrid_id_interactor_a (Number, mandatory)
+    - biogrid_id_interactor_b (Number, mandatory)
+    - biogrid_interaction_id (Number, mandatory)
+    - data_source (String, mandatory)
+    - experimental_system (String, mandatory)
+    - experimental_system_type (String, mandatory)
+    - modification (String, optional)
+    - official_symbol_interactor_a (String, mandatory)
+    - official_symbol_interactor_b (String, mandatory)
+    - organism_id_interactor_a (Number, mandatory)
+    - organism_id_interactor_b (Number, mandatory)
+    - publication_source (String, mandatory)
+    - qualifications (String, optional)
+    - score (Number, optional)
+    - throughput (String, mandatory)
+
+(:coding_elements:gene)-[:function_annotation]->(:ontology:gene_ontology)  (count=262622)
+  Properties:
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+
+(:OCR)-[:OCR_activity]->(:cell_type:ontology)  (count=126091)
+  Properties:
+    - AAB_pos__OCR_GeneActivityScore_mean (Number, mandatory)
+    - AAB_pos__OCR_GeneActivityScore_median (Number, mandatory)
+    - OCR_GeneActivityScore_mean (Number, mandatory)
+    - OCR_GeneActivityScore_median (Number, mandatory)
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - non_diabetic__OCR_GeneActivityScore_mean (Number, mandatory)
+    - non_diabetic__OCR_GeneActivityScore_median (Number, mandatory)
+    - type_1_diabetes__OCR_GeneActivityScore_mean (Number, mandatory)
+    - type_1_diabetes__OCR_GeneActivityScore_median (Number, mandatory)
+    - type_2_diabetes__OCR_GeneActivityScore_mean (Number, mandatory)
+    - type_2_diabetes__OCR_GeneActivityScore_median (Number, mandatory)
+
+(:coding_elements:gene)-[:expression_level]->(:cell_type:ontology)  (count=60284)
+  Properties:
+    - All__expression_25_quantile (Number, mandatory)
+    - All__expression_75_quantile (Number, mandatory)
+    - All__expression_max (Number, mandatory)
+    - All__expression_mean (Number, mandatory)
+    - All__expression_median (Number, mandatory)
+    - All__expression_min (Number, mandatory)
+    - NonDiabetic__expression_25_quantile (Number, mandatory)
+    - NonDiabetic__expression_75_quantile (Number, mandatory)
+    - NonDiabetic__expression_max (Number, mandatory)
+    - NonDiabetic__expression_mean (Number, mandatory)
+    - NonDiabetic__expression_median (Number, mandatory)
+    - NonDiabetic__expression_min (Number, mandatory)
+    - Type1Diabetic__expression_25_quantile (Number, mandatory)
+    - Type1Diabetic__expression_75_quantile (Number, mandatory)
+    - Type1Diabetic__expression_max (Number, mandatory)
+    - Type1Diabetic__expression_mean (Number, mandatory)
+    - Type1Diabetic__expression_median (Number, mandatory)
+    - Type1Diabetic__expression_min (Number, mandatory)
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+
+(:variants:sequence_variant:snp)-[:fine_mapped_eQTL]->(:coding_elements:gene)  (count=23256)
+  Properties:
+    - credible_set (String, mandatory)
+    - credibleset (String, mandatory)
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+    - effect_allele (String, mandatory)
+    - gene_name (String, mandatory)
+    - lbf (Number, mandatory)
+    - n_snp (Number, mandatory)
+    - nominal_p (Number, mandatory)
+    - other_allele (String, mandatory)
+    - pip (Number, mandatory)
+    - purity (Number, mandatory)
+    - qtl_type (String, mandatory)
+    - slope (Number, mandatory)
+    - tissue_id (String, mandatory)
+    - tissue_name (String, mandatory)
+
+(:OCR)-[:OCR_locate_in]->(:coding_elements:gene)  (count=18013)
+  Properties:
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+
+(:coding_elements:gene)-[:Differential_Expression]->(:cell_type:ontology)  (count=1956)
+  Properties:
+    - Adjusted_P_value (Number, mandatory)
+    - Log2FoldChange (Number, mandatory)
+    - P_value (Number, mandatory)
+    - SE_of_Log2FoldChange (Number, mandatory)
+    - UpOrDownRegulation (String, mandatory)
+    - data_source (String, mandatory)
+    - data_version (String, mandatory)
+
+(:coding_elements:gene)-[:effector_gene]->(:ontology:disease)  (count=176)
+  Properties:
+    - CodingVariantEvidence (String, optional)
+    - ConfidenceLevel (String, mandatory)
+    - EpigenomeEvidence (String, optional)
+    - ModelSystemEvidence (String, optional)
+    - QtlEvidence (String, optional)
+    - ResearchMethod (String, mandatory)
+    - data_source (String, mandatory)
+    - data_source_url (String, mandatory)
+    - data_version (String, mandatory)
+
+# END OF SCHEMA
+`,
+            cypherExamples: [
+                "How does CFTR expression change in T1D versus non-diabetic samples?",
+                "Which SNP serves as the expression quantitative trait locus for CFTR?",
+                "Which genes are linked to the SNP rs2427917 through fine-mapped eQTL relationships?",
+                "Which gene is regulated by rs177069 as a QTL?",
+            ],
         };
     },
     watch: {},
@@ -398,8 +731,18 @@ SearchSchema:
             model: "gpt-5-nano",
             system_prompt: this.querySystemPrompt
         });
+        this.llmCypher = createLLMClient({
+            llm: "openai",
+            model: "gpt-5-nano",
+            system_prompt: this.cypherSystemPrompt
+        });
     },
     methods: {
+      //
+      //
+      // data library querying
+      //
+      //
         runQuery(query=null){
             if(query) this.userQuery = query;
             this.llmQueryLoading = true;
@@ -447,6 +790,118 @@ SearchSchema:
         onQueryState(state){
             console.log('onState', state);
         },
+
+      //
+      //
+      // cypher querying
+      //
+      //
+        runCypherQuery(query=null){
+            if(query) this.cypherQuery = query;
+            this.llmCypherLoading = true;
+            this.cypherResponse = null;
+            this.llmCypher.sendPrompt({
+                userPrompt: this.cypherQuery,
+                onToken: this.onCypherToken,
+                onResponse: this.onCypherResponse,
+                onState: this.onCypherState,
+                onError: this.onCypherError,
+                onEnd: this.onCypherEnd
+            });
+        },
+        onCypherToken(token){
+            console.log('onToken', token);
+        },
+        async onCypherResponse(response){
+            this.llmCypherLoading = false;
+            console.log('onResponse', response);
+            if(response){
+                const json = this.parseLLMResponse(response);
+                console.log('response json', json);
+                
+                const results = await this.runLLMQueries(json);
+                this.cypherResponse = results;
+                console.log(JSON.stringify(results, null, 2));
+            }
+        },
+        onCypherEnd(end){
+            this.llmCypherLoading = false;
+            console.log('End');
+        },
+        onCypherError(error){
+            this.llmCypherLoading = false;
+            console.log('onError', error);
+        },
+        onCypherState(state){
+            console.log('onState', state);
+        },
+
+        async runCypher(cypher, params = {}) {
+          const payload = {
+            query: cypher,
+            params: params
+          };
+
+          const resp = await fetch(this.baseCypherURL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (!resp.ok) {
+            const text = await resp.text();
+            throw new Error(`Cypher API error: ${resp.status} ${text}`);
+          }
+
+          let data;
+          try {
+            data = await resp.json();
+          } catch (err) {
+            const text = await resp.text();
+            throw new Error(`Invalid JSON from API: ${text}`);
+          }
+
+          // Unwrap your API structure: { results: [...] }
+          if (data && data.results) {
+            return data.results;
+          }
+
+          return data;
+        },
+
+        async runLLMQueries(queryObjects) {
+          const output = [];
+
+          for (const qObj of queryObjects) {
+            // If the model returned "no query"
+            if (qObj.query === null) {
+              output.push({
+                query: null,
+                info: qObj.info,
+                results: null
+              });
+              continue;
+            }
+
+            try {
+              const results = await this.runCypher(qObj.query);
+              output.push({
+                query: qObj.query,
+                info: qObj.info,
+                results: results
+              });
+            } catch (err) {
+              output.push({
+                query: qObj.query,
+                info: qObj.info,
+                error: err.message,
+                results: null
+              });
+            }
+          }
+
+          return output;
+        }
     },
     render(createElement, context) {
         return createElement(Template);
