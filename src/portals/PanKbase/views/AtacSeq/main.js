@@ -5,6 +5,7 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import "../../assets/phewas.css";
 import "../../assets/filtering.css";
+import "../../assets/atacseq.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import AtacSeq from "../../components/AtacSeq.vue";
 new Vue({
@@ -17,7 +18,18 @@ new Vue({
     data() {
         return {};
     },
-    async created() {},
+    async created() {
+    },
+    computed: {
+        navbar() {
+            return document.getElementsByClassName("pkb-nav");
+        }
+    },
+    watch: {
+        navbar(newData){
+            console.log(newData.length);
+        }
+    },
     methods: {},
     render(createElement, context) {
         return createElement(Template);
