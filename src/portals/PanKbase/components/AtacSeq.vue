@@ -3,16 +3,25 @@
         <h4>PanKbase ATAC-Seq Browser</h4>
         <div class="row">
             <div class="col-md-3">
-            <h5>Select tracks</h5>
-            <ul v-for="track in tracksJson">
+            <h6>Select tracks</h6>
+            <div id="tracklist">
+                <div>
+                    <label>
+                        <input type="checkbox" v-model="selectAll"
+                            @change="toggleTracks()"></input>
+                        <strong> Select/deselect all</strong>
+                    </label>
+                </div>
+                <div v-for="track in tracksJson">
                 <label>
                     <input type="checkbox" v-model="selectedNames" :value="track.name"/>
                     {{ track.name }}
                 </label>
-            </ul>
+            </div>
             <button btn-primary btn @click="updateTracks">
                 Update browser
             </button>
+            </div>
         </div>
         <div class="col-md-9">
             <div v-if="loadError" class="alert alert-danger" role="alert">
@@ -49,7 +58,8 @@ export default Vue.component("AtacSeq", {
             loadError: null,
             tracksJson: TRACKS,
             allTracks: null,
-            selectedNames: []
+            selectedNames: [],
+            selectAll: true,
         };
     },
     async mounted() {
@@ -181,6 +191,10 @@ export default Vue.component("AtacSeq", {
                 this.filterTrackNames(this.allTracks);
             this.renderBrowser(filteredTracks);
             this.isLoading = false;
+        },
+        toggleTracks(){
+            console.log("toggling");
+            this.selectedNames = !this.selectAll ? [] : TRACKS.map(t => t.name);
         }
     },
 });
