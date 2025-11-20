@@ -22,12 +22,12 @@
             <p v-if="isLoading" class="atac-seq__loading">
                 Loading ATAC tracks…
             </p>
-            <div
-                v-show="!isLoading"
-                ref="browser"
+            <div v-show="!isLoading">
+                <div id="browser"
                 class="atac-seq__browser"
                 aria-live="polite"
             ></div>
+            </div>
         </div>
         </div>
         </div>
@@ -128,7 +128,8 @@ export default Vue.component("AtacSeq", {
             });
         },
         renderBrowser(tracks) {
-            const container = this.$refs.browser;
+            //const container = this.$refs.browser;
+            const container = document.getElementById("browser");
             if (!container) {
                 throw new Error("Missing WashU browser mount point");
             }
@@ -155,8 +156,6 @@ export default Vue.component("AtacSeq", {
                 tracks: [...defaultTracks, ...tracks],
                 metadataTerms: ["Sample"],
             };
-            console.log(JSON.stringify(contents));
-            console.log("we made it here");
             const renderBrowserInElement = window.renderBrowserInElement;
             if (typeof renderBrowserInElement !== "function") {
                 throw new Error("WashU browser script is not available");
@@ -170,10 +169,18 @@ export default Vue.component("AtacSeq", {
             );
         },
         updateTracks(){
+            this.isLoading = true;
+            let browserdiv = document.getElementById("browser");
+            let newdiv = document.createElement("div");
+            newdiv.id = "browser";
+            newdiv.className = "atac-seq__browser";
+            newdiv.ariaLive = "polite";
+            browserdiv.replaceWith(newdiv);
+            
             const filteredTracks = 
                 this.filterTrackNames(this.allTracks);
-            console.log(JSON.stringify(filteredTracks));
             this.renderBrowser(filteredTracks);
+            this.isLoading = false;
         }
     },
 });
