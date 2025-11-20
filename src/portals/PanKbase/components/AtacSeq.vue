@@ -1,19 +1,44 @@
 <template>
     <div class="atac-seq">
         <h4>PanKbase ATAC-Seq Browser</h4>
-        <div v-if="loadError" class="alert alert-danger" role="alert">
+        <div class="row">
+            <div class="col-md-2">
+            <div id="tracklist">
+                <h5>Select tracks</h5>
+                <div>
+                    <label>
+                        <input type="checkbox" v-model="selectAll"
+                            @change="toggleTracks()"></input>
+                        <strong> Select/deselect all</strong>
+                    </label>
+                </div>
+                <div v-for="track in tracksJson">
+                <label>
+                    <input type="checkbox" v-model="selectedNames" :value="track.name"/>
+                    {{ track.name }}
+                </label>
+            </div>
+            <button class="btn-primary btn" @click="updateTracks">
+                Update browser
+            </button>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <div v-if="loadError" class="alert alert-danger" role="alert">
             {{ loadError }}
         </div>
         <div v-else>
             <p v-if="isLoading" class="atac-seq__loading">
                 Loading ATAC tracks…
             </p>
-            <div
-                v-show="!isLoading"
-                ref="browser"
+            <div v-show="!isLoading">
+                <div id="browser"
                 class="atac-seq__browser"
                 aria-live="polite"
             ></div>
+            </div>
+        </div>
+        </div>
         </div>
     </div>
 </template>
@@ -21,6 +46,7 @@
 import Vue from "vue";
 import { fetchTracks } from "@/portals/PanKbase/utils/tracks";
 import { loadWashUAssets } from "@/portals/PanKbase/utils/washU";
+import { TRACKS } from "@/portals/PanKbase/utils/tracks.js";
 
 const DEFAULT_GENOME = "hg38";
 const DEFAULT_REGION = "chr11:2150341-2238950";
@@ -30,9 +56,14 @@ export default Vue.component("AtacSeq", {
         return {
             isLoading: true,
             loadError: null,
+            tracksJson: TRACKS,
+            allTracks: null,
+            selectedNames: [],
+            selectAll: true,
         };
     },
-    mounted() {
+    async mounted() {
+        this.selectedNames = TRACKS.map(t => t.name);
         this.initializeBrowser();
     },
     methods: {
@@ -42,8 +73,8 @@ export default Vue.component("AtacSeq", {
 
             try {
                 await loadWashUAssets();
-                const tracks = await this.loadTracks();
-                const filteredTracks = this.applyUrlFilters(tracks);
+                this.allTracks = await this.loadTracks();
+                const filteredTracks = this.applyUrlFilters(this.allTracks);
                 this.renderBrowser(filteredTracks);
             } catch (error) {
                 // eslint-disable-next-line no-console
@@ -107,7 +138,8 @@ export default Vue.component("AtacSeq", {
             });
         },
         renderBrowser(tracks) {
-            const container = this.$refs.browser;
+            //const container = this.$refs.browser;
+            const container = document.getElementById("browser");
             if (!container) {
                 throw new Error("Missing WashU browser mount point");
             }
@@ -134,7 +166,6 @@ export default Vue.component("AtacSeq", {
                 tracks: [...defaultTracks, ...tracks],
                 metadataTerms: ["Sample"],
             };
-
             const renderBrowserInElement = window.renderBrowserInElement;
             if (typeof renderBrowserInElement !== "function") {
                 throw new Error("WashU browser script is not available");
@@ -142,6 +173,29 @@ export default Vue.component("AtacSeq", {
 
             renderBrowserInElement(contents, container);
         },
+        filterTrackNames(inputTracks){
+            return inputTracks.filter(t => 
+                this.selectedNames.includes(t.name)
+            );
+        },
+        updateTracks(){
+            this.isLoading = true;
+            let browserdiv = document.getElementById("browser");
+            let newdiv = document.createElement("div");
+            newdiv.id = "browser";
+            newdiv.className = "atac-seq__browser";
+            newdiv.ariaLive = "polite";
+            browserdiv.replaceWith(newdiv);
+            
+            const filteredTracks = 
+                this.filterTrackNames(this.allTracks);
+            this.renderBrowser(filteredTracks);
+            this.isLoading = false;
+        },
+        toggleTracks(){
+            console.log("toggling");
+            this.selectedNames = !this.selectAll ? [] : TRACKS.map(t => t.name);
+        }
     },
 });
 </script>
@@ -158,5 +212,13 @@ export default Vue.component("AtacSeq", {
 
 .atac-seq__loading {
     font-style: italic;
+}
+#tracklist {
+    margin-top: 50px;
+    margin-left: 25px;
+    font-size: small;
+}
+#tracklist h5 {
+    margin-bottom: 10px;
 }
 </style>
