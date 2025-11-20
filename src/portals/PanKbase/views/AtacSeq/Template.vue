@@ -1,5 +1,5 @@
 <template>
-    <div class="pkb-wrapper f-col fill-height align-h-center">
+    <div class="pkb-wrapper f-col fill-height">
         <!-- NAV -->
         <pkb-header z-index="0"></pkb-header>
         <!-- BODY -->
