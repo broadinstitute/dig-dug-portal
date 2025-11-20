@@ -24,41 +24,14 @@
                         {{ $parent.content.resources.subtitle }}
                     </div>
                 </div>
-                <div class="section-items">
-                    <div
-                        class="section-item"
-                        v-for="item in $parent.content.resources.rows[0]"
-                        :class="[item.type, item.comingSoon ? 'soon' : '']"
-                    >
-                        <div
-                            class="item-copy"
-                            style="justify-content: space-between"
-                        >
+                <div v-for="row in $parent.content.resources.rows" class="section-items">
+                    <div v-for="item in row" class="section-item" :class="[item.type, item.comingSoon ? 'soon' : '']">
+                        <div class="item-copy" style="justify-content: space-between">
                             <div>
                                 <div class="item-title">{{ item.title }}</div>
                                 <div class="item-body" v-html="item.body"></div>
                             </div>
-                            <a class="item-btn" :href="item.linkUrl"
-                                >{{ item.linkLabel }} ❯</a
-                            >
-                        </div>
-                        <div class="item-bg contain">
-                            <img :src="item.bgImage" />
-                        </div>
-                    </div>
-                </div>
-                <div class="section-items">
-                    <div
-                        class="section-item"
-                        v-for="item in $parent.content.resources.rows[1]"
-                        :class="[item.type, item.comingSoon ? 'soon' : '']"
-                    >
-                        <div class="item-copy">
-                            <div class="item-title">{{ item.title }}</div>
-                            <div class="item-body" v-html="item.body"></div>
-                            <a class="item-btn" :href="item.linkUrl"
-                                >{{ item.linkLabel }} ❯</a
-                            >
+                            <a class="item-btn" :href="item.linkUrl">{{ item.linkLabel }} ❯</a>
                         </div>
                         <div class="item-bg contain">
                             <img :src="item.bgImage" />

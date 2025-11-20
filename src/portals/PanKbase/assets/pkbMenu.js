@@ -21,16 +21,12 @@ export const pkbMenu = {
             path: "",
             subMenuItems: [
                 { label: "Integrated Cell Browser", path: "/single-cell.html" },
+                { label: "Genome Browser", path: "/atacseq.html" },
                 { label: "Differential Gene Expression Browser", path: "/diff-exp.html" },
+                { label: "Gene Browser", path: "/gene.html" },
                 { label: "PCA Explorer", path: "/pca-explorer.html" },
-                {
-                    label: "Analytical Library",
-                    path: "/analytical-library.html",
-                },
-                {
-                    label: "Metadata Standards",
-                    path: "/metadata-data-standards.html",
-                },
+                { label: "Analytical Library", path: "/analytical-library.html" },
+                { label: "Metadata Standards", path: "/metadata-data-standards.html" },
                 { label: "Tools | Pipelines", path: "/tools-pipelines.html" },
                 { label: "Publications", path: "/publications.html" },
             ],

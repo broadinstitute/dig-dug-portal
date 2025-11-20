@@ -28,8 +28,7 @@ new Vue({
                             body: "Single cell maps of gene expression and chromatin accessibility with data from >100 human donors from <a href='/hpap-program.html'>HPAP</a>, <a href='/iidp-program.html'>IIDP</a>, and <a target='_blank' href='https://prodolabs.com/'>Prodo</a>",
                             linkLabel: "Learn More",
                             linkUrl: "/single-cell.html",
-                            bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap3.png",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap3.png",
                             type: "large",
                             comingSoon: false,
                         },
@@ -38,21 +37,18 @@ new Vue({
                             body: "Identifying quantitative trait loci (QTLs) for genes in pancreatic and islet tissues",
                             linkLabel: "Learn More",
                             linkUrl: "https://pankgraph.org/",
-                            bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph-ctfr.png",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph-ctfr.png",
                             type: "large",
                             comingSoon: false,
                         },
-                    ],
-                    [
+                    ],[
                         {
                             title: "Data Library",
                             body: "Harmonized meta-data and data of human donors, biosamples, assays, and more all standardized using Common Data Elements.",
                             linkLabel: "Learn More",
                             linkUrl: "https://data.pankbase.org/",
-                            bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-datalibrary.png",
-                            type: "medium",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-datalibrary.png",
+                            type: "large",
                             comingSoon: false,
                         },
                         {
@@ -60,21 +56,11 @@ new Vue({
                             body: "Summarized metadata of ~3500 donors from <a href='/hpap-program.html'>HPAP</a>, <a href='/iidp-program.html'>IIDP</a>, <a target='_blank' href='https://prodolabs.com/'>Prodo</a>, <a href='/adi-program.html'>ADI IsletCore</a>, <a href='/npod-program.html'>nPOD</a>, and <a href='/pancreatlas-program.html'>Pancreatlas</a>",
                             linkLabel: "Learn More",
                             linkUrl: "/donor-metadata.html",
-                            bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-donors2.png",
-                            type: "medium",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-donors2.png",
+                            type: "large",
                             comingSoon: false,
                         },
-                        {
-                            title: "Differential Expression Browser",
-                            body: "Interactive visualizations of differentially expressed genes in bulk and pseudobulk RNA-seq datasets from human islet donors.",
-                            linkLabel: "Learn More",
-                            linkUrl: "/diff-exp.html",
-                            bgImage:
-                                "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
-                            type: "medium",
-                            comingSoon: false,
-                        }
+                        
                         /*
                         {
                             title: "Genetic Associations",
@@ -97,7 +83,35 @@ new Vue({
                             comingSoon: true,
                         },
                         */
-                    ],
+                    ],[
+                        {
+                            title: "Differential Expression Browser",
+                            body: "Interactive visualizations of differentially expressed genes in bulk and pseudobulk RNA-seq datasets from human islet donors.",
+                            linkLabel: "Learn More",
+                            linkUrl: "/diff-exp.html",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
+                            type: "medium",
+                            comingSoon: false,
+                        },
+                        {
+                            title: "Genome Browser",
+                            body: "Explore ATAC-seq signals and peaks across pancreatic cell types with data from 41 human donors from <a href='https://pankbase.org/hpap-program.html' target='_blank'>HPAP</a>.",
+                            linkLabel: "Learn More",
+                            linkUrl: "/atacseq.html",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-genome.png",
+                            type: "medium",
+                            comingSoon: false,
+                        },
+                        {
+                            title: "Gene Browser",
+                            body: "Obtain summarized pancreas-relevant information about your favorite gene using data from PanKbase and external resources.",
+                            linkLabel: "Learn More",
+                            linkUrl: "/gene.html",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-gene.png",
+                            type: "medium",
+                            comingSoon: false,
+                        },
+                    ]
                 ],
             },
             tools: {
@@ -109,8 +123,7 @@ new Vue({
                         body: "",
                         linkLabel: "Learn More",
                         linkUrl: "/single-cell.html",
-                        bgImage:
-                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap3.png",
+                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap3.png",
                         type: "medium",
                         comingSoon: false,
                     },
@@ -119,8 +132,7 @@ new Vue({
                         body: "",
                         linkLabel: "Learn More",
                         linkUrl: "https://pankgraph.org/",
-                        bgImage:
-                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-relationships.png",
+                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-relationships.png",
                         type: "medium",
                         comingSoon: false,
                     },
@@ -129,8 +141,7 @@ new Vue({
                         body: "",
                         linkLabel: "Learn More",
                         linkUrl: "/diff-exp.html",
-                        bgImage:
-                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
+                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-volcano.png",
                         type: "medium",
                         comingSoon: false,
                     },
@@ -139,8 +150,7 @@ new Vue({
                         body: "",
                         linkLabel: "Learn More",
                         linkUrl: "/",
-                        bgImage:
-                            "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-eqtl.png",
+                        bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-eqtl.png",
                         type: "medium",
                         comingSoon: true,
                     },
@@ -153,14 +163,12 @@ new Vue({
                     {
                         title: "Pancreatic islet all donor single cell map",
                         linkLabel: "Explore",
-                        linkUrl:
-                            "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA_v3-3",
+                        linkUrl: "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA_v3-3",
                     },
                     {
                         title: "Identify quantitative trait loci for a gene",
                         linkLabel: "Explore",
-                        linkUrl:
-                            "https://pankgraph.org/result?snpId=rs2402203&leadSnp=rs2402203&geneId=ENSG00000001626&relationship=fine_mapped_eQTL&tissueKey=&dataSource=splicing%3B+GTEx&geneSymbol=CFTR",
+                        linkUrl: "https://pankgraph.org/result?snpId=rs2402203&leadSnp=rs2402203&geneId=ENSG00000001626&relationship=fine_mapped_eQTL&tissueKey=&dataSource=splicing%3B+GTEx&geneSymbol=CFTR",
                     },
                     {
                         title: "Catalog of multi-program pancreatic donors",
