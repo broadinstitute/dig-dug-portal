@@ -7,27 +7,28 @@ import "../../assets/phewas.css";
 import "../../assets/filtering.css";
 import "../../assets/atacseq.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
+import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 import AtacSeq from "../../components/AtacSeq.vue";
 new Vue({
     // Based on HuGeAMP Gene page.
-    store,
+    //store,
     components: {
         AtacSeq
     },
     mixins: [pankbaseMixin],
     data() {
-        return {};
+        return {
+            byorDocs: "pankbase_genomebrowser",
+        };
     },
     async created() {
+        let docs = await getPankbaseContent(this.byorDocs, true);
+        let docDiv = document.getElementById("documentation");
+        docDiv.innerHTML = docs;
     },
     computed: {
         navbar() {
             return document.getElementsByClassName("pkb-nav");
-        }
-    },
-    watch: {
-        navbar(newData){
-            console.log(newData.length);
         }
     },
     methods: {},

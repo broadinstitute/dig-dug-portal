@@ -6,6 +6,7 @@
         <div class="pkb-body">
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <div id="documentation"></div>
                     <atac-seq></atac-seq>
                 </div>
             </div>
