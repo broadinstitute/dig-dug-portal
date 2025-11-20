@@ -1,10 +1,9 @@
 <template>
     <div class="atac-seq">
-        <h4>PanKbase ATAC-Seq Browser</h4>
         <div class="row">
             <div class="col-md-2">
             <div id="tracklist">
-                <h5>Select tracks</h5>
+                <h5>Select cell types</h5>
                 <div>
                     <label>
                         <input type="checkbox" v-model="selectAll"
@@ -12,12 +11,19 @@
                         <strong> Select/deselect all</strong>
                     </label>
                 </div>
-                <div v-for="track in tracksJson">
-                <label>
-                    <input type="checkbox" v-model="selectedNames" :value="track.name"/>
-                    {{ track.name }}
-                </label>
-            </div>
+                <div v-for="cellType in cellTypes">
+                    <label>
+                        <input type="checkbox" v-model="selectedCellTypes" :value="cellType"/>
+                        {{ cellType }}
+                    </label>
+                </div>
+                <h5>Select track types</h5>
+                <div v-for="trackType in trackTypes">
+                    <label>
+                        <input type="checkbox" v-model="selectedTrackTypes" :value="trackType"/>
+                        {{ trackType }}
+                    </label>
+                </div>
             <button class="btn-primary btn" @click="updateTracks">
                 Update browser
             </button>
@@ -58,12 +64,14 @@ export default Vue.component("AtacSeq", {
             loadError: null,
             tracksJson: TRACKS,
             allTracks: null,
-            selectedNames: [],
+            selectedCellTypes: [],
             selectAll: true,
+            cellTypes: [],
+            trackTypes: [],
+            selectedTrackTypes: []
         };
     },
     async mounted() {
-        this.selectedNames = TRACKS.map(t => t.name);
         this.initializeBrowser();
     },
     methods: {
@@ -74,6 +82,10 @@ export default Vue.component("AtacSeq", {
             try {
                 await loadWashUAssets();
                 this.allTracks = await this.loadTracks();
+                this.cellTypes = Array.from(new Set(this.allTracks.map(t => t.cellType)));
+                this.selectedCellTypes = this.cellTypes;
+                this.trackTypes = Array.from(new Set(this.allTracks.map(t => t.trackType)));
+                this.selectedTrackTypes = this.trackTypes;
                 const filteredTracks = this.applyUrlFilters(this.allTracks);
                 this.renderBrowser(filteredTracks);
             } catch (error) {
@@ -88,13 +100,14 @@ export default Vue.component("AtacSeq", {
         async loadTracks() {
             const tracks = await fetchTracks();
 
-            return tracks.map((track) => ({
+            let output = tracks.map((track) => ({
                 ...track,
                 type:
                     track.type && track.type.toLowerCase() === "bigwig"
                         ? "bigWig"
                         : track.type,
             }));
+            return this.populateCellsAndTracks(output);
         },
         applyUrlFilters(tracks) {
             if (!window.location?.search) {
@@ -174,9 +187,8 @@ export default Vue.component("AtacSeq", {
             renderBrowserInElement(contents, container);
         },
         filterTrackNames(inputTracks){
-            return inputTracks.filter(t => 
-                this.selectedNames.includes(t.name)
-            );
+            return inputTracks.filter(t => this.selectedCellTypes.includes(t.cellType))
+                .filter(t => this.selectedTrackTypes.includes(t.trackType));
         },
         updateTracks(){
             this.isLoading = true;
@@ -193,8 +205,18 @@ export default Vue.component("AtacSeq", {
             this.isLoading = false;
         },
         toggleTracks(){
-            console.log("toggling");
-            this.selectedNames = !this.selectAll ? [] : TRACKS.map(t => t.name);
+            this.selectedCellTypes = !this.selectAll ? [] : this.cellTypes;
+        },
+        populateCellsAndTracks(input){
+            // this assumes same formatting for all track names - quick fix
+            let output = structuredClone(input);
+            for (let i = 0; i < output.length; i++){
+                let name = output[i].name;
+                let splitPoint = name.indexOf(" ");
+                output[i].cellType = name.slice(0,splitPoint).toLowerCase();
+                output[i].trackType = name.slice(splitPoint);
+            }
+            return output;
         }
     },
 });
