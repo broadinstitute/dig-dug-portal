@@ -1,7 +1,21 @@
 <template>
     <div class="atac-seq">
         <h4>PanKbase ATAC-Seq Browser</h4>
-        <div v-if="loadError" class="alert alert-danger" role="alert">
+        <div class="row">
+            <div class="col-md-3">
+            <h5>Select tracks</h5>
+            <ul v-for="track in tracksJson">
+                <label>
+                    <input type="checkbox" v-model="selectedNames" :value="track.name"/>
+                    {{ track.name }}
+                </label>
+            </ul>
+            <button btn-primary btn @click="updateTracks">
+                Update browser
+            </button>
+        </div>
+        <div class="col-md-9">
+            <div v-if="loadError" class="alert alert-danger" role="alert">
             {{ loadError }}
         </div>
         <div v-else>
@@ -15,12 +29,15 @@
                 aria-live="polite"
             ></div>
         </div>
+        </div>
+        </div>
     </div>
 </template>
 <script>
 import Vue from "vue";
 import { fetchTracks } from "@/portals/PanKbase/utils/tracks";
 import { loadWashUAssets } from "@/portals/PanKbase/utils/washU";
+import { TRACKS } from "@/portals/PanKbase/utils/tracks.js";
 
 const DEFAULT_GENOME = "hg38";
 const DEFAULT_REGION = "chr11:2150341-2238950";
@@ -30,9 +47,13 @@ export default Vue.component("AtacSeq", {
         return {
             isLoading: true,
             loadError: null,
+            tracksJson: TRACKS,
+            allTracks: null,
+            selectedNames: []
         };
     },
-    mounted() {
+    async mounted() {
+        this.selectedNames = TRACKS.map(t => t.name);
         this.initializeBrowser();
     },
     methods: {
@@ -42,8 +63,8 @@ export default Vue.component("AtacSeq", {
 
             try {
                 await loadWashUAssets();
-                const tracks = await this.loadTracks();
-                const filteredTracks = this.applyUrlFilters(tracks);
+                this.allTracks = await this.loadTracks();
+                const filteredTracks = this.applyUrlFilters(this.allTracks);
                 this.renderBrowser(filteredTracks);
             } catch (error) {
                 // eslint-disable-next-line no-console
@@ -134,7 +155,8 @@ export default Vue.component("AtacSeq", {
                 tracks: [...defaultTracks, ...tracks],
                 metadataTerms: ["Sample"],
             };
-
+            console.log(JSON.stringify(contents));
+            console.log("we made it here");
             const renderBrowserInElement = window.renderBrowserInElement;
             if (typeof renderBrowserInElement !== "function") {
                 throw new Error("WashU browser script is not available");
@@ -142,6 +164,17 @@ export default Vue.component("AtacSeq", {
 
             renderBrowserInElement(contents, container);
         },
+        filterTrackNames(inputTracks){
+            return inputTracks.filter(t => 
+                this.selectedNames.includes(t.name)
+            );
+        },
+        updateTracks(){
+            const filteredTracks = 
+                this.filterTrackNames(this.allTracks);
+            console.log(JSON.stringify(filteredTracks));
+            this.renderBrowser(filteredTracks);
+        }
     },
 });
 </script>
