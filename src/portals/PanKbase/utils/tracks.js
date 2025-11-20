@@ -1,4 +1,4 @@
-import tracks from "@/portals/PanKbase/assets/data/pkb-atac-tracks.json";
+import tracks from "@/portals/PanKbase/assets/data/pkb-atac-no-abc-w-peaks.json";
 
 export const TRACKS = tracks;
 

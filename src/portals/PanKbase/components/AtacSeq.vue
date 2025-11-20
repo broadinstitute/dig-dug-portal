@@ -18,7 +18,7 @@
                     {{ track.name }}
                 </label>
             </div>
-            <button btn-primary btn @click="updateTracks">
+            <button class="btn-primary btn" @click="updateTracks">
                 Update browser
             </button>
             </div>
