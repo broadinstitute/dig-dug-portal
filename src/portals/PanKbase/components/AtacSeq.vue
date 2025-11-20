@@ -2,9 +2,9 @@
     <div class="atac-seq">
         <h4>PanKbase ATAC-Seq Browser</h4>
         <div class="row">
-            <div class="col-md-3">
-            <h6>Select tracks</h6>
+            <div class="col-md-2">
             <div id="tracklist">
+                <h5>Select tracks</h5>
                 <div>
                     <label>
                         <input type="checkbox" v-model="selectAll"
@@ -23,7 +23,7 @@
             </button>
             </div>
         </div>
-        <div class="col-md-9">
+        <div class="col-md-10">
             <div v-if="loadError" class="alert alert-danger" role="alert">
             {{ loadError }}
         </div>
@@ -212,5 +212,13 @@ export default Vue.component("AtacSeq", {
 
 .atac-seq__loading {
     font-style: italic;
+}
+#tracklist {
+    margin-top: 50px;
+    margin-left: 25px;
+    font-size: small;
+}
+#tracklist h5 {
+    margin-bottom: 10px;
 }
 </style>

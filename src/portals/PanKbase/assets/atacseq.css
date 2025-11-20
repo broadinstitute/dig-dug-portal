@@ -11,3 +11,6 @@
 .pkb-nav {
     z-index: 0 !important;
 }
+.TrackLegend-label{
+    font-size: small !important;
+}

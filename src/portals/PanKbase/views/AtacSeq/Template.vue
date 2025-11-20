@@ -15,6 +15,9 @@
     </div>
 </template>
 <style scoped>
+.pkb-body {
+    max-width: 2000px;
+}
 .container {
     display: flex;
     justify-content: center;
@@ -38,67 +41,7 @@
     height: 12px;
     margin: 2px;
 }
-/* your colors */
-.legend .superawesome {
-    background-color: #e7edf7;
-}
-.legend .awesome {
-    background-color: #fef8dc;
-}
 
-.invalid-gene-warning {
-    position: fixed;
-    z-index: 20000;
-    background-color: #ffcccc;
-    width: 500px;
-    padding: 15px 25px;
-    border: solid 1px #cccccc;
-    border-radius: 5px;
-    left: calc(50% - 275px);
-    top: calc(20% - 50px);
-    text-align: center;
-    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
-    font-size: 20px;
-}
-
-.invalid-gene-hide-warning {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 15px;
-    height: 15px;
-    border-radius: 15px;
-    font-size: 10px;
-    background-color: #666666;
-    color: #ffffff !important;
-}
-
-.invalid-gene-hide-warning:hover {
-    cursor: pointer;
-}
-
-#invalidGeneRedirect {
-    color: #ffffff !important;
-    margin-top: 15px;
-}
-
-.gene-search-tip {
-    position: absolute;
-    font-weight: 300;
-    font-size: 14px;
-    top: 10px;
-    left: 20px;
-    color: #28a745;
-}
-
-.pseudoFilter {
-    font-weight: bold !important;
-}
-
-.pseudoFilter a {
-    color: inherit !important;
-    text-decoration: inherit !important;
-}
 .mdkp-card {
     margin-top: 20px;
     margin-bottom: 20px;
