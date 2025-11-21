@@ -297,7 +297,7 @@
   color: transparent;
 }
 
-::v-deep .search-word-group a:not(.search-gene-link){
+::v-deep .search-word-group a.search-region{
     display:none;
 }
 

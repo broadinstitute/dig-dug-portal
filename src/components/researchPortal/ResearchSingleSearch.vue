@@ -60,7 +60,10 @@
 							href="javascript:;">{{ "Search gene"
 							}}<span class="gene-link-tip">Alias names are converted to gene symbols</span></a>
 						|
-						<a @click="searchRegion(gene)" href="javascript:;">{{
+						<a class="search-genome-browser" href="javascript:;">
+							{{ "Go to genome browser" }}
+						</a>
+						<a class="search-region" @click="searchRegion(gene)" href="javascript:;">{{
 							"Search region"
 						}}</a></span>
 				</div>
