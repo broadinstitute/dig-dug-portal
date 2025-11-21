@@ -301,6 +301,10 @@
     display:none;
 }
 
+::v-deep .search-word-group a.search-genome-browser{
+    display: inline !important;
+}
+
 ::v-deep .pkb-search .reset-search{
     right: -19px;
 }
