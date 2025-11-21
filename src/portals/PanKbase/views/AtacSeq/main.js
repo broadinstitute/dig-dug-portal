@@ -1,6 +1,5 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import "../../assets/phewas.css";
@@ -14,7 +13,6 @@ import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 const HUGEAMP_GENE_BIOINDEX = "https://bioindex.hugeamp.org/api/bio/query/gene?q=";
 new Vue({
-    store,
     components: {
         AtacSeq,
         ResearchSingleSearch
