@@ -19,6 +19,7 @@ new Vue({
     mixins: [pankbaseMixin],
     data() {
         return {
+            geneReady: false,
             geneData: null,
             byorDocs: "pankbase_genomebrowser",
         };
@@ -28,6 +29,7 @@ new Vue({
         if (!!keyParams.gene){
             await this.getGeneRegion(keyParams.gene);
         }
+        this.geneReady = true;
         let docs = await getPankbaseContent(this.byorDocs, true);
         let docDiv = document.getElementById("documentation");
         docDiv.innerHTML = docs;
@@ -48,7 +50,7 @@ new Vue({
         async getGeneRegion(geneSymbol){
             let fetchUrl = `${HUGEAMP_GENE_BIOINDEX}${geneSymbol}`;
 			let gene = await fetch(fetchUrl).then(resp => resp.json());
-            this.geneData = gene.data;
+            this.geneData = gene.data[0];
         }
     },
     render(createElement, context) {
