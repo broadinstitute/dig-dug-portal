@@ -8,7 +8,7 @@
           <div class="col-md-8 offset-md-2" align="center">
               <div class="single-search-wrapper cypher-single-search">
                   <h4>
-                      Select a gene to view it in the genome browser
+                      Search gene
                   </h4>
                   <research-single-search
                       :single-search-config="$parent.searchConfig"
