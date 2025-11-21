@@ -24,7 +24,7 @@
                         {{ trackType }}
                     </label>
                 </div>
-            <button class="btn-primary btn" @click="updateTracks">
+            <button class="btn-primary btn" @click="updateBrowser">
                 Update browser
             </button>
             </div>
@@ -58,6 +58,7 @@ const DEFAULT_GENOME = "hg38";
 const DEFAULT_REGION = "chr11:2150341-2238950";
 
 export default Vue.component("AtacSeq", {
+    props: [ "region" ],
     data() {
         return {
             isLoading: true,
@@ -76,6 +77,7 @@ export default Vue.component("AtacSeq", {
     },
     methods: {
         async initializeBrowser() {
+            console.log(this.region);
             this.isLoading = true;
             this.loadError = null;
 
@@ -173,7 +175,7 @@ export default Vue.component("AtacSeq", {
 
             const contents = {
                 genomeName: DEFAULT_GENOME,
-                displayRegion: DEFAULT_REGION,
+                displayRegion: this.region === "" ? DEFAULT_REGION : this.region,
                 trackLegendWidth: 150,
                 isShowingNavigator: true,
                 tracks: [...defaultTracks, ...tracks],
@@ -190,7 +192,7 @@ export default Vue.component("AtacSeq", {
             return inputTracks.filter(t => this.selectedCellTypes.includes(t.cellType))
                 .filter(t => this.selectedTrackTypes.includes(t.trackType));
         },
-        updateTracks(){
+        updateBrowser(){
             this.isLoading = true;
             let browserdiv = document.getElementById("browser");
             let newdiv = document.createElement("div");
@@ -219,6 +221,8 @@ export default Vue.component("AtacSeq", {
             return output;
         }
     },
+    watch: {
+    }
 });
 </script>
 <style scoped>

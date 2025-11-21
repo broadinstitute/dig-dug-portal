@@ -60,7 +60,10 @@
 							href="javascript:;">{{ "Search gene"
 							}}<span class="gene-link-tip">Alias names are converted to gene symbols</span></a>
 						|
-						<a @click="searchRegion(gene)" href="javascript:;">{{
+						<a hidden class="search-genome-browser"  @click="searchGenome(gene)" href="javascript:;">
+							{{ "Go to genome browser" }}
+						</a>
+						<a class="search-region" @click="searchRegion(gene)" href="javascript:;">{{
 							"Search region"
 						}}</a></span>
 				</div>
@@ -460,6 +463,24 @@ export default Vue.component("research-single-search", {
 				}
 
 				location.href = genePageUrl;
+			}
+		},
+		async searchGenome(KEY) {
+
+			let geneSymbol = await this.utils.regionUtils.geneSymbol(KEY);
+			let isCustomGene = this.isParameterActive('kp genes');
+
+			if (geneSymbol) {
+
+				let genomePageUrl;
+
+				if (!isCustomGene.active) {
+					genomePageUrl = "/atacseq.html?gene=" + geneSymbol;
+				} else if (!!isCustomGene.active) {
+					genomePageUrl = isCustomGene.url + geneSymbol;
+				}
+
+				location.href = genomePageUrl;
 			}
 		},
 

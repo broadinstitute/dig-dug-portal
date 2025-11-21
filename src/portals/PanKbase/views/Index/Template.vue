@@ -297,8 +297,12 @@
   color: transparent;
 }
 
-::v-deep .search-word-group a:not(.search-gene-link){
+::v-deep .search-word-group a.search-region{
     display:none;
+}
+
+::v-deep .search-word-group a.search-genome-browser{
+    display: inline !important;
 }
 
 ::v-deep .pkb-search .reset-search{
