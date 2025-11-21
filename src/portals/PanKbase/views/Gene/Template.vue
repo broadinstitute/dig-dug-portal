@@ -21,19 +21,17 @@
       <!-- Table of contents-->
       <div class="card mdkp-card">
         <div class="card-body">
-            <div class="toc-item" v-for="item in $parent.tableOfContents">
+            <div class="toc-item" v-for="item, index in $parent.tableOfContents">
                 {{ item }}
-                <a>Learn more</a>
+                <a :href="`#item_${index}`">Learn more</a>
             </div>
         </div>
       </div>
       <!-- Non-PanKbase specific: Basic summary -->
       <div class="card mdkp-card">
           <div class="card-body">
-              <h4>
-                  {{
-                      `Functional associations for ${$store.state.geneName.toUpperCase()}`
-                  }}
+              <h4 id="item_0">
+                {{ $parent.tableOfContents[0] }}
                   <tooltip-documentation
                       name="gene.translator.tooltip.hover"
                       :content-fill="$parent.docDetails"
@@ -136,10 +134,8 @@
       <!-- PanKbase-specific cell type visualizer-->
        <div class="card mdkp-card">
           <div class="card-body">
-              <h4>
-                  {{
-                      `${$store.state.geneName.toUpperCase()} Expression by Cell Type`
-                  }}
+              <h4 id="item_1">
+                {{ $parent.tableOfContents[1] }}
               </h4>
               <div>
                   <research-single-cell-browser 
@@ -156,10 +152,8 @@
       <!-- Non-PanKbase specific GTEx visualizer and table-->
       <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4>
-                        {{
-                            `GTEx tissue specificity and gene expression levels for ${$store.state.geneName.toUpperCase()}`
-                        }}
+                    <h4 id="item_2">
+                        {{ $parent.tableOfContents[2] }}
                     </h4>
                         <b-tabs>
                             <b-tab
@@ -264,10 +258,8 @@
       <!-- Non-PanKbase specific: Gene-level associations -->
       <div class="card mdkp-card">
           <div class="card-body">
-              <h4>
-                  {{
-                      `Gene-level associations for ${$store.state.geneName.toUpperCase()}`
-                  }}
+              <h4 id="item_3">
+                  {{$parent.tableOfContents[3]}}
               </h4>
               <span>
                   <documentation
