@@ -14,6 +14,15 @@
             </div>
         </div>
 
+        <div class="pkb-search">
+                <div style="font-weight: bold;">Search Gene</div>
+                <research-single-search
+                    :single-search-config="null"
+                    :phenotypes="[]"
+                    :utils="$parent.utilsBox"
+                ></research-single-search>
+            </div>
+
         <div class="pkb-body">
             <div class="section">
                 <div>
@@ -198,7 +207,7 @@
 .pkb-hero-bg img {
     position: absolute;
     width: 1300px;
-    top: -400px;
+    top: -420px;
     right: calc(50% - 450px);
 }
 .pbk-hero-title {
@@ -273,6 +282,27 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+::v-deep .pkb-search {
+  position:absolute;
+  top:470px;
+  width:40%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+::v-deep .pkb-search input::placeholder {
+  color: transparent;
+}
+
+::v-deep .search-word-group a:not(.search-gene-link){
+    display:none;
+}
+
+::v-deep .pkb-search .reset-search{
+    right: -19px;
 }
 
 .section-item.medium {

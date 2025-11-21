@@ -1,5 +1,16 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
+import filterUtils from "@/utils/filterUtils";
+import regionUtils from "@/utils/regionUtils";
+import userUtils from "@/utils/userUtils.js";
 
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
@@ -8,7 +19,9 @@ import { pankbaseMixin } from "../../mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 
 new Vue({
-    components: {},
+    components: {
+        ResearchSingleSearch
+    },
 
     mixins: [pankbaseMixin],
 
@@ -235,7 +248,23 @@ new Vue({
         },
     },
 
-    computed: {},
+    computed: {
+        utilsBox() {
+            let utils = {
+                Formatters: Formatters,
+                uiUtils: uiUtils,
+                alertUtils: alertUtils,
+                keyParams: keyParams,
+                dataConvert: dataConvert,
+                sortUtils: sortUtils,
+                plotUtils: plotUtils,
+                filterUtils: filterUtils,
+                regionUtils: regionUtils,
+                userUtils: userUtils,
+            };
+            return utils;
+        },
+    },
 
     watch: {},
 
