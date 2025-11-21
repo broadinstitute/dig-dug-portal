@@ -8,13 +8,16 @@ import "../../assets/filtering.css";
 import "../../assets/atacseq.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import AtacSeq from "../../components/AtacSeq.vue";
 import keyParams from "@/utils/keyParams";
+import regionUtils from "@/utils/regionUtils";
 const HUGEAMP_GENE_BIOINDEX = "https://bioindex.hugeamp.org/api/bio/query/gene?q=";
 new Vue({
     store,
     components: {
-        AtacSeq
+        AtacSeq,
+        ResearchSingleSearch
     },
     mixins: [pankbaseMixin],
     data() {
@@ -22,6 +25,25 @@ new Vue({
             geneReady: false,
             geneData: null,
             byorDocs: "pankbase_genomebrowser",
+            searchConfig: {
+                "search instruction": "Search for a gene",
+                "search examples": [
+                    {
+                        parameter: "gene",
+                        value: "CFTR",
+                    }
+                ],
+                "search parameters": [
+                    {
+                        parameter: "gene",
+                        values: "kp genes",
+                        "target page": {
+                            label: "View in Genome Browser",
+                            url: "/atacseq.html?",
+                        },
+                    }
+                ],
+            },
         };
     },
     async created() {
@@ -35,6 +57,12 @@ new Vue({
         docDiv.innerHTML = docs;
     },
     computed: {
+        utilsBox() {
+            let utils = {
+                regionUtils: regionUtils,
+            };
+            return utils;
+        },
         navbar() {
             return document.getElementsByClassName("pkb-nav");
         },

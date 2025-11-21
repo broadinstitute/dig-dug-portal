@@ -4,6 +4,20 @@
         <pkb-header z-index="0"></pkb-header>
         <!-- BODY -->
         <div class="pkb-body">
+            <div class="row front-search-section">
+          <div class="col-md-8 offset-md-2" align="center">
+              <div class="single-search-wrapper cypher-single-search">
+                  <h4>
+                      Select a gene to view it in the genome browser
+                  </h4>
+                  <research-single-search
+                      :single-search-config="$parent.searchConfig"
+                      :phenotypes="[]"
+                      :utils="$parent.utilsBox"
+                  ></research-single-search>
+              </div>
+          </div>
+      </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div id="documentation"></div>
