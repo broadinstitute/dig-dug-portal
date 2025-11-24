@@ -27,7 +27,7 @@ export function highlightIntro(content){
 }
 
 export function linkPubMed(content){
-  const pubMedItem = /(PubMed:)(\d*)/gi;
+  const pubMedItem = /(PubMed:*\ *)(\d*)/gi;
   return content.replaceAll(pubMedItem, 
-    "<a href='https://pubmed.ncbi.nlm.nih.gov/$2/'>PubMed: $2</a>");
+    "<a href='https://pubmed.ncbi.nlm.nih.gov/$2/' target='_blank'>PubMed: $2</a>");
 }
