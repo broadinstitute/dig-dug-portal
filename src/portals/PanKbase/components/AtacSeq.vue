@@ -108,6 +108,7 @@ export default Vue.component("AtacSeq", {
                 }
                 if (t.name.includes("peaks")){
                     t.options.maxRows = 1;
+                    t.options.height = 20;
                 }
             });
             let output = tracks.map((track) => ({

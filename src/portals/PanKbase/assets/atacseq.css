@@ -14,5 +14,9 @@
     margin: 0 0 0 2px;
     line-height: inherit !important;
     word-break: normal !important;
+    min-height: 20px !important;
 
+}
+.Track {
+    min-height: 20px !important;
 }
