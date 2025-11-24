@@ -100,8 +100,16 @@ export default Vue.component("AtacSeq", {
             }
         },
         async loadTracks() {
-            const tracks = await fetchTracks();
-
+            let tracks = await fetchTracks();
+            tracks.forEach(t => {
+                if (t.name.includes("signal")){
+                    t.options.yMax = 5;
+                    t.options.yScale = "fixed";
+                }
+                if (t.name.includes("peaks")){
+                    t.options.maxRows = 1;
+                }
+            });
             let output = tracks.map((track) => ({
                 ...track,
                 type:

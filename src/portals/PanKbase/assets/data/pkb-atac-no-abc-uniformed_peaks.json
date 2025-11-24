@@ -26,7 +26,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#09850B",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -66,7 +66,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#3F98E0",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -106,7 +106,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#F5DE6C",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -136,7 +136,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#752BBA",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -146,7 +146,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#A1D99B",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -156,7 +156,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#A1D99B",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -176,7 +176,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#F598C9",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -186,7 +186,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#D66853",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -196,7 +196,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#D66853",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -216,7 +216,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#583E23",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -226,7 +226,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#93D7CD",
-		"height": 100
+		"height": 50
 		}
 	},
 	{
@@ -236,7 +236,7 @@
 	"showOnHubLoad": true,
 	"options": {
 		"color": "#93D7CD",
-		"height": 100
+		"height": 50
 		}
 	}
 ]
