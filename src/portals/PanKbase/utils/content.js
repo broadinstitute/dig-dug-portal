@@ -25,3 +25,9 @@ export function highlightIntro(content){
   let newTag = "<p class='page-info'>"
   return content.replace(tag, newTag);
 }
+
+export function linkPubMed(content){
+  const pubMedItem = /(PubMed:)(\d*)/gi;
+  return content.replaceAll(pubMedItem, 
+    "<a href='https://pubmed.ncbi.nlm.nih.gov/$2/'>PubMed: $2</a>");
+}

@@ -21,7 +21,7 @@ import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
 import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
 import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
-import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
+import { getPankbaseContent, linkPubMed } from "@/portals/PanKbase/utils/content";
 import { SCB_CONFIG } from "../../utils/scbConfig.js";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -346,7 +346,8 @@ new Vue({
             return this.$store.state.geneName;
         },
         geneFunction() {
-            return this.$store.getters["uniprot/geneFunction"] || "";
+            let functionText = this.$store.getters["uniprot/geneFunction"] || "";
+            return linkPubMed(functionText);
         },
         symbolName() {
             return this.$store.getters.canonicalSymbol;

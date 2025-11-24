@@ -62,7 +62,7 @@
                                       >
                                       </tooltip-documentation>
                                   </h4>
-                                  <div>{{ $parent.geneFunction }}</div>
+                                  <div v-html="$parent.geneFunction"></div>
                               </div>
                               <div v-else>
                                   <h5>Gene function not found</h5>
