@@ -103,7 +103,7 @@ export default Vue.component("AtacSeq", {
             let tracks = await fetchTracks();
             tracks.forEach(t => {
                 if (t.name.includes("signal")){
-                    t.options.yMax = 5;
+                    t.options.yMax = 10;
                     t.options.yScale = "fixed";
                 }
                 if (t.name.includes("peaks")){
