@@ -40,7 +40,7 @@
             </div>
         </template>
 
-        <template>
+        <template v-if="showDatasetSelect">
             <div v-if="!showDatasetSelect">
                 {{ datasetBadge(singleCellMetadata.find(i => i.datasetId === datasetId))}}
             </div>
@@ -54,7 +54,7 @@
                     <option v-for="item in singleCellMetadata" :value="item.datasetId">{{ datasetBadge(item) }}</option>
                 </select>
             </div>            
-        </template>
+        </template> 
 
         <div v-if="showDatasetSelect" style="display:flex; flex-direction: column; gap:10px;">
             <div>
@@ -1187,7 +1187,7 @@
                     return this.allMetadata;
                 };
                 this.singleCellMetadata = filterSingleCellMetadata();
-                console.log(JSON.stringify(this.singleCellMetadata[0]));
+                llog(JSON.stringify(this.singleCellMetadata[0]));
                 llog('singleCellMetadata', this.singleCellMetadata);
                 //find metadata for current dataset
                 this.metadata = this.allMetadata.find(x => x.datasetId === this.datasetId);
