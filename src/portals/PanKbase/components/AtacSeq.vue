@@ -21,7 +21,7 @@
                 <div v-for="trackType in trackTypes">
                     <label>
                         <input type="checkbox" v-model="selectedTrackTypes" :value="trackType"/>
-                        {{ trackType }}
+                        {{ trackType.includes("peaks") ? "ATAC peaks" : trackType }}
                     </label>
                 </div>
             <button class="btn-primary btn" @click="updateBrowser">

@@ -801,7 +801,7 @@ export default Vue.component("research-bar-plot", {
 					for (const [key, value] of Object.entries(GROUPS)) {
 						if (value > 0) {
 							let tickXPos =
-								MARGIN.left + previousGroup * xTickDistance;
+								MARGIN.left + previousGroup * xTickDistance + 30;
 							let adjTickXPos = Math.floor(tickXPos);
 							CTX.moveTo(
 								adjTickXPos,
