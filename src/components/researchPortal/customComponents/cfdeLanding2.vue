@@ -108,7 +108,7 @@
                 <div class="cfde-info f-col fill-width align-h-center">
                     <div class="arrw">➤</div>
                     <div class="hero-q" @click="this.toggleCFDEinfo">
-                        What is the CDFE?
+                        What is the CFDE?
                     </div>
                     <div class="cfde-title f-col align-h-center">
                         <h2 class="kc">1 Data Ecosystem</h2>
