@@ -18,7 +18,8 @@
                     <time-series-heatmap 
                         v-if="$parent.timeSeriesData !== null"
                         :heatmapData="$parent.processedData"
-                        :renderConfig="$parent.heatmapConfig">
+                        :renderConfig="$parent.heatmapConfig"
+                        sectionId="time-series-heatmap">
                     </time-series-heatmap>
                 </div>
                 </div>

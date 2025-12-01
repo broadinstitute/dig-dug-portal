@@ -120,10 +120,10 @@ new Vue({
                 return null;
             }
             console.log(this.timeSeriesData.length);
-            return [];
             let conditions = Object.keys(this.timeSeriesData[0]).filter(t => t !== "gene");
             let output = [];
-            this.timeSeriesData.forEach(tsd => {
+            let sampleData = this.timeSeriesData.slice(0,1000);
+            sampleData.forEach(tsd => {
                 conditions.forEach(c => {
                     let conditionMetadata = this.metadata[c];
                     let entry = {

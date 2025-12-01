@@ -120,10 +120,6 @@ export default Vue.component("time-series-heatmap", {
 				massagedData[d[row]][d[column]]["main"] =
 					d[this.renderConfig.main.field];
 
-				if (!!this.renderConfig.sub) {
-					massagedData[d[row]][d[column]]["sub"] =
-						d[this.renderConfig.sub.field];
-				}
 			});
 
 			return massagedData;
@@ -181,14 +177,6 @@ export default Vue.component("time-series-heatmap", {
 					": </b>" +
 					this.squareData[y][x].main.value +
 					"</span>";
-				if (!!this.squareData[y][x].sub) {
-					clickedCellValue +=
-						'<span class="content-on-clicked-cell"><b>' +
-						this.renderConfig.sub.label +
-						": </b>" +
-						this.squareData[y][x].sub.value +
-						"</span>";
-				}
 			}
 
 			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
@@ -256,48 +244,6 @@ export default Vue.component("time-series-heatmap", {
 			return fillColor;
 		},
 
-		getDotR(subType, steps, subDirection, subValue, dotMaxR) {
-			let stepVal = 0;
-			let dotR;
-
-			if (subType == "steps") {
-				let dotRUnit = dotMaxR / steps.length;
-				if (subDirection == "positive") {
-					for (let i = 0; i <= steps.length - 1; i++) {
-						stepVal += subValue >= steps[i] ? 1 : 0;
-					}
-				} else {
-					for (let i = steps.length - 1; i >= 0; i--) {
-						stepVal += subValue <= steps[i] ? 1 : 0;
-					}
-				}
-				dotR = dotRUnit * stepVal;
-			} else if (subType == "scale") {
-				let scaleRange = steps[1] - steps[0];
-				if (subDirection == "positive") {
-					subValue -= steps[0];
-					stepVal =
-						subValue <= steps[0]
-							? 0
-							: subValue >= steps[1]
-								? 1
-								: subValue / scaleRange;
-				} else {
-					subValue -= steps[0];
-					stepVal =
-						subValue >= steps[1]
-							? 0
-							: subValue <= steps[0]
-								? 1
-								: (steps[1] - subValue) / scaleRange;
-				}
-
-				dotR = dotMaxR * stepVal;
-			}
-
-			return dotR;
-		},
-
 		renderHeatmap(X, Y) {
 			let c = document.getElementById("heatmap" + this.sectionId);
 			let ctx = c.getContext("2d");
@@ -332,7 +278,8 @@ export default Vue.component("time-series-heatmap", {
 				bump: 10
 			};
 
-			let boxSize = fontSize * 1.5;
+			//let boxSize = fontSize * 1.5;
+			let boxSize = 1;
 
 			let canvasWidth = ((boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
 			let canvasHeight = ((boxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4)*2);
@@ -351,9 +298,7 @@ export default Vue.component("time-series-heatmap", {
 			// render legends
 			
 			let mainLabel = this.renderConfig.main.label + ": ",
-				subLabel = this.renderConfig.sub.label + ": ",
-				mainSteps = [mainLabel],
-				subSteps = [subLabel];
+				mainSteps = [mainLabel];
 
 			let minVal, midVal, maxVal, valStep, valStepLow, valStepHigh;
 
@@ -410,66 +355,6 @@ export default Vue.component("time-series-heatmap", {
 				);
 				prevWidth += legendWidth + 2;
 			})
-
-			//sub legend
-
-			this.renderConfig.sub["value range"].map(r => {
-				subSteps.push(r)
-			})
-
-			let steps = this.renderConfig.sub["value range"],
-				stepDirection = this.renderConfig.sub.direction,
-				dotMaxR = (boxSize * 0.75) / 2;
-
-			prevWidth += margin.bump;
-
-			subSteps.map((s, sindex) => {
-
-
-				let legendString = s.toString()
-
-				if (typeof s != 'string') {
-
-					if (stepDirection == "positive") {
-						legendString = " >= " + legendString + ": ";
-					} else {
-						legendString = " <= " + legendString + ": ";
-					}
-				}
-
-				let legendWidth = this.getWidth(ctx,legendString, fontSize, 'Arial');
-
-				ctx.font = "24px Arial";
-				ctx.textAlign = "start";
-				ctx.fillStyle = "#000000";
-				ctx.fillText(
-					legendString,
-					prevWidth + 4,
-					margin.bump + fontSize - 4
-				);
-
-				prevWidth += legendWidth + 4;
-
-				if (typeof s != 'string') {
-					let steps = this.renderConfig.sub["value range"];
-					let dotR = this.getDotR(this.renderConfig.sub.type, steps, stepDirection, s, dotMaxR)
-
-					ctx.fillStyle = "#00000075";
-					ctx.lineWidth = 0;
-					ctx.beginPath();
-					ctx.arc(
-						prevWidth + dotR,
-						margin.bump + (fontSize / 2),
-						dotR,
-						0,
-						2 * Math.PI
-					);
-					ctx.fill();
-
-					prevWidth += dotR * 2;
-
-				}
-			});
 
 			//render plot label
 
@@ -541,12 +426,6 @@ export default Vue.component("time-series-heatmap", {
 						field: this.renderConfig.main.field,
 						value: this.renderData[r][c].main,
 					};
-					if (!!this.renderConfig.sub) {
-						this.squareData[rIndex][cIndex]["sub"] = {
-							field: this.renderConfig.sub.field,
-							value: this.renderData[r][c].sub,
-						};
-					}
 					//mainValue *= -1;
 					let rColor, gColor, bColor;
 					let direction = this.renderConfig.main.direction;
@@ -575,29 +454,6 @@ export default Vue.component("time-series-heatmap", {
 						ctx.beginPath();
 						ctx.rect(left, top, renderBoxSize, renderBoxSize);
 						ctx.fillStyle = colorString;
-						ctx.fill();
-					}
-
-					if (!!this.renderConfig.sub) {
-						let steps = this.renderConfig.sub["value range"];
-						let subDirection = this.renderConfig.sub.direction;
-						let dotMaxR = (renderBoxSize * 0.75) / 2;
-						let subType = this.renderConfig.sub.type;
-						let centerPos = renderBoxSize / 2;
-
-						let subValue = this.renderData[r][c].sub;
-
-						let dotR = this.getDotR(subType, steps, subDirection, subValue, dotMaxR)
-						ctx.fillStyle = "#00000075";
-						ctx.lineWidth = 0;
-						ctx.beginPath();
-						ctx.arc(
-							left + centerPos,
-							top + centerPos,
-							dotR,
-							0,
-							2 * Math.PI
-						);
 						ctx.fill();
 					}
 
