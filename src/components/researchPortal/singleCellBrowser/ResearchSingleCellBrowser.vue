@@ -1368,7 +1368,7 @@
                     const url = markersEnpoint;
                     const markersRaw = await scUtils.fetchMarkers(url, this.datasetId);
                     //remap params to handle older/newer versions
-                    const markersNormalized = markersRaw.map(m => ({
+                    const markersNormalized = markersRaw?.map(m => ({
                         ...m,
                         mean_expression: m.mean_expression ?? m.mean_expression_raw ?? 0,
                         pct_cells_expression: m.pct_cells_expression ?? m.pct_nz_group ?? 0,
