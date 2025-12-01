@@ -119,6 +119,8 @@ new Vue({
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
+            console.log(this.timeSeriesData.length);
+            return [];
             let conditions = Object.keys(this.timeSeriesData[0]).filter(t => t !== "gene");
             let output = [];
             this.timeSeriesData.forEach(tsd => {
