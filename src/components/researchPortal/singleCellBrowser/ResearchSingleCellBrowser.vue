@@ -1099,9 +1099,8 @@
             }
         },
         mounted() {
-            llog('renderConfig', this.renderConfig);
-            llog('portal', this.portalGroup);
-            llog('data', this.data);
+            //console.log('renderConfig', this.renderConfig);
+            //console.log('data', this.data);
             
             EventBus.$on('on-select',this.handleSelectEvent);
             this.init();
@@ -1261,11 +1260,12 @@
                     }else if(this.presetsConfig?.datasetId){
                         this.datasetId = this.presetsConfig.datasetId
                     }else{
-                        llog('select a dataset');
+                        //console.log('select a dataset');
                         return;
                     }
                 }
-                llog(`requested dataset: ${this.datasetId}`);
+
+                //console.log(`requested dataset: ${this.datasetId}`);
 
                 //clear existing data
                 this.clean();
@@ -1402,10 +1402,10 @@
                             //fallback to just having a list of genes per cell type
                             const markersList = Object.values(this.markers).flat();
                             this.markersList = markersList;
-                            llog({markersList});
+                            //console.log({markersList});
                         }
                     }else{
-                        llog('no markers returned');
+                        //console.log('no markers returned');
                     }
                 }
 
@@ -1505,6 +1505,8 @@
 
                 await Vue.nextTick();
 
+                //console.log('++++++++++++ READY')
+
                 //return;
                 
                 //check if a gene was requested in config or url key params
@@ -1513,7 +1515,7 @@
                     //load genes from url key params
                     const paramGenes = decodeURIComponent(keyParams[this.renderConfig["parameters"].gene]);
                     if(paramGenes && paramGenes !== 'undefined'){
-                        llog('loading param genes');
+                        //console.log('loading param genes');
                         const paramGenesArray = paramGenes.split(',');
                         for (const gene of paramGenesArray) {
                             await this.getGeneExpression(gene.toUpperCase(), false);
@@ -1522,7 +1524,7 @@
                         }
                     }else if(this.presetsConfig?.["genes"]){
                         //load genes from config
-                        llog('loading config genes');
+                        //console.log('loading config genes');
                         for (const gene of this.presetsConfig["genes"]) {
                             await this.getGeneExpression(gene.toUpperCase(), false);
                             await Vue.nextTick();
@@ -1539,7 +1541,7 @@
                         await this.getGeneExpression(this.markerGenes[0].gene.toUpperCase(), false);
                     }else if(this.markersList){
                         //no marker genes given, try loading genes from config list
-                        llog('loading marker genes');
+                        //console.log('loading marker genes');
                         for(const gene of this.markersList){
                             await this.getGeneExpression(gene.toUpperCase(), false);
                             await Vue.nextTick();
@@ -1550,9 +1552,9 @@
             },
             async getGeneExpression(gene, addToKeyParams = true, setAsSelected = false){
                 if(this.geneNames.includes(gene)) {
-                    llog(`${gene} already listed`);
+                    //console.log(`${gene} already listed`);
                     if(this.expressionData[gene]){
-                        llog(`${gene} already loaded`);
+                        //console.log(`${gene} already loaded`);
                         if(setAsSelected) this.geneClick(gene);
                         return;
                     }
@@ -1570,8 +1572,8 @@
                     }
                     Vue.set(this.expressionData, gene, expressionResult);
 
-                    llog('getGeneExpression', gene);
-                    //llog(addToKeyParams);
+                    //console.log('getGeneExpression', gene);
+                    //console.log(addToKeyParams);
 
                     //update query string gene params 
                     if(addToKeyParams && this.renderConfig["parameters"]?.gene){
@@ -1836,7 +1838,7 @@
             },
             handleSelectEvent(data) {
                 if(data.id===this.sectionId){
-                    llog(this.sectionId, 'Received on-select event:', data);
+                    //console.log(this.sectionId, 'Received on-select event:', data);
                     this.datasetId = data.value;
                     if(this.renderConfig["parameters"]?.datasetId){
                         keyParams.set({[this.renderConfig["parameters"]?.datasetId] : this.datasetId});
@@ -1850,7 +1852,7 @@
                 //this.init();
             },
             selectColorBy(field){
-                llog('color by:', field);
+                //console.log('color by:', field);
                 this.cellCompositionVars.colorByField = field;
             },
             selectSegmentBy(display, segment){
@@ -1893,7 +1895,7 @@
             },
             selectExpressionBy(display, segment){
                 const g = this.geneExpressionVars;
-                llog('expression by:', {display, segment});
+                //console.log('expression by:', {display, segment});
                 g.selectedLabel = display;
                 g.subsetLabel = segment;
                 g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[g.selectedGene], g.selectedGene, g.selectedLabel, g.subsetLabel);
@@ -1907,10 +1909,10 @@
                 })
             },
             geneListClick(e){
-                llog('geneListClick', e)
+                //console.log('geneListClick', e)
             },
             geneClick(gene){
-                llog('geneClick', gene);
+                //console.log('geneClick', gene);
                 if(!this.expressionData[gene]){
                     this.getGeneExpression(gene, false, true);
                     return;
@@ -1935,12 +1937,12 @@
                 this.genesNotFound.splice(this.genesNotFound.indexOf(e), 1);
             },
             handleSelectorUpdate(e){
-                llog('selector updated', e);
+                //console.log('selector updated', e);
                 this.cellCompositionVars.highlightLabels = e.coloredLabels;
                 this.selectColorBy(e.coloredField);
             },
             handleSelectorHover(e){
-                llog('selector hovered', e);
+                //console.log('selector hovered', e);
                 this.cellCompositionVars.highlightLabel = e.hoveredLabel;
             }
         },

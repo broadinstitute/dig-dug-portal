@@ -31,6 +31,9 @@ import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingS
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
+
+import ResearchCitation from "@/components/researchPortal/ResearchCitation.vue";
+
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -42,6 +45,8 @@ import sessionUtils from "@/utils/sessionUtils";
 import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
+import drcUtils from "@/utils/drcUtils.js";
+import { llmUtils } from "@/utils/llmUtils.js";
 import $ from "jquery";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
@@ -76,6 +81,7 @@ new Vue({
         ResearchSingleSearchV2,
         ResearchSingleSearchCFDE,
         ResearchLoadingSpinner,
+        ResearchCitation
     },
     mixins: [pageMixin],
     data() {
@@ -183,6 +189,8 @@ new Vue({
                 filterUtils: filterUtils,
                 regionUtils: regionUtils,
                 userUtils: userUtils,
+                llmUtils: llmUtils,
+                drcUtils: drcUtils,
             };
             return utils;
         },
@@ -205,7 +213,7 @@ new Vue({
             let params = {};
             if (this.multiSectionsSearchParameters) {
                 this.multiSectionsSearchParameters.map((mp) => {
-                    if (mp.type != "multi search") {
+                    if (mp.type != "context search" && mp.type != "multi search") {
                         let values =
                             !!mp.values && !!Array.isArray(mp.values) ? {} : null;
                         if (values != null) {
@@ -218,7 +226,7 @@ new Vue({
                             label: mp.label,
                             values: values,
                         };
-                    } else if (mp.type == "multi search") {
+                    } else if (mp.type == "context search" || mp.type == "multi search") {
                         mp.parameters.map(P => {
                             let values =
                                 !!P.values && !!Array.isArray(P.values) ? {} : null;

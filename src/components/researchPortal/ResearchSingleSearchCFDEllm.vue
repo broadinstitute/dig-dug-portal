@@ -2,11 +2,129 @@
 	<div>
 		<div class="search-underlay" @click="unFocus"></div>
 		<div class="byor-single-search-wrapper">
-			<div class="search-underlay-close-note">click anywhere to close search</div>
+			<div class="search-underlay-close-note" @click="unFocus">close search <b-icon icon="x-circle-fill"></b-icon></div>
+			<div v-if="!searchInitiated" class="search-help" style="flex-direction: column;">
+				<strong style="font-size:1.2em; color:#f26822">Find multi-omic Common Fund data, analyses, and program knowledge.</strong>
+				<strong>With this LLM enhanced search, you can:</strong>
+				<div>Ask about the Common Fund, its Centers, or its Programs.</div>
+				<div>Tell me what you're researching or curious about.</div>
+				<div>Just describe what you're looking for.</div>
+				<a role="button" @click="display_examples = !display_examples">{{!display_examples ? 'show' : 'hide'}} examples</a>
+				<div :class="{collapsed: !display_examples}" style="display:flex; flex-direction: column; gap:5px; padding:10px 20px">
+					<div v-for="example in exampleQueries" class="query-sample" @click="useExample(example)">{{ example }}</div>
+				</div>
+			</div>
+			<div v-if="searchInitiated" class="search-results" style="gap:40px">
+				<!--
+				<div v-if="singleSearchResult">
+					<pre style="display:none">{{ singleSearchResult }}</pre>
+					<div v-if="singleSearchResult.genes.length>0">
+						<div v-for="gene in singleSearchResult.genes">{{ gene }}</div>
+					</div>
+					<div v-if="singleSearchResult.tissue.length>0">
+						<div v-for="tissue in singleSearchResult.tissue">{{ tissue }}</div>
+					</div>
+					<div v-if="singleSearchResult.genes.length>0">
+						<div v-for="disease in singleSearchResult.disease">{{ disease }}</div>
+					</div>
+				</div>
+				-->
+				<div v-if="llmResults" style="display:flex; flex-direction: column; gap:20px">
+					<!--
+					<div v-if="llmResults.info" class="search-result-box">
+						<div>
+							<strong>Info: </strong>{{ llmResults.info }}
+						</div>
+						<div>[run RAG info search]</div>
+					</div>
+					-->
+					<div style="display:grid; gap:20px; grid-template-columns: 1fr 1fr;">
+						<div v-if="llmResults.programs" class="search-result-box" style="display:flex; flex-direction: column; gap:5px">
+							<strong>Suggested CFDE Programs:</strong>
+							<div v-for="program in llmResults.programs" style="display:flex; flex-direction: column;">
+								<div style="display:grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+									<strong>{{ program.name }}</strong> 
+									<div style="display:flex; justify-content: flex-end; gap: 10px">
+										<a :href="kcURL(`/r/kc_programs?DCC=${program.id}`)">program snapshot</a>
+										<a :href="programLinks[program.id]" target="_blank">data portal</a>
+									</div>
+								</div>
+								<div>{{ program.reason }}</div>
+							</div>
+						</div>
+						<div v-if="llmResults.discovery" class="search-result-box">
+							<strong>Knowledge Center Discovery: </strong>
+							<div>See evidence-backed hypotheses about the biology behind your research interest:</div>
+							<div style="text-align: center; font-family: serif; font-size: 1.4em; padding: 10px; font-style: italic;">{{ llmResults.discovery }}</div>
+							<div>
+								Using pre-computed genetic associations between 6,000 common & rare disease phenotypes 
+								and 150,000 gene expression signatures from various CFDE Programs.
+							</div>
+							<div style="margin: 10px 0 0">
+								<a :href="kcURL(`/r/cfde_reveal?query=${llmResults.discovery}`)" target="_blank">mechanism discovery</a>
+							</div>
+						</div>
+					</div>
+					<div style="display:flex; gap:20px">
+						<div v-if="llmResults.gene?.name" class="search-result-box">
+							<div>
+								<strong>Gene: </strong>{{ llmResults.gene.name }}
+							</div>
+							<div><a :href="kcURL(`/r/kc_entity_gene?gene=${llmResults.gene.name}`)">gene info from cfde programs</a></div>
+							<div><a :href="kcURL(`/r/kc_gene_set_browser?model=cfde&gene=${llmResults.gene.name}`)">gene set ↔ phenotype associations</a></div>
+							<div><a :href="kcURL(`/r/kc_gene_set_browser_gene?model=cfde&gene=${llmResults.gene.name}`)">phenotype associations</a></div>
+							<div><a :href="kcURL(`/r/kc_dge_gene?gene=${llmResults.gene.name}`)">tissue associations</a></div>
+						</div>
+						<div v-if="llmResults.phenotype?.name" class="search-result-box">
+							<div>
+								<strong>Phenotype: </strong>{{ llmResults.phenotype.name }}
+							</div>
+							<div v-if="semanticPhenotypes">
+								<div v-for="item in semanticPhenotypes" style="display:flex; flex-direction: column;">
+									<div>{{ item.description }}</div>
+									<div><a :href="kcURL(`/r/kc_gene_set_browser_phenotype?model=cfde&phenotype=${llmResults.phenotype.name}`)">associated cfde gene sets</a></div>
+									<div><a :href="kcURL(`/r/kc_phenotype_x_hs2mouse?phenotype=${llmResults.phenotype.name}`)">associated mouse phenotypes</a></div>
+								</div>
+							</div>
+						</div>
+						<div v-if="llmResults.tissue?.name" class="search-result-box">
+							<div>
+								<strong>Tissue: </strong>{{ llmResults.tissue.name }}
+							</div>
+							<div v-if="availableTissues">
+								<div v-for="item in availableTissues"  style="display:flex; flex-direction: column;">
+									<div>{{ item.label }}</div>
+									<div><a :href="kcURL(`/r/kc_dge_tissue?tissue=${item.value}`)">differential expression by tissue</a></div>
+								</div>
+							</div>
+							<div v-else>
+								no results found
+							</div>
+						</div>
+						<div v-if="llmResults.disease?.name" class="search-result-box">
+							<div>
+								<strong>Disease: </strong>{{ llmResults.disease.name }}
+							</div>
+							<div v-if="availableDiseases">
+								<div v-for="item in availableDiseases"  style="display:flex; flex-direction: column;">
+									<div>{{ item.label }}</div>
+									<div><a :href="kcURL(`/r/kc_entity_disease?disease=${item.value}`)">disease info from cfde programs</a></div>
+								</div>
+							</div>
+							<div v-else>
+								no results found
+							</div>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+			<!--
 			<span v-if="summaryAll.length > 0 && hasFocus" class="btn btn-default ss-summary-popup-btn"
 				@click="summaryPopup = !summaryPopup ? true : null;">Toggle quick view <b-icon
 					icon="arrow-up-right-square"></b-icon></span>
-
+			-->
+			<!--
 			<span class="ss-search-methods" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled']">
 				<span>Search by: </span>
 				<span class="search-method">
@@ -18,15 +136,20 @@
 					<label for="ss_meaning">Meaning</label>
 				</span>
 			</span>
-			<template v-if="singleSearchMethod == 'ss_keyword'">
-				<input class="form-control byor-single-search" type="text" id="byor_single_search" v-model="singleSearchParam"
-					:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction'] ? singleSearchConfig['search instruction']
-					: 'Search gene, variant, region, phenotype, or tissue'" @keyup.enter="onSearch" @focus="onFocus" @blur="onBlur"
+			-->
+			<template v-if="singleSearchMethod == 'ss_keyword'"> 
+				<input class="form-control byor-single-search" type="text" ref="search" id="byor_single_search" v-model="singleSearchParam"
+					:placeholder="!hasFocus?'Click here to begin':''" @keyup.enter="onSearch" @focus="onFocus" @blur="onBlur"
 					autocomplete="off" />
-				<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()">
-					Clear search <b-icon icon="x-circle-fill"></b-icon>
-				</span>
+				<div style="position:absolute; top:50%; right:10px; transform: translateY(-50%);">
+					<div v-if="singleSearchParam && !isLoading" class="reset-search" @click="resetSearch()">
+						clear search <b-icon icon="backspace-fill"></b-icon>
+					</div>
+					<div v-if="isLoading" class="loading"></div>
+				</div>
+				
 			</template>
+			<!--
 			<template v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
 				<select v-model="meaningSearchParam" id="ss_meaning_param" class="form-control ss-meaning-params">
 					<option v-for="(param, paramIndex) in singleSearchConfig['search by meaning parameters']"
@@ -55,7 +178,9 @@
 					<b-icon icon="x-circle-fill"></b-icon>
 				</span>
 			</template>
+			-->
 
+			<!--
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && singleSearchMethod == 'ss_keyword'">
 				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="anyResults() > 0">
 					
@@ -157,8 +282,6 @@
 												</div>
 											</span>
 										</div>
-
-										<!--<span class="search-word-group">{{param['parameter']}}</span>-->
 									</div>
 								</div>
 							</template>
@@ -166,6 +289,7 @@
 					</template>
 				</div>
 			</div>
+			-->
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
 				<div id="byor_single_search_results" style="top: 75px;" class="byor-single-search-results-groups" v-if="meaningSearchOptions.length > 0 && meaningSearchOptions[0].value != ''">
 					<div :id="meaningSearchParam+'_meaning_options'" class="byor-ss-results-section ss-meaning-search">
@@ -233,13 +357,213 @@ import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 import EventBus from "@/utils/eventBus";
+import { createLLMClient } from "@/utils/llmClient";
+import { kcURL } from "@/utils/cfdeUtils";
 
-export default Vue.component("research-single-search-cfde", {
+export default Vue.component("research-single-search-cfde-llm", {
 	props: ["singleSearchConfig", "phenotypes", "utils", "fromNav"],
 	modules: {},
 
 	data() {
 		return {
+			llmSearch: null,
+			searchPrompt: `You help users discover available resources from the **Common Fund Data Ecosystem (CFDE)** as the **CFDE Knowledge Center (KC)**.
+
+			Your job is to:
+
+			* **Infer intent** from short search queries and **return intermediate results** (clickable options) that guide users to primary results (pages/tools/datasets).
+			* **Extract any entities** (gene, tissue, phenotype, disease), and **rank relevant CFDE programs** by likely usefulness.
+
+			Users may search by:
+
+			* **Genes**, **Tissues**, **Phenotypes**, **Diseases**
+			* General info about the **Common Fund**, its **Centers**, or **Programs**
+			* A short free-text **research interest** or **data need**
+
+			---
+
+			## Types of results available on the KC (targets for discovery)
+
+			* **CFDE Info** — RAG-enabled info about the Common Fund, its Centers, and its Programs.
+			* **Gene Page** — secondary analyses for a given gene from various CFDE programs.
+			* **Disease Page** — secondary analyses for a given disease from various CFDE programs.
+			* **Differential Expression by Tissue** — genes differentially expressed in a tissue.
+			* **Differential Expression by Phenotype** — genes differentially expressed for a phenotype.
+			* **Gene Sets associated to Phenotypes** — curated or computed gene sets.
+			* **Mechanism Discovery Tool** — finds pre-computed associations between phenotypes and CFDE-derived gene expression signatures; proposes mechanistic hypotheses tied to the user’s context.
+
+			---
+
+
+			### Parsing & Inference Guidelines
+
+			* **general_info**: if the query matches CFDE/Center/Program names or patterns like 'what is|who|overview|about|help'
+			* **research_discovery**: if the query has verbs like 'why|how|mechanism|pathway|regulate|affects|causes|signature|biomarker|association' or causal phrasing appear
+
+			### Entity extraction & normalization (best effort, no web calls)
+
+			* **Gene**: prefer HGNC symbols (case-sensitive). If ambiguous, keep user text.
+			* **Disease/Phenotype**: preserve user phrasing; avoid over-normalization.
+			* **Tissue**: preserve user phrasing (e.g., “left ventricle”, “kidney cortex”).
+			* If an entity is not clearly present, set it to **'null'**.
+
+			### Phenotype extraction from approximate phrasing
+
+			* If the query contains terms that could describe a phenotype (e.g., "energy balance", "insulin resistance", "cardiac output", "inflammatory response"), set phenotype.name to the most salient phrase.
+
+			### Output discipline
+
+			* Use the **exact JSON** schema below.
+			* Strings that are not applicable must be **'null'**, not empty "".
+			* 'programs' must be **relevance-ordered** (most relevant first). Include **3–6** items with concise reasons.
+
+			---
+
+			## Output schema (multiple intents)
+			{
+				"info": null,
+				"discovery": null,
+				"gene": { "name": null },
+				"phenotype": { "name": null },
+				"tissue": { "name": null },
+				"disease": { "name": null },
+				"programs": [
+					{ "name": "GTEx", "id": "GTEx", "relevance": 1, "reason": "…" }
+				]
+			}
+
+			**Rules:**
+
+			* If any intent is 'general_info', put the user's request in 'info'; else 'null'. Do not answer the users question, simply copy it here (you may fix obvious spelling errors).
+			* If any intent is 'research_discovery', put the user's question in 'discovery'; else 'null'. Do not rephrase the users query, simply copy it here (you may fix obvious spelling errors).
+			* Entities: extracted value or 'null'.
+			* Phenotype: if the query includes phenotype-like phrasing, set phenotype.name to the most salient phrase (even if the inference is not entity_lookup). Otherwise null.
+			* 'programs': 3–6 items, '1' = most relevant, with brief, concrete reasons (data type, modality, population, atlas, or signature match).
+
+			---
+
+			## CFDE Programs (neutral, info-dense)
+
+			### **4DN (4D Nucleome)** 
+			id: 4DN
+			The 4D Nucleome project investigates how the spatial and temporal organization of DNA within the nucleus influences gene regulation and cellular function. It integrates genomics, epigenomics, transcriptomics, and imaging data to model chromatin structure and dynamics across cell types and disease states. The 4DN portal provides thousands of standardized datasets, analytical pipelines, and visualization tools for exploring genome architecture in 3D.
+
+			### **A2CPS (Acute to Chronic Pain Signatures)** 
+			id: A2CPS
+			A2CPS seeks to identify molecular, physiological, and neuroimaging biomarkers that predict which individuals will develop chronic pain following surgery. The consortium collects multimodal data—including omics (genomics, proteomics, metabolomics, lipidomics, transcriptomics), quantitative sensory testing, and functional MRI—from over 3,000 participants. Its goal is to define biosignatures of pain susceptibility and resilience to improve early diagnosis and intervention.
+
+			### **Bridge2AI** 
+			id:Bridge2AI
+			Bridge2AI unites biomedical and artificial intelligence communities to generate ethically sourced, AI-ready datasets and tools that follow FAIR principles. Its projects span voice biomarker discovery, diabetes cohort studies, intensive care data integration, and AI-driven cellular mapping. Bridge2AI emphasizes interoperability, workforce development, and the creation of multimodal datasets linking genomics, imaging, and clinical data for machine learning applications.
+
+			### **exRNA (Extracellular RNA Communication Program)** 
+			id: exRNA
+			The exRNA program investigates extracellular RNAs and their carriers (e.g., extracellular vesicles, lipoproteins) to define their roles in intercellular communication, biomarker discovery, and therapeutics. It provides the exRNA Atlas and Explorer with human and mouse small/long RNA‑seq and qPCR profiles from diverse biofluids and phenotypes, plus tools for deconvolution, differential expression, and interactive visualization. These resources support study design, methods benchmarking, and discovery of exRNA-based disease signatures.
+
+			### **GlyGen**
+			id: GlyGen
+			GlyGen integrates and harmonizes multi‑source glycoscience data on glycans, glycoproteins, proteins, and enzymes to enable cross‑database discovery. The portal supports queries by glycan structure/composition, protein, enzyme, organism, disease, and biomarker, linking glycosylation sites to functions, pathways, and 3D structures. It offers downloads and APIs to power analyses in glycomics, glycoproteomics, and translational biomarker research.
+
+			### **GTEx (Genotype-Tissue Expression Project)**
+			id: GTEx
+			GTEx explores how genetic variation influences gene expression across diverse human tissues. By combining genomics, transcriptomics, and eQTL mapping, it provides a foundational reference for understanding gene regulation and tissue specificity. The GTEx Portal supports variant-gene association studies and integrative analyses linking genetic variation to disease mechanisms.
+
+			### **HuBMAP (Human BioMolecular Atlas Program)**
+			id: HuBMAP
+			HuBMAP aims to create detailed 3D maps of the human body at single-cell resolution. It integrates imaging, spatial transcriptomics, and proteomics to chart cell types, neighborhoods, and tissue organization across organs. The resulting human reference atlas supports research on tissue microenvironments, cellular interactions, and organ-level function in health and disease.
+
+			### **IDG (Illuminating the Druggable Genome)**
+			id: IDG
+			The IDG program aims to expand knowledge of understudied proteins that are potentially druggable, including GPCRs, kinases, and ion channels. It integrates functional genomics, proteomics, and cheminformatics to characterize protein function and disease associations. The resource supports drug discovery by revealing novel therapeutic targets and mechanisms.
+
+			### **Kids First (Gabriella Miller Kids First Pediatric Research Program)**
+			id: Kids First
+			The Kids First Data Resource Center focuses on uncovering the genetic causes of childhood cancers and structural birth defects. It integrates whole-genome sequencing, RNA-seq, and phenotype data from thousands of pediatric patients and families. The portal enables cross-disease analysis to identify shared biological mechanisms and supports researchers studying developmental disorders and pediatric oncology.
+
+			### **LINCS (Library of Integrated Network-based Cellular Signatures)**
+			id: LINCS
+			LINCS systematically characterizes cellular responses to genetic and chemical perturbations. Using transcriptomic and proteomic profiling, it builds a reference network linking molecular perturbations to phenotypic outcomes. The LINCS data portal supports computational modeling, drug repurposing, and systems-level understanding of cellular behavior under diverse conditions.
+
+			### **Metabolomics Workbench**
+			id: Metabolomics
+			The Metabolomics Workbench provides access to comprehensive metabolomic datasets, standards, and analytical tools. It supports mass spectrometry and NMR-based studies of metabolites across species, tissues, and conditions. The repository facilitates data sharing, reproducibility, and integration with genomics and proteomics to advance systems biology and biomarker discovery.
+
+			### **MoTrPAC (Molecular Transducers of Physical Activity Consortium)**
+			id: MoTrPAC
+			MoTrPAC seeks to map the molecular responses to physical activity across tissues and populations. Through genomics, proteomics, metabolomics, lipidomics, and epigenomics, it identifies molecular transducers that mediate the health benefits of exercise. Its datasets provide insights into how exercise influences metabolism, inflammation, and organ function.
+
+			### **SenNet (Cellular Senescence Network)**
+			id: SenNet
+			SenNet aims to identify, characterize, and map senescent cells across human tissues to understand their roles in aging and disease. It integrates single-cell omics, spatial transcriptomics, and imaging to profile senescence-associated markers and pathways. The network produces reference atlases to guide research into cellular aging, regeneration, and age-related pathologies.
+
+			### **SMaHT (Somatic Mosaicism across Human Tissues Network)**
+			id: SMaHT
+			SMaHT aims to systematically map somatic variation across human tissues and life stages to understand how mosaic mutations influence normal biology and disease risk. The network generates reference catalogs, standards, and computational pipelines using modalities such as whole‑genome sequencing, single‑cell and spatial assays, and complementary multi‑omics. Resulting resources enable studies of tissue homeostasis, aging, and predisposition to disorders linked to somatic mutations.
+
+			### **SPARC (Stimulating Peripheral Activity to Relieve Conditions)**
+			id: SPARC
+			SPARC seeks to map the neural circuits that regulate organ function to inform bioelectronic medicine. It integrates neuroanatomical imaging, electrophysiology, transcriptomics, and computational modeling to elucidate nerve-organ interactions. The SPARC Portal provides data and tools for studying how peripheral nerve stimulation can modulate physiological systems and treat chronic diseases.
+
+			---
+
+			## Examples
+
+			### Example 1 — “PPARG in adipose”
+			{
+				"info": null,
+				"discovery": null,
+				"gene": { "name": "PPARG" },
+				"phenotype": { "name": null },
+				"tissue": { "name": "adipose" },
+				"disease": { "name": null },
+				"programs": [
+					{ "name": "GTEx", "id": "GTEX", "relevance": 1, "reason": "tissue-specific gene expression and eQTLs in adipose for PPARG" },
+					{ "name": "HuBMAP", "id": "HuBMAP", "relevance": 2, "reason": "single-cell and spatial context for adipose cell types" },
+					{ "name": "IDG", "id": "IDG", "relevance": 3, "reason": "target annotations and ligand/target associations" },
+					{ "name": "Metabolomics Workbench", "id": "Metabolomics", "relevance": 4, "reason": "metabolic readouts relevant to adipose biology" }
+				]
+			}
+
+			### Example 2 — “insulin resistance mechanisms”
+			{
+				"info": null,
+				"discovery": "insulin resistance mechanisms",
+				"gene": { "name": null },
+				"phenotype": { "name": "insulin resistance" },
+				"tissue": { "name": null },
+				"disease": { "name": null },
+				"programs": [
+					{ "name": "GTEx", "id": "GTEx", "relevance": 1, "reason": "expression and eQTLs across metabolic tissues" },
+					{ "name": "Metabolomics Workbench", "id": "Metabolomics", "relevance": 2, "reason": "metabolite signatures linked to insulin resistance" },
+					{ "name": "LINCS", "id": "LINCS", "relevance": 3, "reason": "perturbation signatures to infer mechanisms/repurposing" },
+					{ "name": "IDG", "id": "IDG", "relevance": 4, "reason": "candidate targets with druggability context" }
+				]
+			}
+
+			### Example 3 — “What programs focus on extracellular biomarkers?”
+			{
+				"info": "What programs focus on extracellular biomarkers?",
+				"discovery": null,
+				"gene": { "name": null },
+				"phenotype": { "name": null },
+				"tissue": { "name": null },
+				"disease": { "name": null },
+				"programs": [
+					{ "name": "exRNA", "id": "exRNA", "relevance": 1, "reason": "biofluid exRNA biomarkers and visualization tools" },
+					{ "name": "Metabolomics Workbench", "id": "Metabolomics", "relevance": 2, "reason": "biofluid metabolite biomarkers and analysis" },
+					{ "name": "LINCS", "id": "LINCS", "relevance": 3, "reason": "perturbation signatures to nominate biomarkers" }
+				]
+			}
+			`,
+			isLoading: false,
+			llmResults: null,
+			semanticPhenotypes: null,
+			availableTissues: null,
+			availableDiseases: null,
+
+			display_examples: false,
+
+			searchInitiated: false,
 			singleSearchParam: null,
 			singleSearchMethod: 'ss_keyword',
 			singleSearchResult: {
@@ -258,10 +582,43 @@ export default Vue.component("research-single-search-cfde", {
 			hasFocus: false,
 			meaningSearchScore: 0.5,
 			meaningSearchParam: null,
-			meaningSearchOptions: []
+			meaningSearchOptions: [],
+
+			exampleQueries: [
+                "I'm a common disease researcher looking for mechanisms underlying diabetes and Alzheimer's disease",
+                "MoTrPAC",
+                "BDH2",
+                "Bipolar disorder",
+                "I study the FTO gene, its role in body mass index, and mechanistic underpinnings",
+				"PPARG expression in adipose in type 2 diabetes and effects of exercise"
+            ],
+
+			programLinks: {
+				"4DN": "https://data.4dnucleome.org/",
+				"A2CPS": "https://a2cps.org/researchers/accessing-our-data/",
+				"Bridge2AI": "https://bridge2ai.org/datasets/",
+				"exRNA": "https://exrna-atlas.org/",
+				"GlyGen": "https://data.glygen.org/",
+				"GTEx": "https://gtexportal.org/home/",
+				"HuBMAP": "https://portal.hubmapconsortium.org/",
+				"IDG": "https://pharos.nih.gov/",
+				"Kids First": "https://portal.kidsfirstdrc.org/",
+				"LINCS": "https://maayanlab.cloud/sigcom-lincs/#/MetadataSearch/Datasets",
+				"Metabolomics": "https://www.metabolomicsworkbench.org/data/index.php",
+				"MoTrPAC": "https://motrpac-data.org/data-download",
+				"SenNet": "https://data.sennetconsortium.org/search",
+				"SMaHT": "https://data.smaht.org/",
+				"SPARC": "https://sparc.science/data?type=dataset"
+			}
 		};
 	},
 	created() {
+		this.llmSearch = createLLMClient({
+            llm: "openai",
+            model: "gpt-5-nano",
+            system_prompt: this.searchPrompt
+        });
+
 		if (!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
 
 			this.singleSearchConfig["search parameters"].map(S => {
@@ -301,11 +658,16 @@ export default Vue.component("research-single-search-cfde", {
 			this.updateSummary();
 		},
 		singleSearchParam(PARAM) {
+			return;
+
 			if(this.singleSearchMethod == 'ss_keyword') {
 				if (!!PARAM && PARAM.length >= 2) {
 
 					let paramWords = PARAM.split(" ");
+					
+					this.lookupGenes(PARAM);
 					// in case there is custom searchConfig, make sure kp gene search is there. Otherwise, gene search is active in default.
+					/*
 					if (!!this.singleSearchConfig && !!this.singleSearchConfig["search parameters"]) {
 
 						let isKpGenes = null;
@@ -353,16 +715,16 @@ export default Vue.component("research-single-search-cfde", {
 						}
 
 					} else {
-
 						this.lookupGenes(PARAM);
 					}
+					*/
 
 
 					/// for custom parameters
 					let searchFields = Object.keys(this.customList);
 
 
-
+					
 					searchFields.map(P => {
 
 						let searchItems = [];
@@ -385,7 +747,11 @@ export default Vue.component("research-single-search-cfde", {
 						})
 						this.singleSearchResult[P] = searchItems;
 					})
-					} else {
+
+					//console.log({searchFields})
+					//console.log(this.singleSearchResult)
+					
+				} else {
 					this.singleSearchResult.genes = [];
 					this.singleSearchResult.phenotypes = [];
 					let searchFields = Object.keys(this.customList);
@@ -400,12 +766,31 @@ export default Vue.component("research-single-search-cfde", {
 		},
 	},
 	methods: {
+		kcURL,
 		...alertUtils,
 		getVerticalPos(WRAPPER,TARGET) {
 			let wrapper = document.getElementById(WRAPPER);
 			let vPos = (wrapper)? wrapper.scrollTop * -1 : 0;
 			document.getElementById(TARGET).style.setProperty('top', vPos+'px');
 		},
+		/*
+		kcURL(path){
+			const isLocalhost = window.location.hostname === 'localhost';
+  
+			if (isLocalhost) {
+				// Extract pageid and query params
+				const match = path.match(/^\/r\/([^?]+)\?(.*)$/);
+				if (!match) return path;
+
+				const pageid = match[1];
+				const query = match[2];
+				return `/research.html?pageid=${pageid}&${query}`;
+			} else {
+				// Production URL
+				return path;
+			}
+		},
+		*/
 		getMeaningOptions() {
 
 			const dataPoint = this.singleSearchConfig["search by meaning parameters"].filter( P => P.parameter == this.meaningSearchParam )[0]['data point'];
@@ -599,8 +984,18 @@ export default Vue.component("research-single-search-cfde", {
 			}
 		},
 
+		useExample(text){
+            this.singleSearchParam = text;
+			this.$refs.search.focus();
+        },
+
 		resetSearch() {
 			this.singleSearchParam = null;
+			this.llmResults = null;
+			this.searchInitiated = false;
+			this.semanticPhenotypes = null;
+			this.availableTissues = null;
+			this.availableDiseases = null;
 
 			let keys = Object.keys(this.singleSearchResult);
 
@@ -666,8 +1061,115 @@ export default Vue.component("research-single-search-cfde", {
 			return totalResults;
 		},
 
+		async findSemanticPhenotypes(term){
+			const url = `https://api.kpndataregistry.org:8000/api/search/phenotypes?q=${encodeURIComponent(term)}&similarity_threshold=-0.1`
+            const response =  await fetch(url);
+
+            if (!response.ok) {
+                new Error("Fetch error:" + response.statusText);
+                return;
+            }
+
+            const res = await response.json();
+            const data = res.data;
+
+			const matches = data.filter(item => item.score > 0.9);
+
+			if(matches.length===1){
+				console.log(`found best match with a score of ${matches[0].score}`);
+				return matches;
+			}else if(data.length > 10){
+                console.log('more than 10 phenotypes returned, sorting by score and trimming to 10 max');
+                data.sort((a, b) => b.score - a.score);
+                data.splice(10);
+				return data;
+            }
+		},
+
+		findMatchingEntity(entity, term){
+			const paramWords = entity.split(" ");
+			const searchFields = Object.keys(this.customList);
+			searchFields.map(P => {
+				const searchItems = [];
+				this.customList[P].map(item => {
+					let isInList = 0;
+
+					paramWords.map((w) => {
+						if (
+							!!item.label
+								.toLowerCase()
+								.includes(w.toLowerCase())
+						) {
+							isInList++;
+						}
+					});
+
+					if (isInList == paramWords.length) {
+						searchItems.push(item);
+					}
+				})
+				this.singleSearchResult[P] = searchItems;
+			})
+			if(term==='tissue' && this.singleSearchResult.tissue.length>0){
+				return this.singleSearchResult.tissue;
+			}
+			if(term==='disease' && this.singleSearchResult.disease.length>0){
+				return this.singleSearchResult.disease;
+			}
+			return null;
+		},
+
+		parseLLMResponse(rawString) {
+            //parses llm text response to json object
+            const cleanString = rawString.replace(/```json|```/g, '').trim()
+            try {
+                return JSON.parse(cleanString)
+            } catch (e) {
+                console.error('Failed to parse LLM JSON:', e)
+                return []
+            }
+        },
+		async onExtractResponse(response){
+			this.isLoading = false;
+			//this.llmExtractState = '';
+            console.log('onResponse', response);
+            if(response){
+                const json = this.parseLLMResponse(response);
+                console.log('response json', json);
+				this.llmResults = json;
+				if(this.llmResults.phenotype.name){
+					this.semanticPhenotypes = await this.findSemanticPhenotypes(this.llmResults.phenotype.name);
+				}
+				if(this.llmResults.tissue.name){
+					this.availableTissues = this.findMatchingEntity(this.llmResults.tissue.name, 'tissue');
+				}
+				if(this.llmResults.disease.name){
+					this.availableDiseases = this.findMatchingEntity(this.llmResults.disease.name, 'disease')
+				}
+			}
+		},
+		onExtractError(error){
+			this.isLoading = false;
+            //this.llmExtractState = error;
+            console.log('onError', error);
+            //this.updateStep(this.search_step, 'error', error.message);
+        },
+
 
 		onSearch() {
+			this.searchInitiated = true;
+			//return;
+			this.isLoading = true;
+			this.llmSearch.sendPrompt({
+                userPrompt: this.singleSearchParam,
+                //onToken: this.onExtractToken,
+                onResponse: this.onExtractResponse,
+                //onState: this.onExtractState,
+                onError: this.onExtractError,
+                //onEnd: this.onExtractEnd
+            });
+
+			return;
 			let searchKey = this.singleSearchParam;
 			if (
 				!!this.singleSearchParam.includes("rs") ||
@@ -952,10 +1454,39 @@ export default Vue.component("research-single-search-cfde", {
 </script>
 
 <style scoped>
+.loading {
+    background: #eee;
+    border: 2px solid black;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    z-index: 1;
+    border-bottom-color: transparent;
+    animation: rotation 1s linear infinite;
+}
+@keyframes rotation {
+    0% {transform: rotate(0deg);}
+    100% {transform: rotate(360deg);}
+}
+
+.collapsed{
+    display: none !important;
+}
+.query-sample {
+    background: #ddd;
+    padding: 3px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+	color: black;
+}
+.query-sample:hover{
+    background: #ccc;
+}
+
 /* alert UI */
 #byor_single_search{
 	border-radius: 10px;
-	padding:25px;
+	padding:20px;
 }
 
 .search-underlay {
@@ -966,16 +1497,47 @@ export default Vue.component("research-single-search-cfde", {
     top: 0;
     left: 0;
     z-index: 1000;
-    opacity: .8;
+    opacity: .925;
 	display: none;
 }
 .search-underlay-close-note {
     position: absolute;
     left: 50%;
-    top: 75px;
+    top: -30px;
     transform: translateX(-50%);
 	display:none;
 	font-size:12px;
+	width: 100%;
+    text-align: right;
+    padding: 0 10px;
+	cursor: pointer;
+}
+.search-help {
+    position: absolute;
+    left: 50%;
+    top: 75px;
+    transform: translateX(-50%);
+	display:none;
+	width:100%;
+	padding: 0 10px;
+}
+.search-results {
+    position: absolute;
+    top: 75px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    width: 100vw;
+    min-width: 100%;
+    max-width: 1400px;
+    padding: 0 60px;
+}
+.search-result-box{
+	margin: 0 0 10px;
+	flex: 1;
+	background: #eee;
+	padding: 20px;
+	border-radius: 20px;
 }
 .search-underlay.focus{
 	display:block;
@@ -995,15 +1557,20 @@ export default Vue.component("research-single-search-cfde", {
 	.search-underlay-close-note{
 		display:block;
 	}
+	.search-help,
+	.search-results{
+		display:flex;
+	}
 }
 
 .reset-search {
-	position: absolute;
-	top: 65%;
-    transform: translateY(-50%);
-	right: 4px;
+	position: relative;
+	top: 0;
+	right: 0;
 	color: #999999;
 	font-size: 14px;
+	width: max-content;
+	cursor: pointer;
 }
 
 .reset-search:hover {

@@ -9,38 +9,50 @@
 				:sectionConfigs="sectionConfig">
 			</research-section-components>
 		</div>
-		<div class="multi-section" :class="'wrapper-' + sectionIndex" v-if="(!!sectionConfig['required parameters to display'] && !!meetRequirements())
-			|| !sectionConfig['required parameters to display']">
+		<div class="multi-section" :class="'wrapper-' + sectionIndex" v-if="((!!sectionConfig['required parameters to display'] && !!meetRequirements())
+			|| !sectionConfig['required parameters to display']) || (!!sectionConfig['data required to diaply'] && !!originalData && originalData.length > 0)">
 
 			<div class="row section-header" v-if="!isInTab">
-				<div class="col-md-12">
-					<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
-						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
-					<button class="btn btn-sm show-evidence-btn show-hide-section"
-						:class="(sectionHidden != true) ? '' : 'red-background'"
-						@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden = (sectionHidden == true) ? false : true"
-						title="Show / hide section"><b-icon icon="eye"></b-icon></button>
+				<div style="display:flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 15px;">
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-						
-						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
-							colorStyle="color"></research-loading-spinner>
-						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
+						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color" />
+						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div> 
 					</h4>
+					<div>
+						<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
+						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+						<button class="btn btn-sm show-evidence-btn show-hide-section"
+							:class="(sectionHidden != true) ? '' : 'red-background'"
+							@click="utils.uiUtils.showHideSvg('section_' + sectionID); sectionHidden = (sectionHidden == true) ? false : true"
+							title="Show / hide section"><b-icon icon="eye"></b-icon></button>
+						<research-citation
+							v-if="sectionConfig?.['citations']"
+							:data="sectionConfig?.['citations']"
+							:compact="true"
+							width="800px" 
+						/>
+					</div>
 				</div>
 			</div>
 
 			<div class="row section-header" v-if="!!isInTab">
-				<div class="col-md-12">
-					<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
-						@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+				<div style="display:flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 15px;">
 					<h4>
 						<span v-html="utils.Formatters.replaceWithParams(sectionConfig.header, pageParams)"></span>
-
-						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'"
-							colorStyle="color"></research-loading-spinner>
+						<research-loading-spinner :isLoading="(loadingDataFlag == 'down') ? '' : 'whatever'" colorStyle="color" />
 						<div v-if="!!noLoadedData" class="no-data-flag">{{ noLoadedData }}</div>
 					</h4>
+					<div>
+						<button v-if="!!sectionData && sectionData.length > 0" class="btn btn-sm show-evidence-btn capture-data"
+							@click="captureData()" title="Capture data in section"><b-icon icon="camera"></b-icon></button>
+						<research-citation
+							v-if="sectionConfig?.['citations']"
+							:data="sectionConfig?.['citations']"
+							:compact="true"
+							width="800px" 
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -290,6 +302,18 @@
 							</div>
 						</template>
 					</template>
+
+					<div v-if="!!sectionConfig['ai summary'] && !!sectionData">
+						<llm-summary 
+							ref="llmSummary"
+							:dataset="(!groups || (!!groups && groups.length <= 1) || !dataComparisonConfig) ? sectionData : mergedData"
+							:summaryConfig="sectionConfig['ai summary']"
+							:sectionID="sectionID"
+							:sectionConfig="sectionConfig"
+							:utils="utils">
+
+						</llm-summary>
+					</div>
 				</div>
 				<div class="vertical-filter"
 					v-if="!openInfoCard && !!sectionConfig['filters vertical'] && sectionConfig['filters vertical']['side'] == 'right'"
@@ -314,6 +338,7 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue";
+import llmSummary from "@/components/researchPortal/contextualSearch/LlmQuery.vue";
 
 export default Vue.component("research-section", {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
@@ -326,7 +351,8 @@ export default Vue.component("research-section", {
 		ResearchSectionComponents,
 		ResearchDataTable,
 		ResearchInfoCards,
-		ResearchInSectionSearch
+		ResearchInSectionSearch,
+		llmSummary
 	},
 	data() {
 		return {
@@ -568,25 +594,19 @@ export default Vue.component("research-section", {
 			//filter_c2ct_phenotype_annotationppo
 			if(!!this.sectionConfig.filters) {
 
-				//console.log("this.sectionConfig.filters",this.sectionConfig.filters)
+				
 
 			let filters = [];
 
 				this.sectionConfig.filters.map( f => {
-
-					//console.log("f",f)
 					
 					const fItem = f.type == 'checkbox'? '.filter-' + this.sectionID + f.field.replace(/\W/g, "").toLowerCase():'#filter_' + this.sectionID + f.field.replace(/\W/g, "").toLowerCase();
 					const fItems = document.querySelectorAll(fItem);
-
-					//console.log("fItem",fItem);
-					//console.log("fItems",fItems);
 					
 					if(f.type == 'checkbox') {
 						fItems.forEach(node => {
 							if(node.checked) {
 								filters.push(node.value)
-								//console.log(node.id + " is checked");
 							}
 						})
 					} else {
@@ -599,7 +619,6 @@ export default Vue.component("research-section", {
 					}
 				})
 
-				//console.log("filtes", filters);
 				this.filterValues = filters;
 					
 			} else {
@@ -961,8 +980,6 @@ export default Vue.component("research-section", {
 
 		getParamString(PARAMS_TYPE) {
 
-			//console.log("PARAMS_TYPE",PARAMS_TYPE)
-
 			let queryParams = {}; // collect search parameters
 			let queryParamsString = []; // search parameters into one string
 			let queryParamsSet = true; // if search requirements don't meet set it null
@@ -990,12 +1007,11 @@ export default Vue.component("research-section", {
 							
 							region = chr +":"+posStart+"-"+posEnd;
 
-							//console.log("region",region)
-
 							queryParams[p] = region.toString().split(",");
 
-						} else {
-							queryParams[p] = this.utils.keyParams[p].toString().split(","); 
+						}  else {
+							queryParams[p] = (this.dataPoint.type == 'bioindex multiple')? this.utils.keyParams[p].toString():this.utils.keyParams[p].toString().split(","); 
+
 						}
 						
 					} else {
@@ -1011,7 +1027,7 @@ export default Vue.component("research-section", {
 
 					if (!!this.utils.keyParams[p]) {
 						pWithValue++;
-						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+						queryParams[p] = (this.dataPoint.type == 'bioindex multiple')? [this.utils.keyParams[p].toString()]:this.utils.keyParams[p].toString().split(",");
 					} else {
 						queryParams[p] = [];
 					}
@@ -1029,7 +1045,7 @@ export default Vue.component("research-section", {
 
 					if (!!this.utils.keyParams[p]) {
 						pWithValue++;
-						queryParams[p] = this.utils.keyParams[p].toString().split(",");
+						queryParams[p] = (this.dataPoint.type == 'bioindex multiple')? [this.utils.keyParams[p].toString()]:this.utils.keyParams[p].toString().split(",");
 					} else {
 						queryParams[p] = [];
 					}
@@ -1040,7 +1056,6 @@ export default Vue.component("research-section", {
 				}
 			}
 
-			//console.log("queryParams",queryParams)
 			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
 			if (!!this.sectionConfig["pre filters"]) {
 				this.sectionConfig["pre filters"].map(f => {
@@ -1080,10 +1095,13 @@ export default Vue.component("research-section", {
 				queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 			}
 
+			//console.log("1", queryParamsString);
+
 			//5. Check if return the first item in the queryParamsString
-			//console.log("queryParamsString", queryParamsString)
-			if (queryParamsString.length > 0) {
+			if (queryParamsString.length > 0 && !this.dataPoint['is value array']) {
 				return queryParamsString[0];
+			} else if(queryParamsString.length > 0 && !!this.dataPoint['is value array']) {
+				return queryParamsString.join(';'); // this case is only for 'BYOGL'
 			} else {
 				if (!!this.dataPoint.parameters) {
 					return "invalid";
@@ -1100,7 +1118,6 @@ export default Vue.component("research-section", {
 		},
 
 		queryData(FROM) {
-			//console.log("here");
 			const queryType = this.dataPoint["type"];
 			const paramsType = this.dataPoint["parameters type"];
 			const params = this.dataPoint["parameters"];
@@ -1123,6 +1140,10 @@ export default Vue.component("research-section", {
 					case "bioindex":
 						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
 						this.queryBioindex(paramsString, paramsType, params);
+						break;
+					case "bioindex multiple":
+						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
+						this.queryBioindexMultiple(paramsString, paramsType, params);
 						break;
 					case "api":
 						this.queryApi(paramsString, paramsType, params, dataType);
@@ -1158,31 +1179,55 @@ export default Vue.component("research-section", {
 						break;
 					case "openApi":
 
-						let header = this.dataPoint["header"];
-						let body = this.dataPoint["body"];
+						
+
+						const header = this.dataPoint["header"];
+						let body = JSON.parse(JSON.stringify(this.dataPoint["body"]));
 
 						let paramStrArr = paramsString.split(",");
 
-						//console.log("paramStrArr",paramsString);
-						//console.log("searchParams",this.searchParameters);
+						//console.log("paramsString here",paramsString);
+						
 
 						params.map((param, pIndex) => {
 
 							for (const [key, value] of Object.entries(body)) {
-								if(value == '$'+param) {
 
+								//console.log("value",value);
+
+								if(value == '$'+param) { // Here is the bug
+									
 									let paramType;
 									this.searchParameters.map( p => {
-										if(p.parameter == key) {
-											paramType = p.type
+
+										//console.log("searchParameter",p);
+
+										if(p.type != "context search") {
+											if(p.parameter == key) {
+												paramType = p.type
+											}
+										} else {
+											p.parameters.map(p2 => {
+												if(p2.parameter == key) {
+													paramType = p2.type
+												}
+											})
 										}
 									})
 
+									
+
+									//console.log("paramType",paramType);
+
 									if(paramType == "string to array") {
-										//console.log("paramStrArr[pIndex]",paramStrArr[pIndex].replaceAll("\n",";"));
+										
 										paramStrArr[pIndex] = paramStrArr[pIndex].replaceAll("\n",";");
 										body[key] = paramStrArr[pIndex].split(";");
+
+										//console.log("body[key]",body[key]);
+
 									} else {
+										
 										body[key] = paramStrArr[pIndex];
 									}
 								}
@@ -1197,7 +1242,7 @@ export default Vue.component("research-section", {
 				}
 			} else {
 				this.loadingDataFlag = "down";
-				this.noLoadedData = "Please set valid parameters for this query.";
+				this.noLoadedData = "Data is already loaded or no valid parameters are set.";
 				if (document.getElementById('tabUi' + this.sectionID)) {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
@@ -1236,6 +1281,8 @@ export default Vue.component("research-section", {
 		},
 
 		queryOpenApi(HEADER,BODY, URL, PARAM, TYPE, PARAMS) {
+
+			//console.log("BODY",BODY['genes']);
 
 			async function fetchApi(header,body) {
 				const response = await fetch(URL, {
@@ -1277,11 +1324,9 @@ export default Vue.component("research-section", {
 					}
 				})
 
-				//console.log("dataUrl",dataUrl);
 
 			} else if(TYPE == "replace or") {
 
-				//console.log("here3");
 				PARAMS.map((param, pIndex) => {
 					if (!!QUERY.split(",")[pIndex]) {
 						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
@@ -1291,8 +1336,6 @@ export default Vue.component("research-section", {
 						dataUrl = dataUrl.replace("$" + param, '');
 					}
 				})
-
-				//console.log("dataUrl",dataUrl);
 
 			} else {
 				dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + QUERY;
@@ -1306,6 +1349,59 @@ export default Vue.component("research-section", {
 				this.processLoadedBI(contentJson, QUERY);
 			} else {
 				// fetch failed 
+				if (!!this.dataPoint["cumulate data"]) {
+					this.sectionData = this.sectionData
+				} else {
+					this.sectionData = null;
+				}
+				this.loadingDataFlag = "down";
+				this.noLoadedData = "No data is returned. Please check query parameters.";
+			}
+		},
+		async queryBioindexMultiple(QUERY, TYPE, PARAMS) {
+
+			//console.log("queryBioindexMultiple()",QUERY, TYPE);
+
+			this.searched.push(QUERY);
+
+			const baseUrl = this.dataPoint.url;
+			const items = QUERY.split(",");
+			let itemsData = {page:1,data:[]}
+
+			// Process all items sequentially to avoid race conditions
+			for (let index = 0; index < items.length; index++) {
+				const item = items[index].trim();
+				let dataUrl = baseUrl; // Use fresh base URL for each item
+				
+				if (TYPE == "replace" || TYPE == "replace or") {
+					dataUrl = dataUrl.replace("$" + PARAMS[0] + ",", item);
+					dataUrl = dataUrl.replace(",$" + PARAMS[0], item);
+					dataUrl = dataUrl.replace("$" + PARAMS[0], item);
+				} else {
+					dataUrl = dataUrl + "query/" + this.dataPoint.index + "?q=" + item;
+				}
+
+				//console.log("dataUrl for item", item, ":", dataUrl);
+
+				try {
+					let contentJson = await fetch(dataUrl).then((resp) => resp.json());
+
+					if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
+						itemsData.data = itemsData.data.concat(contentJson.data);
+						//console.log("Successfully fetched data for item", item, "index", index, "total items", items.length);
+					} else {
+						console.log("No data returned for item", item);
+					}
+				} catch (error) {
+					console.error("Error fetching data for item", item, ":", error);
+				}
+			}
+
+			// Process all collected data
+			if (itemsData.data.length > 0) {
+				this.processLoadedBI(itemsData, QUERY);
+			} else {
+				// No data was fetched for any item
 				if (!!this.dataPoint["cumulate data"]) {
 					this.sectionData = this.sectionData
 				} else {
@@ -1371,7 +1467,29 @@ export default Vue.component("research-section", {
 			} else if (!!PARAMS && TYPE == "replace") {
 
 				PARAMS.map((param, pIndex) => {
-					dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					if(!!this.dataPoint['parameter convert'] && this.dataPoint['parameter convert'][param]) {
+
+						switch(this.dataPoint['parameter convert'][param].type) {
+							case "map name":
+								//this.$root.sharedResource
+								let paramText;
+								if(this.dataPoint['parameter convert'][param].map == 'shared resource') {
+									const convertPoint = this.$root.sharedResource[this.dataPoint['parameter convert'][param]['map name']];
+									paramText = convertPoint[QUERY.split(",")[pIndex]];
+
+									paramText = (!!paramText)? paramText : QUERY;
+
+								}
+								
+								dataUrl = dataUrl.replace("$" + param, paramText);
+
+								break;
+						}
+
+					} else {
+						dataUrl = dataUrl.replace("$" + param, QUERY.split(",")[pIndex]);
+					}
+					
 				})
 			} else if (!!PARAMS && TYPE == "replace to field") {
 
@@ -1385,6 +1503,8 @@ export default Vue.component("research-section", {
 					dataUrl = dataUrl.replace("$" + param, paramValue);
 				})
 			}
+
+			//console.log("dataUrl",dataUrl);
 
 			let contentJson;
 			if(DATATYPE && DATATYPE === "line json"){
@@ -1469,6 +1589,8 @@ export default Vue.component("research-section", {
 
 			let data = CONTENT.data;
 
+			//console.log("processLoadedBI",CONTENT, QUERY);
+
 
 			// if loaded data is processed
 			let tableFormat = this.sectionConfig["table format"];
@@ -1478,10 +1600,14 @@ export default Vue.component("research-section", {
 				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap, this.$root.sharedResource); /// convert raw data
 			}
 
+			//console.log("step 1",data);
+
 			let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
 
 			let isOriginalDataEmpty = (!this.originalData || (!!this.originalData.length && this.originalData.length == 0)) ?
 				true : null;
+
+//console.log("isOriginalDataEmpty",isOriginalDataEmpty);
 
 			if (!!cumulateData) {
 
@@ -1542,8 +1668,6 @@ export default Vue.component("research-section", {
 		},
 
 		processLoadedApi(CONTENT, QUERY, TYPE, PARAMS) {
-
-
 
 			// remote table format
 			if (!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"]
@@ -1750,7 +1874,6 @@ export default Vue.component("research-section", {
 					break;
 
 				case "object to array":
-					//console.log("CONTENT",CONTENT);
 					let objKey = this.dataPoint.object.key, objValue = this.dataPoint.object.value;
 
 					if (!!dataWrapper) {
@@ -1878,6 +2001,8 @@ export default Vue.component("research-section", {
 
 		completeDataLoad(QUERY) {
 
+			//console.log("complete",QUERY,this.sectionID,this.sectionData.length);
+
 			if (this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
 				let sortBy = this.sectionConfig["table format"]["initial sort by"]
 				let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
@@ -1993,6 +2118,30 @@ export default Vue.component("research-section", {
 					}
 				})
 			}
+
+			if (!!this.sectionConfig["ai summary"]) {
+				// Call queryLLM() function from the LLMQuery component
+				this.$nextTick(() => {
+					if (this.$refs.llmSummary) {
+						this.$refs.llmSummary.queryLLM();
+						// Scroll to the LLMQuery component
+						this.scrollToLLMQuery();
+					}
+				});
+			}
+
+		},
+
+		scrollToLLMQuery() {
+			// Scroll to the LLMQuery component with smooth behavior
+			this.$nextTick(() => {
+				if (this.$refs.llmSummary && this.$refs.llmSummary.$el) {
+					this.$refs.llmSummary.$el.scrollIntoView({
+						behavior: 'smooth',
+						block: 'start'
+					});
+				}
+			});
 		}
 
 	},
@@ -2070,7 +2219,7 @@ button.red-background {
 }
 
 .no-data-flag {
-	font-size: 0.7em;
+	font-size: 0.6em;
 	font-weight: 600;
 	color: #33cc77;
 }

@@ -330,6 +330,11 @@ export default Vue.component("research-scatter-plot", {
 
 			return dimension
 		},
+		thresholds() {
+			let thresholds = (!!this.renderConfig["thresholds"])? this.renderConfig["thresholds"] : null;
+
+			return thresholds;
+		},
 		renderData() {
 			//what is dataComparisonConfig?
 			let rawData = (!!this.dataComparisonConfig) 
@@ -657,6 +662,44 @@ export default Vue.component("research-scatter-plot", {
 				//single
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, [this.renderConfig["x axis field"]]);
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, [this.renderConfig["y axis field"]]);
+			}
+
+			// Render thresholds lines
+			if (!!this.thresholds) {
+				console.log('thresholds', this.thresholds);
+				//renderDashedLine = function (CTX, X1, Y1, X2, Y2, WIDTH, COLOR, DASH)
+				let plotWidth = canvasWidth - MARGIN.left - MARGIN.right,
+					plotHeight = canvasHeight - MARGIN.top - MARGIN.bottom,
+					xStep = plotWidth / (xMax - xMin),
+					yStep = plotHeight / (yMax - yMin),
+					WIDTH = (!!this.thresholds.width)? this.thresholds.width: null,
+					COLOR = (!!this.thresholds.color)? this.thresholds.color: null,
+					DASH = (!!this.thresholds.dash)? this.thresholds.dash: null;
+				
+				if(!!this.thresholds.x) {
+					this.thresholds.x.forEach(threshold => {
+						
+						let X1 = MARGIN.left + (xStep * (threshold - xMin)),
+							X2 = X1,
+							Y1 = MARGIN.top,
+							Y2 = MARGIN.top + plotHeight;
+							
+						this.utils.plotUtils.renderDashedLine(ctx, X1, Y1, X2, Y2, WIDTH, COLOR, DASH);
+					});
+				};
+
+				if(!!this.thresholds.y) {
+					this.thresholds.y.forEach(threshold => {
+						//let xPos = MARGIN.left + (xStep * (threshold - xMin));
+						//let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
+						let X1 = MARGIN.left,
+							X2 = X1 + plotWidth,
+							Y1 = MARGIN.top + (plotHeight - (threshold - yMin) * yStep),
+							Y2 = Y1;
+							
+						this.utils.plotUtils.renderDashedLine(ctx, X1, Y1, X2, Y2, WIDTH, COLOR, DASH);
+					});
+				}
 			}
 			
 			if(!!this.colorsList && !this.multiList) {

@@ -79,6 +79,7 @@
             this.drawChart();
         }else{
             llog('no data');
+            //console.log('no data');
         }
         window.addEventListener('resize', this.handleResize);
     },
@@ -101,6 +102,8 @@
             d3.select(this.$refs.chart).style('position', 'relative');
             llog("---Violin Plot");
             llog("   data", this.data);
+            //console.log("---Violin Plot");
+            //console.log("   data", this.data);
 
             if(!this.data) return;
 
@@ -138,6 +141,7 @@
             //calculate sizes and margins
             const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
             //llog("parentWidth", parentWidth);
+            //console.log("parentWidth", parentWidth);
 
             const labels = { xAxis: this.xAxisLabel?20:0, yAxis: this.yAxisLabel?20:0 }
             const margin = { top: 10, right: 10, bottom: labelsHeight + labels.xAxis, left: 40 };
@@ -399,6 +403,7 @@
         },
         removeAllListeners(elsArr){
             //llog(`removing event listeners for ${elsArr.length} elements`);
+            //console.log(`removing event listeners for ${elsArr.length} elements`);
             elsArr.forEach(el=>{
                 this.removeListener(el);
             });

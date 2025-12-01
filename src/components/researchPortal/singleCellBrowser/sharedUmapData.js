@@ -7,9 +7,9 @@ class SharedUmapData {
     }
 
     initPoints(group, points) {
-        if(!this.groups.has(group)){
+        if (!this.groups.has(group)) {
             const numPoints = points.length;
-        
+
             // positions = [x1, y1, x2, y2, x3, y3, ...]
             const positions = new Float32Array(points.length * 2);
             let idx = 0;
@@ -32,9 +32,10 @@ class SharedUmapData {
                 quadtree,
                 instances
             })
-        }else{
+        } else {
             this.groups.get(group).instances++;
         }
+        //console.log('UMAP GROUPS', this.groups)
     }
 
     getPositions(group) {
@@ -52,11 +53,11 @@ class SharedUmapData {
         return data ? data.numPoints : null;
     }
 
-    release(group){
-        if(!this.groups.has(group)) return;
+    release(group) {
+        if (!this.groups.has(group)) return;
         const data = this.groups.get(group);
         data.instances--;
-        if(data.instances <= 0){
+        if (data.instances <= 0) {
             this.groups.delete(group);
         }
     }

@@ -202,7 +202,7 @@ export default Vue.component('research-umap-plot-gl', {
             }, 100);
         },
         init() {
-            llog("---glUMAP init");
+            //console.log("---glUMAP init");
 
             sharedUmapData.initPoints(this.group, this.points);
 
@@ -234,7 +234,7 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         cleanUp() {
-            //llog("   cleanUp");
+            //console.log("   cleanUp");
             const gl = this.gl;
             if (!gl) return;
 

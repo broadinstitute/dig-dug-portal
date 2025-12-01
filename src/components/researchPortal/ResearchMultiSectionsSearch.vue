@@ -2,7 +2,7 @@
 	<div class="multi-page-search-wrapper" :class="searchVisible == false || displyingSearchNum == 0 ? 'hidden-search' : ''">
 		<div class="filtering-ui-wrapper search-criteria multi-page-search" id="searchCriteria"
 			v-if="searchParameters != null">
-			<h4 class="card-title">Build search criteria</h4>
+			<h4 class="card-title">{{ (!!label)? label : 'Build search criteria'}}</h4>
 			<div class="filtering-ui-content row">
 				<div class="col" :class="!!parameter.display && parameter.display == 'false' ? 'hidden-search' : ''"
 					:type="!!parameter['in-section search']? 'in-section search':''"
@@ -12,14 +12,24 @@
 					</div>
 
 					<!-- single search -->
-				<research-context-search
-					v-if="parameter.type == 'context search'"
-					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse}"
-					:paramIndex="paramIndex"
-					:parent="parentMethods"
-					:utils="utils">
 
-				</research-context-search>
+					<research-context-search
+						v-if="parameter.type == 'context search'"
+						:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse}"
+						:paramIndex="paramIndex"
+						:parent="parentMethods"
+						:utils="utils">
+
+					</research-context-search>
+
+					<!-- PIGEAN search -->
+					<research-pigean-search
+						v-if="parameter.type == 'pigean search'"
+						:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse, 'sharedResource':sharedResource}"
+						:paramIndex="paramIndex"
+						:parent="parentMethods"
+						:utils="utils">
+					</research-pigean-search>
 
 					<!-- end -->
 
@@ -120,6 +130,8 @@
 					<input v-if="parameter.type == 'input' &&
 						parameter.values != 'kp genes'
 						" type="text" class="form-control" :id="'search_param_' + parameter.parameter" />
+					<input v-if="parameter.type == 'input multiple'" 
+						type="text" class="form-control" style="width: 400px !important;" :id="'search_param_' + parameter.parameter" />
 				</div>
 				<div class="col search-btn-wrapper" :class="containsContextSearch()">
 					<div @click="updateSearch()" class="btn btn-sm btn-primary">
@@ -142,6 +154,7 @@
 <script>
 import Vue from "vue";
 import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch.vue";
+import ResearchPigeanSearch from "@/components/researchPortal/ResearchPigeanSearch.vue";
 
 export default Vue.component("research-multi-sections-search", {
 	props: [
@@ -149,10 +162,13 @@ export default Vue.component("research-multi-sections-search", {
 		"phenotypesInUse",
 		"sections",
 		"utils",
-		"searchVisible"
+		"searchVisible",
+		"sharedResource",
+		"label"
 	],
 	components: {
-		ResearchContextSearch
+		ResearchContextSearch,
+		ResearchPigeanSearch
 	},
 	data() {
 		return {
@@ -186,7 +202,7 @@ export default Vue.component("research-multi-sections-search", {
 	mounted() {
 		window.addEventListener("scroll", this.onScroll);
 		this.searchParameters.map(s => {
-			if (!!this.utils.keyParams[s.parameter] && s.type != 'multi search') {
+			if (!!this.utils.keyParams[s.parameter] && s.type != 'context search' && s.type != 'pigean search') {
 				document.getElementById("search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})
@@ -228,7 +244,7 @@ export default Vue.component("research-multi-sections-search", {
 
 		containsContextSearch() {
 
-			let contextSearch = this.searchParameters.filter(S => S.type == "context search");
+			let contextSearch = this.searchParameters.filter(S => S.type == "context search" || S.type == "pigean search");
 
 			if(contextSearch.length >= 1) {
 				return 'hidden';
@@ -331,12 +347,18 @@ export default Vue.component("research-multi-sections-search", {
 			}
 
 		},
-		setListValue(KEY, PARAMETER, INDEX) {
+		setListValue(KEY, PARAMETER, INDEX, UPDATE_SEARCH) {
+
+			//console.log("setListValue",KEY, PARAMETER, INDEX, UPDATE_SEARCH);
 
 			this.paramSearch[INDEX] = KEY;
 			this.searchingValues[PARAMETER] = KEY;
 
 			this.listOptions[PARAMETER] = [];
+
+			if(!!UPDATE_SEARCH) {
+				this.updateSearch();
+			}
 		},
 		updateSearchInputByEvent(event, INDEX, PARAMETER) {
 			let paramValue = event.target.value;
@@ -365,6 +387,8 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		updateSearch(KEY,TARGET_SECTIONS) {
 
+			//console.log("updateSearch",KEY,TARGET_SECTIONS);
+
 			this.$root.hoverPos = [];
 
 			let paramsObj = {}
@@ -376,6 +400,7 @@ export default Vue.component("research-multi-sections-search", {
 					paramValue = (s.type == "string to array")?	paramValue.replaceAll("\n",";"):paramValue;*/
 
 					let paramValue;
+					let paramParameter;
 
 					switch(s.type) {
 						case "string to array":
@@ -397,6 +422,17 @@ export default Vue.component("research-multi-sections-search", {
 
 							break;
 
+						case "pigean search":
+
+							//console.log(this.paramSearch,this.searchingValues)
+
+							//paramValue = this.searchingValues['cfdePhenotype'];
+							s.parameters.map( p => {
+								paramValue = this.searchingValues[p.parameter]
+								paramParameter = p.parameter;
+							})
+
+							break;
 						default:
 							paramValue = document.getElementById("search_param_" + s.parameter).value;
 
@@ -415,19 +451,25 @@ export default Vue.component("research-multi-sections-search", {
 
 							break;
 
+						case "pigean search":
+							paramsObj[paramParameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+
+							break;
+
 						default:
 							paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 							break;
 					}
 					
 				})
-			/*} else {
-				
-				let paramValue = document.getElementById("search_param_" + KEY).value;
-				
-				paramsObj[KEY] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-			}*/
 			
+			this.utils.keyParams.set(paramsObj);
+
+			//for pigean search, add focus to paramsObj
+			if(this.searchingValues['focus'] != '') {
+				paramsObj['focus'] = this.searchingValues['focus'];
+			}	
+
 			this.utils.keyParams.set(paramsObj);
 
 			if (!KEY) {
@@ -477,6 +519,8 @@ export default Vue.component("research-multi-sections-search", {
 				switch (s.type) {
 					case "context search":
 
+						paramsObj['contextid'] = "";
+
 						s.parameters.map( p => {
 							paramsObj[p.parameter] = "";
 							 
@@ -490,6 +534,14 @@ export default Vue.component("research-multi-sections-search", {
 						currentSections.forEach(section => {
 							section.classList.add('hidden');
 						});
+						break;
+
+					case "pigean search":
+						s.parameters.map( p => {
+							paramsObj[p.parameter] = "";
+						})
+						
+						paramsObj['focus'] = "";
 						break;
 
 					default:
@@ -771,7 +823,7 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
-	vertical-align: middle !important;
+	/*vertical-align: middle !important;*/
 }
 
 .autocomplete-options {

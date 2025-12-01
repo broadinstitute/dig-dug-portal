@@ -1,6 +1,5 @@
 <template>
     <div :id="'region_track_wrapper'+sectionId" class="region-track-wrapper">
-        
         <div :id="'block_data_' + sectionId" class="block-data hidden">
             <div class="fixed-info-box-close" @click="infoBoxFrozen = false; hidePanel('block_data_' + sectionId)">
                 <b-icon icon="x-circle-fill"></b-icon>
@@ -101,7 +100,8 @@ export default Vue.component("research-region-track", {
         "colors",
         "utils",
         "plotMargin",
-        "starItems"
+        "starItems",
+        "wrapperWidth"
     ],
     data() {
         return {
@@ -175,6 +175,7 @@ export default Vue.component("research-region-track", {
             return plotMargin;
         },
         viewingRegion() {
+
             if (this.region == null) {
                 return null;
             } else {
@@ -187,7 +188,9 @@ export default Vue.component("research-region-track", {
                 let start = parseInt(regionArr[0], 10);
                 let end = parseInt(regionArr[1], 10);
                 let distance = end - start;
-                if (this.regionZoom > 0) {
+                let regionZoom = (!this.regionZoom)? 0:this.regionZoom;
+
+                if (regionZoom > 0) {
                     let zoomNum = Math.round(
                         distance * (this.regionZoom / 200)
                     );
@@ -197,7 +200,7 @@ export default Vue.component("research-region-track", {
                     returnObj["chr"] = chr;
                     returnObj["start"] = start + zoomNum + viewPointShift;
                     returnObj["end"] = end - zoomNum + viewPointShift;
-                } else if (this.regionZoom == 0) {
+                } else if (regionZoom == 0) {
                     returnObj["chr"] = chr;
                     returnObj["start"] = start;
                     returnObj["end"] = end;
@@ -248,6 +251,9 @@ export default Vue.component("research-region-track", {
         starItems(STARS) {
             this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
             this.renderPlot();
+        },
+        regionParam(REGION) {
+            this.renderPlot();
         }
     },
     methods: {
@@ -290,19 +296,25 @@ export default Vue.component("research-region-track", {
 
         },
         renderPlot(cKey,action) {
+
+            c = document.getElementById(
+                'track_' + this.sectionId
+            );
+
+            c.setAttribute(
+                "style",
+                "display: none;"
+            );
             
             this.posData = {};
 
             let tracks = Object.keys(this.renderData).sort();
             let perTrack = this.plotConfig["track height"]*2;
-            let canvasWidth = document.querySelector("#region_track_wrapper"+this.sectionId).clientWidth * 2;
+            let canvasWidth = (!!this.wrapperWidth)? this.wrapperWidth * 2:document.querySelector("#region_track_wrapper"+this.sectionId).clientWidth * 2;
             let canvasHeight = (perTrack * tracks.length)+ this.adjPlotMargin.top + this.adjPlotMargin.bottom;
 
             let c, ctx;
-
-            c = document.getElementById(
-                'track_' + this.sectionId
-            );
+            
             c.setAttribute("width", canvasWidth);
             c.setAttribute("height", canvasHeight);
             c.setAttribute(
@@ -322,10 +334,7 @@ export default Vue.component("research-region-track", {
             let plotWidth = canvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
             let region = this.viewingRegion;
             let xPerPixel = plotWidth / (region.end - region.start);
-            //let regionArr = this.region.split(":");
-            //let region = regionArr[1].split("-");
             
-
             // render marker band
             
             ctx.fillStyle = "#ff880025";

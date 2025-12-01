@@ -303,6 +303,25 @@ function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
 
 }
 
+function formatLLMResponse(VALUE, FORMAT) {
+    let newTab;
+    switch (FORMAT.type) {
+        case "link":
+            newTab = FORMAT["new tab"] ? "_blank" : "";
+            return "<a href='" + FORMAT["link to"] + VALUE + "' target='" + newTab + "'>" + VALUE + "</a>";
+            break;
+        case "split link":
+            newTab = FORMAT["new tab"] ? "_blank" : "";
+            let contentArr = VALUE.split(FORMAT["split by"]);
+            let returnContent = "";
+
+            contentArr.map((content, index) => {
+                returnContent += (index == FORMAT["link index"]) ? "<a href='" + FORMAT["link to"] + content + "' target='" + newTab + "'>" + content + "</a>" : content;
+            })
+            return returnContent;
+    }
+}
+
 function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
 
     let cellValue = VALUE;
@@ -389,6 +408,14 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                         : Math.round(
                             Number.parseFloat(VALUE) * 1000000000
                         ) / 1000000000;
+                break;
+
+            case "kp phenotype description":
+                let phenotypeDescription = PMAP && PMAP[cellValue]
+                    ? PMAP[cellValue].description
+                    : cellValue;
+
+                cellValue = phenotypeDescription;
                 break;
 
             case "kp phenotype link":
@@ -813,5 +840,6 @@ export default {
     getHoverValue,
     getShortName,
     ssColumnFormat,
-    replaceWithParams
+    replaceWithParams,
+    formatLLMResponse
 };

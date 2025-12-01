@@ -220,6 +220,13 @@
 				</div>
 			</div>
 
+			<research-citation
+				v-if="$parent.sectionConfigs?.['citations']"
+				:data="$parent.sectionConfigs?.['citations']"
+				:compact="true"
+				width="800px" 
+			/>
+
 			<!-- tabs nav -->
 			<div
 				class="kp-tabs-wrapper"
@@ -636,6 +643,8 @@
 								:sections="$parent.sectionConfigs.sections"
 								:utils="$parent.utilsBox"
 								:searchVisible="!!$parent.sectionConfigs['search parameters']? true:false"
+								:sharedResource = "$parent.sectionConfigs['shared resource']"
+								:label = "!!$parent.sectionConfigs['search wrapper label']? $parent.sectionConfigs['search wrapper label'] : null"
 								>
 							</research-multi-sections-search>
 

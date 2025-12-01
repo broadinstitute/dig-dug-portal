@@ -273,6 +273,14 @@
 											</button>
 										</span>
 								</span>
+								<span v-else-if="!!ifDrcPwbColumn(tdKey)" 
+									class="drc-pwb-options">
+									<span class="btns-wrapper">
+										<button class="btn btn-sm show-evidence-btn set-search-btn"
+											@click="openDrcPwbLink(tdValue, tdKey, index)" >
+										{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+									</span>
+								</span>
 								
 								<span v-else v-html="formatValue(tdValue, tdKey, value)"></span>
 
@@ -325,6 +333,14 @@
 												{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
 											</span>
 									</span>
+									<span v-else-if="!!ifDrcPwbColumn(tdKey)" 
+										class="drc-pwb-options">
+										<span class="btns-wrapper">
+											<button class="btn btn-sm show-evidence-btn set-search-btn"
+												@click="openDrcPwbLink(tdValue, tdKey, index)" >
+											{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : tdValue }}</button>
+										</span>
+									</span>
 									<span v-else v-html="formatValue(sValue, tdKey)"></span></span>
 							</td>
 						</template>
@@ -367,6 +383,7 @@
 					>
 					<td :colspan="topRowNumber">
 						<research-sub-section
+						v-if="!!collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
 						:sectionId="sectionId"
 						:rowId="getRowID(itemKey + value[itemKey] + index)"
 						:colors="colors"
@@ -610,9 +627,12 @@ export default Vue.component("research-data-table", {
 				rawData.map((d) => {
 					let tempObj = {};
 					
+					/* tried to minimize the data pushed to the table by collecting only the columns visible to users 
 					this.tableFormat["top rows"].map((t) => {
 						tempObj[t] = d[t];
-					});
+					});*/
+
+					tempObj = d; 
 
 					if(!!this.tableFormat["star column"] && !tempObj[this.tableFormat["star column"]]) {
 						tempObj[this.tableFormat["star column"]] = d[this.tableFormat["star column"]]
@@ -723,7 +743,19 @@ export default Vue.component("research-data-table", {
 
 				for (let i = startIndex; i < endIndex; i++) {
 					if (!!formattedData[i]) {
-						paged.push(formattedData[i]);
+						//paged.push(formattedData[i]);
+						let tempObj = {};
+						this.tableFormat["top rows"].map((t) => {
+							tempObj[t] = formattedData[i][t];
+						});
+
+						Object.keys(formattedData[i]).map((f) => {
+							if(this.tableFormat["top rows"].includes(f) == false) {
+								tempObj[f] = formattedData[i][f];
+							}
+						});
+
+						paged.push(tempObj);
 					}
 				}
 
@@ -817,6 +849,24 @@ export default Vue.component("research-data-table", {
 
 			return (this.subSectionHidden.includes(id))? 'hidden' : '';
 		},
+		async openDrcPwbLink(VALUE,KEY,INDEX){
+			
+			const dataPoint = this.tableFormat['column formatting'][KEY]['data point'];
+			const model = !!this.utils.keyParams.model? this.utils.keyParams.model:'all';
+			const genes = await this.utils.drcUtils.getGenesInGeneSet(VALUE, dataPoint,model);
+			
+			if(!!genes) {
+				this.openDrcPwbLinkWithGenes(genes, VALUE)
+			} else {
+				console.log('no genes found');
+			}
+		},
+
+		async openDrcPwbLinkWithGenes(GENES,DESCRPTION) {
+			const link = await this.utils.drcUtils.create_pwb_gene_set_workflow(GENES, DESCRPTION)
+			window.open(link, '_blank');
+		},
+
 		setParameter(VALUE,KEY,SECTION,PARAMETERS,COMPARE){
 
 			let targetSections = SECTION == "all" ? "":[SECTION];
@@ -1207,8 +1257,16 @@ export default Vue.component("research-data-table", {
 				return null;
 			}
 		},
+		ifDrcPwbColumn(KEY) {
+			if (!!this.tableFormat['column formatting'] && !!this.tableFormat['column formatting'][KEY]
+				&& !!this.tableFormat['column formatting'][KEY]['type'].includes('drc pwb link')) {
+				return true;
+			} else {
+				return null;
+			}
+		},
 		getParameterColumnLabel(KEY){
-			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY) || !!this.ifByoglSectionColumn(KEY)) {
+			if (!!this.ifSetParameterColumn(KEY) || !!this.ifSubsectionColumn(KEY) || !!this.ifByoglSectionColumn(KEY) || !!this.ifDrcPwbColumn(KEY) ) {
 				let label = (!!this.tableFormat['column formatting'][KEY].label)? this.tableFormat['column formatting'][KEY].label : null;
 				return label;
 			} else {
@@ -1464,7 +1522,7 @@ export default Vue.component("research-data-table", {
 						null,
 						this.dataScores
 					);
-				} else if (!!types.includes("kp phenotype link")) {
+				} else if (!!types.includes("kp phenotype link") || !!types.includes("kp phenotype description")) {
 					content = this.utils.Formatters.BYORColumnFormatter(
 						tdValue,
 						tdKey,
@@ -2019,6 +2077,7 @@ table.research-data-table {
 
 .dynamic-sub-section td {
 	padding: 1px !important;
+	word-break: break-all;
 }
 
 .loaded-subsection {
