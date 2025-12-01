@@ -29,6 +29,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
+const TIME_SERIES_RAW = "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/";
 
 new Vue({
     store,
@@ -109,6 +110,7 @@ new Vue({
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
         this.metadata = await this.getTimeSeriesMetadata();
+        this.timeSeriesData = await this.getTimeSeries();
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -138,6 +140,14 @@ new Vue({
                 console.error("Error: ", error);
                 return [];
             }
+        },
+        async getTimeSeries() {
+            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/transcripts_by_sample.tsv`;
+            const response = await fetch(datasetFile);
+            const bulkDataText = await response.text();
+            let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+            console.log(JSON.stringify(bulkDataObject[0]));
+            return bulkDataObject;
         },
     },
     watch: {
