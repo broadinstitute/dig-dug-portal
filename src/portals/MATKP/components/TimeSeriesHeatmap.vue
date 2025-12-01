@@ -360,11 +360,11 @@ export default Vue.component("time-series-heatmap", {
 			ctx.font = "Bold 30px Arial";
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
-			ctx.fillText(
+			/* ctx.fillText(
 				this.renderConfig["label"],
 				(canvasWidth / 2),
 				(canvasHeight - (margin.bump * 2))
-			);
+			);  this is superfluous*/
 
 
 			let renderBoxSize = this.boxSize * 2;
