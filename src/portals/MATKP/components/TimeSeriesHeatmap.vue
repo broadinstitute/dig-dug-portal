@@ -113,7 +113,6 @@ export default Vue.component("time-series-heatmap", {
 			});
 
 			this.heatmapData.map((d) => {
-				//console.log("d", d);
 				let row = this.renderConfig["row field"];
 				let column = this.renderConfig["column field"];
 

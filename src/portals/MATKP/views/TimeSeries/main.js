@@ -58,22 +58,8 @@ new Vue({
             timeSeriesId: "GSE20696", // hardcoded for sample,
             timeSeriesData: null,
             metadata: null,
-            heatmapConfig: {
-                "type": "heat map",
-                "label": "Time-Series Data",
-                "main": {
-                    "field": "score",
-                    "label": "Time Series",
-                    "type": "scale",
-                    "direction": "positive"
-                },
-                "column field": "source",
-                "column label": "source",
-                "row field": "gene",
-                "row label": "gene",
-                "font size": 12
-            },
-            
+            minScore: null,
+            maxScore: null
         };
     },
     computed: {
@@ -123,18 +109,51 @@ new Vue({
             let conditions = Object.keys(this.timeSeriesData[0]).filter(t => t !== "gene");
             let output = [];
             let sampleData = this.timeSeriesData.slice(0,1000);
+
+            // Calculate min and max scores at the same time
+            let minScore = null;
+            let maxScore = null;
             sampleData.forEach(tsd => {
                 conditions.forEach(c => {
                     let conditionMetadata = this.metadata[c];
+                    let score = tsd[c];
+                    if (minScore === null || score < minScore){
+                        minScore = score;
+                    }
+                    if (maxScore === null || score > maxScore){
+                        maxScore = score;
+                    }
                     let entry = {
                         gene: tsd.gene,
                         source: conditionMetadata.source_name,
-                        score: tsd[c]
+                        score: score
                     }
                     output.push(entry);
                 });
             });
+            this.minScore = minScore;
+            this.maxScore = maxScore;
             return output;
+        },
+        heatmapConfig(){
+            return {
+                "type": "heat map",
+                "label": "Time-Series Data",
+                "main": {
+                    "field": "score",
+                    "label": "score",
+                    "type": "scale",
+                    "direction": "positive",
+                    "low": this.minScore,
+                    "middle": (this.minScore + this.maxScore) / 2,
+                    "high": this.maxScore
+                },
+                "column field": "source",
+                "column label": "source",
+                "row field": "gene",
+                "row label": "gene",
+                "font size": 12
+            }
         }
     },
     async created() {
@@ -147,7 +166,6 @@ new Vue({
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
         this.metadata = await this.getTimeSeriesMetadata();
-        console.log(JSON.stringify(this.metadata));
         this.timeSeriesData = await this.getTimeSeries();
     },
     methods: {

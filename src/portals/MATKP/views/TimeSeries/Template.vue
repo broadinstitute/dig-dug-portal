@@ -19,6 +19,7 @@
                         v-if="$parent.timeSeriesData !== null"
                         :heatmapData="$parent.processedData"
                         :renderConfig="$parent.heatmapConfig"
+                        :utils="$parent.utilsBox"
                         sectionId="time-series-heatmap">
                     </time-series-heatmap>
                 </div>
