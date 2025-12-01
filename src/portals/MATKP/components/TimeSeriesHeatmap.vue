@@ -103,6 +103,7 @@ export default Vue.component("time-series-heatmap", {
 			);
 			massagedData["columns"] = columnList.sort((a, b) => 
 				this.extractTime(a) - this.extractTime(b)
+
 				// Sort by time here instead of arbitrary
 			);
 
@@ -401,11 +402,11 @@ export default Vue.component("time-series-heatmap", {
 
 				ctx.save();
 				ctx.translate(left + fontSize, margin.top + margin.bump + 0.5);
-				ctx.rotate((90 * -Math.PI) / 180);
+				ctx.rotate((45 * -Math.PI) / 180);
 				ctx.font = "24px Arial";
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
-				ctx.fillText(c, 0, 0);
+				ctx.fillText(this.columnLabel(c), 0, 0);
 				ctx.restore();
 			})
 
@@ -465,6 +466,10 @@ export default Vue.component("time-series-heatmap", {
 			let pattern = new RegExp(/day (-?\d+)/);
 			let days = sourceName.match(pattern);
 			return parseInt(days[1]);
+		},
+		columnLabel(sourceName){
+			return sourceName.slice(sourceName.indexOf("day"))
+				.replaceAll("replicate", "rep.");
 		}
 	},
 });
