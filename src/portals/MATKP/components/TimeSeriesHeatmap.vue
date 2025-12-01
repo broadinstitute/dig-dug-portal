@@ -8,8 +8,8 @@
 			<div class="heatmap-scale-legend" :id="'heatmap_scale_legend' + sectionId"></div>
 			<div class="heatmap-canvas-wrapper" :id="'heatmapPlotWrapper' + sectionId">
 				<div
-					class="heatmap-columns-wrapper"
-					:id="'heatmapColumnsWrapper' + sectionId"
+					class="col-wrapper"
+					:id="'colWrapper' + sectionId"
 				></div>
 				<div class="heatmap-rows-wrapper" :id="'heatmapRowsWrapper' + sectionId"></div>
 				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
@@ -120,7 +120,6 @@ export default Vue.component("time-series-heatmap", {
 					d[this.renderConfig.main.field];
 
 			});
-
 			return massagedData;
 		},
 		boxSize() {
@@ -190,7 +189,7 @@ export default Vue.component("time-series-heatmap", {
 			let wrapperYPos =
 				document.getElementById("heatmapContent" + this.sectionId).offsetHeight -
 				document.getElementById("heatmapPlotWrapper" + this.sectionId).offsetHeight +
-				document.getElementById("heatmapColumnsWrapper" + this.sectionId).offsetWidth;
+				document.getElementById("colWrapper" + this.sectionId).offsetWidth;
 
 			if (clickedCellValue != "") {
 				contentWrapper.innerHTML = clickedCellValue;
@@ -277,11 +276,10 @@ export default Vue.component("time-series-heatmap", {
 				bump: 10
 			};
 
-			//let boxSize = fontSize * 1.5;
-			let boxSize = 1;
+			let boxSize = fontSize * 1.5;
 
 			let canvasWidth = ((boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
-			let canvasHeight = ((boxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4)*2);
+			let canvasHeight = ((1 * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4)*2);
 			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
@@ -486,13 +484,13 @@ $(function () {});
 	background-color: #fff;
 }
 
-#heatmapColumnsWrapper, .heatmap-columns-wrapper {
+#colWrapper, .col-wrapper {
 	transform-origin: left top;
 	transform: rotate(-90deg);
 	position: absolute;
 	/*left: 0;*/
 }
-#heatmapColumnsWrapper div, .heatmap-columns-wrapper div{
+#colWrapper div, .col-wrapper div{
 	/*transform-origin: left center;
     transform: rotate(45deg);*/
 	white-space: nowrap;
