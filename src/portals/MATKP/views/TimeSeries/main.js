@@ -48,11 +48,15 @@ new Vue({
         AncestrySelectPicker,
         Documentation,
         TooltipDocumentation,
-        TimeSeriesHeatmap
+        TimeSeriesHeatmap,
     },
     mixins: [matkpMixin],
     data() {
         return {
+            plotId: "time_series_heatmap",
+            timeSeriesId: "GSE20696", // hardcoded for sample,
+            timeSeriesData: null,
+            metadata: null,
         };
     },
     computed: {
@@ -104,6 +108,7 @@ new Vue({
         this.$store.dispatch("getTissue");
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
+        this.metadata = await this.getTimeSeriesMetadata();
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -117,7 +122,23 @@ new Vue({
         onAnnotationSelected(){
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
-        }
+        },
+        async getTimeSeriesMetadata(){
+            let queryUrl = `https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/${this.timeSeriesId}/sample_metadata.json.gz`;
+            try {
+                const response = await fetch(queryUrl);
+                const data = await(response.text());
+                let crudeParse = data.split("}").map(t => `${t}}`);
+                crudeParse = crudeParse.slice(0, crudeParse.length - 1);
+                crudeParse = crudeParse.map(t => JSON.parse(t));
+                return crudeParse;
+                
+            }
+            catch(error) {
+                console.error("Error: ", error);
+                return [];
+            }
+        },
     },
     watch: {
         "$store.state.annotationOptions"(data) {

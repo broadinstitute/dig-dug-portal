@@ -15,7 +15,9 @@
                             Sample time series data
                         </h4>
                     </div>
-                    <time-series-heatmap></time-series-heatmap>
+                    <time-series-heatmap 
+                        v-if="$parent.timeSeriesData !== null"
+                    :heatmapData="$parent.timeSeriesData"></time-series-heatmap>
                 </div>
                 </div>
             </template>
