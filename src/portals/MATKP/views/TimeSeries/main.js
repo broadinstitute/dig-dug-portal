@@ -58,6 +58,22 @@ new Vue({
             timeSeriesId: "GSE20696", // hardcoded for sample,
             timeSeriesData: null,
             metadata: null,
+            heatmapConfig: {
+                "type": "heat map",
+                "label": "Time-Series Data",
+                "main": {
+                    "field": "score",
+                    "label": "Time Series",
+                    "type": "scale",
+                    "direction": "positive"
+                },
+                "column field": "source",
+                "column label": "source",
+                "row field": "gene",
+                "row label": "gene",
+                "font size": 12
+            },
+            
         };
     },
     computed: {
@@ -99,6 +115,25 @@ new Vue({
             });
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
+        processedData(){
+            if (this.metadata === null || this.timeSeriesData === null){
+                return null;
+            }
+            let conditions = Object.keys(this.timeSeriesData[0]).filter(t => t !== "gene");
+            let output = [];
+            this.timeSeriesData.forEach(tsd => {
+                conditions.forEach(c => {
+                    let conditionMetadata = this.metadata[c];
+                    let entry = {
+                        gene: tsd.gene,
+                        source: conditionMetadata.source_name,
+                        score: tsd[c]
+                    }
+                    output.push(entry);
+                });
+            });
+            return output;
+        }
     },
     async created() {
         // get the disease group and set of phenotypes available
@@ -110,6 +145,7 @@ new Vue({
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("getAncestries");
         this.metadata = await this.getTimeSeriesMetadata();
+        console.log(JSON.stringify(this.metadata));
         this.timeSeriesData = await this.getTimeSeries();
     },
     methods: {
@@ -133,12 +169,16 @@ new Vue({
                 let crudeParse = data.split("}").map(t => `${t}}`);
                 crudeParse = crudeParse.slice(0, crudeParse.length - 1);
                 crudeParse = crudeParse.map(t => JSON.parse(t));
-                return crudeParse;
-                
+                let directory = {};
+                crudeParse.forEach(c => {
+                    let sample = c.sample_id;
+                    directory[sample] = c;
+                });
+                return directory;
             }
             catch(error) {
                 console.error("Error: ", error);
-                return [];
+                return {};
             }
         },
         async getTimeSeries() {
