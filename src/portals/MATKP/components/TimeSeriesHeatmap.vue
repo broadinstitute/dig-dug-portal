@@ -101,10 +101,8 @@ export default Vue.component("time-series-heatmap", {
 			massagedData["rows"] = rowList.sort((a, b) =>
 				a.localeCompare(b, undefined, { sensitivity: "base" })
 			);
-			massagedData["columns"] = columnList.sort((a, b) => {
-				console.log(this.extractTime(a));
-				return a.localeCompare(b, undefined, { sensitivity: "base" })
-			}
+			massagedData["columns"] = columnList.sort((a, b) => 
+				this.extractTime(a) - this.extractTime(b)
 				// Sort by time here instead of arbitrary
 			);
 
@@ -464,11 +462,9 @@ export default Vue.component("time-series-heatmap", {
 
 		},
 		extractTime(sourceName){
-			console.log(sourceName);
-			let pattern = /(day )([-\d]*)/g;
+			let pattern = new RegExp(/day (-?\d+)/);
 			let days = sourceName.match(pattern);
-			console.log(days)
-			return parseInt(days[0]);
+			return parseInt(days[1]);
 		}
 	},
 });
