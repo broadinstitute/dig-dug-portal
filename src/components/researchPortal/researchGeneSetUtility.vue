@@ -840,7 +840,7 @@ export default {
 				const llm = "gemini";
 				return {
 					llm: llm,
-					model: llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash-lite"
+					model: llm === "openai" ? "gpt-5-mini" : "gemini-2.5-flash"
 				};
 			}
 		},
@@ -855,6 +855,35 @@ export default {
 			type: Boolean,
 			required: false,
 			default: false
+		},
+		// Experiment Constraints
+		assayTypes: {
+			type: Array,
+			default: () => []
+		},
+		cellTypes: {
+			type: Array,
+			default: () => []
+		},
+		readouts: {
+			type: Array,
+			default: () => []
+		},
+		throughput: {
+			type: String,
+			default: ''
+		},
+		species: {
+			type: String,
+			default: ''
+		},
+		timeBudget: {
+			type: String,
+			default: ''
+		},
+		experimentNotes: {
+			type: String,
+			default: ''
 		}
 	},
 	data() {
@@ -1149,11 +1178,15 @@ D) Context Alignment
 E) Tissue Grounding (required)
 — Extract and name the relevant tissue(s) from the Hypothesis/Context and use them in the justification.
 
-F) Output Guardrails
 — JSON array only. No text outside JSON. No trailing commas. No comments.
 — "gene" must be an official symbol present in the provided Gene List.
 — Use 1–2 sentences for both "reason" and "hypothesis_validation".
 — Include "novelty_basis": one of ["Tissue-Specific", "Mechanistic", "Contextual"] for transparency.
+
+G) Experimental Constraints Alignment
+— If experimental constraints are provided (Assay Types, Cell Types, Species, etc.), consider them in the scoring:
+  - **Relevance**: Genes that are difficult to study with the selected assays/models might have lower practical relevance in this specific experimental context.
+  - **Hypothesis Validation**: Suggested validation steps MUST align with the selected constraints (e.g., if "Western Blot" is selected, suggest protein-level validation).
 `;
 		},
 		gene_novelty_system_prompt() {
@@ -1187,11 +1220,22 @@ ${canon}
 4) Output JSON array only; no prose. If a gene cannot be scored, use "N/A" for the specific score, with a brief rationale in "reason".`;
 		},
 		gene_novelty_user_prompt(hypothesis, researchContext, genes) {
+			let constraints = '';
+			if (this.assayTypes.length) constraints += `\n**Assay Types:** ${this.assayTypes.map(a => a.split(':')[1] || a).join(', ')}`;
+			if (this.cellTypes.length) constraints += `\n**Cell Types:** ${this.cellTypes.map(c => c.split(':').pop()).join(', ')}`;
+			if (this.readouts.length) constraints += `\n**Readouts:** ${this.readouts.join(', ')}`;
+			if (this.throughput) constraints += `\n**Throughput:** ${this.throughput}`;
+			if (this.species) constraints += `\n**Species:** ${this.species}`;
+			if (this.timeBudget) constraints += `\n**Time Budget:** ${this.timeBudget}`;
+			if (this.experimentNotes) constraints += `\n**Notes:** ${this.experimentNotes}`;
+
 			return String.raw`[MODE]: Batch scoring (no trimming). Score **up to ${this.noveltyScoreBatchSize} genes** from the provided list.
 
 **Hypothesis:** ${hypothesis}
 
 **Research Context (Optional):** ${researchContext}
+
+**Experimental Constraints:** ${constraints || 'None provided'}
 
 **Genes:** ${genes}`;
 		},
@@ -1229,13 +1273,24 @@ From the provided gene list, select **all** genes that simultaneously satisfy:
 Output JSON only. No text outside JSON. No trailing commas. No comments.`;
 		},
 		gene_filtering_user_prompt(hypothesis, researchContext, genes) {
+			let constraints = '';
+			if (this.assayTypes.length) constraints += `\n**Assay Types:** ${this.assayTypes.map(a => a.split(':')[1] || a).join(', ')}`;
+			if (this.cellTypes.length) constraints += `\n**Cell Types:** ${this.cellTypes.map(c => c.split(':').pop()).join(', ')}`;
+			if (this.readouts.length) constraints += `\n**Readouts:** ${this.readouts.join(', ')}`;
+			if (this.throughput) constraints += `\n**Throughput:** ${this.throughput}`;
+			if (this.species) constraints += `\n**Species:** ${this.species}`;
+			if (this.timeBudget) constraints += `\n**Time Budget:** ${this.timeBudget}`;
+			if (this.experimentNotes) constraints += `\n**Notes:** ${this.experimentNotes}`;
+
 			return String.raw`[MODE]: Pre-filtering before ranking. Apply the same relevance and novelty standards, but return only gene symbols (no scores).
 
 **Hypothesis:** ${hypothesis}
 
 **Gene List:** ${genes}
 
-**Research Context:** ${researchContext}`;
+**Research Context:** ${researchContext}
+
+**Experimental Constraints:** ${constraints || 'None provided'}`;
 		},
 		gene_ranking_system_prompt() {
 			const canon = this.scoring_canon();
@@ -1276,13 +1331,24 @@ Score and rank **all** genes in the provided list. Return genes that satisfy:
 — Output JSON array only. No trailing commas. No comments.`;
 		},
 		gene_ranking_user_prompt(hypothesis, researchContext, genes) {
+			let constraints = '';
+			if (this.assayTypes.length) constraints += `\n**Assay Types:** ${this.assayTypes.map(a => a.split(':')[1] || a).join(', ')}`;
+			if (this.cellTypes.length) constraints += `\n**Cell Types:** ${this.cellTypes.map(c => c.split(':').pop()).join(', ')}`;
+			if (this.readouts.length) constraints += `\n**Readouts:** ${this.readouts.join(', ')}`;
+			if (this.throughput) constraints += `\n**Throughput:** ${this.throughput}`;
+			if (this.species) constraints += `\n**Species:** ${this.species}`;
+			if (this.timeBudget) constraints += `\n**Time Budget:** ${this.timeBudget}`;
+			if (this.experimentNotes) constraints += `\n**Notes:** ${this.experimentNotes}`;
+
 			return String.raw`[MODE]: Ranking and scoring. The gene list has already been filtered for relevance. Score and rank **all** genes provided.
 
 **Hypothesis:** ${hypothesis}
 
 **Gene List:** ${genes}
 
-**Research Context:** ${researchContext}`;
+**Research Context:** ${researchContext}
+
+**Experimental Constraints:** ${constraints || 'None provided'}`;
 		},
 		gene_grouping_system_prompt() {
 			return String.raw`You are an expert computational biologist and experimental design specialist. Your task is to group selected genes that can be experimented together PRACTICALLY and ECONOMICALLY, organizing them into tiers for cost-effective experiment workflows.
@@ -1377,11 +1443,22 @@ You must return ONLY a valid JSON object with the following structure:
 - Output JSON only. No text outside JSON. No trailing commas. No comments.`;
 		},
 		gene_grouping_user_prompt(hypothesis, researchContext, selectedGenes) {
+			let constraints = '';
+			if (this.assayTypes.length) constraints += `\n**Assay Types:** ${this.assayTypes.map(a => a.split(':')[1] || a).join(', ')}`;
+			if (this.cellTypes.length) constraints += `\n**Cell Types:** ${this.cellTypes.map(c => c.split(':').pop()).join(', ')}`;
+			if (this.readouts.length) constraints += `\n**Readouts:** ${this.readouts.join(', ')}`;
+			if (this.throughput) constraints += `\n**Throughput:** ${this.throughput}`;
+			if (this.species) constraints += `\n**Species:** ${this.species}`;
+			if (this.timeBudget) constraints += `\n**Time Budget:** ${this.timeBudget}`;
+			if (this.experimentNotes) constraints += `\n**Notes:** ${this.experimentNotes}`;
+
 			return String.raw`**Hypothesis:** ${hypothesis}
 
 **Selected Genes:** ${selectedGenes}
 
-**Research Context:** ${researchContext}`;
+**Research Context:** ${researchContext}
+
+**Experimental Constraints:** ${constraints || 'None provided'}`;
 		},
 		initializeLLMClients() {
 			const llm = this.llmConfig.llm || "gemini";

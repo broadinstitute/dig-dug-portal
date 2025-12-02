@@ -158,34 +158,164 @@
                             ></textarea>
                         </div>
                     </div>
-                    
-                    <!-- 2-3. Phenotype-gene set associations Field -->
-                    <div class="gene-sets-section" style="margin-bottom: 20px;">
-                        <div class="associations-header" @click="toggleAssociationsSection">
-                            <h5><span class="associations-toggle">{{ showAssociationsSection ? '−' : '+' }}</span> Load Genes from Phenotype Gene set Associations (Optional)</h5>
+
+                    <!-- Experiment Constraints -->
+                     <div class="hypothesis-content" style="margin-bottom: 20px;">
+                        <div class="additional-notes" style="margin-bottom: 20px;">
+                            <h5>Experiment Constraints (Optional)</h5>
+                            <div class="notes-section">
+                                <textarea 
+                                    id="experiment-notes"
+                                    v-model="experimentNotes" 
+                                    placeholder="Add any specific requirements, preferences, or additional considerations for your experiment..."
+                                    class="notes-textarea"
+                                    rows="4"
+                                ></textarea>
+                            </div>
                         </div>
-                        <div v-if="showAssociationsSection" class="gene-sets-input">
-                            <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
-                            <textarea 
-                                id="gene-sets"
-                                v-model="geneSets" 
-                                placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
-                                class="gene-sets-field"
-                                rows="3"
-                            ></textarea>
-                            <div v-if="geneSets.trim() && (genesList.length === 0 || associationsModified)" class="load-genes-section">
-                                <button 
-                                    @click="loadGenesFromAssociations" 
-                                    class="btn btn-secondary load-genes-btn"
-                                    :disabled="isLoadingGenes"
-                                >
-                                    <span v-if="isLoadingGenes" class="loading-spinner-small"></span>
-                                    {{ isLoadingGenes ? 'Loading genes...' : 'Load genes' }}
-                                </button>
-                                <small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
+                        <div class="configuration-header" @click="toggleConfigurationSection">
+                            <h5><span class="configuration-toggle">{{ showConfigurationSection ? '−' : '+' }}</span> Advanced Experiment parameters</h5>
+                        </div>
+                        <div v-if="showConfigurationSection" class="configuration-content">
+                            <!-- User Guidance -->
+                            <div class="user-guidance">
+                                <p><strong>💡 Tip:</strong> You can leave any input fields empty if you want the AI to determine the best options for your experiments. The AI will automatically select optimal assay types, cell types, and other parameters based on your hypothesis and data.</p>
+                            </div>
+
+                            <!-- 1. Experimental Parameters Group -->
+                            <div class="experimental-parameters">
+                                <h5>Experimental Parameters</h5>
+                                <div class="parameters-grid">
+                                    <!-- Assay Types -->
+                                    <div class="filter-section">
+                                        <h5>Assay Types</h5>
+                                        <div class="dropdown-container" @mouseenter="showDropdowns.assayTypes = true" @mouseleave="showDropdowns.assayTypes = false">
+                                            <button class="dropdown-toggle">
+                                                {{ selectedAssayTypes.length > 0 ? `${selectedAssayTypes.length} selected` : 'Choose assay types...' }}
+                                            </button>
+                                            <div v-if="showDropdowns.assayTypes" class="dropdown-content">
+                                                <div v-for="(assays, category) in assay_types.categories" :key="category" class="category-section">
+                                                    <div class="category-header">{{ category }}</div>
+                                                    <div v-for="assay in assays" :key="assay.id" class="checkbox-item">
+                                                        <input type="checkbox" :id="'assay-' + assay.id" :value="category + ':' + assay.label" v-model="selectedAssayTypes">
+                                                        <label :for="'assay-' + assay.id">{{ assay.label }}</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-if="selectedAssayTypes.length > 0" class="selected-items">
+                                            <div v-for="assayType in selectedAssayTypes" :key="assayType" class="selected-item">
+                                                <span>{{ assayType.split(':')[1] }}</span>
+                                                <button @click="removeAssayType(assayType)" class="remove-btn">×</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cell Types -->
+                                    <div class="filter-section">
+                                        <h5>Cell Types</h5>
+                                        <div class="dropdown-container" @mouseenter="showDropdowns.cellTypes = true" @mouseleave="showDropdowns.cellTypes = false">
+                                            <button class="dropdown-toggle">
+                                                {{ selectedCellTypes.length > 0 ? `${selectedCellTypes.length} selected` : 'Choose cell types...' }}
+                                            </button>
+                                            <div v-if="showDropdowns.cellTypes" class="dropdown-content">
+                                                <div v-for="group in cell_types.groups" :key="group.group" class="group-section">
+                                                    <div class="group-header">{{ group.group }}</div>
+                                                    
+                                                    <!-- Handle groups with direct options -->
+                                                    <template v-if="group.options">
+                                                        <div v-for="option in group.options" :key="option.id" class="checkbox-item">
+                                                            <input type="checkbox" :id="'cell-' + option.id" :value="group.group + ':' + option.label" v-model="selectedCellTypes">
+                                                            <label :for="'cell-' + option.id">{{ option.label }}</label>
+                                                        </div>
+                                                    </template>
+                                                    
+                                                    <!-- Handle groups with subgroups -->
+                                                    <template v-if="group.subgroups">
+                                                        <div v-for="subgroup in group.subgroups" :key="subgroup.label" class="subgroup-section">
+                                                            <div class="subgroup-header">{{ subgroup.label }}</div>
+                                                            <div v-for="option in subgroup.options" :key="option.id" class="checkbox-item">
+                                                                <input type="checkbox" :id="'cell-' + option.id" :value="group.group + ':' + subgroup.label + ':' + option.label" v-model="selectedCellTypes">
+                                                                <label :for="'cell-' + option.id">{{ option.label }}</label>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-if="selectedCellTypes.length > 0" class="selected-items">
+                                            <div v-for="cellType in selectedCellTypes" :key="cellType" class="selected-item">
+                                                <span>{{ cellType.split(':').pop() }}</span>
+                                                <button @click="removeCellType(cellType)" class="remove-btn">×</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Assay Readouts -->
+                                    <div class="filter-section">
+                                        <h5>Assay Readouts</h5>
+                                        <div class="dropdown-container" @mouseenter="showDropdowns.readouts = true" @mouseleave="showDropdowns.readouts = false">
+                                            <button class="dropdown-toggle">
+                                                {{ selectedReadouts.length > 0 ? `${selectedReadouts.length} selected` : 'Choose readouts...' }}
+                                            </button>
+                                            <div v-if="showDropdowns.readouts" class="dropdown-content">
+                                                <div v-for="readout in assay_readouts.options" :key="readout.label" class="checkbox-item">
+                                                    <input type="checkbox" :id="'readout-' + readout.label" :value="readout.label" v-model="selectedReadouts">
+                                                    <label :for="'readout-' + readout.label">{{ readout.label }}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-if="selectedReadouts.length > 0" class="selected-items">
+                                            <div v-for="readout in selectedReadouts" :key="readout" class="selected-item">
+                                                <span>{{ readout }}</span>
+                                                <button @click="removeReadout(readout)" class="remove-btn">×</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 2. Experimental Constraints -->
+                            <div class="experimental-constraints">
+                                <h5>Experimental Constraints</h5>
+                                <div class="constraints-grid">
+                                    <!-- Throughput -->
+                                    <div class="constraint-section">
+                                        <label for="throughput-select">Throughput</label>
+                                        <select id="throughput-select" v-model="selectedThroughput" class="constraint-select">
+                                            <option value="">Choose throughput...</option>
+                                            <option value="low">Low (1-5 conditions)</option>
+                                            <option value="medium">Medium (6-30)</option>
+                                            <option value="high">High (30+)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Species Constraints -->
+                                    <div class="constraint-section">
+                                        <label for="species-select">Target Species</label>
+                                        <select id="species-select" v-model="selectedSpecies" class="constraint-select">
+                                            <option value="">Choose species...</option>
+                                            <option value="human">Human</option>
+                                            <option value="rodents">Rodents</option>
+                                            <option value="human-rodents">Human + Rodents</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Time Budget -->
+                                    <div class="constraint-section">
+                                        <label for="timebudget-select">Project Timeline</label>
+                                        <select id="timebudget-select" v-model="selectedTimeBudget" class="constraint-select">
+                                            <option value="">Choose timeline...</option>
+                                            <option value="2-3weeks">2-3 weeks</option>
+                                            <option value="1-2months">1-2 months</option>
+                                            <option value="quarter">Quarter-long</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <div id="planner-search-ui">
                     
                     <!-- 2-4. Genes Field (View/Edit Mode) -->
                     <div class="genes-display-section" style="margin-bottom: 20px;">
@@ -300,6 +430,34 @@
                             ></textarea>
                         </div>
                     </div>
+
+                    <!-- 2-3. Phenotype-gene set associations Field -->
+                    <div class="gene-sets-section" style="margin-bottom: 20px;">
+                        <div class="associations-header" @click="toggleAssociationsSection">
+                            <h5><span class="associations-toggle">{{ showAssociationsSection ? '−' : '+' }}</span> Load Genes from Phenotype Gene set Associations (Optional)</h5>
+                        </div>
+                        <div v-if="showAssociationsSection" class="gene-sets-input">
+                            <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
+                            <textarea 
+                                id="gene-sets"
+                                v-model="geneSets" 
+                                placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
+                                class="gene-sets-field"
+                                rows="3"
+                            ></textarea>
+                            <div v-if="geneSets.trim() && (genesList.length === 0 || associationsModified)" class="load-genes-section">
+                                <button 
+                                    @click="loadGenesFromAssociations" 
+                                    class="btn btn-secondary load-genes-btn"
+                                    :disabled="isLoadingGenes"
+                                >
+                                    <span v-if="isLoadingGenes" class="loading-spinner-small"></span>
+                                    {{ isLoadingGenes ? 'Loading genes...' : 'Load genes' }}
+                                </button>
+                                <small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Score genes and Rank genes buttons -->
                     <div class="gene-utility-section" style="margin-bottom: 20px;">
@@ -309,6 +467,13 @@
                             :hypothesis="phenotypeSearch"
                             :research-context="researchContext"
                             :selected-genes="selectedGenes"
+                            :assay-types="selectedAssayTypes"
+                            :cell-types="selectedCellTypes"
+                            :readouts="selectedReadouts"
+                            :throughput="selectedThroughput"
+                            :species="selectedSpecies"
+                            :time-budget="selectedTimeBudget"
+                            :experiment-notes="experimentNotes"
                             :llm-config="{
                                 llm: sectionConfigs.llm || 'gemini',
                                 model: sectionConfigs.model || (sectionConfigs.llm === 'openai' ? 'gpt-5-mini' : 'gemini-2.5-flash-lite')
@@ -323,172 +488,14 @@
                             </p>
                         </div>
                     </div>
-                    
+                    </div>
+                </div>
                 </div>
             </div>
 
-            <!-- Right Column (30%) - Configuration Section -->
             <div>
-                 <div id="planner-search-ui" class="section-wrapper">
-                     <div class="configuration-header" @click="toggleConfigurationSection">
-                         <h4><span class="configuration-toggle">{{ showConfigurationSection ? '−' : '+' }}</span> Configure Experiment Parameters (Optional) </h4>
-                     </div>
-                     <div v-if="showConfigurationSection" class="configuration-content">
-                <!-- User Guidance -->
-                <div class="user-guidance">
-                    <p><strong>💡 Tip:</strong> You can leave any input fields empty if you want the AI to determine the best options for your experiments. The AI will automatically select optimal assay types, cell types, and other parameters based on your hypothesis and data.</p>
-                </div>
-
-            <!-- 1. Experimental Parameters Group -->
-            <div class="experimental-parameters">
-                <h4>Experimental Parameters</h4>
-                <div class="parameters-grid">
-                    <!-- Assay Types -->
-                    <div class="filter-section">
-                        <h5>Assay Types</h5>
-                        <div class="dropdown-container" @mouseenter="showDropdowns.assayTypes = true" @mouseleave="showDropdowns.assayTypes = false">
-                            <button class="dropdown-toggle">
-                                {{ selectedAssayTypes.length > 0 ? `${selectedAssayTypes.length} selected` : 'Choose assay types...' }}
-                            </button>
-                            <div v-if="showDropdowns.assayTypes" class="dropdown-content">
-                                <div v-for="(assays, category) in assay_types.categories" :key="category" class="category-section">
-                                    <div class="category-header">{{ category }}</div>
-                                    <div v-for="assay in assays" :key="assay.id" class="checkbox-item">
-                                        <input type="checkbox" :id="'assay-' + assay.id" :value="category + ':' + assay.label" v-model="selectedAssayTypes">
-                                        <label :for="'assay-' + assay.id">{{ assay.label }}</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-if="selectedAssayTypes.length > 0" class="selected-items">
-                            <div v-for="assayType in selectedAssayTypes" :key="assayType" class="selected-item">
-                                <span>{{ assayType.split(':')[1] }}</span>
-                                <button @click="removeAssayType(assayType)" class="remove-btn">×</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cell Types -->
-                    <div class="filter-section">
-                        <h5>Cell Types</h5>
-                        <div class="dropdown-container" @mouseenter="showDropdowns.cellTypes = true" @mouseleave="showDropdowns.cellTypes = false">
-                            <button class="dropdown-toggle">
-                                {{ selectedCellTypes.length > 0 ? `${selectedCellTypes.length} selected` : 'Choose cell types...' }}
-                            </button>
-                            <div v-if="showDropdowns.cellTypes" class="dropdown-content">
-                                <div v-for="group in cell_types.groups" :key="group.group" class="group-section">
-                                    <div class="group-header">{{ group.group }}</div>
-                                    
-                                    <!-- Handle groups with direct options -->
-                                    <template v-if="group.options">
-                                        <div v-for="option in group.options" :key="option.id" class="checkbox-item">
-                                            <input type="checkbox" :id="'cell-' + option.id" :value="group.group + ':' + option.label" v-model="selectedCellTypes">
-                                            <label :for="'cell-' + option.id">{{ option.label }}</label>
-                                        </div>
-                                    </template>
-                                    
-                                    <!-- Handle groups with subgroups -->
-                                    <template v-if="group.subgroups">
-                                        <div v-for="subgroup in group.subgroups" :key="subgroup.label" class="subgroup-section">
-                                            <div class="subgroup-header">{{ subgroup.label }}</div>
-                                            <div v-for="option in subgroup.options" :key="option.id" class="checkbox-item">
-                                                <input type="checkbox" :id="'cell-' + option.id" :value="group.group + ':' + subgroup.label + ':' + option.label" v-model="selectedCellTypes">
-                                                <label :for="'cell-' + option.id">{{ option.label }}</label>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-if="selectedCellTypes.length > 0" class="selected-items">
-                            <div v-for="cellType in selectedCellTypes" :key="cellType" class="selected-item">
-                                <span>{{ cellType.split(':').pop() }}</span>
-                                <button @click="removeCellType(cellType)" class="remove-btn">×</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Assay Readouts -->
-                    <div class="filter-section">
-                        <h5>Assay Readouts</h5>
-                        <div class="dropdown-container" @mouseenter="showDropdowns.readouts = true" @mouseleave="showDropdowns.readouts = false">
-                            <button class="dropdown-toggle">
-                                {{ selectedReadouts.length > 0 ? `${selectedReadouts.length} selected` : 'Choose readouts...' }}
-                            </button>
-                            <div v-if="showDropdowns.readouts" class="dropdown-content">
-                                <div v-for="readout in assay_readouts.options" :key="readout.label" class="checkbox-item">
-                                    <input type="checkbox" :id="'readout-' + readout.label" :value="readout.label" v-model="selectedReadouts">
-                                    <label :for="'readout-' + readout.label">{{ readout.label }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-if="selectedReadouts.length > 0" class="selected-items">
-                            <div v-for="readout in selectedReadouts" :key="readout" class="selected-item">
-                                <span>{{ readout }}</span>
-                                <button @click="removeReadout(readout)" class="remove-btn">×</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                 
             </div>
-            
-            <!-- 2. Experimental Constraints -->
-            <div class="experimental-constraints">
-                <h4>Experimental Constraints</h4>
-                <div class="constraints-grid">
-                    <!-- Throughput -->
-                    <div class="constraint-section">
-                        <label for="throughput-select">Throughput</label>
-                        <select id="throughput-select" v-model="selectedThroughput" class="constraint-select">
-                            <option value="">Choose throughput...</option>
-                            <option value="low">Low (1-5 conditions)</option>
-                            <option value="medium">Medium (6-30)</option>
-                            <option value="high">High (30+)</option>
-                        </select>
-                    </div>
-
-                    <!-- Species Constraints -->
-                    <div class="constraint-section">
-                        <label for="species-select">Target Species</label>
-                        <select id="species-select" v-model="selectedSpecies" class="constraint-select">
-                            <option value="">Choose species...</option>
-                            <option value="human">Human</option>
-                            <option value="rodents">Rodents</option>
-                            <option value="human-rodents">Human + Rodents</option>
-                        </select>
-                    </div>
-
-                    <!-- Time Budget -->
-                    <div class="constraint-section">
-                        <label for="timebudget-select">Project Timeline</label>
-                        <select id="timebudget-select" v-model="selectedTimeBudget" class="constraint-select">
-                            <option value="">Choose timeline...</option>
-                            <option value="2-3weeks">2-3 weeks</option>
-                            <option value="1-2months">1-2 months</option>
-                            <option value="quarter">Quarter-long</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Additional Notes -->
-            <div class="additional-notes">
-                <h4>Additional Notes</h4>
-                <div class="notes-section">
-                    <textarea 
-                        id="experiment-notes"
-                        v-model="experimentNotes" 
-                        placeholder="Add any specific requirements, preferences, or additional considerations for your experiment..."
-                        class="notes-textarea"
-                        rows="4"
-                    ></textarea>
-                </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-
         <div>
         <!-- Action Buttons -->
             <div class="action-buttons">
@@ -3420,70 +3427,32 @@ a {
 }
 
 /* Configuration Section Styles */
-.configuration-header {
+
+.associations-header, .configuration-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
-    margin-bottom: 15px;
-    cursor: pointer;
-}
-
-.configuration-header:hover {
-    background: #e9ecef;
-}
-
-.configuration-header h4 {
-    color: #FF6600;
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 15px 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.configuration-toggle {
-    font-size: 20px;
-    font-weight: bold;
-    color: #6c757d;
-    width: 30px;
-    height: 30px;
-    align-items: center;
-    justify-content: center;
-}
-
-.associations-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    margin-bottom: 10px;
     cursor: pointer;
     user-select: none;
+    padding-left: 20px;
+    margin-top: -15px;
 }
 
-.associations-header:hover {
-    background: #e9ecef;
-    border-radius: 4px;
-    padding-left: 8px;
-    padding-right: 8px;
-}
-
-.associations-header h5 {
-    color: #333333;
+.associations-header h5, .configuration-header h5 {
     font-size: 14px;
     font-weight: 600;
     margin: 0;
     display: flex;
     align-items: center;
     gap: 8px;
+    color: #777777;
 }
 
-.associations-toggle {
+.associations-toggle, .configuration-toggle {
+    color: #f60;
     font-size: 18px;
     font-weight: bold;
-    color: #6c757d;
-    width: 24px;
+    width: 0px;
     height: 24px;
     display: inline-flex;
     align-items: center;
@@ -3523,14 +3492,6 @@ a {
     letter-spacing: 0.5px;
 }
 
-.hypothesis-content h5 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #333333;
-    font-size: 14px;
-    font-weight: 600;
-}
-
 .hypothesis-section {
     background: #ffffff;
     padding: 20px;
@@ -3553,12 +3514,9 @@ a {
     margin-top: 20px;
 }
 
-.experimental-constraints h4, .experimental-parameters h4, .additional-notes h4 {
+.experimental-constraints h5, .experimental-parameters h5, .additional-notes h5 {
     margin-top: 0;
     margin-bottom: 20px;
-    color: #FF6600;
-    font-size: 16px;
-    font-weight: 600;
 }
 
 .additional-notes {
@@ -3573,7 +3531,6 @@ a {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 0 5px;
 }
 
 .notes-section label {
@@ -3689,7 +3646,7 @@ a {
     border-color: #86b7fe;
 }
 
-.filter-section, .constraint-section {
+.filter-section {
     background: #ffffff;
     padding: 7px;
 }
@@ -3868,6 +3825,11 @@ a {
     font-size: 13px;
 }
 
+.configuration-content, .gene-sets-input {
+    padding: 15px 15px;
+    background-color: #eeeeee;
+    border-radius: 6px;
+}
 .groups-checkbox-container {
     margin: 10px 0;
 }
@@ -4772,7 +4734,7 @@ a {
     transform: translateY(-10px);
 }
 
-#planner-search-ui, #planner-search-draft {
+#planner-search-draft {
     background: #ffffff;
     padding: 20px;
     /*border-radius: 8px;
