@@ -218,7 +218,7 @@ export default Vue.component("time-series-heatmap", {
 				linePlotDiv.style.top = wrapperYPos + yPos + 75 + "px";
 			} else {
 				wrapper.classList.add("hidden");
-				linePlotDiv.classList.add("hidden");
+				//linePlotDiv.classList.add("hidden");
 			}
 			this.renderHeatmap(x, y);
 		},
