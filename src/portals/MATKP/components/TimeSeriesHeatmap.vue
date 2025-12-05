@@ -73,6 +73,7 @@ export default Vue.component("time-series-heatmap", {
 			squareData: {},
 			canvasHover: false,
 			margin:{},
+			boxAspectRatio: 8
 		};
 	},
 	modules: {
@@ -127,6 +128,9 @@ export default Vue.component("time-series-heatmap", {
 		boxSize() {
 			return this.renderConfig["font size"] * 1.5;
 		},
+		boxWidth(){
+			return this.boxSize * this.boxAspectRatio * 2;
+		}
 	},
 	watch: {
 		renderData() {
@@ -278,7 +282,7 @@ export default Vue.component("time-series-heatmap", {
 				bump: 10
 			};
 
-			let boxSize = fontSize * 1.5;
+			let boxSize = fontSize * 1.5 * 8;
 
 			let canvasWidth = ((boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
 			let canvasHeight = ((1 * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4)*2);
@@ -398,7 +402,7 @@ export default Vue.component("time-series-heatmap", {
 			})
 
 			this.renderData.columns.map((c, cIndex) => {
-				let left = margin.left + (margin.bump * 2) + (renderBoxSize * cIndex);
+				let left = margin.left + (margin.bump * 2) + (this.boxWidth * cIndex) + this.boxWidth/2;
 
 				ctx.save();
 				ctx.translate(left + fontSize, margin.top + margin.bump + 0.5);
@@ -418,7 +422,7 @@ export default Vue.component("time-series-heatmap", {
 				this.renderData.columns.map((c, cIndex) => {
 
 					let mainValue = this.renderData[r][c].main;
-					let left = margin.left + (margin.bump * 2) + (renderBoxSize * cIndex);
+					let left = margin.left + (margin.bump * 2) + (this.boxWidth * cIndex);
 
 					this.squareData[rIndex][cIndex] = {};
 					this.squareData[rIndex][cIndex]["main"] = {
@@ -432,7 +436,8 @@ export default Vue.component("time-series-heatmap", {
 					let valMid = this.renderConfig.main.middle;
 					let valLow = this.renderConfig.main.low;
 
-					let colorString =	this.getColor(mainValue, valHi, valMid, valLow)
+					let colorString =	this.getColor(mainValue, valHi, valMid, valLow);
+
 
 					if (X == cIndex && Y == rIndex) {
 						ctx.beginPath();
@@ -451,7 +456,7 @@ export default Vue.component("time-series-heatmap", {
 						ctx.fill();
 					} else {
 						ctx.beginPath();
-						ctx.rect(left, top, renderBoxSize, renderBoxSize);
+						ctx.rect(left, top, this.boxWidth, renderBoxSize);
 						ctx.fillStyle = colorString;
 						ctx.fill();
 					}
