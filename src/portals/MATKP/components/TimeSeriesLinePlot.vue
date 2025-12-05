@@ -241,6 +241,9 @@ export default Vue.component("time-series-line-plot", {
     chartData(){
       this.drawChart();
     },
+    tx(){
+        this.drawChart();
+    }
   }
 });
 </script>

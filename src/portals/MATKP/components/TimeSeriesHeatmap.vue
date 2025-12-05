@@ -182,6 +182,7 @@ export default Vue.component("time-series-heatmap", {
 					this.squareData[y][x].main.value +
 					"</span>";
 			}
+			this.$emit("hover", this.renderData.rows[y]);
 
 			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
 			let contentWrapper = document.getElementById(
