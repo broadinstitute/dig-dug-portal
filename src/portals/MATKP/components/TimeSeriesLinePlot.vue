@@ -21,8 +21,8 @@ export default Vue.component("time-series-line-plot", {
       return {
         plotId: "time-series-line",
         chart: null,
-        chartWidth: null,
-        chartHeight: 400,
+        chartWidth: 600,
+        chartHeight: 300,
         svg: null,
         xScale: null,
         yScale: null,

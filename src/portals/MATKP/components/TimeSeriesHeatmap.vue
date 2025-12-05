@@ -55,6 +55,13 @@
 			></div>
 			-->
 		</div>
+<!-- 		<div id="hover-line-plot" class="hidden">
+			<time-series-line-plot
+				:plotData="heatmapData"
+				:tx="[transcript]"
+				:config="linePlotConfig">
+			</time-series-line-plot>
+		</div> -->
 	</div>
 </template>
 
@@ -67,13 +74,14 @@ import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/Resea
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData", "renderConfig","utils","sectionId"],
+	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig"],
 	data() {
 		return {
 			squareData: {},
 			canvasHover: false,
 			margin:{},
-			boxAspectRatio: 8
+			boxAspectRatio: 8,
+			transcript: "1415687_a_at"
 		};
 	},
 	modules: {
@@ -182,9 +190,11 @@ export default Vue.component("time-series-heatmap", {
 					this.squareData[y][x].main.value +
 					"</span>";
 			}
+			this.transcript = this.renderData.rows[y];
 			this.$emit("hover", this.renderData.rows[y]);
 
 			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
+			let linePlotDiv = document.getElementById("hover-line-plot");
 			let contentWrapper = document.getElementById(
 				"clicked_cell_value_content" + this.sectionId
 			);
@@ -203,8 +213,12 @@ export default Vue.component("time-series-heatmap", {
 				wrapper.classList.remove("hidden");
 				wrapper.style.top = wrapperYPos + yPos + "px";
 				wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
+				linePlotDiv.classList.remove("hidden");
+				linePlotDiv.style.left = wrapper.style.left;
+				linePlotDiv.style.top = wrapperYPos + yPos + 75 + "px";
 			} else {
 				wrapper.classList.add("hidden");
+				linePlotDiv.classList.add("hidden");
 			}
 			this.renderHeatmap(x, y);
 		},
@@ -599,6 +613,9 @@ $(function () {});
 
 .sub-legend-steps {
 	padding-left: 5px;
+}
+.hover-line-plot {
+	width: 300
 }
 </style>
 

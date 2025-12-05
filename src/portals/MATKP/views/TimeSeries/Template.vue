@@ -27,7 +27,8 @@
                             :renderConfig="$parent.heatmapConfig"
                             :utils="$parent.utilsBox"
                             sectionId="time-series-heatmap"
-                            @hover="(e) => $parent.showLinePlot(e)">
+                            @hover="(e) => $parent.showLinePlot(e)"
+                            :linePlotConfig="$parent.linePlotConfig">
                         </time-series-heatmap>
                     </div>
                 </div>

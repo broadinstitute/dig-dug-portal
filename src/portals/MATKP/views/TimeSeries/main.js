@@ -235,6 +235,7 @@ new Vue({
         },
         showLinePlot(transcript){
             console.log("Show line plot for", transcript);
+            this.transcripts = [transcript];
         }
     },
     watch: {
