@@ -67,6 +67,13 @@ let pages = {
         filename: "phenotype.html",
         title: "MATKP | Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "phenotype"]
+    },
+    timeseries: {
+        entry: "src/portals/MATKP/views/TimeSeries/main.js",
+        template: "public/index.html",
+        filename: "timeseries.html",
+        title: "MATKP | Time Series",
+        chunks: ["chunk-vendors", "chunk-common", "timeseries"]
     }
 };
 
