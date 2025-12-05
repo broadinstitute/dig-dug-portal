@@ -19,7 +19,7 @@ export default Vue.component("time-series-line-plot", {
   props: ["plotData", "filter", "tightenLeft", "tx", "config"],
   data() {
       return {
-        plotId: `scatterplot-${Math.floor(Math.random() * 10e9)}`,
+        plotId: "time-series-line",
         chart: null,
         chartWidth: null,
         chartHeight: 400,
@@ -57,6 +57,7 @@ export default Vue.component("time-series-line-plot", {
   },
   methods: {
     drawChart(){
+        // TODO make it so that each replicate is its own array, and the lines are drawn from point to point within the array.
       let margin = {
         top: 10,
         right: 30,
@@ -149,7 +150,7 @@ export default Vue.component("time-series-line-plot", {
               ? this.yScale(0) // Is this an issue for log scale? 
               : this.yScale(d[yFieldScaled]))
           .attr("r", 5)
-          .attr("fill", d => `#007bff`)
+          .attr("fill", d => d.replicate === 1 ? "blue" : "red")
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
@@ -168,6 +169,7 @@ export default Vue.component("time-series-line-plot", {
       return val;
     },
     hoverDot(dotString) {
+        console.log("We are hovering this dot");
       this.unHoverDot();
 
       let xcoord = d3.event.layerX;

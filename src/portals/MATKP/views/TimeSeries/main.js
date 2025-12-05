@@ -67,8 +67,8 @@ new Vue({
                 xField: "days",
                 xAxisLabel: "Time (days)",
                 yField: "score",
-                yAxisLabel: "Norm counts",
-                dotKey: "gene",
+                yAxisLabel: "",
+                dotKey: "identifier",
                 hoverBoxPosition: "both",
                 hoverFields: [
                     {key: "gene", label: "Transcript"},
@@ -128,6 +128,10 @@ new Vue({
             // Calculate min and max scores at the same time
             let minScore = null;
             let maxScore = null;
+            
+			let timeElapsed = new RegExp(/day (-?\d+)/);
+            let rep = new RegExp(/replicate (\d+)/);
+		
             sampleData.forEach(tsd => {
                 conditions.forEach(c => {
                     let conditionMetadata = this.metadata[c];
@@ -138,10 +142,15 @@ new Vue({
                     if (maxScore === null || score > maxScore){
                         maxScore = score;
                     }
+                    let days = parseInt(conditionMetadata.source_name.match(timeElapsed)[1]);
+                    let replicate = parseInt(conditionMetadata.source_name.match(rep)[1]);
                     let entry = {
                         gene: tsd.gene,
                         source: conditionMetadata.source_name,
-                        score: score
+                        score: score,
+                        days: days,
+                        replicate: replicate,
+                        identifier: `${tsd.gene}_rep_${replicate}`
                     }
                     output.push(entry);
                 });
