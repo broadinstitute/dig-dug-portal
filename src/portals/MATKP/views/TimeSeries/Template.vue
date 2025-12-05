@@ -17,7 +17,9 @@
                     </div>
                     <div v-if="$parent.timeSeriesData !== null">
                         <time-series-line-plot
-                            :plotData="$parent.processedData">
+                            :plotData="$parent.processedData"
+                            :tx="$parent.transcripts"
+                            :config="$parent.linePlotConfig">
 
                         </time-series-line-plot>
                         <time-series-heatmap

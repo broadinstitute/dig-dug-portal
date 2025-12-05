@@ -62,7 +62,19 @@ new Vue({
             metadata: null,
             minScore: null,
             maxScore: null,
-            transcripts: ["1415687_a_at"]
+            transcripts: ["1415687_a_at"],
+            linePlotConfig: {
+                xField: "days",
+                xAxisLabel: "Time (days)",
+                yField: "score",
+                yAxisLabel: "Norm counts",
+                dotKey: "gene",
+                hoverBoxPosition: "both",
+                hoverFields: [
+                    {key: "gene", label: "Transcript"},
+                    {key: "days", label: "Day"},
+                ],
+            }
         };
     },
     computed: {

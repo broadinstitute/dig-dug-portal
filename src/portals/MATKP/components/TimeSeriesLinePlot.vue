@@ -1,14 +1,9 @@
 <template>
   <div class="mbm-plot-content row">
 		<div class="col-md-12">
-      <download-chart :hidden
-        filename='time_series_scatterplot'
-        :chartId="`chart-${plotId}`"
-        >
-    </download-chart>
-      <div :id="plotId" class="plot">
-        <p>Loading...</p>
-      </div>
+        <div id="time-series-line" class="plot" ref="time-series-line">
+            <p>Loading...</p>
+        </div>
     </div>
   </div>
 </template>
@@ -21,14 +16,13 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "config", "filter",
-    "tightenLeft", "tx"],
+  props: ["plotData", "filter", "tightenLeft", "tx", "config"],
   data() {
       return {
         plotId: `scatterplot-${Math.floor(Math.random() * 10e9)}`,
         chart: null,
         chartWidth: null,
-        chartHeight: !!this.config.plotHeight ? this.config.plotHeight : 400,
+        chartHeight: 400,
         svg: null,
         xScale: null,
         yScale: null,
@@ -37,11 +31,11 @@ export default Vue.component("time-series-line-plot", {
         tooltipElement: null,
         allHoverFields: this.getHoverFields(),
         hoverBoxPosition: this.config.hoverBoxPosition || "left",
-        dotOutlineColor: "#00000075"
+        dotOutlineColor: "#00000075",
       };
   },
   mounted(){
-    this.chart = document.getElementById(this.plotId);
+    this.chart = this.$refs["time-series-line"];
     this.chartWidth = this.chart.clientWidth;
     addEventListener("resize", (event) => {
         this.chartWidth = this.chart.clientWidth;
@@ -56,27 +50,10 @@ export default Vue.component("time-series-line-plot", {
         data = data.filter(this.filter);
       }
       if (this.tx.length > 0){
-        data = data.filter(d => this.tx.gene.includes(d.gene));
+        data = data.filter(d => this.tx.includes(d.gene));
       }
       return data;
     },
-    config(){
-            let config = {
-                xField: "days",
-                xAxisLabel: "Time (days)",
-                yField: "score",
-                yAxisLabel: "Norm counts",
-                dotKey: "sample_id",
-                hoverBoxPosition: "both",
-                plotHeight: 350,
-                hoverFields: [
-                    {key: "sample_id", label: "Sample"},
-                    {key: this.contField.key, label: this.contField.label},
-                    {key: "norm_counts", label: "Norm"}
-                ],
-            };
-            return config;
-        },
   },
   methods: {
     drawChart(){

@@ -160,8 +160,6 @@ export default Vue.component("time-series-heatmap", {
 			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump * 2)) / (this.boxWidth) * 2);
 			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump * 2)) / this.boxHeight);
 
-			//let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
-
 			let clickedCellValue = "";
 			if (
 				x >= 0 &&
