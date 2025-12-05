@@ -15,13 +15,18 @@
                             Sample time series data
                         </h4>
                     </div>
-                    <time-series-heatmap 
-                        v-if="$parent.timeSeriesData !== null"
-                        :heatmapData="$parent.processedData"
-                        :renderConfig="$parent.heatmapConfig"
-                        :utils="$parent.utilsBox"
-                        sectionId="time-series-heatmap">
-                    </time-series-heatmap>
+                    <div v-if="$parent.timeSeriesData !== null">
+                        <time-series-line-plot
+                            :plotData="$parent.processedData">
+
+                        </time-series-line-plot>
+                        <time-series-heatmap
+                            :heatmapData="$parent.processedData"
+                            :renderConfig="$parent.heatmapConfig"
+                            :utils="$parent.utilsBox"
+                            sectionId="time-series-heatmap">
+                        </time-series-heatmap>
+                    </div>
                 </div>
                 </div>
             </template>

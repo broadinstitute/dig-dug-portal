@@ -20,6 +20,7 @@ import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import TimeSeriesHeatmap from "../../components/TimeSeriesHeatmap.vue";
+import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -50,6 +51,7 @@ new Vue({
         Documentation,
         TooltipDocumentation,
         TimeSeriesHeatmap,
+        TimeSeriesLinePlot
     },
     mixins: [matkpMixin],
     data() {
@@ -59,7 +61,8 @@ new Vue({
             timeSeriesData: null,
             metadata: null,
             minScore: null,
-            maxScore: null
+            maxScore: null,
+            transcripts: ["1415687_a_at"]
         };
     },
     computed: {

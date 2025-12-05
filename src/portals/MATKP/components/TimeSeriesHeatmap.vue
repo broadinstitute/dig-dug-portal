@@ -125,11 +125,11 @@ export default Vue.component("time-series-heatmap", {
 			});
 			return massagedData;
 		},
-		boxSize() {
+		boxHeight() {
 			return this.renderConfig["font size"] * 1.5;
 		},
 		boxWidth(){
-			return this.boxSize * this.boxAspectRatio * 2;
+			return this.boxHeight * this.boxAspectRatio * 2;
 		}
 	},
 	watch: {
@@ -157,8 +157,10 @@ export default Vue.component("time-series-heatmap", {
 
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
-			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump * 2)) / this.boxSize);
-			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump * 2)) / this.boxSize);
+			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump * 2)) / (this.boxWidth) * 2);
+			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump * 2)) / this.boxHeight);
+
+			//let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
 
 			let clickedCellValue = "";
 			if (
@@ -282,10 +284,9 @@ export default Vue.component("time-series-heatmap", {
 				bump: 10
 			};
 
-			let boxSize = fontSize * 1.5 * 8;
 
-			let canvasWidth = ((boxSize * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 4)*2);
-			let canvasHeight = ((1 * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 4)*2);
+			let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 8));
+			let canvasHeight = ((1 * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
 			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
@@ -371,7 +372,7 @@ export default Vue.component("time-series-heatmap", {
 			);  this is superfluous*/
 
 
-			let renderBoxSize = this.boxSize * 2;
+			let renderBoxSize = this.boxHeight * 2;
 
 			// render heatmap box
 
@@ -379,7 +380,7 @@ export default Vue.component("time-series-heatmap", {
 			ctx.fillStyle = "#ffffff";
 			ctx.strokeStyle = "#666666";
 			var fillRect = false;
-			ctx.rect(margin.left + (margin.bump * 2), margin.top + (margin.bump * 2), (this.renderData.columns.length * boxSize), (this.renderData.rows.length * boxSize));
+			ctx.rect(margin.left + (margin.bump * 2), margin.top + (margin.bump * 2), (this.renderData.columns.length * this.boxWidth), (this.renderData.rows.length * this.boxHeight));
 			if (fillRect) {
 				ctx.fill();
 			}
@@ -441,7 +442,7 @@ export default Vue.component("time-series-heatmap", {
 
 					if (X == cIndex && Y == rIndex) {
 						ctx.beginPath();
-						ctx.rect(left, top, renderBoxSize, renderBoxSize);
+						ctx.rect(left, top, this.boxWidth, renderBoxSize);
 						ctx.fillStyle = "black";
 						ctx.fill();
 
@@ -449,7 +450,7 @@ export default Vue.component("time-series-heatmap", {
 						ctx.rect(
 							left + 2,
 							top + 2,
-							renderBoxSize - 4,
+							this.boxWidth - 4,
 							renderBoxSize - 4
 						);
 						ctx.fillStyle = colorString;
