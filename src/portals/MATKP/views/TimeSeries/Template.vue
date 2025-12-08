@@ -16,18 +16,17 @@
                         </h4>
                     </div>
                     <div v-if="$parent.timeSeriesData !== null">
-                        <time-series-line-plot
+                        <!-- <time-series-line-plot
                             :plotData="$parent.processedData"
                             :tx="$parent.transcripts"
                             :config="$parent.linePlotConfig">
 
-                        </time-series-line-plot>
+                        </time-series-line-plot> -->
                         <time-series-heatmap
                             :heatmapData="$parent.processedData"
                             :renderConfig="$parent.heatmapConfig"
                             :utils="$parent.utilsBox"
                             sectionId="time-series-heatmap"
-                            @hover="(e) => $parent.showLinePlot(e)"
                             :linePlotConfig="$parent.linePlotConfig">
                         </time-series-heatmap>
                     </div>

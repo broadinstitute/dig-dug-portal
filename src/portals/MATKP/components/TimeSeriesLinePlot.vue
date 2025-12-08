@@ -1,11 +1,11 @@
 <template>
-  <div class="mbm-plot-content row">
-		<div class="col-md-12">
+    <div>
+        <h6>Line Plot</h6>
+        should be appearing here
         <div id="time-series-line" class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
     </div>
-  </div>
 </template>
 <script>
 import Vue from "vue";
@@ -21,8 +21,8 @@ export default Vue.component("time-series-line-plot", {
       return {
         plotId: "time-series-line",
         chart: null,
-        chartWidth: 600,
-        chartHeight: 300,
+        chartWidth: 300,
+        chartHeight: 150,
         svg: null,
         xScale: null,
         yScale: null,
@@ -156,8 +156,8 @@ export default Vue.component("time-series-line-plot", {
               this.hoverDot(JSON.stringify(g)));
     },
     extremeVal(data, field, min=true){
-      let filteredData = data.filter(d => 
-        d[field] !== undefined && !Number.isNaN(d[field]));
+      let filteredData = data.filter(d => {
+            return d[field] !== undefined && !Number.isNaN(d[field])});
       let val = filteredData[0][field];
       filteredData.forEach(d => {
         if (min && d[field] < val){
@@ -239,10 +239,10 @@ export default Vue.component("time-series-line-plot", {
   },
   watch: {
     chartData(){
-      this.drawChart();
+      //this.drawChart();
     },
     tx(){
-        this.drawChart();
+        //this.drawChart();
     }
   }
 });

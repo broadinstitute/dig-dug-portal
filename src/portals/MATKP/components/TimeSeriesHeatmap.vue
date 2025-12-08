@@ -2,7 +2,14 @@
 <template>
 	<div class="heatmap-wrapper">
 		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
-			<div :id="'clicked_cell_value_content' + sectionId"></div>
+			<div :id="'clicked_cell_value_content' + sectionId" >
+			</div>
+			<time-series-line-plot
+				v-if="heatmapData.length > 0"
+				:plotData="heatmapData"
+				:tx="[transcript]"
+				:config="linePlotConfig">
+			</time-series-line-plot>
 		</div>
 		<div class="heatmap-content" :id="'heatmapContent' + sectionId">
 			<div class="heatmap-scale-legend" :id="'heatmap_scale_legend' + sectionId"></div>
@@ -47,21 +54,7 @@
 					</research-heatmap-vector>
 				</div>
 			</div>
-			<!--
-			<div
-				v-if="!!renderConfig.label"
-				class="heatmap-label"
-				v-html="renderConfig.label"
-			></div>
-			-->
 		</div>
-<!-- 		<div id="hover-line-plot" class="hidden">
-			<time-series-line-plot
-				:plotData="heatmapData"
-				:tx="[transcript]"
-				:config="linePlotConfig">
-			</time-series-line-plot>
-		</div> -->
 	</div>
 </template>
 
@@ -194,7 +187,6 @@ export default Vue.component("time-series-heatmap", {
 			this.$emit("hover", this.renderData.rows[y]);
 
 			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
-			let linePlotDiv = document.getElementById("hover-line-plot");
 			let contentWrapper = document.getElementById(
 				"clicked_cell_value_content" + this.sectionId
 			);
@@ -213,12 +205,8 @@ export default Vue.component("time-series-heatmap", {
 				wrapper.classList.remove("hidden");
 				wrapper.style.top = wrapperYPos + yPos + "px";
 				wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
-				linePlotDiv.classList.remove("hidden");
-				linePlotDiv.style.left = wrapper.style.left;
-				linePlotDiv.style.top = wrapperYPos + yPos + 75 + "px";
 			} else {
 				wrapper.classList.add("hidden");
-				//linePlotDiv.classList.add("hidden");
 			}
 			this.renderHeatmap(x, y);
 		},
@@ -613,9 +601,6 @@ $(function () {});
 
 .sub-legend-steps {
 	padding-left: 5px;
-}
-.hover-line-plot {
-	width: 300
 }
 </style>
 

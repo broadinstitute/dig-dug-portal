@@ -233,10 +233,6 @@ new Vue({
             console.log(JSON.stringify(bulkDataObject[0]));
             return bulkDataObject;
         },
-        showLinePlot(transcript){
-            console.log("Show line plot for", transcript);
-            this.transcripts = [transcript];
-        }
     },
     watch: {
         "$store.state.annotationOptions"(data) {
