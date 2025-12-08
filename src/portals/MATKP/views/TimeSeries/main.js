@@ -63,18 +63,6 @@ new Vue({
             minScore: null,
             maxScore: null,
             transcripts: ["1415687_a_at"],
-            linePlotConfig: {
-                xField: "days",
-                xAxisLabel: "Time (days)",
-                yField: "score",
-                yAxisLabel: "",
-                dotKey: "identifier",
-                hoverBoxPosition: "both",
-                hoverFields: [
-                    {key: "gene", label: "Transcript"},
-                    {key: "days", label: "Day"},
-                ],
-            }
         };
     },
     computed: {
@@ -177,6 +165,24 @@ new Vue({
                 "row field": "gene",
                 "row label": "gene",
                 "font size": 12
+            }
+        },
+        linePlotConfig(){
+            return {
+                xField: "days",
+                xAxisLabel: "Time (days)",
+                xMin: -2,
+                xMax: 7,
+                yField: "score",
+                yAxisLabel: "",
+                yMin: this.minScore,
+                yMax: this.maxScore,
+                dotKey: "identifier",
+                hoverBoxPosition: "both",
+                hoverFields: [
+                    {key: "gene", label: "Transcript"},
+                    {key: "days", label: "Day"},
+                ],
             }
         }
     },

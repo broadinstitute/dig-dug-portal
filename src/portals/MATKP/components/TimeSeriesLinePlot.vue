@@ -67,7 +67,6 @@ export default Vue.component("time-series-line-plot", {
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
       this.chart.innerHTML = "";
-
       this.svg = d3.select(`#${this.plotId}`)
         .append("svg")
           .attr("width", width + margin.left + margin.right)
@@ -76,7 +75,6 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
-      
       this.tooltip = d3
         .select(`#${this.plotId}`)
         .append("div")
@@ -90,23 +88,16 @@ export default Vue.component("time-series-line-plot", {
 
       // Access the tooltip as an HTML element
       this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
-
       let yFieldScaled = this.config.yField;
 
       // Use chart data to adjust scale on the fly
-      let xMin = this.extremeVal(this.chartData, this.config.xField);
-      let yMin = this.extremeVal(this.chartData, yFieldScaled);
-      let xMax = this.extremeVal(this.chartData, this.config.xField, false);
-      let yMax = this.extremeVal(this.chartData, yFieldScaled, false);
-      let xRange = xMax - xMin;
-      let yRange = yMax - yMin;
-      //xMin = xMin > 0 ? 0 : xMin;
-      //yMin = yMin > 0 ? 0 : yMin;
-      this.xMedian = (xMin + xMax) / 2;
+      let xRange = this.config.xMax - this.config.xMin;
+      let yRange = this.config.yMax - this.config.yMin;
+      this.xMedian = (this.config.xMin + this.config.xMax) / 2;
       
       // add X-axis
       this.xScale = d3.scaleLinear()
-        .domain([xMin - (0.01 * xRange), xMax])
+        .domain([this.config.xMin - (0.01 * xRange), this.config.xMax])
         .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
@@ -121,7 +112,7 @@ export default Vue.component("time-series-line-plot", {
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
-        .domain([yMin - (0.035 * yRange), yMax]) // wider margin because y-axis is shorter visually
+        .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale))
@@ -133,7 +124,6 @@ export default Vue.component("time-series-line-plot", {
         .attr("y", -margin.left + 20)
         .attr("x", - height / 2)
         .text(this.config.yAxisLabel || this.config.yField);
-
       // add dots
       this.svg.append("g")
         .selectAll("dot")
@@ -154,22 +144,9 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
-    },
-    extremeVal(data, field, min=true){
-      let filteredData = data.filter(d => {
-            return d[field] !== undefined && !Number.isNaN(d[field])});
-      let val = filteredData[0][field];
-      filteredData.forEach(d => {
-        if (min && d[field] < val){
-          val = d[field];
-        } else if (!min && d[field] > val){
-            val = d[field];
-        }
-      });
-      return val;
+        console.log("We made it here");
     },
     hoverDot(dotString) {
-        console.log("We are hovering this dot");
       this.unHoverDot();
 
       let xcoord = d3.event.layerX;
