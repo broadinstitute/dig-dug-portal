@@ -77,10 +77,6 @@ export default Vue.component("time-series-heatmap", {
 			transcript: "1415687_a_at"
 		};
 	},
-	modules: {
-		//uiUtils,
-		//Formatters,
-	},
 	mounted: function () {
 		this.renderHeatmap();
 		//this.renderScaleLegend();
@@ -204,7 +200,7 @@ export default Vue.component("time-series-heatmap", {
 				wrapper.style.top = wrapperYPos + yPos + "px";
 				wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
 			} else {
-				//wrapper.classList.add("hidden");
+				wrapper.classList.add("hidden");
 			}
 			this.renderHeatmap(x, y);
 		},
