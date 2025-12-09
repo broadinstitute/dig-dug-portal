@@ -105,8 +105,6 @@ export default Vue.component("time-series-heatmap", {
 			);
 			massagedData["columns"] = columnList.sort((a, b) => 
 				this.extractTime(a) - this.extractTime(b)
-
-				// Sort by time here instead of arbitrary
 			);
 
 			rowList.map((r) => {
@@ -149,7 +147,7 @@ export default Vue.component("time-series-heatmap", {
 
 		},
 		hidePanel() {
-			this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
+			//this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
 			this.renderHeatmap();
 		},
 		checkPosition(event) {
@@ -206,7 +204,7 @@ export default Vue.component("time-series-heatmap", {
 				wrapper.style.top = wrapperYPos + yPos + "px";
 				wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
 			} else {
-				wrapper.classList.add("hidden");
+				//wrapper.classList.add("hidden");
 			}
 			this.renderHeatmap(x, y);
 		},
@@ -366,12 +364,6 @@ export default Vue.component("time-series-heatmap", {
 			ctx.font = "Bold 30px Arial";
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
-			/* ctx.fillText(
-				this.renderConfig["label"],
-				(canvasWidth / 2),
-				(canvasHeight - (margin.bump * 2))
-			);  this is superfluous*/
-
 
 			let renderBoxSize = this.boxHeight * 2;
 
@@ -541,10 +533,9 @@ $(function () {});
     box-shadow: 0 0 5px #00000075;
     font-size: 12px;
     padding: 0px 10px 5px 10px;
-    max-width: 300px;
     border-radius: 5px;
     z-index: 10;
-    width: auto;
+    min-width: 300px;
 	text-align: left;
 	padding: 8px 20px 8px 10px !important;
 }

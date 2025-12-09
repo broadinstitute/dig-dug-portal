@@ -1,7 +1,5 @@
 <template>
     <div>
-        <h6>Line Plot</h6>
-        should be appearing here
         <div id="time-series-line" class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
@@ -35,7 +33,7 @@ export default Vue.component("time-series-line-plot", {
       };
   },
   mounted(){
-    this.chart = this.$refs["time-series-line"];
+    this.chart = document.getElementById(this.plotId);
     this.chartWidth = this.chart.clientWidth;
     addEventListener("resize", (event) => {
         this.chartWidth = this.chart.clientWidth;
@@ -60,9 +58,9 @@ export default Vue.component("time-series-line-plot", {
         // TODO make it so that each replicate is its own array, and the lines are drawn from point to point within the array.
       let margin = {
         top: 10,
-        right: 30,
-        bottom: 110,
-        left: !this.tightenLeft ? 90 : 55
+        right: 10,
+        bottom: 10,
+        left: 10
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
@@ -144,7 +142,6 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
-        console.log("We made it here");
     },
     hoverDot(dotString) {
       this.unHoverDot();
@@ -216,11 +213,8 @@ export default Vue.component("time-series-line-plot", {
   },
   watch: {
     chartData(){
-      //this.drawChart();
+      this.drawChart();
     },
-    tx(){
-        //this.drawChart();
-    }
   }
 });
 </script>
