@@ -1,4 +1,4 @@
-<template>
+<template> 
     <div class="reset">
         <div style="display:none">
             <div style="font-size: 2em; font-weight: bold; line-height: 1em;">CFDE REVEAL</div>
@@ -335,6 +335,9 @@
                                     <input type="checkbox" v-model="row.item.selected" :disabled="!edit_associations" @click="customSelect()"/>
                                 </div>
                             </template>
+                            <template #cell(score)="row">
+                                {{ row.item.score.toFixed(3) }}
+                            </template>
                             <template #cell(beta_uncorrected)="row">
                                 <div v-if="row.item.beta_uncorrected<0.1">low ({{ row.item.beta_uncorrected }})</div>
                                 <div v-if="row.item.beta_uncorrected>=0.1 && row.item.beta_uncorrected<1">moderate ({{ row.item.beta_uncorrected }})</div>
@@ -386,7 +389,7 @@
             </div>
             <div v-if="search_step >= 3" style="display: flex; flex-direction: column; gap:10px">
                 <div v-if="loading_genes" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
-                    <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes of selected associations </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ relevantAssociations.length }}</div>
+                    <div style="font-size:1.2em;"><strong>Action:</strong> Loading genes for </div><div style="font-size: 1em;">{{ association_genes_loaded }} / {{ relevantAssociations.length }} selected associations</div>
                 </div>
                 <div v-if="loading_mechanisms" class="loading-text" style="display:flex; gap:5px; align-items: baseline; min-height: 75px">
                     <div style="font-size:1.2em;"><strong>Action:</strong> Generating mechanistic hypotheses </div><div v-if="elapsed" style="font-size: 1em;">{{ `${elapsed}` }} (usually takes  about 1-2 minutes)</div>
@@ -421,68 +424,122 @@
                         <div style="display:flex; justify-content: flex-end;">
                             <button class="btn btn-primary btn-sm" @click="downloadHypotheses()">Download Hypotheses</button>
                         </div>
-                        <div v-if="mechanisms_summary" style="display:flex; flex-direction: column;">
-                            <strong>Summary:</strong>
+                        <div v-if="mechanisms_summary" style="display:flex; flex-direction: column; margin-bottom:20px;">
+                            <strong style="font-size:1.2em;">Summary:</strong>
                             <div>{{ mechanisms_summary }}</div>
                         </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 40px">
-                            <div v-for="mechanism in mechanisms" style="display:flex; flex-direction: column; gap:5px; border: 1px solid #ccc; padding:10px; border-radius: 10px;">
-                                <div style="font-size:1.2em; line-height: 1.2em; font-weight: bold;">{{ mechanism.group_name }}</div>
-                                <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em;">
-                                        <div style="font-weight: bold;">hypothesis <span class="info-icon" v-b-tooltip.hover="`Why? ${mechanism.relevance}`">!</span></div>
-                                    </div>
-                                    <div>{{ mechanism.hypothesis }}</div>
-                                </div>
-                                <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em; font-weight: bold;">contributing CFDE programs</div>
-                                    <div style="display: flex; gap:5px; flex-wrap: wrap;">
-                                        <span class="pill" v-for="program in mechanism.programs">{{ program }}</span>
+                        <div style="display:grid; grid-template-columns: 1fr; gap: 40px">
+                            <div v-for="mechanism in mechanisms" style="display: flex;flex-direction: column;gap: 20px;border: 1px solid #ccc;border-radius: 10px;box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
+                                <div style="padding: 20px;background: #ccc;margin: -1px;border-radius: 10px 10px 0px 0px;display: flex;flex-direction: column;gap: 10px;">
+                                    <div style="font-size:1.2em; line-height: 1.2em; font-weight: bold;">{{ mechanism.group_name }}</div>
+                                    <div style="display:flex; flex-direction: column; padding: 5px;">
+                                        <div style="font-size: .8em;">
+                                            <div style="font-weight: bold;">mechanistic hypothesis <span class="info-icon" style="color:gold" v-b-tooltip.hover="`${mechanism.relevance}`">♦</span></div>
+                                        </div>
+                                        <div style="font-size: 1.1em;">{{ mechanism.hypothesis }}</div>
                                     </div>
                                 </div>
-                                <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em; font-weight: bold;">linking genes</div>
-                                    <div style="display: flex; gap:5px; flex-wrap: wrap;">
-                                        <span v-for="gene in mechanism.genes" style="white-space: nowrap;">{{ gene }}</span>
+                                
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 40px; padding:20px">
+                                    <div style="display:flex; flex-direction: column; padding: 5px;">
+                                        <div style="font-size: .8em; font-weight: bold;">candidate genes <span class="info-icon" style="color:gold" v-b-tooltip.hover="`${mechanism.genes_reason}`">♦</span></div>
+                                        <div style="display: flex; gap:5px; flex-wrap: wrap;">
+                                            <span v-for="gene in mechanism.genes" style="display:grid; grid-template-columns: 100px auto; gap: 20px">
+                                                <div>{{ gene.gene }}</div>
+                                                <div>{{ gene.reason }}</div>
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <!--
-                                <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_relevance = !mechanism.display_relevance">why it might interest you?</div>
-                                    <div :class="{collapsed: !mechanism.display_relevance}">{{ mechanism.relevance }}</div>
-                                </div>
-                                -->
-                                <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em;">
-                                        <div style="font-weight: bold;">relevant associations <span class="info-icon" v-b-tooltip.hover="`Why? ${mechanism.justification}`">!</span></div>
-                                    </div>
-                                    <div>
-                                        <b-table
-                                            small
-                                            sticky-header="225px"
-                                            :items="mechanism.associations"
-                                            :fields="['phenotype', 'gene_set_label', 'source_label', 'actions']"
-                                            style="font-size: 0.9em;"
-                                        >
-                                        <template #cell(actions)="row">
-                                            <div style="display:flex; flex-direction: column;">
-                                                <a :href="getsetLink(row.item)" target="_blank" disabled style="white-space: nowrap;">View Geneset</a>
+                                    
+                                    <div style="display: flex;flex-direction: column;gap: 20px;">
+                                        <div style="display:flex; flex-direction: column; padding: 5px;">
+                                            <div style="font-size: .8em; font-weight: bold;">contributing CFDE programs</div>
+                                            <div style="display: flex; gap:5px; flex-wrap: wrap;">
+                                                <span class="pill" v-for="program in mechanism.programs">{{ program }}</span>
                                             </div>
-                                        </template>
-                                        </b-table>
+                                        </div>
+                                        <div style="display:flex; flex-direction: column; padding: 5px;">
+                                            <div style="font-size: .8em;">
+                                                <div style="font-weight: bold;">relevant associations <span class="info-icon" style="color:gold" v-b-tooltip.hover="`${mechanism.justification}`">♦</span></div>
+                                            </div>
+                                            <div style="height:calc(225px + 1rem)">
+                                                <b-table
+                                                    small
+                                                    sticky-header="225px"
+                                                    :items="mechanism.associations"
+                                                    :fields="[
+                                                        'phenotype', 
+                                                        {key: 'gene_set_label', label: 'Gene Set'}, 
+                                                        {key: 'source_label', label: 'Source'}, 
+                                                        'actions'
+                                                    ]"
+                                                    style="font-size: 0.9em;"
+                                                >
+                                                    <template #cell(actions)="row">
+                                                        <div style="display:flex; flex-direction: column;">
+                                                            <a :href="getsetLink(row.item)" target="_blank" disabled style="white-space: nowrap;">View Geneset</a>
+                                                            <!-- New button to toggle row details -->
+                                                            <a role="button" @click="row.toggleDetails">{{ row.detailsShowing ? 'Hide Genes' : 'Show Genes' }}</a>
+                                                        </div>
+                                                    </template>
+        
+                                                    <!-- ROW DETAILS SLOT -->
+                                                    <template #row-details="row">
+                                                        <b-card body-class="p-2">
+                                                            <!-- Show genes in a mini table -->
+                                                            <b-table
+                                                                small
+                                                                :items="row.item.genes"
+                                                                :fields="[
+                                                                    'gene',
+                                                                    {key: 'combined', label: 'Combined'},
+                                                                    {key: 'log_bf', label: 'GWAS Support'},
+                                                                    {key: 'prior', label: 'Gene Set Support'}
+                                                                ]"
+                                                                head-variant="light"
+                                                            ></b-table>
+                                                        </b-card>
+                                                    </template>
+                                                </b-table>
+                                            </div>
+                                        </div>
                                     </div>
+    
+                                    <!--
+                                    <div style="display: flex;flex-direction: column;gap: 20px;">
+                                        <div style="display:flex; flex-direction: column; padding: 5px;">
+                                            <div style="font-size: .8em; font-weight: bold;">linking genes</div>
+                                            <div style="display: flex; gap:5px; flex-wrap: wrap;">
+                                                <span v-for="gene in mechanism.genes" style="white-space: nowrap;">{{ gene }}</span>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex; flex-direction: column; padding: 5px;">
+                                            <div style="font-size: .8em;">
+                                                <div style="font-weight: bold;">associated genes</div>
+                                            </div>
+                                            <div>
+                                                <b-table
+                                                    small
+                                                    sticky-header="225px"
+                                                    :items="mechanism.aggregateGenes"
+                                                    :fields="[
+                                                        'gene',
+                                                        {key: 'combined', label: 'Combined'},
+                                                        {key: 'log_bf', label: 'GWAS Support'},
+                                                        {key: 'prior', label: 'Gene Set Support'},
+                                                        {key:'assocId', label: 'Association'}
+                                                    ]"
+                                                    style="font-size: 0.9em;"
+                                                >
+                                                </b-table>
+                                            </div>
+                                            <div>{{ mechanism.aggregateGenes.length }} total</div>
+                                        </div>
+                                    </div>
+                                    -->
                                 </div>
-                                <!--
-                                <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_justification = !mechanism.display_justification">why these associations?</div>
-                                    <div :class="{collapsed: !mechanism.display_justification}">{{ mechanism.justification }}</div>
-                                </div>
-                                <div style="display:flex; flex-direction: column; padding: 5px;">
-                                    <div style="font-size: .8em; font-weight: bold; cursor: pointer;" @click="mechanism.display_validation = !mechanism.display_validation">how to validate?</div>
-                                    <div :class="{collapsed: !mechanism.display_validation}">{{ mechanism.validation }}</div>
-                                </div>
-                                -->
-                                <div style="display:flex; flex-direction: column; padding: 5px; margin-top: auto;">
+
+                                <div style="display:flex; flex-direction: column; padding: 20px; margin-top: auto;">
                                     <div style="font-size: .8em; font-weight: bold;">next steps</div>
                                     <div style="display: flex; gap:10px;">
                                         <a :href="genesLink(mechanism)" target="_blank" class="btn btn-info" style="flex:1; color:white !important; padding:10px">explore genes from this hypothesis</a>
@@ -526,14 +583,12 @@ export default Vue.component("cfde-mechanism-discovery", {
     
     data() {
         return {
-            gemini_api_key: process.env.VUE_APP_GEMINI_API_KEY,
-            langflow_api_key: process.env.VUE_APP_LANGFLOW_API_KEY,
-            openai_api_key: process.env.VUE_APP_OPENAI_API_KEY,
-
             search_step: 0, //0: search not started, 1: parsing query; 2: getting associations; 3: generating hypotheses
             searchMode: "auto",
             searchType: "terms", //terms or phenotypes
             searchApi: "new",
+            associationSelectStrategy: "",
+            geneSelectStrategy: "",
 
             userQuery: '',
             searchCriteria: null,
@@ -733,6 +788,7 @@ Return a JSON object with:
 * 'research_context': a short, self-contained description of the research setting that **includes the search terms naturally**.
 * 'search_type': a classification of whether the users query intent is centering on 'phenotypes' or 'mechanisms'
 
+
 Guidelines:
 
 * User queries may be verbose or contain multiple traits.
@@ -761,6 +817,58 @@ energy balance with indirect calorimetry
   "search_terms": ["energy balance"],
   "research_context": "investigating energy balance using indirect calorimetry",
   "search_type": "mechanisms"
+}
+
+--
+
+**IMPORTANT**: if a users query is completely unrelated to the subject of biological research, return only the following:
+{
+   "error": "Query unrelated to biological research."
+}
+
+`,
+
+            extractSystemPropmpt3: `You extract key biological research concepts from free-text queries.
+
+The following inference will be used to semnatically search a database of phentoypes and associated functional annotations
+and in a subsequest step, to select associations and their genes from those search results relevant to a given query.
+
+Return a JSON object with:
+* 'phenotype_terms': a targeted list of phenotype-related keywords to use for semantic search. (terms: min=1, max=3)
+* 'mechanism_terms': a targeted list of mechanism- or process-related keywords to use for semantic search. (terms: min=1, max=3)
+* 'association_selection_strategy': A short set of 1-3 concise sentences describing what kinds of associations subsequent step should prioritize based on the query. Instructions should reference phenotype alignment, mechanism alignment, tissue/assay relevance, and gene-pattern relevance.
+* 'gene_selection_strategy': A short set of 1-3 concise sentences describing what kinds of genes LLM #2 should prioritize when forming hypotheses. Instructions should reference recurrence across associations, mechanistic fit, phenotype relevance, and experimental suitability.
+* 'search_type': a classification of whether the core intent of the query centers on 'phenotypes', 'mechanisms', or 'both'.
+* 'research_context': a short, self-contained description of the research setting that naturally incorporates the phenotype and mechanism terms.
+
+Guidelines:
+
+* 'Context' must be inferred from the users query, keep it short, dont add more context than absolutely necessary.
+* 'phenotype_terms' will be used to search an embedding space consisting of labels like:
+    'Motor neuron disease', 'Parkinson's disease progression', etc.
+* 'phenotype_terms' will be used to search an embedding space consisting of labels like:
+    'Genetic neurodegenerative disease. Genes whose knockout in mice results in abnormal locomotor behavior.', 'Rare dementia. Genes whose knockout in mice results in abnormal locomotor behavior.'
+ - **always** use 'terms' directly asked for in the users query when you can.
+ - **avoid** duplicate keywords in 'search terms'
+ - **avoid** listing program names in 'search terms'
+ - **avoid** 'search terms' that do not aid in searcing for a phenotype or expression signature
+* Return only JSON. No extra text or explanation.
+
+---
+
+### Example
+
+**Input:**
+energy balance with indirect calorimetry  
+
+**Output:**
+{ 
+    "phenotype_terms": ["energy balance"], 
+    "mechanism_terms": ["indirect calorimetry"], 
+    "association_selection_strategy": "Prioritize associations involving metabolic rate or whole-body energy balance. Look for signatures describing energy expenditure or mitochondrial function. Select associations related to metabolic tissues such as adipose or liver when relevant.", 
+    "gene_selection_strategy": "Highlight genes recurring in energy-expenditure signatures that relate to metabolic regulation. Emphasize genes linked to mitochondrial activity or whole-body energy balance.", 
+    "search_type": "mechanisms", 
+    "research_context": "investigating energy balance using indirect calorimetry" 
 }
 
 --
@@ -858,6 +966,88 @@ Return a structured **JSON object** following this schema:
 * Always include at least **2-5 shared genes** in 'genes' if possible.
 * **NEVER** include genes that are not part of a term / association.
 * Return only the raw JSON array as plain text — no explanations, markdown, or code block syntax.`,
+
+            groupSystemPrompt3: `You are an expert in **bioinformatics** and **semantic annotation**.
+
+You will be given a csv list of of **gene set-phenotype associations**, each with:
+
+* a unique **id**
+* a **source** representing the CFDE program the signature was derived from
+* a **phenotype** containing a phenotype
+* a **signature** containing an annotation of a gene set
+* a list of **genes** which are associated with both the gene set and the phenotype
+
+some phenotypes will be association with multiple, various gene sets
+
+You will also be given a **research context** describing the biological topic of interest.
+
+Your task is to generate up to 3 **mechanistic hypotheses** that integrate groups of associations that are **relevant to the research context**.
+And to suggest a set of candiadate genes from the group of associations selected for each hypothesis for further analysis that are also **relevant to the research context**
+
+---
+
+## Mechanistic Hypothesis Rules
+
+* Hypotheses should integrate **multiple associations** to suggest plausible **mechanisms** linking gene signatures, phenotypes, programs, and genes.
+* Mechanisms should be **inferred** from the associations, not just restatements. For example:
+  * GOOD “Reduced expression of mitochondrial complex I genes across adipose and brain tissues suggests impaired oxidative phosphorylation, leading to altered substrate oxidation and reduced metabolic rate.”
+  * BAD “Association between ND1 and disorder of energy metabolism” (too literal, no mechanistic inference).
+* Groupings should prioritize **shared phenotypes** or **shared source programs** that yield the strongest mechanistic story.
+* Each grouping should highlight a **subset of condidate genes** that are common across its associations (not the full list).
+* Each candidate gene should include a rason why it was chosen as a candidate.
+* Prefer hypotheses that link to the **research context** (e.g., energy balance, substrate oxidation, metabolic rate).
+* Group names should be written in **headline style** (short, punchy, minimal jargon).
+* The 'hypothesis' field should be a **short-form version** (1-2 sentences, concise, plain-language).
+* Include a 'justification' field for each hypothesis that explains why this particular group of associations was selected from the overall set.
+* **Never** use 'term ids' in your explanations, mention either the 'signature' or 'phenotype' instead.
+* **IMPORTANT** **NEVER** select any term / association for analysis that does not include genes
+---
+
+## CFDE Program Details
+
+* **komp**: (KOMP) Knockout mouse **phenotype** data spanning **metabolism**, **clinical chemistry**, **immunology**, **cardiovascular**, **neurology**, **vision**, **auditory**, **skeletal**, and **pathology** assays. Includes **genotypes**, **lacZ reporter patterns**, and models for **cancer**, **diabetes**, and **obesity**.
+* **motrpac**: (MoTrPAC) **Multi-omics** from **rats** and **humans** before and after **exercise**. Covers **genomics**, **epigenomics**, **transcriptomics**, **proteomics**, and **metabolomics** from **blood and plasma**, revealing molecular markers of **fitness**, **insulin sensitivity**, and **metabolic adaptation**.
+* **glygen**: (GlyGen) Integrated data on **glycans** and **glycoconjugates** (e.g., **glycoproteins**, **glycolipids**). Includes **structures**, **enzymes** (glycosyltransferases, glycosidases), and links from **glycomics/proteomics** to **tissue expression** and diseases (**cancer**, **infection**, **CDG**).
+* **gtex_tissues**: (GTEx tissues) Reference **RNA-seq** dataset on **human tissues**, linking **gene expression** to **genotypes** via **eQTLs** and **sQTLs**. 
+* **gtex_aging**: (GTEx aging) Subset of GTEx focusing on **age-related** changes in **gene expression** to define **molecular aging signatures**.
+* **idg_targets**: (IDG target proteins) Data on **understudied druggable proteins** (GPCRs, ion channels, kinases), with tools like **probes** and **antibodies** supporting **drug discovery**.
+* **idg_coexp**: (IDG coexpression) **RNA-seq**-based **co-expression networks** used to infer **functions** of **understudied proteins**.
+* **lincs_chem**: (LINCS chemical compounds) **Gene/protein signatures** from cell lines exposed to **drugs/compounds** (via **L1000 assay**). Used to study **mechanisms**, **toxicology**, and **drug repurposing**.
+* **lics_ko**: (LINCS gene knockout) **Cellular signatures** from **gene knockouts/perturbations** (CRISPR, shRNA, overexpression), linking to **gene function**.
+* **kc_diffexp**: (Knowledge Center GTEx differential expression) **More GTEx tissues**, like 'gtex\_tissues' referencing **RNA-seq** dataset on **human tissues**, linking **gene expression** to **genotypes** via **eQTLs** and **sQTLs**.
+
+---
+
+## Output Format
+
+Return a structured **JSON object** following this schema:
+{
+    "overall_summary": "High-level explanation (<3 sentences, plain language) of how the generated hypotheses connect to the research context and CFDE programs used",
+    "hypotheses": [
+        {
+            "group_name": "Short, headline-style descriptive name",
+            "hypothesis": "Concise, plain-language mechanistic hypothesis (1-2 sentences)",
+            "relevance": "Brief reason this hypothesis matters for the research context",
+            "justification": "Brief reason why this particular group of associations was chosen from the full set",
+            "ids": ["term_xxxx", "term_yyyy", "..."],
+            "genes": [{
+                "gene": "GENE1",
+                "reason": "Short, reason why this gene was selected in relation to hypothesis and users research context."
+            }, ...],
+            "genes_reason": "Very brief, explanation of what the selected genes collectively indicate about the proposed mechanism—such as the pathway they point to, the biological process they highlight, or how they provide a focused starting point for downstream analysis related to the research context."
+        }
+    ]
+}
+
+
+---
+
+## Guidelines
+
+* Use only information from the input (no fabrication).
+* Every group must include at least one **term id** in 'ids'.
+* **NEVER** include genes that are not part of a term / association.
+* Return only the raw JSON array as plain text — no explanations, markdown, or code block syntax.`,
         };
     },
     
@@ -865,13 +1055,13 @@ Return a structured **JSON object** following this schema:
         this.llmExtract = createLLMClient({
             llm: "openai",
             model: "gpt-5-nano",
-            system_prompt: this.extractSystemPropmpt2
+            system_prompt: this.extractSystemPropmpt3
         });
 
         this.llmAnalyze = createLLMClient({
             llm: "openai",
             model: "gpt-5-mini",
-            system_prompt: this.groupSystemPrompt2
+            system_prompt: this.groupSystemPrompt3
         });
     },
 
@@ -939,6 +1129,8 @@ Return a structured **JSON object** following this schema:
         clean(){
             this.search_step = 0;
             this.searchTerm = '';
+            this.associationSelectStrategy = '';
+            this.geneSelectStrategy = '';
 
             this.searchCriteria = null;
             this.associations = null;
@@ -1062,16 +1254,18 @@ Return a structured **JSON object** following this schema:
 
         async phenotypeSearch(term){
             //semantic search for phenotypes
-            const url = `https://api.kpndataregistry.org:5002/api/search/phenotypes?q=${encodeURIComponent(term)}&similarity_threshold=-0.1`
+            //const url = `https://api.kpndataregistry.org:5002/api/search/phenotypes?q=${encodeURIComponent(term)}&similarity_threshold=-0.1`
+            const url = `https://search.hugeamp.org/api/search/pgvector/phenotypes?q=${encodeURIComponent(term)}&portal=cfde`
             const response =  await fetch(url);
 
             if (!response.ok) {
-                new Error("Fetch error:" + response.statusText);
+                this.updateStep(this.search_step, 'error', "An error occured");
+                //new Error("Fetch error:" + response.statusText);
                 return;
             }
 
             const res = await response.json();
-            const data = res.data;
+            const data = res.results;
             data.sort((a, b) => b.score - a.score);
             console.log('raw phenotype search results', data);
 
@@ -1094,7 +1288,7 @@ Return a structured **JSON object** following this schema:
             console.log(`getting associations for ${trimmedData.length} phenotypes`);
             await Promise.allSettled(
                 trimmedData.map(async item => {
-                    const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=${item.id},cfde&limit=100`
+                    const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=${item.id},cfde`
                     const response =  await fetch(url);
 
                     if (!response.ok) {
@@ -1104,7 +1298,7 @@ Return a structured **JSON object** following this schema:
 
                     const res = await response.json();
                     //const data = res.data;
-                    const sortedData = res.data.sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
+                    const sortedData = res.data.slice(0,100).sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
                     const data = sortedData.map(d => ({ ...d, score: item.score, description: item.description }));
 
                     associations.push(...data, item.score);
@@ -1121,8 +1315,10 @@ Return a structured **JSON object** following this schema:
 
         async termSearch(term){
             //semantic search for trait associations
-            const url = this.searchApi==='new' ? `https://api.kpndataregistry.org:5002/api/search/terms?q=${encodeURIComponent(term)}&similarity_threshold=-0.5`
-                                          : `https://api.kpndataregistry.org:8000/api/search/terms?q=${encodeURIComponent(term)}&similarity_threshold=-0.5`
+            //const url = this.searchApi==='new' ? `https://api.kpndataregistry.org:5002/api/search/terms?q=${encodeURIComponent(term)}&similarity_threshold=-0.5`
+            //                                   : `https://api.kpndataregistry.org:8000/api/search/terms?q=${encodeURIComponent(term)}&similarity_threshold=-0.5`
+            const url = `https://search.hugeamp.org/api/search/pgvector/terms?q=${encodeURIComponent(term)}&table-name=terms_cfde_all_mpnet_base_v2&top_k=1000`;
+            
             try{
                 const response =  await fetch(url);
     
@@ -1133,7 +1329,7 @@ Return a structured **JSON object** following this schema:
                 }
     
                 const res = await response.json();
-                const data = res.data;
+                const data = res.results;
     
                 console.log('raw term search results', data);
     
@@ -1159,6 +1355,10 @@ Return a structured **JSON object** following this schema:
             if(this.searchType==="terms"){
                 const termAssociations = await this.termSearch(term);
                 console.log('associations by term', termAssociations);
+                //todo, some associations dont contain any genes
+                //for now, remove those by excluding associations where beta=0
+                //unfortunately terms endpoint doesnt inlcude beta score, only beta_uncorrected
+                //const termAssociationsFiltered = termAssociations.filter(x => x.beta !== 0)
                 if(!termAssociations || termAssociations.length===0) return;
                 const termAssociationsTransformed = this.transformTermAssociations(termAssociations);
                 console.log('associations by term transformed', termAssociationsTransformed);
@@ -1480,6 +1680,11 @@ Return a structured **JSON object** following this schema:
             this.mechanisms_summary = null;
             this.response = null;
             this.edit_context = false;
+            this.error_mechanisms = false;
+
+            let associationsWithAnyGenes = 0;
+            let associationsWithNoGenes = 0;
+            let associationsWithSignificantGenes = 0;
 
             console.log('getting genes for strong associations');
 
@@ -1487,51 +1692,156 @@ Return a structured **JSON object** following this schema:
 
             const allHaveGenes = relevantAssociations.every(obj => Array.isArray(obj.genes));
 
-            if(!allHaveGenes){
-                await Promise.allSettled(
-                    relevantAssociations.map(async item => {
-                        const genes = await this.fetchGenesForTerm(item.phenotype_id, item.gene_set);
-                        if(genes.length>0){
-                            //sort genes by combined score
-                            const sorted = genes.sort((a, b) => b.combined - a.combined)
-                            //get those above a score of 2
-                            const filtered = sorted.filter(g => g.combined > 2);
-                            let geneArray = [];
-                            if(filtered.length>0){
-                                //if we have those, just use the gene names
-                                geneArray = filtered.map(gene => gene.gene);
+            //BEGIN get genes for relevantAssociations
+            //via mutiquery api
+
+            //get query params for each association
+            const multiQueryList = relevantAssociations.map(item => `${item.phenotype_id},${item.gene_set},cfde`);
+
+            //console.log({multiQueryList});
+
+            function chunkArray(arr, chunkSize) {
+                const chunkedArray = [];
+                for (let i = 0; i < arr.length; i += chunkSize) {
+                    const chunk = arr.slice(i, i + chunkSize); 
+                    chunkedArray.push(chunk);
+                }
+                return chunkedArray;
+            }
+
+            function buildResultMap(flattened) {
+                const map = new Map();
+
+                for (const r of flattened) {
+                    const key = `${r.phenotype}|${r.gene_set}`;
+                    if (!map.has(key)) map.set(key, []);
+                    map.get(key).push(r);
+                }
+
+                return map;
+            }
+
+            //chuck the query params list into groups of 10
+            const multiQueryChunks = chunkArray(multiQueryList, 10);
+            const multiQueryResults = [];
+
+            //run multiQuery api for each chuck
+            await Promise.allSettled(
+                multiQueryChunks.map(async (chunk, idx) => {
+                    const results = await this.runMultiQuery('pigean-joined-gene-set', chunk);
+                    //console.log(`received chunk ${idx} of ${multiQueryChunks.length}`);
+                    this.association_genes_loaded += chunk.length;
+                    multiQueryResults.push(results.data);
+                })
+            );
+
+            //flatted the results
+            const multiQueryResultsFlat = multiQueryResults.flat();
+            //group by association (phenotype id | gene set id)
+            const multiQueryResultGroups = buildResultMap(multiQueryResultsFlat);
+
+            console.log({multiQueryResultsFlat});
+
+            //enrich results back into associations
+            relevantAssociations.map(item => {
+                const key = `${item.phenotype_id}|${item.gene_set}`;
+                const genes = multiQueryResultGroups.get(key) || [];
+                (genes.length>0) ? associationsWithAnyGenes++ : associationsWithNoGenes++;
+                const genesData = genes.map(({ gene, combined, log_bf, prior }) => ({
+                    gene,
+                    combined,
+                    log_bf,
+                    prior
+                }));
+                this.$set(item, 'genes', genesData);
+            });
+
+            //console.log({relevantAssociations});
+
+            //END get genes for relevantAssociations
+            
+            //return;
+            if(false){
+                //load genes from relevant associations one at a time.
+                if(!allHaveGenes){
+                    await Promise.allSettled(
+                        relevantAssociations.map(async item => {
+                            const genes = await this.fetchGenesForTerm(item.phenotype_id, item.gene_set);
+                            console.log('--', item.phenotype_id, item.gene_set);
+                            console.log('   genes', genes);
+                            if(genes.length>0){
+                                associationsWithAnyGenes++;
+                                const sorted = genes.sort((a, b) => b.combined - a.combined)
+                                //keep non-redundant gene info
+                                const genesData = sorted.map(({ gene, combined, log_bf, prior }) => ({
+                                    gene,
+                                    combined,
+                                    log_bf,
+                                    prior
+                                }));
+    
+                                //item.genes = genesData;
+                                this.$set(item, 'genes', genesData);
+                                /*
+                                //sort genes by combined score
+                                const sorted = genes.sort((a, b) => b.combined - a.combined)
+                                //get those above a score of 2
+                                const filtered = sorted.filter(g => g.combined > 2);
+                                let geneArray = [];
+                                if(filtered.length>0){
+                                    //if we have those, just use the gene names
+                                    geneArray = filtered.map(gene => gene.gene);
+                                }else{
+                                    //otherwise grab top 10, and use just the gene names
+                                    geneArray = sorted.slice(0, 10).map(gene => gene.gene);
+                                }
+                                item.genes = geneArray;
+                                */
                             }else{
-                                //otherwise grab top 10, and use just the gene names
-                                geneArray = sorted.slice(0, 10).map(gene => gene.gene);
+                                associationsWithNoGenes++;
+                                //item.genes = [];
+                                this.$set(item, 'genes', []);
                             }
-                            item.genes = geneArray;
-                        }else{
-                            item.genes = [];
-                        }
-                        this.association_genes_loaded += 1;
-                    })
-                )
-            }else{
-                this.association_genes_loaded  = relevantAssociations.length;
+                            this.association_genes_loaded += 1;
+                        })
+                    )
+                }else{
+                    this.association_genes_loaded  = relevantAssociations.length;
+                }
             }
 
             console.log({relevantAssociations});
 
-            const relevantAssociationsSimplified = relevantAssociations.map(item => {
+            //temp, exclude associations where there are not associated genes
+            const filteredAssociations = relevantAssociations.filter(x => x.genes.length > 0);
+
+            console.log({filteredAssociations});
+
+            const relevantAssociationsSimplified = filteredAssociations.map(item => {
                 let source = item.source;
                 if(this.searchType!=="terms"){
                     source = item.gene_set_program;
+                }
+                const genes = item.genes;
+                let genesArray = [];
+                if(genes.length>0){
+                    //filter down associated genes to those which have a combined score > 1
+                    const filtered = genes.filter(g => g.combined > 1);
+                    if(filtered.length>0) associationsWithSignificantGenes++;
+                    genesArray = filtered.map(gene => gene.gene);
                 }
                 return { 
                     id: item.id,
                     source: source,
                     phenotype: item.phenotype,
                     signature: item.gene_set_label,
-                    genes: item.genes.join(";")
+                    genes: genesArray.join(";")
                 }
             });
 
             console.log({relevantAssociationsSimplified})
+
+            console.log({associationsWithAnyGenes, associationsWithNoGenes, associationsWithSignificantGenes});
 
             const relevantAssociationsSimplifiedCSV = this.objToCSV(relevantAssociationsSimplified);
 
@@ -1559,6 +1869,8 @@ Return a structured **JSON object** following this schema:
             let fullPrompt = `**associations:**\n`
             fullPrompt += associations
             fullPrompt += `\n\n**Research context:** ${context}`
+            fullPrompt += `\n\n**Association selecttion strategy:** ${this.associationSelectStrategy}`
+            fullPrompt += `\n\n**Gene selecttion strategy:** ${this.geneSelectStrategy}`
             
             console.log('fullPrompt', fullPrompt);
 
@@ -1635,7 +1947,6 @@ Return a structured **JSON object** following this schema:
             });
         },
 
-
         groupBy(array, key) {
             return array.reduce((result, item) => {
                 const groupKey = item[key];
@@ -1645,6 +1956,47 @@ Return a structured **JSON object** following this schema:
                 result[groupKey].push(item);
                 return result;
             }, {});
+        },
+
+        aggregateGenes(associations){
+            //combine genes from associations into single list + association id
+            const allGenes = associations.flatMap(assoc =>
+                assoc.genes.map(gene => ({
+                    ...gene,
+                    assocId: assoc.id
+                }))
+            );
+
+            allGenes.sort((a, b) => b.combined - a.combined);
+
+            return allGenes;
+
+            //count how many associations a gene appears in
+            const geneMap = {};
+            for (const g of allGenes) {
+                if (!geneMap[g.gene]) {
+                    geneMap[g.gene] = {
+                        gene: g.gene,
+                        occurrences: 0,
+                        associations: new Set(),
+                        entries: []
+                    };
+                }
+                geneMap[g.gene].occurrences += 1;
+                geneMap[g.gene].associations.add(g.assocId);
+                geneMap[g.gene].entries.push(g);
+            }
+
+            //convert back into array
+            const aggregatedGenes = Object.values(geneMap).map(g => ({
+                gene: g.gene,
+                count: g.occurrences,
+                shared: g.associations.size > 1,
+                associationIds: [...g.associations],
+                //entries: g.entries   // if you want the full data
+            }));
+
+            return aggregatedGenes;
         },
 
         extractPhenotypeLabel(term) {
@@ -1682,6 +2034,40 @@ Return a structured **JSON object** following this schema:
             }catch(error){
                 return [];
             }
+        },
+
+        //this endpoint can query another endpoint in batches
+        //e.g. runMultiQuery('pigean-joined-gene-set', [`${entry.phenotype},${entry.gene_set},cfde`, ...])
+        async runMultiQuery(index, queries){
+            const url = 'https://cfde-dev.hugeampkpnbi.org/api/bio/multiquery';
+
+            // Build the queries array just like your Python list comprehension
+            /*
+            const queries = multipleSemanticSearchResults.map(entry => 
+                `${entry.phenotype},${entry.gene_set},cfde`
+            );
+            */
+
+            const payload = {
+                index, //e.g. string, 'pigean-joined-gene-set'
+                queries //e.g. array, [`${phenotype_id},${gene_set_id},cfde`, ...]
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+
+            const json = await response.json();
+
+            return json;
         },
 
         //
@@ -1880,7 +2266,7 @@ Return a structured **JSON object** following this schema:
 
         genesLink(mechanism){
             const hypothesis = mechanism.hypothesis;
-            const genes = mechanism.associations.flatMap(item => item.genes);
+            const genes = mechanism.associations.flatMap(item => item.genes?.map(gene => gene?.gene));
             const url = kcURL(`/r/cfde_explore?researchContext=${this.fullResults.context}&hypothesis=${hypothesis}&genes=${genes}`);
             return url;
         },
@@ -1894,7 +2280,8 @@ Return a structured **JSON object** following this schema:
                     const source = item.source || "";
                     return `${phenotype},${geneSet},${source}`;
                 }).join(';');
-            const url = kcURL(`/r/cfde_design?researchContext=${this.fullResults.context}&hypothesis=${hypothesis}&associations=${associations}`);
+            const genes = mechanism.genes.map(gene => gene.gene).join(',');
+            const url = kcURL(`/r/cfde_design?researchContext=${this.fullResults.context}&hypothesis=${hypothesis}&associations=${associations}&genes=${genes}`);
             return url;
         },
 
@@ -2059,11 +2446,15 @@ Return a structured **JSON object** following this schema:
                     this.allow_retry = false;
                     return;
                 }
-                this.searchType = json.search_type==="mechanisms"?'terms':'phenotypes';
+                this.associationSelectStrategy = json.association_selection_strategy;
+                this.geneSelectStrategy = json.gene_selection_strategy;
+
+                this.searchType = json.search_type==="mechanisms" || json.search_type==="both"?'terms':'phenotypes';
+                const searchTerms = [...json.phenotype_terms, ...json.mechanism_terms]
                 this.searchCriteria = [
                     {
                         search_criteria: 'Search Terms',
-                        values: json.search_terms,
+                        values: searchTerms,
                         why: 'We extraced this from your search query.',
                         purpose: 'These terms will be used to search for related phenotype↔signature associations via semantic search.'
                     },
@@ -2091,7 +2482,7 @@ Return a structured **JSON object** following this schema:
                 //this.userContext = json.context;
                 //this.termSearch(this.searchTerm);
                 this.updateStep(1, 'end');
-                this.searchTerm = json.search_terms.join(', ');
+                this.searchTerm = searchTerms.join(', ');
                 /*
                 const requestedPrograms = json.cfde_programs
                     .filter(item => item.reason === "requested")
@@ -2177,10 +2568,12 @@ Return a structured **JSON object** following this schema:
                             
                         });
                         const programs = [...new Set(allPrograms)];
+                        // = this.aggregateGenes(associations);
                         return {
                             ...item,
                             associations,
                             programs,
+                            //aggregateGenes,
                             display_associations: false,
                             display_relevance: false,
                             display_validation: false,
@@ -2280,8 +2673,9 @@ Return a structured **JSON object** following this schema:
                 md += `Relevant Associations:\n`;
                 let idx = 1;
                 result.associations.forEach((assoc) => {
+                    const genesArray = assoc.genes?.map(gene => gene.gene) || [];
                     md += `${idx}.\n`;
-                    md += `- Phenotype: ${assoc.phenotype}\n- Gene Set: ${assoc.gene_set_label}\n- Source: ${assoc.source?.replace(';', ' & ')}\n- Genes: ${assoc.genes?.join(", ")}\n\n`;
+                    md += `- Phenotype: ${assoc.phenotype}\n- Gene Set: ${assoc.gene_set_label}\n- Source: ${assoc.source?.replace(';', ' & ')}\n- Genes: ${genesArray.join(", ")}\n\n`;
                     idx++;
                 });
             }

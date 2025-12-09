@@ -15,7 +15,7 @@ export function kcURL(path) {
         // Extract pageid and query params
         const match = path.match(/^\/r\/([^?]+)\?(.*)$/);
 
-        console.log("match", match);
+        //console.log("match", match);
         if (!match) return path;
 
         const pageid = match[1];
