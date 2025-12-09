@@ -59,8 +59,8 @@ export default Vue.component("time-series-line-plot", {
       let margin = {
         top: 10,
         right: 10,
-        bottom: 10,
-        left: 10
+        bottom: 40,
+        left: 40
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
@@ -104,7 +104,7 @@ export default Vue.component("time-series-line-plot", {
             .style("font-size", "13px");
       this.svg.append("text")
         .attr("text-anchor", "middle")
-        .attr("y", height + margin.top + 40)
+        .attr("y", height + margin.top + 20)
         .attr("x", width/2)
         .text(this.config.xAxisLabel || this.config.xField);
       
@@ -119,7 +119,7 @@ export default Vue.component("time-series-line-plot", {
       this.svg.append("text")
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
-        .attr("y", -margin.left + 20)
+        .attr("y", -margin.left + 15)
         .attr("x", - height / 2)
         .text(this.config.yAxisLabel || this.config.yField);
       // add dots
@@ -137,7 +137,7 @@ export default Vue.component("time-series-line-plot", {
             d[yFieldScaled] === undefined 
               ? this.yScale(0) // Is this an issue for log scale? 
               : this.yScale(d[yFieldScaled]))
-          .attr("r", 5)
+          .attr("r", 3)
           .attr("fill", d => d.replicate === 1 ? "blue" : "red")
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
@@ -215,6 +215,9 @@ export default Vue.component("time-series-line-plot", {
     chartData(){
       this.drawChart();
     },
+    tx(){
+        this.drawChart();
+    }
   }
 });
 </script>

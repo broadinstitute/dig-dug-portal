@@ -532,12 +532,12 @@ $(function () {});
     border: solid 1px #aaa;
     box-shadow: 0 0 5px #00000075;
     font-size: 12px;
-    padding: 0px 10px 5px 10px;
     border-radius: 5px;
     z-index: 10;
     min-width: 300px;
 	text-align: left;
-	padding: 8px 20px 8px 10px !important;
+	padding-top: 5px;
+	padding-left: 5px;
 }
 .field-on-clicked-cell,
 .content-on-clicked-cell {
