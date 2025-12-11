@@ -137,6 +137,24 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
               this.hoverDot(JSON.stringify(g)));
+
+        // adding the line graph
+        const line = d3.line()
+          .x(d => this.xScale(d[this.config.xField]))
+          .y(d => this.yScale(d[this.config.yField]));
+        this.svg.append("path")
+          .datum(this.chartData.filter(d => d.replicate === 1))
+          .attr("fill", "none")
+          .attr("stroke", "blue")
+          .attr("stroke-width", 1)
+          .attr("d", line);
+        this.svg.append("path")
+          .datum(this.chartData.filter(d => d.replicate === 2))
+          .attr("fill", "none")
+          .attr("stroke", "red")
+          .attr("stroke-width", 1)
+          .attr("d", line);
+           
     },
     hoverDot(dotString) {
       this.unHoverDot();

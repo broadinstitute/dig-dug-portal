@@ -62,6 +62,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../utils/content.js";
 import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/ResearchHeatmapVector.vue";
 
 Vue.use(BootstrapVueIcons);
@@ -210,6 +211,7 @@ export default Vue.component("time-series-heatmap", {
 		},
 
 		getColor(mainValue, valHi, valMid, valLow) {
+			// Replace with gray/purple
 			let rColor, gColor, bColor;
 
 			rColor =
