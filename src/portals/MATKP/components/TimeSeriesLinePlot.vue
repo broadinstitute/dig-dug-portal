@@ -34,11 +34,6 @@ export default Vue.component("time-series-line-plot", {
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
-    this.chartWidth = this.chart.clientWidth;
-    addEventListener("resize", (event) => {
-        this.chartWidth = this.chart.clientWidth;
-        this.drawChart();
-    });
     this.drawChart();
   },
   computed: {

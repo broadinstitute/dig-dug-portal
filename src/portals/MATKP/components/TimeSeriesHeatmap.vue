@@ -530,7 +530,7 @@ $(function () {});
     font-size: 12px;
     border-radius: 5px;
     z-index: 10;
-    min-width: 300px;
+    /*min-width: 300px;*/
 	text-align: left;
 	padding-top: 5px;
 	padding-left: 5px;
