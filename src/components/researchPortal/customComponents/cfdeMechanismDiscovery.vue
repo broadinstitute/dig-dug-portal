@@ -286,7 +286,7 @@
                             {key: 'selected', label: 'Select', thStyle: { width: '70px' }},
                             {key: 'phenotype', label: 'Phenotype', sortable: true}, 
                             {key: 'score', label: 'Similarity Score', sortable: true},
-                            {key: 'beta_uncorrected', label: 'Association (beta uncorrected)', sortable: true}, 
+                            {key: 'beta_uncorrected', label: 'Effect (beta uncorrected)', sortable: true}, 
                             {key: 'gene_set_label', label: 'Signature (gene set)'}, 
                             {key: 'source_label', label: 'Source', sortable: true},
                             'actions'
@@ -429,38 +429,48 @@
                             <div>{{ mechanisms_summary }}</div>
                         </div>
                         <div style="display:grid; grid-template-columns: 1fr; gap: 40px">
-                            <div v-for="mechanism in mechanisms" style="display: flex;flex-direction: column;gap: 20px;border: 1px solid #ccc;border-radius: 10px;box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
+
+                            <div v-for="mechanism in mechanisms" style="display: flex;flex-direction: column;gap: 20px;border: 1px solid #ccc;border-radius: 10px;box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; background:#eee;">
                                 <div style="padding: 20px;background: #ccc;margin: -1px;border-radius: 10px 10px 0px 0px;display: flex;flex-direction: column;gap: 10px;">
                                     <div style="font-size:1.2em; line-height: 1.2em; font-weight: bold;">{{ mechanism.group_name }}</div>
-                                    <div style="display:flex; flex-direction: column; padding: 5px;">
-                                        <div style="font-size: .8em;">
-                                            <div style="font-weight: bold;">mechanistic hypothesis <span class="info-icon" style="color:gold" v-b-tooltip.hover="`${mechanism.relevance}`">♦</span></div>
-                                        </div>
-                                        <div style="font-size: 1.1em;">{{ mechanism.hypothesis }}</div>
-                                    </div>
                                 </div>
                                 
-                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 40px; padding:20px">
-                                    <div style="display:flex; flex-direction: column; padding: 5px;">
-                                        <div style="font-size: .8em; font-weight: bold;">candidate genes <span class="info-icon" style="color:gold" v-b-tooltip.hover="`${mechanism.genes_reason}`">♦</span></div>
+                                <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 10px; padding:0 20px">
+                                    <div style="display:flex; flex-direction: column; padding: 5px; gap:10px;">
+                                        <div style="font-weight: bold;">mechanistic hypothesis</div>
+                                        <div style="font-size: 1.1em;">{{ mechanism.hypothesis }}</div>
+                                    </div>
+
+                                    <div style="display:flex; flex-direction: column; padding: 5px; height: fit-content;">
+                                        <div style="font-size: .8em; font-weight: bold; padding:3px 0;">rationale</div>
+                                        <div style="font-size: 0.9em;background: rgb(251, 228, 186);padding: 5px;">{{ mechanism.novelty_explanation }}</div>
+                                    </div>
+                                </div>
+
+                                <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 10px; padding:0 20px">
+                                    <div style="display:flex; flex-direction: column; padding: 5px; gap:10px">
+                                        <div style="font-weight: bold;">
+                                            candidate genes ({{ mechanism.genes.length }})
+                                            <!--<span class="info-icon" style="color:gold" v-b-tooltip.hover="`${mechanism.genes_reason}`">♦</span>-->
+                                        </div>
                                         <div style="display: flex; gap:5px; flex-wrap: wrap;">
                                             <span v-for="gene in mechanism.genes" style="display:grid; grid-template-columns: 100px auto; gap: 20px">
-                                                <div>{{ gene.gene }}</div>
-                                                <div>{{ gene.reason }}</div>
+                                                <div class="pill">{{ gene.gene }}</div>
+                                                <div style="font-size: 0.9em">{{ gene.reason }}</div>
                                             </span>
                                         </div>
                                     </div>
-                                    
+                                    <div style="display:flex; flex-direction: column; padding: 5px; height: fit-content;">
+                                        <div style="font-size: .8em; font-weight: bold; padding:3px 0;">rationale</div>
+                                        <div style="font-size: 0.9em;background: rgb(251, 228, 186);padding: 5px;">{{ mechanism.genes_reason }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 10px; padding:0 20px">
                                     <div style="display: flex;flex-direction: column;gap: 20px;">
-                                        <div style="display:flex; flex-direction: column; padding: 5px;">
-                                            <div style="font-size: .8em; font-weight: bold;">contributing CFDE programs</div>
-                                            <div style="display: flex; gap:5px; flex-wrap: wrap;">
-                                                <span class="pill" v-for="program in mechanism.programs">{{ program }}</span>
-                                            </div>
-                                        </div>
-                                        <div style="display:flex; flex-direction: column; padding: 5px;">
-                                            <div style="font-size: .8em;">
-                                                <div style="font-weight: bold;">relevant associations <span class="info-icon" style="color:gold" v-b-tooltip.hover="`${mechanism.justification}`">♦</span></div>
+                                        <div style="display:flex; flex-direction: column; padding: 5px; gap:10px;">
+                                            <div style=" font-weight: bold;">
+                                                relevant associations ({{ mechanism.associations.length }})
                                             </div>
                                             <div style="height:calc(225px + 1rem)">
                                                 <b-table
@@ -470,11 +480,17 @@
                                                     :fields="[
                                                         'phenotype', 
                                                         {key: 'gene_set_label', label: 'Gene Set'}, 
+                                                        {key: 'beta_uncorrected', label: 'Gene Set Effect'}, 
                                                         {key: 'source_label', label: 'Source'}, 
                                                         'actions'
                                                     ]"
                                                     style="font-size: 0.9em;"
                                                 >
+                                                    <template #cell(beta_uncorrected)="row">
+                                                        <div v-if="row.item.beta_uncorrected<0.1">low ({{ row.item.beta_uncorrected }})</div>
+                                                        <div v-if="row.item.beta_uncorrected>=0.1 && row.item.beta_uncorrected<1">moderate ({{ row.item.beta_uncorrected }})</div>
+                                                        <div v-if="row.item.beta_uncorrected>=1">strong ({{ row.item.beta_uncorrected }})</div>
+                                                    </template>
                                                     <template #cell(actions)="row">
                                                         <div style="display:flex; flex-direction: column;">
                                                             <a :href="getsetLink(row.item)" target="_blank" disabled style="white-space: nowrap;">View Geneset</a>
@@ -503,40 +519,17 @@
                                                 </b-table>
                                             </div>
                                         </div>
-                                    </div>
-    
-                                    <!--
-                                    <div style="display: flex;flex-direction: column;gap: 20px;">
-                                        <div style="display:flex; flex-direction: column; padding: 5px;">
-                                            <div style="font-size: .8em; font-weight: bold;">linking genes</div>
+                                        <div style="display:flex; flex-direction: column; padding: 5px; gap:10px">
+                                            <div style="font-weight: bold;">contributing CFDE programs</div>
                                             <div style="display: flex; gap:5px; flex-wrap: wrap;">
-                                                <span v-for="gene in mechanism.genes" style="white-space: nowrap;">{{ gene }}</span>
+                                                <span class="pill" v-for="program in mechanism.programs">{{ program }}</span>
                                             </div>
-                                        </div>
-                                        <div style="display:flex; flex-direction: column; padding: 5px;">
-                                            <div style="font-size: .8em;">
-                                                <div style="font-weight: bold;">associated genes</div>
-                                            </div>
-                                            <div>
-                                                <b-table
-                                                    small
-                                                    sticky-header="225px"
-                                                    :items="mechanism.aggregateGenes"
-                                                    :fields="[
-                                                        'gene',
-                                                        {key: 'combined', label: 'Combined'},
-                                                        {key: 'log_bf', label: 'GWAS Support'},
-                                                        {key: 'prior', label: 'Gene Set Support'},
-                                                        {key:'assocId', label: 'Association'}
-                                                    ]"
-                                                    style="font-size: 0.9em;"
-                                                >
-                                                </b-table>
-                                            </div>
-                                            <div>{{ mechanism.aggregateGenes.length }} total</div>
                                         </div>
                                     </div>
-                                    -->
+                                    <div style="display:flex; flex-direction: column; padding: 5px; height: fit-content;">
+                                        <div style="font-size: .8em; font-weight: bold; padding:3px 0;">rationale</div>
+                                        <div style="font-size: 0.9em;background: rgb(251, 228, 186);padding: 5px;">{{ mechanism.justification }}</div>
+                                    </div>
                                 </div>
 
                                 <div style="display:flex; flex-direction: column; padding: 20px; margin-top: auto;">
@@ -836,8 +829,6 @@ and in a subsequest step, to select associations and their genes from those sear
 Return a JSON object with:
 * 'phenotype_terms': a targeted list of phenotype-related keywords to use for semantic search. (terms: min=1, max=3)
 * 'mechanism_terms': a targeted list of mechanism- or process-related keywords to use for semantic search. (terms: min=1, max=3)
-* 'association_selection_strategy': A short set of 1-3 concise sentences describing what kinds of associations subsequent step should prioritize based on the query. Instructions should reference phenotype alignment, mechanism alignment, tissue/assay relevance, and gene-pattern relevance.
-* 'gene_selection_strategy': A short set of 1-3 concise sentences describing what kinds of genes LLM #2 should prioritize when forming hypotheses. Instructions should reference recurrence across associations, mechanistic fit, phenotype relevance, and experimental suitability.
 * 'search_type': a classification of whether the core intent of the query centers on 'phenotypes', 'mechanisms', or 'both'.
 * 'research_context': a short, self-contained description of the research setting that naturally incorporates the phenotype and mechanism terms.
 
@@ -865,8 +856,6 @@ energy balance with indirect calorimetry
 { 
     "phenotype_terms": ["energy balance"], 
     "mechanism_terms": ["indirect calorimetry"], 
-    "association_selection_strategy": "Prioritize associations involving metabolic rate or whole-body energy balance. Look for signatures describing energy expenditure or mitochondrial function. Select associations related to metabolic tissues such as adipose or liver when relevant.", 
-    "gene_selection_strategy": "Highlight genes recurring in energy-expenditure signatures that relate to metabolic regulation. Emphasize genes linked to mitochondrial activity or whole-body energy balance.", 
     "search_type": "mechanisms", 
     "research_context": "investigating energy balance using indirect calorimetry" 
 }
@@ -973,34 +962,66 @@ You will be given a csv list of of **gene set-phenotype associations**, each wit
 
 * a unique **id**
 * a **source** representing the CFDE program the signature was derived from
-* a **phenotype** containing a phenotype
+* a **phenotype** containing a phenotype/trait
 * a **signature** containing an annotation of a gene set
-* a list of **genes** which are associated with both the gene set and the phenotype
+* a list of **genes** which are associated with the phenotype via the gene set
 
-some phenotypes will be association with multiple, various gene sets
+Phenotypes may be associated with multiple, various gene sets.
 
 You will also be given a **research context** describing the biological topic of interest.
 
 Your task is to generate up to 3 **mechanistic hypotheses** that integrate groups of associations that are **relevant to the research context**.
-And to suggest a set of candiadate genes from the group of associations selected for each hypothesis for further analysis that are also **relevant to the research context**
+And to suggest a set of candiadate genes from the group of associations selected for each hypothesis that are also **relevant to the research context**
+
+Some of these associations will represent known positive-control mechanistic relationships
+**Important** But what we are looking for are "novel, non-canonical, but suggestive mechanistic relationships" (not “definitely unknown to the field” relationships)
 
 ---
 
 ## Mechanistic Hypothesis Rules
 
-* Hypotheses should integrate **multiple associations** to suggest plausible **mechanisms** linking gene signatures, phenotypes, programs, and genes.
-* Mechanisms should be **inferred** from the associations, not just restatements. For example:
-  * GOOD “Reduced expression of mitochondrial complex I genes across adipose and brain tissues suggests impaired oxidative phosphorylation, leading to altered substrate oxidation and reduced metabolic rate.”
-  * BAD “Association between ND1 and disorder of energy metabolism” (too literal, no mechanistic inference).
-* Groupings should prioritize **shared phenotypes** or **shared source programs** that yield the strongest mechanistic story.
-* Each grouping should highlight a **subset of condidate genes** that are common across its associations (not the full list).
-* Each candidate gene should include a rason why it was chosen as a candidate.
-* Prefer hypotheses that link to the **research context** (e.g., energy balance, substrate oxidation, metabolic rate).
-* Group names should be written in **headline style** (short, punchy, minimal jargon).
-* The 'hypothesis' field should be a **short-form version** (1-2 sentences, concise, plain-language).
-* Include a 'justification' field for each hypothesis that explains why this particular group of associations was selected from the overall set.
-* **Never** use 'term ids' in your explanations, mention either the 'signature' or 'phenotype' instead.
-* **IMPORTANT** **NEVER** select any term / association for analysis that does not include genes
+# Rule: Explicit Novelty Explanation
+* Hypotheses must clearly describe what is non-canonical about the inferred mechanism. Novelty does not mean “unknown”; it may reflect:
+    - an underappreciated mechanistic connection not typically highlighted in the field
+    - an unusual convergence of genes across CFDE sources
+    - a pathway combination not emphasized in canonical models
+    - a data-driven pattern suggesting a less-recognized biological route
+* Novelty explanations must be short and evidence-based, tied directly to observed association patterns.
+* Each hypothesis must include a brief novelty phrase in its description (e.g., “an underrecognized glycan-modulated lysosomal axis,” “a noncanonical centrosomal contribution to trafficking,” “a less-emphasized interferon-driven proteostasis pathway”).
+    - Good example: “Although lysosomal hydrolases are individually implicated in neurodegeneration, repeated co-occurrence of PSAP, CTSD, and PPT1 across distinct CFDE signatures suggests an underappreciated glycosylation-dependent clearance axis.”
+    - Bad example: “This is a totally new mechanism.”
+* Keep novelty statements tight, concrete, and grounded in the data.
+
+
+# Rule: Novelty Must Contrast Canonical vs. Non-Canonical Elements
+* Distinguish:
+    - canonical components (expected based on the research context), and
+    - non-canonical extensions (unexpected pathways, cross-program reinforcement, novel grouping of genes, etc.)
+* This should be concise—one sentence only.
+
+
+# Rule: Justification Field Must Explain WHY These Associations Were Chosen
+* The justification field (limit: 1 sentence) must state:
+    - why these associations group together,
+    - which pattern in the data revealed the mechanism,
+    - and what is non-canonical or noteworthy about this grouping.
+* This should be directly tied to observable features (e.g., cross-program convergence, recurring gene cluster, shared phenotype theme).
+
+
+# Rule: Candidate Gene Reasoning Must Include Novelty Insight
+* For each selected gene, provide a single sentence explaining:
+    - its mechanistic role, and
+    - when relevant, what makes its role interesting, unexpected, or noncanonical (e.g., a bridging function, recurrent cross-program appearance, or unusual pathway connection).
+* Avoid generic gene descriptions.
+
+
+# Conciseness Requirement
+* When writing hypotheses, justifications, novelty explanations, and gene reasons:
+    - Avoid long generalities.
+    - Prioritize short, precise, evidence-based statements.
+    - Focus only on the mechanistically relevant insight.
+    - Do not restate the signature text or phenotype names.
+    - Avoid paragraphs where a sentence is sufficient.
 ---
 
 ## CFDE Program Details
@@ -1021,24 +1042,27 @@ And to suggest a set of candiadate genes from the group of associations selected
 ## Output Format
 
 Return a structured **JSON object** following this schema:
-{
-    "overall_summary": "High-level explanation (<3 sentences, plain language) of how the generated hypotheses connect to the research context and CFDE programs used",
-    "hypotheses": [
-        {
-            "group_name": "Short, headline-style descriptive name",
-            "hypothesis": "Concise, plain-language mechanistic hypothesis (1-2 sentences)",
-            "relevance": "Brief reason this hypothesis matters for the research context",
-            "justification": "Brief reason why this particular group of associations was chosen from the full set",
-            "ids": ["term_xxxx", "term_yyyy", "..."],
-            "genes": [{
-                "gene": "GENE1",
-                "reason": "Short, reason why this gene was selected in relation to hypothesis and users research context."
-            }, ...],
-            "genes_reason": "Very brief, explanation of what the selected genes collectively indicate about the proposed mechanism—such as the pathway they point to, the biological process they highlight, or how they provide a focused starting point for downstream analysis related to the research context."
-        }
-    ]
-}
 
+{
+  "overall_summary": "High-level explanation (<3 sentences, plain language) of how the hypotheses relate to the research context, the broad patterns detected, and what aspects appear novel or non-canonical.",
+  "hypotheses": [
+    {
+      "group_name": "Short, headline-style name",
+      "hypothesis": "Concise 1-2 sentence mechanistic hypothesis, including a brief phrase signaling the noncanonical or underrecognized aspect of the mechanism.",
+      "relevance": "Short explanation of why this mechanism matters for the research context, including how it extends, nuances, or challenges canonical understanding.",
+      "justification": "1-sentence rationale describing why this grouping was selected, what pattern emerged from the associations, and what made it noncanonical or noteworthy.",
+      "novelty_explanation": "1-sentence describing why the mechanism is considered novel, contrasting canonical vs. non-canonical elements if applicable.",
+      "ids": ["term_xxxx", "term_yyyy", ...],
+      "genes": [
+        {
+          "gene": "GENE1",
+          "reason": "1-sentence mechanistic reason this gene supports the hypothesis, including novelty when applicable."
+        }
+      ],
+      "genes_reason": "1-sentence summarizing what the set of genes collectively reveals about the mechanism and how their pattern suggests underappreciated or novel biology."
+    }
+  ]
+}
 
 ---
 
@@ -1046,6 +1070,8 @@ Return a structured **JSON object** following this schema:
 
 * Use only information from the input (no fabrication).
 * Every group must include at least one **term id** in 'ids'.
+* **Never** use 'term ids' in your explanations, mention either the 'signature' or 'phenotype' instead.
+* **IMPORTANT** **NEVER** select any term / association for analysis that does not include genes
 * **NEVER** include genes that are not part of a term / association.
 * Return only the raw JSON array as plain text — no explanations, markdown, or code block syntax.`,
         };
@@ -1869,8 +1895,8 @@ Return a structured **JSON object** following this schema:
             let fullPrompt = `**associations:**\n`
             fullPrompt += associations
             fullPrompt += `\n\n**Research context:** ${context}`
-            fullPrompt += `\n\n**Association selecttion strategy:** ${this.associationSelectStrategy}`
-            fullPrompt += `\n\n**Gene selecttion strategy:** ${this.geneSelectStrategy}`
+            //fullPrompt += `\n\n**Association selecttion strategy:** ${this.associationSelectStrategy}`
+            //fullPrompt += `\n\n**Gene selecttion strategy:** ${this.geneSelectStrategy}`
             
             console.log('fullPrompt', fullPrompt);
 
@@ -2667,7 +2693,11 @@ Return a structured **JSON object** following this schema:
                 md += `Contributing CFDE Programs:\n${result.programs.join(", ")}\n\n`;
             }
             if (result.genes?.length) {
-                md += `Linking Genes:\n${result.genes.join(", ")}\n\n`;
+                md += `Candidate Genes:\n`
+                result.genes.forEach(g => {
+                    md += `${g.gene} - ${g.reason}\n\n`
+                })
+                
             }
             if (result.associations?.length) {
                 md += `Relevant Associations:\n`;
@@ -2772,6 +2802,7 @@ Return a structured **JSON object** following this schema:
     display: inline-flex;
     width: fit-content;
     position: relative;
+    height: fit-content;
 }
 .pill.editable:hover:after {
     content: '✖';
