@@ -159,13 +159,15 @@ export default Vue.component("time-series-heatmap", {
 			this.renderHeatmap();
 		},
 		checkPosition(event) {
+			// TODO is the zoomed out version not working?
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
 
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
 			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump * 2)) / (this.boxWidth) * 2);
-			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump * 2)) / this.boxHeight);
+			let zoomFactor = this.zoomedIn ? this.boxHeight : 1;
+			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump * 2)) / zoomFactor);
 
 			let clickedCellValue = "";
 			if (
