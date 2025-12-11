@@ -302,7 +302,7 @@ export default Vue.component("time-series-heatmap", {
 
 			}
 			let numExtremes = [minVal, maxVal];
-			let colorExtremes = [ACCESSIBLE_PURPLE, ACCESSIBLE_GRAY];
+			let colorExtremes = [ACCESSIBLE_GRAY, ACCESSIBLE_PURPLE];
 			this.colorScale = createColorScale(numExtremes, colorExtremes);
 			let prevWidth = margin.bump;
 
