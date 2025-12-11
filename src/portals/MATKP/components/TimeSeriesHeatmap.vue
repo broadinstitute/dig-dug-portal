@@ -18,7 +18,6 @@
 					class="col-wrapper"
 					:id="'colWrapper' + sectionId"
 				></div>
-				<div class="heatmap-rows-wrapper" :id="'heatmapRowsWrapper' + sectionId"></div>
 				<div id="zoom-checkbox">
 					<label>
 						<input v-model="zoomedIn" type="checkbox" />
@@ -473,13 +472,6 @@ $(function () {});
     transform: rotate(45deg);*/
 	white-space: nowrap;
 	padding-left: 10px;
-}
-#heatmapRowsWrapper, .heatmap-rows-wrapper {
-	padding-right: 10px;
-	display: inline-block;
-	vertical-align: top;
-	white-space: nowrap;
-	text-align: right;
 }
 #heatmapCanvasWrapper, .heatmap-canvas-wrapper {
 	display: inline-block;
