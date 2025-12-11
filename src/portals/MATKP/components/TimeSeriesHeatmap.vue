@@ -19,6 +19,12 @@
 					:id="'colWrapper' + sectionId"
 				></div>
 				<div class="heatmap-rows-wrapper" :id="'heatmapRowsWrapper' + sectionId"></div>
+				<div id="zoom-checkbox">
+					<label>
+						<input v-model="zoomedIn" type="checkbox" />
+						Zoom in
+					</label>
+				</div>
 				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
 						v-if="!!renderConfig"
@@ -78,7 +84,8 @@ export default Vue.component("time-series-heatmap", {
 			margin:{},
 			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
-			colorScale: null
+			colorScale: null,
+			zoomedIn: false
 		};
 	},
 	mounted: function () {
@@ -135,6 +142,9 @@ export default Vue.component("time-series-heatmap", {
 		renderData() {
 			this.renderHeatmap();
 		},
+		zoomedIn(){
+			this.renderHeatmap();
+		}
 	},
 	methods: {
 		downloadImage(ID, NAME, TYPE) {
@@ -330,7 +340,8 @@ export default Vue.component("time-series-heatmap", {
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
 
-			let renderBoxSize = this.boxHeight * 2;
+			let renderBoxSize = !this.zoomedIn ? 2 : this.boxHeight * 2;
+
 
 			// render heatmap box
 
@@ -353,11 +364,9 @@ export default Vue.component("time-series-heatmap", {
 				ctx.font = "24px Arial";
 				ctx.textAlign = "end";
 				ctx.fillStyle = "#000000";
-				ctx.fillText(
-					r,
-					margin.left + margin.bump,
-					top + fontSize
-				);
+				if (this.zoomedIn){
+					ctx.fillText(r, margin.left + margin.bump, top + fontSize);
+				}
 			})
 
 			this.renderData.columns.map((c, cIndex) => {
@@ -551,6 +560,10 @@ $(function () {});
 
 .sub-legend-steps {
 	padding-left: 5px;
+}
+.zoom-checkbox {
+	text-align: left;
+	padding-left: 25px;
 }
 </style>
 
