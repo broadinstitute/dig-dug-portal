@@ -99,7 +99,7 @@ export default new Vuex.Store({
                         exclude.push("hpo");
                     } else if (traitGroup === 'all_complex'){
                         exclude.push("hpo");
-                        exclude.push("orphanet");
+                        exclude.push("rare_v2");
                     }
                     traits = traits.filter(t => !exclude.includes(t));
                     for (let i = 0; i < traits.length; i++){
