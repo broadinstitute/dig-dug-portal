@@ -212,43 +212,6 @@ export default Vue.component("time-series-heatmap", {
 			return ctx.measureText(text).width;
 		},
 
-		getColor(mainValue, valHi, valMid, valLow) {
-			// Replace with gray/purple
-			let rColor, gColor, bColor;
-
-			rColor =
-				mainValue >= valMid
-					? 255
-					: 255 -
-					255 * ((valMid - mainValue) / valMid - valLow);
-			gColor =
-				mainValue >= valMid
-					? 255 -
-					255 * ((mainValue - valMid) / (valHi - valMid))
-					: 255 -
-					255 * ((valMid - mainValue) / valMid - valLow);
-			bColor =
-				mainValue < valMid
-					? 255
-					: 255 -
-					255 * ((mainValue - valMid) / (valHi - valMid));
-
-			rColor = rColor > 255 ? 255 : rColor < 0 ? 0 : rColor;
-			gColor = gColor > 255 ? 255 : gColor < 0 ? 0 : gColor;
-			bColor = bColor > 255 ? 255 : bColor < 0 ? 0 : bColor;
-
-			let fillColor =
-				"rgba(" +
-				Math.floor(rColor) +
-				"," +
-				Math.floor(gColor) +
-				"," +
-				Math.floor(bColor) +
-				",1)";
-
-			return fillColor;
-		},
-
 		renderHeatmap(X, Y) {
 			let c = document.getElementById("heatmap" + this.sectionId);
 			let ctx = c.getContext("2d");
@@ -342,7 +305,6 @@ export default Vue.component("time-series-heatmap", {
 					legendWidth += margin.bump
 					prevWidth += margin.bump / 2;
 
-					//let fillColor = this.getColor(m, maxVal, midVal, minVal)
 					let fillColor = this.colorScale(m);
 
 					ctx.beginPath();
@@ -426,14 +388,7 @@ export default Vue.component("time-series-heatmap", {
 						field: this.renderConfig.main.field,
 						value: this.renderData[r][c].main,
 					};
-					//mainValue *= -1;
-					let rColor, gColor, bColor;
-					let direction = this.renderConfig.main.direction;
-					let valHi = this.renderConfig.main.high;
-					let valMid = this.renderConfig.main.middle;
-					let valLow = this.renderConfig.main.low;
 
-					//let colorString =	this.getColor(mainValue, valHi, valMid, valLow);
 					let colorString = `${this.colorScale(mainValue)}`;
 
 
