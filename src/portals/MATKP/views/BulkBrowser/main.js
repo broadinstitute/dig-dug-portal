@@ -6,6 +6,7 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
+import { createColorScale } from "../../utils/visuals.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -288,7 +289,7 @@ new Vue({
             this.enrichrDown = [];
             this.enrichrUp = await getEnrichr(this.upGenes, this.enrichrLibrary, this.truncateEnrichr);
             this.enrichrDown = await getEnrichr(this.downGenes, this.enrichrLibrary, this.truncateEnrichr);
-            this.enrichrColorScale = this.createColorScale();
+            this.enrichrColorScale = createColorScale(this.colorScaleEndpoints, [ACCESSIBLE_DARK_GRAY, ACCESSIBLE_PURPLE]);
             this.enrichrReady = true;
         },
         async getBulkMetadata() {
@@ -337,12 +338,6 @@ new Vue({
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
-        },
-        createColorScale(){
-            let ends = this.colorScaleEndpoints;
-            return d3.scaleLinear()
-              .range([ACCESSIBLE_DARK_GRAY, ACCESSIBLE_PURPLE])
-              .domain(ends);
         },
         async setVolcano(newYVal){
             if (newYVal === this.volcanoYCondition) {

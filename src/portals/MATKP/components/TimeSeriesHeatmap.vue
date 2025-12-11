@@ -62,8 +62,10 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../utils/content.js";
+import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, ACCESSIBLE_GRAY } from "../utils/content.js";
+import { createColorScale } from "../utils/visuals.js";
 import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/ResearchHeatmapVector.vue";
+import { rgb } from "d3";
 
 Vue.use(BootstrapVueIcons);
 
@@ -75,7 +77,8 @@ export default Vue.component("time-series-heatmap", {
 			canvasHover: false,
 			margin:{},
 			boxAspectRatio: 8,
-			transcript: "1415687_a_at"
+			transcript: "1415687_a_at",
+			colorScale: null
 		};
 	},
 	mounted: function () {
@@ -141,7 +144,6 @@ export default Vue.component("time-series-heatmap", {
 			} else if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
 			}
-
 		},
 		hidePanel() {
 			//this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
@@ -327,7 +329,9 @@ export default Vue.component("time-series-heatmap", {
 				}
 
 			}
-
+			let numExtremes = [minVal, maxVal];
+			let colorExtremes = [ACCESSIBLE_PURPLE, ACCESSIBLE_GRAY];
+			this.colorScale = createColorScale(numExtremes, colorExtremes);
 			let prevWidth = margin.bump;
 
 			// main legend
@@ -338,7 +342,8 @@ export default Vue.component("time-series-heatmap", {
 					legendWidth += margin.bump
 					prevWidth += margin.bump / 2;
 
-					let fillColor = this.getColor(m, maxVal, midVal, minVal)
+					//let fillColor = this.getColor(m, maxVal, midVal, minVal)
+					let fillColor = this.colorScale(m);
 
 					ctx.beginPath();
 					ctx.rect(prevWidth, margin.bump - 4, legendWidth, fontSize + 8);
@@ -428,7 +433,8 @@ export default Vue.component("time-series-heatmap", {
 					let valMid = this.renderConfig.main.middle;
 					let valLow = this.renderConfig.main.low;
 
-					let colorString =	this.getColor(mainValue, valHi, valMid, valLow);
+					//let colorString =	this.getColor(mainValue, valHi, valMid, valLow);
+					let colorString = `${this.colorScale(mainValue)}`;
 
 
 					if (X == cIndex && Y == rIndex) {
