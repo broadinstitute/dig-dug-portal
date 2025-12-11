@@ -94,9 +94,14 @@ export default new Vuex.Store({
                     // If ALL is selected, query all trait groups and get top results across all
                     let traitsData = [];
                     let traits = Object.keys(bioIndexUtils.TRAIT_GROUPS);
+                    let exclude = [];
                     if (traitGroup === 'all_but_hpo'){
-                        traits = traits.filter(t => t !== 'hpo');
+                        exclude.push("hpo");
+                    } else if (traitGroup === 'all_complex'){
+                        exclude.push("hpo");
+                        exclude.push("rare_v2");
                     }
+                    traits = traits.filter(t => !exclude.includes(t));
                     for (let i = 0; i < traits.length; i++){
                         let group = traits[i];
                         let traitQuery = `${group},${context.state.geneName},${
