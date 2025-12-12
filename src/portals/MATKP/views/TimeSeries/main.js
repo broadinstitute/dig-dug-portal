@@ -81,8 +81,10 @@ new Vue({
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
-            console.log(this.timeSeriesData.length);
-            let conditions = Object.keys(this.timeSeriesData[0]).filter(t => t !== "gene");
+            const not_conditions = ["transcript_id", "gene", "max_diff", "pattern"];
+            let conditions = Object.keys(this.timeSeriesData[0])
+                .filter(t => !not_conditions.includes(t));
+            
             let output = [];
             let sampleData = this.timeSeriesData.slice(0,1000);
 
@@ -188,7 +190,8 @@ new Vue({
             }
         },
         async getTimeSeries() {
-            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/transcripts_by_sample.tsv`;
+            //let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/transcripts_by_sample.tsv`;
+            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/full_transcript_data.tsv.gz`;
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
