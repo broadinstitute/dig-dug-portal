@@ -42,9 +42,12 @@ export default Vue.component("time-series-line-plot", {
       if (this.filter){
         data = data.filter(this.filter);
       }
+      // Tx is concatenated with gene; need to separate them
+      let transcripts = this.tx.map(t => t.split("___")[1]); 
       if (this.tx.length > 0){
-        data = data.filter(d => this.tx.includes(d.transcript_id));
+        data = data.filter(d => transcripts.includes(d.transcript_id));
       }
+      console.log(data.length);
       return data;
     },
   },

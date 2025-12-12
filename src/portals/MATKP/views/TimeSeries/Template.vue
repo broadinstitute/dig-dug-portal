@@ -12,7 +12,7 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4>
-                            Time series data for {{ $parent.timeSeriesId }}
+                            Time series data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
                         </h4>
                     </div>
                     <div v-if="$parent.timeSeriesData !== null">

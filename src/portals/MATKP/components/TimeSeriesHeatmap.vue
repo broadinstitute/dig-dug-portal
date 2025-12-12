@@ -84,7 +84,7 @@ export default Vue.component("time-series-heatmap", {
 			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
 			colorScale: null,
-			zoomedIn: false
+			zoomedIn: true
 		};
 	},
 	mounted: function () {
@@ -256,9 +256,9 @@ export default Vue.component("time-series-heatmap", {
 				bump: 10
 			};
 
-
+			let renderBoxSize = !this.zoomedIn ? 2 : this.boxHeight * 2;
 			let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 8));
-			let canvasHeight = ((1 * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
+			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
 			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
@@ -339,9 +339,6 @@ export default Vue.component("time-series-heatmap", {
 			ctx.font = "Bold 30px Arial";
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
-
-			let renderBoxSize = !this.zoomedIn ? 2 : this.boxHeight * 2;
-
 
 			// render heatmap box
 
