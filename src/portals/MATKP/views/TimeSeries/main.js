@@ -61,6 +61,8 @@ new Vue({
             minScore: null,
             maxScore: null,
             transcripts: ["1415687_a_at"],
+            fullTxSuffix: "full_transcript_data.tsv.gz",
+            top100Suffix: "heatmap_top100_transcript_data.tsv.gz"
         };
     },
     computed: {
@@ -81,9 +83,8 @@ new Vue({
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
-            const not_conditions = ["transcript_id", "gene", "max_diff", "pattern"];
             let conditions = Object.keys(this.timeSeriesData[0])
-                .filter(t => !not_conditions.includes(t));
+                .filter(t => t.startsWith("GSM"));
             
             let output = [];
             let sampleData = this.timeSeriesData.slice(0,1000);
@@ -114,6 +115,7 @@ new Vue({
                         score: score,
                         days: days,
                         replicate: replicate,
+                        order: tsd.order,
                         gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
                         identifier: `${tsd.transcript_id}_rep_${replicate}`
                     }
@@ -192,8 +194,7 @@ new Vue({
             }
         },
         async getTimeSeries() {
-            //let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/transcripts_by_sample.tsv`;
-            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/full_transcript_data.tsv.gz`;
+            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/${this.top100Suffix}`;
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);

@@ -107,7 +107,7 @@ export default Vue.component("time-series-heatmap", {
 				.filter((v, i, arr) => v != ""); //remove blank
 
 			massagedData["rows"] = rowList.sort((a, b) =>
-				a.localeCompare(b, undefined, { sensitivity: "base" })
+				a.order - b.order
 			);
 			massagedData["columns"] = columnList.sort((a, b) => 
 				this.extractTime(a) - this.extractTime(b)
