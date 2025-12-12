@@ -109,11 +109,12 @@ new Vue({
                     let replicate = parseInt(conditionMetadata.source_name.match(rep)[1]);
                     let entry = {
                         gene: tsd.gene,
+                        transcript_id: tsd.transcript_id,
                         source: conditionMetadata.source_name,
                         score: score,
                         days: days,
                         replicate: replicate,
-                        identifier: `${tsd.gene}_rep_${replicate}`
+                        identifier: `${tsd.transcript_id}_rep_${replicate}`
                     }
                     output.push(entry);
                 });
@@ -137,8 +138,8 @@ new Vue({
                 },
                 "column field": "source",
                 "column label": "source",
-                "row field": "gene",
-                "row label": "gene",
+                "row field": "transcript_id",
+                "row label": "transcript_id",
                 "font size": 12
             }
         },
@@ -155,7 +156,7 @@ new Vue({
                 dotKey: "identifier",
                 hoverBoxPosition: "both",
                 hoverFields: [
-                    {key: "gene", label: "Transcript"},
+                    {key: "transcript_id", label: "Transcript"},
                     {key: "days", label: "Day"},
                 ],
             }

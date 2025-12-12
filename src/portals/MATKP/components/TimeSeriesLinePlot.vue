@@ -43,7 +43,7 @@ export default Vue.component("time-series-line-plot", {
         data = data.filter(this.filter);
       }
       if (this.tx.length > 0){
-        data = data.filter(d => this.tx.includes(d.gene));
+        data = data.filter(d => this.tx.includes(d.transcript_id));
       }
       return data;
     },
