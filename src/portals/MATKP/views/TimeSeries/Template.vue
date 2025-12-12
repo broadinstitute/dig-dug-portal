@@ -12,7 +12,7 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4>
-                            Sample time series data
+                            Time series data for {{ $parent.timeSeriesId }}
                         </h4>
                     </div>
                     <div v-if="$parent.timeSeriesData !== null">

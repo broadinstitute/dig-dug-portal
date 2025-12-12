@@ -1,6 +1,5 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent } from "@/portals/MATKP/utils/content";
@@ -33,7 +32,6 @@ import regionUtils from "@/utils/regionUtils";
 const TIME_SERIES_RAW = "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/";
 
 new Vue({
-    store,
     components: {
         TissueHeritabilityTable,
         TissueExpressionTable,
@@ -78,31 +76,6 @@ new Vue({
                 regionUtils: regionUtils,
             };
             return utils;
-        },
-        rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
-        },
-        phenotypesInSession() {
-            if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
-            } else {
-                return this.$store.state.phenotypesInSession;
-            }
-        },
-        diseaseSystem() {
-            return this.$store.getters["bioPortal/diseaseSystem"];
-        },
-        tissueData() {
-            return this.$store.getters["tissueData"];
-        },
-        cs2ctData() {
-            let data = this.$store.state.cs2ct.data;
-            data.forEach((d) => {
-                // Makes biosamples show up alphabetically in the dropdown menu.
-                d.originalBiosample = d.biosample;
-                d.biosample = Formatters.tissueFormatter(d.biosample);
-            });
-            return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
         processedData(){
             if (this.metadata === null || this.timeSeriesData === null){
@@ -187,14 +160,6 @@ new Vue({
         }
     },
     async created() {
-        // get the disease group and set of phenotypes available
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.$store.dispatch("getTissue");
-        this.$store.dispatch("getAnnotations");
-        this.$store.dispatch("getAncestries");
         this.metadata = await this.getTimeSeriesMetadata();
         this.timeSeriesData = await this.getTimeSeries();
     },
@@ -202,15 +167,6 @@ new Vue({
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
-        getTopPhenotype(phenotype) {
-            if (this.$store.state.selectedPhenotype === null){
-                this.$store.dispatch("onPhenotypeChange", phenotype);
-            }
-        },
-        onAnnotationSelected(){
-            this.$store.commit("setSelectedAnnotation", this.annotation);
-            this.$store.dispatch("getCs2ct");
-        },
         async getTimeSeriesMetadata(){
             let queryUrl = `https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/${this.timeSeriesId}/sample_metadata.json.gz`;
             try {
@@ -238,14 +194,6 @@ new Vue({
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
             console.log(JSON.stringify(bulkDataObject[0]));
             return bulkDataObject;
-        },
-    },
-    watch: {
-        "$store.state.annotationOptions"(data) {
-            this.annotation = data[0];
-        },
-        "$store.state.selectedAncestry"(){
-            this.$store.dispatch("getCs2ct");
         },
     },
     render: (h) => h(Template),
