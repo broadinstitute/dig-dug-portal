@@ -222,7 +222,7 @@ export default Vue.component("time-series-line-plot", {
         });
       }
       return fields;
-    }
+    },
   },
   watch: {
     chartData(){

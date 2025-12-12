@@ -114,6 +114,7 @@ new Vue({
                         score: score,
                         days: days,
                         replicate: replicate,
+                        gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
                         identifier: `${tsd.transcript_id}_rep_${replicate}`
                     }
                     output.push(entry);
@@ -138,8 +139,8 @@ new Vue({
                 },
                 "column field": "source",
                 "column label": "source",
-                "row field": "transcript_id",
-                "row label": "transcript_id",
+                "row field": "gene_tx",
+                "row label": "Gene / transcript",
                 "font size": 12
             }
         },
