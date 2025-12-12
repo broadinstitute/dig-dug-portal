@@ -111,15 +111,15 @@ export default Vue.component("time-series-line-plot", {
         .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
-        .call(d3.axisLeft(this.yScale))
+        .call(d3.axisLeft(this.yScale).tickFormat(t => t/1000))
           .selectAll("text")
-            .style("font-size", "13px");;
+            .style("font-size", "13px");
       this.svg.append("text")
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
         .attr("y", -margin.left + 15)
         .attr("x", - height / 2)
-        .text(this.config.yAxisLabel || this.config.yField);
+        .text(`${this.config.yAxisLabel || this.config.yField} (thousands)`);
       // add dots
       this.svg.append("g")
         .selectAll("dot")
