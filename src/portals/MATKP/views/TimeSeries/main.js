@@ -1,6 +1,5 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent } from "@/portals/MATKP/utils/content";
@@ -33,7 +32,6 @@ import regionUtils from "@/utils/regionUtils";
 const TIME_SERIES_RAW = "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/";
 
 new Vue({
-    store,
     components: {
         TissueHeritabilityTable,
         TissueExpressionTable,
@@ -63,6 +61,8 @@ new Vue({
             minScore: null,
             maxScore: null,
             transcripts: ["1415687_a_at"],
+            fullTxSuffix: "full_transcript_data.tsv.gz",
+            top100Suffix: "heatmap_top100_transcript_data.tsv.gz"
         };
     },
     computed: {
@@ -79,37 +79,13 @@ new Vue({
             };
             return utils;
         },
-        rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
-        },
-        phenotypesInSession() {
-            if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
-            } else {
-                return this.$store.state.phenotypesInSession;
-            }
-        },
-        diseaseSystem() {
-            return this.$store.getters["bioPortal/diseaseSystem"];
-        },
-        tissueData() {
-            return this.$store.getters["tissueData"];
-        },
-        cs2ctData() {
-            let data = this.$store.state.cs2ct.data;
-            data.forEach((d) => {
-                // Makes biosamples show up alphabetically in the dropdown menu.
-                d.originalBiosample = d.biosample;
-                d.biosample = Formatters.tissueFormatter(d.biosample);
-            });
-            return data.filter(d => d.source !== 'bottom-line_analysis_rare');
-        },
         processedData(){
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
-            console.log(this.timeSeriesData.length);
-            let conditions = Object.keys(this.timeSeriesData[0]).filter(t => t !== "gene");
+            let conditions = Object.keys(this.timeSeriesData[0])
+                .filter(t => t.startsWith("GSM"));
+            
             let output = [];
             let sampleData = this.timeSeriesData.slice(0,1000);
 
@@ -134,11 +110,14 @@ new Vue({
                     let replicate = parseInt(conditionMetadata.source_name.match(rep)[1]);
                     let entry = {
                         gene: tsd.gene,
+                        transcript_id: tsd.transcript_id,
                         source: conditionMetadata.source_name,
                         score: score,
                         days: days,
                         replicate: replicate,
-                        identifier: `${tsd.gene}_rep_${replicate}`
+                        order: tsd.order,
+                        gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
+                        identifier: `${tsd.transcript_id}_rep_${replicate}`
                     }
                     output.push(entry);
                 });
@@ -162,8 +141,8 @@ new Vue({
                 },
                 "column field": "source",
                 "column label": "source",
-                "row field": "gene",
-                "row label": "gene",
+                "row field": "gene_tx",
+                "row label": "Gene / transcript",
                 "font size": 12
             }
         },
@@ -180,21 +159,13 @@ new Vue({
                 dotKey: "identifier",
                 hoverBoxPosition: "both",
                 hoverFields: [
-                    {key: "gene", label: "Transcript"},
+                    {key: "transcript_id", label: "Transcript"},
                     {key: "days", label: "Day"},
                 ],
             }
         }
     },
     async created() {
-        // get the disease group and set of phenotypes available
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.$store.dispatch("getTissue");
-        this.$store.dispatch("getAnnotations");
-        this.$store.dispatch("getAncestries");
         this.metadata = await this.getTimeSeriesMetadata();
         this.timeSeriesData = await this.getTimeSeries();
     },
@@ -202,15 +173,6 @@ new Vue({
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
-        getTopPhenotype(phenotype) {
-            if (this.$store.state.selectedPhenotype === null){
-                this.$store.dispatch("onPhenotypeChange", phenotype);
-            }
-        },
-        onAnnotationSelected(){
-            this.$store.commit("setSelectedAnnotation", this.annotation);
-            this.$store.dispatch("getCs2ct");
-        },
         async getTimeSeriesMetadata(){
             let queryUrl = `https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/${this.timeSeriesId}/sample_metadata.json.gz`;
             try {
@@ -232,20 +194,12 @@ new Vue({
             }
         },
         async getTimeSeries() {
-            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/transcripts_by_sample.tsv`;
+            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/${this.top100Suffix}`;
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
             console.log(JSON.stringify(bulkDataObject[0]));
             return bulkDataObject;
-        },
-    },
-    watch: {
-        "$store.state.annotationOptions"(data) {
-            this.annotation = data[0];
-        },
-        "$store.state.selectedAncestry"(){
-            this.$store.dispatch("getCs2ct");
         },
     },
     render: (h) => h(Template),

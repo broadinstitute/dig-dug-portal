@@ -84,7 +84,7 @@ export default Vue.component("time-series-heatmap", {
 			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
 			colorScale: null,
-			zoomedIn: false
+			zoomedIn: true
 		};
 	},
 	mounted: function () {
@@ -107,7 +107,7 @@ export default Vue.component("time-series-heatmap", {
 				.filter((v, i, arr) => v != ""); //remove blank
 
 			massagedData["rows"] = rowList.sort((a, b) =>
-				a.localeCompare(b, undefined, { sensitivity: "base" })
+				a.order - b.order
 			);
 			massagedData["columns"] = columnList.sort((a, b) => 
 				this.extractTime(a) - this.extractTime(b)
@@ -159,7 +159,6 @@ export default Vue.component("time-series-heatmap", {
 			this.renderHeatmap();
 		},
 		checkPosition(event) {
-			// TODO is the zoomed out version not working?
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
 
@@ -177,13 +176,13 @@ export default Vue.component("time-series-heatmap", {
 				!!this.squareData[y][x]
 			) {
 				clickedCellValue +=
-					'<span class="field-on-clicked-cell">' +
-					this.renderData.rows[y] +
-					"</sub>";
+					'<span class="field-on-clicked-cell hover-title">' +
+					this.geneTxFormat(this.renderData.rows[y]) +
+					"</span>";
 				clickedCellValue +=
 					'<span class="field-on-clicked-cell">' +
 					this.renderData.columns[x] +
-					"</sub>";
+					"</span>";
 				clickedCellValue +=
 					'<span class="content-on-clicked-cell"><b>' +
 					this.renderConfig.main.label +
@@ -257,9 +256,9 @@ export default Vue.component("time-series-heatmap", {
 				bump: 10
 			};
 
-
+			let renderBoxSize = !this.zoomedIn ? 2 : this.boxHeight * 2;
 			let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 8));
-			let canvasHeight = ((1 * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
+			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
 			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
@@ -341,9 +340,6 @@ export default Vue.component("time-series-heatmap", {
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
 
-			let renderBoxSize = !this.zoomedIn ? 2 : this.boxHeight * 2;
-
-
 			// render heatmap box
 
 			ctx.beginPath();
@@ -366,7 +362,7 @@ export default Vue.component("time-series-heatmap", {
 				ctx.textAlign = "end";
 				ctx.fillStyle = "#000000";
 				if (this.zoomedIn){
-					ctx.fillText(r, margin.left + margin.bump, top + fontSize);
+					ctx.fillText(this.geneTxFormat(r), margin.left + margin.bump, top + fontSize);
 				}
 			})
 
@@ -438,7 +434,14 @@ export default Vue.component("time-series-heatmap", {
 		columnLabel(sourceName){
 			return sourceName.slice(sourceName.indexOf("day"))
 				.replaceAll("replicate", "rep.");
-		}
+		},
+		geneTxFormat(str){
+      		let splitString = str.split("___");
+			if (splitString.length <= 1){
+				return str;
+			}
+      		return `${splitString[0]} (${splitString[1]})`;
+    	}
 	},
 });
 
@@ -558,6 +561,9 @@ $(function () {});
 .zoom-checkbox {
 	text-align: left;
 	padding-left: 25px;
+}
+.hover-title {
+	font-weight: bold;
 }
 </style>
 
