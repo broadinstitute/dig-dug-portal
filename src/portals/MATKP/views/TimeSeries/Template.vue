@@ -15,13 +15,7 @@
                             Time series data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
                         </h4>
                     </div>
-                    <div v-if="$parent.timeSeriesData !== null">
-                        <!-- <time-series-line-plot
-                            :plotData="$parent.processedData"
-                            :tx="$parent.transcripts"
-                            :config="$parent.linePlotConfig">
-
-                        </time-series-line-plot> -->
+                    <div v-if="$parent.timeSeriesData !== null" class="time-series-content">
                         <time-series-heatmap
                             :heatmapData="$parent.processedData"
                             :renderConfig="$parent.heatmapConfig"
@@ -29,6 +23,12 @@
                             sectionId="time-series-heatmap"
                             :linePlotConfig="$parent.linePlotConfig">
                         </time-series-heatmap>
+                        <b-table v-if="$parent.conditions.length > 0"
+                            :items="$parent.timeSeriesData"
+                            :fields="$parent.tableFields"
+                            :per-page="20"
+                            :current-page="$parent.currentPage">
+                        </b-table>
                     </div>
                 </div>
                 </div>
@@ -69,5 +69,9 @@ div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
 }
 .matkp-tool-documentation {
     font-size: 16px;
+}
+.time-series-content {
+    padding: 20px;
+    overflow-x: scroll;
 }
 </style>

@@ -62,7 +62,9 @@ new Vue({
             maxScore: null,
             transcripts: ["1415687_a_at"],
             fullTxSuffix: "full_transcript_data.tsv.gz",
-            top100Suffix: "heatmap_top100_transcript_data.tsv.gz"
+            top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
+            currentPage: 1,
+            conditions: []
         };
     },
     computed: {
@@ -85,6 +87,7 @@ new Vue({
             }
             let conditions = Object.keys(this.timeSeriesData[0])
                 .filter(t => t.startsWith("GSM"));
+            this.conditions = conditions;
             
             let output = [];
             let sampleData = this.timeSeriesData.slice(0,1000);
@@ -98,7 +101,7 @@ new Vue({
 		
             sampleData.forEach(tsd => {
                 conditions.forEach(c => {
-                    let conditionMetadata = this.metadata[c];
+                    let sourceName = this.getSourceName(c)
                     let score = tsd[c];
                     if (minScore === null || score < minScore){
                         minScore = score;
@@ -106,12 +109,12 @@ new Vue({
                     if (maxScore === null || score > maxScore){
                         maxScore = score;
                     }
-                    let days = parseInt(conditionMetadata.source_name.match(timeElapsed)[1]);
-                    let replicate = parseInt(conditionMetadata.source_name.match(rep)[1]);
+                    let days = parseInt(sourceName.match(timeElapsed)[1]);
+                    let replicate = parseInt(sourceName.match(rep)[1]);
                     let entry = {
                         gene: tsd.gene,
                         transcript_id: tsd.transcript_id,
-                        source: conditionMetadata.source_name,
+                        source: sourceName,
                         score: score,
                         days: days,
                         replicate: replicate,
@@ -163,6 +166,40 @@ new Vue({
                     {key: "days", label: "Day"},
                 ],
             }
+        },
+        tableFields(){
+            let baseFields = [
+                {
+                    key: "order",
+                    label: "Rank",
+                    sortable: true
+                },
+                {
+                    key: "transcript_id",
+                    label: "Transcript",
+                    sortable: true
+                },
+                {
+                    key: "max_diff",
+                    label: "Max diff.",
+                    sortable: true
+                },
+                {
+                    key: "gene",
+                    label: "Gene",
+                    sortable: true
+                }
+                
+            ];
+            this.conditions.forEach(c => {
+                let newField = {
+                    key: c,
+                    label: this.getSourceName(c),
+                    sortable: true
+                };
+                baseFields.push(newField);
+            });
+            return baseFields;
         }
     },
     async created() {
@@ -201,6 +238,10 @@ new Vue({
             console.log(JSON.stringify(bulkDataObject[0]));
             return bulkDataObject;
         },
+        getSourceName(label){
+            let metadataEntry = this.metadata[label];
+            return metadataEntry.source_name;
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");
