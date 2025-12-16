@@ -148,7 +148,6 @@ export default Vue.component("time-series-heatmap", {
 			}
 		},
 		hidePanel() {
-			//this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
 			this.renderHeatmap();
 		},
 		checkPosition(event) {
@@ -187,24 +186,31 @@ export default Vue.component("time-series-heatmap", {
 			this.$emit("hover", this.renderData.rows[y]);
 
 			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
+			let hoverBoxWidth = wrapper.clientWidth;
+			let hoverBoxHeight = wrapper.clientHeight;
 			let contentWrapper = document.getElementById(
 				"clicked_cell_value_content" + this.sectionId
 			);
 
-			let wrapperRect = document
+			let canvasRect = document
 				.getElementById("heatmapCanvasWrapper" + this.sectionId)
 				.getBoundingClientRect();
-			let wrapperXPos = wrapperRect.left;
-			let wrapperYPos =
+			let canvasXPos = canvasRect.left;
+
+			let canvasYPos =
 				document.getElementById("heatmapContent" + this.sectionId).offsetHeight -
 				document.getElementById("heatmapPlotWrapper" + this.sectionId).offsetHeight +
 				document.getElementById("colWrapper" + this.sectionId).offsetWidth;
 
+			let hoverTop = canvasYPos + yPos;
+			let hoverLeft = canvasXPos + xPos - 30;
+			
+			// test to see if hover box goes off canvas
 			if (clickedCellValue != "") {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
-				wrapper.style.top = wrapperYPos + yPos + "px";
-				wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
+				wrapper.style.top =`${hoverTop}px`;
+				wrapper.style.left = `${hoverLeft}px`; //minus 15 for the padding of the plot wrapper
 			} else {
 				wrapper.classList.add("hidden");
 			}
@@ -218,15 +224,12 @@ export default Vue.component("time-series-heatmap", {
 		renderHeatmap(X, Y) {
 			let c = document.getElementById("heatmap" + this.sectionId);
 			let ctx = c.getContext("2d");
-
 			
 
-			let fontSize = this.renderConfig['font size'];
-
-			fontSize = this.renderConfig['font size'] * 2;
+			let fontSize = this.renderConfig['font size'] * 2;
 
 			let margin = {
-				top: 500,
+				top: 250,
 				bottom: 300,
 				left: 250,
 				right: 40,
