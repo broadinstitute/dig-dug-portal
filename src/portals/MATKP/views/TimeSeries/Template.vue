@@ -26,9 +26,15 @@
                         <b-table v-if="$parent.conditions.length > 0"
                             :items="$parent.timeSeriesData"
                             :fields="$parent.tableFields"
-                            :per-page="20"
+                            :per-page="10"
                             :current-page="$parent.currentPage">
                         </b-table>
+                        <b-pagination
+                            v-model="$parent.currentPage"
+                            class="pagination-sm justify-content-center"
+                            :total-rows="$parent.timeSeriesData.length"
+                            :per-page="10"
+                        ></b-pagination>
                     </div>
                 </div>
                 </div>
