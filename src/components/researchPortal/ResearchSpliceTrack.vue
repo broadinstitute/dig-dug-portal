@@ -284,7 +284,10 @@ export default Vue.component("research-splice-track", {
 									gene.xEndPos - gene.xStartPos <= 1
 										? 1
 										: gene.xEndPos - gene.xStartPos;
-						
+
+						let highlight = this.highlightExon(gene);
+						ctx.fillStyle = highlight ? "#00FF00" : "#000000";
+
 						ctx.fillRect(
 									gene.xStartPos,
 									yPos + 10,
@@ -373,6 +376,17 @@ export default Vue.component("research-splice-track", {
 			}
 			return exon.exon_start > (start_splice_event - 5000) &&
 				exon.exon_end < (end_splice_event + 5000);
+		},
+		highlightExon(exon){
+			if (this.hoverTent === -1){
+				return false;
+			}
+			let highlightedTent = this.spliceData[this.hoverTent];
+			return (exon.exon_start >= highlightedTent.splice_start 
+				&& exon.exon_start <= highlightedTent.splice_end)
+				|| (exon.exon_end >= highlightedTent.splice_start
+					&& exon.exon_end <= highlightedTent.spliceEnd
+				);
 		},
 		checkPosition(event) {
 			let e = event;

@@ -167,9 +167,6 @@ export default Vue.component("research-region-plot", {
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
 	},
-	created(){
-		console.log(this.sectionId, "vanilla region plot created");
-	},	
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
