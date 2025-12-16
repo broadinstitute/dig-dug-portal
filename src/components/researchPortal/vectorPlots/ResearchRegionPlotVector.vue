@@ -179,6 +179,14 @@ export default Vue.component("research-region-plot-vector", {
 				.style("font", "12px Arial")
 				.call(d3.axisRight(recombY).ticks(5));
 
+			////console.log(this.recombData)
+
+			/// render recomb line
+
+			//console.log("asso", assoData)
+			//console.log("ld", this.ldData)
+			//console.log("recomb", this.recombData)
+
 			this.recombData.position.map( (p, pIndex) => {
 				if(pIndex != 0) {
 					let xPos1 = x(this.recombData.position[pIndex-1]),
@@ -200,6 +208,7 @@ export default Vue.component("research-region-plot-vector", {
 			})
 
 			// render Dots
+
 			let yAxisField = this.renderConfig['y axis field'],
 				xAxisField = this.renderConfig['x axis field'],
 				renderField = this.renderConfig['render by'];
@@ -214,6 +223,8 @@ export default Vue.component("research-region-plot-vector", {
 						fillColor = "#00000030",
 						ldVariantField = this.renderConfig['ld server']['ref variant field'],
 						ldVariant = assoData.data[variant][ldVariantField];
+
+						//console.log("ldVariant", ldVariant)
 
 					if (!!this.ldData[DATA].data[ldVariant]) {
 						let index = Math.floor(this.ldData[DATA].data[ldVariant] * 5);

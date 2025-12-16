@@ -43,11 +43,11 @@ export default Vue.component("research-region-track-vector", {
 		canvasId() {
 			let canvasId = this.sectionId.replaceAll("_","-").toLowerCase();
 			return canvasId;
-		},
+		}
 	},
 	watch: {
 		canvasId(ID) {
-		},
+		}
 	},
 	methods: {
 		renderPlot() {
