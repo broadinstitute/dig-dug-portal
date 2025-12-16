@@ -486,7 +486,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-score-plot>
-
 							<research-genes-track
 								v-if="
 									$parent.plotConfig != null &&
@@ -733,7 +732,9 @@
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
 													@on-zoom="$parent.setZoom"
-													@on-checkPosition="$parent.setHoverPos">
+													@on-checkPosition="$parent.setHoverPos"
+													@ld-data-loaded="ld => $parent.receiveLDData(ld)"
+													@splice="spliceData=> $parent.getSplice(spliceData)">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
@@ -782,11 +783,11 @@
 									:regionViewArea="$parent.regionViewArea"
 									:pageParams="$parent.pageParams"
 									:searchParameters="$parent.rawSearchParameters"
-									
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
 									@on-zoom="$parent.setZoom"
-									@on-checkPosition="$parent.setHoverPos">
+									@on-checkPosition="$parent.setHoverPos"
+									@ld-data-loaded="ld => $parent.receiveLDData(ld)">
 								</research-section>	
 								<research-sections-summary
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
