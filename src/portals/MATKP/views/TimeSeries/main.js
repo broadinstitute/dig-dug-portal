@@ -67,7 +67,8 @@ new Vue({
             conditions: [],
             paginateHeatmap: true,
             currentTable: [],
-            zoomedIn: true
+            zoomedIn: true,
+            searchGenes: [],
         };
     },
     computed: {
@@ -85,53 +86,10 @@ new Vue({
             return utils;
         },
         processedData(){
-            if (this.metadata === null || this.timeSeriesData === null){
-                return null;
-            }
-            let conditions = Object.keys(this.timeSeriesData[0])
-                .filter(t => t.startsWith("GSM"));
-            this.conditions = conditions;
-            
-            let output = [];
-            let sampleData = this.timeSeriesData.slice(0,1000);
-            sampleData = this.filterByPage(sampleData);
-
-            // Calculate min and max scores at the same time
-            let minScore = null;
-            let maxScore = null;
-            
-			let timeElapsed = new RegExp(/day (-?\d+)/);
-            let rep = new RegExp(/replicate (\d+)/);
-		
-            sampleData.forEach(tsd => {
-                conditions.forEach(c => {
-                    let sourceName = this.getSourceName(c)
-                    let score = tsd[c];
-                    if (minScore === null || score < minScore){
-                        minScore = score;
-                    }
-                    if (maxScore === null || score > maxScore){
-                        maxScore = score;
-                    }
-                    let days = parseInt(sourceName.match(timeElapsed)[1]);
-                    let replicate = parseInt(sourceName.match(rep)[1]);
-                    let entry = {
-                        gene: tsd.gene,
-                        transcript_id: tsd.transcript_id,
-                        source: sourceName,
-                        score: score,
-                        days: days,
-                        replicate: replicate,
-                        order: tsd.order,
-                        gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
-                        identifier: `${tsd.transcript_id}_rep_${replicate}`
-                    }
-                    output.push(entry);
-                });
-            });
-            this.minScore = minScore;
-            this.maxScore = maxScore;
-            return output;
+            return this.processDataForHeatmap();
+        },
+        searchResultsData(){
+            return this.processDataForHeatmap(true);
         },
         heatmapConfig(){
             return {
@@ -251,7 +209,63 @@ new Vue({
             }
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
-        }
+        },
+        filterByGene(data){
+            return data.filter(d => this.searchGenes.includes(d.gene));
+        },
+        processDataForHeatmap(searchResultsOnly=false){
+            if (this.metadata === null || this.timeSeriesData === null){
+                return null;
+            }
+            let conditions = Object.keys(this.timeSeriesData[0])
+                .filter(t => t.startsWith("GSM"));
+            this.conditions = conditions;
+            
+            let output = [];
+            let sampleData = structuredClone(this.timeSeriesData);
+            sampleData = this.filterByPage(sampleData);
+            if (searchResultsOnly){
+                sampleData = this.filterByGene(sampleData);
+            }
+
+            // Calculate min and max scores at the same time
+            let minScore = null;
+            let maxScore = null;
+            
+			let timeElapsed = new RegExp(/day (-?\d+)/);
+            let rep = new RegExp(/replicate (\d+)/);
+		
+            sampleData.forEach(tsd => {
+                conditions.forEach(c => {
+                    let sourceName = this.getSourceName(c)
+                    let score = tsd[c];
+                    if (minScore === null || score < minScore){
+                        minScore = score;
+                    }
+                    if (maxScore === null || score > maxScore){
+                        maxScore = score;
+                    }
+                    let days = parseInt(sourceName.match(timeElapsed)[1]);
+                    let replicate = parseInt(sourceName.match(rep)[1]);
+                    let entry = {
+                        gene: tsd.gene,
+                        transcript_id: tsd.transcript_id,
+                        source: sourceName,
+                        score: score,
+                        days: days,
+                        replicate: replicate,
+                        order: tsd.order,
+                        gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
+                        identifier: `${tsd.transcript_id}_rep_${replicate}`
+                    }
+                    output.push(entry);
+                });
+            });
+            this.minScore = minScore;
+            this.maxScore = maxScore;
+            return output;
+        },
+
     },
     render: (h) => h(Template),
 }).$mount("#app");

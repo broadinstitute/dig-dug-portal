@@ -48,6 +48,21 @@
                             ></b-pagination>
                         </div>
                     </div>
+                    <!-- <div class="card-body">
+                        <h4>
+                            Search up to 10 genes to create a custom heatmap.
+                        </h4>
+                        <div v-if="$parent.timeSeriesData !== null" class="time-series-content">
+                            <time-series-heatmap
+                                :heatmapData="$parent.searchResultsData"
+                                :renderConfig="$parent.heatmapConfig"
+                                :utils="$parent.utilsBox"
+                                sectionId="search-heatmap"
+                                :linePlotConfig="$parent.linePlotConfig"
+                                :zoomedIn="$parent.zoomedIn">
+                            </time-series-heatmap>
+                        </div>
+                    </div> -->
                 </div>
                 </div>
             </template>
