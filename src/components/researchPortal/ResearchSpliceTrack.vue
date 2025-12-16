@@ -51,6 +51,7 @@ export default Vue.component("research-splice-track", {
 			exonData: null,
 			gene: null,
 			xposbypixel: null,
+			spliceVisualMap: []
 		};
 	},
 	modules: {
@@ -287,18 +288,24 @@ export default Vue.component("research-splice-track", {
 					})
 				});
 				// Add splicing events
+				let spliceVisualMap = [];
 				for (let i = 0; i < this.spliceData.length; i++){
 					let splice = this.spliceData[i];
 					let spliceMidpoint = xStart + (splice.midpoint - xMin) * this.xposbypixel;
 					let spliceStart = xStart + (splice.splice_start - xMin) * this.xposbypixel;
 					let spliceEnd = xStart + (splice.splice_end - xMin) * this.xposbypixel;
 					let spliceWidth = spliceEnd - spliceStart;
+					spliceVisualMap.push({
+						spliceStart: spliceStart,
+						spliceEnd: spliceEnd
+					});
 					let yPos = this.adjPlotMargin.top / 2;
 					this.renderDot(ctx, spliceStart, yPos, "#00FF00");
 					this.renderDot(ctx, spliceEnd, yPos, "#FF0000");
 					ctx.fillStyle = "#efefef99";
 					ctx.fillRect(spliceStart, yPos ,spliceWidth,20);
 				}
+				this.spliceVisualMap = spliceVisualMap;
 			}			
 			
 		},
@@ -364,24 +371,21 @@ export default Vue.component("research-splice-track", {
 		checkPosition(event) {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
-
+			let width = e.target.clientWidth - this.adjPlotMargin.left - this.adjPlotMargin.right;
+			//let xPos = Math.floor(e.clientX - rect.left - this.adjPlotMargin.left);
 			let xPos = Math.floor(e.clientX - rect.left);
-			let total = Math.floor(rect.right - rect.left);
-			let xPercentPos = xPos / total;
+			let xPercentPos = xPos / width;
 			let yPos = Math.floor(e.clientY - rect.top);
 			if (yPos < this.adjPlotMargin.top/2){
-				let tent = this.getTent(xPercentPos);
+				let tent = this.getTent(xPos * 2);
 				console.log(tent);
 			}
 		},
-		getTent(xSlider){
-			let viewWindow = this.viewingRegion.end - this.viewingRegion.start;
-			let xProgress = viewWindow * xSlider;
-			let xPosition = xProgress + this.viewingRegion.start;
-			console.log(xPosition);
-			for (let i = 0; i < this.spliceData.length; i++){
-				let t = this.spliceData[i];
-				if (xPosition >= t.splice_start && xPosition <= t.splice_end){
+		getTent(xPos){
+			for (let i = 0; i < this.spliceVisualMap.length; i++){
+				let t = this.spliceVisualMap[i];
+				console.log(JSON.stringify(t), xPos);
+				if (xPos >= t.spliceStart && xPos <= t.spliceEnd){
 					return i;
 				}
 			}
