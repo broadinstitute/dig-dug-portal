@@ -223,18 +223,10 @@ export default Vue.component("time-series-heatmap", {
 
 			let fontSize = this.renderConfig['font size'];
 
-			let marginArrs = {
-				left: [],
-				top: []
-			}
-
-			marginArrs.left = this.renderData.rows.map(r => Math.ceil(this.getWidth(ctx,r, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
-			marginArrs.top = this.renderData.columns.map(c => Math.ceil(this.getWidth(ctx,c, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
-
 			this.margin = {
-				top: marginArrs.top[0]+40,
+				top: 250,
 				bottom: 100,
-				left: marginArrs.left[0],
+				left: 125,
 				right: 20,
 				bump: 5
 			}
@@ -242,9 +234,9 @@ export default Vue.component("time-series-heatmap", {
 			fontSize = this.renderConfig['font size'] * 2;
 
 			let margin = {
-				top: (marginArrs.top[0]*2) + 80,
+				top: 500,
 				bottom: 300,
-				left: (marginArrs.left[0]*2),
+				left: 250,
 				right: 40,
 				bump: 10
 			};
