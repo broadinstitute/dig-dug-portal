@@ -246,6 +246,9 @@ new Vue({
             return metadataEntry.source_name;
         },
         filterByPage(data){
+            if (!this.zoomedIn){
+                return data;
+            }
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
         }

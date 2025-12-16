@@ -16,7 +16,7 @@
                         </h4>
                         <div id="zoom-checkbox">
                             <label>
-                                <input v-model="zoomedIn" type="checkbox" />
+                                <input v-model="$parent.zoomedIn" type="checkbox" />
                                 Zoom in
                             </label>
                         </div>
