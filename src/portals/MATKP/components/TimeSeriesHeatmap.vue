@@ -158,7 +158,7 @@ export default Vue.component("time-series-heatmap", {
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
 			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump * 2)) / (this.boxWidth) * 2);
-			let zoomFactor = this.zoomedIn ? this.boxHeight : 1;
+			let zoomFactor = this.zoomedIn ? this.boxHeight : 3;
 			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump * 2)) / zoomFactor);
 
 			let clickedCellValue = "";
@@ -249,7 +249,7 @@ export default Vue.component("time-series-heatmap", {
 				bump: 10
 			};
 
-			let renderBoxSize = !this.zoomedIn ? 2 : this.boxHeight * 2;
+			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight * 2;
 			let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 8));
 			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
 			
