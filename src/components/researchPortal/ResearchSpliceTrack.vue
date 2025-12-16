@@ -50,8 +50,8 @@ export default Vue.component("research-splice-track", {
 			spliceData: null,
 			exonData: null,
 			gene: null,
-			xposbypixel: null,
-			spliceVisualMap: []
+			spliceVisualMap: [],
+			hoverTent: -1
 		};
 	},
 	modules: {
@@ -131,6 +131,12 @@ export default Vue.component("research-splice-track", {
 			this.exonData = await(this.getExons(gene));
 			this.calculatePlot();
 			this.renderTrack(this.exonData);
+		},
+		hoverTent(newTent, oldTent){
+			if (newTent === -1 || newTent === oldTent){
+				return;
+			}
+			this.renderTrack(this.exonData);
 		}
 	},
 	methods: {
@@ -207,7 +213,7 @@ export default Vue.component("research-splice-track", {
 				let xStart = this.adjPlotMargin.left;
 				let yStart = this.adjPlotMargin.top;
 				console.log("Plot width: ", plotWidth);
-				this.xposbypixel = plotWidth / (xMax - xMin);
+				let xposbypixel = plotWidth / (xMax - xMin);
 
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
 									.filter(g => g.exon_start <= xMax && g.exon_end >= xMin);
@@ -216,12 +222,12 @@ export default Vue.component("research-splice-track", {
 
 					let xStartPos =
 						gene.exon_start > xMin
-							? xStart + (gene.exon_start - xMin) * this.xposbypixel
+							? xStart + (gene.exon_start - xMin) * xposbypixel
 							: xStart;
 					let xEndPos =
 						gene.exon_end < xMax
-							? xStart + (gene.exon_end - xMin) * this.xposbypixel
-							: xStart + (xMax - xMin) * this.xposbypixel;
+							? xStart + (gene.exon_end - xMin) * xposbypixel
+							: xStart + (xMax - xMin) * xposbypixel;
 
 					gene["xStartPos"] = xStartPos;
 					gene["xEndPos"] = xEndPos;
@@ -291,18 +297,18 @@ export default Vue.component("research-splice-track", {
 				let spliceVisualMap = [];
 				for (let i = 0; i < this.spliceData.length; i++){
 					let splice = this.spliceData[i];
-					let spliceMidpoint = xStart + (splice.midpoint - xMin) * this.xposbypixel;
-					let spliceStart = xStart + (splice.splice_start - xMin) * this.xposbypixel;
-					let spliceEnd = xStart + (splice.splice_end - xMin) * this.xposbypixel;
+					let spliceMidpoint = xStart + (splice.midpoint - xMin) * xposbypixel;
+					let spliceStart = xStart + (splice.splice_start - xMin) * xposbypixel;
+					let spliceEnd = xStart + (splice.splice_end - xMin) * xposbypixel;
 					let spliceWidth = spliceEnd - spliceStart;
 					spliceVisualMap.push({
 						spliceStart: spliceStart,
 						spliceEnd: spliceEnd
 					});
 					let yPos = this.adjPlotMargin.top / 2;
-					this.renderDot(ctx, spliceStart, yPos, "#00FF00");
-					this.renderDot(ctx, spliceEnd, yPos, "#FF0000");
-					ctx.fillStyle = "#efefef99";
+					let paleGray = "#efefef99";
+					let highlight = i === this.hoverTent;
+					ctx.fillStyle = highlight ? "#00FF00" : paleGray;
 					ctx.fillRect(spliceStart, yPos ,spliceWidth,20);
 				}
 				this.spliceVisualMap = spliceVisualMap;
@@ -378,13 +384,12 @@ export default Vue.component("research-splice-track", {
 			let yPos = Math.floor(e.clientY - rect.top);
 			if (yPos < this.adjPlotMargin.top/2){
 				let tent = this.getTent(xPos * 2);
-				console.log(tent);
+				this.hoverTent = tent;
 			}
 		},
 		getTent(xPos){
 			for (let i = 0; i < this.spliceVisualMap.length; i++){
 				let t = this.spliceVisualMap[i];
-				console.log(JSON.stringify(t), xPos);
 				if (xPos >= t.spliceStart && xPos <= t.spliceEnd){
 					return i;
 				}
