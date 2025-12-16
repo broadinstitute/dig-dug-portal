@@ -1,9 +1,11 @@
 <template>
     <select v-model="traitGroup" class="form-control">
         <option value="all">All</option>
-        <option value="portal">A2F</option>
-        <option value="gcat_trait">GWAS Catalog</option>
-        <option value="rare_v2">Orphanet</option>
+        <option value="all_but_hpo">All but HPO</option>
+        <option value="all_complex">Complex traits</option>
+        <option v-for="group in groups" :value="group[0]">
+            {{ group[1] }}
+        </option>
     </select>
 </template>
 
@@ -11,6 +13,7 @@
 import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import keyParams from "@/utils/keyParams";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
@@ -27,6 +30,11 @@ export default Vue.component("trait-group-selectpicker", {
         keyParamsTraitGroup() {
             return keyParams.traitGroup;
         },
+        groups(){
+            let bioindexGroups = bioIndexUtils.TRAIT_GROUPS;
+            return Object.keys(bioIndexUtils.TRAIT_GROUPS).map(
+                g => [g, bioindexGroups[g]]);
+        }
     },
     watch: {
         traitGroup(newGroup) {
@@ -36,6 +44,7 @@ export default Vue.component("trait-group-selectpicker", {
         keyParamsTraitGroup(newKey) {
             // do we need this?
             if (this.size === null) {
+                console.log("Is this thing firing?");
                 this.size = newKey;
             }
         },

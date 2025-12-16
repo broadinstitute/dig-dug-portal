@@ -93,6 +93,7 @@ new Vue({
                 hoverFields: ["gene", "combined"],
             },
             plotColors: plotUtils.plotColors(),
+            pigeanColors: null,
             renderConfig: {
                 type: "phewas plot",
                 "render by": "phenotype",
@@ -195,6 +196,7 @@ new Vue({
             pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
     methods: {
+        tissueFormatter: Formatters.tissueFormatter,
         // go to region page
         exploreRegion(expanded = 0) {
             let r = this.region;
@@ -211,6 +213,9 @@ new Vue({
             } else {
                 this.dotsToPhewas = dots;
             }
+        },
+        storeColors(colors){
+            this.pigeanColors = colors;
         }
     },
 
