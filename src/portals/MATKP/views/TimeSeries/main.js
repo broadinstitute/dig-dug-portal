@@ -66,7 +66,8 @@ new Vue({
             currentPage: 1,
             conditions: [],
             paginateHeatmap: true,
-            currentTable: []
+            currentTable: [],
+            zoomedIn: true
         };
     },
     computed: {

@@ -18,12 +18,6 @@
 					class="col-wrapper"
 					:id="'colWrapper' + sectionId"
 				></div>
-				<div id="zoom-checkbox">
-					<label>
-						<input v-model="zoomedIn" type="checkbox" />
-						Zoom in
-					</label>
-				</div>
 				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
 						v-if="!!renderConfig"
@@ -75,7 +69,7 @@ import { rgb } from "d3";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig"],
+	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn"],
 	data() {
 		return {
 			squareData: {},
@@ -84,7 +78,6 @@ export default Vue.component("time-series-heatmap", {
 			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
 			colorScale: null,
-			zoomedIn: true
 		};
 	},
 	mounted: function () {
@@ -240,7 +233,7 @@ export default Vue.component("time-series-heatmap", {
 
 			this.margin = {
 				top: marginArrs.top[0]+40,
-				bottom: 30,
+				bottom: 100,
 				left: marginArrs.left[0],
 				right: 20,
 				bump: 5
@@ -250,7 +243,7 @@ export default Vue.component("time-series-heatmap", {
 
 			let margin = {
 				top: (marginArrs.top[0]*2) + 80,
-				bottom: 30,
+				bottom: 300,
 				left: (marginArrs.left[0]*2),
 				right: 40,
 				bump: 10
@@ -557,10 +550,6 @@ $(function () {});
 
 .sub-legend-steps {
 	padding-left: 5px;
-}
-.zoom-checkbox {
-	text-align: left;
-	padding-left: 25px;
 }
 .hover-title {
 	font-weight: bold;
