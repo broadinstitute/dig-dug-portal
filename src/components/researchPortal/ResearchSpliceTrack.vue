@@ -51,7 +51,6 @@ export default Vue.component("research-splice-track", {
 			exonData: null,
 			gene: null,
 			xposbypixel: null,
-			splicesByPixel: []
 		};
 	},
 	modules: {
@@ -128,7 +127,6 @@ export default Vue.component("research-splice-track", {
 			let tissue = spliceParams[2];
 			this.gene = await(this.getGene(gene));
 			this.spliceData = await(this.getSplices(ensembl, tissue));
-			console.log(JSON.stringify(this.spliceData[0]));
 			this.exonData = await(this.getExons(gene));
 			this.calculatePlot();
 			this.renderTrack(this.exonData);
@@ -177,7 +175,6 @@ export default Vue.component("research-splice-track", {
 		},
 
 		renderTrack(GENES) {
-			console.log("Number of exons:", GENES.length);
 			if (this.gene === null){
 				return;
 			}
@@ -208,6 +205,7 @@ export default Vue.component("research-splice-track", {
 
 				let xStart = this.adjPlotMargin.left;
 				let yStart = this.adjPlotMargin.top;
+				console.log("Plot width: ", plotWidth);
 				this.xposbypixel = plotWidth / (xMax - xMin);
 
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
@@ -289,25 +287,18 @@ export default Vue.component("research-splice-track", {
 					})
 				});
 				// Add splicing events
-				let splicesByPixel = [];
 				for (let i = 0; i < this.spliceData.length; i++){
 					let splice = this.spliceData[i];
 					let spliceMidpoint = xStart + (splice.midpoint - xMin) * this.xposbypixel;
 					let spliceStart = xStart + (splice.splice_start - xMin) * this.xposbypixel;
 					let spliceEnd = xStart + (splice.splice_end - xMin) * this.xposbypixel;
-					splicesByPixel.push({
-						spliceStart: spliceStart,
-						spliceEnd: spliceEnd
-					});
 					let spliceWidth = spliceEnd - spliceStart;
 					let yPos = this.adjPlotMargin.top / 2;
 					this.renderDot(ctx, spliceStart, yPos, "#00FF00");
 					this.renderDot(ctx, spliceEnd, yPos, "#FF0000");
 					ctx.fillStyle = "#efefef99";
-					console.log(JSON.stringify(this.colors));
 					ctx.fillRect(spliceStart, yPos ,spliceWidth,20);
 				}
-				this.splicesByPixel = splicesByPixel;
 			}			
 			
 		},
@@ -349,7 +340,6 @@ export default Vue.component("research-splice-track", {
 			let validExons = structuredClone(this.exonData);
 			validExons = validExons.filter(e => 
 				!!this.validExon(strand, e, start_splice_event, end_splice_event));
-			console.log(validExons.length);
 		},
 		spliceStart(strand){
 			let sortedStart = this.spliceData.toSorted((a,b) => a.splice_start - b.splice_start);
@@ -376,17 +366,22 @@ export default Vue.component("research-splice-track", {
 			let rect = e.target.getBoundingClientRect();
 
 			let xPos = Math.floor(e.clientX - rect.left);
+			let total = Math.floor(rect.right - rect.left);
+			let xPercentPos = xPos / total;
 			let yPos = Math.floor(e.clientY - rect.top);
 			if (yPos < this.adjPlotMargin.top/2){
-				let tent = this.getTent(xPos);
-				console.log("We are in tent" + tent);
+				let tent = this.getTent(xPercentPos);
+				console.log(tent);
 			}
-			console.log(xPos, yPos)
 		},
-		getTent(xPos){
-			for (let i = 0; i < this.splicesByPixel.length; i++){
-				let tent = this.splicesByPixel[i];
-				if (xPos >= tent.spliceStart && xPos <= tent.spliceEnd){
+		getTent(xSlider){
+			let viewWindow = this.viewingRegion.end - this.viewingRegion.start;
+			let xProgress = viewWindow * xSlider;
+			let xPosition = xProgress + this.viewingRegion.start;
+			console.log(xPosition);
+			for (let i = 0; i < this.spliceData.length; i++){
+				let t = this.spliceData[i];
+				if (xPosition >= t.splice_start && xPosition <= t.splice_end){
 					return i;
 				}
 			}
