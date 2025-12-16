@@ -23,20 +23,20 @@
                             sectionId="time-series-heatmap"
                             :linePlotConfig="$parent.linePlotConfig">
                         </time-series-heatmap>
-                        <b-table v-if="$parent.conditions.length > 0"
-                            small
-                            :v-model="$parent.currentTable"
-                            :items="$parent.timeSeriesData"
-                            :fields="$parent.tableFields"
-                            :per-page="10"
-                            :current-page="$parent.currentPage">
-                        </b-table>
                         <b-pagination
                             v-model="$parent.currentPage"
                             class="pagination-sm justify-content-center"
                             :total-rows="$parent.timeSeriesData.length"
                             :per-page="10"
                         ></b-pagination>
+                        <b-table v-if="$parent.conditions.length > 0"
+                            small
+                            v-model="$parent.currentTable"
+                            :items="$parent.timeSeriesData"
+                            :fields="$parent.tableFields"
+                            :per-page="10"
+                            :current-page="$parent.currentPage">
+                        </b-table>
                     </div>
                 </div>
                 </div>

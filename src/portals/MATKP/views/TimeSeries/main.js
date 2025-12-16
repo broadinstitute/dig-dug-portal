@@ -204,9 +204,6 @@ new Vue({
             });
             return baseFields;
         },
-        currentTranscripts(){
-            return this.currentTable.map(t => transcript_id);
-        }
     },
     async created() {
         this.metadata = await this.getTimeSeriesMetadata();
@@ -248,12 +245,8 @@ new Vue({
             return metadataEntry.source_name;
         },
         filterByPage(data){
-            return data;
-        }
-    },
-    watch: {
-        currentTranscripts(newData){
-            console.log(JSON.stringify(newData));
+            let currentTranscripts = this.currentTable.map(t => t.transcript_id);
+            return data.filter(d => currentTranscripts.includes(d.transcript_id));
         }
     },
     render: (h) => h(Template),
