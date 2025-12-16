@@ -186,8 +186,6 @@ export default Vue.component("time-series-heatmap", {
 			this.$emit("hover", this.renderData.rows[y]);
 
 			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
-			let hoverBoxWidth = wrapper.clientWidth;
-			let hoverBoxHeight = wrapper.clientHeight;
 			let contentWrapper = document.getElementById(
 				"clicked_cell_value_content" + this.sectionId
 			);
@@ -204,13 +202,25 @@ export default Vue.component("time-series-heatmap", {
 
 			let hoverTop = canvasYPos + yPos;
 			let hoverLeft = canvasXPos + xPos - 30;
+
+			let canvasBottom = canvasRect.bottom / 2 + this.margin.bottom;
+			let canvasRight = canvasRect.right + this.margin.right;
+
+			let bottomOverhang = hoverTop + wrapper.clientHeight - canvasBottom;
+			let rightOverhang = hoverLeft + wrapper.clientWidth - canvasRight;
+			if (bottomOverhang > 0){
+				hoverTop = hoverTop - bottomOverhang;
+			}
+			if (rightOverhang > 0){
+				hoverLeft = xPos - wrapper.clientWidth; // switch the hover box to the left
+			}
 			
 			// test to see if hover box goes off canvas
 			if (clickedCellValue != "") {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
 				wrapper.style.top =`${hoverTop}px`;
-				wrapper.style.left = `${hoverLeft}px`; //minus 15 for the padding of the plot wrapper
+				wrapper.style.left = `${hoverLeft}px`;
 			} else {
 				wrapper.classList.add("hidden");
 			}
@@ -230,7 +240,7 @@ export default Vue.component("time-series-heatmap", {
 
 			let margin = {
 				top: 250,
-				bottom: 300,
+				bottom: 100,
 				left: 250,
 				right: 40,
 				bump: 10
