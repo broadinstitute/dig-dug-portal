@@ -64,7 +64,9 @@ new Vue({
             fullTxSuffix: "full_transcript_data.tsv.gz",
             top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
             currentPage: 1,
-            conditions: []
+            conditions: [],
+            paginateHeatmap: true,
+            currentTable: []
         };
     },
     computed: {
@@ -91,6 +93,7 @@ new Vue({
             
             let output = [];
             let sampleData = this.timeSeriesData.slice(0,1000);
+            sampleData = this.filterByPage(sampleData);
 
             // Calculate min and max scores at the same time
             let minScore = null;
@@ -200,6 +203,9 @@ new Vue({
                 baseFields.push(newField);
             });
             return baseFields;
+        },
+        currentTranscripts(){
+            return this.currentTable.map(t => transcript_id);
         }
     },
     async created() {
@@ -235,12 +241,19 @@ new Vue({
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
-            console.log(JSON.stringify(bulkDataObject[0]));
             return bulkDataObject;
         },
         getSourceName(label){
             let metadataEntry = this.metadata[label];
             return metadataEntry.source_name;
+        },
+        filterByPage(data){
+            return data;
+        }
+    },
+    watch: {
+        currentTranscripts(newData){
+            console.log(JSON.stringify(newData));
         }
     },
     render: (h) => h(Template),
