@@ -5,8 +5,8 @@
 			<div :id="'clicked_cell_value_content' + sectionId" >
 			</div>
 			<time-series-line-plot
-				v-if="heatmapData.length > 0"
-				:plotData="heatmapData"
+				v-if="filteredData.length > 0"
+				:plotData="filteredData"
 				:tx="[transcript]"
 				:config="linePlotConfig">
 			</time-series-line-plot>
@@ -69,7 +69,7 @@ import { rgb } from "d3";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn"],
+	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn", "activeTab", "filter"],
 	data() {
 		return {
 			squareData: {},
@@ -86,15 +86,22 @@ export default Vue.component("time-series-heatmap", {
 	},
 	beforeDestroy() {},
 	computed: {
+		filteredData(){
+			let data = structuredClone(this.heatmapData);
+			if (this.filter) {
+                data = data.filter(this.filter);
+            }
+			return data;
+		},
 		renderData() {
 			let massagedData = {};
 
-			let rowList = this.heatmapData
+			let rowList = this.filteredData
 				.map((v) => v[this.renderConfig["row field"]])
 				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 				.filter((v, i, arr) => v != ""); //remove blank
 
-			let columnList = this.heatmapData
+			let columnList = this.filteredData
 				.map((v) => v[this.renderConfig["column field"]])
 				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 				.filter((v, i, arr) => v != ""); //remove blank
@@ -113,7 +120,7 @@ export default Vue.component("time-series-heatmap", {
 				});
 			});
 
-			this.heatmapData.map((d) => {
+			this.filteredData.map((d) => {
 				let row = this.renderConfig["row field"];
 				let column = this.renderConfig["column field"];
 
@@ -135,6 +142,9 @@ export default Vue.component("time-series-heatmap", {
 			this.renderHeatmap();
 		},
 		zoomedIn(){
+			this.renderHeatmap();
+		},
+		activeTab(){
 			this.renderHeatmap();
 		}
 	},
@@ -446,7 +456,7 @@ $(function () {});
 }
 
 .heatmap-wrapper {
-	position: relative;
+	/*position: relative;*/
 }
 
 .heatmap-canvas-wrapper {

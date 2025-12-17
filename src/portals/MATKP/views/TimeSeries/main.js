@@ -57,6 +57,7 @@ new Vue({
             plotId: "time_series_heatmap",
             timeSeriesId: "GSE20696", // hardcoded for sample,
             timeSeriesData: null,
+            allTimeSeriesData: null,
             metadata: null,
             minScore: null,
             maxScore: null,
@@ -68,7 +69,7 @@ new Vue({
             paginateHeatmap: true,
             currentTable: [],
             zoomedIn: true,
-            searchGenes: [],
+            activeTab: 0,
         };
     },
     computed: {
@@ -88,7 +89,8 @@ new Vue({
         processedData(){
             return this.processDataForHeatmap();
         },
-        searchResultsData(){
+        allProcessedData(){
+            // Process data with 'include all' selected
             return this.processDataForHeatmap(true);
         },
         heatmapConfig(){
@@ -167,6 +169,7 @@ new Vue({
     async created() {
         this.metadata = await this.getTimeSeriesMetadata();
         this.timeSeriesData = await this.getTimeSeries();
+        this.allTimeSeriesData = await this.getTimeSeries(false);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -192,11 +195,13 @@ new Vue({
                 return {};
             }
         },
-        async getTimeSeries() {
-            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/${this.top100Suffix}`;
+        async getTimeSeries(top100=true) {
+            let suffix = top100 ? this.top100Suffix : this.fullTxSuffix;
+            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/${suffix}`;
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+            bulkDataObject = bulkDataObject.slice(0,5000);
             return bulkDataObject;
         },
         getSourceName(label){
@@ -210,10 +215,7 @@ new Vue({
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
         },
-        filterByGene(data){
-            return data.filter(d => this.searchGenes.includes(d.gene));
-        },
-        processDataForHeatmap(searchResultsOnly=false){
+        processDataForHeatmap(includeAll=false){
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
@@ -222,11 +224,10 @@ new Vue({
             this.conditions = conditions;
             
             let output = [];
-            let sampleData = structuredClone(this.timeSeriesData);
-            sampleData = this.filterByPage(sampleData);
-            if (searchResultsOnly){
-                sampleData = this.filterByGene(sampleData);
-            }
+            let sampleData = !includeAll 
+                ? this.filterByPage(structuredClone(this.timeSeriesData))
+                : structuredClone(this.allTimeSeriesData);
+
 
             // Calculate min and max scores at the same time
             let minScore = null;
