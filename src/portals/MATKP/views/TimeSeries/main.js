@@ -57,12 +57,19 @@ new Vue({
             plotId: "time_series_heatmap",
             timeSeriesId: "GSE20696", // hardcoded for sample,
             timeSeriesData: null,
+            allTimeSeriesData: null,
             metadata: null,
             minScore: null,
             maxScore: null,
             transcripts: ["1415687_a_at"],
             fullTxSuffix: "full_transcript_data.tsv.gz",
-            top100Suffix: "heatmap_top100_transcript_data.tsv.gz"
+            top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
+            currentPage: 1,
+            conditions: [],
+            paginateHeatmap: true,
+            currentTable: [],
+            zoomedIn: true,
+            activeTab: 0,
         };
     },
     computed: {
@@ -80,51 +87,11 @@ new Vue({
             return utils;
         },
         processedData(){
-            if (this.metadata === null || this.timeSeriesData === null){
-                return null;
-            }
-            let conditions = Object.keys(this.timeSeriesData[0])
-                .filter(t => t.startsWith("GSM"));
-            
-            let output = [];
-            let sampleData = this.timeSeriesData.slice(0,1000);
-
-            // Calculate min and max scores at the same time
-            let minScore = null;
-            let maxScore = null;
-            
-			let timeElapsed = new RegExp(/day (-?\d+)/);
-            let rep = new RegExp(/replicate (\d+)/);
-		
-            sampleData.forEach(tsd => {
-                conditions.forEach(c => {
-                    let conditionMetadata = this.metadata[c];
-                    let score = tsd[c];
-                    if (minScore === null || score < minScore){
-                        minScore = score;
-                    }
-                    if (maxScore === null || score > maxScore){
-                        maxScore = score;
-                    }
-                    let days = parseInt(conditionMetadata.source_name.match(timeElapsed)[1]);
-                    let replicate = parseInt(conditionMetadata.source_name.match(rep)[1]);
-                    let entry = {
-                        gene: tsd.gene,
-                        transcript_id: tsd.transcript_id,
-                        source: conditionMetadata.source_name,
-                        score: score,
-                        days: days,
-                        replicate: replicate,
-                        order: tsd.order,
-                        gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
-                        identifier: `${tsd.transcript_id}_rep_${replicate}`
-                    }
-                    output.push(entry);
-                });
-            });
-            this.minScore = minScore;
-            this.maxScore = maxScore;
-            return output;
+            return this.processDataForHeatmap();
+        },
+        allProcessedData(){
+            // Process data with 'include all' selected
+            return this.processDataForHeatmap(true);
         },
         heatmapConfig(){
             return {
@@ -163,11 +130,46 @@ new Vue({
                     {key: "days", label: "Day"},
                 ],
             }
-        }
+        },
+        tableFields(){
+            let baseFields = [
+                {
+                    key: "order",
+                    label: "Rank",
+                    sortable: true
+                },
+                {
+                    key: "transcript_id",
+                    label: "Transcript",
+                    sortable: true
+                },
+                {
+                    key: "max_diff",
+                    label: "Max diff.",
+                    sortable: true
+                },
+                {
+                    key: "gene",
+                    label: "Gene",
+                    sortable: true
+                }
+                
+            ];
+            this.conditions.forEach(c => {
+                let newField = {
+                    key: c,
+                    label: this.getSourceName(c),
+                    sortable: true
+                };
+                baseFields.push(newField);
+            });
+            return baseFields;
+        },
     },
     async created() {
         this.metadata = await this.getTimeSeriesMetadata();
         this.timeSeriesData = await this.getTimeSeries();
+        this.allTimeSeriesData = await this.getTimeSeries(false);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -193,14 +195,78 @@ new Vue({
                 return {};
             }
         },
-        async getTimeSeries() {
-            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/${this.top100Suffix}`;
+        async getTimeSeries(top100=true) {
+            let suffix = top100 ? this.top100Suffix : this.fullTxSuffix;
+            let datasetFile = `${TIME_SERIES_RAW}${this.timeSeriesId}/${suffix}`;
             const response = await fetch(datasetFile);
             const bulkDataText = await response.text();
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
-            console.log(JSON.stringify(bulkDataObject[0]));
+            bulkDataObject = bulkDataObject.slice(0,5000);
             return bulkDataObject;
         },
+        getSourceName(label){
+            let metadataEntry = this.metadata[label];
+            return metadataEntry.source_name;
+        },
+        filterByPage(data){
+            if (!this.zoomedIn){
+                return data;
+            }
+            let currentTranscripts = this.currentTable.map(t => t.transcript_id);
+            return data.filter(d => currentTranscripts.includes(d.transcript_id));
+        },
+        processDataForHeatmap(includeAll=false){
+            if (this.metadata === null || this.timeSeriesData === null){
+                return null;
+            }
+            let conditions = Object.keys(this.timeSeriesData[0])
+                .filter(t => t.startsWith("GSM"));
+            this.conditions = conditions;
+            
+            let output = [];
+            let sampleData = !includeAll 
+                ? this.filterByPage(structuredClone(this.timeSeriesData))
+                : structuredClone(this.allTimeSeriesData);
+
+
+            // Calculate min and max scores at the same time
+            let minScore = null;
+            let maxScore = null;
+            
+			let timeElapsed = new RegExp(/day (-?\d+)/);
+            let rep = new RegExp(/replicate (\d+)/);
+		
+            sampleData.forEach(tsd => {
+                conditions.forEach(c => {
+                    let sourceName = this.getSourceName(c)
+                    let score = tsd[c];
+                    if (minScore === null || score < minScore){
+                        minScore = score;
+                    }
+                    if (maxScore === null || score > maxScore){
+                        maxScore = score;
+                    }
+                    let days = parseInt(sourceName.match(timeElapsed)[1]);
+                    let replicate = parseInt(sourceName.match(rep)[1]);
+                    let entry = {
+                        gene: tsd.gene,
+                        transcript_id: tsd.transcript_id,
+                        source: sourceName,
+                        score: score,
+                        days: days,
+                        replicate: replicate,
+                        order: tsd.order,
+                        gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
+                        identifier: `${tsd.transcript_id}_rep_${replicate}`
+                    }
+                    output.push(entry);
+                });
+            });
+            this.minScore = minScore;
+            this.maxScore = maxScore;
+            return output;
+        },
+
     },
     render: (h) => h(Template),
 }).$mount("#app");

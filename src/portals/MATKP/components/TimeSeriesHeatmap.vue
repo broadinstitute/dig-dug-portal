@@ -5,8 +5,8 @@
 			<div :id="'clicked_cell_value_content' + sectionId" >
 			</div>
 			<time-series-line-plot
-				v-if="heatmapData.length > 0"
-				:plotData="heatmapData"
+				v-if="filteredData.length > 0"
+				:plotData="filteredData"
 				:tx="[transcript]"
 				:config="linePlotConfig">
 			</time-series-line-plot>
@@ -18,12 +18,6 @@
 					class="col-wrapper"
 					:id="'colWrapper' + sectionId"
 				></div>
-				<div id="zoom-checkbox">
-					<label>
-						<input v-model="zoomedIn" type="checkbox" />
-						Zoom in
-					</label>
-				</div>
 				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
 						v-if="!!renderConfig"
@@ -75,7 +69,7 @@ import { rgb } from "d3";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig"],
+	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn", "activeTab", "filter"],
 	data() {
 		return {
 			squareData: {},
@@ -84,7 +78,6 @@ export default Vue.component("time-series-heatmap", {
 			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
 			colorScale: null,
-			zoomedIn: true
 		};
 	},
 	mounted: function () {
@@ -93,15 +86,22 @@ export default Vue.component("time-series-heatmap", {
 	},
 	beforeDestroy() {},
 	computed: {
+		filteredData(){
+			let data = structuredClone(this.heatmapData);
+			if (this.filter) {
+                data = data.filter(this.filter);
+            }
+			return data;
+		},
 		renderData() {
 			let massagedData = {};
 
-			let rowList = this.heatmapData
+			let rowList = this.filteredData
 				.map((v) => v[this.renderConfig["row field"]])
 				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 				.filter((v, i, arr) => v != ""); //remove blank
 
-			let columnList = this.heatmapData
+			let columnList = this.filteredData
 				.map((v) => v[this.renderConfig["column field"]])
 				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 				.filter((v, i, arr) => v != ""); //remove blank
@@ -120,7 +120,7 @@ export default Vue.component("time-series-heatmap", {
 				});
 			});
 
-			this.heatmapData.map((d) => {
+			this.filteredData.map((d) => {
 				let row = this.renderConfig["row field"];
 				let column = this.renderConfig["column field"];
 
@@ -143,6 +143,9 @@ export default Vue.component("time-series-heatmap", {
 		},
 		zoomedIn(){
 			this.renderHeatmap();
+		},
+		activeTab(){
+			this.renderHeatmap();
 		}
 	},
 	methods: {
@@ -155,7 +158,6 @@ export default Vue.component("time-series-heatmap", {
 			}
 		},
 		hidePanel() {
-			//this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
 			this.renderHeatmap();
 		},
 		checkPosition(event) {
@@ -164,9 +166,9 @@ export default Vue.component("time-series-heatmap", {
 
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
-			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump * 2)) / (this.boxWidth) * 2);
-			let zoomFactor = this.zoomedIn ? this.boxHeight : 1;
-			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump * 2)) / zoomFactor);
+			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left / 2 + this.margin.bump)) / (this.boxWidth) * 2);
+			let zoomFactor = this.zoomedIn ? this.boxHeight : 3;
+			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top / 2 + this.margin.bump)) / zoomFactor);
 
 			let clickedCellValue = "";
 			if (
@@ -198,20 +200,37 @@ export default Vue.component("time-series-heatmap", {
 				"clicked_cell_value_content" + this.sectionId
 			);
 
-			let wrapperRect = document
+			let canvasRect = document
 				.getElementById("heatmapCanvasWrapper" + this.sectionId)
 				.getBoundingClientRect();
-			let wrapperXPos = wrapperRect.left;
-			let wrapperYPos =
+			let canvasXPos = canvasRect.left;
+
+			let canvasYPos =
 				document.getElementById("heatmapContent" + this.sectionId).offsetHeight -
 				document.getElementById("heatmapPlotWrapper" + this.sectionId).offsetHeight +
 				document.getElementById("colWrapper" + this.sectionId).offsetWidth;
 
+			let hoverTop = canvasYPos + yPos;
+			let hoverLeft = canvasXPos + xPos - 30;
+
+			let canvasBottom = canvasRect.bottom / 2 + this.margin.bottom;
+			let canvasRight = canvasRect.right + this.margin.right;
+
+			let bottomOverhang = hoverTop + wrapper.clientHeight - canvasBottom;
+			let rightOverhang = hoverLeft + wrapper.clientWidth - canvasRight;
+			if (bottomOverhang > 0){
+				hoverTop = hoverTop - bottomOverhang;
+			}
+			if (rightOverhang > 0){
+				hoverLeft = xPos - wrapper.clientWidth; // switch the hover box to the left
+			}
+			
+			// test to see if hover box goes off canvas
 			if (clickedCellValue != "") {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
-				wrapper.style.top = wrapperYPos + yPos + "px";
-				wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
+				wrapper.style.top =`${hoverTop}px`;
+				wrapper.style.left = `${hoverLeft}px`;
 			} else {
 				wrapper.classList.add("hidden");
 			}
@@ -225,38 +244,20 @@ export default Vue.component("time-series-heatmap", {
 		renderHeatmap(X, Y) {
 			let c = document.getElementById("heatmap" + this.sectionId);
 			let ctx = c.getContext("2d");
-
 			
 
-			let fontSize = this.renderConfig['font size'];
-
-			let marginArrs = {
-				left: [],
-				top: []
-			}
-
-			marginArrs.left = this.renderData.rows.map(r => Math.ceil(this.getWidth(ctx,r, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
-			marginArrs.top = this.renderData.columns.map(c => Math.ceil(this.getWidth(ctx,c, fontSize, 'Arial'))).sort(function (a, b) { return b - a })
-
-			this.margin = {
-				top: marginArrs.top[0]+40,
-				bottom: 30,
-				left: marginArrs.left[0],
-				right: 20,
-				bump: 5
-			}
-
-			fontSize = this.renderConfig['font size'] * 2;
+			let fontSize = this.renderConfig['font size'] * 2;
 
 			let margin = {
-				top: (marginArrs.top[0]*2) + 80,
-				bottom: 30,
-				left: (marginArrs.left[0]*2),
+				top: 250,
+				bottom: 100,
+				left: 350,
 				right: 40,
 				bump: 10
 			};
+			this.margin = margin;
 
-			let renderBoxSize = !this.zoomedIn ? 2 : this.boxHeight * 2;
+			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight * 2;
 			let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 8));
 			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
 			
@@ -455,7 +456,7 @@ $(function () {});
 }
 
 .heatmap-wrapper {
-	position: relative;
+	/*position: relative;*/
 }
 
 .heatmap-canvas-wrapper {
@@ -557,10 +558,6 @@ $(function () {});
 
 .sub-legend-steps {
 	padding-left: 5px;
-}
-.zoom-checkbox {
-	text-align: left;
-	padding-left: 25px;
 }
 .hover-title {
 	font-weight: bold;
