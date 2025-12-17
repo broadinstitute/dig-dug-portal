@@ -49,7 +49,8 @@
                   yLabel: 'GWAS Support',
                   width: 800,
                   height: 300,
-                  colors: compareGroupColors,
+                  colors: evidenceRangeColors,
+                  colorMap: evidenceRangeColorMap,
                   margin: plotMargin,
                   hoverContent: ['Gene', 'Factor', 'Combined_GWAS_gene_sets', 'GWAS_support', 'Gene_set_support',  'Evidence_range', 'HuGE_Score']
                 }"
@@ -190,6 +191,12 @@ export default Vue.component("pigean-phenotype", {
           '#aec7e8', '#ffbb78', '#98df8a', '#ff9896', '#c5b0d5',
           '#c49c94'
         ],
+        evidenceRangeColors: [
+          '#4a90e2', // Very Strong
+          '#f5a623', // Strongly Suggestive
+          '#f8e71c', // Nominally Significant
+          '#cccccc'  // Not Significant (using light gray since transparent won't show)
+        ],
         tableFields: [
           {
             key: 'Gene',
@@ -252,7 +259,8 @@ export default Vue.component("pigean-phenotype", {
       const totalHeight = plotHeight + (this.plotMargin.top || 0) + (this.plotMargin.bottom || 0) + legendHeight;
       return {
         width: totalWidth + 'px',
-        height: totalHeight + 'px'
+        height: 'auto'
+        //height: totalHeight + 'px'
       };
     },
     utilsBox() {
@@ -290,6 +298,15 @@ export default Vue.component("pigean-phenotype", {
     evidenceRangeOptions() {
       // Order matches the legend: Very Strong, Strongly Suggestive, Nominally Significant, Not Significant
       return ['Very Strong', 'Strongly Suggestive', 'Nominally Significant', 'Not Significant'];
+    },
+    evidenceRangeColorMap() {
+      // Map evidence range values to their corresponding colors from the legend
+      return {
+        'Very Strong': '#4a90e2',
+        'Strongly Suggestive': '#f5a623',
+        'Nominally Significant': '#f8e71c',
+        'Not Significant': '#cccccc'
+      };
     },
     pigeanDataFiltered() {
       if (!this.pigeanData) {

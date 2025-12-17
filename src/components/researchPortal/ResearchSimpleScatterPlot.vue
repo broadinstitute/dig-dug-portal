@@ -36,7 +36,8 @@ export default Vue.component('research-simple-scatter-plot', {
   data() {
     return {
       posData: {},
-      plotId: Math.random().toString(36).substr(2, 9)
+      plotId: Math.random().toString(36).substr(2, 9),
+      hoveredLegendValue: null
     };
   },
   computed: {
@@ -117,6 +118,11 @@ export default Vue.component('research-simple-scatter-plot', {
         this.renderPlot();
       },
       deep: true
+    },
+    hoveredLegendValue() {
+      // Rerender plot when legend hover changes
+      this.clearPlot();
+      this.renderPlot();
     }
   },
   mounted() {
@@ -214,6 +220,7 @@ export default Vue.component('research-simple-scatter-plot', {
       const xLabel = config.xLabel || config.xKey || '';
       const yLabel = config.yLabel || config.yKey || '';
       const colorKey = config.colorKey;
+      const colorMap = config.colorMap || null;
       const colors = config.colors || [
         '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
         '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -241,10 +248,31 @@ export default Vue.component('research-simple-scatter-plot', {
 
       // Render legend above the plot if colorKey is provided
       if (colorKey && this.$refs.legend) {
-        const uniqueValues = [...new Set(this.renderData.map(d => d.color).filter(v => v != null))];
-        const colorScale = d3.scaleOrdinal()
-          .domain(uniqueValues)
-          .range(colors);
+        let uniqueValues = [...new Set(this.renderData.map(d => d.color).filter(v => v != null))];
+        
+        // If colorMap is provided, use it to create the color scale
+        let colorScale;
+        if (colorMap) {
+          // Sort unique values according to colorMap order (if keys exist in colorMap)
+          const colorMapKeys = Object.keys(colorMap);
+          uniqueValues = uniqueValues.sort((a, b) => {
+            const aIndex = colorMapKeys.indexOf(a);
+            const bIndex = colorMapKeys.indexOf(b);
+            if (aIndex === -1 && bIndex === -1) return 0;
+            if (aIndex === -1) return 1;
+            if (bIndex === -1) return -1;
+            return aIndex - bIndex;
+          });
+          
+          // Create color scale using colorMap
+          colorScale = d3.scaleOrdinal()
+            .domain(uniqueValues)
+            .range(uniqueValues.map(val => colorMap[val] || colors[0]));
+        } else {
+          colorScale = d3.scaleOrdinal()
+            .domain(uniqueValues)
+            .range(colors);
+        }
 
         // Clear previous legend
         this.$refs.legend.innerHTML = '';
@@ -257,6 +285,15 @@ export default Vue.component('research-simple-scatter-plot', {
           legendItem.style.marginRight = '20px';
           legendItem.style.marginBottom = '5px';
           legendItem.style.verticalAlign = 'middle';
+          legendItem.style.cursor = 'pointer';
+          
+          // Add hover event handlers
+          legendItem.addEventListener('mouseenter', () => {
+            this.hoveredLegendValue = value;
+          });
+          legendItem.addEventListener('mouseleave', () => {
+            this.hoveredLegendValue = null;
+          });
 
           const circle = document.createElement('span');
           circle.style.display = 'inline-block';
@@ -305,10 +342,30 @@ export default Vue.component('research-simple-scatter-plot', {
       // Set up color scale if colorKey is provided
       let colorScale = null;
       if (colorKey) {
-        const uniqueValues = [...new Set(this.renderData.map(d => d.color).filter(v => v != null))];
-        colorScale = d3.scaleOrdinal()
-          .domain(uniqueValues)
-          .range(colors);
+        let uniqueValues = [...new Set(this.renderData.map(d => d.color).filter(v => v != null))];
+        
+        // If colorMap is provided, use it to create the color scale
+        if (colorMap) {
+          // Sort unique values according to colorMap order (if keys exist in colorMap)
+          const colorMapKeys = Object.keys(colorMap);
+          uniqueValues = uniqueValues.sort((a, b) => {
+            const aIndex = colorMapKeys.indexOf(a);
+            const bIndex = colorMapKeys.indexOf(b);
+            if (aIndex === -1 && bIndex === -1) return 0;
+            if (aIndex === -1) return 1;
+            if (bIndex === -1) return -1;
+            return aIndex - bIndex;
+          });
+          
+          // Create color scale using colorMap
+          colorScale = d3.scaleOrdinal()
+            .domain(uniqueValues)
+            .range(uniqueValues.map(val => colorMap[val] || colors[0]));
+        } else {
+          colorScale = d3.scaleOrdinal()
+            .domain(uniqueValues)
+            .range(colors);
+        }
       }
 
       // Draw axes
@@ -424,12 +481,35 @@ export default Vue.component('research-simple-scatter-plot', {
 
         this.posData[posX][posY].push(d);
 
+        // Determine color and opacity based on legend hover state
+        let fillColor;
+        let alpha;
+        
+        if (this.hoveredLegendValue !== null && colorKey) {
+          // If a legend is hovered, highlight matching dots, dim others
+          if (d.color === this.hoveredLegendValue) {
+            // Matching legend value: use original color
+            fillColor = colorScale && d.color != null 
+              ? colorScale(d.color) 
+              : colors[0] || '#1f77b4';
+            alpha = 0.7;
+          } else {
+            // Non-matching: use grey at 5% opacity
+            fillColor = '#808080';
+            alpha = 0.05;
+          }
+        } else {
+          // No legend hovered: normal rendering
+          fillColor = colorKey && colorScale && d.color != null 
+            ? colorScale(d.color) 
+            : colors[0] || '#1f77b4';
+          alpha = 0.7;
+        }
+
         // Draw circle
         ctx.beginPath();
-        ctx.fillStyle = colorKey && colorScale && d.color != null 
-          ? colorScale(d.color) 
-          : colors[0] || '#1f77b4';
-        ctx.globalAlpha = 0.7;
+        ctx.fillStyle = fillColor;
+        ctx.globalAlpha = alpha;
         ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
         ctx.fill();
         ctx.globalAlpha = 1.0;
@@ -472,12 +552,17 @@ export default Vue.component('research-simple-scatter-plot', {
 .plot-legend {
   margin-bottom: 10px;
   padding: 5px 0;
-  line-height: 1.5;
+  line-height: 1;
   text-align: center;
   width: 100%;
 }
 
 .plot-legend .legend-item {
   white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.plot-legend .legend-item:hover {
+  opacity: 0.7;
 }
 </style>

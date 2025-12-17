@@ -342,8 +342,8 @@
                 >
 
                 </pigean-phenotype>
-
-                <div class="card mdkp-card">
+<!--
+          <div class="card mdkp-card">
                     <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">
                             Top gene-level associations for
@@ -450,7 +450,9 @@
                             </template>
                         </criterion-function-group>
                     </div>
-                </div>
+                </div>      TODO: Add gene-level associations table
+-->
+                
 
                 <div class="card mdkp-card">
                     <div class="card-body">
