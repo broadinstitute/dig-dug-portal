@@ -62,17 +62,28 @@
                                         <div v-if="$parent.allTimeSeriesData !== null && $parent.activeTab === 1"
                                             class="time-series-content">
                                             <criterion-function-group>
-                                                <filter-enumeration-control
+                                                <!-- <filter-enumeration-control
                                                     field="gene"
                                                     placeholder="Select genes ..."
                                                     :options="$parent.allProcessedData.map((d) => d.gene)"
                                                     :multiple="true"
                                                 >
                                                     <div class="label">Filter by Genes</div>
-                                                </filter-enumeration-control>
+                                                </filter-enumeration-control> -->
+                                                <label>
+                                                    Search by Genes
+                                                    <input class="form-control" 
+                                                        type="textarea" 
+                                                        v-model="$parent.geneSearchQuery"/>
+                                                </label>
+                                                <button class="btn btn-primary"
+                                                    @click="$parent.queryGenes()">
+                                                    Search
+                                                </button>
+                                                <button class="btn btn-secondary">Clear</button>
                                                 <template slot="filtered" slot-scope="{ filter }">
                                                     <time-series-heatmap
-                                                        :heatmapData="$parent.allProcessedData"
+                                                        :heatmapData="$parent.geneSearchResults"
                                                         :filter="filter"
                                                         :renderConfig="$parent.heatmapConfig"
                                                         :utils="$parent.utilsBox"

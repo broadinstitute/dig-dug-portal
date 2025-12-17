@@ -70,6 +70,8 @@ new Vue({
             currentTable: [],
             zoomedIn: true,
             activeTab: 0,
+            geneSearchQuery: "",
+            geneSearchArray: []
         };
     },
     computed: {
@@ -266,7 +268,11 @@ new Vue({
             this.maxScore = maxScore;
             return output;
         },
-
+        queryGenes(){
+            let delimiters = /[\s;,]+/;
+            this.geneSearchArray = this.geneSearchQuery.split(delimiters);
+            console.log(this.geneSearchArray);
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");
