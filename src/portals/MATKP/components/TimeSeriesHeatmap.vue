@@ -251,7 +251,7 @@ export default Vue.component("time-series-heatmap", {
 			let margin = {
 				top: 250,
 				bottom: 100,
-				left: 250,
+				left: 350,
 				right: 40,
 				bump: 10
 			};
