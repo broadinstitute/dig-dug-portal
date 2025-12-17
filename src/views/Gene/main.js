@@ -32,7 +32,7 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
 
-import PigeanGean from "@/components/PigeanGean.vue";
+import PigeanGene from "@/components/PigeanGene.vue";
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
@@ -89,7 +89,7 @@ new Vue({
         ResearchSingleSearch,
         MouseSummaryTable,
         ColocusTable,
-        PigeanGean,
+        PigeanGene,
     },
     mixins: [pageMixin],
 

@@ -336,6 +336,13 @@
                     </div>
                 </div>
 
+                <pigean-phenotype
+                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                    :pigeanData="$store.state.pigeanGenePhenotype.data"
+                >
+
+                </pigean-phenotype>
+
                 <div class="card mdkp-card">
                     <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">

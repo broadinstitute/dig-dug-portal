@@ -23,6 +23,7 @@ export default new Vuex.Store({
         pathwayAssoc: bioIndex("pathway-associations"),
         c2ct: bioIndex("c2ct"),
         c2ctAnnotation: bioIndex("c2ct-annotation"),
+        pigeanGenePhenotype: bioIndex("pigean-gene-phenotype"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -55,7 +56,7 @@ export default new Vuex.Store({
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
         },
-        setSelectedAnnotation(state, annotation){
+        setSelectedAnnotation(state, annotation) {
             state.selectedAnnotation = annotation;
         }
     },
@@ -68,26 +69,33 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        async getPigeanGenePhenotypeData(context) {
+            if (!context.state.phenotype || !context.state.phenotype.name) {
+                return; // Exit early if phenotype not ready
+            }
+            let phenotype = context.state.phenotype.name;
+            await context.dispatch("pigeanGenePhenotype/query", { q: phenotype + ',2,small', limit: 1000 });
+        },
         onPhenotypeChange(context, phenotype) {
             context.state.selectedPhenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
 
-        onAncestryChange(context){
+        onAncestryChange(context) {
             context.dispatch("queryPhenotype");
         },
         async getAnnotations(context) {
-			let annotations = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/c2ct-annotation/2?columns=annotation`)
-				.then(resp => resp.json())
-				.then(json => {
-					if (json.count == 0) {
-						return null;
-					}
-					return json.keys.map(key => key[0])
-				});
+            let annotations = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/c2ct-annotation/2?columns=annotation`)
+                .then(resp => resp.json())
+                .then(json => {
+                    if (json.count == 0) {
+                        return null;
+                    }
+                    return json.keys.map(key => key[0])
+                });
             context.state.annotationOptions = annotations;
             context.state.selectedAnnotation = annotations[0];
-		},
+        },
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
@@ -131,16 +139,17 @@ export default new Vuex.Store({
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
             context.dispatch("getCs2ct");
+            context.dispatch("getPigeanGenePhenotypeData");
             context.state.manhattanPlotAvailable = true;
         },
-        getCs2ct(context){
+        getCs2ct(context) {
             let queryString = context.state.phenotype.name;
-            if (!!context.state.selectedAncestry){
+            if (!!context.state.selectedAncestry) {
                 queryString = `${context.state.selectedAncestry},${queryString}`;
             }
             queryString = `${queryString},${context.state.selectedAnnotation}`;
-            context.dispatch("c2ctAnnotation/query", { q : queryString });
-            
+            context.dispatch("c2ctAnnotation/query", { q: queryString });
+
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
