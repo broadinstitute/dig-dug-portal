@@ -32,6 +32,8 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
 
+import PigeanGean from "@/components/PigeanGean.vue";
+
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 
@@ -87,6 +89,7 @@ new Vue({
         ResearchSingleSearch,
         MouseSummaryTable,
         ColocusTable,
+        PigeanGean,
     },
     mixins: [pageMixin],
 
@@ -369,6 +372,11 @@ new Vue({
             return x;
         },
 
+        pigeanGeneData() {
+            let data = this.$store.state.pigeanGene.data;
+            return data;
+        },
+
         associations52k() {
             let data = this.$store.state.associations52k.data;
 
@@ -592,6 +600,7 @@ new Vue({
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
+            this.$store.dispatch("getPigeanGeneData");
             this.$store.dispatch("getMouseData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
@@ -609,6 +618,7 @@ new Vue({
         },
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
+            this.$store.dispatch("getPigeanGeneData");
         },
     },
 
@@ -694,9 +704,8 @@ new Vue({
             let r = this.region;
 
             if (r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${r.chromosome
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
 
