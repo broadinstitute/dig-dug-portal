@@ -295,6 +295,22 @@ export default Vue.component("pigean-table", {
                         {{ r.item.gene_set }}
                     </a>
                 </template>
+                <template #cell(top_gene_sets)="r">
+                    <div class="wrapped-cell-content">
+                        <span v-if="r.item.top_gene_sets">
+                            {{ r.item.top_gene_sets }}
+                        </span>
+                        <span v-else>-</span>
+                    </div>
+                </template>
+                <template #cell(top_genes)="r">
+                    <div class="wrapped-cell-content">
+                        <span v-if="r.item.top_genes">
+                            {{ r.item.top_genes }}
+                        </span>
+                        <span v-else>-</span>
+                    </div>
+                </template>
                 <template #cell(phewasPlot)="row">
                     <b-button
                         variant="outline-primary"
@@ -461,5 +477,11 @@ label {
 }
 ul.top-list {
     font-size: 0.8rem;
+}
+.wrapped-cell-content {
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    max-width: 300px;
 }
 </style>
