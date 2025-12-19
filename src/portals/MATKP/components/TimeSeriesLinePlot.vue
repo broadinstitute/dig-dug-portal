@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="time-series-line" class="plot" ref="time-series-line">
+        <div :id=plotId class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
     </div>
@@ -14,10 +14,9 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "tx", "config"],
+  props: ["plotData", "filter", "tightenLeft", "tx", "config", "plotId"],
   data() {
       return {
-        plotId: "time-series-line",
         chart: null,
         chartWidth: 300,
         chartHeight: 150,

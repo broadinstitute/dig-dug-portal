@@ -13,7 +13,7 @@
                         <div class="card-body">
                             <b-tabs v-model="$parent.activeTab">
                                 <b-tab title="Top Transcripts">
-                                    <div>
+                                    <div class="tab-inner">
                                         <h4>
                                             Time series data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
                                         </h4>
@@ -23,7 +23,7 @@
                                                 Zoom in
                                             </label>
                                         </div>
-                                        <div v-if="$parent.timeSeriesData !== null && $parent.activeTab === 0"
+                                        <div v-if="$parent.ready"
                                             class="time-series-content">
                                             <time-series-heatmap
                                                 :heatmapData="$parent.processedData"
@@ -55,33 +55,39 @@
                                     </div>
                                 </b-tab>
                                 <b-tab title="Search by Gene">
-                                    <div>
+                                    <div class="tab-inner">
                                         <h4>
                                             Search up to 10 genes to create a custom heatmap.
                                         </h4>
                                         <div v-if="$parent.allTimeSeriesData !== null && $parent.activeTab === 1"
                                             class="time-series-content">
                                             <criterion-function-group>
-                                                <filter-enumeration-control
-                                                    field="gene"
-                                                    placeholder="Select genes ..."
-                                                    :options="$parent.allProcessedData.map((d) => d.gene)"
-                                                    :multiple="true"
-                                                >
-                                                    <div class="label">Filter by Genes</div>
-                                                </filter-enumeration-control>
-                                                <template slot="filtered" slot-scope="{ filter }">
-                                                    <time-series-heatmap
-                                                        :heatmapData="$parent.allProcessedData"
-                                                        :filter="filter"
-                                                        :renderConfig="$parent.heatmapConfig"
-                                                        :utils="$parent.utilsBox"
-                                                        sectionId="search-heatmap"
-                                                        :linePlotConfig="$parent.linePlotConfig"
-                                                        :zoomedIn="true">
-                                                    </time-series-heatmap>
-                                                </template>
+                                                <label>
+                                                    <textarea class="form-control" 
+                                                        cols="20" rows="5"
+                                                        v-model="$parent.geneSearchQuery">
+                                                    </textarea>
+                                                </label>
+                                                <button class="btn btn-primary"
+                                                    @click="$parent.queryGenes()">
+                                                    Search
+                                                </button>
                                             </criterion-function-group>
+                                            <div v-if="$parent.geneSearchResults.length > 0">
+                                                <time-series-heatmap
+                                                    :heatmapData="$parent.processedGeneSearch"
+                                                    :renderConfig="$parent.heatmapConfig"
+                                                    :utils="$parent.utilsBox"
+                                                    sectionId="search-heatmap"
+                                                    :linePlotConfig="$parent.linePlotConfig"
+                                                    :zoomedIn="true">
+                                                </time-series-heatmap>
+                                                <b-table
+                                                    small
+                                                    :items="$parent.geneSearchResults"
+                                                    :fields="$parent.tableFields.filter(f => f.key !== 'order')">
+                                                </b-table>
+                                            </div>
                                         </div>
                                     </div>
                                 </b-tab>
@@ -134,5 +140,11 @@ div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
 .zoom-checkbox {
 	text-align: left;
 	padding-left: 25px;
+}
+.tab-inner {
+    padding: 25px;
+}
+button {
+    margin: 5px;
 }
 </style>

@@ -57,7 +57,6 @@ new Vue({
             plotId: "time_series_heatmap",
             timeSeriesId: "GSE20696", // hardcoded for sample,
             timeSeriesData: null,
-            allTimeSeriesData: null,
             metadata: null,
             minScore: null,
             maxScore: null,
@@ -70,6 +69,9 @@ new Vue({
             currentTable: [],
             zoomedIn: true,
             activeTab: 0,
+            geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
+            geneSearchResults: [],
+            ready: false
         };
     },
     computed: {
@@ -87,11 +89,10 @@ new Vue({
             return utils;
         },
         processedData(){
-            return this.processDataForHeatmap();
+            return this.processDataForHeatmap(this.timeSeriesData, true);
         },
-        allProcessedData(){
-            // Process data with 'include all' selected
-            return this.processDataForHeatmap(true);
+        processedGeneSearch(){
+            return this.processDataForHeatmap(this.geneSearchResults);
         },
         heatmapConfig(){
             return {
@@ -152,6 +153,11 @@ new Vue({
                     key: "gene",
                     label: "Gene",
                     sortable: true
+                },
+                {
+                    key: "pattern",
+                    label: "Pattern",
+                    sortable: true
                 }
                 
             ];
@@ -169,7 +175,6 @@ new Vue({
     async created() {
         this.metadata = await this.getTimeSeriesMetadata();
         this.timeSeriesData = await this.getTimeSeries();
-        this.allTimeSeriesData = await this.getTimeSeries(false);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -215,37 +220,29 @@ new Vue({
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
         },
-        processDataForHeatmap(includeAll=false){
+        processDataForHeatmap(data, paginate=false){
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
-            let conditions = Object.keys(this.timeSeriesData[0])
+            console.log(JSON.stringify(data[0]));
+
+            if (this.conditions.length === 0){
+                this.conditions = Object.keys(data[0])
                 .filter(t => t.startsWith("GSM"));
-            this.conditions = conditions;
+            }
             
             let output = [];
-            let sampleData = !includeAll 
-                ? this.filterByPage(structuredClone(this.timeSeriesData))
-                : structuredClone(this.allTimeSeriesData);
-
-
-            // Calculate min and max scores at the same time
-            let minScore = null;
-            let maxScore = null;
+            let sampleData = paginate 
+                ? this.filterByPage(structuredClone(data))
+                : structuredClone(data);
             
 			let timeElapsed = new RegExp(/day (-?\d+)/);
             let rep = new RegExp(/replicate (\d+)/);
 		
             sampleData.forEach(tsd => {
-                conditions.forEach(c => {
+                this.conditions.forEach(c => {
                     let sourceName = this.getSourceName(c)
                     let score = tsd[c];
-                    if (minScore === null || score < minScore){
-                        minScore = score;
-                    }
-                    if (maxScore === null || score > maxScore){
-                        maxScore = score;
-                    }
                     let days = parseInt(sourceName.match(timeElapsed)[1]);
                     let replicate = parseInt(sourceName.match(rep)[1]);
                     let entry = {
@@ -262,11 +259,52 @@ new Vue({
                     output.push(entry);
                 });
             });
-            this.minScore = minScore;
-            this.maxScore = maxScore;
+            // TODO figure out how to calculate these differently
             return output;
         },
-
+        async queryGenes(){
+            let delimiters = /[\s;,]+/;
+            let geneSearchArray = this.geneSearchQuery.split(delimiters);
+            let results = await this.multiqueryGenes(geneSearchArray);
+            this.geneSearchResults = results.data;
+            
+        },
+        async multiqueryGenes(geneArray){
+            let url = "https://matkp.hugeampkpnbi.org/api/bio/multiquery";
+            let index = "single-cell-time-series"
+            let queryArray = [];
+            geneArray.forEach(g => queryArray.push(`${this.timeSeriesId},${g}`));
+            let queryObject = {
+                "index": index,
+                "queries": queryArray
+            };
+            try {
+                    return await fetch(url, {
+                        method: "POST",
+                        body: JSON.stringify(queryObject),
+                    })
+                        .then((response) => response.json());
+                } catch (error) {
+                    throw error;
+                }
+        },
+        extremeVal(data, min=true){
+            let extreme = data[0].score;
+            data.forEach(d => extreme = 
+                (min && d.score < extreme) || (!min && d.score > extreme)
+                ? d.score
+                : extreme);
+            return extreme;
+        }
+    },
+    watch: {
+        processedData(newData){
+            if (this.minScore === null && this.maxScore === null){
+                this.minScore = this.extremeVal(newData);
+                this.maxScore = this.extremeVal(newData, false);
+                this.ready = true;
+            }
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

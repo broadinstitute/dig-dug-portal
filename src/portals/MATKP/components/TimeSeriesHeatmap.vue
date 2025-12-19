@@ -8,7 +8,8 @@
 				v-if="filteredData.length > 0"
 				:plotData="filteredData"
 				:tx="[transcript]"
-				:config="linePlotConfig">
+				:config="linePlotConfig"
+				:plotId="`${sectionId}_line`">
 			</time-series-line-plot>
 		</div>
 		<div class="heatmap-content" :id="'heatmapContent' + sectionId">
