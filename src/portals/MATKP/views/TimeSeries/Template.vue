@@ -82,6 +82,11 @@
                                                     :linePlotConfig="$parent.linePlotConfig"
                                                     :zoomedIn="true">
                                                 </time-series-heatmap>
+                                                <b-table
+                                                    small
+                                                    :items="$parent.geneSearchResults"
+                                                    :fields="$parent.tableFields.filter(f => f.key !== 'order')">
+                                                </b-table>
                                             </div>
                                         </div>
                                     </div>

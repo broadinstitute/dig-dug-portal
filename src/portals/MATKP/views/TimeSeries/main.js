@@ -225,9 +225,11 @@ new Vue({
                 return null;
             }
             console.log(JSON.stringify(data[0]));
-            let conditions = Object.keys(data[0])
+
+            if (this.conditions.length === 0){
+                this.conditions = Object.keys(data[0])
                 .filter(t => t.startsWith("GSM"));
-            this.conditions = conditions;
+            }
             
             let output = [];
             let sampleData = paginate 
@@ -238,7 +240,7 @@ new Vue({
             let rep = new RegExp(/replicate (\d+)/);
 		
             sampleData.forEach(tsd => {
-                conditions.forEach(c => {
+                this.conditions.forEach(c => {
                     let sourceName = this.getSourceName(c)
                     let score = tsd[c];
                     let days = parseInt(sourceName.match(timeElapsed)[1]);
