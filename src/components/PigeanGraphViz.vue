@@ -16,7 +16,7 @@
                             :class="`node-name-${row.item.shape}`"
                             @mouseenter="showHoverPopup(row.item, row.index, $event)"
                             @mouseleave="hideHoverPopup"
-                            @click.stop="filterMainNetworkByNode(row.item.id)"
+                            @click.stop="showClickPopup(row.item.id)"
                             style="cursor: pointer;"
                         >
                             {{ row.item.label }}
@@ -27,7 +27,7 @@
                             class="connected-nodes-list"
                             @mouseenter="showHoverPopup(row.item, row.index, $event)"
                             @mouseleave="hideHoverPopup"
-                            @click.stop="filterMainNetworkByNode(row.item.id)"
+                            @click.stop="showClickPopup(row.item.id)"
                             style="cursor: pointer;"
                         >
                             <span 
@@ -50,15 +50,6 @@
             </div>
             <div class="network-wrapper-inner">
                 <div ref="networkContainer" id="mynetwork" class="network-container"></div>
-                <!-- Back button when network is filtered -->
-                <button 
-                    v-if="isFiltered" 
-                    class="reset-network-btn"
-                    @click="restoreFullNetwork"
-                    title="Show all nodes"
-                >
-                    ← Back
-                </button>
             </div>
             <!-- Right Column: Zoom UI -->
             <div class="network-zoom-column">
@@ -77,17 +68,20 @@
                     <span id="zoomPercentage" class="zoom-percentage-vertical">{{ Math.round(zoomLevel * 100) }}%</span>
                     <div class="zoom-buttons-vertical">
                         <button class="btn-zoom-vertical" @click="fitToScreen" title="Fit network to screen">
-                            Fit
+                            <b-icon icon="arrows-angle-contract"></b-icon>
                         </button>
-                        <button class="btn-zoom-vertical" @click="downloadNetworkImage">
-                            Download
+                        <button class="btn-zoom-vertical" @click="centerNetwork" title="Center network">
+                            <b-icon icon="bullseye"></b-icon>
+                        </button>
+                        <button class="btn-zoom-vertical" @click="downloadNetworkImage" title="Download network image">
+                            <b-icon icon="download"></b-icon>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Hover Popup -->
+        <!-- Hover Popup (small, follows mouse) -->
         <div 
             id="hoverPopup" 
             class="hover-popup"
@@ -95,6 +89,53 @@
             @mouseleave="hideHoverPopup"
         >
             <div id="hoverPopupNetwork" class="hover-popup-network"></div>
+        </div>
+
+        <!-- Click Popup (large, centered, stays open) -->
+        <div 
+            v-if="isClickPopupOpen" 
+            class="click-popup-overlay"
+            @click.self="hideClickPopup"
+        >
+            <div class="click-popup">
+                <div class="click-popup-content">
+                    <div id="clickPopupNetwork" class="click-popup-network"></div>
+                </div>
+                <div class="click-popup-controls">
+                    <button 
+                        class="click-popup-close"
+                        @click="hideClickPopup"
+                        title="Close"
+                    >
+                        ✕
+                    </button>
+                    <div class="click-popup-zoom-controls">
+                        <input 
+                            type="range" 
+                            id="clickPopupZoomSlider" 
+                            class="zoom-slider-vertical" 
+                            min="0.1" 
+                            max="2.0" 
+                            step="0.05"
+                            :value="clickPopupZoomLevel"
+                            @input="updateClickPopupZoom($event.target.value)"
+                            orient="vertical"
+                        />
+                        <span class="zoom-percentage-vertical">{{ Math.round(clickPopupZoomLevel * 100) }}%</span>
+                        <div class="zoom-buttons-vertical">
+                            <button class="btn-zoom-vertical" @click="fitClickPopupNetwork" title="Fit network to screen">
+                                <b-icon icon="arrows-angle-contract"></b-icon>
+                            </button>
+                            <button class="btn-zoom-vertical" @click="centerClickPopupNetwork" title="Center network">
+                                <b-icon icon="bullseye"></b-icon>
+                            </button>
+                            <button class="btn-zoom-vertical" @click="downloadClickPopupImage" title="Download network image">
+                                <b-icon icon="download"></b-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -125,16 +166,16 @@ export default Vue.component("PigeanGraphViz", {
             edges: null,
             originalNodes: null,
             originalEdges: null,
-            preparedOriginalNodes: null, // Store prepared original nodes for restoration
-            preparedOriginalEdges: null, // Store prepared original edges for restoration
             hasPositions: false,
             zoomLevel: 1.0,
             expandedNodes: {}, // Track which nodes have "show more" expanded
             hoverPopupNetwork: null, // Network instance for hover popup
+            clickPopupNetwork: null, // Network instance for click popup
             popupHideTimeout: null, // Timeout for hiding popup
             mousePosition: { x: 0, y: 0 }, // Track mouse position
-            isFiltered: false, // Track if main network is filtered
-            selectedNodeId: null // Track selected node for filtering
+            isClickPopupOpen: false, // Track if click popup is open
+            clickPopupNodeId: null, // Track which node is shown in click popup
+            clickPopupZoomLevel: 1.0 // Track zoom level for click popup
         };
     },
     computed: {
@@ -247,6 +288,9 @@ export default Vue.component("PigeanGraphViz", {
         }
         if (this.hoverPopupNetwork) {
             this.hoverPopupNetwork.destroy();
+        }
+        if (this.clickPopupNetwork) {
+            this.clickPopupNetwork.destroy();
         }
         if (this.popupHideTimeout) {
             clearTimeout(this.popupHideTimeout);
@@ -455,13 +499,124 @@ export default Vue.component("PigeanGraphViz", {
             // Update slider immediately
             this.updateZoomSlider();
         },
+        centerNetwork() {
+            if (!this.network) return;
+            // Center the network without changing zoom level
+            const currentScale = this.network.getScale();
+            this.network.moveTo({
+                position: { x: 0, y: 0 },
+                scale: currentScale,
+                animation: {
+                    duration: 300
+                }
+            });
+        },
         downloadNetworkImage() {
             if (!this.network) return;
-            const dataUrl = this.network.getBase64Image("image/png", 1.0);
-            const link = document.createElement("a");
-            link.download = `network-${Date.now()}.png`;
-            link.href = dataUrl;
-            link.click();
+            try {
+                // Check if getBase64Image method exists, if not use canvas directly
+                let dataUrl;
+                if (typeof this.network.getBase64Image === 'function') {
+                    dataUrl = this.network.getBase64Image("image/png", 1.0);
+                } else {
+                    // Fallback: get canvas from the network container
+                    const networkContainer = this.$refs.networkContainer || document.getElementById('mynetwork');
+                    if (networkContainer) {
+                        const canvas = networkContainer.querySelector('canvas');
+                        if (canvas) {
+                            dataUrl = canvas.toDataURL("image/png");
+                        } else {
+                            throw new Error('Canvas not found in network container');
+                        }
+                    } else {
+                        throw new Error('Network container not found');
+                    }
+                }
+                
+                const link = document.createElement("a");
+                link.download = `network-${Date.now()}.png`;
+                link.href = dataUrl;
+                // Append to body, click, then remove
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Error downloading network image:', error);
+            }
+        },
+        fitClickPopupNetwork() {
+            if (!this.clickPopupNetwork) return;
+            this.clickPopupNetwork.fit({
+                animation: {
+                    duration: 300
+                }
+            });
+            this.updateClickPopupZoomSlider();
+        },
+        centerClickPopupNetwork() {
+            if (!this.clickPopupNetwork) return;
+            // Center the network without changing zoom level
+            const currentScale = this.clickPopupNetwork.getScale();
+            this.clickPopupNetwork.moveTo({
+                position: { x: 0, y: 0 },
+                scale: currentScale,
+                animation: {
+                    duration: 300
+                }
+            });
+        },
+        downloadClickPopupImage() {
+            if (!this.clickPopupNetwork) return;
+            try {
+                // Check if getBase64Image method exists, if not use canvas directly
+                let dataUrl;
+                if (typeof this.clickPopupNetwork.getBase64Image === 'function') {
+                    dataUrl = this.clickPopupNetwork.getBase64Image("image/png", 1.0);
+                } else {
+                    // Fallback: get canvas from the network container
+                    const popupContainer = document.getElementById('clickPopupNetwork');
+                    if (popupContainer) {
+                        const canvas = popupContainer.querySelector('canvas');
+                        if (canvas) {
+                            dataUrl = canvas.toDataURL("image/png");
+                        } else {
+                            throw new Error('Canvas not found in popup network container');
+                        }
+                    } else {
+                        throw new Error('Popup network container not found');
+                    }
+                }
+                
+                const link = document.createElement("a");
+                link.download = `network-popup-${Date.now()}.png`;
+                link.href = dataUrl;
+                // Append to body, click, then remove
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Error downloading popup network image:', error);
+            }
+        },
+        updateClickPopupZoom(value) {
+            const scale = parseFloat(value);
+            this.setClickPopupZoom(scale);
+        },
+        setClickPopupZoom(scale) {
+            if (!this.clickPopupNetwork) return;
+            this.clickPopupNetwork.moveTo({
+                scale: scale,
+                animation: {
+                    duration: 0
+                }
+            });
+            this.clickPopupZoomLevel = scale;
+        },
+        updateClickPopupZoomSlider() {
+            if (!this.clickPopupNetwork) return;
+            const currentScale = this.clickPopupNetwork.getScale();
+            const clampedScale = Math.max(0.1, Math.min(2.0, currentScale));
+            this.clickPopupZoomLevel = clampedScale;
         },
         toggleShowMore(nodeId) {
             this.$set(this.expandedNodes, nodeId, !this.expandedNodes[nodeId]);
@@ -659,16 +814,37 @@ export default Vue.component("PigeanGraphViz", {
                 this.popupHideTimeout = null;
             }
         },
-        filterMainNetworkByNode(nodeId) {
-            if (!this.originalNodes || !this.originalEdges || !this.network) {
+        showClickPopup(nodeId) {
+            if (!this.originalNodes || !this.originalEdges) {
                 return;
             }
 
-            console.log("originalNodes", this.originalNodes);
+            this.clickPopupNodeId = nodeId;
+            this.isClickPopupOpen = true;
 
-            // Find the node in original data
+            // Wait for DOM to update, then create network
+            this.$nextTick(() => {
+                this.createClickPopupNetwork(nodeId);
+            });
+        },
+        hideClickPopup() {
+            this.isClickPopupOpen = false;
+            this.clickPopupNodeId = null;
+            
+            // Destroy network when closing
+            if (this.clickPopupNetwork) {
+                this.clickPopupNetwork.destroy();
+                this.clickPopupNetwork = null;
+            }
+        },
+        createClickPopupNetwork(nodeId) {
+            if (!this.originalNodes || !this.originalEdges) {
+                return;
+            }
+
+            // Find the node
             const filterNode = this.originalNodes.find(node =>
-                node.id === nodeId || String(node.id) === String(nodeId)
+                node.id === nodeId
             );
 
             if (!filterNode) {
@@ -676,139 +852,102 @@ export default Vue.component("PigeanGraphViz", {
             }
 
             // Find all nodes connected to the filter node
-            // Use both string and original type for ID matching to handle type mismatches
-            const connectedNodeIds = new Set();
-            const connectedNodeIdsStr = new Set();
-            
-            // Add the filter node with both types
-            connectedNodeIds.add(nodeId);
-            connectedNodeIds.add(String(nodeId));
-            connectedNodeIdsStr.add(String(nodeId));
+            const connectedNodeIds = new Set([nodeId]);
 
             // Find edges connected to the filter node
             this.originalEdges.forEach(edge => {
-                const edgeFromStr = String(edge.from);
-                const edgeToStr = String(edge.to);
-                const nodeIdStr = String(nodeId);
-                
-                if (edge.from === nodeId || edge.to === nodeId || 
-                    edgeFromStr === nodeIdStr || edgeToStr === nodeIdStr) {
+                if (edge.from === nodeId || edge.to === nodeId) {
                     connectedNodeIds.add(edge.from);
-                    connectedNodeIds.add(String(edge.from));
                     connectedNodeIds.add(edge.to);
-                    connectedNodeIds.add(String(edge.to));
-                    connectedNodeIdsStr.add(edgeFromStr);
-                    connectedNodeIdsStr.add(edgeToStr);
                 }
             });
 
-            // Find all edges between connected nodes - preserve ALL original properties
-            // Use AND logic: both nodes must be in the connected set
-            const allConnectedEdges = this.originalEdges
-                .filter(edge => {
-                    const fromStr = String(edge.from);
-                    const toStr = String(edge.to);
-                    const fromConnected = connectedNodeIds.has(edge.from) || connectedNodeIdsStr.has(fromStr);
-                    const toConnected = connectedNodeIds.has(edge.to) || connectedNodeIdsStr.has(toStr);
-                    return fromConnected && toConnected;
-                })
-                .map(edge => {
-                    // Create a true deep copy preserving ALL original properties
-                    return JSON.parse(JSON.stringify(edge));
-                });
+            // Find all edges between connected nodes
+            const allConnectedEdges = this.originalEdges.filter(edge => {
+                return connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to);
+            });
 
-            // Filter nodes to only include connected ones - preserve ALL original properties
-            const filteredNodes = this.originalNodes
-                .filter(node => {
-                    const nodeIdStr = String(node.id);
-                    return connectedNodeIds.has(node.id) || connectedNodeIdsStr.has(nodeIdStr);
-                })
-                .map(node => {
-                    // Create a true deep copy preserving ALL original properties
-                    return JSON.parse(JSON.stringify(node));
-                });
+            // Filter nodes to only include connected ones
+            const filteredNodes = this.originalNodes.filter(node => connectedNodeIds.has(node.id));
 
-            // Prepare filtered data using the same prepare methods to preserve all properties
+            // Prepare filtered data
             const preparedNodes = this.prepareNodes(filteredNodes);
             const preparedEdges = this.prepareEdges(allConnectedEdges);
 
-            // Create fresh deep copies immediately before adding to DataSet to prevent mutation
-            // Preserve ALL original properties using JSON deep copy
-            const freshNodes = preparedNodes.map(node => {
-                return JSON.parse(JSON.stringify(node));  // True deep copy preserving all properties
-            });
+            // Create network data
+            const popupNetworkData = {
+                nodes: new DataSet(preparedNodes),
+                edges: new DataSet(preparedEdges)
+            };
 
-            const freshEdges = preparedEdges.map(edge => {
-                return JSON.parse(JSON.stringify(edge));  // True deep copy preserving all properties
-            });
-
-            // Update network data
-            this.nodes.clear();
-            this.edges.clear();
-            this.nodes.add(freshNodes);
-            this.edges.add(freshEdges);
-
-            // Log the actual data used to render (after adding to DataSet)
-            setTimeout(() => {
-                const datasetNodes = this.nodes.get();
-            }, 100);
-
-            // Update state
-            this.isFiltered = true;
-            this.selectedNodeId = nodeId;
-
-            // Fit to screen after filtering
-            setTimeout(() => {
-                if (this.network) {
-                    this.network.fit({
-                        animation: {
-                            duration: 300
-                        }
-                    });
-                    this.updateZoomSlider();
+            const popupOptions = {
+                nodes: {
+                    borderWidth: 2,
+                    shadow: false,
+                    font: {
+                        size: 12,
+                        face: 'Arial'
+                    }
+                },
+                edges: {
+                    shadow: false,
+                    smooth: {
+                        type: 'continuous',
+                        roundness: 0.5
+                    }
+                },
+                physics: {
+                    enabled: true,
+                    stabilization: {
+                        enabled: true,
+                        iterations: 200,
+                        fit: true
+                    },
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.1,
+                        springLength: 200,
+                        springConstant: 0.04,
+                        damping: 0.09
+                    }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 200,
+                    zoomView: true,
+                    dragView: true,
+                    zoomSpeed: 1,
+                    navigationButtons: false
                 }
-            }, 100);
-        },
-        restoreFullNetwork() {
-            if (!this.preparedOriginalNodes || !this.preparedOriginalEdges || !this.network) {
+            };
+
+            const popupContainer = document.getElementById('clickPopupNetwork');
+            if (!popupContainer) {
                 return;
             }
 
-            // Create fresh deep copies when restoring - preserve ALL original properties
-            const restoredNodes = this.preparedOriginalNodes.map(node => {
-                return JSON.parse(JSON.stringify(node));  // True deep copy preserving all properties
+            popupContainer.innerHTML = ''; // Clear previous network
+
+            // Destroy previous network if it exists
+            if (this.clickPopupNetwork) {
+                this.clickPopupNetwork.destroy();
+            }
+
+            this.clickPopupNetwork = new Network(popupContainer, popupNetworkData, popupOptions);
+
+            // Disable physics after stabilization
+            this.clickPopupNetwork.on("stabilizationEnd", () => {
+                this.clickPopupNetwork.setOptions({ physics: false });
+                this.updateClickPopupZoomSlider();
             });
-            
-            const restoredEdges = this.preparedOriginalEdges.map(edge => {
-                return JSON.parse(JSON.stringify(edge));  // True deep copy preserving all properties
+
+            // Listen for zoom changes from user interaction
+            this.clickPopupNetwork.on("zoom", () => {
+                this.updateClickPopupZoomSlider();
             });
 
-            // Restore using fresh copies
-            this.nodes.clear();
-            this.edges.clear();
-            this.nodes.add(restoredNodes);
-            this.edges.add(restoredEdges);
-
-            // Log the actual data used to render (after restoring)
-            setTimeout(() => {
-                const datasetNodes = this.nodes.get();
-            }, 100);
-
-            // Update state
-            this.isFiltered = false;
-            this.selectedNodeId = null;
-
-            // Fit to screen after restoring
-            setTimeout(() => {
-                if (this.network) {
-                    this.network.fit({
-                        animation: {
-                            duration: 300
-                        }
-                    });
-                    this.updateZoomSlider();
-                }
-            }, 100);
+            // Initialize zoom slider
+            this.clickPopupZoomLevel = 1.0;
         },
         async loadAndVisualize(phenotypeId) {
             if (!phenotypeId) {
@@ -843,23 +982,8 @@ export default Vue.component("PigeanGraphViz", {
                 this.hasPositions = graphData.nodes.some(node => node.x !== undefined && node.y !== undefined);
 
                 // Prepare and visualize
-                //const preparedNodes = this.prepareNodes(graphData.nodes);
-                //const preparedEdges = this.prepareEdges(graphData.edges);
-
-                const preparedNodes = graphData.nodes;
-                const preparedEdges = graphData.edges;
-
-                // Store deep copies of prepared original data for restoration
-                // Preserve ALL original properties using JSON deep copy
-                /*this.preparedOriginalNodes = preparedNodes.map(node => {
-                    return JSON.parse(JSON.stringify(node));  // True deep copy preserving all properties
-                });
-                this.preparedOriginalEdges = preparedEdges.map(edge => {
-                    return JSON.parse(JSON.stringify(edge));  // True deep copy preserving all properties
-                });*/
-
-                this.preparedOriginalNodes = JSON.parse(JSON.stringify(preparedNodes));
-                this.preparedOriginalEdges = JSON.parse(JSON.stringify(preparedEdges));
+                const preparedNodes = this.prepareNodes(graphData.nodes);
+                const preparedEdges = this.prepareEdges(graphData.edges);
 
                 this.createNetwork(preparedNodes, preparedEdges);
 
@@ -961,28 +1085,6 @@ export default Vue.component("PigeanGraphViz", {
     position: relative;
 }
 
-.reset-network-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10000;
-    padding: 8px 16px;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    transition: background-color 0.2s;
-    pointer-events: auto;
-}
-
-.reset-network-btn:hover {
-    background-color: #1565c0;
-}
-
 .network-zoom-column {
     width: 50px;
     flex-shrink: 0;
@@ -1066,5 +1168,92 @@ export default Vue.component("PigeanGraphViz", {
     height: 500px;
     border: 1px solid #ddd;
     border-radius: 4px;
+}
+
+.click-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.click-popup {
+    position: relative;
+    width: 80%;
+    height: 80%;
+    background-color: white;
+    border: 2px solid #1976d2;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+    padding: 15px;
+    gap: 15px;
+}
+
+.click-popup-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.click-popup-network {
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-height: 0;
+}
+
+.click-popup-controls {
+    width: 50px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 5px;
+    justify-content: flex-start;
+    border-left: 1px solid #e0e0e0;
+    gap: 10px;
+}
+
+.click-popup-close {
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background-color: #1976d2;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.click-popup-close:hover {
+    background-color: #1565c0;
+}
+
+.click-popup-zoom-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
 }
 </style>
