@@ -13,7 +13,7 @@
                         <div class="card-body">
                             <b-tabs v-model="$parent.activeTab">
                                 <b-tab title="Top Transcripts">
-                                    <div>
+                                    <div class="tab-inner">
                                         <h4>
                                             Time series data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
                                         </h4>
@@ -55,7 +55,7 @@
                                     </div>
                                 </b-tab>
                                 <b-tab title="Search by Gene">
-                                    <div>
+                                    <div class="tab-inner">
                                         <h4>
                                             Search up to 10 genes to create a custom heatmap.
                                         </h4>
@@ -63,27 +63,26 @@
                                             class="time-series-content">
                                             <criterion-function-group>
                                                 <label>
-                                                    Search by Genes
-                                                    <input class="form-control" 
-                                                        type="textarea" 
-                                                        v-model="$parent.geneSearchQuery"/>
+                                                    <textarea class="form-control" 
+                                                        cols="20" rows="5"
+                                                        v-model="$parent.geneSearchQuery">
+                                                    </textarea>
                                                 </label>
                                                 <button class="btn btn-primary"
                                                     @click="$parent.queryGenes()">
                                                     Search
                                                 </button>
-                                                <button class="btn btn-secondary">Clear</button>
-                                                    <div v-if="$parent.geneSearchResults.length > 0">
-                                                        <time-series-heatmap
-                                                            :heatmapData="$parent.processedGeneSearch"
-                                                            :renderConfig="$parent.heatmapConfig"
-                                                            :utils="$parent.utilsBox"
-                                                            sectionId="search-heatmap"
-                                                            :linePlotConfig="$parent.linePlotConfig"
-                                                            :zoomedIn="true">
-                                                        </time-series-heatmap>
-                                                    </div>
                                             </criterion-function-group>
+                                            <div v-if="$parent.geneSearchResults.length > 0">
+                                                <time-series-heatmap
+                                                    :heatmapData="$parent.processedGeneSearch"
+                                                    :renderConfig="$parent.heatmapConfig"
+                                                    :utils="$parent.utilsBox"
+                                                    sectionId="search-heatmap"
+                                                    :linePlotConfig="$parent.linePlotConfig"
+                                                    :zoomedIn="true">
+                                                </time-series-heatmap>
+                                            </div>
                                         </div>
                                     </div>
                                 </b-tab>
@@ -136,5 +135,11 @@ div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
 .zoom-checkbox {
 	text-align: left;
 	padding-left: 25px;
+}
+.tab-inner {
+    padding: 25px;
+}
+button {
+    margin: 5px;
 }
 </style>

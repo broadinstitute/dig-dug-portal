@@ -69,7 +69,7 @@ new Vue({
             currentTable: [],
             zoomedIn: true,
             activeTab: 0,
-            geneSearchQuery: "",
+            geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
             geneSearchResults: [],
             ready: false
         };
