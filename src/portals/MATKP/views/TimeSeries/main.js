@@ -70,7 +70,8 @@ new Vue({
             zoomedIn: true,
             activeTab: 0,
             geneSearchQuery: "",
-            geneSearchResults: []
+            geneSearchResults: [],
+            ready: false
         };
     },
     computed: {
@@ -223,6 +224,7 @@ new Vue({
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
+            console.log(JSON.stringify(data[0]));
             let conditions = Object.keys(data[0])
                 .filter(t => t.startsWith("GSM"));
             this.conditions = conditions;
@@ -231,11 +233,6 @@ new Vue({
             let sampleData = paginate 
                 ? this.filterByPage(structuredClone(data))
                 : structuredClone(data);
-
-
-            // Calculate min and max scores at the same time
-            let minScore = null;
-            let maxScore = null;
             
 			let timeElapsed = new RegExp(/day (-?\d+)/);
             let rep = new RegExp(/replicate (\d+)/);
@@ -244,12 +241,6 @@ new Vue({
                 conditions.forEach(c => {
                     let sourceName = this.getSourceName(c)
                     let score = tsd[c];
-                    if (minScore === null || score < minScore){
-                        minScore = score;
-                    }
-                    if (maxScore === null || score > maxScore){
-                        maxScore = score;
-                    }
                     let days = parseInt(sourceName.match(timeElapsed)[1]);
                     let replicate = parseInt(sourceName.match(rep)[1]);
                     let entry = {
@@ -267,8 +258,6 @@ new Vue({
                 });
             });
             // TODO figure out how to calculate these differently
-            this.minScore = minScore;
-            this.maxScore = maxScore;
             return output;
         },
         async queryGenes(){
@@ -296,6 +285,23 @@ new Vue({
                 } catch (error) {
                     throw error;
                 }
+        },
+        extremeVal(data, min=true){
+            let extreme = data[0].score;
+            data.forEach(d => extreme = 
+                (min && d.score < extreme) || (!min && d.score > extreme)
+                ? d.score
+                : extreme);
+            return extreme;
+        }
+    },
+    watch: {
+        processedData(newData){
+            if (this.minScore === null && this.maxScore === null){
+                this.minScore = this.extremeVal(newData);
+                this.maxScore = this.extremeVal(newData, false);
+                this.ready = true;
+            }
         }
     },
     render: (h) => h(Template),

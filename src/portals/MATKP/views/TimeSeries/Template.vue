@@ -23,7 +23,7 @@
                                                 Zoom in
                                             </label>
                                         </div>
-                                        <div v-if="$parent.timeSeriesData !== null && $parent.activeTab === 0"
+                                        <div v-if="$parent.ready"
                                             class="time-series-content">
                                             <time-series-heatmap
                                                 :heatmapData="$parent.processedData"
@@ -62,14 +62,6 @@
                                         <div v-if="$parent.allTimeSeriesData !== null && $parent.activeTab === 1"
                                             class="time-series-content">
                                             <criterion-function-group>
-                                                <!-- <filter-enumeration-control
-                                                    field="gene"
-                                                    placeholder="Select genes ..."
-                                                    :options="$parent.allProcessedData.map((d) => d.gene)"
-                                                    :multiple="true"
-                                                >
-                                                    <div class="label">Filter by Genes</div>
-                                                </filter-enumeration-control> -->
                                                 <label>
                                                     Search by Genes
                                                     <input class="form-control" 
