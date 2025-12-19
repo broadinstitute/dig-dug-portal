@@ -154,6 +154,11 @@ new Vue({
                     key: "gene",
                     label: "Gene",
                     sortable: true
+                },
+                {
+                    key: "pattern",
+                    label: "Pattern",
+                    sortable: true
                 }
                 
             ];
