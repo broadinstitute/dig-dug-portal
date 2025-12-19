@@ -57,7 +57,6 @@ new Vue({
             plotId: "time_series_heatmap",
             timeSeriesId: "GSE20696", // hardcoded for sample,
             timeSeriesData: null,
-            allTimeSeriesData: null,
             metadata: null,
             minScore: null,
             maxScore: null,
@@ -89,11 +88,10 @@ new Vue({
             return utils;
         },
         processedData(){
-            return this.processDataForHeatmap();
+            return this.processDataForHeatmap(this.timeSeriesData, true);
         },
-        allProcessedData(){
-            // Process data with 'include all' selected
-            return this.processDataForHeatmap(true);
+        processedGeneSearch(){
+            return this.processDataForHeatmap(this.geneSearchResults);
         },
         heatmapConfig(){
             return {
@@ -176,7 +174,6 @@ new Vue({
     async created() {
         this.metadata = await this.getTimeSeriesMetadata();
         this.timeSeriesData = await this.getTimeSeries();
-        this.allTimeSeriesData = await this.getTimeSeries(false);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -222,18 +219,18 @@ new Vue({
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
         },
-        processDataForHeatmap(includeAll=false){
+        processDataForHeatmap(data, paginate=false){
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
-            let conditions = Object.keys(this.timeSeriesData[0])
+            let conditions = Object.keys(data[0])
                 .filter(t => t.startsWith("GSM"));
             this.conditions = conditions;
             
             let output = [];
-            let sampleData = !includeAll 
-                ? this.filterByPage(structuredClone(this.timeSeriesData))
-                : structuredClone(this.allTimeSeriesData);
+            let sampleData = paginate 
+                ? this.filterByPage(structuredClone(data))
+                : structuredClone(data);
 
 
             // Calculate min and max scores at the same time
@@ -269,6 +266,7 @@ new Vue({
                     output.push(entry);
                 });
             });
+            // TODO figure out how to calculate these differently
             this.minScore = minScore;
             this.maxScore = maxScore;
             return output;

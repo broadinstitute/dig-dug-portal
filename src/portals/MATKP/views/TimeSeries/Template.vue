@@ -83,7 +83,7 @@
                                                 <button class="btn btn-secondary">Clear</button>
                                                     <div v-if="$parent.geneSearchResults.length > 0">
                                                         <time-series-heatmap
-                                                            :heatmapData="$parent.geneSearchResults"
+                                                            :heatmapData="$parent.processedGeneSearch"
                                                             :renderConfig="$parent.heatmapConfig"
                                                             :utils="$parent.utilsBox"
                                                             sectionId="search-heatmap"
