@@ -71,7 +71,7 @@ new Vue({
             zoomedIn: true,
             activeTab: 0,
             geneSearchQuery: "",
-            geneSearchArray: []
+            geneSearchResults: []
         };
     },
     computed: {
@@ -273,10 +273,31 @@ new Vue({
             this.maxScore = maxScore;
             return output;
         },
-        queryGenes(){
+        async queryGenes(){
             let delimiters = /[\s;,]+/;
-            this.geneSearchArray = this.geneSearchQuery.split(delimiters);
-            console.log(this.geneSearchArray);
+            let geneSearchArray = this.geneSearchQuery.split(delimiters);
+            let results = await this.multiqueryGenes(geneSearchArray);
+            this.geneSearchResults = results.data;
+            
+        },
+        async multiqueryGenes(geneArray){
+            let url = "https://matkp.hugeampkpnbi.org/api/bio/multiquery";
+            let index = "single-cell-time-series"
+            let queryArray = [];
+            geneArray.forEach(g => queryArray.push(`${this.timeSeriesId},${g}`));
+            let queryObject = {
+                "index": index,
+                "queries": queryArray
+            };
+            try {
+                    return await fetch(url, {
+                        method: "POST",
+                        body: JSON.stringify(queryObject),
+                    })
+                        .then((response) => response.json());
+                } catch (error) {
+                    throw error;
+                }
         }
     },
     render: (h) => h(Template),

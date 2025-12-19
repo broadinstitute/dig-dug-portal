@@ -81,17 +81,16 @@
                                                     Search
                                                 </button>
                                                 <button class="btn btn-secondary">Clear</button>
-                                                <template slot="filtered" slot-scope="{ filter }">
-                                                    <time-series-heatmap
-                                                        :heatmapData="$parent.geneSearchResults"
-                                                        :filter="filter"
-                                                        :renderConfig="$parent.heatmapConfig"
-                                                        :utils="$parent.utilsBox"
-                                                        sectionId="search-heatmap"
-                                                        :linePlotConfig="$parent.linePlotConfig"
-                                                        :zoomedIn="true">
-                                                    </time-series-heatmap>
-                                                </template>
+                                                    <div v-if="$parent.geneSearchResults.length > 0">
+                                                        <time-series-heatmap
+                                                            :heatmapData="$parent.geneSearchResults"
+                                                            :renderConfig="$parent.heatmapConfig"
+                                                            :utils="$parent.utilsBox"
+                                                            sectionId="search-heatmap"
+                                                            :linePlotConfig="$parent.linePlotConfig"
+                                                            :zoomedIn="true">
+                                                        </time-series-heatmap>
+                                                    </div>
                                             </criterion-function-group>
                                         </div>
                                     </div>
