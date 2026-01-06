@@ -135,7 +135,7 @@
           <b-pagination
               v-model="currentPage"
               class="pagination-sm justify-content-center"
-              :total-rows="pigeanData.length"
+              :total-rows="pigeanDataFiltered.length"
               :per-page="perPage"
           ></b-pagination>
       </div>
@@ -145,7 +145,7 @@
 <script>
 import Vue from "vue";
 
-import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchPigeanPheWAS from "@/components/researchPortal/PIGEAN/ResearchPigeanPheWAS.vue";
 import DataDownload from "@/components/DataDownload.vue";
 
 import uiUtils from "@/utils/uiUtils";
@@ -161,7 +161,7 @@ import userUtils from "@/utils/userUtils.js";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 export default Vue.component("pigean-gene", {
   components: {
-    ResearchPheWAS,
+    ResearchPigeanPheWAS,
     DataDownload
   },
   props: ["gene","pigeanData","phenotypeMap","phenotypesInSession"],
