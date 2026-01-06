@@ -4,12 +4,14 @@
       <h4 class="card-title">
         Traits with genetic support for {{gene}}
       </h4>
+
+        
       <b-tabs v-model="activeTab">
-        <b-tab title="Combined genetic support">
+        <b-tab title="Combined genetic support (GWAS + gene sets)">
             <div class="tab-documentation">
                 Documentation for combined genetic support
             </div>
-            <research-phewas-plot
+            <research-pigean-phewas-plot
                 v-if="pigeanDataFiltered.length > 0"
                 ref="combinedPhewasPlot"
                 canvas-id="combinedPlot"
@@ -29,9 +31,36 @@
                 :utils="utilsBox"
                 :options="['open phenotype page']"
             >
-            </research-phewas-plot>
+            </research-pigean-phewas-plot>
         </b-tab>
-        <b-tab title="GWAS support">
+        <b-tab title="GWAS support vs HuGE score">
+            <div class="tab-documentation">
+                Documentation for pigean genetic support
+            </div>
+            <research-pigean-phewas-plot
+                v-if="pigeanDataFiltered.length > 0"
+                ref="pigeanPhewasPlot"
+                canvas-id="pigeanPlot"
+                :plot-name="`pigean_${gene}`"
+                :phenotypes-data="pigeanDataFiltered"
+                :phenotype-map="
+                    phenotypeMap
+                "
+                :colors="plotColors"
+                :plot-margin="phewasPlotMargin"
+                :render-config="
+                    pigeanConfig
+                "
+                :pkg-data="null"
+                :pkg-data-selected="null"
+                :filter="null"
+                :utils="utilsBox"
+                :options="['open phenotype page']"
+            >
+            </research-pigean-phewas-plot>
+        </b-tab>
+        
+        <!-- <b-tab title="GWAS support">
             <div class="tab-documentation">
                 Documentation for GWAS support
             </div>
@@ -96,7 +125,7 @@
                 :options="['open phenotype page']"
             >
             </research-phewas-plot>
-        </b-tab>
+        </b-tab>-->
       </b-tabs>
       <div class="mt-3" style="position: relative">
           <div
@@ -146,6 +175,7 @@
 import Vue from "vue";
 
 import ResearchPigeanPheWAS from "@/components/researchPortal/PIGEAN/ResearchPigeanPheWAS.vue";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import DataDownload from "@/components/DataDownload.vue";
 
 import uiUtils from "@/utils/uiUtils";
@@ -162,6 +192,7 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 export default Vue.component("pigean-gene", {
   components: {
     ResearchPigeanPheWAS,
+    ResearchPheWAS,
     DataDownload
   },
   props: ["gene","pigeanData","phenotypeMap","phenotypesInSession"],
@@ -221,17 +252,44 @@ export default Vue.component("pigean-gene", {
             formatter: (value) => value ? value.toFixed(2) : 'N/A'
           }
         ],
-        combinedConfig: {
-            type: "phewas plot",
+        pigeanConfig: {
+            "type": "pigean phewas plot",
             "render by": "Phenotype",
             "group by": "group",
             "phenotype map": "kp phenotype map",
-            "y axis field": "Combined_GWAS_gene_sets",
+            "y axis fields": ["GWAS_support","HuGE_Score"],
+            "y axis field labels": ["GWAS support","HuGE score"],
+            "primary y axis field": "GWAS_support",
+            "convert y -log10": "false",
+            "y axis label": "HuGE score vs GWAS support",
+            "x axis label": "",
+            "beta field": "null",
+            "hover content": ["Phenotype", "Combined_GWAS_gene_sets", "GWAS_support", "Gene_set_support", "HuGE_Score"],
+            "filter by threshold": true,
+            "thresholds": [2],
+            "label in black": "greater than",
+            "height": "600",
+            "plot margin": {
+                "left": 150,
+                "right": 150,
+                "top": 250,
+                "bottom": 300,
+            },
+        },
+        combinedConfig: {
+            "type": "pigean phewas plot",
+            "render by": "Phenotype",
+            "group by": "group",
+            "phenotype map": "kp phenotype map",
+            "y axis fields": ["Combined_GWAS_gene_sets","GWAS_support","Gene_set_support"],
+            "y axis field labels": ["Combined (GWAS + gene sets)","GWAS support","Gene set support"],
+            "primary y axis field": "Combined_GWAS_gene_sets",
             "convert y -log10": "false",
             "y axis label": "Combined (GWAS + gene sets)",
             "x axis label": "",
             "beta field": "null",
             "hover content": ["Phenotype", "Combined_GWAS_gene_sets", "GWAS_support", "Gene_set_support", "HuGE_Score"],
+            "filter by threshold": true,
             thresholds: [2],
             "label in black": "greater than",
             height: "600",
@@ -337,7 +395,7 @@ export default Vue.component("pigean-gene", {
     if (this.pigeanDataFiltered && this.pigeanDataFiltered.length > 0) {
       this.$nextTick(() => {
         setTimeout(() => {
-          this.renderPhewas('combinedPhewasPlot');
+          this.renderActiveTab();
         }, 1000);
       });
     }
@@ -411,15 +469,7 @@ export default Vue.component("pigean-gene", {
           this.$nextTick(() => {
             this.$nextTick(() => {
               setTimeout(() => {
-                if (this.activeTab === 0) {
-                  this.renderPhewas('combinedPhewasPlot');
-                } else if (this.activeTab === 1) {
-                  this.renderPhewas('gwasPhewasPlot');
-                } else if (this.activeTab === 2) {
-                  this.renderPhewas('geneSetPhewasPlot');
-                } else if (this.activeTab === 3) {
-                  this.renderPhewas('hugePhewasPlot');
-                }
+                this.renderActiveTab();
               }, 300);
             });
           });
@@ -430,45 +480,67 @@ export default Vue.component("pigean-gene", {
     activeTab(newTab) {
       if (this.pigeanDataFiltered && this.pigeanDataFiltered.length > 0) {
         // Use multiple nextTick calls to ensure tab content is mounted
+        // Bootstrap Vue tabs need extra time to mount the content
         this.$nextTick(() => {
           this.$nextTick(() => {
-            setTimeout(() => {
-              if (newTab === 0) {
-                this.renderPhewas('combinedPhewasPlot');
-              } else if (newTab === 1) {
-                this.renderPhewas('gwasPhewasPlot');
-              } else if (newTab === 2) {
-                this.renderPhewas('geneSetPhewasPlot');
-              } else if (newTab === 3) {
-                this.renderPhewas('hugePhewasPlot');
-              }
-            }, 300);
+            this.$nextTick(() => {
+              setTimeout(() => {
+                this.renderActiveTab();
+              }, 500);
+            });
           });
         });
       }
     }
   },
   methods: {
+    renderActiveTab() {
+      // Render the plot for the currently active tab
+      let refName = null;
+      if (this.activeTab === 0) {
+        refName = 'combinedPhewasPlot';
+      } else if (this.activeTab === 1) {
+        refName = 'pigeanPhewasPlot';
+      }
+      
+      if (refName) {
+        this.renderPhewas(refName);
+      }
+    },
     renderPhewas(refName) {
       // Try multiple times with delays to ensure component is ready
       const tryRender = (attempts = 0) => {
         const ref = this.$refs[refName];
-        if (ref && typeof ref.renderPheWas === 'function') {
-          try {
-            ref.renderPheWas();
-          } catch (error) {
-            console.warn(`Error rendering ${refName}:`, error);
+        if (ref) {
+          // Check if component has renderPheWas method
+          if (typeof ref.renderPheWas === 'function') {
+            try {
+              // Force a re-render by calling renderPheWas
+              // This should trigger the rendering even if data hasn't changed
+              ref.renderPheWas();
+              console.log(`Successfully rendered ${refName}`);
+              return; // Success, exit
+            } catch (error) {
+              console.warn(`Error rendering ${refName}:`, error);
+              // Continue retrying on error
+            }
           }
-        } else if (attempts < 5) {
-          // Retry if ref not available yet
+        }
+        
+        // Retry if component not ready or method not available
+        if (attempts < 20) {
           setTimeout(() => {
             tryRender(attempts + 1);
-          }, 200);
+          }, 250);
+        } else {
+          console.warn(`Could not render ${refName} after ${attempts} attempts. Ref exists: ${!!ref}, has method: ${ref && typeof ref.renderPheWas === 'function'}`);
         }
       };
+      // Start with a delay to ensure tab content is mounted
+      // Bootstrap Vue tabs may need time to mount lazy-loaded content
       setTimeout(() => {
         tryRender();
-      }, 100);
+      }, 600);
     }
   },
 });

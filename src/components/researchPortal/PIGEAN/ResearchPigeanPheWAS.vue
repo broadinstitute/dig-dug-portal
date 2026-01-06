@@ -95,6 +95,84 @@
                         <br />
                     </span>
                 </div>
+                <!-- Y-axis field selection checkboxes for multi-y-axis plots -->
+                <div 
+                    v-if="hasMultipleYAxisFields" 
+                    class="y-axis-fields-selector"
+                >
+                    <label 
+                        v-for="field in yAxisFields" 
+                        :key="field"
+                        class="y-axis-field-checkbox"
+                    >
+                        <input 
+                            type="checkbox" 
+                            :value="field"
+                            :checked="selectedYAxisFields.includes(field)"
+                            @change="toggleYAxisField(field)"
+                        />
+                        <span><span class="shape-symbol">{{ getFieldShapeLabel(field) }}</span> {{ getFieldDisplayLabel(field) }}</span>
+                    </label>
+                    <!-- Threshold filter toggle -->
+                    <label 
+                        v-if="renderConfig.thresholds && renderConfig.thresholds.length > 0"
+                        class="y-axis-field-checkbox threshold-filter-checkbox"
+                    >
+                        <input 
+                            type="checkbox" 
+                            :checked="filterByThreshold"
+                            @change="filterByThreshold = !filterByThreshold"
+                        />
+                        <span>Show only above threshold</span>
+                    </label>
+                    <!-- Phenotype group filter dropdown -->
+                    <div 
+                        v-if="availableGroups.length > 0"
+                        class="phenotype-group-filter-inline"
+                    >
+                        <div class="dropdown-wrapper">
+                            <button 
+                                class="btn btn-sm btn-secondary dropdown-toggle"
+                                type="button"
+                                @click.stop="showGroupDropdown = !showGroupDropdown"
+                            >
+                                Filter by Groups ({{ selectedGroups.length }}/{{ availableGroups.length }})
+                                <b-icon icon="chevron-down"></b-icon>
+                            </button>
+                            <div 
+                                v-if="showGroupDropdown"
+                                class="group-dropdown-menu"
+                                @click.stop=""
+                            >
+                                <div class="group-dropdown-header">
+                                    <label class="select-all-groups">
+                                        <input 
+                                            type="checkbox"
+                                            :checked="selectedGroups.length === availableGroups.length"
+                                            @change="toggleAllGroups"
+                                        />
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
+                                <div class="group-dropdown-content">
+                                    <label 
+                                        v-for="group in availableGroups" 
+                                        :key="group"
+                                        class="group-checkbox-item"
+                                    >
+                                        <input 
+                                            type="checkbox" 
+                                            :value="group"
+                                            :checked="selectedGroups.includes(group)"
+                                            @change="toggleGroup(group)"
+                                        />
+                                        <span>{{ group }}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <canvas
                     :hidden="!showCanvas"
                     :id="canvasId + 'pheWasPlot'"
@@ -187,7 +265,6 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
         "filter",
         "options",
         "sectionId",
-        "sectionId",
         "utils",
         "plotName",
         "top1500",
@@ -204,10 +281,40 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             trigger: 0,
             hoverItems: {},
             showCanvas: true,
+            selectedYAxisFields: [], // Track which y-axis fields are selected
+            filterByThreshold: true, // User-controlled threshold filter toggle (initially checked)
+            selectedGroups: [], // Track which phenotype groups are selected
+            showGroupDropdown: false, // Control dropdown visibility
         };
     },
     modules: {},
     computed: {
+        hasMultipleYAxisFields() {
+            return !!(
+                this.renderConfig["y axis fields"] &&
+                Array.isArray(this.renderConfig["y axis fields"]) &&
+                this.renderConfig["y axis fields"].length > 0
+            );
+        },
+        yAxisFields() {
+            if (this.hasMultipleYAxisFields) {
+                return this.renderConfig["y axis fields"];
+            }
+            return [];
+        },
+        primaryYAxisField() {
+            if (this.hasMultipleYAxisFields && this.renderConfig["primary y axis field"]) {
+                return this.renderConfig["primary y axis field"];
+            }
+            return this.renderConfig["y axis field"] || null;
+        },
+        currentYAxisField() {
+            // Use primary field if no fields selected, otherwise use first selected
+            if (this.selectedYAxisFields.length === 0) {
+                return this.primaryYAxisField;
+            }
+            return this.selectedYAxisFields[0];
+        },
         greaterThan() {
             return (
                 !!this.renderConfig["label in black"] &&
@@ -231,8 +338,15 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
 
             if (this.phenotypesData) {
                 let phenotypesData = cloneDeep(this.phenotypesData);
+                
+                // Determine which field to use for sorting and p-value calculation
+                const sortField = this.hasMultipleYAxisFields 
+                    ? this.primaryYAxisField 
+                    : (this.renderConfig["y axis field"] || null);
+                
                 phenotypesData.forEach((d) => {
-                    d["rawPValue"] = this.getPValue(d);
+                    // Use primary field for rawPValue calculation
+                    d["rawPValue"] = this.getPValue(d, sortField);
                 });
                 phenotypesData = phenotypesData.sort(
                     (a, b) => a.rawPValue - b.rawPValue
@@ -248,12 +362,32 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                 }
 
                 phenotypesData.map((d) => {
-                    if (
-                        this.renderConfig["convert y -log10"] == true ||
-                        this.renderConfig["convert y -log10"] == "true"
-                    ) {
-                        d[this.renderConfig["y axis field"] + "-log10"] =
-                            -Math.log10(d["rawPValue"]);
+                    // Handle log10 conversion for multiple y-axis fields
+                    if (this.hasMultipleYAxisFields) {
+                        // Convert ALL fields in y axis fields to -log10 if needed
+                        const fieldsToConvert = this.yAxisFields;
+                        
+                        if (
+                            this.renderConfig["convert y -log10"] == true ||
+                            this.renderConfig["convert y -log10"] == "true"
+                        ) {
+                            fieldsToConvert.forEach(field => {
+                                if (d[field] !== undefined && d[field] !== null) {
+                                    d[field + "-log10"] = -Math.log10(Math.max(Number(d[field]), 1e-300));
+                                }
+                            });
+                        }
+                    } else {
+                        // Single y-axis field (original behavior)
+                        if (
+                            this.renderConfig["convert y -log10"] == true ||
+                            this.renderConfig["convert y -log10"] == "true"
+                        ) {
+                            const yField = this.renderConfig["y axis field"];
+                            if (yField) {
+                                d[yField + "-log10"] = -Math.log10(d["rawPValue"]);
+                            }
+                        }
                     }
 
                     if (
@@ -268,6 +402,64 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             }
             if (this.filter) {
                 content.data = content.data.filter(this.filter);
+            }
+            
+            // Apply threshold filtering if enabled (OR logic - any field passes)
+            if (this.filterByThreshold && 
+                this.renderConfig["thresholds"] && 
+                this.renderConfig["thresholds"].length > 0) {
+                const threshold = Number(this.renderConfig["thresholds"][0]);
+                
+                // Determine which fields to check - use all fields if multiple y-axis, or selected if filtering
+                const fieldsToCheck = this.hasMultipleYAxisFields
+                    ? (this.selectedYAxisFields.length > 0 ? this.selectedYAxisFields : this.yAxisFields)
+                    : [this.renderConfig["y axis field"]];
+                
+                content.data = content.data.filter((d) => {
+                    // Check if ANY of the fields pass the threshold (OR logic)
+                    let passesThreshold = false;
+                    
+                    fieldsToCheck.forEach(field => {
+                        let fieldValue;
+                        if (this.renderConfig["convert y -log10"] == "true") {
+                            const logField = field + "-log10";
+                            fieldValue = d[logField] !== undefined ? Number(d[logField]) : null;
+                        } else {
+                            fieldValue = d[field] !== undefined && d[field] !== null ? Number(d[field]) : null;
+                        }
+                        
+                        if (fieldValue !== null && !isNaN(fieldValue)) {
+                            if (this.greaterThan) {
+                                if (fieldValue >= threshold) {
+                                    passesThreshold = true;
+                                }
+                            } else {
+                                if (fieldValue <= threshold) {
+                                    passesThreshold = true;
+                                }
+                            }
+                        }
+                    });
+                    
+                    return passesThreshold;
+                });
+            }
+            
+            // Apply group filtering if groups are selected
+            if (this.selectedGroups.length > 0 && this.availableGroups.length > 0) {
+                const groupByField = this.renderConfig["group by"];
+                content.data = content.data.filter((d) => {
+                    let group;
+                    if (this.phenotypeMapConfig == "kpPhenotypeMap") {
+                        const phenotype = d[this.renderConfig["render by"]];
+                        if (this.phenotypeMap[phenotype] && this.phenotypeMap[phenotype].group) {
+                            group = this.phenotypeMap[phenotype].group;
+                        }
+                    } else if (groupByField) {
+                        group = d[groupByField];
+                    }
+                    return group && this.selectedGroups.includes(group);
+                });
             }
 
             if (!!content.data && content.data.length > 0) {
@@ -300,30 +492,223 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
 
             return plotMargin;
         },
+        availableGroups() {
+            // Extract available groups from original phenotypesData (before filtering)
+            // This avoids circular dependency with renderData
+            if (!this.phenotypesData || this.phenotypesData.length === 0) {
+                return [];
+            }
+            
+            const groups = new Set();
+            const groupByField = this.renderConfig["group by"];
+            
+            if (this.phenotypeMapConfig == "kpPhenotypeMap") {
+                // Use phenotype map groups
+                this.phenotypesData.forEach((d) => {
+                    const phenotype = d[this.renderConfig["render by"]];
+                    if (this.phenotypeMap[phenotype] && this.phenotypeMap[phenotype].group) {
+                        groups.add(this.phenotypeMap[phenotype].group);
+                    }
+                });
+            } else if (groupByField) {
+                // Use direct group by field
+                this.phenotypesData.forEach((d) => {
+                    if (d[groupByField]) {
+                        groups.add(d[groupByField]);
+                    }
+                });
+            }
+            
+            return Array.from(groups).sort();
+        },
     },
     watch: {
-        renderData(content) {
-            this.renderPheWas();
+        renderData: {
+            handler(content) {
+                // Use nextTick to ensure DOM is ready
+                if (content && content.data && content.data.length > 0) {
+                    this.$nextTick(() => {
+                        this.renderPheWas();
+                    });
+                }
+            },
+            immediate: true
+        },
+        selectedYAxisFields: {
+            handler() {
+                // Re-render when selected fields change
+                this.$nextTick(() => {
+                    this.renderPheWas();
+                });
+            },
+            deep: true
+        },
+        selectedGroups: {
+            handler() {
+                // Re-render when selected groups change
+                this.$nextTick(() => {
+                    this.renderPheWas();
+                });
+            },
+            deep: true
+        },
+        phenotypesData: {
+            handler() {
+                // Initialize selectedGroups with all groups when phenotypesData changes
+                this.$nextTick(() => {
+                    if (this.availableGroups.length > 0 && this.selectedGroups.length === 0) {
+                        this.selectedGroups = [...this.availableGroups];
+                    }
+                });
+            },
+            immediate: true
+        },
+        filterByThreshold() {
+            // Re-render when filter toggle changes
+            this.$nextTick(() => {
+                this.renderPheWas();
+            });
         },
         matchingHoverDots(newDots) {
             console.log("received by phewas", newDots);
         },
     },
     created: function () {
-        this.renderPheWas();
+        // Don't render here - wait for mounted and renderData to be ready
     },
     mounted: function () {
         window.addEventListener("resize", this.onResize);
-        this.renderPheWas();
+        // Initialize selected fields with ALL fields if multiple y-axis fields exist
+        if (this.hasMultipleYAxisFields && this.yAxisFields.length > 0) {
+            this.selectedYAxisFields = [...this.yAxisFields];
+        }
+        // Close dropdown when clicking outside
+        document.addEventListener('click', this.handleClickOutside);
+        // Wait for DOM and computed properties to be ready, then render
+        this.$nextTick(() => {
+            if (this.renderData && this.renderData.data && this.renderData.data.length > 0) {
+                this.renderPheWas();
+            }
+        });
     },
     beforeDestroy() {
         window.removeEventListener("resize", this.onResize);
+        document.removeEventListener('click', this.handleClickOutside);
     },
     methods: {
-        getPValue(d) {
-            return typeof d[this.renderConfig["y axis field"]] == "string"
-                ? Number(d[this.renderConfig["y axis field"]])
-                : d[this.renderConfig["y axis field"]];
+        getPValue(d, field = null) {
+            const yField = field || this.renderConfig["y axis field"] || this.primaryYAxisField;
+            if (!yField || d[yField] === undefined || d[yField] === null) {
+                return 0;
+            }
+            return typeof d[yField] == "string"
+                ? Number(d[yField])
+                : d[yField];
+        },
+        toggleYAxisField(field) {
+            const index = this.selectedYAxisFields.indexOf(field);
+            if (index > -1) {
+                // Remove if already selected
+                this.selectedYAxisFields.splice(index, 1);
+                // Ensure at least primary field is selected
+                if (this.selectedYAxisFields.length === 0 && this.primaryYAxisField) {
+                    this.selectedYAxisFields.push(this.primaryYAxisField);
+                }
+            } else {
+                // Add if not selected
+                this.selectedYAxisFields.push(field);
+            }
+            // Trigger re-render
+            this.$nextTick(() => {
+                this.renderPheWas();
+            });
+        },
+        getFieldShape(field) {
+            // Returns shape based on field position: primary -> circle, 1st secondary -> square, 2nd secondary -> diamond
+            if (!this.hasMultipleYAxisFields) {
+                return 'circle';
+            }
+            const fields = this.yAxisFields;
+            const index = fields.indexOf(field);
+            if (index === -1) {
+                return 'circle';
+            }
+            if (field === this.primaryYAxisField) {
+                return 'circle';
+            }
+            // Find position among secondary fields (excluding primary)
+            const secondaryFields = fields.filter(f => f !== this.primaryYAxisField);
+            const secondaryIndex = secondaryFields.indexOf(field);
+            if (secondaryIndex === 0) {
+                return 'square';
+            } else if (secondaryIndex === 1) {
+                return 'diamond';
+            }
+            // Default to circle for additional fields
+            return 'circle';
+        },
+        getFieldShapeLabel(field) {
+            const shape = this.getFieldShape(field);
+            const shapeSymbols = {
+                'circle': '●',
+                'square': '■',
+                'diamond': '◆'
+            };
+            return shapeSymbols[shape] || '●';
+        },
+        getFieldDisplayLabel(field) {
+            // Get the display label from "y axis field labels" if available
+            if (this.hasMultipleYAxisFields && 
+                this.renderConfig["y axis field labels"] && 
+                Array.isArray(this.renderConfig["y axis field labels"])) {
+                const fieldIndex = this.yAxisFields.indexOf(field);
+                if (fieldIndex >= 0 && fieldIndex < this.renderConfig["y axis field labels"].length) {
+                    return this.renderConfig["y axis field labels"][fieldIndex];
+                }
+            }
+            // Fallback to field name if no label mapping exists
+            return field;
+        },
+        toggleGroup(group) {
+            const index = this.selectedGroups.indexOf(group);
+            if (index > -1) {
+                this.selectedGroups.splice(index, 1);
+            } else {
+                this.selectedGroups.push(group);
+            }
+        },
+        toggleAllGroups(event) {
+            if (event.target.checked) {
+                this.selectedGroups = [...this.availableGroups];
+            } else {
+                this.selectedGroups = [];
+            }
+        },
+        handleClickOutside(event) {
+            // Close dropdown if clicking outside
+            const dropdown = event.target.closest('.dropdown-wrapper');
+            if (!dropdown && this.showGroupDropdown) {
+                this.showGroupDropdown = false;
+            }
+        },
+        applyOpacityToColor(color, opacity) {
+            // Convert hex color to rgba with opacity
+            if (color.startsWith('#')) {
+                const hex = color.slice(1);
+                const r = parseInt(hex.substr(0, 2), 16);
+                const g = parseInt(hex.substr(2, 2), 16);
+                const b = parseInt(hex.substr(4, 2), 16);
+                return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            }
+            // If already rgba, extract rgb and apply new opacity
+            if (color.startsWith('rgba')) {
+                const rgb = color.match(/\d+/g);
+                if (rgb && rgb.length >= 3) {
+                    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${opacity})`;
+                }
+            }
+            // Fallback: return original color
+            return color;
         },
         downloadImage(ID, NAME, TYPE) {
             if (TYPE == "svg") {
@@ -525,6 +910,11 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             }
         },
         renderPheWas() {
+            // Early return if renderData is not ready
+            if (!this.renderData || !this.renderData.data || this.renderData.data.length === 0) {
+                return;
+            }
+            
             if (
                 !!this.renderConfig["thresholds"] &&
                 this.renderConfig["thresholds"] == "calculate"
@@ -593,29 +983,30 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                 let minY = null;
                 let maxY = null;
 
+                // Determine which fields to use for min/max calculation - use ALL fields if multiple y-axis
+                const fieldsForMinMax = this.hasMultipleYAxisFields
+                    ? this.yAxisFields
+                    : [this.renderConfig["y axis field"]];
+
                 for (const [key, value] of Object.entries(renderData)) {
                     groups[key] = value.length;
                     totalNum += value.length;
                     value.map((p) => {
-                        let yValue =
-                            this.renderConfig["convert y -log10"] == "true"
-                                ? p[
-                                      this.renderConfig["y axis field"] +
-                                          "-log10"
-                                  ]
-                                : Number(p[this.renderConfig["y axis field"]]);
-                        minY =
-                            minY == null
-                                ? yValue
-                                : yValue < minY
-                                ? yValue
-                                : minY;
-                        maxY =
-                            maxY == null
-                                ? yValue
-                                : yValue > maxY
-                                ? yValue
-                                : maxY;
+                        // Calculate min/max across all fields
+                        fieldsForMinMax.forEach(field => {
+                            let yValue;
+                            if (this.renderConfig["convert y -log10"] == "true") {
+                                const logField = field + "-log10";
+                                yValue = p[logField] !== undefined ? Number(p[logField]) : null;
+                            } else {
+                                yValue = p[field] !== undefined && p[field] !== null ? Number(p[field]) : null;
+                            }
+                            
+                            if (yValue !== null && !isNaN(yValue)) {
+                                minY = minY == null ? yValue : yValue < minY ? yValue : minY;
+                                maxY = maxY == null ? yValue : yValue > maxY ? yValue : maxY;
+                            }
+                        });
                     });
                 }
                 minY = Math.floor(minY);
@@ -759,29 +1150,6 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                                 let xPos =
                                     plotMargin.left + xStep * (dotIndex + 0.5);
 
-                                let yValue =
-                                    this.renderConfig["convert y -log10"] ==
-                                    "true"
-                                        ? p[
-                                              this.renderConfig[
-                                                  "y axis field"
-                                              ] + "-log10"
-                                          ]
-                                        : !!p[
-                                              this.renderConfig["y axis field"]
-                                          ] &&
-                                          p[
-                                              this.renderConfig["y axis field"]
-                                          ] != 0
-                                        ? p[this.renderConfig["y axis field"]]
-                                        : 0;
-
-                                let yFromMinY = -minY + yValue;
-
-                                let yPos =
-                                    canvasHeight -
-                                    plotMargin.bottom -
-                                    yFromMinY * yStep;
                                 let rawPhenotype =
                                     p[this.renderConfig["render by"]];
                                 let pName =
@@ -790,112 +1158,200 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                                         : this.phenotypeMap[rawPhenotype][
                                               "description"
                                           ];
-                                let passesThreshold = this.greaterThan
-                                    ? p.rawPValue >=
-                                      Number(this.renderConfig["thresholds"][0])
-                                    : p.rawPValue <=
-                                      Number(
-                                          this.renderConfig["thresholds"][0]
-                                      );
-
-                                if (
-                                    this.renderConfig["beta field"] != "null" &&
-                                    !!this.renderConfig["beta field"]
-                                ) {
-                                    if (
-                                        !!p[this.renderConfig["beta field"]] &&
-                                        p[this.renderConfig["beta field"]] != 0
-                                    ) {
-                                        this.renderTriangle(
-                                            ctx,
-                                            xPos,
-                                            yPos,
-                                            fillColor,
-                                            strokeColor,
-                                            Math.sign(
-                                                p[
-                                                    this.renderConfig[
-                                                        "beta field"
-                                                    ]
-                                                ]
-                                            )
-                                        );
+                                
+                                // Determine which fields to render - use ALL fields if multiple y-axis
+                                const fieldsToRender = this.hasMultipleYAxisFields
+                                    ? this.yAxisFields
+                                    : [this.renderConfig["y axis field"]];
+                                
+                                const multipleFieldsSelected = fieldsToRender.length > 1;
+                                
+                                fieldsToRender.forEach((field, fieldIndex) => {
+                                    // Skip if field is not selected (when user unchecks a checkbox)
+                                    // But if no fields are selected, render all (initial state)
+                                    if (this.hasMultipleYAxisFields && 
+                                        this.selectedYAxisFields.length > 0 && 
+                                        !this.selectedYAxisFields.includes(field)) {
+                                        return;
+                                    }
+                                    
+                                    // Get shape for this field
+                                    const fieldShape = this.getFieldShape(field);
+                                    let yValue;
+                                    if (this.renderConfig["convert y -log10"] == "true") {
+                                        const logField = field + "-log10";
+                                        yValue = p[logField] !== undefined ? Number(p[logField]) : null;
                                     } else {
-                                        this.renderDot(
+                                        yValue = p[field] !== undefined && p[field] !== null && p[field] != 0
+                                            ? Number(p[field])
+                                            : null;
+                                    }
+                                    
+                                    if (yValue === null || isNaN(yValue)) {
+                                        return; // Skip if no valid value
+                                    }
+
+                                    let yFromMinY = -minY + yValue;
+                                    let yPos =
+                                        canvasHeight -
+                                        plotMargin.bottom -
+                                        yFromMinY * yStep;
+                                    
+                                    // Determine opacity: primary field = 100%, others = 50%
+                                    let opacity = 1.0;
+                                    if (multipleFieldsSelected) {
+                                        if (field === this.primaryYAxisField) {
+                                            opacity = 1.0;
+                                        } else {
+                                            opacity = 0.5;
+                                        }
+                                    }
+                                    
+                                    // Apply opacity to colors
+                                    let fieldFillColor = this.applyOpacityToColor(fillColor, opacity);
+                                    let fieldStrokeColor = this.applyOpacityToColor(strokeColor, opacity);
+                                    
+                                    // Calculate threshold check using primary field
+                                    let passesThreshold = false;
+                                    if (field === this.primaryYAxisField || !this.hasMultipleYAxisFields) {
+                                        passesThreshold = this.greaterThan
+                                            ? p.rawPValue >= Number(this.renderConfig["thresholds"][0])
+                                            : p.rawPValue <= Number(this.renderConfig["thresholds"][0]);
+                                    }
+
+                                    if (
+                                        this.renderConfig["beta field"] != "null" &&
+                                        !!this.renderConfig["beta field"]
+                                    ) {
+                                        if (
+                                            !!p[this.renderConfig["beta field"]] &&
+                                            p[this.renderConfig["beta field"]] != 0
+                                        ) {
+                                            this.renderTriangle(
+                                                ctx,
+                                                xPos,
+                                                yPos,
+                                                fieldFillColor,
+                                                fieldStrokeColor,
+                                                Math.sign(
+                                                    p[
+                                                        this.renderConfig[
+                                                            "beta field"
+                                                        ]
+                                                    ]
+                                                )
+                                            );
+                                        } else {
+                                            // Render with shape based on field
+                                            this.renderShape(
+                                                ctx,
+                                                xPos,
+                                                yPos,
+                                                fieldFillColor,
+                                                fieldStrokeColor,
+                                                fieldShape
+                                            );
+                                        }
+                                    } else {
+                                        // GENE PAGE PIGEAN PHEWAS - Render with shape based on field
+                                        this.renderShape(
                                             ctx,
                                             xPos,
                                             yPos,
-                                            fillColor,
-                                            strokeColor
+                                            fieldFillColor,
+                                            fieldStrokeColor,
+                                            fieldShape
                                         );
                                     }
-                                } else {
-                                    // GENE PAGE PIGEAN PHEWAS
-                                    this.renderDot(
-                                        ctx,
-                                        xPos,
-                                        yPos,
-                                        fillColor,
-                                        strokeColor
-                                    );
-                                }
+                                    
+                                    // Only store position data for primary field (or first field if single)
+                                    if (field === this.primaryYAxisField || (!this.hasMultipleYAxisFields && fieldIndex === 0)) {
+                                        ///organize data by position
+                                        let yRangeStart = Math.round(yPos / 2) - 5;
+                                        let yRangeEnd = Math.round(yPos / 2) + 5;
+                                        let yRange = yRangeStart + "-" + yRangeEnd;
+                                        let tempObj = {};
+                                        this.renderConfig["hover content"].map((c) => {
+                                            tempObj[c] = p[c];
+                                        });
+                                        let xRange = {
+                                            start: Math.round(xPos / 2) - 5,
+                                            end: Math.round(xPos / 2) + 5,
+                                            data: tempObj,
+                                            name: pName,
+                                            id: p[this.renderConfig["render by"]],
+                                        };
 
-                                ///organize data by position
-                                let yRangeStart = Math.round(yPos / 2) - 5;
-                                let yRangeEnd = Math.round(yPos / 2) + 5;
-                                let yRange = yRangeStart + "-" + yRangeEnd;
-                                let tempObj = {};
-                                this.renderConfig["hover content"].map((c) => {
-                                    tempObj[c] = p[c];
+                                        if (!this.pheWasPosData[yRange]) {
+                                            this.pheWasPosData[yRange] = [];
+                                        }
+                                        this.pheWasPosData[yRange].push(xRange);
+                                    }
                                 });
-                                let xRange = {
-                                    start: Math.round(xPos / 2) - 5,
-                                    end: Math.round(xPos / 2) + 5,
-                                    data: tempObj,
-                                    name: pName,
-                                    id: p[this.renderConfig["render by"]],
-                                };
+                                
+                                // Only render labels once (using primary field position)
+                                if (fieldsToRender.length > 0) {
+                                    const primaryField = this.hasMultipleYAxisFields 
+                                        ? this.primaryYAxisField 
+                                        : fieldsToRender[0];
+                                    let primaryYValue;
+                                    if (this.renderConfig["convert y -log10"] == "true") {
+                                        const logField = primaryField + "-log10";
+                                        primaryYValue = p[logField] !== undefined ? Number(p[logField]) : null;
+                                    } else {
+                                        primaryYValue = p[primaryField] !== undefined && p[primaryField] !== null && p[primaryField] != 0
+                                            ? Number(p[primaryField])
+                                            : null;
+                                    }
+                                    
+                                    if (primaryYValue !== null && !isNaN(primaryYValue)) {
+                                        let yFromMinY = -minY + primaryYValue;
+                                        let yPos =
+                                            canvasHeight -
+                                            plotMargin.bottom -
+                                            yFromMinY * yStep;
+                                        
+                                        let passesThreshold = this.greaterThan
+                                            ? p.rawPValue >= Number(this.renderConfig["thresholds"][0])
+                                            : p.rawPValue <= Number(this.renderConfig["thresholds"][0]);
 
-                                if (!this.pheWasPosData[yRange]) {
-                                    this.pheWasPosData[yRange] = [];
+                                        ///add labels if p-value above 2.5e-6
+                                        if (labelIndex == 0) {
+                                            labelOrigin = xPos;
+                                        }
+
+                                        //if (labelIndex == 0 || p.pValue <= 2.5e-6) {
+                                        let labelXpos = labelOrigin + 24 * labelIndex;
+
+                                        labelXpos = xPos > labelXpos ? xPos : labelXpos;
+                                        if (
+                                            labelIndex == 0 ||
+                                            labelXpos < maxWidthPerGroup //|| passesThreshold
+                                            // This is incredibly messy
+                                        ) {
+                                            ctx.font = "22px Arial";
+                                            ctx.fillStyle = passesThreshold
+                                                ? "#000000"
+                                                : "#00000050";
+
+                                            ctx.save();
+                                            ctx.translate(labelXpos + 10, yPos - 24);
+                                            ctx.rotate((90 * -Math.PI) / 180);
+                                            ctx.textAlign = "start";
+                                            ctx.fillText(pName, 0, 0);
+                                            ctx.restore();
+
+                                            ctx.lineWidth = 1;
+                                            ctx.moveTo(xPos, yPos);
+                                            ctx.lineTo(labelXpos, yPos - 20);
+                                            ctx.strokeStyle = "#00000080";
+                                            ctx.stroke();
+                                        }
+
+                                        labelIndex++;
+                                        //}
+                                    }
                                 }
-                                this.pheWasPosData[yRange].push(xRange);
-
-                                ///add labels if p-value above 2.5e-6
-                                if (labelIndex == 0) {
-                                    labelOrigin = xPos;
-                                }
-
-                                //if (labelIndex == 0 || p.pValue <= 2.5e-6) {
-                                let labelXpos = labelOrigin + 24 * labelIndex;
-
-                                labelXpos = xPos > labelXpos ? xPos : labelXpos;
-                                if (
-                                    labelIndex == 0 ||
-                                    labelXpos < maxWidthPerGroup //|| passesThreshold
-                                    // This is incredibly messy
-                                ) {
-                                    ctx.font = "22px Arial";
-                                    ctx.fillStyle = passesThreshold
-                                        ? "#000000"
-                                        : "#00000050";
-
-                                    ctx.save();
-                                    ctx.translate(labelXpos + 10, yPos - 24);
-                                    ctx.rotate((90 * -Math.PI) / 180);
-                                    ctx.textAlign = "start";
-                                    ctx.fillText(pName, 0, 0);
-                                    ctx.restore();
-
-                                    ctx.lineWidth = 1;
-                                    ctx.moveTo(xPos, yPos);
-                                    ctx.lineTo(labelXpos, yPos - 20);
-                                    ctx.strokeStyle = "#00000080";
-                                    ctx.stroke();
-                                }
-
-                                labelIndex++;
-                                //}
                                 dotIndex++;
                             }
                         });
@@ -1002,6 +1458,31 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             CTX.strokeStyle = STROKE_COLOR;
             CTX.stroke();
             //
+        },
+        renderShape(CTX, XPOS, YPOS, FILL_COLOR, STROKE_COLOR, SHAPE) {
+            CTX.beginPath();
+            const size = 10;
+            
+            if (SHAPE === 'circle') {
+                CTX.arc(XPOS, YPOS, size, 0, 2 * Math.PI);
+            } else if (SHAPE === 'square') {
+                CTX.rect(XPOS - size, YPOS - size, size * 2, size * 2);
+            } else if (SHAPE === 'diamond') {
+                CTX.moveTo(XPOS, YPOS - size);
+                CTX.lineTo(XPOS + size, YPOS);
+                CTX.lineTo(XPOS, YPOS + size);
+                CTX.lineTo(XPOS - size, YPOS);
+                CTX.closePath();
+            } else {
+                // Default to circle
+                CTX.arc(XPOS, YPOS, size, 0, 2 * Math.PI);
+            }
+            
+            CTX.fillStyle = FILL_COLOR;
+            CTX.fill();
+            CTX.lineWidth = 1;
+            CTX.strokeStyle = STROKE_COLOR;
+            CTX.stroke();
         },
 
         renderTriangle(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR, EFFECT) {
@@ -1155,5 +1636,113 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
     display: block;
     /* padding: 1px 5px; */
     margin-bottom: 3px;
+}
+.y-axis-fields-selector {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+}
+.y-axis-field-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    user-select: none;
+}
+.y-axis-field-checkbox input[type="checkbox"] {
+    margin-right: 5px;
+    cursor: pointer;
+}
+.y-axis-field-checkbox span {
+    color: #333;
+}
+.y-axis-field-checkbox .shape-symbol {
+    font-size: 200%;
+    display: inline-block;
+    vertical-align: -2px;
+    line-height: 0;
+    margin-right: 0px;
+}
+.threshold-filter-checkbox {
+    margin-left: 20px;
+    padding-left: 15px;
+    border-left: 1px solid #ddd;
+}
+.threshold-filter-checkbox span {
+    font-weight: 500;
+}
+.phenotype-group-filter-inline {
+    margin-left: 20px;
+    padding-left: 15px;
+    border-left: 1px solid #ddd;
+    display: inline-flex;
+    align-items: center;
+}
+.dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+}
+.dropdown-wrapper button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.group-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 5px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.group-dropdown-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    background-color: #f5f5f5;
+}
+.select-all-groups {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+}
+.select-all-groups input[type="checkbox"] {
+    margin-right: 6px;
+    cursor: pointer;
+}
+.group-dropdown-content {
+    padding: 5px 0;
+    max-height: 250px;
+    overflow-y: auto;
+}
+.group-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.group-checkbox-item:hover {
+    background-color: #f0f0f0;
+}
+.group-checkbox-item input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
+.group-checkbox-item span {
+    color: #333;
+    user-select: none;
 }
 </style>
