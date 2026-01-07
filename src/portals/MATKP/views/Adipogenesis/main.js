@@ -119,7 +119,7 @@ new Vue({
                 "column label": "source",
                 "row field": "gene_tx",
                 "row label": "Gene / transcript",
-                "font size": 12
+                "font size": 12,
             }
         },
         linePlotConfig(){
@@ -178,7 +178,7 @@ new Vue({
                 baseFields.push(newField);
             });
             return baseFields;
-        },
+        }
     },
     async created() {
         this.metadata = await this.getTimeSeriesMetadata();
