@@ -91,10 +91,13 @@ new Vue({
             return utils;
         },
         processedData(){
-            return this.processDataForHeatmap(this.timeSeriesData, true);
-        },
-        avgProcessedData(){
-            return this.avgReplicates(this.processedData);
+            let allData = this.processDataForHeatmap(this.timeSeriesData, true);
+            if (allData === null){
+                return null;
+            }
+            return allData.filter(d => this.avgRep 
+                ? d.replicate === "avg"
+                : d.replicate !== "avg");
         },
         processedGeneSearch(){
             return this.processDataForHeatmap(this.geneSearchResults);
@@ -279,7 +282,6 @@ new Vue({
                 })
                 output = output.concat(tsdEntries).concat(avgEntries);
             });
-            // TODO figure out how to calculate these differently
             return output;
         },
         async queryGenes(){
