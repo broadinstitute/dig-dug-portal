@@ -65,7 +65,6 @@ new Vue({
             top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
             currentPage: 1,
             conditions: [],
-            paginateHeatmap: true,
             currentTable: [],
             zoomedIn: true,
             avgRep: true,
@@ -98,6 +97,9 @@ new Vue({
             return allData.filter(d => this.avgRep 
                 ? d.replicate === "avg"
                 : d.replicate !== "avg");
+        },
+        paginatedData(){
+            return this.filterByPage(this.processedData);
         },
         processedGeneSearch(){
             return this.processDataForHeatmap(this.geneSearchResults);
@@ -228,7 +230,7 @@ new Vue({
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
         },
-        processDataForHeatmap(data, paginate=false){
+        processDataForHeatmap(data){
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
@@ -240,9 +242,7 @@ new Vue({
             }
             
             let output = [];
-            let sampleData = paginate 
-                ? this.filterByPage(structuredClone(data))
-                : structuredClone(data);
+            let sampleData = structuredClone(data);
             
 			let timeElapsed = new RegExp(/day (-?\d+)/);
             let rep = new RegExp(/replicate (\d+)/);

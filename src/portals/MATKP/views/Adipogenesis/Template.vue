@@ -42,7 +42,7 @@
                                         <div v-if="$parent.ready"
                                             class="time-series-content">
                                             <time-series-heatmap
-                                                :heatmapData="$parent.processedData"
+                                                :heatmapData="$parent.paginatedData"
                                                 :renderConfig="$parent.heatmapConfig"
                                                 :utils="$parent.utilsBox"
                                                 sectionId="time-series-heatmap"
