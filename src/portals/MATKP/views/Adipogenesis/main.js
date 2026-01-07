@@ -68,6 +68,8 @@ new Vue({
             paginateHeatmap: true,
             currentTable: [],
             zoomedIn: true,
+            avgRep: true,
+            clusterOn: false,
             activeTab: 0,
             geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
             geneSearchResults: [],
@@ -90,6 +92,9 @@ new Vue({
         },
         processedData(){
             return this.processDataForHeatmap(this.timeSeriesData, true);
+        },
+        avgProcessedData(){
+            return this.avgReplicates(this.processedData);
         },
         processedGeneSearch(){
             return this.processDataForHeatmap(this.geneSearchResults);
@@ -240,6 +245,7 @@ new Vue({
             let rep = new RegExp(/replicate (\d+)/);
 		
             sampleData.forEach(tsd => {
+                let tsdEntries = [];
                 this.conditions.forEach(c => {
                     let sourceName = this.getSourceName(c)
                     let score = tsd[c];
@@ -256,8 +262,22 @@ new Vue({
                         gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
                         identifier: `${tsd.transcript_id}_rep_${replicate}`
                     }
-                    output.push(entry);
+                    tsdEntries.push(entry);
                 });
+                // Calculate averages by timepoint across all replicates
+                let timePoints = Array.from(new Set(tsdEntries.map(t => t.days)));
+                let avgEntries = [];
+                timePoints.forEach(timePoint => {
+                    let replicates = tsdEntries.filter(e => e.days === timePoint);
+                    let avg = replicates.reduce((sum, replicate) => sum + replicate.score, 0) / replicates.length;
+                    let entry = structuredClone(replicates[0]);
+                    entry.score = avg;
+                    entry.replicate = "avg"
+                    entry.identifier = `${entry.transcript_id}_rep_avg`;
+                    entry.source = entry.source.replace(rep, "avg");
+                    avgEntries.push(entry);
+                })
+                output = output.concat(tsdEntries).concat(avgEntries);
             });
             // TODO figure out how to calculate these differently
             return output;

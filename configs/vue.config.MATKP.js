@@ -68,12 +68,12 @@ let pages = {
         title: "MATKP | Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "phenotype"]
     },
-    timeseries: {
-        entry: "src/portals/MATKP/views/TimeSeries/main.js",
+    adipogenesis: {
+        entry: "src/portals/MATKP/views/Adipogenesis/main.js",
         template: "public/index.html",
-        filename: "timeseries.html",
-        title: "MATKP | Time Series",
-        chunks: ["chunk-vendors", "chunk-common", "timeseries"]
+        filename: "adipogenesis.html",
+        title: "MATKP | Adipogenesis",
+        chunks: ["chunk-vendors", "chunk-common", "adipogenesis"]
     }
 };
 

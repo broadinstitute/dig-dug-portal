@@ -7,15 +7,31 @@
             <template>
                 <div class="mat-body f-col">
                     <h2 class="matkp-static-content-title">
-                        Time Series Data (sample)
+                        Adipogenesis Datasets
                     </h2>
+                    <div class="card mdkp-card">
+                        <div class="card-body">
+                            <div id="avg-checkbox">
+                                <label>
+                                    <input v-model="$parent.avgRep" type="checkbox" />
+                                    Display average of all replicates
+                                </label>
+                            </div>
+                            <div id="cluster-checkbox">
+                                <label>
+                                    <input v-model="$parent.clusterOn" type="checkbox" />
+                                    Show data by clusters
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     <div class="card mdkp-card">
                         <div class="card-body">
                             <b-tabs v-model="$parent.activeTab">
                                 <b-tab title="Top Transcripts">
                                     <div class="tab-inner">
                                         <h4>
-                                            Time series data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
+                                            Adipogenesis data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
                                         </h4>
                                         <div id="zoom-checkbox">
                                             <label>
