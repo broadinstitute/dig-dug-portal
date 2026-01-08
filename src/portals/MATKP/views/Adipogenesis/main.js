@@ -185,6 +185,8 @@ new Vue({
     async created() {
         this.metadata = await this.getTimeSeriesMetadata();
         this.timeSeriesData = await this.getTimeSeries();
+        this.conditionsMap = this.mapConditions(this.timeSeriesData);
+        console.log(JSON.stringify(this.conditionsMap));
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -217,7 +219,39 @@ new Vue({
             const bulkDataText = await response.text();
             let bulkDataObject = dataConvert.tsv2Json(bulkDataText);
             bulkDataObject = bulkDataObject.slice(0,5000);
+
+            
             return bulkDataObject;
+        },
+        mapConditions(data){
+            let conditions = Object.keys(data[0])
+                .filter(t => t.startsWith("GSM"));
+            let timeElapsed = new RegExp(/day (-?\d+)/);
+            let rep = new RegExp(/replicate (\d+)/);
+            let findPrefix = new RegExp(/([^,]*)/);
+            let mapping = {
+                conditions: {}
+            };
+            conditions.forEach(c => {
+                let sourceName = this.getSourceName(c)
+                let days = parseInt(sourceName.match(timeElapsed)[1]);
+                let replicate = parseInt(sourceName.match(rep)[1]);
+                let prefix = sourceName.match(findPrefix)[1];
+                let entry = {
+                    days: days,
+                    replicate: replicate,
+                    prefix: prefix,
+                    label: `${prefix}`
+                };
+                mapping.conditions[c] = entry;
+            });
+            let replicates = Array.from(new Set(Object.values(mapping.conditions).map(v => v.replicate)));
+            mapping.replicates = replicates;
+
+            let timePoints = Array.from(new Set(Object.values(mapping.conditions).map(v => v.days)))
+            mapping.timePoints = timePoints;
+            return mapping;
+
         },
         getSourceName(label){
             let metadataEntry = this.metadata[label];
