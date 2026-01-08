@@ -12,7 +12,59 @@
           <p>Data rows: {{ pigeanDataFiltered.length }}, Valid scatter plot rows: {{ filteredScatterPlotData.length }}</p>
         </div>
         <b-tabs v-else-if="isFilteredScatterDataReady" v-model="activeTab" class="scatter-plot-tabs">
-          <b-tab title="GWAS vs Gene Set (by Factor)">
+          <b-tab title="Combined genetic support (GWAS + gene sets)">
+            <div class="tab-documentation">
+                Documentation for combined genetic support
+            </div>
+            <research-pigean-phewas-plot
+                v-if="pigeanDataFiltered.length > 0"
+                ref="combinedPhewasPlot"
+                canvas-id="combinedPlot"
+                :plot-name="`combined_${phenotypeName}`"
+                :phenotypes-data="getFilteredDataForPlot"
+                :phenotype-map="
+                    phenotypeMap
+                "
+                :colors="plotColors"
+                :plot-margin="phewasPlotMargin"
+                :render-config="
+                    combinedConfig
+                "
+                :pkg-data="null"
+                :pkg-data-selected="null"
+                :filter="null"
+                :utils="utilsBox"
+                :options="['open phenotype page']"
+            >
+            </research-pigean-phewas-plot>
+          </b-tab>
+          <b-tab title="GWAS support (HuGE score enhanced(?) with gene set support)">
+            <div class="tab-documentation">
+                Documentation for GWAS support
+            </div>
+          <research-pigean-phewas-plot
+                v-if="pigeanDataFiltered.length > 0"
+                ref="gwasPhewasPlot"
+                canvas-id="gwasPlot"
+                :plot-name="`gwas_${phenotypeName}`"
+                :phenotypes-data="getFilteredDataForPlot"
+                :phenotype-map="
+                    phenotypeMap
+                "
+                :colors="plotColors"
+                :plot-margin="phewasPlotMargin"
+                :render-config="
+                    gwasConfig
+                "
+                :pkg-data="null"
+                :pkg-data-selected="null"
+                :filter="null"
+                :utils="utilsBox"
+                :options="['open phenotype page']"
+            >
+            </research-pigean-phewas-plot>
+          </b-tab>
+          <!--<b-tab title="GWAS vs Gene Set (by Factor)">
             <div class="tab-documentation">
               Documentation for GWAS vs Gene Set (by Factor)
             </div>
@@ -56,7 +108,7 @@
                 }"
               ></research-simple-scatter-plot>
             </div>
-          </b-tab>
+          </b-tab>-->
         </b-tabs>
       </div>
       
@@ -151,6 +203,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import ResearchSimpleScatterPlot from "@/components/researchPortal/ResearchSimpleScatterPlot.vue";
+import ResearchPigeanPheWAS from "@/components/researchPortal/PIGEAN/ResearchPigeanPheWAS.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -170,7 +223,8 @@ export default Vue.component("pigean-phenotype", {
     FilterEnumeration,
     FilterGreaterThan,
     CriterionFunctionGroup,
-    ResearchSimpleScatterPlot
+    ResearchSimpleScatterPlot,
+    ResearchPigeanPheWAS
   },
   props: ["phenotypeMap", "pigeanData", "filter"],
   data() {
@@ -179,12 +233,85 @@ export default Vue.component("pigean-phenotype", {
         currentPage: 1,
         activeTab: 0,
         currentFilter: null,
+        combinedConfig: {
+            "type": "pigean phewas plot",
+            "render by": "Gene",
+            "group by": "Factor",
+            "phenotype map": null,
+            "y axis fields": ["Combined_GWAS_gene_sets","GWAS_support","Gene_set_support"],
+            "y axis field labels": ["Combined (GWAS + gene sets)","GWAS support","Gene set support"],
+            "primary y axis field": "Combined_GWAS_gene_sets",
+            "convert y -log10": "false",
+            "y axis label": "Combined (GWAS + gene sets)",
+            "x axis label": "",
+            "beta field": "null",
+            "hover content": ["Gene", "Factor", "Combined_GWAS_gene_sets", "GWAS_support", "Gene_set_support", "HuGE_Score"],
+            "filter by threshold": true,
+            thresholds: [2],
+            "label in black": "greater than",
+            height: "600",
+            "plot margin": {
+                left: 150,
+                right: 150,
+                top: 250,
+                bottom: 300,
+            },
+        },
+        gwasConfig: {
+            "type": "pigean phewas plot",
+            "render by": "Gene",
+            "group by": "Factor",
+            "phenotype map": null,
+            "y axis fields": ["GWAS_support","HuGE_Score"],
+            "y axis field labels": ["GWAS support","HuGE Score"],
+            "primary y axis field": "GWAS_support",
+            "convert y -log10": "false",
+            "y axis label": "GWAS support",
+            "x axis label": "",
+            "beta field": "null",
+            "hover content": ["Gene", "Factor", "GWAS_support", "HuGE_Score"],
+            "filter by threshold": true,
+            thresholds: [2],
+            "label in black": "greater than",
+            height: "600",
+            "plot margin": {
+                left: 150,
+                right: 150,
+                top: 250,
+                bottom: 300,
+            },
+        },
         plotMargin: {
           top: 30,
           bottom: 50,
           left: 60,
           right: 30
         },
+        phewasPlotMargin: {
+            leftMargin: 150,
+            rightMargin: 40,
+            topMargin: 20,
+            bottomMargin: 100,
+            bump: 11,
+        },
+        plotColors: [
+            "#007bff",
+            "#048845",
+            "#8490C8",
+            "#BF61A5",
+            "#EE3124",
+            "#FCD700",
+            "#5555FF",
+            "#7aaa1c",
+            "#9F78AC",
+            "#F88084",
+            "#F5A4C7",
+            "#CEE6C1",
+            "#cccc00",
+            "#6FC7B6",
+            "#D5A768",
+            "#d4d4d4",
+        ],
         compareGroupColors: [
           '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
           '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -205,7 +332,7 @@ export default Vue.component("pigean-phenotype", {
           },
           {
             key: 'Factor',
-            label: 'Factor',
+            label: 'Mechanistic factor',
             sortable: true
           },
           {
@@ -409,6 +536,10 @@ export default Vue.component("pigean-phenotype", {
     isFilteredScatterDataReady() {
       // Check if we have valid filtered scatter plot data
       return this.filteredScatterPlotData && this.filteredScatterPlotData.length > 0;
+    },
+    getFilteredDataForPlot() {
+      // Return filtered data for the plot using the current filter
+      return this.getFilteredData(this.currentFilter);
     }
   },
   methods: {
@@ -458,7 +589,90 @@ export default Vue.component("pigean-phenotype", {
       }
       return numValue >= threshold;
     },
+    renderActiveTab() {
+      // Render the plot for the currently active tab
+      let refName = null;
+      if (this.activeTab === 0) {
+        refName = 'combinedPhewasPlot';
+      } else if (this.activeTab === 1) {
+        refName = 'gwasPhewasPlot';
+      }
+      
+      if (refName) {
+        this.renderPhewas(refName);
+      }
+    },
+    renderPhewas(refName) {
+      // Try multiple times with delays to ensure component is ready
+      const tryRender = (attempts = 0) => {
+        const ref = this.$refs[refName];
+        if (ref) {
+          // Check if component has renderPheWas method
+          if (typeof ref.renderPheWas === 'function') {
+            try {
+              // Force a re-render by calling renderPheWas
+              ref.renderPheWas();
+              console.log(`Successfully rendered ${refName}`);
+              return; // Success, exit
+            } catch (error) {
+              console.warn(`Error rendering ${refName}:`, error);
+              // Continue retrying on error
+            }
+          }
+        }
+        
+        // Retry if component not ready or method not available
+        if (attempts < 20) {
+          setTimeout(() => {
+            tryRender(attempts + 1);
+          }, 250);
+        } else {
+          console.warn(`Could not render ${refName} after ${attempts} attempts. Ref exists: ${!!ref}, has method: ${ref && typeof ref.renderPheWas === 'function'}`);
+        }
+      };
+      // Start with a delay to ensure tab content is mounted
+      // Bootstrap Vue tabs may need time to mount lazy-loaded content
+      setTimeout(() => {
+        tryRender();
+      }, 600);
+    }
   },
+  watch: {
+    activeTab(newTab) {
+      // Re-render plot when tab changes
+      if (this.pigeanDataFiltered && this.pigeanDataFiltered.length > 0) {
+        this.$nextTick(() => {
+          this.$nextTick(() => {
+            this.$nextTick(() => {
+              setTimeout(() => {
+                this.renderActiveTab();
+              }, 500);
+            });
+          });
+        });
+      }
+    },
+    currentFilter() {
+      // Re-render plot when filter changes (which changes getFilteredDataForPlot)
+      this.$nextTick(() => {
+        this.$nextTick(() => {
+          setTimeout(() => {
+            this.renderActiveTab();
+          }, 300);
+        });
+      });
+    }
+  },
+  mounted() {
+    // Render initial tab's plot when component is mounted
+    if (this.pigeanDataFiltered && this.pigeanDataFiltered.length > 0) {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.renderActiveTab();
+        }, 1000);
+      });
+    }
+  }
 });
 </script>
 <style scoped>

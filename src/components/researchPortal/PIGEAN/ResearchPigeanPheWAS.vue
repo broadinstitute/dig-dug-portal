@@ -390,12 +390,15 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                         }
                     }
 
-                    if (
-                        this.phenotypeMapConfig == "kpPhenotypeMap" &&
-                        !!this.phenotypeMap[d[this.renderConfig["render by"]]]
-                    ) {
-                        content["data"].push(d);
+                    // Check phenotype map config first
+                    if (this.phenotypeMapConfig == "kpPhenotypeMap") {
+                        // Use phenotype map - filter by it
+                        const renderByField = this.renderConfig["render by"];
+                        if (!!this.phenotypeMap[d[renderByField]]) {
+                            content["data"].push(d);
+                        }
                     } else if (this.phenotypeMapConfig == null) {
+                        // No phenotype map - use group by field directly, include all data
                         content["data"].push(d);
                     }
                 });
@@ -448,15 +451,24 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             // Apply group filtering if groups are selected
             if (this.selectedGroups.length > 0 && this.availableGroups.length > 0) {
                 const groupByField = this.renderConfig["group by"];
+                
                 content.data = content.data.filter((d) => {
                     let group;
                     if (this.phenotypeMapConfig == "kpPhenotypeMap") {
-                        const phenotype = d[this.renderConfig["render by"]];
-                        if (this.phenotypeMap[phenotype] && this.phenotypeMap[phenotype].group) {
-                            group = this.phenotypeMap[phenotype].group;
+                        // Use phenotype map groups
+                        const renderByValue = d[this.renderConfig["render by"]];
+                        if (this.phenotypeMap[renderByValue] && this.phenotypeMap[renderByValue].group) {
+                            group = this.phenotypeMap[renderByValue].group;
+                        } else {
+                            group = 'N/A';
                         }
-                    } else if (groupByField) {
-                        group = d[groupByField];
+                    } else if (this.phenotypeMapConfig == null && groupByField) {
+                        // No phenotype map - use group by field directly
+                        if (d[groupByField] != null && d[groupByField] !== undefined && d[groupByField] !== '') {
+                            group = d[groupByField];
+                        } else {
+                            group = 'N/A';
+                        }
                     }
                     return group && this.selectedGroups.includes(group);
                 });
@@ -501,22 +513,33 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             
             const groups = new Set();
             const groupByField = this.renderConfig["group by"];
+            let hasItemsWithoutGroup = false;
             
+            // Check phenotype map config first
             if (this.phenotypeMapConfig == "kpPhenotypeMap") {
                 // Use phenotype map groups
                 this.phenotypesData.forEach((d) => {
-                    const phenotype = d[this.renderConfig["render by"]];
-                    if (this.phenotypeMap[phenotype] && this.phenotypeMap[phenotype].group) {
-                        groups.add(this.phenotypeMap[phenotype].group);
+                    const renderByValue = d[this.renderConfig["render by"]];
+                    if (this.phenotypeMap[renderByValue] && this.phenotypeMap[renderByValue].group) {
+                        groups.add(this.phenotypeMap[renderByValue].group);
+                    } else {
+                        hasItemsWithoutGroup = true;
                     }
                 });
-            } else if (groupByField) {
-                // Use direct group by field
+            } else if (this.phenotypeMapConfig == null && groupByField) {
+                // No phenotype map - use group by field directly
                 this.phenotypesData.forEach((d) => {
-                    if (d[groupByField]) {
+                    if (d[groupByField] != null && d[groupByField] !== undefined && d[groupByField] !== '') {
                         groups.add(d[groupByField]);
+                    } else {
+                        hasItemsWithoutGroup = true;
                     }
                 });
+            }
+            
+            // Add 'N/A' group if there are items without a group value
+            if (hasItemsWithoutGroup) {
+                groups.add('N/A');
             }
             
             return Array.from(groups).sort();
@@ -553,15 +576,21 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             deep: true
         },
         phenotypesData: {
-            handler() {
+            handler(newData, oldData) {
                 // Initialize selectedGroups with all groups when phenotypesData changes
                 this.$nextTick(() => {
                     if (this.availableGroups.length > 0 && this.selectedGroups.length === 0) {
                         this.selectedGroups = [...this.availableGroups];
                     }
                 });
+                // Re-render plot when data changes (e.g., when filters are applied)
+                // Always trigger re-render when phenotypesData prop changes
+                this.$nextTick(() => {
+                    this.renderPheWas();
+                });
             },
-            immediate: true
+            immediate: true,
+            deep: true
         },
         filterByThreshold() {
             // Re-render when filter toggle changes
@@ -733,14 +762,11 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
         groupData(DATA) {
             let phenotypeGroups = [];
             let phenotypeGroupsObj = {};
+            const groupByField = this.renderConfig["group by"];
 
-            if (this.phenotypeMapConfig == null) {
-                phenotypeGroups = [
-                    ...new Set(
-                        DATA.data.map((p) => p[this.renderConfig["group by"]])
-                    ),
-                ].sort();
-            } else {
+            // Check phenotype map config first
+            if (this.phenotypeMapConfig == "kpPhenotypeMap") {
+                // Use phenotype map groups
                 for (const [key, value] of Object.entries(this.phenotypeMap)) {
                     phenotypeGroups.push(value);
                 }
@@ -748,6 +774,22 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                 phenotypeGroups = [
                     ...new Set(phenotypeGroups.map((p) => p.group)),
                 ].sort();
+            } else if (this.phenotypeMapConfig == null && groupByField) {
+                // No phenotype map - use group by field directly
+                phenotypeGroups = [
+                    ...new Set(
+                        DATA.data.map((p) => {
+                            const value = p[groupByField];
+                            return (value != null && value !== undefined && value !== '') ? value : 'N/A';
+                        })
+                    ),
+                ].sort();
+            }
+
+            // Always include 'N/A' group if using phenotype map (in case some items don't have a group)
+            if (this.phenotypeMapConfig == "kpPhenotypeMap" && !phenotypeGroups.includes('N/A')) {
+                phenotypeGroups.push('N/A');
+                phenotypeGroups.sort();
             }
 
             phenotypeGroups.map((p) => {
@@ -755,14 +797,29 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             });
 
             DATA.data.map((p) => {
-                let group =
-                    this.phenotypeMapConfig == "kpPhenotypeMap" &&
-                    !!this.phenotypeMap[p[this.renderConfig["render by"]]]
-                        ? this.phenotypeMap[p[this.renderConfig["render by"]]]
-                              .group
-                        : p[this.renderConfig["group by"]];
+                let group;
+                if (this.phenotypeMapConfig == "kpPhenotypeMap") {
+                    // Use phenotype map groups
+                    const renderByValue = p[this.renderConfig["render by"]];
+                    if (this.phenotypeMap[renderByValue] && this.phenotypeMap[renderByValue].group) {
+                        group = this.phenotypeMap[renderByValue].group;
+                    } else {
+                        group = 'N/A';
+                    }
+                } else if (this.phenotypeMapConfig == null && groupByField) {
+                    // No phenotype map - use group by field directly
+                    const value = p[groupByField];
+                    if (value != null && value !== undefined && value !== '') {
+                        group = value;
+                    } else {
+                        group = 'N/A';
+                    }
+                }
 
-                phenotypeGroupsObj[group].push(p);
+                // Always assign to a group (either the actual group or 'N/A')
+                if (group) {
+                    phenotypeGroupsObj[group].push(p);
+                }
             });
             /*
 			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
@@ -1140,24 +1197,27 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                             24;
 
                         value.map((p) => {
-                            if (
-                                this.phenotypeMapConfig == null ||
+                            // Check phenotype map config first
+                            const renderByField = this.renderConfig["render by"];
+                            const shouldRender = this.phenotypeMapConfig == null ||
                                 (this.phenotypeMapConfig == "kpPhenotypeMap" &&
-                                    !!this.phenotypeMap[
-                                        p[this.renderConfig["render by"]]
-                                    ])
-                            ) {
+                                    !!this.phenotypeMap[p[renderByField]]);
+                            
+                            if (shouldRender) {
                                 let xPos =
                                     plotMargin.left + xStep * (dotIndex + 0.5);
 
-                                let rawPhenotype =
-                                    p[this.renderConfig["render by"]];
-                                let pName =
-                                    this.phenotypeMapConfig == null
-                                        ? rawPhenotype
-                                        : this.phenotypeMap[rawPhenotype][
-                                              "description"
-                                          ];
+                                let rawValue = p[this.renderConfig["render by"]];
+                                let pName;
+                                if (this.phenotypeMapConfig == "kpPhenotypeMap") {
+                                    // Use phenotype map description
+                                    pName = this.phenotypeMap[rawValue] && this.phenotypeMap[rawValue]["description"]
+                                        ? this.phenotypeMap[rawValue]["description"]
+                                        : rawValue;
+                                } else if (this.phenotypeMapConfig == null) {
+                                    // No phenotype map - use raw value
+                                    pName = rawValue;
+                                }
                                 
                                 // Determine which fields to render - use ALL fields if multiple y-axis
                                 const fieldsToRender = this.hasMultipleYAxisFields
@@ -1369,13 +1429,13 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
 
                             let yPos = canvasHeight / 2;
 
-                            if (
-                                this.phenotypeMapConfig == null ||
+                            // Check phenotype map config first
+                            const renderByField = this.renderConfig["render by"];
+                            const shouldRender = this.phenotypeMapConfig == null ||
                                 (this.phenotypeMapConfig == "kpPhenotypeMap" &&
-                                    !!this.phenotypeMap[
-                                        p[this.renderConfig["render by"]]
-                                    ])
-                            ) {
+                                    !!this.phenotypeMap[p[renderByField]]);
+                            
+                            if (shouldRender) {
                                 if (
                                     !!p[this.renderConfig["beta field"]] &&
                                     p[this.renderConfig["beta field"]] != 0
@@ -1400,12 +1460,17 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                                     );
                                 }
 
-                                let pName =
-                                    this.phenotypeMapConfig == null
-                                        ? p[this.renderConfig["render by"]]
-                                        : this.phenotypeMap[
-                                              p[this.renderConfig["render by"]]
-                                          ]["description"];
+                                const rawValue = p[renderByField];
+                                let pName;
+                                if (this.phenotypeMapConfig == "kpPhenotypeMap") {
+                                    // Use phenotype map description
+                                    pName = this.phenotypeMap[rawValue] && this.phenotypeMap[rawValue]["description"]
+                                        ? this.phenotypeMap[rawValue]["description"]
+                                        : rawValue;
+                                } else if (this.phenotypeMapConfig == null) {
+                                    // No phenotype map - use raw value
+                                    pName = rawValue;
+                                }
 
                                 ///organize data by position
                                 let yRangeStart = Math.round(yPos) - 5;
