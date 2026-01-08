@@ -387,7 +387,7 @@ export default Vue.component("time-series-heatmap", {
 				ctx.font = "24px Arial";
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
-				ctx.fillText(this.columnLabel(c), 0, 0);
+				ctx.fillText(c, 0, 0);
 				ctx.restore();
 			})
 
@@ -442,10 +442,6 @@ export default Vue.component("time-series-heatmap", {
 			let pattern = new RegExp(/day_(-?\d+)/);
 			let days = sourceName.match(pattern);
 			return parseInt(days[1]);
-		},
-		columnLabel(sourceName){
-			return sourceName.slice(sourceName.indexOf("day"))
-				.replaceAll("replicate", "rep.");
 		},
 		geneTxFormat(str){
       		let splitString = str.split("___");

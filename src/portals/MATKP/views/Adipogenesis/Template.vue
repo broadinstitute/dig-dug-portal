@@ -14,7 +14,7 @@
                             <div id="avg-checkbox">
                                 <label>
                                     <input v-model="$parent.avgRep" type="checkbox" />
-                                    Display average of all replicates
+                                    Display average of all replicates per time point
                                 </label>
                             </div>
                             <div id="cluster-checkbox">

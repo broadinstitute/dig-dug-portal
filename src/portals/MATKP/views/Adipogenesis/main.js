@@ -304,38 +304,29 @@ new Vue({
             let output = [];
             let sampleData = structuredClone(data);
             
-		
+            let timePoints = this.conditionsMap.timePoints;
+            let replicates = this.conditionsMap.replicates;
+            replicates.push("avg");
+
             let conditions = Object.keys(this.conditionsMap.conditions);
             sampleData.forEach(tsd => {
-                let tsdEntries = [];
-                conditions.forEach(c => {
-                    let info = this.conditionsMap.conditions[c];
-                    let entry = {
-                        source: `day_${info.days}_rep_${info.replicate}`,
-                        gene: tsd.gene,
-                        transcript_id: tsd.transcript_id,
-                        score: tsd[c],
-                        days: info.days,
-                        replicate: info.replicate,
-                        order: tsd.order,
-                        gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
-                        identifier: `${tsd.transcript_id}_rep_${info.replicate}`
-                    }
-                    tsdEntries.push(entry);
+                timePoints.forEach(t => {
+                    replicates.forEach(rep => {
+                        let source = `day_${t}_rep_${rep}`;
+                        let entry = {
+                            source: source,
+                            gene: tsd.gene,
+                            transcript_id: tsd.transcript_id,
+                            score: tsd[source],
+                            days: t,
+                            replicate: rep,
+                            order: tsd.order,
+                            gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
+                            identifier: `${tsd.transcript_id}_rep_${rep}`
+                        }
+                        output.push(entry);
+                    });
                 });
-                // Calculate averages by timepoint across all replicates
-                let avgEntries = [];
-                this.conditionsMap.timePoints.forEach(timePoint => {
-                    let replicates = tsdEntries.filter(e => e.days === timePoint);
-                    let avg = replicates.reduce((sum, replicate) => sum + replicate.score, 0) / replicates.length;
-                    let entry = structuredClone(replicates[0]);
-                    entry.score = avg;
-                    entry.replicate = "avg"
-                    entry.identifier = `${entry.transcript_id}_rep_avg`;
-                    entry.source = `day_${entry.days}_rep_avg`
-                    avgEntries.push(entry);
-                })
-                output = output.concat(tsdEntries).concat(avgEntries);
             });
             this.ready = true;
             return output;
