@@ -24,6 +24,7 @@ export default new Vuex.Store({
         c2ct: bioIndex("c2ct"),
         c2ctAnnotation: bioIndex("c2ct-annotation"),
         pigeanGenePhenotype: bioIndex("pigean-gene-phenotype"),
+        pigeanFactor: bioIndex("pigean-factor"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -75,6 +76,13 @@ export default new Vuex.Store({
             }
             let phenotype = context.state.phenotype.name;
             await context.dispatch("pigeanGenePhenotype/query", { q: phenotype + ',2,small', limit: 1000 });
+        },
+        async getPigeanFactorData(context) {
+            if (!context.state.phenotype || !context.state.phenotype.name) {
+                return; // Exit early if phenotype not ready
+            }
+            let phenotype = context.state.phenotype.name;
+            await context.dispatch("pigeanFactor/query", { q: phenotype + ',2,small', limit: 1000 });
         },
         onPhenotypeChange(context, phenotype) {
             context.state.selectedPhenotype = phenotype;
@@ -148,6 +156,7 @@ export default new Vuex.Store({
             context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
             context.dispatch("getCs2ct");
             context.dispatch("getPigeanGenePhenotypeData");
+            context.dispatch("getPigeanFactorData");
             context.state.manhattanPlotAvailable = true;
         },
         getCs2ct(context) {

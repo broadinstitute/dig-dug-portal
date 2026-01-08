@@ -335,6 +335,12 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <pigean-factors
+                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                    :pigeanFactorData="$store.state.pigeanFactor.data"
+                >
+
+                </pigean-factors>
 
                 <pigean-phenotype
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"

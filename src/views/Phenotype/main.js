@@ -16,6 +16,7 @@ import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import RawImage from "@/components/RawImage.vue";
 import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
 import PigeanPhenotype from "@/components/PigeanPhenotype.vue";
+import PigeanFactor from "@/components/PigeanFactors.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -63,6 +64,7 @@ new Vue({
         ResearchSingleSearch,
         MetaAnalysisBarGraph,
         PigeanPhenotype,
+        PigeanFactor,
     },
     mixins: [pageMixin],
     data() {
