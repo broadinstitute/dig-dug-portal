@@ -175,7 +175,8 @@ new Vue({
                         let newField = {
                             key: `day_${t}_rep_avg`,
                             label: `Day ${t} (avg.)`,
-                            sortable: true
+                            sortable: true,
+                            formatter: Formatters.tpmFormatter
                         };
                         baseFields.push(newField);
                     } else {
@@ -183,7 +184,8 @@ new Vue({
                             let newField = {
                                 key: `day_${t}_rep_${r}`,
                                 label: `Day ${t}, rep. ${r}`,
-                                sortable: true
+                                sortable: true,
+                                formatter: Formatters.tpmFormatter
                             };
                             baseFields.push(newField);
                         });
