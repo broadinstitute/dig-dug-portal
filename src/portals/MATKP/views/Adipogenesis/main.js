@@ -186,9 +186,9 @@ new Vue({
     },
     async created() {
         this.metadata = await this.getTimeSeriesMetadata();
-        this.timeSeriesData = await this.getTimeSeries();
-        this.conditionsMap = this.mapConditions(this.timeSeriesData);
-        console.log(JSON.stringify(this.conditionsMap));
+        let timeSeriesData = await this.getTimeSeries();
+        this.conditionsMap = this.mapConditions(timeSeriesData);
+        this.timeSeriesData = this.includeAverages(timeSeriesData);
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -261,6 +261,22 @@ new Vue({
             }
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
+        },
+        includeAverages(data){
+            let conditions = Object.keys(this.conditionsMap.conditions);
+            let outputData = structuredClone(data);
+            outputData.forEach(d => {
+                this.conditionsMap.timePoints.forEach(time => {
+                    let repConditions = conditions.filter(c => 
+                        this.conditionsMap.conditions[c].days === time);
+                    let replicates = repConditions.map(rc => d[rc]);
+                    let avg = replicates.reduce((sum, replicate) => sum + replicate, 0) / replicates.length;
+                    let label = `day_${time}_rep_avg`;
+                    d[label] = avg;
+                });
+            });
+            console.log(outputData[0]);
+            return outputData;
         },
         processDataForHeatmap(data){
             if (this.metadata === null || this.timeSeriesData === null){
