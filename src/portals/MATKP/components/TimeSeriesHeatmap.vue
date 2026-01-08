@@ -70,7 +70,7 @@ import { rgb } from "d3";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn", "activeTab", "filter"],
+	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn", "activeTab", "filter", "avgRep"],
 	data() {
 		return {
 			squareData: {},
@@ -92,6 +92,7 @@ export default Vue.component("time-series-heatmap", {
 			if (this.filter) {
                 data = data.filter(this.filter);
             }
+			data = data.filter(d => this.avgRep ? d.replicate === 'avg' : d.replicate !== 'avg');
 			return data;
 		},
 		renderData() {
@@ -111,7 +112,7 @@ export default Vue.component("time-series-heatmap", {
 				a.order - b.order
 			);
 			massagedData["columns"] = columnList.sort((a, b) => 
-				this.extractTime(a) - this.extractTime(b)
+				a.days - b.days
 			);
 
 			rowList.map((r) => {
@@ -135,17 +136,26 @@ export default Vue.component("time-series-heatmap", {
 			return this.renderConfig["font size"] * 1.5;
 		},
 		boxWidth(){
-			return this.boxHeight * this.boxAspectRatio * 2;
+			return this.boxHeight * this.boxAspectRatio * 2 * this.replicateFactor;
+		},
+		replicateFactor(){
+			// For sizing boxes based on how many replicates there are.
+			let replicates = new Set(this.filteredData.map(d => d.replicate));
+			return 2 / replicates.size;
 		}
 	},
 	watch: {
 		renderData() {
+			console.log("let's render this heatmap");
 			this.renderHeatmap();
 		},
 		zoomedIn(){
 			this.renderHeatmap();
 		},
 		activeTab(){
+			this.renderHeatmap();
+		},
+		avgRep(){
 			this.renderHeatmap();
 		}
 	},
@@ -377,7 +387,7 @@ export default Vue.component("time-series-heatmap", {
 				ctx.font = "24px Arial";
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
-				ctx.fillText(this.columnLabel(c), 0, 0);
+				ctx.fillText(c, 0, 0);
 				ctx.restore();
 			})
 
@@ -427,15 +437,6 @@ export default Vue.component("time-series-heatmap", {
 				rIndex++;
 			});
 
-		},
-		extractTime(sourceName){
-			let pattern = new RegExp(/day (-?\d+)/);
-			let days = sourceName.match(pattern);
-			return parseInt(days[1]);
-		},
-		columnLabel(sourceName){
-			return sourceName.slice(sourceName.indexOf("day"))
-				.replaceAll("replicate", "rep.");
 		},
 		geneTxFormat(str){
       		let splitString = str.split("___");

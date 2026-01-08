@@ -7,15 +7,31 @@
             <template>
                 <div class="mat-body f-col">
                     <h2 class="matkp-static-content-title">
-                        Time Series Data (sample)
+                        Adipogenesis Datasets
                     </h2>
+                    <div class="card mdkp-card">
+                        <div class="card-body">
+                            <div id="avg-checkbox">
+                                <label>
+                                    <input v-model="$parent.avgRep" type="checkbox" />
+                                    Display average of all replicates per time point
+                                </label>
+                            </div>
+                            <div id="cluster-checkbox">
+                                <label>
+                                    <input v-model="$parent.clusterOn" type="checkbox" />
+                                    Show data by clusters
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     <div class="card mdkp-card">
                         <div class="card-body">
                             <b-tabs v-model="$parent.activeTab">
                                 <b-tab title="Top Transcripts">
                                     <div class="tab-inner">
                                         <h4>
-                                            Time series data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
+                                            Adipogenesis data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
                                         </h4>
                                         <div id="zoom-checkbox">
                                             <label>
@@ -26,17 +42,18 @@
                                         <div v-if="$parent.ready"
                                             class="time-series-content">
                                             <time-series-heatmap
-                                                :heatmapData="$parent.processedData"
+                                                :heatmapData="$parent.paginatedData"
                                                 :renderConfig="$parent.heatmapConfig"
                                                 :utils="$parent.utilsBox"
                                                 sectionId="time-series-heatmap"
                                                 :linePlotConfig="$parent.linePlotConfig"
                                                 :zoomedIn="$parent.zoomedIn"
-                                                :activeTab="$parent.activeTab">
+                                                :activeTab="$parent.activeTab"
+                                                :avgRep="$parent.avgRep">
                                             </time-series-heatmap>
                                         </div>
                                     <div>
-                                    <b-table v-if="$parent.conditions.length > 0"
+                                    <b-table v-if="$parent.ready"
                                         small
                                         v-model="$parent.currentTable"
                                         :items="$parent.timeSeriesData"
@@ -45,7 +62,7 @@
                                         :current-page="$parent.currentPage">
                                     </b-table>
 
-                                <b-pagination
+                                <b-pagination v-if="$parent.ready"
                                     v-model="$parent.currentPage"
                                     class="pagination-sm justify-content-center"
                                     :total-rows="$parent.timeSeriesData.length"
@@ -80,7 +97,8 @@
                                                     :utils="$parent.utilsBox"
                                                     sectionId="search-heatmap"
                                                     :linePlotConfig="$parent.linePlotConfig"
-                                                    :zoomedIn="true">
+                                                    :zoomedIn="true"
+                                                    :avgRep="$parent.avgRep">
                                                 </time-series-heatmap>
                                                 <b-table
                                                     small
