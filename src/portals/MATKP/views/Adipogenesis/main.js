@@ -286,8 +286,14 @@ new Vue({
                     let label = `day_${time}_rep_avg`;
                     d[label] = avg;
                 });
+                // Relabel replicates to conform
+                conditions.forEach(c => {
+                    let info = this.conditionsMap.conditions[c];
+                    let label = `day_${info.days}_rep_${info.replicate}`;
+                    d[label] = d[c];
+                })
             });
-            console.log(outputData[0]);
+            console.log(JSON.stringify(outputData[0]));
             return outputData;
         },
         processDataForHeatmap(data){
