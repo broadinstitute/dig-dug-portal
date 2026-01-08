@@ -97,7 +97,8 @@
                                                     :utils="$parent.utilsBox"
                                                     sectionId="search-heatmap"
                                                     :linePlotConfig="$parent.linePlotConfig"
-                                                    :zoomedIn="true">
+                                                    :zoomedIn="true"
+                                                    :avgRep="$parent.avgRep">
                                                 </time-series-heatmap>
                                                 <b-table
                                                     small

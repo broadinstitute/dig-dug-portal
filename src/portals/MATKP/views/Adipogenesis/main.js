@@ -278,7 +278,7 @@ new Vue({
                 this.conditionsMap.timePoints.forEach(time => {
                     let repConditions = conditions.filter(c => 
                         this.conditionsMap.conditions[c].days === time);
-                    let replicates = repConditions.map(rc => d[rc]);
+                    let replicates = repConditions.map(rc => parseFloat(d[rc]));
                     let avg = replicates.reduce((sum, replicate) => sum + replicate, 0) / replicates.length;
                     let label = `day_${time}_rep_avg`;
                     d[label] = avg;
@@ -330,7 +330,7 @@ new Vue({
             let geneSearchArray = this.geneSearchQuery.split(delimiters);
             let results = await this.multiqueryGenes(geneSearchArray);
             this.geneSearchResults = this.includeAverages(results.data);
-            
+            console.log(JSON.stringify(this.geneSearchResults[0]));
         },
         async multiqueryGenes(geneArray){
             let url = "https://matkp.hugeampkpnbi.org/api/bio/multiquery";
