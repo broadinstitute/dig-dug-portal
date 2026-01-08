@@ -70,7 +70,7 @@ import { rgb } from "d3";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn", "activeTab", "filter"],
+	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn", "activeTab", "filter", "avgRep"],
 	data() {
 		return {
 			squareData: {},
@@ -92,6 +92,7 @@ export default Vue.component("time-series-heatmap", {
 			if (this.filter) {
                 data = data.filter(this.filter);
             }
+			data = data.filter(d => this.avgRep ? d.replicate === 'avg' : d.replicate !== 'avg');
 			return data;
 		},
 		renderData() {
@@ -139,18 +140,22 @@ export default Vue.component("time-series-heatmap", {
 		},
 		replicateFactor(){
 			// For sizing boxes based on how many replicates there are.
-			let replicates = new Set(this.heatmapData.map(d => d.replicate));
+			let replicates = new Set(this.filteredData.map(d => d.replicate));
 			return 2 / replicates.size;
 		}
 	},
 	watch: {
 		renderData() {
+			console.log("let's render this heatmap");
 			this.renderHeatmap();
 		},
 		zoomedIn(){
 			this.renderHeatmap();
 		},
 		activeTab(){
+			this.renderHeatmap();
+		},
+		avgRep(){
 			this.renderHeatmap();
 		}
 	},

@@ -94,12 +94,13 @@ new Vue({
             if (allData === null){
                 return null;
             }
-            return allData.filter(d => this.avgRep 
-                ? d.replicate === "avg"
-                : d.replicate !== "avg");
+            return allData;
         },
         paginatedData(){
-            return this.filterByPage(this.processedData);
+            console.log(this.processedData.length);
+            let pageData = this.filterByPage(this.processedData);
+            console.log(pageData.length);
+            return pageData;
         },
         processedGeneSearch(){
             return this.processDataForHeatmap(this.geneSearchResults);
@@ -276,7 +277,7 @@ new Vue({
                 conditions.forEach(c => {
                     let info = this.conditionsMap.conditions[c];
                     let entry = {
-                        source: `day_${info.days}_rep${info.replicate}`,
+                        source: `day_${info.days}_rep_${info.replicate}`,
                         gene: tsd.gene,
                         transcript_id: tsd.transcript_id,
                         score: tsd[c],

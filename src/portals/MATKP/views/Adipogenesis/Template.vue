@@ -48,7 +48,8 @@
                                                 sectionId="time-series-heatmap"
                                                 :linePlotConfig="$parent.linePlotConfig"
                                                 :zoomedIn="$parent.zoomedIn"
-                                                :activeTab="$parent.activeTab">
+                                                :activeTab="$parent.activeTab"
+                                                :avgRep="$parent.avgRep">
                                             </time-series-heatmap>
                                         </div>
                                     <div>
