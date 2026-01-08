@@ -97,9 +97,7 @@ new Vue({
             return allData;
         },
         paginatedData(){
-            console.log(this.processedData.length);
             let pageData = this.filterByPage(this.processedData);
-            console.log(pageData.length);
             return pageData;
         },
         processedGeneSearch(){
@@ -172,26 +170,26 @@ new Vue({
                 }
                 
             ];
-            if (this.avgRep){
                 this.conditionsMap.timePoints.forEach(t => {
-                    let newField = {
-                        key: `day_${t}_rep_avg`,
-                        label: `day_${t}_rep_avg`,
-                        sortable: true
-                    };
-                    baseFields.push(newField);
-                })
-            } else {
-                Object.keys(this.conditionsMap.conditions).forEach(c => {
-                let info = this.conditionsMap.conditions[c];
-                let newField = {
-                    key: c,
-                    label: `day_${info.days}_rep_${info.replicate}`,
-                    sortable: true
-                };
-                baseFields.push(newField);
-            });
-            }
+                    if (this.avgRep){
+                        let newField = {
+                            key: `day_${t}_rep_avg`,
+                            label: `Day ${t} (avg.)`,
+                            sortable: true
+                        };
+                        baseFields.push(newField);
+                    } else {
+                        this.conditionsMap.replicates.forEach(r => {
+                            let newField = {
+                                key: `day_${t}_rep_${r}`,
+                                label: `Day ${t}, rep. ${r}`,
+                                sortable: true
+                            };
+                            baseFields.push(newField);
+                        });
+                    }
+                });
+            
             
             return baseFields;
         }
@@ -276,8 +274,7 @@ new Vue({
         },
         includeAverages(data){
             let conditions = Object.keys(this.conditionsMap.conditions);
-            let outputData = structuredClone(data);
-            outputData.forEach(d => {
+            data.forEach(d => {
                 this.conditionsMap.timePoints.forEach(time => {
                     let repConditions = conditions.filter(c => 
                         this.conditionsMap.conditions[c].days === time);
@@ -293,8 +290,7 @@ new Vue({
                     d[label] = d[c];
                 })
             });
-            console.log(JSON.stringify(outputData[0]));
-            return outputData;
+            return data;
         },
         processDataForHeatmap(data){
             if (this.metadata === null || this.timeSeriesData === null){
@@ -302,14 +298,12 @@ new Vue({
             }
             
             let output = [];
-            let sampleData = structuredClone(data);
             
             let timePoints = this.conditionsMap.timePoints;
-            let replicates = this.conditionsMap.replicates;
+            let replicates = structuredClone(this.conditionsMap.replicates);
             replicates.push("avg");
 
-            let conditions = Object.keys(this.conditionsMap.conditions);
-            sampleData.forEach(tsd => {
+            data.forEach(tsd => {
                 timePoints.forEach(t => {
                     replicates.forEach(rep => {
                         let source = `day_${t}_rep_${rep}`;
@@ -335,7 +329,7 @@ new Vue({
             let delimiters = /[\s;,]+/;
             let geneSearchArray = this.geneSearchQuery.split(delimiters);
             let results = await this.multiqueryGenes(geneSearchArray);
-            this.geneSearchResults = results.data;
+            this.geneSearchResults = this.includeAverages(results.data);
             
         },
         async multiqueryGenes(geneArray){

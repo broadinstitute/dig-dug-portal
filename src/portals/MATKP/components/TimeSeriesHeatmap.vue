@@ -112,7 +112,7 @@ export default Vue.component("time-series-heatmap", {
 				a.order - b.order
 			);
 			massagedData["columns"] = columnList.sort((a, b) => 
-				this.extractTime(a) - this.extractTime(b)
+				a.days - b.days
 			);
 
 			rowList.map((r) => {
@@ -437,11 +437,6 @@ export default Vue.component("time-series-heatmap", {
 				rIndex++;
 			});
 
-		},
-		extractTime(sourceName){
-			let pattern = new RegExp(/day_(-?\d+)/);
-			let days = sourceName.match(pattern);
-			return parseInt(days[1]);
 		},
 		geneTxFormat(str){
       		let splitString = str.split("___");
