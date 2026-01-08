@@ -172,7 +172,17 @@ new Vue({
                 }
                 
             ];
-            Object.keys(this.conditionsMap.conditions).forEach(c => {
+            if (this.avgRep){
+                this.conditionsMap.timePoints.forEach(t => {
+                    let newField = {
+                        key: `day_${t}_rep_avg`,
+                        label: `day_${t}_rep_avg`,
+                        sortable: true
+                    };
+                    baseFields.push(newField);
+                })
+            } else {
+                Object.keys(this.conditionsMap.conditions).forEach(c => {
                 let info = this.conditionsMap.conditions[c];
                 let newField = {
                     key: c,
@@ -181,6 +191,8 @@ new Vue({
                 };
                 baseFields.push(newField);
             });
+            }
+            
             return baseFields;
         }
     },
