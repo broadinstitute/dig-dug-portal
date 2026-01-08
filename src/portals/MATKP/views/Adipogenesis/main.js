@@ -171,10 +171,11 @@ new Vue({
                 }
                 
             ];
-            this.conditions.forEach(c => {
+            Object.keys(this.conditionsMap.conditions).forEach(c => {
+                let info = this.conditionsMap.conditions[c];
                 let newField = {
                     key: c,
-                    label: this.getSourceName(c),
+                    label: `day_${info.days}_rep_${info.replicate}`,
                     sortable: true
                 };
                 baseFields.push(newField);
@@ -233,7 +234,7 @@ new Vue({
                 conditions: {}
             };
             conditions.forEach(c => {
-                let sourceName = this.getSourceName(c)
+                let sourceName = this.metadata[c].source_name;
                 let days = parseInt(sourceName.match(timeElapsed)[1]);
                 let replicate = parseInt(sourceName.match(rep)[1]);
                 let prefix = sourceName.match(findPrefix)[1];
@@ -253,10 +254,6 @@ new Vue({
             return mapping;
 
         },
-        getSourceName(label){
-            let metadataEntry = this.metadata[label];
-            return metadataEntry.source_name;
-        },
         filterByPage(data){
             if (!this.zoomedIn){
                 return data;
@@ -268,54 +265,44 @@ new Vue({
             if (this.metadata === null || this.timeSeriesData === null){
                 return null;
             }
-            console.log(JSON.stringify(data[0]));
-
-            if (this.conditions.length === 0){
-                this.conditions = Object.keys(data[0])
-                .filter(t => t.startsWith("GSM"));
-            }
             
             let output = [];
             let sampleData = structuredClone(data);
             
-			let timeElapsed = new RegExp(/day (-?\d+)/);
-            let rep = new RegExp(/replicate (\d+)/);
 		
+            let conditions = Object.keys(this.conditionsMap.conditions);
             sampleData.forEach(tsd => {
                 let tsdEntries = [];
-                this.conditions.forEach(c => {
-                    let sourceName = this.getSourceName(c)
-                    let score = tsd[c];
-                    let days = parseInt(sourceName.match(timeElapsed)[1]);
-                    let replicate = parseInt(sourceName.match(rep)[1]);
+                conditions.forEach(c => {
+                    let info = this.conditionsMap.conditions[c];
                     let entry = {
+                        source: `day_${info.days}_rep${info.replicate}`,
                         gene: tsd.gene,
                         transcript_id: tsd.transcript_id,
-                        source: sourceName,
-                        score: score,
-                        days: days,
-                        replicate: replicate,
+                        score: tsd[c],
+                        days: info.days,
+                        replicate: info.replicate,
                         order: tsd.order,
                         gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
-                        identifier: `${tsd.transcript_id}_rep_${replicate}`
+                        identifier: `${tsd.transcript_id}_rep_${info.replicate}`
                     }
                     tsdEntries.push(entry);
                 });
                 // Calculate averages by timepoint across all replicates
-                let timePoints = Array.from(new Set(tsdEntries.map(t => t.days)));
                 let avgEntries = [];
-                timePoints.forEach(timePoint => {
+                this.conditionsMap.timePoints.forEach(timePoint => {
                     let replicates = tsdEntries.filter(e => e.days === timePoint);
                     let avg = replicates.reduce((sum, replicate) => sum + replicate.score, 0) / replicates.length;
                     let entry = structuredClone(replicates[0]);
                     entry.score = avg;
                     entry.replicate = "avg"
                     entry.identifier = `${entry.transcript_id}_rep_avg`;
-                    entry.source = entry.source.replace(rep, "avg");
+                    entry.source = `day_${entry.days}_rep_avg`
                     avgEntries.push(entry);
                 })
                 output = output.concat(tsdEntries).concat(avgEntries);
             });
+            this.ready = true;
             return output;
         },
         async queryGenes(){
@@ -355,6 +342,7 @@ new Vue({
     },
     watch: {
         processedData(newData){
+            this.ready = false;
             if (this.minScore === null && this.maxScore === null){
                 this.minScore = this.extremeVal(newData);
                 this.maxScore = this.extremeVal(newData, false);

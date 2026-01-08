@@ -434,7 +434,7 @@ export default Vue.component("time-series-heatmap", {
 
 		},
 		extractTime(sourceName){
-			let pattern = new RegExp(/day (-?\d+)/);
+			let pattern = new RegExp(/day_(-?\d+)/);
 			let days = sourceName.match(pattern);
 			return parseInt(days[1]);
 		},

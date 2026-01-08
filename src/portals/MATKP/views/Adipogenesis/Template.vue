@@ -52,7 +52,7 @@
                                             </time-series-heatmap>
                                         </div>
                                     <div>
-                                    <b-table v-if="$parent.conditions.length > 0"
+                                    <b-table v-if="$parent.ready"
                                         small
                                         v-model="$parent.currentTable"
                                         :items="$parent.timeSeriesData"
@@ -61,7 +61,7 @@
                                         :current-page="$parent.currentPage">
                                     </b-table>
 
-                                <b-pagination
+                                <b-pagination v-if="$parent.ready"
                                     v-model="$parent.currentPage"
                                     class="pagination-sm justify-content-center"
                                     :total-rows="$parent.timeSeriesData.length"
