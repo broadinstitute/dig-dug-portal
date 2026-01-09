@@ -5,7 +5,7 @@
     </div>
     <div class="viz-legend" v-if="!loading && heatmapData && heatmapData.genes && heatmapData.genes.length > 0">
       <div class="legend-item">
-        <span class="legend-label">Top 3 rows (against phenotype):</span>
+        <span class="legend-label">Phenotype associations:</span>
         <span class="legend-color-item">
           <span class="legend-color very-strong"></span>
           <span class="legend-color-text">Very Strong (&gt; 3)</span>
@@ -24,8 +24,9 @@
         </span>
       </div>
       <div class="legend-item">
-        <span class="legend-label">Factor rows (against factor):</span>
-        <span class="legend-text">Purple gradient indicates relevance to factor (darker = more relevant)</span>
+        <span class="legend-label">Factor relevance:</span>
+        <span class="legend-color factor-relevance"></span>
+        <span class="legend-text">Darker = more relevant</span>
       </div>
     </div>
     <div class="heatmap-container">
@@ -198,7 +199,7 @@ export default Vue.component("pigean-factors-viz", {
       // Add 1 extra column for factor relevance score in y-axis labels
       const numSpecialRows = 3;
       const relevanceColumnWidth = 20; // Fixed width for relevance score column in y-axis labels
-      const cellWidth = Math.max(40, 300 / genes.length); // Dynamic width based on number of genes
+      const cellWidth = Math.max(30, 300 / genes.length); // Dynamic width based on number of genes
       const cellHeight = 20;
       const labelWidth = 200 + relevanceColumnWidth; // Width for fixed factor labels + relevance column
       const margin = { top: 100, right: 20, bottom: 20, left: 0 }; // Increased top margin for x-axis labels and rotated relevance label
@@ -246,7 +247,7 @@ export default Vue.component("pigean-factors-viz", {
       // Position it further up and adjust for rotation to prevent cutoff
       // When rotated -90 degrees, the text extends horizontally, so we need more vertical space
       const relevanceHeaderText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      const relevanceHeaderX = relevanceColumnWidth / 2;
+      const relevanceHeaderX = 0;//relevanceColumnWidth / 2;
       const relevanceHeaderY = -60; // Move further up to accommodate rotated text (text extends left when rotated -90)
       relevanceHeaderText.setAttribute('x', relevanceHeaderX);
       relevanceHeaderText.setAttribute('y', relevanceHeaderY);
@@ -324,11 +325,10 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute('alignment-baseline', 'middle');
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '11px');
-        // Truncate long labels
-        const displayLabel = label.length > 20 ? label.substring(0, 17) + '...' : label;
-        text.textContent = displayLabel;
+        // Show full label without truncation
+        text.textContent = label;
         
-        // Add tooltip for full label if truncated
+        // Add tooltip for full label (always show tooltip for better UX)
         if (label.length > 20) {
           const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
           labelGroup.setAttribute('class', 'heatmap-label-group');
@@ -584,8 +584,6 @@ export default Vue.component("pigean-factors-viz", {
             circle.setAttribute('cy', centerY);
             circle.setAttribute('r', circleRadius);
             circle.setAttribute('fill', color.background);
-            circle.setAttribute('stroke', color.border);
-            circle.setAttribute('stroke-width', '1');
             circle.setAttribute('class', 'heatmap-circle-special');
             
             // Add hover events to circle as well
@@ -807,6 +805,10 @@ export default Vue.component("pigean-factors-viz", {
   white-space: nowrap;
 }
 
+.legend-color.factor-relevance {
+  background-color: #9c27b0; /* Dark purple matching heatmap gradient */
+}
+
 .legend-color.very-strong {
   background-color: #4a90e2;
 }
@@ -840,7 +842,7 @@ export default Vue.component("pigean-factors-viz", {
 .heatmap-labels-fixed {
   position: sticky;
   left: 0;
-  z-index: 10;
+  z-index: 9;
   background-color: #fff;
   border-right: 2px solid #ddd;
   flex-shrink: 0;
