@@ -4,29 +4,36 @@
       {{ error }}
     </div>
     <div class="viz-legend" v-if="!loading && heatmapData && heatmapData.genes && heatmapData.genes.length > 0">
-      <div class="legend-item">
-        <span class="legend-label">Phenotype associations:</span>
-        <span class="legend-color-item">
-          <span class="legend-color very-strong"></span>
-          <span class="legend-color-text">Very Strong (&gt; 3)</span>
-        </span>
-        <span class="legend-color-item">
-          <span class="legend-color strongly-suggestive"></span>
-          <span class="legend-color-text">Strongly Suggestive (2-3)</span>
-        </span>
-        <span class="legend-color-item">
-          <span class="legend-color nominally-significant"></span>
-          <span class="legend-color-text">Nominally Significant (1-2)</span>
-        </span>
-        <span class="legend-color-item">
-          <span class="legend-color not-significant"></span>
-          <span class="legend-color-text">Not Significant (&lt; 1)</span>
-        </span>
+      <div class="legend-content">
+        <div class="legend-item">
+          <span class="legend-label">Phenotype associations:</span>
+          <span class="legend-color-item">
+            <span class="legend-color very-strong"></span>
+            <span class="legend-color-text">Very Strong (&gt; 3)</span>
+          </span>
+          <span class="legend-color-item">
+            <span class="legend-color strongly-suggestive"></span>
+            <span class="legend-color-text">Strongly Suggestive (2-3)</span>
+          </span>
+          <span class="legend-color-item">
+            <span class="legend-color nominally-significant"></span>
+            <span class="legend-color-text">Nominally Significant (1-2)</span>
+          </span>
+          <span class="legend-color-item">
+            <span class="legend-color not-significant"></span>
+            <span class="legend-color-text">Not Significant (&lt; 1)</span>
+          </span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-label">Factor relevance:</span>
+          <span class="legend-color factor-relevance"></span>
+          <span class="legend-text">Darker = more relevant</span>
+        </div>
       </div>
-      <div class="legend-item">
-        <span class="legend-label">Factor relevance:</span>
-        <span class="legend-color factor-relevance"></span>
-        <span class="legend-text">Darker = more relevant</span>
+      <div class="legend-actions">
+        <button class="btn btn-sm btn-outline-primary" @click="downloadHeatmap">
+          Download
+        </button>
       </div>
     </div>
     <div class="heatmap-container">
@@ -43,6 +50,7 @@
 </template>
 <script>
 import Vue from "vue";
+import JSZip from "jszip";
 
 export default Vue.component("pigean-factors-viz", {
   props: {
@@ -71,8 +79,27 @@ export default Vue.component("pigean-factors-viz", {
   },
   computed: {
     containerStyle() {
+      // Calculate dynamic height based on number of factors
+      let dynamicHeight = this.height;
+      
+      if (this.heatmapData && this.heatmapData.factors && this.heatmapData.factors.length > 0) {
+        const numSpecialRows = 3; // Combined score, GWAS support, Gene set support
+        const numFactors = this.heatmapData.factors.length;
+        const cellHeight = 20;
+        const margin = { top: 100, bottom: 20 };
+        const legendHeight = 60; // Approximate legend height
+        const scrollbarHeight = 30; // Extra height for scrollbar visibility
+        const totalRows = numSpecialRows + numFactors;
+        const calculatedHeight = totalRows * cellHeight + margin.top + margin.bottom + legendHeight + scrollbarHeight;
+        
+        // Use calculated height if it's larger than the default, but set a reasonable max
+        const minHeight = parseInt(this.height) || 500;
+        const maxHeight = 2000; // Maximum height to prevent extremely tall containers
+        dynamicHeight = Math.min(Math.max(calculatedHeight, minHeight), maxHeight) + 'px';
+      }
+      
       return {
-        height: this.height,
+        height: dynamicHeight,
         width: "100%",
         position: "relative",
         background: "#fff"
@@ -247,7 +274,7 @@ export default Vue.component("pigean-factors-viz", {
       // Position it further up and adjust for rotation to prevent cutoff
       // When rotated -90 degrees, the text extends horizontally, so we need more vertical space
       const relevanceHeaderText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      const relevanceHeaderX = 0;//relevanceColumnWidth / 2;
+      const relevanceHeaderX = 10;//relevanceColumnWidth / 2;
       const relevanceHeaderY = -60; // Move further up to accommodate rotated text (text extends left when rotated -90)
       relevanceHeaderText.setAttribute('x', relevanceHeaderX);
       relevanceHeaderText.setAttribute('y', relevanceHeaderY);
@@ -256,6 +283,7 @@ export default Vue.component("pigean-factors-viz", {
       relevanceHeaderText.setAttribute('class', 'heatmap-label');
       relevanceHeaderText.setAttribute('font-size', '10px'); // Slightly smaller font to fit better
       relevanceHeaderText.setAttribute('font-weight', '600');
+      relevanceHeaderText.setAttribute('font-family', 'Arial');
       // Rotate -90 degrees around the center point
       relevanceHeaderText.setAttribute('transform', `rotate(-90, ${relevanceHeaderX}, ${relevanceHeaderY})`);
       relevanceHeaderText.textContent = 'Relevance to trait';
@@ -311,6 +339,7 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '11px');
         text.setAttribute('font-weight', '600'); // Make special rows bold
+        text.setAttribute('font-family', 'Arial');
         text.textContent = label;
         labelsG.appendChild(text);
       });
@@ -325,6 +354,7 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute('alignment-baseline', 'middle');
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '11px');
+        text.setAttribute('font-family', 'Arial');
         // Show full label without truncation
         text.textContent = label;
         
@@ -722,6 +752,7 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '11px');
+        text.setAttribute('font-family', 'Arial');
         text.setAttribute('transform', `rotate(-45, ${labelX}, ${labelY})`);
         text.textContent = gene;
         g.appendChild(text);
@@ -729,6 +760,311 @@ export default Vue.component("pigean-factors-viz", {
       
       svg.appendChild(g);
       this.$refs.heatmapContainer.appendChild(svg);
+    },
+    downloadHeatmap() {
+      try {
+        // Get both SVG elements
+        const labelsContainer = this.$refs.heatmapLabelsContainer;
+        const heatmapContainer = this.$refs.heatmapContainer;
+        
+        if (!labelsContainer || !heatmapContainer) {
+          console.error('Heatmap containers not found');
+          return;
+        }
+        
+        const labelsSvg = labelsContainer.querySelector('svg');
+        const heatmapSvg = heatmapContainer.querySelector('svg');
+        
+        if (!labelsSvg || !heatmapSvg) {
+          console.error('SVG elements not found');
+          return;
+        }
+        
+        // Get dimensions
+        const labelsWidth = parseFloat(labelsSvg.getAttribute('width')) || 0;
+        const labelsHeight = parseFloat(labelsSvg.getAttribute('height')) || 0;
+        const heatmapWidth = parseFloat(heatmapSvg.getAttribute('width')) || 0;
+        const heatmapHeight = parseFloat(heatmapSvg.getAttribute('height')) || 0;
+        
+        // Create a combined SVG
+        const combinedSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        combinedSvg.setAttribute('width', labelsWidth + heatmapWidth);
+        combinedSvg.setAttribute('height', Math.max(labelsHeight, heatmapHeight));
+        combinedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        combinedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+        
+        // Add style to ensure Arial font is used
+        const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+        style.textContent = 'text { font-family: Arial, sans-serif; }';
+        combinedSvg.appendChild(style);
+        
+        // Create a group for labels (positioned at x=0)
+        const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        labelsGroup.setAttribute('transform', 'translate(0, 0)');
+        // Clone all children from labels SVG and ensure font-family is set
+        Array.from(labelsSvg.children).forEach(child => {
+          const cloned = child.cloneNode(true);
+          // Ensure all text elements have Arial font
+          if (cloned.tagName === 'text' && !cloned.getAttribute('font-family')) {
+            cloned.setAttribute('font-family', 'Arial');
+          }
+          // Recursively set font-family for nested text elements
+          const textElements = cloned.querySelectorAll('text');
+          textElements.forEach(textEl => {
+            if (!textEl.getAttribute('font-family')) {
+              textEl.setAttribute('font-family', 'Arial');
+            }
+          });
+          labelsGroup.appendChild(cloned);
+        });
+        combinedSvg.appendChild(labelsGroup);
+        
+        // Create a group for heatmap (positioned after labels)
+        const heatmapGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const heatmapG = heatmapSvg.querySelector('g');
+        if (heatmapG) {
+          // Get current transform
+          const currentTransform = heatmapG.getAttribute('transform') || '';
+          // Extract translate values if any
+          const translateMatch = currentTransform.match(/translate\(([^)]+)\)/);
+          let translateX = 0, translateY = 0;
+          if (translateMatch) {
+            const coords = translateMatch[1].split(',');
+            translateX = parseFloat(coords[0]) || 0;
+            translateY = parseFloat(coords[1]) || 0;
+          }
+          // Set transform to position after labels
+          heatmapGroup.setAttribute('transform', `translate(${translateX + labelsWidth}, ${translateY})`);
+        } else {
+          heatmapGroup.setAttribute('transform', `translate(${labelsWidth}, 0)`);
+        }
+        // Clone all children from heatmap SVG's main group and ensure font-family is set
+        const cloneWithFontFamily = (element) => {
+          const cloned = element.cloneNode(true);
+          // Ensure all text elements have Arial font
+          if (cloned.tagName === 'text' && !cloned.getAttribute('font-family')) {
+            cloned.setAttribute('font-family', 'Arial');
+          }
+          // Recursively set font-family for nested text elements
+          const textElements = cloned.querySelectorAll('text');
+          textElements.forEach(textEl => {
+            if (!textEl.getAttribute('font-family')) {
+              textEl.setAttribute('font-family', 'Arial');
+            }
+          });
+          return cloned;
+        };
+        
+        if (heatmapG) {
+          Array.from(heatmapG.children).forEach(child => {
+            heatmapGroup.appendChild(cloneWithFontFamily(child));
+          });
+        } else {
+          Array.from(heatmapSvg.children).forEach(child => {
+            heatmapGroup.appendChild(cloneWithFontFamily(child));
+          });
+        }
+        combinedSvg.appendChild(heatmapGroup);
+        
+        // Ensure SVG has proper viewBox for rendering
+        if (!combinedSvg.getAttribute('viewBox')) {
+          combinedSvg.setAttribute('viewBox', `0 0 ${labelsWidth + heatmapWidth} ${Math.max(labelsHeight, heatmapHeight)}`);
+        }
+        
+        // Create ZIP file with SVG and data
+        this.downloadAsZip(combinedSvg);
+      } catch (error) {
+        console.error('Error downloading heatmap:', error);
+      }
+    },
+    createCanvasAndDownload(img, totalWidth, totalHeight, scale, combinedSvg) {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = totalWidth * scale;
+        canvas.height = totalHeight * scale;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          console.error('Failed to get canvas context');
+          return;
+        }
+        
+        // Set high quality rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Fill white background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Use the actual image dimensions
+        const imgWidth = img.naturalWidth || img.width || totalWidth;
+        const imgHeight = img.naturalHeight || img.height || totalHeight;
+        
+        // Draw the image scaled up
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight, 0, 0, totalWidth * scale, totalHeight * scale);
+        
+        // Verify canvas has content by checking a pixel
+        const imageData = ctx.getImageData(0, 0, Math.min(10, canvas.width), Math.min(10, canvas.height));
+        const hasContent = imageData.data.some((val, idx) => idx % 4 !== 3 && val !== 255); // Check if not all white (alpha channel is index 3)
+        
+        if (!hasContent) {
+          console.warn('Canvas appears to be empty, downloading as SVG instead');
+          // Try downloading as SVG instead
+          this.downloadAsSVG(combinedSvg);
+          return;
+        }
+        
+        // Download as PNG - try toBlob first, fallback to toDataURL
+        if (canvas.toBlob) {
+          canvas.toBlob((blob) => {
+            if (!blob || blob.size === 0) {
+              console.warn('Blob creation failed or empty, trying data URL fallback');
+              this.downloadFromDataURL(canvas);
+              return;
+            }
+            try {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `heatmap_${this.phenotypeName || 'pigean'}_${new Date().getTime()}.png`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              // Clean up URL after a short delay to ensure download starts
+              setTimeout(() => {
+                URL.revokeObjectURL(url);
+              }, 100);
+            } catch (error) {
+              console.error('Error creating download link:', error);
+              // Fallback to data URL
+              this.downloadFromDataURL(canvas);
+            }
+          }, 'image/png');
+        } else {
+          // Browser doesn't support toBlob, use data URL
+          this.downloadFromDataURL(canvas);
+        }
+      } catch (error) {
+        console.error('Error creating canvas:', error);
+        // Fallback: download as SVG
+        const svgData = new XMLSerializer().serializeToString(img);
+        this.downloadAsSVGString(svgData);
+      }
+    },
+    downloadFromDataURL(canvas) {
+      try {
+        // Use toDataURL as fallback
+        const dataUrl = canvas.toDataURL('image/png');
+        if (!dataUrl || dataUrl === 'data:,') {
+          console.error('Canvas toDataURL returned empty');
+          return;
+        }
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `heatmap_${this.phenotypeName || 'pigean'}_${new Date().getTime()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('Error downloading from data URL:', error);
+      }
+    },
+    downloadAsSVG(svgElement) {
+      try {
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        this.downloadAsSVGString(svgData);
+      } catch (error) {
+        console.error('Error serializing SVG:', error);
+      }
+    },
+    downloadAsSVGString(svgData) {
+      try {
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `heatmap_${this.phenotypeName || 'pigean'}_${new Date().getTime()}.svg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 100);
+      } catch (error) {
+        console.error('Error downloading SVG:', error);
+      }
+    },
+    async downloadAsZip(combinedSvg) {
+      try {
+        const zip = new JSZip();
+        const timestamp = new Date().getTime();
+        const baseName = `heatmap_${this.phenotypeName || 'pigean'}_${timestamp}`;
+        
+        // Add SVG file to ZIP
+        const svgData = new XMLSerializer().serializeToString(combinedSvg);
+        zip.file(`${baseName}.svg`, svgData);
+        
+        // Prepare data for JSON file
+        if (this.heatmapData && this.heatmapData.genes && this.heatmapData.genes.length > 0) {
+          const dataObject = {
+            metadata: {
+              phenotype: this.phenotypeName || '',
+              timestamp: new Date().toISOString(),
+              description: 'Heatmap data for PIGEAN factors visualization'
+            },
+            genes: this.heatmapData.genes || [],
+            factors: this.heatmapData.factors || [],
+            factorLabels: this.heatmapData.factorLabels || [],
+            factorScores: this.heatmapData.factorScores || [],
+            data: {
+              description: '2D array [gene][factor] of gene relevance to factor',
+              values: this.heatmapData.data || []
+            },
+            gwasData: {
+              description: '2D array [gene][factor] of GWAS support scores (log_bf)',
+              values: this.heatmapData.gwasData || []
+            },
+            geneSetData: {
+              description: '2D array [gene][factor] of gene set support scores (prior)',
+              values: this.heatmapData.geneSetData || []
+            },
+            combinedScores: {
+              description: 'Array of combined scores per gene',
+              values: this.heatmapData.combinedScores || []
+            },
+            gwasScores: {
+              description: 'Array of GWAS scores per gene',
+              values: this.heatmapData.gwasScores || []
+            },
+            geneSetScores: {
+              description: 'Array of gene set scores per gene',
+              values: this.heatmapData.geneSetScores || []
+            }
+          };
+          
+          // Add JSON data file to ZIP
+          const jsonData = JSON.stringify(dataObject, null, 2);
+          zip.file(`${baseName}_data.json`, jsonData);
+        }
+        
+        // Generate ZIP file and download
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zipBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${baseName}.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 100);
+      } catch (error) {
+        console.error('Error creating ZIP file:', error);
+        // Fallback to SVG only if ZIP creation fails
+        this.downloadAsSVG(combinedSvg);
+      }
     }
   }
 });
@@ -764,6 +1100,21 @@ export default Vue.component("pigean-factors-viz", {
   gap: 15px;
   font-size: 12px;
   align-items: center;
+  justify-content: space-between;
+}
+
+.legend-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+  flex: 1;
+}
+
+.legend-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .legend-item {
@@ -827,16 +1178,36 @@ export default Vue.component("pigean-factors-viz", {
 
 .heatmap-container {
   padding: 20px;
-  overflow: hidden;
-  max-height: 600px;
+  overflow: visible; /* Changed from hidden to visible to allow scrollbars */
+  /* Removed max-height to allow dynamic sizing */
 }
 
 .heatmap-scrollable-wrapper {
   display: flex;
   position: relative;
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 600px;
+  overflow-y: auto; /* Only vertical scrolling on wrapper */
+  /* Removed max-height to allow dynamic sizing based on container */
+  scrollbar-width: thin; /* Firefox - make scrollbar visible */
+  scrollbar-color: #888 #f1f1f1; /* Firefox - thumb and track colors */
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) - make scrollbar visible */
+.heatmap-scrollable-wrapper::-webkit-scrollbar {
+  width: 12px; /* Vertical scrollbar width */
+}
+
+.heatmap-scrollable-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.heatmap-scrollable-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 6px;
+}
+
+.heatmap-scrollable-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .heatmap-labels-fixed {
@@ -850,8 +1221,34 @@ export default Vue.component("pigean-factors-viz", {
 
 .heatmap-content-scrollable {
   flex: 1;
-  overflow-x: auto;
+  overflow-x: scroll; /* Changed from auto to scroll to always show scrollbar */
   overflow-y: hidden;
+  scrollbar-width: thin; /* Firefox - make scrollbar visible */
+  scrollbar-color: #888 #f1f1f1; /* Firefox - thumb and track colors */
+  min-width: 0; /* Allow flex item to shrink below content size */
+  width: 0; /* Force flex item to respect container width */
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) - make scrollbar visible */
+.heatmap-content-scrollable::-webkit-scrollbar {
+  height: 12px; /* Horizontal scrollbar height */
+  display: block; /* Ensure scrollbar is always displayed */
+}
+
+.heatmap-content-scrollable::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+  -webkit-box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
+}
+
+.heatmap-content-scrollable::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 6px;
+  -webkit-box-shadow: inset 0 0 2px rgba(0,0,0,0.2);
+}
+
+.heatmap-content-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .heatmap-labels-svg {

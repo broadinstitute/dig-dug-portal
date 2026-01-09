@@ -6,11 +6,11 @@
       </h4>
 
       <div class="mb-4" v-if="pigeanDataFiltered.length > 0">
-        <div v-if="heatmapLoading" class="text-center p-3 text-muted">
+        <div v-if="heatmapLoading && !heatmapDataLoaded" class="text-center p-3 text-muted">
           Loading heatmap data...
         </div>
         <pigean-factors-viz
-          v-else
+          v-else-if="heatmapDataLoaded || Object.keys(heatmapData).length > 0"
           :pigean-factor-data="pigeanDataFiltered"
           :phenotype-name="phenotypeName"
           :heatmap-data="heatmapDataForViz"
@@ -39,7 +39,7 @@
           responsive
         >
           <template v-slot:cell(top_gene_sets)="row">
-            <span v-if="row.item.top_gene_sets">
+            <span v-if="row.item.top_gene_sets" class="top-gene-sets-cell">
               {{ formatSemicolonList(row.item.top_gene_sets) }}
             </span>
             <span v-else>-</span>
@@ -57,6 +57,15 @@
               @click="toggleSubtable(row)"
             >
               {{ row.detailsShowing && row.item.subtableActive ? "Hide" : "View" }}
+            </b-button>
+          </template>
+          <template v-slot:cell(gene_sets)="row">
+            <b-button
+              variant="outline-primary"
+              size="sm"
+              @click="toggleGeneSetsSubtable(row)"
+            >
+              {{ row.detailsShowing && row.item.geneSetsSubtableActive ? "Hide" : "View" }}
             </b-button>
           </template>
           <template v-slot:row-details="row">
@@ -97,6 +106,48 @@
                   v-model="subtableCurrentPages[getSubtableKey(row.item)]"
                   class="pagination-sm justify-content-center mt-2"
                   :total-rows="subtableData[getSubtableKey(row.item)].length"
+                  :per-page="subtablePerPage"
+                ></b-pagination>
+              </div>
+              <div v-else class="text-center p-3 text-muted">
+                No data available
+              </div>
+            </div>
+            <div v-if="row.item.geneSetsSubtableActive" class="subtable-container">
+              <div v-if="subtableLoadingGeneSets[row.item.factor || row.item.cluster]" class="text-center p-3">
+                Loading...
+              </div>
+              <div v-else-if="subtableDataGeneSets[getGeneSetsSubtableKey(row.item)] && subtableDataGeneSets[getGeneSetsSubtableKey(row.item)].length > 0">
+                <div class="subtable-header">
+                  <span class="table-total-rows">Total rows: {{ subtableDataGeneSets[getGeneSetsSubtableKey(row.item)].length }}</span>
+                </div>
+                <b-table
+                  striped
+                  hover
+                  :items="subtableDataGeneSets[getGeneSetsSubtableKey(row.item)]"
+                  :fields="geneSetsSubtableFields"
+                  :per-page="subtablePerPage"
+                  :current-page="getGeneSetsSubtableCurrentPage(row.item)"
+                  responsive
+                  small
+                >
+                  <template v-slot:cell(gene_set)="subRow">
+                    {{ subRow.item.gene_set }}
+                  </template>
+                  <template v-slot:cell(relevance_to_factor)="subRow">
+                    {{ formatNumericValue(subRow.item.relevance_to_factor) }}
+                  </template>
+                  <template v-slot:cell(beta)="subRow">
+                    {{ formatNumericValue(subRow.item.beta) }}
+                  </template>
+                  <template v-slot:cell(beta_uncorrected)="subRow">
+                    {{ formatNumericValue(subRow.item.beta_uncorrected) }}
+                  </template>
+                </b-table>
+                <b-pagination
+                  v-model="subtableCurrentPagesGeneSets[getGeneSetsSubtableKey(row.item)]"
+                  class="pagination-sm justify-content-center mt-2"
+                  :total-rows="subtableDataGeneSets[getGeneSetsSubtableKey(row.item)].length"
                   :per-page="subtablePerPage"
                 ></b-pagination>
               </div>
@@ -153,12 +204,12 @@ export default Vue.component("pigean-factors", {
       tableFields: [
         {
           key: 'label',
-          label: 'Mechanism',
+          label: 'Factor',
           sortable: true
         },
         {
           key: 'gene_set_score',
-          label: 'Relevance to trait',
+          label: 'Factor relevance to phenotype',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A'
         },
@@ -174,7 +225,12 @@ export default Vue.component("pigean-factors", {
         },
         {
           key: 'genes_in_gene_sets',
-          label: 'Genes in gene sets',
+          label: 'Genes relevant to factor',
+          sortable: false
+        },
+        {
+          key: 'gene_sets',
+          label: 'Gene sets relevant to factor',
           sortable: false
         }
       ],
@@ -269,12 +325,56 @@ export default Vue.component("pigean-factors", {
           }
         }
       ],
+      geneSetsSubtableFields: [
+        {
+          key: 'gene_set',
+          label: 'Gene set',
+          sortable: true
+        },
+        {
+          key: 'relevance_to_factor',
+          label: 'Relevance to factor',
+          sortable: true,
+          formatter: (value) => value ? value.toFixed(2) : 'N/A',
+          tdClass(value) {
+            if (value === null || value === undefined) {
+              return '';
+            }
+            const numValue = typeof value === 'string' ? parseFloat(value) : value;
+            if (numValue > 3) {
+              return 'very-strong';
+            } else if (numValue >= 2 && numValue <= 3) {
+              return 'strongly-suggestive';
+            } else if (numValue >= 1 && numValue < 2) {
+              return 'nominally-significant';
+            } else {
+              return 'not-significant';
+            }
+          }
+        },
+        {
+          key: 'beta',
+          label: 'Joint effect',
+          sortable: true,
+          formatter: (value) => value ? value.toFixed(2) : 'N/A'
+        },
+        {
+          key: 'beta_uncorrected',
+          label: 'Marginal effect',
+          sortable: true,
+          formatter: (value) => value ? value.toFixed(2) : 'N/A'
+        }
+      ],
       subtableData: {},
       subtableLoading: {},
       subtablePerPage: 10,
       subtableCurrentPages: {},
+      subtableDataGeneSets: {},
+      subtableLoadingGeneSets: {},
+      subtableCurrentPagesGeneSets: {},
       heatmapData: {}, // Map of gene -> { factor -> factor_value }
-      heatmapLoading: false // Track if heatmap data is still loading
+      heatmapLoading: false, // Track if heatmap data is still loading
+      heatmapDataLoaded: false // Track if heatmap data has been initially loaded
     };
   },
   computed: {
@@ -443,16 +543,36 @@ export default Vue.component("pigean-factors", {
       }
       return this.subtableCurrentPages[key];
     },
+    getGeneSetsSubtableKey(item) {
+      const factor = item.factor || item.cluster || '';
+      return `${item.phenotype},2,small,${factor}`;
+    },
+    getGeneSetsSubtableCurrentPage(item) {
+      const key = this.getGeneSetsSubtableKey(item);
+      if (!this.subtableCurrentPagesGeneSets[key]) {
+        Vue.set(this.subtableCurrentPagesGeneSets, key, 1);
+      }
+      return this.subtableCurrentPagesGeneSets[key];
+    },
     async loadAllGeneFactorData() {
       if (!this.pigeanFactorData || this.pigeanFactorData.length === 0) {
         return;
       }
       
-      // Set loading state
-      this.heatmapLoading = true;
+      // If heatmap data is already loaded, don't reload it
+      if (this.heatmapDataLoaded && Object.keys(this.heatmapData).length > 0) {
+        return;
+      }
       
-      // Clear existing heatmap data
-      this.heatmapData = {};
+      // Set loading state only if we don't have data yet
+      if (Object.keys(this.heatmapData).length === 0) {
+        this.heatmapLoading = true;
+      }
+      
+      // Only clear existing heatmap data if it's empty
+      if (Object.keys(this.heatmapData).length === 0) {
+        this.heatmapData = {};
+      }
       
       // Load data for all factors in parallel
       const loadPromises = this.pigeanFactorData.map(async (factor) => {
@@ -493,8 +613,9 @@ export default Vue.component("pigean-factors", {
       
       await Promise.all(loadPromises);
       
-      // Mark loading as complete
+      // Mark loading as complete and set loaded flag
       this.heatmapLoading = false;
+      this.heatmapDataLoaded = true;
     },
     async toggleSubtable(row) {
       const item = row.item;
@@ -546,6 +667,56 @@ export default Vue.component("pigean-factors", {
           }
         }
       }
+    },
+    async toggleGeneSetsSubtable(row) {
+      const item = row.item;
+      const key = this.getGeneSetsSubtableKey(item);
+      const factorId = item.factor || item.cluster || '';
+      
+      // Initialize geneSetsSubtableActive if not exists
+      if (!item.hasOwnProperty('geneSetsSubtableActive')) {
+        Vue.set(item, 'geneSetsSubtableActive', false);
+      }
+      
+      // Toggle details
+      if (row.detailsShowing && item.geneSetsSubtableActive) {
+        // Hide
+        row.toggleDetails();
+        item.geneSetsSubtableActive = false;
+      } else {
+        // Show
+        if (!row.detailsShowing) {
+          row.toggleDetails();
+        }
+        item.geneSetsSubtableActive = true;
+        
+        // Load data if not already loaded
+        if (!this.subtableDataGeneSets[key]) {
+          Vue.set(this.subtableLoadingGeneSets, factorId, true);
+          try {
+            const data = await query('pigean-gene-set-factor', key);
+            // Map the data to match our table fields
+            const mappedData = (data || []).map(item => ({
+              gene_set: item.gene_set,
+              relevance_to_factor: item.factor_value,
+              beta: item.beta,
+              beta_uncorrected: item.beta_uncorrected,
+              // Keep original fields for reference
+              ...item
+            }));
+            Vue.set(this.subtableDataGeneSets, key, mappedData);
+            // Initialize pagination for this subtable
+            if (!this.subtableCurrentPagesGeneSets[key]) {
+              Vue.set(this.subtableCurrentPagesGeneSets, key, 1);
+            }
+          } catch (error) {
+            console.error('Error loading gene sets subtable data:', error);
+            Vue.set(this.subtableDataGeneSets, key, []);
+          } finally {
+            Vue.set(this.subtableLoadingGeneSets, factorId, false);
+          }
+        }
+      }
     }
   }
 });
@@ -587,5 +758,13 @@ export default Vue.component("pigean-factors", {
 
 ::v-deep .not-significant {
   background-color: transparent !important;
+}
+
+::v-deep .top-gene-sets-cell {
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  max-width: 300px;
+  display: inline-block;
 }
 </style>
