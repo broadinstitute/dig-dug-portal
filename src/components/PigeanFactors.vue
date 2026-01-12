@@ -14,6 +14,7 @@
           :pigean-factor-data="pigeanDataFiltered"
           :phenotype-name="phenotypeName"
           :heatmap-data="heatmapDataForViz"
+          :gene-sets-heatmap-data="geneSetsHeatmapDataForViz"
           height="500px"
         ></pigean-factors-viz>
       </div>
@@ -374,7 +375,8 @@ export default Vue.component("pigean-factors", {
       subtableCurrentPagesGeneSets: {},
       heatmapData: {}, // Map of gene -> { factor -> factor_value }
       heatmapLoading: false, // Track if heatmap data is still loading
-      heatmapDataLoaded: false // Track if heatmap data has been initially loaded
+      heatmapDataLoaded: false, // Track if heatmap data has been initially loaded
+      geneSetsHeatmapDataLoaded: false // Track if gene sets heatmap data has been loaded
     };
   },
   computed: {
@@ -499,6 +501,93 @@ export default Vue.component("pigean-factors", {
         gwasScores,
         geneSetScores
       };
+    },
+    geneSetsHeatmapDataForViz() {
+      // Transform subtableDataGeneSets into format needed for visualization
+      // Returns: { geneSets: [], factors: [], factorLabels: [], data: [[factor_value]] }
+      
+      if (!this.geneSetsHeatmapDataLoaded || Object.keys(this.subtableDataGeneSets).length === 0) {
+        return { geneSets: [], factors: [], factorLabels: [], data: [] };
+      }
+      
+      // Create factor objects with ID, label, and relevance score for sorting (same as heatmapDataForViz)
+      const factorObjects = this.pigeanDataFiltered
+        .map(f => ({
+          id: f.factor || f.cluster || '',
+          label: f.label || f.factor || f.cluster || '',
+          score: f.gene_set_score !== undefined && f.gene_set_score !== null 
+            ? (typeof f.gene_set_score === 'number' ? f.gene_set_score : parseFloat(f.gene_set_score) || 0)
+            : 0
+        }))
+        .filter(f => f.id !== '');
+      
+      // Sort factors by relevance score (descending - higher first)
+      factorObjects.sort((a, b) => b.score - a.score);
+      
+      const factors = factorObjects.map(f => f.id);
+      const factorLabels = factorObjects.map(f => f.label);
+      const factorScores = factorObjects.map(f => f.score);
+      
+      // Collect all unique gene sets across all factors
+      const geneSetSet = new Set();
+      factors.forEach(factorId => {
+        // Find the factor object to get phenotype
+        const factorObj = this.pigeanDataFiltered.find(f => (f.factor || f.cluster) === factorId);
+        if (factorObj) {
+          const key = this.getGeneSetsSubtableKey(factorObj);
+          const data = this.subtableDataGeneSets[key] || [];
+          data.forEach(item => {
+            if (item.gene_set) {
+              geneSetSet.add(item.gene_set);
+            }
+          });
+        }
+      });
+      
+      // Sort gene sets alphabetically
+      const geneSets = Array.from(geneSetSet).sort();
+      
+      // Create data matrix: factors (rows) x gene sets (columns)
+      // Each cell contains factor_value (relevance_to_factor)
+      const data = factors.map(factorId => {
+        // Find the factor object to get phenotype
+        const factorObj = this.pigeanDataFiltered.find(f => (f.factor || f.cluster) === factorId);
+        if (!factorObj) {
+          return geneSets.map(() => null);
+        }
+        const key = this.getGeneSetsSubtableKey(factorObj);
+        const factorData = this.subtableDataGeneSets[key] || [];
+        
+        // Create a map of gene_set -> factor_value for quick lookup
+        const geneSetMap = {};
+        factorData.forEach(item => {
+          if (item.gene_set && item.relevance_to_factor !== undefined && item.relevance_to_factor !== null) {
+            geneSetMap[item.gene_set] = item.relevance_to_factor;
+          }
+        });
+        
+        // Map each gene set to its factor_value
+        return geneSets.map(geneSet => {
+          return geneSetMap[geneSet] !== undefined ? geneSetMap[geneSet] : null;
+        });
+      });
+      
+      const result = {
+        geneSets,
+        factors,
+        factorLabels,
+        factorScores,
+        data
+      };
+      
+      console.log('geneSetsHeatmapDataForViz computed:', {
+        geneSetsCount: geneSets.length,
+        factorsCount: factors.length,
+        dataRows: data.length,
+        loaded: this.geneSetsHeatmapDataLoaded
+      });
+      
+      return result;
     }
   },
   watch: {
@@ -616,6 +705,48 @@ export default Vue.component("pigean-factors", {
       // Mark loading as complete and set loaded flag
       this.heatmapLoading = false;
       this.heatmapDataLoaded = true;
+      
+      // After genes_in_gene_sets data is loaded, preload gene sets data
+      this.loadAllGeneSetsData();
+    },
+    async loadAllGeneSetsData() {
+      if (!this.pigeanFactorData || this.pigeanFactorData.length === 0) {
+        return;
+      }
+      
+      // Load data for all factors in parallel
+      const loadPromises = this.pigeanFactorData.map(async (factor) => {
+        const key = this.getGeneSetsSubtableKey(factor);
+        const factorId = factor.factor || factor.cluster || '';
+        
+        if (!this.subtableDataGeneSets[key] && factorId) {
+          try {
+            const data = await query('pigean-gene-set-factor', key);
+            // Map the data to match our table fields
+            const mappedData = (data || []).map(item => ({
+              gene_set: item.gene_set,
+              relevance_to_factor: item.factor_value,
+              beta: item.beta,
+              beta_uncorrected: item.beta_uncorrected,
+              // Keep original fields for reference
+              ...item
+            }));
+            Vue.set(this.subtableDataGeneSets, key, mappedData);
+            // Initialize pagination for this subtable
+            if (!this.subtableCurrentPagesGeneSets[key]) {
+              Vue.set(this.subtableCurrentPagesGeneSets, key, 1);
+            }
+          } catch (error) {
+            console.error(`Error loading gene sets data for factor ${factorId}:`, error);
+            Vue.set(this.subtableDataGeneSets, key, []);
+          }
+        }
+      });
+      
+      await Promise.all(loadPromises);
+      
+      // Mark gene sets heatmap data as loaded
+      this.geneSetsHeatmapDataLoaded = true;
     },
     async toggleSubtable(row) {
       const item = row.item;
