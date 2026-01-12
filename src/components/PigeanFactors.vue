@@ -195,7 +195,7 @@ export default Vue.component("pigean-factors", {
     },
     title: {
       type: String,
-      default: "Mechanistic Factors relevant to the trait"
+      default: "Factors, gene sets, and genes relevant to the trait"
     }
   },
   data() {

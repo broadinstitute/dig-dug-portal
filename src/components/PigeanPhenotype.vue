@@ -38,7 +38,7 @@
             >
             </research-pigean-phewas-plot>
           </b-tab>
-          <b-tab title="GWAS support (HuGE score enhanced(?) with gene set support)">
+          <b-tab title="GWAS support (HuGEr score) vs HuGE score">
             <div class="tab-documentation">
                 Documentation for GWAS support
             </div>

@@ -1600,8 +1600,8 @@ export default Vue.component("pigean-factors-viz", {
 </script>
 <style scoped>
 .factors-viz-container {
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  /*border: 1px solid #ddd;
+  border-radius: 4px;*/
   overflow: hidden;
 }
 
