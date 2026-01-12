@@ -26,6 +26,8 @@ export default new Vuex.Store({
         geneExpression: bioIndex("gene-expression"),
         mouseSummary: bioIndex("diff-exp-summary-gene"),
         uniprot,
+        pigeanGene: bioIndex("pigean-gene"),
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },
     state: {
         geneName: keyParams.gene,
@@ -172,9 +174,8 @@ export default new Vuex.Store({
                 context.state.newEnd = locus.end;
             }
 
-            const phenoRegionQuery = `${phenotype},${locus.chr}:${
-                locus.start - 50000
-            }-${locus.end + 50000}`;
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000
+                }-${locus.end + 50000}`;
 
             context.dispatch("varassociations/query", { q: phenoRegionQuery });
         },
@@ -185,6 +186,10 @@ export default new Vuex.Store({
         async getHugeScoresData(context) {
             let name = context.state.geneName;
             context.dispatch("hugeScores/query", { q: name });
+        },
+        async getPigeanGeneData(context) {
+            let name = context.state.geneName;
+            context.dispatch("pigeanGene/query", { q: 'portal,' + name + ',2,small' });
         },
         async getMouseData(context) {
             let name = context.state.geneName;

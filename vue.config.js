@@ -256,6 +256,13 @@ let pages = {
         title: "Tissue",
         chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
+    pigeangraph: {
+        entry: "src/views/PigeanGraph/main.js",
+        template: "public/index.html",
+        filename: "pigeangraph.html",
+        title: "PIGEAN Graph",
+        chunks: ["chunk-vendors", "chunk-common", "pigeangraph"],
+    },
     pigean_index: {
         entry: "src/views/PIGEAN/Index/main.js",
         template: "public/index.html",
