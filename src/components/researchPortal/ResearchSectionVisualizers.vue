@@ -128,7 +128,7 @@
 				:utils="utils"
 				:starItems="starItems"
 				:colors="colors"
-				
+				@ld-data-loaded="ld => receiveLDData(ld)"
 				@on-star="starColumn"
 			></multi-region-plot>
 			
@@ -201,9 +201,19 @@
 				:utils="utils"
 				:data="plotData"
 			></research-single-cell-browser>
-
 		</template>
-		
+		<research-splice-track
+				v-if="sectionId.startsWith('sQTL_by_region0_2')"
+			:region="region"
+			:plotConfig="plotConfig"
+			:plotType="plotConfig['type']"
+			:plotMargin="plotMargin"
+			:regionZoom="0"
+			:regionViewArea="regionViewArea"
+			:utils="utils"
+			:colors="colors"
+			:sectionId="sectionId">
+			</research-splice-track>
 	</div>
 </template>
 
@@ -228,11 +238,13 @@ import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import ResearchSpliceTrack from "@/components/researchPortal/ResearchSpliceTrack.vue";
 import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfdePhenotypeXing.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
-		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region","bigRegion"],
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom",
+		"regionViewArea","starItems","region","bigRegion"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
@@ -251,6 +263,7 @@ export default Vue.component("research-section-visualizers", {
 		ResearchRegionTrack,
 		ResearchRegionDotsTrack,
 		ResearchSingleCellBrowser,
+		ResearchSpliceTrack,
 		cfdePhenotypeXing
     },
 	data() {
@@ -281,6 +294,9 @@ export default Vue.component("research-section-visualizers", {
 		starColumn(ARRAY) {
 			this.$emit('on-star', ARRAY);
 		},
+		receiveLDData(DATA){
+			this.$emit("ld-data-loaded", DATA);
+		}
 	},
 });
 
