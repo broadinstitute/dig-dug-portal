@@ -318,18 +318,35 @@ export default Vue.component("research-splice-track", {
 		},
 		tileExons(exonsInput){
 			let allRows = [];
-			//let exons = exonsInput.toReversed();
 			let exons = structuredClone(exonsInput);
-			allRows.push([]);
-			allRows[0].push(exons[0]);
-			exons = exons.slice(1);
+
+			// Initiate first row with first exon
+			allRows.push([exons.shift()]);
+			
 			while (exons.length > 0){
-				let lastRow = allRows[allRows.length -1]
-				let lastExon = lastRow[lastRow.length - 1];
-				for (let )
+				// Initiate row with the first unshelved exon
+				let row = allRows[allRows.length - 1];
+				let lastExon = row[row.length - 1];
+				let next = this.findNextTileIndex(lastExon, exons);
+				if (next === null){
+					allRows.push([exons.shift()]);
+					continue;
+				} else {
+					let nextExon = exons[next];
+					row.push(nextExon);
+					exons = exons.slice(0,next).concat(exons.slice(next + 1));
+				}
 			}
 			return allRows;
-
+		},
+		findNextTileIndex(last, unshelvedExons){
+			for (let i = 0; i < unshelvedExons.length; i++){
+				let u = unshelvedExons[i];
+				if (u.exon_start > last.exon_end){
+					return i;
+				}
+			}
+			return null;
 		},
 		async getSplices(ensembl, tissue){
 			let splices = await fetch(`${this.biHost}/splices?q=${ensembl},${tissue}`)
