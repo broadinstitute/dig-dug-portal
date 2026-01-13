@@ -309,10 +309,15 @@ export default Vue.component("research-splice-track", {
 						spliceEnd: spliceEnd
 					});
 					let yPos = this.adjPlotMargin.top / 2;
-					let paleGray = "#efefef99";
+					let paleGray = "#cdcdcd99";
 					let highlight = i === this.hoverTent;
 					ctx.fillStyle = highlight ? "#00FF00" : paleGray;
-					ctx.fillRect(spliceStart, yPos ,spliceWidth,20);
+					// Draw the tents as triangles of height 20
+					ctx.beginPath();
+					ctx.moveTo(spliceStart, yPos + 20);
+					ctx.lineTo(spliceEnd, yPos + 20);
+					ctx.lineTo(spliceMidpoint, yPos);
+					ctx.fill();
 				}
 				this.spliceVisualMap = spliceVisualMap;
 			}			
@@ -382,6 +387,9 @@ export default Vue.component("research-splice-track", {
 				return false;
 			}
 			let highlightedTent = this.spliceData[this.hoverTent];
+			if (highlightedTent === undefined){
+				return false;
+			}
 			return (exon.exon_start >= highlightedTent.splice_start 
 				&& exon.exon_start <= highlightedTent.splice_end)
 				|| (exon.exon_end >= highlightedTent.splice_start
