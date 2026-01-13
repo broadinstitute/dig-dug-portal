@@ -211,7 +211,6 @@ export default Vue.component("research-splice-track", {
 
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
 									.filter(g => g.exon_start <= xMax && g.exon_end >= xMin);
-				this.genesSorted = genesSorted;
 				let genesTiled = this.tileExons(genesSorted);
 				console.log(JSON.stringify(genesTiled));
 
@@ -245,30 +244,39 @@ export default Vue.component("research-splice-track", {
 
 				let exonVisualMap = [];
 				
-				genesSorted.map((gene, geneSubIndex) => {
-					let xStartPos = xStart + (gene.exon_start - xMin) * xposbypixel;
-					let xEndPos = xStart + (gene.exon_end - xMin) * xposbypixel;
+				let geneCounter = 0;
+				genesTiled.map((tiledRow, rowIndex) => {
+					tiledRow.map(gene => {
+						let xStartPos = xStart + (gene.exon_start - xMin) * xposbypixel;
+						let xEndPos = xStart + (gene.exon_end - xMin) * xposbypixel;
 
-					let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
+						let yPos = this.adjPlotMargin.top + (rowIndex * eachGeneTrackHeight);
 
-					let xonWidth = xEndPos - xStartPos <= 1
-									? 1
-									: xEndPos - xStartPos;
+						let xonWidth = xEndPos - xStartPos <= 1
+										? 1
+										: xEndPos - xStartPos;
 
-					let highlight = this.highlightExon(gene);
-					let hover = geneSubIndex === this.hoverExon;
-					ctx.fillStyle = highlight ? this.colors.green
-						: hover ? this.colors.purple
-						: this.colors.charcoal;
+						let highlight = this.highlightExon(gene);
+						let hover = geneCounter === this.hoverExon;
+						ctx.fillStyle = highlight ? this.colors.green
+							: hover ? this.colors.purple
+							: this.colors.charcoal;
 
-					ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
-					exonVisualMap.push({
-						exonStart: xStartPos,
-						exonEnd: xStartPos + xonWidth,
-						exonTop: yPos + 10,
-						exonBottom: yPos + 30
-					});
-				})
+						ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
+						exonVisualMap.push({
+							exonStart: xStartPos,
+							exonEnd: xStartPos + xonWidth,
+							exonTop: yPos + 10,
+							exonBottom: yPos + 30,
+
+							// Raw region data; this mapping pulls double duty
+							exon_start: gene.exon_start,
+							exon_end: gene.exon_end
+						});
+						geneCounter++;
+					})
+				});
+				
 				
 				this.exonVisualMap = exonVisualMap;
 
@@ -396,7 +404,7 @@ export default Vue.component("research-splice-track", {
 			if (this.hoverExon === -1){
 				return false;
 			}
-			let exon = this.genesSorted[this.hoverExon];
+			let exon = this.exonVisualMap[this.hoverExon];
 			if (exon === undefined){
 				return false;
 			}
