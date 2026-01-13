@@ -47,6 +47,7 @@ export default Vue.component("research-splice-track", {
 			localGenesData: null,
 			biHost: "https://vision.hugeampkpnbi.org/api/bio/query",
 			spliceData: null,
+			genesSorted: null,
 			exonData: null,
 			gene: null,
 			spliceVisualMap: [],
@@ -210,6 +211,7 @@ export default Vue.component("research-splice-track", {
 
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
 									.filter(g => g.exon_start <= xMax && g.exon_end >= xMin);
+				this.genesSorted = genesSorted;
 
 				genesSorted.map(gene =>{
 
@@ -295,7 +297,10 @@ export default Vue.component("research-splice-track", {
 					});
 					let yPos = this.adjPlotMargin.top / 2;
 					let highlight = i === this.hoverTent;
-					ctx.fillStyle = highlight ? this.colors.green : this.colors.gray;
+					let hover = this.highlightTent(splice);
+					ctx.fillStyle = highlight ? this.colors.green
+						: hover ? this.colors.purple
+						: this.colors.gray;
 					// Draw the tents as triangles of height 20
 					ctx.beginPath();
 					ctx.moveTo(spliceStart, yPos + 20);
@@ -371,15 +376,22 @@ export default Vue.component("research-splice-track", {
 					&& exon.exon_end <= highlightedTent.spliceEnd
 				);
 		},
-		highlightTent(){
-			if(this.hoverExon === -1){
+		highlightTent(tent){
+			if (this.hoverExon === -1){
 				return false;
 			}
+			let highlightedExon = this.genesSorted[this.hoverExon];
+			let startMatch = tent.splice_start >= highlightedExon.exon_start
+				&& tent.splice_start <= highlightedExon.exon_end;
+			let endMatch = tent.splice_end >= highlightedExon.exon_start
+				&& tent.splice_end <= highlightedExon.exon_end;
+			return startMatch || endMatch;
+			
 		},
 		checkPosition(event) {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
-			// I don't know why the scale factor is double, but it is
+			// Need scale factor of 2 as rendered
 			let xPos = Math.floor(e.clientX - rect.left) * 2;
 			let yPos = Math.floor(e.clientY - rect.top)  * 2;
 			if (yPos < this.adjPlotMargin.top){
@@ -411,7 +423,6 @@ export default Vue.component("research-splice-track", {
 				let xMatch = xPos >= e.exonStart && xPos <= e.exonEnd;
 				let yMatch = yPos >= e.exonTop && yPos <= e.exonBottom;
 				if (xMatch && yMatch){
-					console.log("we found one!");
 					return i;
 				}
 			}
