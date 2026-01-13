@@ -212,6 +212,9 @@ export default Vue.component("research-splice-track", {
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
 									.filter(g => g.exon_start <= xMax && g.exon_end >= xMin);
 				this.genesSorted = genesSorted;
+				let genesTiled = this.tileExons(genesSorted);
+				console.log(JSON.stringify(genesTiled));
+				
 
 				genesSorted.map(gene =>{
 
@@ -261,6 +264,7 @@ export default Vue.component("research-splice-track", {
 				genesSorted.map((gene, geneSubIndex) => {
 
 					let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
+					// TODO Arrange exons in rows with zero overlap.
 
 					let xonWidth =
 								gene.xEndPos - gene.xStartPos <= 1
@@ -311,6 +315,33 @@ export default Vue.component("research-splice-track", {
 				this.spliceVisualMap = spliceVisualMap;
 			}			
 			
+		},
+		tileExons(exonsInput){
+			let allRows = [];
+			let exons = exonsInput.toReversed();
+			while (true){
+				let unshelvedExon = exons.pop();
+				if (unshelvedExon === undefined){
+					break;
+				}
+				for (let i = 0; i < allRows.length; i++){
+					let row = allRows[i];
+					for (let j = 0; j < row.length; j++){
+						let shelvedExon = row[j];
+						let collision = this.overlap(shelvedExon.exon_start, shelvedExon.exon_end, 
+							unshelvedExon.exon_start, unshelvedExon.exon_end);
+						if (collision){
+							break;
+						}
+						// No collisions in row, can add exon
+						row.push(unshelvedExon);
+					}
+					// Start a new row
+					allRows.push([unshelvedExon]);
+				}
+			}
+			return allRows;
+
 		},
 		async getSplices(ensembl, tissue){
 			let splices = await fetch(`${this.biHost}/splices?q=${ensembl},${tissue}`)
