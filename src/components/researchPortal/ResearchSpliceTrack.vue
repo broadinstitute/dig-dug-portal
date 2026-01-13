@@ -52,7 +52,13 @@ export default Vue.component("research-splice-track", {
 			spliceVisualMap: [],
 			exonVisualMap: [],
 			hoverTent: -1,
-			hoverExon: -1
+			hoverExon: -1,
+			colors: {
+				green: "#00FF00",
+				gray: "#DDDDDD99",
+				charcoal: "#333333",
+				purple: "#AA4499"
+			}
 		};
 	},
 	modules: {
@@ -135,6 +141,12 @@ export default Vue.component("research-splice-track", {
 		},
 		hoverTent(newTent, oldTent){
 			if (newTent === -1 || newTent === oldTent){
+				return;
+			}
+			this.renderTrack(this.exonData);
+		},
+		hoverExon(newExon, oldExon){
+			if (newExon === -1 || newExon === oldExon){
 				return;
 			}
 			this.renderTrack(this.exonData);
@@ -248,21 +260,16 @@ export default Vue.component("research-splice-track", {
 
 					let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
 
-					var left = "\u{2190}";
-					var right = "\u{2192}";
-
-					let geneName =
-						gene.strand == "+"
-							? gene.gene_name + " " + right
-							: left + " " + gene.gene_name;
-
 					let xonWidth =
 								gene.xEndPos - gene.xStartPos <= 1
 									? 1
 									: gene.xEndPos - gene.xStartPos;
 
 					let highlight = this.highlightExon(gene);
-					ctx.fillStyle = highlight ? "#00FF00" : "#000000";
+					let hover = geneSubIndex === this.hoverExon;
+					ctx.fillStyle = highlight ? this.colors.green
+						: hover ? this.colors.purple
+						: this.colors.charcoal;
 
 					ctx.fillRect(gene.xStartPos, yPos + 10, xonWidth, 20);
 					exonVisualMap.push({
@@ -282,15 +289,13 @@ export default Vue.component("research-splice-track", {
 					let spliceMidpoint = xStart + (splice.midpoint - xMin) * xposbypixel;
 					let spliceStart = xStart + (splice.splice_start - xMin) * xposbypixel;
 					let spliceEnd = xStart + (splice.splice_end - xMin) * xposbypixel;
-					let spliceWidth = spliceEnd - spliceStart;
 					spliceVisualMap.push({
 						spliceStart: spliceStart,
 						spliceEnd: spliceEnd
 					});
 					let yPos = this.adjPlotMargin.top / 2;
-					let paleGray = "#cdcdcd99";
 					let highlight = i === this.hoverTent;
-					ctx.fillStyle = highlight ? "#00FF00" : paleGray;
+					ctx.fillStyle = highlight ? this.colors.green : this.colors.gray;
 					// Draw the tents as triangles of height 20
 					ctx.beginPath();
 					ctx.moveTo(spliceStart, yPos + 20);
@@ -301,15 +306,6 @@ export default Vue.component("research-splice-track", {
 				this.spliceVisualMap = spliceVisualMap;
 			}			
 			
-		},
-		renderDot(CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
-			// Taken from ResearchRegionPlot
-			CTX.fillStyle = DOT_COLOR;
-			CTX.lineWidth = 0;
-			CTX.beginPath();
-			let width = !!WIDTH? WIDTH: 9;
-			CTX.arc(XPOS, YPOS, width, 0, 2 * Math.PI);
-			CTX.fill();
 		},
 		async getSplices(ensembl, tissue){
 			let splices = await fetch(`${this.biHost}/splices?q=${ensembl},${tissue}`)
@@ -383,16 +379,21 @@ export default Vue.component("research-splice-track", {
 		checkPosition(event) {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
-			let width = e.target.clientWidth - this.adjPlotMargin.left - this.adjPlotMargin.right;
-			//let xPos = Math.floor(e.clientX - rect.left - this.adjPlotMargin.left);
-			let xPos = Math.floor(e.clientX - rect.left);
-			let xPercentPos = xPos / width;
-			let yPos = Math.floor(e.clientY - rect.top);
-			if (yPos < this.adjPlotMargin.top/2){
-				let tent = this.getTent(xPos * 2);
+			// I don't know why the scale factor is double, but it is
+			let xPos = Math.floor(e.clientX - rect.left) * 2;
+			let yPos = Math.floor(e.clientY - rect.top)  * 2;
+			if (yPos < this.adjPlotMargin.top){
+				let tent = this.getTent(xPos);
 				this.hoverTent = tent;
+				if (tent != -1){
+					this.hoverExon = -1;
+				}
 			} else {
-				// TODO check whether we are hovering an exon
+				let exon = this.getExon(xPos, yPos);
+				this.hoverExon = exon;
+				if (exon != -1){
+					this.hoverTent = -1;
+				}
 			}
 		},
 		getTent(xPos){
@@ -404,6 +405,18 @@ export default Vue.component("research-splice-track", {
 			}
 			return -1;
 		},
+		getExon(xPos, yPos){
+			for (let i = 0; i < this.exonVisualMap.length; i++){
+				let e = this.exonVisualMap[i];
+				let xMatch = xPos >= e.exonStart && xPos <= e.exonEnd;
+				let yMatch = yPos >= e.exonTop && yPos <= e.exonBottom;
+				if (xMatch && yMatch){
+					console.log("we found one!");
+					return i;
+				}
+			}
+			return -1;
+		}
 	},
 });
 
