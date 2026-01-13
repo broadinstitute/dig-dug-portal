@@ -366,27 +366,26 @@ export default Vue.component("research-splice-track", {
 			if (this.hoverTent === -1){
 				return false;
 			}
-			let highlightedTent = this.spliceData[this.hoverTent];
-			if (highlightedTent === undefined){
+			let tent = this.spliceData[this.hoverTent];
+			if (tent === undefined){
 				return false;
 			}
-			return (exon.exon_start >= highlightedTent.splice_start 
-				&& exon.exon_start <= highlightedTent.splice_end)
-				|| (exon.exon_end >= highlightedTent.splice_start
-					&& exon.exon_end <= highlightedTent.spliceEnd
-				);
+			return this.overlap(tent.splice_start, tent.splice_end, exon.exon_start, exon.exon_end);
 		},
 		highlightTent(tent){
 			if (this.hoverExon === -1){
 				return false;
 			}
-			let highlightedExon = this.genesSorted[this.hoverExon];
-			let startMatch = tent.splice_start >= highlightedExon.exon_start
-				&& tent.splice_start <= highlightedExon.exon_end;
-			let endMatch = tent.splice_end >= highlightedExon.exon_start
-				&& tent.splice_end <= highlightedExon.exon_end;
+			let exon = this.genesSorted[this.hoverExon];
+			if (exon === undefined){
+				return false;
+			}
+			return this.overlap(tent.splice_start, tent.splice_end, exon.exon_start, exon.exon_end);
+		},
+		overlap(start1, end1, start2, end2){
+			let startMatch = start1 >= start2 && start1 <= end2;
+			let endMatch = end1 >= start2 && end1 <= end2;
 			return startMatch || endMatch;
-			
 		},
 		checkPosition(event) {
 			let e = event;
