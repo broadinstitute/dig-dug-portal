@@ -45,7 +45,6 @@ export default Vue.component("research-splice-track", {
 		return {
 			plotRendered: 0,
 			localGenesData: null,
-			renderingGenes: [],
 			biHost: "https://vision.hugeampkpnbi.org/api/bio/query",
 			spliceData: null,
 			exonData: null,
@@ -158,25 +157,6 @@ export default Vue.component("research-splice-track", {
 			
 		},
 
-		sortGenesByRegion(GENES) {
-			let tracks = [];
-			let gIndex = 0;
-
-			// canvas is required to use getWidth function
-			let canvas = document.createElement('canvas'),
-				context = canvas.getContext('2d');
-
-			GENES.map(g => {
-				tracks[gIndex] = [];
-				gIndex ++;
-			})
-
-			GENES.map(g => tracks[0].push(g));
-
-			tracks = tracks.filter(t => t.length > 0);
-
-			return tracks;
-		},
 
 		getWidth (ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;
@@ -214,7 +194,6 @@ export default Vue.component("research-splice-track", {
 
 				let xStart = this.adjPlotMargin.left;
 				let yStart = this.adjPlotMargin.top;
-				console.log("Plot width: ", plotWidth);
 				let xposbypixel = plotWidth / (xMax - xMin);
 
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
@@ -235,17 +214,9 @@ export default Vue.component("research-splice-track", {
 					gene["xEndPos"] = xEndPos;
 				})
 
-				//let geneTracksArray = this.sortGenesByRegion(genesSorted);
-				let geneTracksArray = genesSorted;
-
-				this.renderingGenes = geneTracksArray;
-				console.log("Gene tracks array length:",geneTracksArray.length);
-
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
 					eachGeneTrackHeight * 10; // Arbitrarily making this 10 tracks deep
-
-				let bump = this.adjPlotMargin.bump;
 
 				let c = document.getElementById("spliceTrack" + this.sectionId);
 				c.setAttribute("width", canvasRenderWidth);
@@ -273,34 +244,34 @@ export default Vue.component("research-splice-track", {
 
 				let exonVisualMap = [];
 				
-					geneTracksArray.map((gene, geneSubIndex) => {
+				genesSorted.map((gene, geneSubIndex) => {
 
-						let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
+					let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
 
-						var left = "\u{2190}";
-						var right = "\u{2192}";
+					var left = "\u{2190}";
+					var right = "\u{2192}";
 
-						let geneName =
-							gene.strand == "+"
-								? gene.gene_name + " " + right
-								: left + " " + gene.gene_name;
+					let geneName =
+						gene.strand == "+"
+							? gene.gene_name + " " + right
+							: left + " " + gene.gene_name;
 
-						let xonWidth =
-									gene.xEndPos - gene.xStartPos <= 1
-										? 1
-										: gene.xEndPos - gene.xStartPos;
+					let xonWidth =
+								gene.xEndPos - gene.xStartPos <= 1
+									? 1
+									: gene.xEndPos - gene.xStartPos;
 
-						let highlight = this.highlightExon(gene);
-						ctx.fillStyle = highlight ? "#00FF00" : "#000000";
+					let highlight = this.highlightExon(gene);
+					ctx.fillStyle = highlight ? "#00FF00" : "#000000";
 
-						ctx.fillRect(gene.xStartPos, yPos + 10, xonWidth, 20);
-						exonVisualMap.push({
-							exonStart: gene.xStartPos,
-							exonEnd: gene.xStartPos + xonWidth,
-							exonTop: yPos + 10,
-							exonBottom: yPos + 30
-						});
-					})
+					ctx.fillRect(gene.xStartPos, yPos + 10, xonWidth, 20);
+					exonVisualMap.push({
+						exonStart: gene.xStartPos,
+						exonEnd: gene.xStartPos + xonWidth,
+						exonTop: yPos + 10,
+						exonBottom: yPos + 30
+					});
+				})
 				
 				this.exonVisualMap = exonVisualMap;
 
