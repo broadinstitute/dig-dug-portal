@@ -318,27 +318,15 @@ export default Vue.component("research-splice-track", {
 		},
 		tileExons(exonsInput){
 			let allRows = [];
-			let exons = exonsInput.toReversed();
-			while (true){
-				let unshelvedExon = exons.pop();
-				if (unshelvedExon === undefined){
-					break;
-				}
-				for (let i = 0; i < allRows.length; i++){
-					let row = allRows[i];
-					for (let j = 0; j < row.length; j++){
-						let shelvedExon = row[j];
-						let collision = this.overlap(shelvedExon.exon_start, shelvedExon.exon_end, 
-							unshelvedExon.exon_start, unshelvedExon.exon_end);
-						if (collision){
-							break;
-						}
-						// No collisions in row, can add exon
-						row.push(unshelvedExon);
-					}
-					// Start a new row
-					allRows.push([unshelvedExon]);
-				}
+			//let exons = exonsInput.toReversed();
+			let exons = structuredClone(exonsInput);
+			allRows.push([]);
+			allRows[0].push(exons[0]);
+			exons = exons.slice(1);
+			while (exons.length > 0){
+				let lastRow = allRows[allRows.length -1]
+				let lastExon = lastRow[lastRow.length - 1];
+				for (let )
 			}
 			return allRows;
 
