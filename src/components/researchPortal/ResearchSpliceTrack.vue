@@ -51,7 +51,9 @@ export default Vue.component("research-splice-track", {
 			exonData: null,
 			gene: null,
 			spliceVisualMap: [],
-			hoverTent: -1
+			exonVisualMap: [],
+			hoverTent: -1,
+			hoverExon: -1
 		};
 	},
 	modules: {
@@ -233,9 +235,11 @@ export default Vue.component("research-splice-track", {
 					gene["xEndPos"] = xEndPos;
 				})
 
-				let geneTracksArray = this.sortGenesByRegion(genesSorted);
+				//let geneTracksArray = this.sortGenesByRegion(genesSorted);
+				let geneTracksArray = genesSorted;
 
 				this.renderingGenes = geneTracksArray;
+				console.log("Gene tracks array length:",geneTracksArray.length);
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
@@ -267,8 +271,9 @@ export default Vue.component("research-splice-track", {
 				ctx.textAlign = "center";
 				ctx.fillStyle = "#000000";
 
-				geneTracksArray.map((genesArray, geneIndex) => {
-					genesArray.map((gene, geneSubIndex) => {
+				let exonVisualMap = [];
+				
+					geneTracksArray.map((gene, geneSubIndex) => {
 
 						let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
 
@@ -288,14 +293,17 @@ export default Vue.component("research-splice-track", {
 						let highlight = this.highlightExon(gene);
 						ctx.fillStyle = highlight ? "#00FF00" : "#000000";
 
-						ctx.fillRect(
-									gene.xStartPos,
-									yPos + 10,
-									xonWidth,
-									20
-								);
+						ctx.fillRect(gene.xStartPos, yPos + 10, xonWidth, 20);
+						exonVisualMap.push({
+							exonStart: gene.xStartPos,
+							exonEnd: gene.xStartPos + xonWidth,
+							exonTop: yPos + 10,
+							exonBottom: yPos + 30
+						});
 					})
-				});
+				
+				this.exonVisualMap = exonVisualMap;
+
 				// Add splicing events
 				let spliceVisualMap = [];
 				for (let i = 0; i < this.spliceData.length; i++){
@@ -396,6 +404,11 @@ export default Vue.component("research-splice-track", {
 					&& exon.exon_end <= highlightedTent.spliceEnd
 				);
 		},
+		highlightTent(){
+			if(this.hoverExon === -1){
+				return false;
+			}
+		},
 		checkPosition(event) {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
@@ -407,6 +420,8 @@ export default Vue.component("research-splice-track", {
 			if (yPos < this.adjPlotMargin.top/2){
 				let tent = this.getTent(xPos * 2);
 				this.hoverTent = tent;
+			} else {
+				// TODO check whether we are hovering an exon
 			}
 		},
 		getTent(xPos){
@@ -417,7 +432,7 @@ export default Vue.component("research-splice-track", {
 				}
 			}
 			return -1;
-		}
+		},
 	},
 });
 
