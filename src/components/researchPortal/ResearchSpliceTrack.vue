@@ -214,22 +214,6 @@ export default Vue.component("research-splice-track", {
 				this.genesSorted = genesSorted;
 				let genesTiled = this.tileExons(genesSorted);
 				console.log(JSON.stringify(genesTiled));
-				
-
-				genesSorted.map(gene =>{
-
-					let xStartPos =
-						gene.exon_start > xMin
-							? xStart + (gene.exon_start - xMin) * xposbypixel
-							: xStart;
-					let xEndPos =
-						gene.exon_end < xMax
-							? xStart + (gene.exon_end - xMin) * xposbypixel
-							: xStart + (xMax - xMin) * xposbypixel;
-
-					gene["xStartPos"] = xStartPos;
-					gene["xEndPos"] = xEndPos;
-				})
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
@@ -262,14 +246,14 @@ export default Vue.component("research-splice-track", {
 				let exonVisualMap = [];
 				
 				genesSorted.map((gene, geneSubIndex) => {
+					let xStartPos = xStart + (gene.exon_start - xMin) * xposbypixel;
+					let xEndPos = xStart + (gene.exon_end - xMin) * xposbypixel;
 
 					let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
-					// TODO Arrange exons in rows with zero overlap.
 
-					let xonWidth =
-								gene.xEndPos - gene.xStartPos <= 1
+					let xonWidth = xEndPos - xStartPos <= 1
 									? 1
-									: gene.xEndPos - gene.xStartPos;
+									: xEndPos - xStartPos;
 
 					let highlight = this.highlightExon(gene);
 					let hover = geneSubIndex === this.hoverExon;
@@ -277,10 +261,10 @@ export default Vue.component("research-splice-track", {
 						: hover ? this.colors.purple
 						: this.colors.charcoal;
 
-					ctx.fillRect(gene.xStartPos, yPos + 10, xonWidth, 20);
+					ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
 					exonVisualMap.push({
-						exonStart: gene.xStartPos,
-						exonEnd: gene.xStartPos + xonWidth,
+						exonStart: xStartPos,
+						exonEnd: xStartPos + xonWidth,
 						exonTop: yPos + 10,
 						exonBottom: yPos + 30
 					});
