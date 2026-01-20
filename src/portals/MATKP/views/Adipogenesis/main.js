@@ -2,7 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { getTimeSeries, getTimeSeriesMetadata, mapConditions, includeAverages} from "@/portals/MATKP/utils/adipogenesis.js";
+import { getTimeSeries, mapConditions, includeAverages} from "@/portals/MATKP/utils/adipogenesis.js";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -56,7 +56,6 @@ new Vue({
             plotId: "time_series_heatmap",
             timeSeriesId: "GSE20696", // hardcoded for sample,
             timeSeriesData: null,
-            metadata: null,
             minScore: null,
             maxScore: null,
             transcripts: ["1415687_a_at"],
@@ -196,9 +195,8 @@ new Vue({
         }
     },
     async created() {
-        this.metadata = await getTimeSeriesMetadata(this.timeSeriesId);
         let timeSeriesData = await getTimeSeries(this.timeSeriesId);
-        this.conditionsMap = mapConditions(timeSeriesData, this.metadata);
+        this.conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
         this.timeSeriesData = includeAverages(timeSeriesData, this.conditionsMap);
     },
     methods: {
@@ -213,7 +211,7 @@ new Vue({
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
         },
         processDataForHeatmap(data){
-            if (this.metadata === null || this.timeSeriesData === null){
+            if (this.timeSeriesData === null){
                 return null;
             }
             
