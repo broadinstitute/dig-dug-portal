@@ -43,7 +43,8 @@
                                             class="time-series-content">
                                             <time-series-heatmap
                                                 :heatmapData="$parent.paginatedData"
-                                                :renderConfig="$parent.heatmapConfig"
+                                                :minScore="$parent.minScore"
+                                                :maxScore="$parent.maxScore"
                                                 :utils="$parent.utilsBox"
                                                 sectionId="time-series-heatmap"
                                                 :linePlotConfig="$parent.linePlotConfig"
@@ -93,7 +94,8 @@
                                             <div v-if="$parent.geneSearchResults.length > 0">
                                                 <time-series-heatmap
                                                     :heatmapData="$parent.processedGeneSearch"
-                                                    :renderConfig="$parent.heatmapConfig"
+                                                    :minScore="$parent.minScore"
+                                                    :maxScore="$parent.maxScore"
                                                     :utils="$parent.utilsBox"
                                                     sectionId="search-heatmap"
                                                     :linePlotConfig="$parent.linePlotConfig"

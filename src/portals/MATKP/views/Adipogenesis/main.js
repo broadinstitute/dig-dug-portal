@@ -101,26 +101,6 @@ new Vue({
         processedGeneSearch(){
             return this.processDataForHeatmap(this.geneSearchResults);
         },
-        heatmapConfig(){
-            return {
-                "type": "heat map",
-                "label": "Time-Series Data",
-                "main": {
-                    "field": "score",
-                    "label": "score",
-                    "type": "scale",
-                    "direction": "positive",
-                    "low": this.minScore,
-                    "middle": (this.minScore + this.maxScore) / 2,
-                    "high": this.maxScore
-                },
-                "column field": "source",
-                "column label": "source",
-                "row field": "gene_tx",
-                "row label": "Gene / transcript",
-                "font size": 12,
-            }
-        },
         linePlotConfig(){
             return {
                 xField: "days",
