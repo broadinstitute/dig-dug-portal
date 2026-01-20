@@ -2,7 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { getTimeSeries, mapConditions, includeAverages} from "@/portals/MATKP/utils/adipogenesis.js";
+import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap} from "@/portals/MATKP/utils/adipogenesis.js";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -62,7 +62,7 @@ new Vue({
             fullTxSuffix: "full_transcript_data.tsv.gz",
             top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
             currentPage: 1,
-            conditions: [],
+            conditionsMap: null,
             currentTable: [],
             zoomedIn: true,
             avgRep: true,
@@ -88,7 +88,10 @@ new Vue({
             return utils;
         },
         processedData(){
-            let allData = this.processDataForHeatmap(this.timeSeriesData, true);
+            if (this.conditionsMap === null){
+                return null;
+            }
+            let allData = processDataForHeatmap(this.timeSeriesData, this.conditionsMap);
             if (allData === null){
                 return null;
             }
@@ -99,25 +102,7 @@ new Vue({
             return pageData;
         },
         processedGeneSearch(){
-            return this.processDataForHeatmap(this.geneSearchResults);
-        },
-        linePlotConfig(){
-            return {
-                xField: "days",
-                xAxisLabel: "Time (days)",
-                xMin: -2,
-                xMax: 7,
-                yField: "score",
-                yAxisLabel: "",
-                yMin: this.minScore,
-                yMax: this.maxScore,
-                dotKey: "identifier",
-                hoverBoxPosition: "both",
-                hoverFields: [
-                    {key: "transcript_id", label: "Transcript"},
-                    {key: "days", label: "Day"},
-                ],
-            }
+            return processDataForHeatmap(this.geneSearchResults);
         },
         tableFields(){
             let baseFields = [
@@ -189,39 +174,6 @@ new Vue({
             }
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
-        },
-        processDataForHeatmap(data){
-            if (this.timeSeriesData === null){
-                return null;
-            }
-            
-            let output = [];
-            
-            let timePoints = this.conditionsMap.timePoints;
-            let replicates = structuredClone(this.conditionsMap.replicates);
-            replicates.push("avg");
-
-            data.forEach(tsd => {
-                timePoints.forEach(t => {
-                    replicates.forEach(rep => {
-                        let source = `day_${t}_rep_${rep}`;
-                        let entry = {
-                            source: source,
-                            gene: tsd.gene,
-                            transcript_id: tsd.transcript_id,
-                            score: tsd[source],
-                            days: t,
-                            replicate: rep,
-                            order: tsd.order,
-                            gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
-                            identifier: `${tsd.transcript_id}_rep_${rep}`
-                        }
-                        output.push(entry);
-                    });
-                });
-            });
-            this.ready = true;
-            return output;
         },
         async queryGenes(){
             let delimiters = /[\s;,]+/;

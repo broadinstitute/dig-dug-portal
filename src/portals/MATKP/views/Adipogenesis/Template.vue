@@ -47,7 +47,6 @@
                                                 :maxScore="$parent.maxScore"
                                                 :utils="$parent.utilsBox"
                                                 sectionId="time-series-heatmap"
-                                                :linePlotConfig="$parent.linePlotConfig"
                                                 :zoomedIn="$parent.zoomedIn"
                                                 :activeTab="$parent.activeTab"
                                                 :avgRep="$parent.avgRep">
@@ -98,7 +97,6 @@
                                                     :maxScore="$parent.maxScore"
                                                     :utils="$parent.utilsBox"
                                                     sectionId="search-heatmap"
-                                                    :linePlotConfig="$parent.linePlotConfig"
                                                     :zoomedIn="true"
                                                     :avgRep="$parent.avgRep">
                                                 </time-series-heatmap>
