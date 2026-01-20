@@ -1,4 +1,3 @@
-
 <template>
 	<div class="heatmap-wrapper">
 		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
@@ -13,7 +12,18 @@
 			</time-series-line-plot>
 		</div>
 		<div class="heatmap-content" :id="'heatmapContent' + sectionId">
-			<div class="heatmap-scale-legend" :id="'heatmap_scale_legend' + sectionId"></div>
+			<div class="heatmap-scale-legend" :id="'heatmap_scale_legend' + sectionId">
+				<div style="display:flex; gap:5px" class="legends">
+					<div style="display:inline-block" class="legend">
+						<div style="display:flex; margin-top:10px" class="marks">
+							<span>{{ minScore.toFixed(4) }}</span>
+							<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
+							</div>
+							<span>{{ maxScore.toFixed(4) }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="heatmap-canvas-wrapper" :id="'heatmapPlotWrapper' + sectionId">
 				<div
 					class="col-wrapper"
@@ -62,15 +72,14 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, ACCESSIBLE_GRAY } from "../utils/content.js";
+import { ACCESSIBLE_PURPLE, ACCESSIBLE_GRAY } from "../utils/content.js";
 import { createColorScale } from "../utils/visuals.js";
-import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/ResearchHeatmapVector.vue";
-import { rgb } from "d3";
+import * as d3 from 'd3';
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn", "activeTab", "filter", "avgRep"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore"],
 	data() {
 		return {
 			squareData: {},
@@ -87,6 +96,44 @@ export default Vue.component("time-series-heatmap", {
 	},
 	beforeDestroy() {},
 	computed: {
+		renderConfig(){
+			return {
+                "type": "heat map",
+                "label": "Adipogenesis Datasets",
+                "main": {
+                    "field": "score",
+                    "label": "score",
+                    "type": "scale",
+                    "direction": "positive",
+                    "low": this.minScore,
+                    "middle": (this.minScore + this.maxScore) / 2,
+                    "high": this.maxScore
+                },
+                "column field": "source",
+                "column label": "source",
+                "row field": "gene_tx",
+                "row label": "Gene / transcript",
+                "font size": 12,
+            }
+		},
+		linePlotConfig(){
+            return {
+                xField: "days",
+                xAxisLabel: "Time (days)",
+                xMin: -2, // TODO calculate this dynamically rather than hardcoding it
+                xMax: 7,
+                yField: "score",
+                yAxisLabel: "",
+                yMin: this.minScore,
+                yMax: this.maxScore,
+                dotKey: "identifier",
+                hoverBoxPosition: "both",
+                hoverFields: [
+                    {key: "transcript_id", label: "Transcript"},
+                    {key: "days", label: "Day"},
+                ],
+            }
+        },
 		filteredData(){
 			let data = structuredClone(this.heatmapData);
 			if (this.filter) {
@@ -142,7 +189,12 @@ export default Vue.component("time-series-heatmap", {
 			// For sizing boxes based on how many replicates there are.
 			let replicates = new Set(this.filteredData.map(d => d.replicate));
 			return 2 / replicates.size;
-		}
+		},
+		colorScaleArray(){
+            if (this.colorScale === null) { return []; }
+            let step = 0.01 * (this.maxScore - this.minScore);
+            return d3.range(this.minScore, this.maxScore, step).map(t => this.colorScale(t)).join(', ');
+        },
 	},
 	watch: {
 		renderData() {
@@ -317,34 +369,7 @@ export default Vue.component("time-series-heatmap", {
 			let numExtremes = [minVal, maxVal];
 			let colorExtremes = [ACCESSIBLE_GRAY, ACCESSIBLE_PURPLE];
 			this.colorScale = createColorScale(numExtremes, colorExtremes);
-			let prevWidth = margin.bump;
 
-			// main legend
-			mainSteps.map(m => {
-				let legendWidth = this.getWidth(ctx,m, fontSize, 'Arial');
-
-				if (typeof m != 'string') {
-					legendWidth += margin.bump
-					prevWidth += margin.bump / 2;
-
-					let fillColor = this.colorScale(m);
-
-					ctx.beginPath();
-					ctx.rect(prevWidth, margin.bump - 4, legendWidth, fontSize + 8);
-					ctx.fillStyle = fillColor;
-					ctx.fill();
-				}
-
-				ctx.font = "24px Arial";
-				ctx.textAlign = "start";
-				ctx.fillStyle = "#000000";
-				ctx.fillText(
-					m,
-					prevWidth + 4,
-					margin.bump + fontSize - 4
-				);
-				prevWidth += legendWidth + 2;
-			})
 
 			//render plot label
 
@@ -563,6 +588,27 @@ $(function () {});
 }
 .hover-title {
 	font-weight: bold;
+}
+.legends {
+    gap: 20px;
+}
+
+.legend {
+    margin: 0 10px 0 0;
+    gap:1px;
+}
+.legend .label {
+    font-size: 11px !important;
+    line-height: 11px;
+}
+.legend .gradient {
+    height: 20px;
+    width: 200px;
+    border-radius: 20px;
+}
+.legend span {
+  padding-left: 15px;
+  padding-right: 15px;
 }
 </style>
 
