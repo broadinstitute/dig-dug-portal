@@ -119,3 +119,12 @@ export function processDataForHeatmap(data, conditionsMap){
     });
     return output;
 }
+
+export function extremeVal(data, min=true){
+    let extreme = data[0].score;
+    data.forEach(d => extreme = 
+        (min && d.score < extreme) || (!min && d.score > extreme)
+        ? d.score
+        : extreme);
+    return extreme;
+}

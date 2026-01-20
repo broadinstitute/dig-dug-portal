@@ -7,7 +7,7 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent, getMotrpac } from "@/portals/MATKP/utils/content";
-import { getTimeSeries, mapConditions, includeAverages} from "@/portals/MATKP/utils/adipogenesis.js";
+import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap, extremeVal} from "@/portals/MATKP/utils/adipogenesis.js";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -48,6 +48,8 @@ import sessionUtils from "@/utils/sessionUtils";
 import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
+
+import TimeSeriesHeatmap from "@/portals/MATKP/components/TimeSeriesHeatmap.vue";
 
 import Counter from "@/utils/idCounter";
 import regionUtils from "@/utils/regionUtils";
@@ -102,7 +104,8 @@ new Vue({
         ColocusTable,
         ResearchBarPlot,
         ResearchBoxPlot,
-        ResearchSingleCellBrowser
+        ResearchSingleCellBrowser,
+        TimeSeriesHeatmap
     },
     mixins: [pageMixin, matkpMixin],
 
@@ -117,6 +120,9 @@ new Vue({
             phenotypeFilterList: [],
             timeSeriesId: "GSE20696", // hardcoded for sample,
             adipogenesis: [],
+            adiposeMin: null,
+            adiposeMax: null,
+            conditionsMap: null,
             activeTab: "hugeScorePheWASPlot",
             externalResources: {
                 ensembl: {
@@ -804,9 +810,18 @@ new Vue({
             return this.$store.state.bioPortal.phenotypeMap;
         },
 
-        adipogenesisData(){
-            return this.adipogenesis.filter(a => 
-                a.gene.toLowerCase() === this.$store.state.geneName.toLowerCase());
+        adipogenesisData(){            
+            if (this.conditionsMap === null || this.adipogenesis.length === 0){
+                return [];
+            }
+            console.log(JSON.stringify(this.adipogenesis[0]));
+            let filteredData = this.adipogenesis.filter(a => 
+                !!a.gene && a.gene.toLowerCase() === this.$store.state.geneName.toLowerCase());
+            let allData = processDataForHeatmap(filteredData, this.conditionsMap);
+            if (allData === null){
+                return [];
+            }
+            return allData;
         }
     },
 
@@ -878,6 +893,15 @@ new Vue({
             this.$store.dispatch("getHugeScoresData");
 
         },
+        adipogenesisData(newData){
+            if (newData === null || newData.length === 0){
+                return;
+            }
+            if (this.adiposeMin === null && this.adiposeMax === null){
+                this.adiposeMin = extremeVal(newData);
+                this.adiposeMax = extremeVal(newData, false);
+            }
+        }
     },
 
     async created() {
@@ -903,8 +927,8 @@ new Vue({
 
         // Adipogenesis data for gene adipogenesis card
         let timeSeriesData = await getTimeSeries(this.timeSeriesId);
-        let conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
-        this.adipogenesis = includeAverages(timeSeriesData, conditionsMap);
+        this.conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
+        this.adipogenesis = includeAverages(timeSeriesData, this.conditionsMap);
     },
 
     methods: {

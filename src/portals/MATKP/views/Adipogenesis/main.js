@@ -2,7 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap} from "@/portals/MATKP/utils/adipogenesis.js";
+import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap, extremeVal} from "@/portals/MATKP/utils/adipogenesis.js";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -201,21 +201,13 @@ new Vue({
                     throw error;
                 }
         },
-        extremeVal(data, min=true){
-            let extreme = data[0].score;
-            data.forEach(d => extreme = 
-                (min && d.score < extreme) || (!min && d.score > extreme)
-                ? d.score
-                : extreme);
-            return extreme;
-        }
     },
     watch: {
         processedData(newData){
             this.ready = false;
             if (this.minScore === null && this.maxScore === null){
-                this.minScore = this.extremeVal(newData);
-                this.maxScore = this.extremeVal(newData, false);
+                this.minScore = extremeVal(newData);
+                this.maxScore = extremeVal(newData, false);
                 this.ready = true;
             }
         }
