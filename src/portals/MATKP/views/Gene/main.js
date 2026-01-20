@@ -7,6 +7,7 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent, getMotrpac } from "@/portals/MATKP/utils/content";
+import { getTimeSeries, mapConditions, includeAverages} from "@/portals/MATKP/utils/adipogenesis.js";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -114,6 +115,8 @@ new Vue({
             tooltips: [],
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
+            timeSeriesId: "GSE20696", // hardcoded for sample,
+            adipogenesis: [],
             activeTab: "hugeScorePheWASPlot",
             externalResources: {
                 ensembl: {
@@ -645,14 +648,6 @@ new Vue({
             return data;
         },
 
-        /*smallestpValuePhenotype() {
-            // let data = this.$store.state.varassociations.data;
-            // let x = data.sort(
-            //     (a, b) => a.pValue - b.pValue
-            // );
-
-            return "T2D";
-        },*/
         selectedPhenotypes() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             if (Object.keys(phenotypeMap).length === 0) {
@@ -808,6 +803,11 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
+
+        adipogenesisData(){
+            return this.adipogenesis.filter(a => 
+                a.gene.toLowerCase() === this.$store.state.geneName.toLowerCase());
+        }
     },
 
     watch: {
@@ -888,8 +888,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
-        //this.$store.dispatch("queryAssociations");
+        
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -901,6 +900,11 @@ new Vue({
         this.getGTExdata2();
         this.geneSigsData = await this.getGeneSigs();
         this.motrpacData = await this.getMotrpacResult(this.$store.state.geneName);
+
+        // Adipogenesis data for gene adipogenesis card
+        let timeSeriesData = await getTimeSeries(this.timeSeriesId);
+        let conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
+        this.adipogenesis = includeAverages(timeSeriesData, conditionsMap);
     },
 
     methods: {
@@ -1180,7 +1184,7 @@ new Vue({
             }
             let tooltipItem = this.tooltips.find(t => t["ID"] === tooltipId);
             return tooltipItem["Content"];
-        }
+        },
     },
 
     render(createElement, context) {

@@ -70,7 +70,7 @@ import { rgb } from "d3";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData", "renderConfig","utils","sectionId", "linePlotConfig", "zoomedIn", "activeTab", "filter", "avgRep"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore"],
 	data() {
 		return {
 			squareData: {},
@@ -87,6 +87,44 @@ export default Vue.component("time-series-heatmap", {
 	},
 	beforeDestroy() {},
 	computed: {
+		renderConfig(){
+			return {
+                "type": "heat map",
+                "label": "Adipogenesis Datasets",
+                "main": {
+                    "field": "score",
+                    "label": "score",
+                    "type": "scale",
+                    "direction": "positive",
+                    "low": this.minScore,
+                    "middle": (this.minScore + this.maxScore) / 2,
+                    "high": this.maxScore
+                },
+                "column field": "source",
+                "column label": "source",
+                "row field": "gene_tx",
+                "row label": "Gene / transcript",
+                "font size": 12,
+            }
+		},
+		linePlotConfig(){
+            return {
+                xField: "days",
+                xAxisLabel: "Time (days)",
+                xMin: -2, // TODO calculate this dynamically rather than hardcoding it
+                xMax: 7,
+                yField: "score",
+                yAxisLabel: "",
+                yMin: this.minScore,
+                yMax: this.maxScore,
+                dotKey: "identifier",
+                hoverBoxPosition: "both",
+                hoverFields: [
+                    {key: "transcript_id", label: "Transcript"},
+                    {key: "days", label: "Day"},
+                ],
+            }
+        },
 		filteredData(){
 			let data = structuredClone(this.heatmapData);
 			if (this.filter) {

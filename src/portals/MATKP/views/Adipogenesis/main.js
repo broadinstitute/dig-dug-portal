@@ -102,7 +102,7 @@ new Vue({
             return pageData;
         },
         processedGeneSearch(){
-            return processDataForHeatmap(this.geneSearchResults);
+            return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
         },
         tableFields(){
             let baseFields = [
