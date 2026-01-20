@@ -63,7 +63,6 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import filterUtils from "@/utils/filterUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
-import { result } from "lodash";
 
 Vue.config.productionTip = false;
 
