@@ -47,7 +47,6 @@ export default Vue.component("research-splice-track", {
 			localGenesData: null,
 			biHost: "https://vision.hugeampkpnbi.org/api/bio/query",
 			spliceData: null,
-			genesSorted: null,
 			exonData: null,
 			gene: null,
 			spliceVisualMap: [],
@@ -206,17 +205,15 @@ export default Vue.component("research-splice-track", {
 					xMax = this.viewingRegion.end;
 
 				let xStart = this.adjPlotMargin.left;
-				let yStart = this.adjPlotMargin.top;
 				let xposbypixel = plotWidth / (xMax - xMin);
 
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
 									.filter(g => g.exon_start <= xMax && g.exon_end >= xMin);
 				let genesTiled = this.tileExons(genesSorted);
-				console.log(JSON.stringify(genesTiled));
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
-					eachGeneTrackHeight * 10; // Arbitrarily making this 10 tracks deep
+					eachGeneTrackHeight * genesTiled.length;
 
 				let c = document.getElementById("spliceTrack" + this.sectionId);
 				c.setAttribute("width", canvasRenderWidth);
@@ -411,9 +408,7 @@ export default Vue.component("research-splice-track", {
 			return this.overlap(tent.splice_start, tent.splice_end, exon.exon_start, exon.exon_end);
 		},
 		overlap(start1, end1, start2, end2){
-			let startMatch = start1 >= start2 && start1 <= end2;
-			let endMatch = end1 >= start2 && end1 <= end2;
-			return startMatch || endMatch;
+			return !(start2 > end1 || start1 > end2);
 		},
 		checkPosition(event) {
 			let e = event;
