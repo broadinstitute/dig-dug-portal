@@ -490,7 +490,7 @@
 								v-if="
 									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] !=
-										'gem package' &&
+										'gem package' && $parent.plotConfig['type'] != 'giant gem package' &&
 									!!$parent.plotConfig['genes track'] &&
 									$store.state.codingGenesData != null
 								"
@@ -567,6 +567,25 @@
 								:utils="$parent.utilsBox"
 								
 							></kp-gem-pkg>
+							<giant-gem-pkg
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'giant gem package'
+								"
+								:pkgConfig="$parent.plotConfig"
+								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
+								:sharedPlotXpos="$store.state.sharedPlotXpos"
+								:plotMargin="$parent.plotMargin"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:colors="$parent.colors"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
+								
+							></giant-gem-pkg>
 						</div>
 						<div
 							class="col-md-12"
