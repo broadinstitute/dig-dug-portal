@@ -3,7 +3,6 @@
 		class="mbm-plot-content row"
 		
 	>
-    <div>{{ getSearchingRegion() }} - {{ getSearchingPhenotype() }} - {{ getSearchingAncestry() }}</div>
 		<div class="col-md-12 CS-plot-wrapper">
 			<div class="col-md-12">
 				<div id="CSUIWrapper">
@@ -457,13 +456,24 @@ export default Vue.component("giant-credible-sets-plot", {
             let searchingAncestry = this.getSearchingAncestry();
 
             console.log('checking all properties ready',searchingRegion, searchingPhenotype, searchingAncestry);
+            const ancestryParameter = this.renderConfig["ancestry parameter"];
+            const regionParameter = this.renderConfig["region parameter"];
+            const phenotypeParameter = this.renderConfig["phenotype parameter"];
 			if (
-				searchingRegion !== null &&
+				ancestryParameter !== null && searchingRegion !== null &&
 				searchingPhenotype !== null &&
 				searchingAncestry !== null
 			) {
 				// All three properties have values, call getCredibleSetsList
 				this.getCredibleSetsList(searchingRegion, searchingPhenotype, searchingAncestry);
+			}
+
+            if (
+				ancestryParameter == null && searchingRegion !== null &&
+				searchingPhenotype !== null
+			) {
+				// All three properties have values, call getCredibleSetsList
+				this.getCredibleSetsList(searchingRegion, searchingPhenotype, null);
 			}
 		},
 		resetAll() {
@@ -1159,7 +1169,8 @@ export default Vue.component("giant-credible-sets-plot", {
         async getCredibleSetsList(REGION, PHENOTYPE, ANCESTRY) {
 
             let CSServer = "https://giant.hugeampkpnbi.org/api/bio/query/credible-sets?q=";
-            let queryString = (this.renderConfig["ancestry parameter"] && ANCESTRY != '*')? PHENOTYPE + "," + ANCESTRY + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end:PHENOTYPE + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end;
+            let queryString = (ANCESTRY != null && ANCESTRY != '*')? PHENOTYPE + "," + ANCESTRY + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end : PHENOTYPE + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end;
+
             let CSURL = CSServer + queryString;
 
             let CSJson = await fetch(CSURL).then((resp) => resp.json());
