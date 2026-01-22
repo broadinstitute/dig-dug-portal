@@ -455,7 +455,7 @@ export default Vue.component("giant-credible-sets-plot", {
             let searchingPhenotype = this.getSearchingPhenotype();
             let searchingAncestry = this.getSearchingAncestry();
 
-            console.log('checking all properties ready',searchingRegion, searchingPhenotype, searchingAncestry);
+            //console.log('checking all properties ready',searchingRegion, searchingPhenotype, searchingAncestry);
             const ancestryParameter = this.renderConfig["ancestry parameter"];
             const regionParameter = this.renderConfig["region parameter"];
             const phenotypeParameter = this.renderConfig["phenotype parameter"];
@@ -835,7 +835,7 @@ export default Vue.component("giant-credible-sets-plot", {
 								bump
 							);
 
-                            console.log('credibleSets',credibleSets);
+                            //console.log('credibleSets',credibleSets);
 
 							for (const [CSID, credibleSet] of Object.entries(
 								credibleSets
@@ -1175,7 +1175,7 @@ export default Vue.component("giant-credible-sets-plot", {
 
             let CSJson = await fetch(CSURL).then((resp) => resp.json());
 
-            console.log('CSJson',CSJson);
+            //console.log('CSJson',CSJson);
 
             if (CSJson.error == null) {
 				if (this.dataComparison == "newSearch") {
