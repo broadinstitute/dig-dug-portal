@@ -68,7 +68,6 @@ new Vue({
             if (this.geneData === null){
                 return "";
             }
-            //"chr11:2150341-2238950";
             return `chr${this.geneData.chromosome}:${this.geneData.start}-${this.geneData.end}`;
         }
     },

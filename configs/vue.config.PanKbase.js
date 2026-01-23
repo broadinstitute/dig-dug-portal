@@ -220,6 +220,20 @@ let pages = {
         title: "ATAC-Seq",
         chunks: ["chunk-vendors", "chunk-common", "atacseq"],
     },
+    phenotype: {
+        entry: "src/portals/PanKbase/views/Phenotype/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "phenotype.html",
+        title: "Phenotype",
+        chunks: ["chunk-vendors", "chunk-common", "phenotype"]
+    },
+    celltype: {
+        entry: "src/portals/PanKbase/views/CellType/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "celltype.html",
+        title: "Cell Type",
+        chunks: ["chunk-vendors", "chunk-common", "celltype"]
+    }
 };
 
 module.exports = {
