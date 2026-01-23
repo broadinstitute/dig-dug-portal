@@ -14,14 +14,21 @@ async function fetchWithFallback(PRIMARY_URL, FALLBACK_URL) {
         response = await fetch(primaryUrl);
         // Check if response is ok (status 200-299)
         if (response.ok) {
-            return await response.json();
+            const jsonData = await response.json();
+            // Check if the result is an empty array
+            if (Array.isArray(jsonData) && jsonData.length === 0) {
+                console.log(`Primary URL (${primaryUrl}) returned empty results [], trying fallback (${fallbackUrl})...`);
+                // Continue to fallback logic below
+            } else {
+                return jsonData;
+            }
         }
     } catch (error) {
         // Network error or other fetch failure - will try fallback below
         console.log(`Primary URL (${primaryUrl}) failed with error: ${error.message}, trying fallback...`);
     }
 
-    // If we get here, primary either returned non-OK status or threw an error
+    // If we get here, primary either returned non-OK status, threw an error, or returned empty results
     // Try fallback URL
     if (response && !response.ok) {
         console.log(`Primary URL (${primaryUrl}) returned ${response.status}, trying fallback (${fallbackUrl})...`);
