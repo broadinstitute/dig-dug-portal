@@ -619,6 +619,9 @@
 
       <div class="card mdkp-card">
         <div class="card-body">
+            <h4 id="item_4">
+                How does chromatin accessibility relate to cell type in the region of {{ $parent.geneName }}?
+            </h4>
             <atac-seq v-if="!!$parent.region" :region="$parent.formattedRegion"></atac-seq>
         </div>
       </div>
