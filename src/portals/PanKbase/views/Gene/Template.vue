@@ -616,6 +616,12 @@
               </criterion-function-group>
           </div>
       </div>
+
+      <div class="card mdkp-card">
+        <div class="card-body">
+            <atac-seq v-if="!!$parent.region" :region="$parent.formattedRegion"></atac-seq>
+        </div>
+      </div>
     </div>
     <!-- FOOTER -->
     <pkb-footer></pkb-footer> 

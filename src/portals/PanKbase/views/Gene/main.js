@@ -6,6 +6,7 @@ import "../../assets/pkb-styles.css";
 import "../../assets/phewas.css";
 import "../../assets/filtering.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
+import AtacSeq from "../../components/AtacSeq.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -51,7 +52,8 @@ new Vue({
         HugeScoresTable,
         ResearchSingleCellBrowser,
         ResearchBarPlot,
-        ResearchBoxPlot
+        ResearchBoxPlot,
+        AtacSeq
     },
     mixins: [pankbaseMixin],
     data() {
@@ -354,6 +356,9 @@ new Vue({
         },
         region() {
             return this.$store.getters.region;
+        },
+        formattedRegion(){
+            return `chr${this.region.chromosome}:${this.region.start}-${this.region.end}`;
         },
         docDetails() {
             let symbol = this.geneSymbol;
