@@ -54,7 +54,7 @@ import { fetchTracks } from "@/portals/PanKbase/utils/tracks";
 import { loadWashUAssets } from "@/portals/PanKbase/utils/washU";
 import { TRACKS } from "@/portals/PanKbase/utils/tracks.js";
 
-const DEFAULT_GENOME = "hg38";
+const DEFAULT_GENOME = "hg19";
 const DEFAULT_REGION = "chr11:2150341-2238950";
 
 export default Vue.component("AtacSeq", {
