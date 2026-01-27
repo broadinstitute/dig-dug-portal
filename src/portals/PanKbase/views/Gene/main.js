@@ -357,9 +357,6 @@ new Vue({
         region() {
             return this.$store.getters.region;
         },
-        formattedRegion(){
-            return `chr${this.region.chromosome}:${this.region.start}-${this.region.end}`;
-        },
         docDetails() {
             let symbol = this.geneSymbol;
             let r = this.region;

@@ -21,7 +21,7 @@ new Vue({
     data() {
         return {
             geneReady: false,
-            geneData: null,
+            geneName: null,
             byorDocs: "pankbase_genomebrowser",
             searchConfig: {
                 "search instruction": "Search for a gene",
@@ -47,7 +47,7 @@ new Vue({
     async created() {
         // If a gene is specified, that becomes the default region
         if (!!keyParams.gene){
-            await this.getGeneRegion(keyParams.gene);
+            this.geneName = keyParams.gene;
         }
         this.geneReady = true;
         let docs = await getPankbaseContent(this.byorDocs, true);
@@ -64,19 +64,8 @@ new Vue({
         navbar() {
             return document.getElementsByClassName("pkb-nav");
         },
-        formattedRegion(){
-            if (this.geneData === null){
-                return "";
-            }
-            return `chr${this.geneData.chromosome}:${this.geneData.start}-${this.geneData.end}`;
-        }
     },
     methods: {
-        async getGeneRegion(geneSymbol){
-            let fetchUrl = `${HUGEAMP_GENE_BIOINDEX}${geneSymbol}`;
-			let gene = await fetch(fetchUrl).then(resp => resp.json());
-            this.geneData = gene.data[0];
-        }
     },
     render(createElement, context) {
         return createElement(Template);
