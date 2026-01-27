@@ -81,7 +81,7 @@ export default Vue.component("AtacSeq", {
     },
     computed: {
         region(){
-            if (this.geneInfo === null){
+            if (!this.geneInfo){
                 return null;
             }
             return `chr${this.geneInfo.chromosome}:${this.geneInfo.start}-${this.geneInfo.end}`;
