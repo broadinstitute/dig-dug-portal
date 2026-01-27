@@ -622,7 +622,7 @@
             <h4 id="item_4">
                 How does chromatin accessibility relate to cell type in the region of {{ $parent.geneName }}?
             </h4>
-            <atac-seq v-if="!!$parent.region" :region="$parent.formattedRegion"></atac-seq>
+            <atac-seq v-if="!!$parent.region" :gene="$parent.geneName"></atac-seq>
         </div>
       </div>
     </div>

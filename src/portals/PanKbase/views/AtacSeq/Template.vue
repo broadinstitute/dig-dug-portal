@@ -21,7 +21,7 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div id="documentation"></div>
-                    <atac-seq v-if="$parent.geneReady" :region="$parent.formattedRegion"></atac-seq>
+                    <atac-seq v-if="$parent.geneReady" :gene="$parent.geneName"></atac-seq>
                 </div>
             </div>
         </div>

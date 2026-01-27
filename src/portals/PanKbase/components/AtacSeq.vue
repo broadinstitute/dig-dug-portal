@@ -53,12 +53,15 @@ import Vue from "vue";
 import { fetchTracks } from "@/portals/PanKbase/utils/tracks";
 import { loadWashUAssets } from "@/portals/PanKbase/utils/washU";
 import { TRACKS } from "@/portals/PanKbase/utils/tracks.js";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
-const DEFAULT_GENOME = "hg19";
+const HUGEAMP_GENE_BIOINDEX = `${BIO_INDEX_HOST}/api/bio/query/gene?q=`;
+const DEFAULT_GENOME = "hg38";
+const DEFAULT_GENOME_BIOINDEX = "GRCh38";
 const DEFAULT_REGION = "chr11:2150341-2238950";
 
 export default Vue.component("AtacSeq", {
-    props: [ "region" ],
+    props: ["gene"],
     data() {
         return {
             isLoading: true,
@@ -69,15 +72,24 @@ export default Vue.component("AtacSeq", {
             selectAll: true,
             cellTypes: [],
             trackTypes: [],
-            selectedTrackTypes: []
+            selectedTrackTypes: [],
+            geneInfo: null,
         };
     },
     async mounted() {
         this.initializeBrowser();
     },
+    computed: {
+        region(){
+            if (!this.geneInfo){
+                return null;
+            }
+            return `chr${this.geneInfo.chromosome}:${this.geneInfo.start}-${this.geneInfo.end}`;
+        }
+    },
     methods: {
         async initializeBrowser() {
-            console.log(this.region);
+            this.geneInfo = await this.getGene(this.gene);
             this.isLoading = true;
             this.loadError = null;
 
@@ -119,6 +131,13 @@ export default Vue.component("AtacSeq", {
                         : track.type,
             }));
             return this.populateCellsAndTracks(output);
+        },
+        async getGene(geneSymbol){
+            
+            let fetchUrl = `${HUGEAMP_GENE_BIOINDEX}${geneSymbol},${DEFAULT_GENOME_BIOINDEX}`;
+            console.log(BIO_INDEX_HOST);
+			let gene = await fetch(fetchUrl).then(resp => resp.json());
+            return gene.data[0];
         },
         applyUrlFilters(tracks) {
             if (!window.location?.search) {
@@ -184,7 +203,7 @@ export default Vue.component("AtacSeq", {
 
             const contents = {
                 genomeName: DEFAULT_GENOME,
-                displayRegion: this.region === "" ? DEFAULT_REGION : this.region,
+                displayRegion: this.region === null ? DEFAULT_REGION : this.region,
                 trackLegendWidth: 150,
                 isShowingNavigator: true,
                 tracks: [...defaultTracks, ...tracks],
