@@ -28,10 +28,10 @@ export default new Vuex.Store({
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
         newPhenotype: null,
+        selectedPhenotype: null,
         phenotypesInSession: null,
         diseaseInSession: null,
         phenotypeCorrelation: null,
-        selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         annotationOptions: [],
@@ -52,7 +52,7 @@ export default new Vuex.Store({
         },
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
-            keyParams.set({ phenotype: phenotype.name });
+            keyParams.set({ phenotype: PHENOTYPE.name });
         },
         setSelectedAnnotation(state, annotation){
             state.selectedAnnotation = annotation;

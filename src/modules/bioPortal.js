@@ -164,7 +164,6 @@ export default {
 
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
-            console.log(state.defaultPortal);
             let qs = queryString.stringify(
                 {
                     q:
