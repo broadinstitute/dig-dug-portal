@@ -1,29 +1,29 @@
 <template>
     <div class="col" style="padding: 5px 7px 5px 7px">
-        <slot>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
-            {{ field }}
-        </slot>
+            <slot>{{ field }}</slot>
         <!--
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
-        <autocomplete
-            v-if="!!options && Array.isArray(options)"
-            :matches="options"
-            :labelFormatter="labelFormatter"
-            @item-select="updateFilter($event)"
-            @input-change="$parent.$emit('input-change', $event)"
-            :disabled="disabled"
-            :placeholder="placeholder"
-        ></autocomplete>
-        <b-form-input
-            v-else
-            v-model="filterThreshold"
-            @keydown.enter="updateFilter(filterThreshold)"
-            :disabled="disabled"
-            :placeholder="placeholder"
-        ></b-form-input>
+        <div v-if="!!options && Array.isArray(options)">
+            <autocomplete
+                :matches="options"
+                :labelFormatter="labelFormatter"
+                @item-select="updateFilter($event)"
+                @input-change="$parent.$emit('input-change', $event)"
+                :disabled="disabled"
+                :placeholder="placeholder"
+            ></autocomplete>
+        </div>
+        <div v-else class="format-fix-textfield">
+            <b-form-input
+                v-model="filterThreshold"
+                @keydown.enter="updateFilter(filterThreshold)"
+                :disabled="disabled"
+                :placeholder="placeholder"
+            ></b-form-input>
+        </div>
     </div>
 </template>
 
@@ -161,3 +161,11 @@ export default Vue.component("filter-control-template", {
     },
 });
 </script>
+<style scoped>
+    .col {
+        vertical-align: text-top;
+    }
+    .format-fix-textfield{
+        display: block;
+    }
+</style>

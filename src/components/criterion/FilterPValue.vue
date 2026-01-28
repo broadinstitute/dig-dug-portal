@@ -1,6 +1,6 @@
 <template>
     <filter-control-template
-        class="filter-col-sm"
+        class="filter-col-md"
         :field="field"
         :type="'number'"
         :predicate="predicate"
