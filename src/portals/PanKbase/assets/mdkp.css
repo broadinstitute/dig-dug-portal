@@ -1584,7 +1584,7 @@ div.filtering-ui-content div.col.filter-col-lg input {
     display: inline-block;
 }
 
-div.filtering-ui-content div.filter-col-sm .form-control,
+div.filtering-ui-content div.col.filter-col-sm .form-control,
 div.filtering-ui-content div.col.filter-col-sm select,
 div.filtering-ui-content div.col.filter-col-sm input {
     width: 110px !important;
