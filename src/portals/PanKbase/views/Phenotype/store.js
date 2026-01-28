@@ -88,6 +88,7 @@ export default new Vuex.Store({
             context.state.selectedAnnotation = annotations[0];
 		},
         queryPhenotype(context) {
+            console.log("Querying phenotype");
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
             let query = { q: context.state.phenotype.name };

@@ -76,6 +76,7 @@ new Vue({
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
             annotation: "",
+            phenotypeNotFound: false
         };
     },
 
@@ -207,45 +208,21 @@ new Vue({
         loading(){
             return !!keyParams.phenotype && this.$store.state.phenotype === null;
         },
-        phenotypeName(){
-            console.log("Is this thing on?");
-            return keyParams.phenotype;
-        },
-        currentPhenotype(){
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-            if (!phenotypeMap){
-                return null;
-            }
-            let info = phenotypeMap[this.phenotypeName];
-            console.log(info);
-            return info;
-        }
     },
 
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let name = keyParams.phenotype;
-            console.log(name);
-            console.log(JSON.stringify(phenotypeMap));
             let phenotype = phenotypeMap[name];
 
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
                 keyParams.set({ phenotype: phenotype.name });
             } else {
-                console.log("THEN WHY ARE YOU HERE??");
+                this.phenotypeNotFound = true;
             }
             //Initial query. Should only happen once.
             this.$store.dispatch("queryPhenotype");
-        },
-        "keyParams.phenotype": function(newPhenotype, oldPhenotype){
-            if (newPhenotype !== oldPhenotype){
-                let phenotype = this.$store.state.bioPortal.phenotypeMap[newPhenotype];
-                if (phenotype){
-                    this.$store.state.selectedPhenotype = phenotype;
-                    this.$store.dispatch("queryPhenotype");
-                }
-            }
         },
         "$store.state.annotationOptions"(data) {
             this.annotation = data[0];
@@ -285,12 +262,8 @@ new Vue({
     },
 
     async created() {
-        console.log("IN THE BEGINNING");
-        if (!keyParams.phenotype){
-            keyParams.set({phenotype: DEFAULT_PHENOTYPE});
-        } else {
-            keyParams.set({phenotype: keyParams.phenotype});
-        }
+        // yes, we do need to reset this
+        keyParams.set({ phenotype: !keyParams.phenotype ? DEFAULT_PHENOTYPE : keyParams.phenotype});
         await this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
