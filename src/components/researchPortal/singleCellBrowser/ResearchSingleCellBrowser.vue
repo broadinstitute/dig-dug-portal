@@ -967,7 +967,7 @@
 
                 viewType: 1,
                 
-                tableColumns: [
+                baseTableColumns: [
                     {key: "tissue", label: "Tissue", class:"capitalize"},
                     {key: "depot", label: "Depot", class:"capitalize"}, 
                     {key: "totalDonors", label: "Donors", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
@@ -1169,6 +1169,23 @@
                 if(!this.markerGenes) return null;
                 if(this.markerGenes[0].pct_nz_group) return 'pct_nz_group';
                 if(this.markerGenes[0].pct_cells_expression) return 'pct_cells_expression';
+            },
+            showDepotColumn() {
+                //check if metadata has depot column values
+                return (
+                    Array.isArray(this.singleCellMetadata) && this.singleCellMetadata.some(
+                        row => row.depot != null && row.depot !== ""
+                    )
+                )
+            },
+            tableColumns() {
+                //updates dataset select table columns based on rules
+                return this.baseTableColumns.filter(col => {
+                    if (col.key === "depot") {
+                        return this.showDepotColumn
+                    }
+                    return true
+                })
             }
         },
         methods: {

@@ -486,12 +486,11 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-score-plot>
-
 							<research-genes-track
 								v-if="
 									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] !=
-										'gem package' &&
+										'gem package' && $parent.plotConfig['type'] != 'giant gem package' &&
 									!!$parent.plotConfig['genes track'] &&
 									$store.state.codingGenesData != null
 								"
@@ -568,6 +567,25 @@
 								:utils="$parent.utilsBox"
 								
 							></kp-gem-pkg>
+							<giant-gem-pkg
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'giant gem package'
+								"
+								:pkgConfig="$parent.plotConfig"
+								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
+								:sharedPlotXpos="$store.state.sharedPlotXpos"
+								:plotMargin="$parent.plotMargin"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:colors="$parent.colors"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
+								
+							></giant-gem-pkg>
 						</div>
 						<div
 							class="col-md-12"
@@ -733,7 +751,9 @@
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
 													@on-zoom="$parent.setZoom"
-													@on-checkPosition="$parent.setHoverPos">
+													@on-checkPosition="$parent.setHoverPos"
+													@ld-data-loaded="ld => $parent.receiveLDData(ld)"
+													@splice="spliceData=> $parent.getSplice(spliceData)">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
@@ -782,11 +802,11 @@
 									:regionViewArea="$parent.regionViewArea"
 									:pageParams="$parent.pageParams"
 									:searchParameters="$parent.rawSearchParameters"
-									
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
 									@on-zoom="$parent.setZoom"
-									@on-checkPosition="$parent.setHoverPos">
+									@on-checkPosition="$parent.setHoverPos"
+									@ld-data-loaded="ld => $parent.receiveLDData(ld)">
 								</research-section>	
 								<research-sections-summary
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"

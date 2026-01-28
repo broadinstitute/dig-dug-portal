@@ -24,6 +24,7 @@
     "igv": "2.12.6",
     "jquery": "^3.7.1",
     "json-query": "^2.2.2",
+    "jszip": "^3.10.1",
     "locuszoom": "^0.13.4",
     "lodash": "^4.17.21",
     "lodash.merge": "^4.6.2",

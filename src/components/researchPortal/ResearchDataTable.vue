@@ -273,6 +273,12 @@
 											</button>
 										</span>
 								</span>
+								<span v-else-if="tdKey === 'View Splice Track'">
+									<button
+										@click="selectSplice(tdValue)">
+										View
+									</button>
+								</span>
 								
 								<span v-else v-html="formatValue(tdValue, tdKey, value)"></span>
 
@@ -790,6 +796,9 @@ export default Vue.component("research-data-table", {
 		},
 	},
 	methods: {
+		selectSplice(value){
+			this.$emit("splice", value);
+		},
 		checkFeatureExist(DATA,PATH) {
 			let ifExist = true;
 

@@ -24,6 +24,7 @@ import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
+import GiantGemPkg from "@/components/researchPortal/customComponents/GiantGemPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
@@ -69,6 +70,7 @@ new Vue({
         ResearchHeatmap,
         ResearchPheWAS,
         kpGEMPkg,
+        GiantGemPkg,
         ResearchSection,
         ResearchSectionsSummary,
         ResearchMultiSectionsSearch,
@@ -1024,9 +1026,6 @@ new Vue({
     },
 
     watch: {
-        sectionsData(DATA) {
-            //console.log("sectionsData", DATA);
-        },
         sectionConfigs(CONFIGS) {
             let context;
 
@@ -2294,6 +2293,22 @@ new Vue({
         showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
         },
+        getLowestPValue(sectionData) {
+            let p = "P-value";
+            let sortedData = sectionData.data.sort((a, b) => a[p] - b[p]);
+            return sortedData[0][p] !== undefined
+                ? sortedData[0]
+                : null;
+        },
+        receiveLDData(LD_DATA) {
+            console.log("LD Data", JSON.stringify(LD_DATA));
+            this.$store.dispatch("sendLDData", LD_DATA);
+        },
+        getSplice(splice) {
+            this.selectedSplice = splice;
+            this.$store.dispatch("selectSplice", splice);
+        }
+
     },
 
     render(createElement, context) {
