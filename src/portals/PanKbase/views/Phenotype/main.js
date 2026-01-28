@@ -39,6 +39,9 @@ import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
+
+const DEFAULT_PHENOTYPE = "T1D";
+
 new Vue({
     store,
     components: {
@@ -73,7 +76,6 @@ new Vue({
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
             annotation: "",
-            defaultPhenotype: "T2D"
         };
     },
 
@@ -202,21 +204,15 @@ new Vue({
             });
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
-        initialPhenotypeReady(){
-            return !keyParams.phenotype;
-        },
         loading(){
             return !!keyParams.phenotype && this.$store.state.phenotype === null;
+        },
+        currentPhenotype(){
+            return this.$store.state.bioPortal.phenotypeMap[keyParams.phenotype];
         }
     },
 
     watch: {
-        initialPhenotypeReady(ready){
-            if (ready){
-                let phenotype = this.$store.state.bioPortal.phenotypeMap[keyParams.phenotype];
-                this.$store.dispatch("onPhenotypeChange", phenotype);
-            }
-        },
         "$store.state.annotationOptions"(data) {
             this.annotation = data[0];
         },
@@ -252,6 +248,9 @@ new Vue({
                 pValuePills.forEach((e) => (e.hidden = false));
             }
         },
+        currentPhenotype(newPhenotype){
+            this.$store.dispatch("onPhenotypeChange", newPhenotype);
+        }
     },
 
     async created() {
@@ -262,9 +261,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDocumentations");
         if (!keyParams.phenotype){
-            keyParams.set({phenotype: this.defaultPhenotype});
+            keyParams.set({phenotype: DEFAULT_PHENOTYPE});
         }
-
     },
     methods: {
         ...uiUtils,
