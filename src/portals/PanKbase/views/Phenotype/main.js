@@ -208,6 +208,9 @@ new Vue({
         loading(){
             return !!keyParams.phenotype && this.$store.state.phenotype === null;
         },
+        availablePhenotypes(){
+            return Object.values(this.$store.state.bioPortal.phenotypeMap);
+        }
     },
 
     watch: {

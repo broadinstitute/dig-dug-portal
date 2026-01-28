@@ -29,7 +29,7 @@
                                 </div>
                             </span>
                             <phenotype-selectpicker
-                                :phenotypes="$parent.customPhenotypes"
+                                :phenotypes="$parent.availablePhenotypes"
                                 :clearOnSelected="true"
                             >
                             </phenotype-selectpicker>
