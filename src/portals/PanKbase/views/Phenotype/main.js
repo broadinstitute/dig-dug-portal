@@ -212,7 +212,7 @@ new Vue({
 
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            let name = keyParams.phenotype;
+            let name = !!keyParams.phenotype ? keyParams.phenotype : DEFAULT_PHENOTYPE;
             let phenotype = phenotypeMap[name];
 
             if (phenotype) {
@@ -262,9 +262,7 @@ new Vue({
     },
 
     async created() {
-        // yes, we do need to reset this
-        keyParams.set({ phenotype: !keyParams.phenotype ? DEFAULT_PHENOTYPE : keyParams.phenotype});
-        await this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("getAnnotations");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
