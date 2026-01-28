@@ -27,7 +27,6 @@ export default new Vuex.Store({
     state: {
         // phenotypes needs to be an array so colors don't change!
         phenotype: null,
-        newPhenotype: null,
         selectedPhenotype: null,
         phenotypesInSession: null,
         diseaseInSession: null,
@@ -88,7 +87,6 @@ export default new Vuex.Store({
             context.state.selectedAnnotation = annotations[0];
 		},
         queryPhenotype(context) {
-            console.log("Querying phenotype");
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
             let query = { q: context.state.phenotype.name };

@@ -568,19 +568,19 @@
                     </div>
                 </div>
             </div>
+            <div v-else-if="$parent.phenotypeNotFound">
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <b-alert show variant="warning">
+                            That phenotype is not available.
+                        </b-alert>
+                    </div>
+                </div>
+            </div>
             <div v-else-if="$parent.loading">
                 <div class="card mdkp-card">
                     <div class="card-body">
                         Loading...
-                    </div>
-                </div>
-            </div>
-            <div v-else>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <b-alert show variant="warning">
-                            Select a phenotype to get started.
-                        </b-alert>
                     </div>
                 </div>
             </div>
