@@ -3,6 +3,9 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import "../../assets/pkb-styles.css";
+import "../../assets/layout.css";
+import "../../assets/filtering.css";
+
 import { pankbaseMixin } from "../../mixins/pankbaseMixin.js";
 
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
