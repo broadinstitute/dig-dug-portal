@@ -5,16 +5,16 @@
         <!-- Body -->
         <div class="pkb-body">
             <div class="row front-search-section">
-                <div class="col-md-8 offset-md-2" align="center">
+                <div class="col-md-8 offset-md-2">
                     <div class="single-search-wrapper cypher-single-search">
-                        <h4>
+                        <h4 id="search-heading">
                             Search for phenotype
                         </h4>
                         <phenotype-selectpicker
-                        :phenotypes="$parent.availablePhenotypes"
-                        :clearOnSelected="true"
-                    >
-                    </phenotype-selectpicker>
+                            :phenotypes="$parent.availablePhenotypes"
+                            :clearOnSelected="true"
+                        >
+                        </phenotype-selectpicker>
                     </div>
                 </div>
             </div>
@@ -569,50 +569,54 @@
 </template>
 
 <style scoped>
-.phenotype-search-input {
-    display: block !important;
-    position: absolute;
-    top: 25px;
-    background: none;
-    border: none;
-}
+    #search-heading {
+        text-align: center;
+    }
 
-.phenotype-search-input:focus {
-    background-color: #fff;
-}
+    .phenotype-search-input {
+        display: block !important;
+        position: absolute;
+        top: 25px;
+        background: none;
+        border: none;
+    }
 
-.new-phenotype-search-key {
-    text-align: left;
-    overflow: hidden;
-}
+    .phenotype-search-input:focus {
+        background-color: #fff;
+    }
 
-.page-phenotypes-list {
-    position: absolute;
-    z-index: 20;
-    list-style: none;
-    text-align: left;
-    white-space: nowrap;
-    padding: 0;
-    display: block;
-    overflow-x: hidden;
-    overflow-y: auto;
-    max-height: 300px;
-    border-radius: 5px;
-    border: solid 1px #eeeeee;
-}
+    .new-phenotype-search-key {
+        text-align: left;
+        overflow: hidden;
+    }
 
-.page-phenotypes-list li {
-    background-color: #fff;
-    padding: 3px 12px;
-    border-bottom: solid 1px #eeeeee;
-}
+    .page-phenotypes-list {
+        position: absolute;
+        z-index: 20;
+        list-style: none;
+        text-align: left;
+        white-space: nowrap;
+        padding: 0;
+        display: block;
+        overflow-x: hidden;
+        overflow-y: auto;
+        max-height: 300px;
+        border-radius: 5px;
+        border: solid 1px #eeeeee;
+    }
 
-div.card
-    >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-totalEntropy {
-    background-color: #14a433;
-}
-.mdkp-card {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
+    .page-phenotypes-list li {
+        background-color: #fff;
+        padding: 3px 12px;
+        border-bottom: solid 1px #eeeeee;
+    }
+
+    div.card
+        >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-totalEntropy {
+        background-color: #14a433;
+    }
+    .mdkp-card {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    }
 </style>
