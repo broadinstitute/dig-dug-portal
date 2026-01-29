@@ -555,14 +555,22 @@ export default Vue.component("matkp-anatomogram", {
 
         parseDatasetsBySpeciesAndDepot() {
             const speciesDepotsMap = {};
+            const depotList = [];
             this.datasets.forEach((dataset) => {
                 const species = dataset.species;
-                const depot1 = dataset.depot.includes("subcutaneous")
+                const depot1 = dataset.depot?.includes("subcutaneous")
                     ? "subcutaneous"
                     : dataset.depot;
-                const depot2 = dataset.depot2.includes("subcutaneous")
+                const depot2 = dataset.depot2?.includes("subcutaneous")
                     ? "subcutaneous"
                     : dataset.depot2;
+                depotList.push({
+                    id: dataset.datasetId,
+                    type: dataset.data_type,
+                    species: dataset.species,
+                    depot: dataset.depot,
+                    depot2: dataset.depot2
+                })
                 const depots = [depot2];
                 if (!speciesDepotsMap[species]) {
                     speciesDepotsMap[species] = {};
@@ -588,6 +596,7 @@ export default Vue.component("matkp-anatomogram", {
                 });
                 */
             });
+            //console.log(depotList)
             const result = {};
             for (const [species, depotsObj] of Object.entries(
                 speciesDepotsMap
