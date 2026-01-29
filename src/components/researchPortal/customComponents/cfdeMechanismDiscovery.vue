@@ -1549,6 +1549,11 @@ Return a structured **JSON object** following this schema:
                     const members = genesInGeneSet[gsId] || [];
                     return members.some(geneId => genesFilteredByWeightSet.has(geneId));
                 });
+                finalGeneSets.sort((a, b) => {
+                    const scoreA = phenotypeRelevance.geneSets[a]?.weight ?? 0;
+                    const scoreB = phenotypeRelevance.geneSets[b]?.weight ?? 0;
+                    return scoreB - scoreA;
+                });
                 const finalGenes = genesFilteredByWeight.filter(geneId =>
                     finalGeneSets.some(gsId => (genesInGeneSet[gsId] || []).includes(geneId))
                 );
