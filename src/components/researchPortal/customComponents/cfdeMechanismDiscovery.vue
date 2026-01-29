@@ -374,6 +374,9 @@
                             {{ searchMode==="step" ? "Continue" : "Re-analyze" }}
                         </button>
                     </div>
+                    <div id="heatmapSection" class="heatmap-container">
+
+                    </div>
                 </div>
             </div>
         </div>
@@ -563,7 +566,7 @@ import uiUtils from "@/utils/uiUtils";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import { geoAlbers } from "d3";
+import * as d3 from "d3";
 
 
 Vue.use(BootstrapVue);
@@ -1251,9 +1254,9 @@ Return a structured **JSON object** following this schema:
         queryParse(query){
             this.clean();
 
-            console.log('parse query', query);
+            //console.log('parse query', query);
             if(!query.trim()){
-                console.log('query missing');
+                //console.log('query missing');
                 return;
             }
 
@@ -1293,25 +1296,25 @@ Return a structured **JSON object** following this schema:
             const res = await response.json();
             const data = res.results;
             data.sort((a, b) => b.score - a.score);
-            console.log('raw phenotype search results', data);
+            //console.log('raw phenotype search results', data);
 
             const trimmedData = structuredClone(data);
 
             //return;
 
             if(trimmedData.length > 10){
-                console.log('more than 10 phenotypes returned, sorting by score and trimming to 10 max');
+                //console.log('more than 10 phenotypes returned, sorting by score and trimming to 10 max');
                 trimmedData.splice(10);
             }
 
-            console.log('trimmed phenotype search results', trimmedData);
+            //console.log('trimmed phenotype search results', trimmedData);
 
             this.semanticPhenotypes = trimmedData;
 
             const associations = [];
 
             //get the associations for those phenotypes
-            console.log(`getting associations for ${trimmedData.length} phenotypes`);
+            //console.log(`getting associations for ${trimmedData.length} phenotypes`);
             await Promise.allSettled(
                 trimmedData.map(async item => {
                     const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=${item.id},cfde`
@@ -1334,7 +1337,7 @@ Return a structured **JSON object** following this schema:
             //const sortedArray = [...associations].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
             const sortedArray = [...associations].sort((a, b) => b.score - a.score);
 
-            //console.log('associations by phenotype', sortedArray);
+            ////console.log('associations by phenotype', sortedArray);
 
             return sortedArray;
         },
@@ -1357,13 +1360,13 @@ Return a structured **JSON object** following this schema:
                 const res = await response.json();
                 const data = res.results;
     
-                console.log('raw term search results', data);
+                //console.log('raw term search results', data);
     
                 //sort by similarity score
                 //const sortedArray = [...data].sort((a, b) => b.beta_uncorrected - a.beta_uncorrected);
                 const sortedArray = [...data].sort((a, b) => b.score - a.score);
 
-                //console.log('associations by term', sortedArray)
+                ////console.log('associations by term', sortedArray)
     
                 return sortedArray;
             }catch(err){
@@ -1372,38 +1375,464 @@ Return a structured **JSON object** following this schema:
             }
         },
 
+        processAssociations4KG(associations){
+            // 1. Make a copy of associations data so original data wouldn't be modified
+            const copiedAssociations = structuredClone(associations);
+            
+            // 2. Filter out any items with "beta_uncorrected" < 0.01
+            const filteredAssociations = copiedAssociations.filter(item => {
+                const beta = parseFloat(item.beta_uncorrected);
+                return !isNaN(beta) && beta >= 0.01;
+            });
+            
+            // 3. Filter out genes with "combined" score < 1 in each association's genes array
+            const processedAssociations = filteredAssociations.map(item => {
+                if (Array.isArray(item.genes)) {
+                    const filteredGenes = item.genes.filter(gene => {
+                        const combined = parseFloat(gene.combined);
+                        return !isNaN(combined) && combined >= 1;
+                    });
+                    return {
+                        ...item,
+                        genes: filteredGenes
+                    };
+                }
+                return item;
+            });
+            
+            // 4. Reorganize the data by phenotypes
+            const reorganizedByPhenotype = this.groupBy(processedAssociations, 'phenotype');
+            
+            // 5. Log the reorganized data
+            console.log('Reorganized associations by phenotype:', reorganizedByPhenotype);
+
+            // Render heatmap from processed data
+            this.renderHeatmap(reorganizedByPhenotype);
+            
+            return reorganizedByPhenotype;
+        },
+
+        renderHeatmap(reorganizedByPhenotype){
+            const root = d3.select('#heatmapSection.heatmap-container');
+            if (root.empty()) {
+                console.warn('Heatmap container (#heatmapSection.heatmap-container) not found.');
+                return;
+            }
+
+            const phenotypes = Object.keys(reorganizedByPhenotype || {}).filter(Boolean).sort();
+
+            const existingSelectEl = root.select('select.heatmap-phenotype-select').node();
+            const previouslySelected = existingSelectEl?.value;
+            const defaultPhenotype = previouslySelected && phenotypes.includes(previouslySelected)
+                ? previouslySelected
+                : phenotypes[0];
+
+            root.selectAll('*').remove();
+
+            if (!phenotypes.length) {
+                root.append('div').style('color', '#777').text('No phenotype data available for heatmap.');
+                return;
+            }
+
+            document.getElementById('heatmapSection').style.display = 'block';
+
+            // Controls
+            const controls = root.append('div')
+                .attr('class', 'heatmap-controls')
+                .style('display', 'flex')
+                .style('flex-wrap', 'wrap')
+                .style('gap', '10px')
+                .style('align-items', 'center')
+                .style('margin', '10px 0');
+
+            controls.append('div').style('font-weight', 'bold').text('Phenotype');
+            const select = controls.append('select')
+                .attr('class', 'heatmap-phenotype-select')
+                .attr('id', 'heatmapPhenotypeSelect')
+                .style('padding', '6px 8px')
+                .style('max-width', '100%');
+            select.selectAll('option').data(phenotypes, d => d).enter().append('option').attr('value', d => d).text(d => d);
+            select.property('value', defaultPhenotype);
+
+            const viz = root.append('div').attr('class', 'heatmap-viz');
+            // Append tooltip to body so position:fixed is viewport-relative and it appears near the pointer
+            d3.select('#heatmapTooltip').remove();
+            const tooltipEl = d3.select('body').append('div')
+                .attr('id', 'heatmapTooltip')
+                .attr('class', 'heatmap-tooltip')
+                .style('position', 'fixed')
+                .style('display', 'none')
+                .style('opacity', 0)
+                .style('left', 0)
+                .style('top', 0)
+                .style('padding', '8px 12px')
+                .style('background', 'rgba(0,0,0,0.85)')
+                .style('color', '#fff')
+                .style('font-size', '12px')
+                .style('border-radius', '6px')
+                .style('pointer-events', 'none')
+                .style('z-index', '10000')
+                .style('max-width', '320px');
+            const tooltip = d3.select('#heatmapTooltip');
+
+            const draw = (phenotypeName) => {
+                viz.selectAll('svg').remove();
+                viz.selectAll('.heatmap-legend').remove();
+                const associations = reorganizedByPhenotype?.[phenotypeName] || [];
+                if (!associations.length) {
+                    viz.append('div').style('color', '#777').text('No associations for selected phenotype.');
+                    return;
+                }
+
+                // Build DATA: use gene_set for row keys; store gene_set_label for tooltips
+                const phenotypeRelevance = { genes: {}, geneSets: {} };
+                const genesInGeneSet = {};
+                const geneScoresInGeneSet = {};
+                const geneSetLabels = {}; // gene_set -> gene_set_label
+                const byGeneSet = new Map();
+
+                associations.forEach(a => {
+                    const gsId = a.gene_set || '(unknown gene set)';
+                    const beta = parseFloat(a.beta_uncorrected);
+                    if (!byGeneSet.has(gsId) || (beta > parseFloat(byGeneSet.get(gsId)?.beta_uncorrected))) {
+                        byGeneSet.set(gsId, a);
+                    }
+                    if (a.gene_set_label != null) geneSetLabels[gsId] = a.gene_set_label;
+                });
+                byGeneSet.forEach((assoc, gsId) => {
+                    if (assoc.gene_set_label != null) geneSetLabels[gsId] = assoc.gene_set_label;
+                    const w = parseFloat(assoc.beta_uncorrected);
+                    phenotypeRelevance.geneSets[gsId] = { weight: isNaN(w) ? null : w };
+                    const geneList = (assoc.genes || []).map(g => g.gene).filter(Boolean);
+                    genesInGeneSet[gsId] = geneList;
+                    const scores = {};
+                    (assoc.genes || []).forEach(g => {
+                        if (g.gene != null) {
+                            const c = parseFloat(g.combined);
+                            if (!isNaN(c)) scores[g.gene] = c;
+                        }
+                    });
+                    geneScoresInGeneSet[gsId] = scores;
+                    (assoc.genes || []).forEach(g => {
+                        if (g.gene == null) return;
+                        const combined = parseFloat(g.combined);
+                        const logBf = parseFloat(g.log_bf);
+                        const prior = parseFloat(g.prior);
+                        const prev = phenotypeRelevance.genes[g.gene]?.weight;
+                        if (prev == null || (combined != null && !isNaN(combined) && combined > prev)) {
+                            phenotypeRelevance.genes[g.gene] = {
+                                weight: combined,
+                                log_bf: logBf != null && !isNaN(logBf) ? logBf : null,
+                                prior: prior != null && !isNaN(prior) ? prior : null
+                            };
+                        }
+                    });
+                });
+                Object.keys(phenotypeRelevance.genes).forEach(geneId => {
+                    const g = phenotypeRelevance.genes[geneId];
+                    if (g.weight == null) g.weight = null;
+                    if (g.log_bf == null) g.log_bf = null;
+                    if (g.prior == null) g.prior = null;
+                });
+
+                const genesFilteredByWeight = Object.keys(phenotypeRelevance.genes).filter(id => {
+                    const geneData = phenotypeRelevance.genes[id];
+                    return geneData.weight !== null;
+                });
+                const geneSetsFilteredByWeight = Object.keys(phenotypeRelevance.geneSets).filter(id => {
+                    const gsData = phenotypeRelevance.geneSets[id];
+                    return gsData.weight !== null;
+                });
+
+                const genesFilteredByWeightSet = new Set(genesFilteredByWeight);
+                const finalGeneSets = geneSetsFilteredByWeight.filter(gsId => {
+                    const members = genesInGeneSet[gsId] || [];
+                    return members.some(geneId => genesFilteredByWeightSet.has(geneId));
+                });
+                const finalGenes = genesFilteredByWeight.filter(geneId =>
+                    finalGeneSets.some(gsId => (genesInGeneSet[gsId] || []).includes(geneId))
+                );
+
+                finalGenes.sort((geneIdA, geneIdB) => {
+                    const scoreA = phenotypeRelevance.genes[geneIdA]?.weight ?? 0;
+                    const scoreB = phenotypeRelevance.genes[geneIdB]?.weight ?? 0;
+                    return scoreB - scoreA;
+                });
+
+                const DATA = {
+                    phenotypeRelevance,
+                    genesInGeneSet,
+                    geneScoresInGeneSet,
+                    geneSetLabels
+                };
+
+                const columns = [phenotypeName, ...finalGenes];
+                const scoreRowIds = ['Combined score', 'GWAS support', 'Gene set support'];
+                const rows = [...scoreRowIds, ...finalGeneSets];
+
+                console.log('=== Rendered Heatmap Data ===');
+                console.log('Phenotype:', phenotypeName);
+                console.log('Genes rendered:', finalGenes.length);
+                console.log('Gene sets rendered:', finalGeneSets.length);
+                console.log('Genes with scores:', finalGenes.map(geneId => ({ gene: geneId, score: DATA.phenotypeRelevance.genes[geneId]?.weight ?? null })));
+                console.log('Gene sets with scores:', finalGeneSets.map(gsId => ({ geneSet: gsId, score: DATA.phenotypeRelevance.geneSets[gsId]?.weight ?? null })));
+                console.log('Columns:', columns);
+                console.log('Rows:', rows);
+
+                const cellSize = 20;
+                const margin = { top: 120, right: 20, bottom: 20, left: 200 };
+                const width = columns.length * cellSize + margin.left + margin.right;
+                const height = rows.length * cellSize + margin.top + margin.bottom;
+
+                // Color legend above the heatmap
+                const legend = viz.append('div').attr('class', 'heatmap-legend').style('margin-bottom', '16px');
+                const legendRow = (parent, items) => {
+                    const row = parent.append('div').style('display', 'inline-flex').style('align-items', 'center').style('flex-wrap', 'wrap').style('gap', '10px 6px').style('margin', '1px 0');
+                    items.forEach(({ color, border, opacity, label }) => {
+                        const pair = row.append('span').style('display', 'inline-flex').style('align-items', 'center').style('gap', '4px');
+                        const swatch = pair.append('span').style('display', 'inline-block').style('width', '14px').style('height', '14px').style('background', color).style('flex-shrink', '0');
+                        if (border) swatch.style('border', '1px solid #666');
+                        if (opacity != null) swatch.style('opacity', opacity);
+                        pair.append('span').style('font-size', '12px').style('color', '#333').text(label);
+                    });
+                    return row;
+                };
+                const sec1 = legend.append('div').style('margin-bottom', '3px');
+                sec1.append('div').style('font-weight', 'bold').style('font-size', '12px').style('color', '#333').style('display', 'inline-flex').style('margin-right', '5px').style('vertical-align', '3px').text('Gene relevance to phenotype:');
+                legendRow(sec1, [
+                    { color: '#4a90e2', label: 'Very Strong (> 3)' },
+                    { color: '#f5a623', label: 'Strongly Suggestive (2-3)' },
+                    { color: '#f8e71c', label: 'Nominally Significant (1-2)' }
+                ]);
+                const sec2 = legend.append('div').style('margin-bottom', '3px');
+                sec2.append('div').style('font-weight', 'bold').style('font-size', '12px').style('color', '#333').style('display', 'inline-flex').style('margin-right', '5px').style('vertical-align', '3px').text('Gene set relevance to phenotype:');
+                legendRow(sec2, [
+                    { color: '#4a90e2', label: 'Very Strong (> 1)' },
+                    { color: '#f5a623', label: 'Strongly Suggestive (0.1-1)' },
+                    { color: '#f8e71c', label: 'Nominally Significant (0.01-0.1)' }
+                ]);
+                const sec3 = legend.append('div');
+                sec3.append('div').style('font-weight', 'bold').style('font-size', '12px').style('color', '#333').style('display', 'inline-flex').style('margin-right', '5px').style('vertical-align', '3px').text('Membership:');
+                legendRow(sec3, [
+                    { color: '#9c27b0', label: 'Genes associated with gene set' }
+                ]);
+
+                const svg = viz.append('svg').attr('id', 'heatmap').attr('width', width).attr('height', height).style('overflow', 'visible');
+                const g = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+                // Combined score: fixed 16px diameter (radius 8). GWAS/Gene set: radius by proportion of that score in combined for the gene.
+                const fixedCombinedRadius = 8;
+                const scoreColor = (val) => {
+                    if (val == null || !Number.isFinite(val)) return { cellColor: '#eee', opacity: 0.5 };
+                    if (val >= 3) return { cellColor: '#4a90e2', opacity: 1 };
+                    if (val >= 2) return { cellColor: '#f5a623', opacity: 1 };
+                    if (val >= 1) return { cellColor: '#f8e71c', opacity: 1 };
+                    return { cellColor: '#eee', opacity: 0.5 };
+                };
+
+                rows.forEach((rowId, rowIndex) => {
+                    columns.forEach((colId, colIndex) => {
+                        let opacity = 0, type = 'none', value = null, cellColor = '#ff4d4d', isScoreCircle = false, circleRadius = 0;
+                        if (rowIndex >= 0 && rowIndex <= 2) {
+                            if (colIndex === 0) {
+                                type = 'score_row_label';
+                                cellColor = '#f5f5f5';
+                                opacity = 1;
+                            } else {
+                                const geneData = DATA.phenotypeRelevance.genes[colId];
+                                const combined = geneData?.weight != null && Number.isFinite(geneData.weight) ? geneData.weight : 0;
+                                const logBf = geneData?.log_bf != null && Number.isFinite(geneData.log_bf) ? geneData.log_bf : 0;
+                                const priorVal = geneData?.prior != null && Number.isFinite(geneData.prior) ? geneData.prior : 0;
+                                if (rowIndex === 0) {
+                                    value = combined;
+                                    circleRadius = fixedCombinedRadius;
+                                } else if (rowIndex === 1) {
+                                    value = logBf;
+                                    circleRadius = combined > 0 ? fixedCombinedRadius * (logBf / combined) : 0;
+                                } else {
+                                    value = priorVal;
+                                    circleRadius = combined > 0 ? fixedCombinedRadius * (priorVal / combined) : 0;
+                                }
+                                const style = scoreColor(value);
+                                cellColor = style.cellColor;
+                                opacity = style.opacity;
+                                type = rowIndex === 0 ? 'combined_score' : rowIndex === 1 ? 'gwas_support' : 'gene_set_support';
+                                isScoreCircle = true;
+                            }
+                        } else if (rowIndex >= 3 && colIndex === 0) {
+                            const gsData = DATA.phenotypeRelevance.geneSets[rowId];
+                            if (gsData && gsData.weight !== null) {
+                                value = gsData.weight; type = 'geneset_relevance';
+                                if (value >= 1) { cellColor = '#4a90e2'; opacity = 1; }
+                                else if (value >= 0.1) { cellColor = '#f5a623'; opacity = 1; }
+                                else if (value >= 0.01) { cellColor = '#f8e71c'; opacity = 1; }
+                                else { cellColor = '#eee'; opacity = 0.5; }
+                            }
+                        } else if (rowIndex >= 3) {
+                            const genesInCurrentSet = DATA.genesInGeneSet[rowId] || [];
+                            if (genesInCurrentSet.includes(colId)) {
+                                type = 'membership';
+                                cellColor = '#9c27b0';
+                                const geneScores = DATA.geneScoresInGeneSet?.[rowId] || {};
+                                const score = geneScores[colId];
+                                if (score != null && Number.isFinite(score)) {
+                                    if (score >= 3) opacity = 1;
+                                    else if (score <= 1) opacity = 0;
+                                    else opacity = (score - 1) / 2;
+                                } else {
+                                    opacity = 0.5;
+                                }
+                            }
+                        }
+
+                        const rectFill = isScoreCircle ? '#fafafa' : cellColor;
+                        const rectOpacity = isScoreCircle ? 1 : opacity;
+                        g.append('rect')
+                            .attr('x', colIndex * cellSize)
+                            .attr('y', rowIndex * cellSize)
+                            .attr('width', cellSize)
+                            .attr('height', cellSize)
+                            .attr('class', 'heatmap-cell')
+                            .attr('fill', rectFill)
+                            .attr('opacity', rectOpacity)
+                            .attr('stroke', '#ddd')
+                            .on('mouseover', function() {
+                                const ev = d3.event || window.event;
+                                let tooltipHtml = '';
+                                const geneSetLabel = DATA.geneSetLabels?.[rowId] ?? rowId;
+                                if (type === 'score_row_label') tooltipHtml = `<strong>${rowId}</strong>`;
+                                else if ((type === 'combined_score' || type === 'gwas_support' || type === 'gene_set_support') && opacity > 0) {
+                                    const scoreLabel = type === 'combined_score' ? 'Combined' : type === 'gwas_support' ? 'GWAS support (log_bf)' : 'Gene set support (prior)';
+                                    tooltipHtml = `<strong>Gene:</strong> ${colId}<br/><strong>${scoreLabel}:</strong> ${value != null && Number.isFinite(value) ? Number(value).toFixed(3) : 'N/A'}`;
+                                } else if (type === 'geneset_relevance' && opacity > 0) tooltipHtml = `<strong>Gene set:</strong> ${rowId}<br/><strong>Gene set label:</strong> ${geneSetLabel}<br/><strong>Relevance:</strong> ${value != null ? Number(value).toFixed(3) : 'N/A'}`;
+                                else if (type === 'membership' && opacity > 0) {
+                                    const geneScores = DATA.geneScoresInGeneSet?.[rowId] || {};
+                                    const score = geneScores[colId];
+                                    const scoreText = score != null && Number.isFinite(score) ? score.toFixed(3) : 'N/A';
+                                    tooltipHtml = `<strong>Gene set label:</strong> ${geneSetLabel}<br/><strong>Gene:</strong> ${colId}<br/><strong>Combined:</strong> ${scoreText}`;
+                                }
+                                if (tooltipHtml && ev) {
+                                    // Use clientX/clientY for position:fixed (viewport-relative)
+                                    const x = (ev.clientX != null ? ev.clientX : ev.pageX) + 10;
+                                    const y = (ev.clientY != null ? ev.clientY : ev.pageY) - 28;
+                                    tooltip.style('display', 'block');
+                                    tooltip.html(tooltipHtml);
+                                    tooltip.style('left', x + 'px').style('top', y + 'px');
+                                    tooltip.transition().duration(200).style('opacity', 0.9);
+                                    d3.select(`.row-label-${rowIndex}`).classed('highlighted', true);
+                                    d3.select(`.col-label-${colIndex}`).classed('highlighted', true);
+                                }
+                            })
+                            .on('mousemove', function() {
+                                const ev = d3.event || window.event;
+                                if (ev) {
+                                    const x = (ev.clientX != null ? ev.clientX : ev.pageX) + 10;
+                                    const y = (ev.clientY != null ? ev.clientY : ev.pageY) - 28;
+                                    tooltip.style('left', x + 'px').style('top', y + 'px');
+                                }
+                            })
+                            .on('mouseout', () => {
+                                tooltip.transition().duration(500).style('opacity', 0).on('end', function() {
+                                    d3.select(this).style('display', 'none');
+                                });
+                                d3.selectAll('.axis-label').classed('highlighted', false);
+                            });
+
+                        if (isScoreCircle && circleRadius > 0) {
+                            const cx = colIndex * cellSize + cellSize / 2;
+                            const cy = rowIndex * cellSize + cellSize / 2;
+                            const scoreLabel = rowIndex === 0 ? 'Combined' : rowIndex === 1 ? 'GWAS support (log_bf)' : 'Gene set support (prior)';
+                            g.append('circle')
+                                .attr('cx', cx)
+                                .attr('cy', cy)
+                                .attr('r', circleRadius)
+                                .attr('fill', cellColor)
+                                .attr('opacity', opacity)
+                                .attr('class', 'heatmap-cell heatmap-score-circle')
+                                .attr('stroke', '#ddd')
+                                .on('mouseover', function() {
+                                    const ev = d3.event || window.event;
+                                    const geneSetLabel = DATA.geneSetLabels?.[rowId] ?? rowId;
+                                    const scoreText = value != null && Number.isFinite(value) ? Number(value).toFixed(3) : 'N/A';
+                                    const tooltipHtml = `<strong>Gene:</strong> ${colId}<br/><strong>${scoreLabel}:</strong> ${scoreText}`;
+                                    if (tooltipHtml && ev) {
+                                        const x = (ev.clientX != null ? ev.clientX : ev.pageX) + 10;
+                                        const y = (ev.clientY != null ? ev.clientY : ev.pageY) - 28;
+                                        tooltip.style('display', 'block').html(tooltipHtml).style('left', x + 'px').style('top', y + 'px');
+                                        tooltip.transition().duration(200).style('opacity', 0.9);
+                                        d3.select(`.row-label-${rowIndex}`).classed('highlighted', true);
+                                        d3.select(`.col-label-${colIndex}`).classed('highlighted', true);
+                                    }
+                                })
+                                .on('mousemove', function() {
+                                    const ev = d3.event || window.event;
+                                    if (ev) tooltip.style('left', ((ev.clientX != null ? ev.clientX : ev.pageX) + 10) + 'px').style('top', ((ev.clientY != null ? ev.clientY : ev.pageY) - 28) + 'px');
+                                })
+                                .on('mouseout', () => {
+                                    tooltip.transition().duration(500).style('opacity', 0).on('end', function() { d3.select(this).style('display', 'none'); });
+                                    d3.selectAll('.axis-label').classed('highlighted', false);
+                                });
+                        }
+                    });
+                });
+
+                g.selectAll('.row-label').data(rows).enter().append('text')
+                    .text(d => d)
+                    .attr('x', -10)
+                    .attr('y', (d, i) => i * cellSize + cellSize / 2)
+                    .attr('dy', '.35em')
+                    .attr('text-anchor', 'end')
+                    .attr('class', (d, i) => `axis-label row-label-${i}`)
+                    .style('font-size', '10px')
+                    .style('fill', '#333')
+                    .style('font-weight', (d, i) => i <= 2 ? 'bold' : 'normal');
+
+                g.selectAll('.col-label').data(columns).enter().append('text')
+                    .text(d => d)
+                    .attr('transform', (d, i) => `translate(${i * cellSize + cellSize / 2}, -10) rotate(-45)`)
+                    .attr('text-anchor', 'start')
+                    .attr('class', (d, i) => `axis-label col-label-${i}`)
+                    .style('font-size', '10px')
+                    .style('fill', '#333')
+                    .style('font-weight', (d, i) => i === 0 ? 'bold' : 'normal');
+            };
+
+            draw(defaultPhenotype);
+            select.on('change', () => draw(document.getElementById('heatmapPhenotypeSelect').value));
+        },
+
         async associationSearch(term){
-            console.log('searching for', term);
+            //console.log('searching for', term);
             this.updateStep(2, 'start');
             this.display_search_criteria = false;
             this.searchTerm = term;
-            console.log('searchType', this.searchType);
+            //console.log('searchType', this.searchType);
             if(this.searchType==="terms"){
                 const termAssociations = await this.termSearch(term);
-                console.log('associations by term', termAssociations);
+                //console.log('associations by term', termAssociations);
                 //todo, some associations dont contain any genes
                 //for now, remove those by excluding associations where beta=0
                 //unfortunately terms endpoint doesnt inlcude beta score, only beta_uncorrected
                 //const termAssociationsFiltered = termAssociations.filter(x => x.beta !== 0)
                 if(!termAssociations || termAssociations.length===0) return;
                 const termAssociationsTransformed = this.transformTermAssociations(termAssociations);
-                console.log('associations by term transformed', termAssociationsTransformed);
+                //console.log('associations by term transformed', termAssociationsTransformed);
                 this.associations = termAssociationsTransformed;
             }else{
                 const phenotypeAssociations = await this.phenotypeSearch(term);
-                console.log('associations by phenotype', phenotypeAssociations);
+                //console.log('associations by phenotype', phenotypeAssociations);
                 if(!phenotypeAssociations || phenotypeAssociations.length===0) return;
                 const phenotypeAssociationsTransformed = this.transformPhenotypeAssociations(phenotypeAssociations);
                 const phenotypeAssociationsSorted = [...phenotypeAssociationsTransformed].sort((a, b) => {
-                    //console.log('score', typeof a.score);
+                    ////console.log('score', typeof a.score);
                     return (b.score ?? 0) - (a.score ?? 0)
                 });
-                console.log('associations by phenotype transformed', phenotypeAssociationsSorted);
+                //console.log('associations by phenotype transformed', phenotypeAssociationsSorted);
                 this.associations = phenotypeAssociationsSorted;
             }
             //await this.wait(3000);
 
-            //console.log('transformed search results', this.associations);
+            ////console.log('transformed search results', this.associations);
 
             //initial filtering for analysis
 
@@ -1420,7 +1849,7 @@ Return a structured **JSON object** following this schema:
             this.total_signatures = Object.keys(allSenesetGroup).length;
             //this.total_programs = Object.keys(allSourceGroup).length;
 
-            console.log({allPhenotypeGroup, allSenesetGroup, allSourceGroup})
+            //console.log({allPhenotypeGroup, allSenesetGroup, allSourceGroup})
 
             this.phenotypes_list = [...new Set(this.associations.map(d => d.phenotype))];//Object.keys(allPhenotypeGroup).sort();
             this.programs_list = Object.keys(allSourceGroup).sort();    
@@ -1430,7 +1859,7 @@ Return a structured **JSON object** following this schema:
             
             this.total_programs = programs_list_set.length;
 
-            console.log({programs_list_set});
+            //console.log({programs_list_set});
 
             this.all_filters = {
                 phenotypes: this.filtered_phenotypes, 
@@ -1442,7 +1871,7 @@ Return a structured **JSON object** following this schema:
         
             this.filtered_programs = this.programs_list;
 
-            //console.log('getting strong associations');
+            ////console.log('getting strong associations');
 
             //first get only strong associations
             //this.filtered_association_strengths.push(0);
@@ -1483,21 +1912,21 @@ Return a structured **JSON object** following this schema:
 
             //from those, get only requested programs (if any)
             if(this.filtered_programs.length > 0){
-                console.log('filtering sources', this.filtered_programs)
+                //console.log('filtering sources', this.filtered_programs)
                 relevantAssociations = relevantAssociations.filter(item => this.filtered_programs.includes(item.source));
             }else{
                 //otherwise, select all programs
                 this.filtered_programs = this.programs_list;
             }
 
-            console.log('filters', this.all_filters)
+            //console.log('filters', this.all_filters)
 
             this.total_strong_associations = strongAssociations.length;
             this.total_moderate_associations = moderateAssociations.length;
             this.total_low_associations = lowAssociations.length;
 
             if(relevantAssociations.length>300){
-                console.log(`selected ${relevantAssociations.length} associations, trimming down to 300`);
+                //console.log(`selected ${relevantAssociations.length} associations, trimming down to 300`);
                 relevantAssociations.splice(300);
             }
             */
@@ -1517,7 +1946,7 @@ Return a structured **JSON object** following this schema:
 
             this.associations = [...this.associations];
 
-            console.log('selected associations', this.associations.filter(item => item.selected).length);
+            //console.log('selected associations', this.associations.filter(item => item.selected).length);
 
             this.relevantAssociations = relevantAssociations;
 
@@ -1679,7 +2108,7 @@ Return a structured **JSON object** following this schema:
                 if(filters.strengths.includes(2)) max = 0.1;
                 if(filters.strengths.includes(1)) max = 1;
                 if(filters.strengths.includes(0)) max = Infinity;
-                console.log({min, max})
+                //console.log({min, max})
                 if (isFinite(min) && beta < min) return false;
                 if (isFinite(max) && beta > max) return false;
             }
@@ -1712,7 +2141,7 @@ Return a structured **JSON object** following this schema:
             let associationsWithNoGenes = 0;
             let associationsWithSignificantGenes = 0;
 
-            console.log('getting genes for strong associations');
+            //console.log('getting genes for strong associations');
 
             const relevantAssociations = this.relevantAssociations;
 
@@ -1724,7 +2153,7 @@ Return a structured **JSON object** following this schema:
             //get query params for each association
             const multiQueryList = relevantAssociations.map(item => `${item.phenotype_id},${item.gene_set},cfde`);
 
-            //console.log({multiQueryList});
+            ////console.log({multiQueryList});
 
             function chunkArray(arr, chunkSize) {
                 const chunkedArray = [];
@@ -1755,7 +2184,7 @@ Return a structured **JSON object** following this schema:
             await Promise.allSettled(
                 multiQueryChunks.map(async (chunk, idx) => {
                     const results = await this.runMultiQuery('pigean-joined-gene-set', chunk);
-                    //console.log(`received chunk ${idx} of ${multiQueryChunks.length}`);
+                    ////console.log(`received chunk ${idx} of ${multiQueryChunks.length}`);
                     this.association_genes_loaded += chunk.length;
                     multiQueryResults.push(results.data);
                 })
@@ -1766,7 +2195,7 @@ Return a structured **JSON object** following this schema:
             //group by association (phenotype id | gene set id)
             const multiQueryResultGroups = buildResultMap(multiQueryResultsFlat);
 
-            console.log({multiQueryResultsFlat});
+            //console.log({multiQueryResultsFlat});
 
             //enrich results back into associations
             relevantAssociations.map(item => {
@@ -1782,9 +2211,12 @@ Return a structured **JSON object** following this schema:
                 this.$set(item, 'genes', genesData);
             });
 
-            //console.log({relevantAssociations});
+            ////console.log({relevantAssociations});
 
             //END get genes for relevantAssociations
+
+            // Now that genes are loaded/enriched, process associations for KG
+            this.processAssociations4KG(relevantAssociations);
             
             //return;
             if(false){
@@ -1793,8 +2225,8 @@ Return a structured **JSON object** following this schema:
                     await Promise.allSettled(
                         relevantAssociations.map(async item => {
                             const genes = await this.fetchGenesForTerm(item.phenotype_id, item.gene_set);
-                            console.log('--', item.phenotype_id, item.gene_set);
-                            console.log('   genes', genes);
+                            //console.log('--', item.phenotype_id, item.gene_set);
+                            //console.log('   genes', genes);
                             if(genes.length>0){
                                 associationsWithAnyGenes++;
                                 const sorted = genes.sort((a, b) => b.combined - a.combined)
@@ -1811,8 +2243,8 @@ Return a structured **JSON object** following this schema:
                                 /*
                                 //sort genes by combined score
                                 const sorted = genes.sort((a, b) => b.combined - a.combined)
-                                //get those above a score of 2
-                                const filtered = sorted.filter(g => g.combined > 2);
+                                //get those above a score of 1
+                                const filtered = sorted.filter(g => g.combined > 1);
                                 let geneArray = [];
                                 if(filtered.length>0){
                                     //if we have those, just use the gene names
@@ -1836,12 +2268,12 @@ Return a structured **JSON object** following this schema:
                 }
             }
 
-            console.log({relevantAssociations});
+            //console.log({relevantAssociations});
 
             //temp, exclude associations where there are not associated genes
             const filteredAssociations = relevantAssociations.filter(x => x.genes.length > 0);
 
-            console.log({filteredAssociations});
+            //console.log({filteredAssociations});
 
             const relevantAssociationsSimplified = filteredAssociations.map(item => {
                 let source = item.source;
@@ -1865,13 +2297,13 @@ Return a structured **JSON object** following this schema:
                 }
             });
 
-            console.log({relevantAssociationsSimplified})
+            //console.log({relevantAssociationsSimplified})
 
-            console.log({associationsWithAnyGenes, associationsWithNoGenes, associationsWithSignificantGenes});
+            //console.log({associationsWithAnyGenes, associationsWithNoGenes, associationsWithSignificantGenes});
 
             const relevantAssociationsSimplifiedCSV = this.objToCSV(relevantAssociationsSimplified);
 
-            console.log(relevantAssociationsSimplifiedCSV);
+            //console.log(relevantAssociationsSimplifiedCSV);
 
             this.updateStep(3, 'end');
 
@@ -1898,7 +2330,7 @@ Return a structured **JSON object** following this schema:
             //fullPrompt += `\n\n**Association selecttion strategy:** ${this.associationSelectStrategy}`
             //fullPrompt += `\n\n**Gene selecttion strategy:** ${this.geneSelectStrategy}`
             
-            console.log('fullPrompt', fullPrompt);
+            //console.log('fullPrompt', fullPrompt);
 
             this.startTimer(3, () => {this.handleAnalyzeTimeout()});
 
@@ -1951,7 +2383,7 @@ Return a structured **JSON object** following this schema:
         transformPhenotypeAssociations(arr) {
             let count = 0;
             const objectOnlyArr = arr.filter(item => typeof item === 'object' && item !== null);
-            console.log(`objects only ${objectOnlyArr.length} of ${arr.length}`);
+            //console.log(`objects only ${objectOnlyArr.length} of ${arr.length}`);
             return objectOnlyArr.map(item => {
                 //const match = this.semanticPhenotypes.find(phenotype => phenotype.id===item.phenotype)
                 count++;
@@ -2042,7 +2474,7 @@ Return a structured **JSON object** following this schema:
         },
 
         async fetchGenesForTerm(phenotype, geneset){
-            console.log('getting genes for', phenotype, geneset);
+            //console.log('getting genes for', phenotype, geneset);
 
             const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${phenotype},${geneset},cfde&limit=100`
             try{
@@ -2444,28 +2876,28 @@ Return a structured **JSON object** following this schema:
         //
         //
         handleExtractTimeout(){
-            console.log("Extract TIMEOUT");
+            //console.log("Extract TIMEOUT");
             /*if(this.retry_extract < this.retry_max){
                 this.retry_extract++;
-                console.log(`   retrying ${this.retry_extract}/${this.retry_max}`)
+                //console.log(`   retrying ${this.retry_extract}/${this.retry_max}`)
                 this.llmExtract.abort();
                 this.beginFlow();
             }else{*/
                 this.llmExtract.abort();
                 this.updateStep(this.search_step, 'error', "Request is taking too long.");
-                //console.log('   could be systemic, try again later.');
+                ////console.log('   could be systemic, try again later.');
             //}
         },
         onExtractToken(token){
-            console.log('onToken', token);
+            //console.log('onToken', token);
         },
         onExtractResponse(response){
             this.stopTimer();
             this.llmExtractState = '';
-            console.log('onResponse', response);
+            //console.log('onResponse', response);
             if(response){
                 const json = this.parseLLMResponse(response);
-                console.log('response json', json);
+                //console.log('response json', json);
                 //return;
                 if(json.error){
                     this.updateStep(this.search_step, 'error', json.error);
@@ -2503,7 +2935,7 @@ Return a structured **JSON object** following this schema:
                 //this.searchCriteria[1].values = json.research_context;
                 //this.searchCriteria[2].values = json.cfde_programs.map(p => p.program);
                 //this.searchCriteria[2].purpose = json.cfde_programs.map(p => p.program + ': ' + p.reason);
-                console.log(this.searchCriteria);
+                //console.log(this.searchCriteria);
                 //this.searchTerm = json.search_terms.join(',');
                 //this.userContext = json.context;
                 //this.termSearch(this.searchTerm);
@@ -2526,17 +2958,17 @@ Return a structured **JSON object** following this schema:
         onExtractEnd(end){
             this.stopTimer();
             this.llmExtractState = '';
-            console.log('End');
+            //console.log('End');
         },
         onExtractError(error){
             this.stopTimer();
             this.llmExtractState = error;
-            console.log('onError', error);
+            //console.log('onError', error);
             this.updateStep(this.search_step, 'error', "An error occured");
         },
         onExtractState(state){
             this.llmExtractState = state;
-            console.log('onState', state);
+            //console.log('onState', state);
         },
 
 
@@ -2548,16 +2980,16 @@ Return a structured **JSON object** following this schema:
         //
         //
         handleAnalyzeTimeout(){
-            console.log("Analyze TIMEOUT");
+            //console.log("Analyze TIMEOUT");
             /*if(this.retry_mechanisms <= this.retry_max){
                 this.retry_mechanisms++;
-                console.log(`   retrying ${this.retry_mechanisms}/${this.retry_max}`)
+                //console.log(`   retrying ${this.retry_mechanisms}/${this.retry_max}`)
                 this.llmAnalyze.abort();
                 mechanismsReveal();
             }else{*/
                 this.llmAnalyze.abort();
                 this.updateStep(this.search_step, 'error', "Request is taking too long.");
-                //console.log('   could be systemic, try again later.');
+                ////console.log('   could be systemic, try again later.');
             //}
         },
         onGroupToken(token){
@@ -2565,7 +2997,7 @@ Return a structured **JSON object** following this schema:
             //langflow streams the entire response string with updated parts (use +)
             //gemini streams only updated segments of the response string (so use +=)
             //these should be handled differently.
-            console.log('onToken', token);
+            //console.log('onToken', token);
             if(!this.streamResponse) this.streamResponse = '';
             this.streamResponse += token;
         },
@@ -2573,11 +3005,11 @@ Return a structured **JSON object** following this schema:
             this.stopTimer();
             this.retry_mechanisms = 0;
             this.llmGroupState = '';
-            console.log('onResponse', response);
+            //console.log('onResponse', response);
             this.response = response;
             if(this.response){
                 const json = this.parseLLMResponse(this.response);
-                console.log('response json', json);
+                //console.log('response json', json);
                 //return;
                 if(json && json.hypotheses.length>0){
                     const updated = json.hypotheses.map(item => {
@@ -2610,7 +3042,7 @@ Return a structured **JSON object** following this schema:
                     this.mechanisms_summary = json.overall_summary;
 
                     this.updateStep(4, 'end');
-                    console.log('response parsed', this.mechanisms);
+                    //console.log('response parsed', this.mechanisms);
 
                     this.fullResults = {
                         query: this.userQuery,
@@ -2622,11 +3054,11 @@ Return a structured **JSON object** following this schema:
                             results: this.mechanisms
                         }
                     }
-                    console.log('full results', this.fullResults);
+                    //console.log('full results', this.fullResults);
                     
                     const md = this.convertToMarkdown(this.fullResults);
                     this.textResults = md;
-                    console.log('markdown', md);
+                    //console.log('markdown', md);
                 }
             }
         },
@@ -2634,26 +3066,26 @@ Return a structured **JSON object** following this schema:
         onGroupEnd(end){
             this.stopTimer();
             this.llmGroupState = '';
-            console.log('End');
+            //console.log('End');
             return;
             if(this.streamResponse){
                 const json = this.parseLLMResponse(this.streamResponse);
-                console.log('response json', json);
+                //console.log('response json', json);
                 if(json.length>0){
                     this.parsedResponse = this.enrichGroups(json, this.associations);
-                    console.log('response parsed', this.parsedResponse);
+                    //console.log('response parsed', this.parsedResponse);
                 }
             }
         },
         onGroupError(error){
             this.stopTimer();
             this.llmGroupState = error;
-            console.log('onError', error);
+            //console.log('onError', error);
             this.updateStep(this.search_step, 'error', "An error occured");
         },
         onGroupState(state){
             this.llmGroupState = state;
-            console.log('onState', state);
+            //console.log('onState', state);
         },
 
         //
@@ -2782,6 +3214,31 @@ Return a structured **JSON object** following this schema:
 }
 .query-sample:hover{
     background: #ddd;
+}
+
+.heatmap-container{
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fafafa;
+    overflow: auto;
+}
+
+.heatmap-container .axis-label.highlighted {
+    font-weight: bold;
+    fill: #ff6600;
+}
+
+.heatmap-container .heatmap-tooltip {
+    pointer-events: none;
+}
+
+.heatmap-container .heatmap-legend {
+    background: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #eee;
 }
 
 .note{
