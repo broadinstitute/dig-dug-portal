@@ -153,18 +153,3 @@ export async function getEnrichr(genesList, library){
 		return [];
 	}
 }
-
-export async function getDatasets() {
-	const fetchPath =
-		"/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
-	const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
-	const dataText = await response.text();
-	const lines = dataText
-		.split("\n")
-		.filter((line) => line.trim() !== "");
-	const jsonObjects = lines.map((line) => JSON.parse(line));
-	jsonObjects.forEach((object) => {
-		object._showDetails = false;
-	});
-	return jsonObjects;
-}
