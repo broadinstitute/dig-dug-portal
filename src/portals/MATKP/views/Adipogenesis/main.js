@@ -54,7 +54,7 @@ new Vue({
     data() {
         return {
             plotId: "time_series_heatmap",
-            timeSeriesId: "GSE20696", // hardcoded for sample,
+            timeSeriesId: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             timeSeriesData: null,
             minScore: null,
             maxScore: null,
