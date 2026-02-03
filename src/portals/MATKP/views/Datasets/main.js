@@ -3,6 +3,7 @@ import Template from "./Template.vue";
 
 import "../../assets/matkp-styles.css";
 
+import { getDatasets} from "@/portals/MATKP/utils/content.js";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
@@ -43,7 +44,9 @@ new Vue({
 
     async created() {
         await this.getConfig();
-        this.getDatasets();
+        const datasets = await getDatasets();
+        this.datasets = datasets;
+        this.datasetsFlat = this.flattenDatasets(datasets);
     },
 
     watch: {
@@ -185,20 +188,8 @@ new Vue({
             this.config = json;
             console.log("config", json);
         },
-        async getDatasets() {
-            const fetchPath =
-                "/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
-            const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
-            const dataText = await response.text();
-            const lines = dataText
-                .split("\n")
-                .filter((line) => line.trim() !== "");
-            const jsonObjects = lines.map((line) => JSON.parse(line));
-            jsonObjects.forEach((object) => {
-                object._showDetails = false;
-            });
-            this.datasets = jsonObjects;
-            this.datasetsFlat = this.datasets.map(obj => {
+        flattenDatasets(datasets){
+            return datasets.map(obj => {
                 const { required_sample_properties, custom_sample_properties, ...rest } = obj;
                 return {
                     ...rest,
@@ -206,7 +197,6 @@ new Vue({
                     ...custom_sample_properties
                 };
             });
-            console.log("datasets", this.datasets, this.datasetsFlat);
         },
         updateQueryStringFromPage(selectedFilters) {
             console.log("updateFromPage");

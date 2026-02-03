@@ -126,30 +126,45 @@ export async function getNewsItem(itemId){
 }
 
 export async function getEnrichr(genesList, library){
-			let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
-			let enrichrRequest = {
-					"gene_set_library": library,
-					"gene_list": genesList,
-					"gene_list_desc": "my_list"
-			}
-			try {
-				const response = await fetch(enrichrEndpoint, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-                        'accept': 'application/json'
+	let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
+	let enrichrRequest = {
+			"gene_set_library": library,
+			"gene_list": genesList,
+			"gene_list_desc": "my_list"
+	}
+	try {
+		const response = await fetch(enrichrEndpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'accept': 'application/json'
 
-					},
-					body: JSON.stringify(enrichrRequest),
-				});
-				let jsonData = await response.json();
-				jsonData.forEach(d => {
-						let rank = `${d["Rank"]}`.padStart(3, "0");
-						d.rankLabel = `${rank}_${d["Term name"]}`;
-				})
-				return jsonData;
-			} catch (error){
-				console.error(error.message);
-				return [];
-			}
-		}
+			},
+			body: JSON.stringify(enrichrRequest),
+		});
+		let jsonData = await response.json();
+		jsonData.forEach(d => {
+				let rank = `${d["Rank"]}`.padStart(3, "0");
+				d.rankLabel = `${rank}_${d["Term name"]}`;
+		})
+		return jsonData;
+	} catch (error){
+		console.error(error.message);
+		return [];
+	}
+}
+
+export async function getDatasets() {
+	const fetchPath =
+		"/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
+	const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
+	const dataText = await response.text();
+	const lines = dataText
+		.split("\n")
+		.filter((line) => line.trim() !== "");
+	const jsonObjects = lines.map((line) => JSON.parse(line));
+	jsonObjects.forEach((object) => {
+		object._showDetails = false;
+	});
+	return jsonObjects;
+}
