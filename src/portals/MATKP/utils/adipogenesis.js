@@ -18,6 +18,7 @@ export async function getTimeSeriesMetadata(timeSeriesId){
     try {
         const response = await fetch(queryUrl);
         const data = await(response.text());
+        console.log("what's this?", data);
         let crudeParse = data.split("}").map(t => `${t}}`);
         crudeParse = crudeParse.slice(0, crudeParse.length - 1);
         crudeParse = crudeParse.map(t => JSON.parse(t));
