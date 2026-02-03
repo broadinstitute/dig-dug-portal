@@ -18,6 +18,7 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 import TimeSeriesHeatmap from "../../components/TimeSeriesHeatmap.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
 
@@ -29,6 +30,9 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
+import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
+
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 new Vue({
     components: {
@@ -48,7 +52,8 @@ new Vue({
         Documentation,
         TooltipDocumentation,
         TimeSeriesHeatmap,
-        TimeSeriesLinePlot
+        TimeSeriesLinePlot,
+        ResearchSingleCellInfo
     },
     mixins: [matkpMixin],
     data() {
@@ -61,6 +66,7 @@ new Vue({
             transcripts: ["1415687_a_at"],
             fullTxSuffix: "full_transcript_data.tsv.gz",
             top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
+            datasetMetadata: null,
             currentPage: 1,
             conditionsMap: null,
             currentTable: [],
@@ -163,6 +169,8 @@ new Vue({
         let timeSeriesData = await getTimeSeries(this.timeSeriesId);
         this.conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
         this.timeSeriesData = includeAverages(timeSeriesData, this.conditionsMap);
+        const metadata = await this.getMetadata();
+        this.datasetMetadata = metadata;
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -200,6 +208,11 @@ new Vue({
                 } catch (error) {
                     throw error;
                 }
+        },
+        async getMetadata() {
+            let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
+            let myMetadata = await scUtils.fetchMetadata(metadataUrl);           
+            return myMetadata.find(x => x.datasetId === this.timeSeriesId);
         },
     },
     watch: {

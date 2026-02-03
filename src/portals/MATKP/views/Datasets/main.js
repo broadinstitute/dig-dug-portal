@@ -2,13 +2,13 @@ import Vue from "vue";
 import Template from "./Template.vue";
 
 import "../../assets/matkp-styles.css";
-
-import { getDatasets} from "@/portals/MATKP/utils/content.js";
+import { fetchMetadata } from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 //const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+const METADATA_URL = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
 
 new Vue({
     components: {
@@ -44,7 +44,7 @@ new Vue({
 
     async created() {
         await this.getConfig();
-        const datasets = await getDatasets();
+        const datasets = await fetchMetadata(METADATA_URL);
         this.datasets = datasets;
         this.datasetsFlat = this.flattenDatasets(datasets);
     },

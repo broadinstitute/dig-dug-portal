@@ -25,6 +25,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="card mdkp-card" v-if="!!$parent.datasetMetadata">
+                        <div class="card-body">
+                            <research-single-cell-info
+                                :data="$parent.datasetMetadata"
+                            />
+                        </div>
+                    </div>
                     <div class="card mdkp-card">
                         <div class="card-body">
                             <b-tabs v-model="$parent.activeTab">
