@@ -16,10 +16,10 @@
 				<div style="display:flex; gap:5px" class="legends">
 					<div style="display:inline-block" class="legend">
 						<div style="display:flex; margin-top:10px" class="marks">
-							<span>{{ minScore.toFixed(4) }}</span>
+							<span>MIN</span>
 							<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
 							</div>
-							<span>{{ maxScore.toFixed(4) }}</span>
+							<span>MAX</span>
 						</div>
 					</div>
 				</div>
