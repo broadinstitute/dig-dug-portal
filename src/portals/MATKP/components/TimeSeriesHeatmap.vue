@@ -88,18 +88,17 @@ export default Vue.component("time-series-heatmap", {
 			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
 			colorScale: null,
-			boxWidth: null
+			boxWidth: null,
+			fontSize: 12
 		};
 	},
 	mounted: function () {
 		this.renderHeatmap();
-		//this.renderScaleLegend();
 	},
 	beforeDestroy() {},
 	computed: {
 		renderConfig(){
 			return {
-                "type": "heat map",
                 "label": "Adipogenesis Datasets",
                 "main": {
                     "field": "score",
@@ -114,7 +113,6 @@ export default Vue.component("time-series-heatmap", {
                 "column label": "source",
                 "row field": "gene_tx",
                 "row label": "Gene / transcript",
-                "font size": 13,
             }
 		},
 		linePlotConfig(){
@@ -181,7 +179,7 @@ export default Vue.component("time-series-heatmap", {
 			return massagedData;
 		},
 		boxHeight() {
-			return this.renderConfig["font size"] * 1.5;
+			return this.fontSize * 1.5;
 		},
 		colorScaleArray(){
             if (this.colorScale === null) { return []; }
@@ -299,9 +297,6 @@ export default Vue.component("time-series-heatmap", {
 		renderHeatmap(X, Y) {
 			let c = document.getElementById("heatmap" + this.sectionId);
 			let ctx = c.getContext("2d");
-			
-
-			let fontSize = this.renderConfig['font size'];
 
 			let margin = {
 				top: 250,
@@ -394,14 +389,14 @@ export default Vue.component("time-series-heatmap", {
 				ctx.textAlign = "end";
 				ctx.fillStyle = "#000000";
 				if (this.zoomedIn){
-					ctx.fillText(this.geneTxFormat(r), margin.left - 5, top + fontSize);
+					ctx.fillText(this.geneTxFormat(r), margin.left - 5, top + this.fontSize);
 				}
 			})
 
 			this.renderData.columns.map((c, cIndex) => {
 				let left = margin.left + (this.boxWidth * (cIndex + 0.35)); // start in middle of box
 				ctx.save();
-				ctx.translate(left + fontSize, margin.top);
+				ctx.translate(left + this.fontSize, margin.top);
 				ctx.rotate((45 * -Math.PI) / 180);
 				ctx.font = "13px Arial";
 				ctx.fillStyle = "#000000";
