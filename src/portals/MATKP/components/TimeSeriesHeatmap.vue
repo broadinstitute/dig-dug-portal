@@ -114,7 +114,7 @@ export default Vue.component("time-series-heatmap", {
                 "column label": "source",
                 "row field": "gene_tx",
                 "row label": "Gene / transcript",
-                "font size": 12,
+                "font size": 13,
             }
 		},
 		linePlotConfig(){
@@ -221,9 +221,9 @@ export default Vue.component("time-series-heatmap", {
 
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
-			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left / 2 + this.margin.bump)) / (this.boxWidth) * 2);
+			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump)) / (this.boxWidth));
 			let zoomFactor = this.zoomedIn ? this.boxHeight : 3;
-			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top / 2 + this.margin.bump)) / zoomFactor);
+			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump)) / zoomFactor);
 
 			let clickedCellValue = "";
 			if (
@@ -268,7 +268,7 @@ export default Vue.component("time-series-heatmap", {
 			let hoverTop = canvasYPos + yPos;
 			let hoverLeft = canvasXPos + xPos - 30;
 
-			let canvasBottom = canvasRect.bottom / 2 + this.margin.bottom;
+			let canvasBottom = canvasRect.bottom + this.margin.bottom;
 			let canvasRight = canvasRect.right + this.margin.right;
 
 			let bottomOverhang = hoverTop + wrapper.clientHeight - canvasBottom;
@@ -301,7 +301,7 @@ export default Vue.component("time-series-heatmap", {
 			let ctx = c.getContext("2d");
 			
 
-			let fontSize = this.renderConfig['font size'] * 2;
+			let fontSize = this.renderConfig['font size'];
 
 			let margin = {
 				top: 250,
@@ -317,7 +317,7 @@ export default Vue.component("time-series-heatmap", {
 			let remainingWidth = canvasWidth - margin.left - margin.right - (margin.bump * 8);
 			this.boxWidth = remainingWidth / this.renderData.columns.length;
 
-			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight * 2;
+			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight;
 			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
 			
 			c.setAttribute("width", canvasWidth);
@@ -325,9 +325,9 @@ export default Vue.component("time-series-heatmap", {
 			c.setAttribute(
 				"style",
 				"width:" +
-					canvasWidth / 2 +
+					canvasWidth +
 					"px;height:" +
-					canvasHeight / 2 +
+					canvasHeight +
 					"px;"
 			);
 
@@ -379,7 +379,7 @@ export default Vue.component("time-series-heatmap", {
 			ctx.fillStyle = "#ffffff";
 			ctx.strokeStyle = "#666666";
 			var fillRect = false;
-			ctx.rect(margin.left + (margin.bump * 2), margin.top + (margin.bump * 2), (this.renderData.columns.length * this.boxWidth), (this.renderData.rows.length * this.boxHeight));
+			ctx.rect(margin.left + (margin.bump), margin.top + (margin.bump), (this.renderData.columns.length * this.boxWidth), (this.renderData.rows.length * this.boxHeight));
 			if (fillRect) {
 				ctx.fill();
 			}
@@ -389,7 +389,7 @@ export default Vue.component("time-series-heatmap", {
 			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
 
-				let top = margin.top + (margin.bump * 2) + (renderBoxSize * rIndex);
+				let top = margin.top + (margin.bump) + (renderBoxSize * rIndex);
 
 				ctx.font = "24px Arial";
 				ctx.textAlign = "end";
@@ -400,7 +400,7 @@ export default Vue.component("time-series-heatmap", {
 			})
 
 			this.renderData.columns.map((c, cIndex) => {
-				let left = margin.left + (margin.bump * 2) + (this.boxWidth * cIndex) + this.boxWidth/2;
+				let left = margin.left + (margin.bump) + (this.boxWidth * cIndex) + this.boxWidth;
 
 				ctx.save();
 				ctx.translate(left + fontSize, margin.top + margin.bump + 0.5);
@@ -415,12 +415,12 @@ export default Vue.component("time-series-heatmap", {
 			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
 
-				let top = margin.top + (margin.bump * 2) + (renderBoxSize * rIndex);
+				let top = margin.top + (margin.bump) + (renderBoxSize * rIndex);
 
 				this.renderData.columns.map((c, cIndex) => {
 
 					let mainValue = this.renderData[r][c].main;
-					let left = margin.left + (margin.bump * 2) + (this.boxWidth * cIndex);
+					let left = margin.left + (margin.bump) + (this.boxWidth * cIndex);
 
 					this.squareData[rIndex][cIndex] = {};
 					this.squareData[rIndex][cIndex]["main"] = {
@@ -520,7 +520,7 @@ $(function () {});
     background-color: #fff;
     border: solid 1px #aaa;
     box-shadow: 0 0 5px #00000075;
-    font-size: 12px;
+    font-size: 13px;
     border-radius: 5px;
     z-index: 10;
     /*min-width: 300px;*/
