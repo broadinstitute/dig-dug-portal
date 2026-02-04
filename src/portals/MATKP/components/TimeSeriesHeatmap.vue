@@ -394,20 +394,19 @@ export default Vue.component("time-series-heatmap", {
 				ctx.textAlign = "end";
 				ctx.fillStyle = "#000000";
 				if (this.zoomedIn){
-					ctx.fillText(this.geneTxFormat(r), margin.left, top + fontSize);
+					ctx.fillText(this.geneTxFormat(r), margin.left - 5, top + fontSize);
 				}
 			})
 
 			this.renderData.columns.map((c, cIndex) => {
-				let left = margin.left + (this.boxWidth * cIndex) + this.boxWidth;
-
+				let left = margin.left + (this.boxWidth * (cIndex + 0.35)); // start in middle of box
 				ctx.save();
-				ctx.translate(left + fontSize, margin.top + 0.5);
+				ctx.translate(left + fontSize, margin.top);
 				ctx.rotate((45 * -Math.PI) / 180);
 				ctx.font = "13px Arial";
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
-				ctx.fillText(c, 0, 0);
+				ctx.fillText(`  ${c}`, 0, 0);
 				ctx.restore();
 			})
 
