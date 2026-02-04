@@ -9,13 +9,7 @@
                     <h2 class="matkp-static-content-title">
                         Adipogenesis Datasets
                     </h2>
-                    <div class="card mdkp-card" v-if="!!$parent.datasetMetadata">
-                        <div class="card-body">
-                            <research-single-cell-info
-                                :data="$parent.datasetMetadata"
-                            />
-                        </div>
-                    </div>
+                    <research-single-cell-info :data="$parent.datasetMetadata"/>
                     <div class="card mdkp-card">
                         <div class="card-body">
                             <div id="checkboxes">
@@ -37,7 +31,7 @@
                                     <b-tab title="Top Transcripts">
                                         <div class="tab-inner">
                                             <h4>
-                                                Adipogenesis data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
+                                                Top 100 transcripts by max difference
                                             </h4>
                                             <div id="zoom-checkbox">
                                                 <label>
