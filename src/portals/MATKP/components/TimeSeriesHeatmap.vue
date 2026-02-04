@@ -221,9 +221,9 @@ export default Vue.component("time-series-heatmap", {
 
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
-			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left + this.margin.bump)) / (this.boxWidth));
+			let x = Math.floor((e.clientX - (rect.left) - this.margin.left) / (this.boxWidth));
 			let zoomFactor = this.zoomedIn ? this.boxHeight : 3;
-			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top + this.margin.bump)) / zoomFactor);
+			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / zoomFactor);
 
 			let clickedCellValue = "";
 			if (
@@ -308,17 +308,16 @@ export default Vue.component("time-series-heatmap", {
 				bottom: 100,
 				left: 350,
 				right: 40,
-				bump: 10
 			};
 			this.margin = margin;
 
 			let d = document.getElementById(`heatmap-wrapper-${this.sectionId}`);
 			let canvasWidth = d.clientWidth;
-			let remainingWidth = canvasWidth - margin.left - margin.right - (margin.bump * 8);
+			let remainingWidth = canvasWidth - margin.left - margin.right;
 			this.boxWidth = remainingWidth / this.renderData.columns.length;
 
 			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight;
-			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
+			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom);
 			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
@@ -379,7 +378,7 @@ export default Vue.component("time-series-heatmap", {
 			ctx.fillStyle = "#ffffff";
 			ctx.strokeStyle = "#666666";
 			var fillRect = false;
-			ctx.rect(margin.left + (margin.bump), margin.top + (margin.bump), (this.renderData.columns.length * this.boxWidth), (this.renderData.rows.length * this.boxHeight));
+			ctx.rect(margin.left, margin.top, (this.renderData.columns.length * this.boxWidth), (this.renderData.rows.length * this.boxHeight));
 			if (fillRect) {
 				ctx.fill();
 			}
@@ -389,23 +388,23 @@ export default Vue.component("time-series-heatmap", {
 			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
 
-				let top = margin.top + (margin.bump) + (renderBoxSize * rIndex);
+				let top = margin.top + (renderBoxSize * rIndex);
 
-				ctx.font = "24px Arial";
+				ctx.font = "13px Arial";
 				ctx.textAlign = "end";
 				ctx.fillStyle = "#000000";
 				if (this.zoomedIn){
-					ctx.fillText(this.geneTxFormat(r), margin.left + margin.bump, top + fontSize);
+					ctx.fillText(this.geneTxFormat(r), margin.left, top + fontSize);
 				}
 			})
 
 			this.renderData.columns.map((c, cIndex) => {
-				let left = margin.left + (margin.bump) + (this.boxWidth * cIndex) + this.boxWidth;
+				let left = margin.left + (this.boxWidth * cIndex) + this.boxWidth;
 
 				ctx.save();
-				ctx.translate(left + fontSize, margin.top + margin.bump + 0.5);
+				ctx.translate(left + fontSize, margin.top + 0.5);
 				ctx.rotate((45 * -Math.PI) / 180);
-				ctx.font = "24px Arial";
+				ctx.font = "13px Arial";
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
 				ctx.fillText(c, 0, 0);
@@ -415,12 +414,12 @@ export default Vue.component("time-series-heatmap", {
 			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
 
-				let top = margin.top + (margin.bump) + (renderBoxSize * rIndex);
+				let top = margin.top + (renderBoxSize * rIndex);
 
 				this.renderData.columns.map((c, cIndex) => {
 
 					let mainValue = this.renderData[r][c].main;
-					let left = margin.left + (margin.bump) + (this.boxWidth * cIndex);
+					let left = margin.left + (this.boxWidth * cIndex);
 
 					this.squareData[rIndex][cIndex] = {};
 					this.squareData[rIndex][cIndex]["main"] = {
