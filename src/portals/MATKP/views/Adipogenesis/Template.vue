@@ -85,16 +85,20 @@
                                             <div v-if="$parent.allTimeSeriesData !== null && $parent.activeTab === 1"
                                                 class="time-series-content">
                                                 <criterion-function-group>
-                                                    <label>
+                                                    <div class="gene-search-controls">
+                                                        <label>
                                                         <textarea class="form-control" 
-                                                            cols="20" rows="5"
+                                                            cols="40" rows="3"
                                                             v-model="$parent.geneSearchQuery">
                                                         </textarea>
                                                     </label>
-                                                    <button class="btn btn-primary"
-                                                        @click="$parent.queryGenes()">
-                                                        Search
-                                                    </button>
+                                                    </div>
+                                                    <div class="gene-search-controls">
+                                                        <button class="btn btn-primary"
+                                                            @click="$parent.queryGenes()">
+                                                            Search
+                                                        </button>
+                                                    </div>
                                                 </criterion-function-group>
                                                 <div v-if="$parent.geneSearchResults.length > 0">
                                                     <time-series-heatmap
@@ -174,5 +178,9 @@ button {
 }
 #checkboxes {
     margin-bottom: 10px;
+}
+.gene-search-controls {
+    display: inline;
+    vertical-align: top;
 }
 </style>
