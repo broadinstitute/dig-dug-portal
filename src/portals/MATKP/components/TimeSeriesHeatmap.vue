@@ -1,5 +1,5 @@
 <template>
-	<div class="heatmap-wrapper">
+	<div class="heatmap-wrapper" :id="`heatmap-wrapper-${sectionId}`">
 		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
 			<div :id="'clicked_cell_value_content' + sectionId" >
 			</div>
@@ -88,6 +88,7 @@ export default Vue.component("time-series-heatmap", {
 			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
 			colorScale: null,
+			boxWidth: null
 		};
 	},
 	mounted: function () {
@@ -182,7 +183,7 @@ export default Vue.component("time-series-heatmap", {
 		boxHeight() {
 			return this.renderConfig["font size"] * 1.5;
 		},
-		boxWidth(){
+		boxWidthOld(){
 			return this.boxHeight * this.boxAspectRatio * 2 * this.replicateFactor;
 		},
 		replicateFactor(){
@@ -198,7 +199,6 @@ export default Vue.component("time-series-heatmap", {
 	},
 	watch: {
 		renderData() {
-			console.log("let's render this heatmap");
 			this.renderHeatmap();
 		},
 		zoomedIn(){
@@ -320,8 +320,12 @@ export default Vue.component("time-series-heatmap", {
 			};
 			this.margin = margin;
 
+			let d = document.getElementById(`heatmap-wrapper-${this.sectionId}`);
+			let canvasWidth = d.clientWidth;
+			let remainingWidth = canvasWidth - margin.left - margin.right - (margin.bump * 8);
+			this.boxWidth = remainingWidth / this.renderData.columns.length;
+
 			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight * 2;
-			let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 8));
 			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
 			
 			c.setAttribute("width", canvasWidth);
