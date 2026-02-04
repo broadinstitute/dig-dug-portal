@@ -275,10 +275,11 @@ export default Vue.component("time-series-heatmap", {
 			let margin = {
 				top: 250,
 				bottom: 100,
-				left: longestLabel.length * this.fontSize,
+				left: longestLabel.length * this.fontSize / 1.5,
 				right: 40,
 			};
 			this.margin = margin;
+			console.log(this.margin.left);
 
 			let d = document.getElementById(`heatmap-wrapper-${this.sectionId}`);
 			let canvasWidth = d.clientWidth;
