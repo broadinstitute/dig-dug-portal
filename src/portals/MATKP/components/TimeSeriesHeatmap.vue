@@ -183,14 +183,6 @@ export default Vue.component("time-series-heatmap", {
 		boxHeight() {
 			return this.renderConfig["font size"] * 1.5;
 		},
-		boxWidthOld(){
-			return this.boxHeight * this.boxAspectRatio * 2 * this.replicateFactor;
-		},
-		replicateFactor(){
-			// For sizing boxes based on how many replicates there are.
-			let replicates = new Set(this.filteredData.map(d => d.replicate));
-			return 2 / replicates.size;
-		},
 		colorScaleArray(){
             if (this.colorScale === null) { return []; }
             let step = 0.01 * (this.maxScore - this.minScore);
