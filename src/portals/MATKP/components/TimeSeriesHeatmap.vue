@@ -31,7 +31,6 @@
 				></div>
 				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
-						v-if="!!renderConfig"
 						:id="'heatmap'+ sectionId"
 						@mouseleave="hidePanel"
 						@mousemove="checkPosition"
@@ -52,16 +51,6 @@
 							</li>
 						</ul>
 					</div>
-					<research-heatmap-vector
-					v-if="!!renderData"
-						:renderData="renderData"
-						:renderConfig="renderConfig"
-						:sectionId="sectionId"
-						:utils="utils"
-						:ref="sectionId + '_heatmap'"
-						@mousemove="checkPosition($event)" 
-					>
-					</research-heatmap-vector>
 				</div>
 			</div>
 		</div>
@@ -89,7 +78,11 @@ export default Vue.component("time-series-heatmap", {
 			transcript: "1415687_a_at",
 			colorScale: null,
 			boxWidth: null,
-			fontSize: 12
+			fontSize: 12,
+			rowField: "gene_tx",
+			columnField: "source",
+			mainField: "score",
+			mainLabel: "score" // need to get a more descriptive label
 		};
 	},
 	mounted: function () {
@@ -97,24 +90,6 @@ export default Vue.component("time-series-heatmap", {
 	},
 	beforeDestroy() {},
 	computed: {
-		renderConfig(){
-			return {
-                "label": "Adipogenesis Datasets",
-                "main": {
-                    "field": "score",
-                    "label": "score",
-                    "type": "scale",
-                    "direction": "positive",
-                    "low": this.minScore,
-                    "middle": (this.minScore + this.maxScore) / 2,
-                    "high": this.maxScore
-                },
-                "column field": "source",
-                "column label": "source",
-                "row field": "gene_tx",
-                "row label": "Gene / transcript",
-            }
-		},
 		linePlotConfig(){
             return {
                 xField: "days",
@@ -145,12 +120,12 @@ export default Vue.component("time-series-heatmap", {
 			let massagedData = {};
 
 			let rowList = this.filteredData
-				.map((v) => v[this.renderConfig["row field"]])
+				.map((v) => v[this.rowField])
 				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 				.filter((v, i, arr) => v != ""); //remove blank
 
 			let columnList = this.filteredData
-				.map((v) => v[this.renderConfig["column field"]])
+				.map((v) => v[this.columnField])
 				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 				.filter((v, i, arr) => v != ""); //remove blank
 
@@ -169,11 +144,8 @@ export default Vue.component("time-series-heatmap", {
 			});
 
 			this.filteredData.map((d) => {
-				let row = this.renderConfig["row field"];
-				let column = this.renderConfig["column field"];
-
-				massagedData[d[row]][d[column]]["main"] =
-					d[this.renderConfig.main.field];
+				massagedData[d[this.rowField]][d[this.columnField]]["main"] =
+					d[this.mainField];
 
 			});
 			return massagedData;
@@ -240,7 +212,7 @@ export default Vue.component("time-series-heatmap", {
 					"</span>";
 				clickedCellValue +=
 					'<span class="content-on-clicked-cell"><b>' +
-					this.renderConfig.main.label +
+					this.mainLabel +
 					": </b>" +
 					this.squareData[y][x].main.value +
 					"</span>";
@@ -324,39 +296,8 @@ export default Vue.component("time-series-heatmap", {
 					canvasHeight +
 					"px;"
 			);
-
-			// render legends
 			
-			let mainLabel = this.renderConfig.main.label + ": ",
-				mainSteps = [mainLabel];
-
-			let minVal, midVal, maxVal, valStep, valStepLow, valStepHigh;
-
-			if (this.renderConfig.main.low == this.renderConfig.main.middle) {
-				minVal = this.renderConfig.main.middle,
-					midVal = this.renderConfig.main.middle,
-					maxVal = this.renderConfig.main.high,
-					valStep = (maxVal - minVal) / 5;
-
-				for (let i = 0; i < 6; i++) {
-					let stepVal = Math.round((minVal + (valStep * i)) * 1000) / 1000
-					mainSteps.push(stepVal)
-				}
-			} else {
-
-				minVal = this.renderConfig.main.low,
-					midVal = this.renderConfig.main.middle,
-					maxVal = this.renderConfig.main.high,
-					valStepLow = (midVal - minVal) / 3,
-					valStepHigh = (maxVal - midVal) / 3;
-
-				for (let i = 0; i < 6; i++) {
-					let stepVal = Math.round((minVal + (valStep * i)) * 1000) / 1000
-					mainSteps.push(stepVal)
-				}
-
-			}
-			let numExtremes = [minVal, maxVal];
+			let numExtremes = [this.minScore, this.maxScore];
 			let colorExtremes = [ACCESSIBLE_GRAY, ACCESSIBLE_PURPLE];
 			this.colorScale = createColorScale(numExtremes, colorExtremes);
 
@@ -417,7 +358,7 @@ export default Vue.component("time-series-heatmap", {
 
 					this.squareData[rIndex][cIndex] = {};
 					this.squareData[rIndex][cIndex]["main"] = {
-						field: this.renderConfig.main.field,
+						field: this.mainField,
 						value: this.renderData[r][c].main,
 					};
 
