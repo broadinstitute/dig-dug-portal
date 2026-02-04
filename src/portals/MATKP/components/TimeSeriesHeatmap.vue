@@ -269,10 +269,13 @@ export default Vue.component("time-series-heatmap", {
 			let c = document.getElementById("heatmap" + this.sectionId);
 			let ctx = c.getContext("2d");
 
+			let longestLabel = "";
+			this.renderData.rows.forEach(r => longestLabel = r.length > longestLabel.length ? r : longestLabel);
+
 			let margin = {
 				top: 250,
 				bottom: 100,
-				left: 350,
+				left: longestLabel.length * this.fontSize,
 				right: 40,
 			};
 			this.margin = margin;
@@ -325,7 +328,7 @@ export default Vue.component("time-series-heatmap", {
 
 				let top = margin.top + (renderBoxSize * rIndex);
 
-				ctx.font = "13px Arial";
+				ctx.font = `${this.fontSize}px Arial`;
 				ctx.textAlign = "end";
 				ctx.fillStyle = "#000000";
 				if (this.zoomedIn){
@@ -338,7 +341,7 @@ export default Vue.component("time-series-heatmap", {
 				ctx.save();
 				ctx.translate(left + this.fontSize, margin.top);
 				ctx.rotate((45 * -Math.PI) / 180);
-				ctx.font = "13px Arial";
+				ctx.font = `${this.fontSize}px Arial`;
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
 				ctx.fillText(`  ${c}`, 0, 0);
