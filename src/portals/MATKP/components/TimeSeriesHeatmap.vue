@@ -74,15 +74,14 @@ export default Vue.component("time-series-heatmap", {
 			squareData: {},
 			canvasHover: false,
 			margin:{},
-			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
 			colorScale: null,
 			boxWidth: null,
 			fontSize: 12,
 			rowField: "gene_tx",
 			columnField: "source",
-			mainField: "score",
-			mainLabel: "score" // need to get a more descriptive label
+			heatmapField: "score",
+			datapointLabel: "score" // need to get a more descriptive label
 		};
 	},
 	mounted: function () {
@@ -144,8 +143,8 @@ export default Vue.component("time-series-heatmap", {
 			});
 
 			this.filteredData.map((d) => {
-				massagedData[d[this.rowField]][d[this.columnField]]["main"] =
-					d[this.mainField];
+				massagedData[d[this.rowField]][d[this.columnField]] =
+					d[this.heatmapField];
 
 			});
 			return massagedData;
@@ -212,9 +211,9 @@ export default Vue.component("time-series-heatmap", {
 					"</span>";
 				clickedCellValue +=
 					'<span class="content-on-clicked-cell"><b>' +
-					this.mainLabel +
+					this.datapointLabel +
 					": </b>" +
-					this.squareData[y][x].main.value +
+					this.squareData[y][x].value +
 					"</span>";
 			}
 			this.transcript = this.renderData.rows[y];
@@ -280,8 +279,8 @@ export default Vue.component("time-series-heatmap", {
 
 			let d = document.getElementById(`heatmap-wrapper-${this.sectionId}`);
 			let canvasWidth = d.clientWidth;
-			let remainingWidth = canvasWidth - margin.left - margin.right;
-			this.boxWidth = remainingWidth / this.renderData.columns.length;
+			let centerWidth = canvasWidth - margin.left - margin.right;
+			this.boxWidth = centerWidth / this.renderData.columns.length;
 
 			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight;
 			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom);
@@ -353,16 +352,16 @@ export default Vue.component("time-series-heatmap", {
 
 				this.renderData.columns.map((c, cIndex) => {
 
-					let mainValue = this.renderData[r][c].main;
+					let boxValue = this.renderData[r][c];
 					let left = margin.left + (this.boxWidth * cIndex);
 
 					this.squareData[rIndex][cIndex] = {};
-					this.squareData[rIndex][cIndex]["main"] = {
-						field: this.mainField,
-						value: this.renderData[r][c].main,
+					this.squareData[rIndex][cIndex] = {
+						field: this.heatmapField,
+						value: this.renderData[r][c],
 					};
 
-					let colorString = `${this.colorScale(mainValue)}`;
+					let colorString = `${this.colorScale(boxValue)}`;
 
 
 					if (X == cIndex && Y == rIndex) {
