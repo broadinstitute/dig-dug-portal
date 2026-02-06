@@ -250,12 +250,12 @@ export default Vue.component("time-series-heatmap", {
 				hoverLeft = xPos - wrapper.clientWidth; // switch the hover box to the left
 			}
 			
-			// test to see if hover box goes off canvas
+			// show box if hovering over a valid cell
 			if (clickedCellValue != "") {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
-				wrapper.style.top =`${hoverTop}px`;
-				wrapper.style.left = `${hoverLeft}px`;
+				wrapper.style.top =`${yPos - 10}px`; // Can we do this by bottom instead?
+				wrapper.style.left = `${xPos + 50}px`;
 			} else {
 				wrapper.classList.add("hidden");
 			}
