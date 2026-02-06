@@ -78,6 +78,7 @@ export default Vue.component("time-series-heatmap", {
 			colorScale: null,
 			boxWidth: null,
 			fontSize: 12,
+			zoomedOutBoxHeight: 6,
 			rowField: "gene_tx",
 			columnField: "source",
 			heatmapField: "score",
@@ -191,8 +192,8 @@ export default Vue.component("time-series-heatmap", {
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
 			let x = Math.floor((e.clientX - (rect.left) - this.margin.left) / (this.boxWidth));
-			let zoomFactor = this.zoomedIn ? this.boxHeight : 3;
-			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / zoomFactor);
+			let currentBoxHeight = this.zoomedIn ? this.boxHeight : this.zoomedOutBoxHeight;
+			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / currentBoxHeight);
 
 			let clickedCellValue = "";
 			if (
