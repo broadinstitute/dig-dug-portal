@@ -195,29 +195,9 @@ export default Vue.component("time-series-heatmap", {
 			let currentBoxHeight = this.zoomedIn ? this.boxHeight : this.zoomedOutBoxHeight;
 			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / currentBoxHeight);
 
-			let clickedCellValue = "";
-			if (
-				x >= 0 &&
-				y >= 0 &&
-				!!this.squareData[y] &&
-				!!this.squareData[y][x]
-			) {
-				// TODO refactor into method
-				clickedCellValue +=
-					'<span class="field-on-clicked-cell hover-title">' +
-					this.geneTxFormat(this.renderData.rows[y]) +
-					"</span>";
-				clickedCellValue +=
-					'<span class="field-on-clicked-cell">' +
-					this.renderData.columns[x] +
-					"</span>";
-				clickedCellValue +=
-					'<span class="content-on-clicked-cell"><b>' +
-					this.datapointLabel +
-					": </b>" +
-					this.squareData[y][x].value +
-					"</span>";
-			}
+			let validCell = x >= 0 && y >= 0 && !!this.squareData[y] && !!this.squareData[y][x]
+			let clickedCellValue = !validCell ? "" : this.hoverContent(x,y);
+			
 			this.transcript = this.renderData.rows[y];
 			this.$emit("hover", this.renderData.rows[y]);
 
@@ -243,7 +223,7 @@ export default Vue.component("time-series-heatmap", {
 			}
 			
 			// show box if hovering over a valid cell
-			if (clickedCellValue != "") {
+			if (validCell) {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
 				wrapper.style.top =`${hoverTop}px`; // Can we do this by bottom instead?
@@ -252,6 +232,15 @@ export default Vue.component("time-series-heatmap", {
 				wrapper.classList.add("hidden");
 			}
 			this.renderHeatmap(x, y);
+		},
+		hoverContent(x, y){
+			let rowName = this.geneTxFormat(this.renderData.rows[y]);
+			let columnName = this.renderData.columns[x];
+			let scoreVal = this.squareData[y][x].value;
+			let hoverTitle = `<span class="field-on-clicked-cell hover-title">${rowName}}</span>`;
+			let columnSpan = `<span class="field-on-clicked-cell">${columnName}<span>`;
+			let scoreSpan = `<span class=content-on-clicked-cell><b>${this.datapointLabel}:</b>${scoreVal}</span>`;
+			return hoverTitle + columnSpan + scoreSpan;
 		},
 		getWidth(ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;
