@@ -1,7 +1,7 @@
 <template>
 	<div :id="`heatmap-wrapper-${sectionId}`">
 		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
-			<div :id="'clicked_cell_value_content' + sectionId" >
+			<div :id="'clicked_cell_value_content' + sectionId">
 			</div>
 			<time-series-line-plot
 				v-if="filteredData.length > 0"
@@ -18,8 +18,7 @@
 				</div>
 				<span>MAX</span>
 			</div>
-			<div class="heatmap-canvas-wrapper">
-				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
+			<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
 						:id="'heatmap'+ sectionId"
 						@mouseleave="hidePanel"
@@ -42,7 +41,6 @@
 						</ul>
 					</div>
 				</div>
-			</div>
 		</div>
 	</div>
 </template>
@@ -199,7 +197,7 @@ export default Vue.component("time-series-heatmap", {
 				.getElementById("heatmapCanvasWrapper" + this.sectionId)
 				.getBoundingClientRect();
 
-			let hoverTop = yPos - 7;
+			let hoverTop = yPos - 10;
 			let hoverLeft = xPos + 50;
 
 			let canvasRight = canvasRect.right + this.margin.right;
@@ -380,9 +378,6 @@ $(function () {});
 	background-color: #fff;
 	vertical-align: top;
 }
-#heatmap:hover, .heatmap:hover {
-	cursor: pointer;
-}
 
 .clicked-cell-value {
 	position: absolute;
@@ -395,18 +390,6 @@ $(function () {});
 	text-align: left;
 	padding-top: 5px;
 	padding-left: 5px;
-}
-
-.clicked-cell-value-close {
-	position: absolute;
-	top: 2px;
-	right: 2px;
-	font-size: 12px;
-	color: #69f;
-}
-
-.clicked-cell-value-close:hover {
-	color: #36c;
 }
 
 .heatmap-label {
