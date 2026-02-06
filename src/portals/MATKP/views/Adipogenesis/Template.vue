@@ -9,114 +9,114 @@
                     <h2 class="matkp-static-content-title">
                         Adipogenesis Datasets
                     </h2>
+                    <research-single-cell-info :data="$parent.datasetMetadata"/>
                     <div class="card mdkp-card">
                         <div class="card-body">
-                            <div id="avg-checkbox">
-                                <label>
-                                    <input v-model="$parent.avgRep" type="checkbox" />
-                                    Display average of all replicates per time point
-                                </label>
+                            <div id="checkboxes">
+                                <div id="avg-checkbox">
+                                    <label>
+                                        <input v-model="$parent.avgRep" type="checkbox" />
+                                        Display average of all replicates per time point
+                                    </label>
+                                </div>
+                                <div id="cluster-checkbox">
+                                    <label>
+                                        <input v-model="$parent.clusterOn" type="checkbox" />
+                                        Show data by clusters
+                                    </label>
+                                </div>
                             </div>
-                            <div id="cluster-checkbox">
-                                <label>
-                                    <input v-model="$parent.clusterOn" type="checkbox" />
-                                    Show data by clusters
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card mdkp-card" v-if="!!$parent.datasetMetadata">
-                        <div class="card-body">
-                            <research-single-cell-info
-                                :data="$parent.datasetMetadata"
-                            />
-                        </div>
-                    </div>
-                    <div class="card mdkp-card">
-                        <div class="card-body">
-                            <b-tabs v-model="$parent.activeTab">
-                                <b-tab title="Top Transcripts">
-                                    <div class="tab-inner">
-                                        <h4>
-                                            Adipogenesis data for {{ $parent.timeSeriesId }} (top 100 transcripts by max difference)
-                                        </h4>
-                                        <div id="zoom-checkbox">
-                                            <label>
-                                                <input v-model="$parent.zoomedIn" type="checkbox" />
-                                                Zoom in
-                                            </label>
-                                        </div>
-                                        <div v-if="$parent.ready"
-                                            class="time-series-content">
-                                            <time-series-heatmap
-                                                :heatmapData="$parent.paginatedData"
-                                                :minScore="$parent.minScore"
-                                                :maxScore="$parent.maxScore"
-                                                :utils="$parent.utilsBox"
-                                                sectionId="time-series-heatmap"
-                                                :zoomedIn="$parent.zoomedIn"
-                                                :activeTab="$parent.activeTab"
-                                                :avgRep="$parent.avgRep">
-                                            </time-series-heatmap>
-                                        </div>
-                                    <div>
-                                    <b-table v-if="$parent.ready"
-                                        small
-                                        v-model="$parent.currentTable"
-                                        :items="$parent.timeSeriesData"
-                                        :fields="$parent.tableFields"
-                                        :per-page="10"
-                                        :current-page="$parent.currentPage">
-                                    </b-table>
-
-                                <b-pagination v-if="$parent.ready"
-                                    v-model="$parent.currentPage"
-                                    class="pagination-sm justify-content-center"
-                                    :total-rows="$parent.timeSeriesData.length"
-                                    :per-page="10"
-                                ></b-pagination>
-                            </div>
-                                    </div>
-                                </b-tab>
-                                <b-tab title="Search by Gene">
-                                    <div class="tab-inner">
-                                        <h4>
-                                            Search up to 10 genes to create a custom heatmap.
-                                        </h4>
-                                        <div v-if="$parent.allTimeSeriesData !== null && $parent.activeTab === 1"
-                                            class="time-series-content">
-                                            <criterion-function-group>
+                            <div id="tabs-below-checkboxes">
+                                <b-tabs v-model="$parent.activeTab">
+                                    <b-tab title="Top Transcripts">
+                                        <div class="tab-inner">
+                                            <h4>
+                                                Top 100 transcripts by max difference
+                                            </h4>
+                                            <div id="zoom-checkbox">
                                                 <label>
-                                                    <textarea class="form-control" 
-                                                        cols="20" rows="5"
-                                                        v-model="$parent.geneSearchQuery">
-                                                    </textarea>
+                                                    <input v-model="$parent.zoomedIn" type="checkbox" />
+                                                    Zoom in
                                                 </label>
-                                                <button class="btn btn-primary"
-                                                    @click="$parent.queryGenes()">
-                                                    Search
-                                                </button>
-                                            </criterion-function-group>
-                                            <div v-if="$parent.geneSearchResults.length > 0">
+                                            </div>
+                                            <div v-if="$parent.ready" class="time-series-content">
                                                 <time-series-heatmap
-                                                    :heatmapData="$parent.processedGeneSearch"
+                                                    :heatmapData="$parent.paginatedData"
                                                     :minScore="$parent.minScore"
                                                     :maxScore="$parent.maxScore"
                                                     :utils="$parent.utilsBox"
-                                                    sectionId="search-heatmap"
-                                                    :zoomedIn="true"
+                                                    sectionId="time-series-heatmap"
+                                                    :zoomedIn="$parent.zoomedIn"
+                                                    :activeTab="$parent.activeTab"
                                                     :avgRep="$parent.avgRep">
                                                 </time-series-heatmap>
-                                                <b-table
-                                                    small
-                                                    :items="$parent.geneSearchResults"
-                                                    :fields="$parent.tableFields.filter(f => f.key !== 'order')">
-                                                </b-table>
+                                            </div>
+                                        <div>
+                                        <div class="table-background">
+                                            <b-table v-if="$parent.ready"
+                                                small
+                                                v-model="$parent.currentTable"
+                                                :items="$parent.timeSeriesData"
+                                                :fields="$parent.tableFields"
+                                                :per-page="10"
+                                                :current-page="$parent.currentPage">
+                                            </b-table>
+                                            <b-pagination v-if="$parent.ready"
+                                                v-model="$parent.currentPage"
+                                                class="pagination-sm justify-content-center"
+                                                :total-rows="$parent.timeSeriesData.length"
+                                                :per-page="10"
+                                            ></b-pagination>
+                                        </div>
+                                </div>
+                            </div>
+                                    </b-tab>
+                                    <b-tab title="Search by Gene">
+                                        <div class="tab-inner">
+                                            <h4>
+                                                Search up to 10 genes to create a custom heatmap.
+                                            </h4>
+                                            <div v-if="$parent.allTimeSeriesData !== null && $parent.activeTab === 1"
+                                                class="time-series-content">
+                                                <criterion-function-group>
+                                                    <div class="gene-search-controls">
+                                                        <label>
+                                                        <textarea class="form-control" 
+                                                            cols="40" rows="3"
+                                                            v-model="$parent.geneSearchQuery">
+                                                        </textarea>
+                                                    </label>
+                                                    </div>
+                                                    <div class="gene-search-controls">
+                                                        <button class="btn btn-primary"
+                                                            @click="$parent.queryGenes()">
+                                                            Search
+                                                        </button>
+                                                    </div>
+                                                </criterion-function-group>
+                                                <div v-if="$parent.geneSearchResults.length > 0">
+                                                    <time-series-heatmap
+                                                        :heatmapData="$parent.processedGeneSearch"
+                                                        :minScore="$parent.minScore"
+                                                        :maxScore="$parent.maxScore"
+                                                        :utils="$parent.utilsBox"
+                                                        sectionId="search-heatmap"
+                                                        :zoomedIn="true"
+                                                        :avgRep="$parent.avgRep">
+                                                    </time-series-heatmap>
+                                                    <div class="table-background">
+                                                        <b-table
+                                                            small
+                                                            :items="$parent.geneSearchResults"
+                                                            :fields="$parent.tableFields.filter(f => f.key !== 'order')">
+                                                        </b-table>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </b-tab>
-                            </b-tabs>
+                                    </b-tab>
+                                </b-tabs>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -171,5 +171,16 @@ div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
 }
 button {
     margin: 5px;
+}
+#checkboxes {
+    margin-bottom: 10px;
+}
+.gene-search-controls {
+    display: inline;
+    vertical-align: top;
+}
+.table-background {
+    border: 10px solid #eeeeee;
+    padding-bottom: 10px;
 }
 </style>

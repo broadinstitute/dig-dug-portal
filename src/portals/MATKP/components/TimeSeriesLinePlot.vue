@@ -46,7 +46,6 @@ export default Vue.component("time-series-line-plot", {
       if (this.tx.length > 0){
         data = data.filter(d => transcripts.includes(d.transcript_id));
       }
-      console.log(data.length);
       return data;
     },
   },

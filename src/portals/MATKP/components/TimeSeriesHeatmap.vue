@@ -1,7 +1,7 @@
 <template>
-	<div class="heatmap-wrapper">
+	<div :id="`heatmap-wrapper-${sectionId}`">
 		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
-			<div :id="'clicked_cell_value_content' + sectionId" >
+			<div :id="'clicked_cell_value_content' + sectionId">
 			</div>
 			<time-series-line-plot
 				v-if="filteredData.length > 0"
@@ -11,27 +11,15 @@
 				:plotId="`${sectionId}_line`">
 			</time-series-line-plot>
 		</div>
-		<div class="heatmap-content" :id="'heatmapContent' + sectionId">
-			<div class="heatmap-scale-legend" :id="'heatmap_scale_legend' + sectionId">
-				<div style="display:flex; gap:5px" class="legends">
-					<div style="display:inline-block" class="legend">
-						<div style="display:flex; margin-top:10px" class="marks">
-							<span>{{ minScore.toFixed(4) }}</span>
-							<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
-							</div>
-							<span>{{ maxScore.toFixed(4) }}</span>
-						</div>
-					</div>
+		<div>
+			<div style="display:flex">
+				<span>MIN</span>
+				<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
 				</div>
+				<span>MAX</span>
 			</div>
-			<div class="heatmap-canvas-wrapper" :id="'heatmapPlotWrapper' + sectionId">
-				<div
-					class="col-wrapper"
-					:id="'colWrapper' + sectionId"
-				></div>
-				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
+			<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
-						v-if="!!renderConfig"
 						:id="'heatmap'+ sectionId"
 						@mouseleave="hidePanel"
 						@mousemove="checkPosition"
@@ -52,18 +40,7 @@
 							</li>
 						</ul>
 					</div>
-					<research-heatmap-vector
-					v-if="!!renderData"
-						:renderData="renderData"
-						:renderConfig="renderConfig"
-						:sectionId="sectionId"
-						:utils="utils"
-						:ref="sectionId + '_heatmap'"
-						@mousemove="checkPosition($event)" 
-					>
-					</research-heatmap-vector>
 				</div>
-			</div>
 		</div>
 	</div>
 </template>
@@ -85,37 +62,22 @@ export default Vue.component("time-series-heatmap", {
 			squareData: {},
 			canvasHover: false,
 			margin:{},
-			boxAspectRatio: 8,
 			transcript: "1415687_a_at",
 			colorScale: null,
+			boxWidth: null,
+			fontSize: 12,
+			zoomedOutBoxHeight: 6,
+			rowField: "gene_tx",
+			columnField: "source",
+			heatmapField: "score",
+			datapointLabel: "score" // need to get a more descriptive label
 		};
 	},
 	mounted: function () {
 		this.renderHeatmap();
-		//this.renderScaleLegend();
 	},
 	beforeDestroy() {},
 	computed: {
-		renderConfig(){
-			return {
-                "type": "heat map",
-                "label": "Adipogenesis Datasets",
-                "main": {
-                    "field": "score",
-                    "label": "score",
-                    "type": "scale",
-                    "direction": "positive",
-                    "low": this.minScore,
-                    "middle": (this.minScore + this.maxScore) / 2,
-                    "high": this.maxScore
-                },
-                "column field": "source",
-                "column label": "source",
-                "row field": "gene_tx",
-                "row label": "Gene / transcript",
-                "font size": 12,
-            }
-		},
 		linePlotConfig(){
             return {
                 xField: "days",
@@ -146,12 +108,12 @@ export default Vue.component("time-series-heatmap", {
 			let massagedData = {};
 
 			let rowList = this.filteredData
-				.map((v) => v[this.renderConfig["row field"]])
+				.map((v) => v[this.rowField])
 				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 				.filter((v, i, arr) => v != ""); //remove blank
 
 			let columnList = this.filteredData
-				.map((v) => v[this.renderConfig["column field"]])
+				.map((v) => v[this.columnField])
 				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
 				.filter((v, i, arr) => v != ""); //remove blank
 
@@ -170,25 +132,14 @@ export default Vue.component("time-series-heatmap", {
 			});
 
 			this.filteredData.map((d) => {
-				let row = this.renderConfig["row field"];
-				let column = this.renderConfig["column field"];
-
-				massagedData[d[row]][d[column]]["main"] =
-					d[this.renderConfig.main.field];
+				massagedData[d[this.rowField]][d[this.columnField]] =
+					d[this.heatmapField];
 
 			});
 			return massagedData;
 		},
 		boxHeight() {
-			return this.renderConfig["font size"] * 1.5;
-		},
-		boxWidth(){
-			return this.boxHeight * this.boxAspectRatio * 2 * this.replicateFactor;
-		},
-		replicateFactor(){
-			// For sizing boxes based on how many replicates there are.
-			let replicates = new Set(this.filteredData.map(d => d.replicate));
-			return 2 / replicates.size;
+			return !this.zoomedIn ? this.zoomedOutBoxHeight : this.fontSize * 1.5;
 		},
 		colorScaleArray(){
             if (this.colorScale === null) { return []; }
@@ -198,7 +149,6 @@ export default Vue.component("time-series-heatmap", {
 	},
 	watch: {
 		renderData() {
-			console.log("let's render this heatmap");
 			this.renderHeatmap();
 		},
 		zoomedIn(){
@@ -229,32 +179,12 @@ export default Vue.component("time-series-heatmap", {
 
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
-			let x = Math.floor((e.clientX - (rect.left) - (this.margin.left / 2 + this.margin.bump)) / (this.boxWidth) * 2);
-			let zoomFactor = this.zoomedIn ? this.boxHeight : 3;
-			let y = Math.floor((e.clientY - (rect.top) - (this.margin.top / 2 + this.margin.bump)) / zoomFactor);
+			let x = Math.floor((e.clientX - (rect.left) - this.margin.left) / (this.boxWidth));
+			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / this.boxHeight);
 
-			let clickedCellValue = "";
-			if (
-				x >= 0 &&
-				y >= 0 &&
-				!!this.squareData[y] &&
-				!!this.squareData[y][x]
-			) {
-				clickedCellValue +=
-					'<span class="field-on-clicked-cell hover-title">' +
-					this.geneTxFormat(this.renderData.rows[y]) +
-					"</span>";
-				clickedCellValue +=
-					'<span class="field-on-clicked-cell">' +
-					this.renderData.columns[x] +
-					"</span>";
-				clickedCellValue +=
-					'<span class="content-on-clicked-cell"><b>' +
-					this.renderConfig.main.label +
-					": </b>" +
-					this.squareData[y][x].main.value +
-					"</span>";
-			}
+			let validCell = x >= 0 && y >= 0 && !!this.squareData[y] && !!this.squareData[y][x]
+			let clickedCellValue = !validCell ? "" : this.hoverContent(x,y);
+			
 			this.transcript = this.renderData.rows[y];
 			this.$emit("hover", this.renderData.rows[y]);
 
@@ -266,38 +196,37 @@ export default Vue.component("time-series-heatmap", {
 			let canvasRect = document
 				.getElementById("heatmapCanvasWrapper" + this.sectionId)
 				.getBoundingClientRect();
-			let canvasXPos = canvasRect.left;
 
-			let canvasYPos =
-				document.getElementById("heatmapContent" + this.sectionId).offsetHeight -
-				document.getElementById("heatmapPlotWrapper" + this.sectionId).offsetHeight +
-				document.getElementById("colWrapper" + this.sectionId).offsetWidth;
+			let hoverTop = yPos - 10;
+			let hoverLeft = xPos + 50;
 
-			let hoverTop = canvasYPos + yPos;
-			let hoverLeft = canvasXPos + xPos - 30;
-
-			let canvasBottom = canvasRect.bottom / 2 + this.margin.bottom;
 			let canvasRight = canvasRect.right + this.margin.right;
 
-			let bottomOverhang = hoverTop + wrapper.clientHeight - canvasBottom;
 			let rightOverhang = hoverLeft + wrapper.clientWidth - canvasRight;
-			if (bottomOverhang > 0){
-				hoverTop = hoverTop - bottomOverhang;
-			}
+
 			if (rightOverhang > 0){
-				hoverLeft = xPos - wrapper.clientWidth; // switch the hover box to the left
+				hoverLeft = hoverLeft - rightOverhang;
 			}
 			
-			// test to see if hover box goes off canvas
-			if (clickedCellValue != "") {
+			// show box if hovering over a valid cell
+			if (validCell) {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
-				wrapper.style.top =`${hoverTop}px`;
+				wrapper.style.top =`${hoverTop}px`; // Can we do this by bottom instead?
 				wrapper.style.left = `${hoverLeft}px`;
 			} else {
 				wrapper.classList.add("hidden");
 			}
 			this.renderHeatmap(x, y);
+		},
+		hoverContent(x, y){
+			let rowName = this.geneTxFormat(this.renderData.rows[y]);
+			let columnName = this.renderData.columns[x];
+			let scoreVal = this.squareData[y][x].value;
+			let hoverTitle = `<div><strong>${rowName}</strong></div>`;
+			let columnDiv = `<div>${columnName}<div>`;
+			let scoreDiv = `<div><strong>${this.datapointLabel}: </strong>${scoreVal}</div>`;
+			return hoverTitle + columnDiv + scoreDiv;
 		},
 		getWidth(ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;
@@ -307,66 +236,37 @@ export default Vue.component("time-series-heatmap", {
 		renderHeatmap(X, Y) {
 			let c = document.getElementById("heatmap" + this.sectionId);
 			let ctx = c.getContext("2d");
-			
 
-			let fontSize = this.renderConfig['font size'] * 2;
+			let longestLabel = "";
+			this.renderData.rows.forEach(r => longestLabel = r.length > longestLabel.length ? r : longestLabel);
 
 			let margin = {
-				top: 250,
-				bottom: 100,
-				left: 350,
-				right: 40,
-				bump: 10
+				top: 100,
+				bottom: 50,
+				left: !this.zoomedIn ? 20 : longestLabel.length * this.fontSize / 1.5,
+				right: 20,
 			};
 			this.margin = margin;
 
-			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight * 2;
-			let canvasWidth = ((this.boxWidth * this.renderData.columns.length) + margin.left + margin.right + (margin.bump * 8));
-			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom + (margin.bump * 8));
+			let d = document.getElementById(`heatmap-wrapper-${this.sectionId}`);
+			let canvasWidth = d.clientWidth;
+			let centerWidth = canvasWidth - margin.left - margin.right;
+			this.boxWidth = centerWidth / this.renderData.columns.length;
+
+			let canvasHeight = ((this.boxHeight * this.renderData.rows.length) + margin.top + margin.bottom);
 			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
 			c.setAttribute(
 				"style",
 				"width:" +
-					canvasWidth / 2 +
+					canvasWidth +
 					"px;height:" +
-					canvasHeight / 2 +
+					canvasHeight +
 					"px;"
 			);
-
-			// render legends
 			
-			let mainLabel = this.renderConfig.main.label + ": ",
-				mainSteps = [mainLabel];
-
-			let minVal, midVal, maxVal, valStep, valStepLow, valStepHigh;
-
-			if (this.renderConfig.main.low == this.renderConfig.main.middle) {
-				minVal = this.renderConfig.main.middle,
-					midVal = this.renderConfig.main.middle,
-					maxVal = this.renderConfig.main.high,
-					valStep = (maxVal - minVal) / 5;
-
-				for (let i = 0; i < 6; i++) {
-					let stepVal = Math.round((minVal + (valStep * i)) * 1000) / 1000
-					mainSteps.push(stepVal)
-				}
-			} else {
-
-				minVal = this.renderConfig.main.low,
-					midVal = this.renderConfig.main.middle,
-					maxVal = this.renderConfig.main.high,
-					valStepLow = (midVal - minVal) / 3,
-					valStepHigh = (maxVal - midVal) / 3;
-
-				for (let i = 0; i < 6; i++) {
-					let stepVal = Math.round((minVal + (valStep * i)) * 1000) / 1000
-					mainSteps.push(stepVal)
-				}
-
-			}
-			let numExtremes = [minVal, maxVal];
+			let numExtremes = [this.minScore, this.maxScore];
 			let colorExtremes = [ACCESSIBLE_GRAY, ACCESSIBLE_PURPLE];
 			this.colorScale = createColorScale(numExtremes, colorExtremes);
 
@@ -378,66 +278,59 @@ export default Vue.component("time-series-heatmap", {
 			ctx.fillStyle = "#000000";
 
 			// render heatmap box
-
 			ctx.beginPath();
-			ctx.fillStyle = "#ffffff";
 			ctx.strokeStyle = "#666666";
-			var fillRect = false;
-			ctx.rect(margin.left + (margin.bump * 2), margin.top + (margin.bump * 2), (this.renderData.columns.length * this.boxWidth), (this.renderData.rows.length * this.boxHeight));
-			if (fillRect) {
-				ctx.fill();
-			}
+			ctx.rect(margin.left, margin.top, (this.renderData.columns.length * this.boxWidth), (this.renderData.rows.length * this.boxHeight));
 			ctx.stroke();
 			ctx.closePath();
 
 			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
 
-				let top = margin.top + (margin.bump * 2) + (renderBoxSize * rIndex);
+				let top = margin.top + (this.boxHeight * rIndex);
 
-				ctx.font = "24px Arial";
+				ctx.font = `${this.fontSize}px Arial`;
 				ctx.textAlign = "end";
 				ctx.fillStyle = "#000000";
 				if (this.zoomedIn){
-					ctx.fillText(this.geneTxFormat(r), margin.left + margin.bump, top + fontSize);
+					ctx.fillText(this.geneTxFormat(r), margin.left - 5, top + this.fontSize);
 				}
 			})
 
 			this.renderData.columns.map((c, cIndex) => {
-				let left = margin.left + (margin.bump * 2) + (this.boxWidth * cIndex) + this.boxWidth/2;
-
+				let left = margin.left + (this.boxWidth * (cIndex + 0.35)); // start in middle of box
 				ctx.save();
-				ctx.translate(left + fontSize, margin.top + margin.bump + 0.5);
+				ctx.translate(left + this.fontSize, margin.top);
 				ctx.rotate((45 * -Math.PI) / 180);
-				ctx.font = "24px Arial";
+				ctx.font = `${this.fontSize}px Arial`;
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
-				ctx.fillText(c, 0, 0);
+				ctx.fillText(`  ${c}`, 0, 0);
 				ctx.restore();
 			})
 
 			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
 
-				let top = margin.top + (margin.bump * 2) + (renderBoxSize * rIndex);
+				let top = margin.top + (this.boxHeight * rIndex);
 
 				this.renderData.columns.map((c, cIndex) => {
 
-					let mainValue = this.renderData[r][c].main;
-					let left = margin.left + (margin.bump * 2) + (this.boxWidth * cIndex);
+					let boxValue = this.renderData[r][c];
+					let left = margin.left + (this.boxWidth * cIndex);
 
 					this.squareData[rIndex][cIndex] = {};
-					this.squareData[rIndex][cIndex]["main"] = {
-						field: this.renderConfig.main.field,
-						value: this.renderData[r][c].main,
+					this.squareData[rIndex][cIndex] = {
+						field: this.heatmapField,
+						value: this.renderData[r][c],
 					};
 
-					let colorString = `${this.colorScale(mainValue)}`;
+					let colorString = `${this.colorScale(boxValue)}`;
 
 
 					if (X == cIndex && Y == rIndex) {
 						ctx.beginPath();
-						ctx.rect(left, top, this.boxWidth, renderBoxSize);
+						ctx.rect(left, top, this.boxWidth, this.boxHeight);
 						ctx.fillStyle = "black";
 						ctx.fill();
 
@@ -446,13 +339,13 @@ export default Vue.component("time-series-heatmap", {
 							left + 2,
 							top + 2,
 							this.boxWidth - 4,
-							renderBoxSize - 4
+							this.boxHeight - 4
 						);
 						ctx.fillStyle = colorString;
 						ctx.fill();
 					} else {
 						ctx.beginPath();
-						ctx.rect(left, top, this.boxWidth, renderBoxSize);
+						ctx.rect(left, top, this.boxWidth, this.boxHeight);
 						ctx.fillStyle = colorString;
 						ctx.fill();
 					}
@@ -477,76 +370,26 @@ $(function () {});
 </script>
 
 <style>
-.heatmap-content {
-	text-align: center;
-	/*overflow-x: auto;*/
-}
-
-.heatmap-wrapper {
-	/*position: relative;*/
-}
-
 .heatmap-canvas-wrapper {
 	text-align: left;
 	display: inline-block;
 	position: relative;
 	white-space: nowrap;
 	background-color: #fff;
-}
-
-#colWrapper, .col-wrapper {
-	transform-origin: left top;
-	transform: rotate(-90deg);
-	position: absolute;
-	/*left: 0;*/
-}
-#colWrapper div, .col-wrapper div{
-	/*transform-origin: left center;
-    transform: rotate(45deg);*/
-	white-space: nowrap;
-	padding-left: 10px;
-}
-#heatmapCanvasWrapper, .heatmap-canvas-wrapper {
-	display: inline-block;
 	vertical-align: top;
 }
 
-#heatmapCanvasWrapper canvas, .heatmap-canvas-wrapper canvas {
-	/*border: solid 1px #aaa;*/
-}
-
-#heatmap:hover, .heatmap:hover {
-	cursor: pointer;
-}
-
-#clicked_cell_value, .clicked-cell-value {
+.clicked-cell-value {
 	position: absolute;
     background-color: #fff;
     border: solid 1px #aaa;
     box-shadow: 0 0 5px #00000075;
-    font-size: 12px;
+    font-size: 13px;
     border-radius: 5px;
     z-index: 10;
-    /*min-width: 300px;*/
 	text-align: left;
 	padding-top: 5px;
 	padding-left: 5px;
-}
-.field-on-clicked-cell,
-.content-on-clicked-cell {
-	display: block !important;
-}
-
-.clicked-cell-value-close {
-	position: absolute;
-	top: 2px;
-	right: 2px;
-	font-size: 12px;
-	color: #69f;
-}
-
-.clicked-cell-value-close:hover {
-	color: #36c;
 }
 
 .heatmap-label {
@@ -559,56 +402,12 @@ $(function () {});
 	font-size: 14px;
 	text-align: left;
 }
-
-.heatmap-scale-legend {
-	font-size: 14px;
-	text-align: left;
-}
-
-.heatmap-scale-legend div {
-	display: inline-block;
-}
-.heatmap-scale-legend div.scale-color {
-	padding: 0 3px;
-	font-size: 12px;
-	border-left: solid 1px #fff;
-}
-
-.scale-legend-main-field .field-label,
-.scale-legend-sub-field .field-label {
-	font-weight: bold;
-}
-
-.scale-legend-main-colors {
-	margin-right: 10px;
-}
-
-.sub-legend-steps {
-	padding-left: 5px;
-}
-.hover-title {
-	font-weight: bold;
-}
-.legends {
-    gap: 20px;
-}
-
-.legend {
-    margin: 0 10px 0 0;
-    gap:1px;
-}
-.legend .label {
-    font-size: 11px !important;
-    line-height: 11px;
-}
-.legend .gradient {
+.gradient {
     height: 20px;
     width: 200px;
     border-radius: 20px;
-}
-.legend span {
-  padding-left: 15px;
-  padding-right: 15px;
+	margin-left: 15px;
+	margin-right: 15px;
 }
 </style>
 
