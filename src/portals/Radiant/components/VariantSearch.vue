@@ -314,12 +314,15 @@
                                     </div>
                                 </template>
                                 <template #cell(alleleNumber)="row">
-                                    <div align="right">
+                                    <!-- <div align="right"> -->
+                                    <div align="left">
+                                    
                                         {{ row.item.alleleNumber }}
                                     </div>
                                 </template>
                                 <template #cell(alleleFrequency)="row">
-                                    <div align="right">
+                                    <!-- <div align="right"> -->
+                                    <div align="left">
                                         {{
                                             formatAlleleFrequency(
                                                 row.item.alleleFrequency
@@ -647,7 +650,7 @@ export default Vue.component("VariantSearch", {
                     label: "Allele Number",
                     sortable: true,
                     tdClass: "text-right pr-4",
-                    thClass: "text-right",
+                    thClass: "text-right pr-4",
                 },
                 /*{
                     key: "homozygousCases",
@@ -661,7 +664,7 @@ export default Vue.component("VariantSearch", {
                     label: "Allele Frequency",
                     sortable: true,
                     tdClass: "text-right pr-4",
-                    thClass: "text-right",
+                    thClass: "text-right pr-4",
                     formatter: "formatAlleleFrequency",
                 },
             ],
