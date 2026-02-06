@@ -12,9 +12,9 @@
 			</time-series-line-plot>
 		</div>
 		<div class="heatmap-content" :id="'heatmapContent' + sectionId">
-			<div class="heatmap-scale-legend" :id="'heatmap_scale_legend' + sectionId">
-				<div style="display:flex; gap:5px" class="legends">
-					<div style="display:inline-block" class="legend">
+			<div class="heatmap-scale-legend">
+				<div style="display:flex; gap:5px">
+					<div style="display:inline-block">
 						<div style="display:flex; margin-top:10px" class="marks">
 							<span>MIN</span>
 							<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
@@ -235,9 +235,9 @@ export default Vue.component("time-series-heatmap", {
 			let rowName = this.geneTxFormat(this.renderData.rows[y]);
 			let columnName = this.renderData.columns[x];
 			let scoreVal = this.squareData[y][x].value;
-			let hoverTitle = `<div class="hover-title">${rowName}</div>`;
+			let hoverTitle = `<div><strong>${rowName}</strong></div>`;
 			let columnDiv = `<div>${columnName}<div>`;
-			let scoreDiv = `<div><b>${this.datapointLabel}: </b>${scoreVal}</div>`;
+			let scoreDiv = `<div><strong>${this.datapointLabel}: </strong>${scoreVal}</div>`;
 			return hoverTitle + columnDiv + scoreDiv;
 		},
 		getWidth(ctx, text, fontSize, fontFace) {
@@ -456,47 +456,12 @@ $(function () {});
 .heatmap-scale-legend div {
 	display: inline-block;
 }
-.heatmap-scale-legend div.scale-color {
-	padding: 0 3px;
-	font-size: 12px;
-	border-left: solid 1px #fff;
-}
-
-.scale-legend-main-field .field-label,
-.scale-legend-sub-field .field-label {
-	font-weight: bold;
-}
-
-.scale-legend-main-colors {
-	margin-right: 10px;
-}
-
-.sub-legend-steps {
-	padding-left: 5px;
-}
-.hover-title {
-	font-weight: bold;
-}
-.legends {
-    gap: 20px;
-}
-
-.legend {
-    margin: 0 10px 0 0;
-    gap:1px;
-}
-.legend .label {
-    font-size: 11px !important;
-    line-height: 11px;
-}
-.legend .gradient {
+.gradient {
     height: 20px;
     width: 200px;
     border-radius: 20px;
-}
-.legend span {
-  padding-left: 15px;
-  padding-right: 15px;
+	margin-left: 15px;
+	margin-right: 15px;
 }
 </style>
 
