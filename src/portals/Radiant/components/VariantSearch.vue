@@ -540,6 +540,7 @@ export default Vue.component("VariantSearch", {
             fields: [
                 {
                     key: "varId",
+                    sortable: true,
                     label: "Variant",
                 },
                 {
@@ -632,6 +633,11 @@ export default Vue.component("VariantSearch", {
                     key: "HGVSp",
                     label: "HGVSp",
                 },
+                {
+                    key: "revel",
+                    label: "REVEL",
+                },
+                {key:"spliceai_DS_AG", label:"SpliceAI"},
             ],
             hprecordFields: [
                 {
