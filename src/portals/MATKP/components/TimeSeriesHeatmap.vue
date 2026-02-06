@@ -1,5 +1,5 @@
 <template>
-	<div class="heatmap-wrapper" :id="`heatmap-wrapper-${sectionId}`">
+	<div :id="`heatmap-wrapper-${sectionId}`">
 		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
 			<div :id="'clicked_cell_value_content' + sectionId" >
 			</div>
@@ -11,20 +11,14 @@
 				:plotId="`${sectionId}_line`">
 			</time-series-line-plot>
 		</div>
-		<div class="heatmap-content" :id="'heatmapContent' + sectionId">
-			<div class="heatmap-scale-legend">
-				<div style="display:flex; gap:5px">
-					<div style="display:inline-block">
-						<div style="display:flex; margin-top:10px" class="marks">
-							<span>MIN</span>
-							<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
-							</div>
-							<span>MAX</span>
-						</div>
-					</div>
+		<div class="heatmap-content">
+			<div style="display:flex">
+				<span>MIN</span>
+				<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
 				</div>
+				<span>MAX</span>
 			</div>
-			<div class="heatmap-canvas-wrapper" :id="'heatmapPlotWrapper' + sectionId">
+			<div class="heatmap-canvas-wrapper">
 				<div
 					class="col-wrapper"
 					:id="'colWrapper' + sectionId"
@@ -392,6 +386,7 @@ $(function () {});
 	position: relative;
 	white-space: nowrap;
 	background-color: #fff;
+	vertical-align: top;
 }
 
 #colWrapper, .col-wrapper {
@@ -403,16 +398,11 @@ $(function () {});
 	white-space: nowrap;
 	padding-left: 10px;
 }
-#heatmapCanvasWrapper, .heatmap-canvas-wrapper {
-	display: inline-block;
-	vertical-align: top;
-}
-
 #heatmap:hover, .heatmap:hover {
 	cursor: pointer;
 }
 
-#clicked_cell_value, .clicked-cell-value {
+.clicked-cell-value {
 	position: absolute;
     background-color: #fff;
     border: solid 1px #aaa;
@@ -446,15 +436,6 @@ $(function () {});
 .heatmap-legend {
 	font-size: 14px;
 	text-align: left;
-}
-
-.heatmap-scale-legend {
-	font-size: 14px;
-	text-align: left;
-}
-
-.heatmap-scale-legend div {
-	display: inline-block;
 }
 .gradient {
     height: 20px;
