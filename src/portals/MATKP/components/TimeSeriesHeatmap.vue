@@ -202,6 +202,7 @@ export default Vue.component("time-series-heatmap", {
 				!!this.squareData[y] &&
 				!!this.squareData[y][x]
 			) {
+				// TODO refactor into method
 				clickedCellValue +=
 					'<span class="field-on-clicked-cell hover-title">' +
 					this.geneTxFormat(this.renderData.rows[y]) +
@@ -228,34 +229,25 @@ export default Vue.component("time-series-heatmap", {
 			let canvasRect = document
 				.getElementById("heatmapCanvasWrapper" + this.sectionId)
 				.getBoundingClientRect();
-			let canvasXPos = canvasRect.left;
 
-			let canvasYPos =
-				document.getElementById("heatmapContent" + this.sectionId).offsetHeight -
-				document.getElementById("heatmapPlotWrapper" + this.sectionId).offsetHeight +
-				document.getElementById("colWrapper" + this.sectionId).offsetWidth;
+			let hoverTop = yPos - 7;
+			let hoverLeft = xPos + 50;
 
-			let hoverTop = canvasYPos + yPos;
-			let hoverLeft = canvasXPos + xPos - 30;
-
-			let canvasBottom = canvasRect.bottom + this.margin.bottom;
 			let canvasRight = canvasRect.right + this.margin.right;
 
-			let bottomOverhang = hoverTop + wrapper.clientHeight - canvasBottom;
 			let rightOverhang = hoverLeft + wrapper.clientWidth - canvasRight;
-			if (bottomOverhang > 0){
-				hoverTop = hoverTop - bottomOverhang;
-			}
+
 			if (rightOverhang > 0){
-				hoverLeft = xPos - wrapper.clientWidth; // switch the hover box to the left
+				console.log("Overhanging to the right");
+				hoverLeft = hoverLeft - rightOverhang;
 			}
 			
 			// show box if hovering over a valid cell
 			if (clickedCellValue != "") {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
-				wrapper.style.top =`${yPos - 10}px`; // Can we do this by bottom instead?
-				wrapper.style.left = `${xPos + 50}px`;
+				wrapper.style.top =`${hoverTop}px`; // Can we do this by bottom instead?
+				wrapper.style.left = `${hoverLeft}px`;
 			} else {
 				wrapper.classList.add("hidden");
 			}
