@@ -218,7 +218,6 @@ export default Vue.component("time-series-heatmap", {
 			let rightOverhang = hoverLeft + wrapper.clientWidth - canvasRight;
 
 			if (rightOverhang > 0){
-				console.log("Overhanging to the right");
 				hoverLeft = hoverLeft - rightOverhang;
 			}
 			
@@ -237,10 +236,10 @@ export default Vue.component("time-series-heatmap", {
 			let rowName = this.geneTxFormat(this.renderData.rows[y]);
 			let columnName = this.renderData.columns[x];
 			let scoreVal = this.squareData[y][x].value;
-			let hoverTitle = `<span class="field-on-clicked-cell hover-title">${rowName}}</span>`;
-			let columnSpan = `<span class="field-on-clicked-cell">${columnName}<span>`;
-			let scoreSpan = `<span class=content-on-clicked-cell><b>${this.datapointLabel}:</b>${scoreVal}</span>`;
-			return hoverTitle + columnSpan + scoreSpan;
+			let hoverTitle = `<div class="hover-title">${rowName}</div>`;
+			let columnDiv = `<div>${columnName}<div>`;
+			let scoreDiv = `<div><b>${this.datapointLabel}: </b>${scoreVal}</div>`;
+			return hoverTitle + columnDiv + scoreDiv;
 		},
 		getWidth(ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;
@@ -255,13 +254,12 @@ export default Vue.component("time-series-heatmap", {
 			this.renderData.rows.forEach(r => longestLabel = r.length > longestLabel.length ? r : longestLabel);
 
 			let margin = {
-				top: 250,
-				bottom: 100,
-				left: longestLabel.length * this.fontSize / 1.5,
-				right: 40,
+				top: 100,
+				bottom: 50,
+				left: !this.zoomedIn ? 20 : longestLabel.length * this.fontSize / 1.5,
+				right: 20,
 			};
 			this.margin = margin;
-			console.log(this.margin.left);
 
 			let d = document.getElementById(`heatmap-wrapper-${this.sectionId}`);
 			let canvasWidth = d.clientWidth;
@@ -442,14 +440,9 @@ $(function () {});
     font-size: 13px;
     border-radius: 5px;
     z-index: 10;
-    /*min-width: 300px;*/
 	text-align: left;
 	padding-top: 5px;
 	padding-left: 5px;
-}
-.field-on-clicked-cell,
-.content-on-clicked-cell {
-	display: block !important;
 }
 
 .clicked-cell-value-close {
