@@ -39,8 +39,7 @@
                                                     Zoom in
                                                 </label>
                                             </div>
-                                            <div v-if="$parent.ready"
-                                                class="time-series-content">
+                                            <div v-if="$parent.ready" class="time-series-content">
                                                 <time-series-heatmap
                                                     :heatmapData="$parent.paginatedData"
                                                     :minScore="$parent.minScore"
@@ -53,23 +52,24 @@
                                                 </time-series-heatmap>
                                             </div>
                                         <div>
-                                        <b-table v-if="$parent.ready"
-                                            small
-                                            v-model="$parent.currentTable"
-                                            :items="$parent.timeSeriesData"
-                                            :fields="$parent.tableFields"
-                                            :per-page="10"
-                                            :current-page="$parent.currentPage">
-                                        </b-table>
-
-                                    <b-pagination v-if="$parent.ready"
-                                        v-model="$parent.currentPage"
-                                        class="pagination-sm justify-content-center"
-                                        :total-rows="$parent.timeSeriesData.length"
-                                        :per-page="10"
-                                    ></b-pagination>
-                                </div>
+                                        <div class="table-background">
+                                            <b-table v-if="$parent.ready"
+                                                small
+                                                v-model="$parent.currentTable"
+                                                :items="$parent.timeSeriesData"
+                                                :fields="$parent.tableFields"
+                                                :per-page="10"
+                                                :current-page="$parent.currentPage">
+                                            </b-table>
+                                            <b-pagination v-if="$parent.ready"
+                                                v-model="$parent.currentPage"
+                                                class="pagination-sm justify-content-center"
+                                                :total-rows="$parent.timeSeriesData.length"
+                                                :per-page="10"
+                                            ></b-pagination>
                                         </div>
+                                </div>
+                            </div>
                                     </b-tab>
                                     <b-tab title="Search by Gene">
                                         <div class="tab-inner">
@@ -104,11 +104,13 @@
                                                         :zoomedIn="true"
                                                         :avgRep="$parent.avgRep">
                                                     </time-series-heatmap>
-                                                    <b-table
-                                                        small
-                                                        :items="$parent.geneSearchResults"
-                                                        :fields="$parent.tableFields.filter(f => f.key !== 'order')">
-                                                    </b-table>
+                                                    <div class="table-background">
+                                                        <b-table
+                                                            small
+                                                            :items="$parent.geneSearchResults"
+                                                            :fields="$parent.tableFields.filter(f => f.key !== 'order')">
+                                                        </b-table>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -176,5 +178,9 @@ button {
 .gene-search-controls {
     display: inline;
     vertical-align: top;
+}
+.table-background {
+    border: 10px solid #eeeeee;
+    padding-bottom: 10px;
 }
 </style>
