@@ -11,7 +11,7 @@
 				:plotId="`${sectionId}_line`">
 			</time-series-line-plot>
 		</div>
-		<div class="heatmap-content">
+		<div>
 			<div style="display:flex">
 				<span>MIN</span>
 				<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
@@ -19,10 +19,6 @@
 				<span>MAX</span>
 			</div>
 			<div class="heatmap-canvas-wrapper">
-				<div
-					class="col-wrapper"
-					:id="'colWrapper' + sectionId"
-				></div>
 				<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
 						:id="'heatmap'+ sectionId"
@@ -376,10 +372,6 @@ $(function () {});
 </script>
 
 <style>
-.heatmap-content {
-	text-align: center;
-}
-
 .heatmap-canvas-wrapper {
 	text-align: left;
 	display: inline-block;
@@ -387,16 +379,6 @@ $(function () {});
 	white-space: nowrap;
 	background-color: #fff;
 	vertical-align: top;
-}
-
-#colWrapper, .col-wrapper {
-	transform-origin: left top;
-	transform: rotate(-90deg);
-	position: absolute;
-}
-#colWrapper div, .col-wrapper div{
-	white-space: nowrap;
-	padding-left: 10px;
 }
 #heatmap:hover, .heatmap:hover {
 	cursor: pointer;
