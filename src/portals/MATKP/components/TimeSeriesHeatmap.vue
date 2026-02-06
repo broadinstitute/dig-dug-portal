@@ -151,7 +151,7 @@ export default Vue.component("time-series-heatmap", {
 			return massagedData;
 		},
 		boxHeight() {
-			return this.fontSize * 1.5;
+			return !this.zoomedIn ? this.zoomedOutBoxHeight : this.fontSize * 1.5;
 		},
 		colorScaleArray(){
             if (this.colorScale === null) { return []; }
@@ -192,8 +192,7 @@ export default Vue.component("time-series-heatmap", {
 			let xPos = Math.floor(e.clientX - rect.left);
 			let yPos = Math.floor(e.clientY - rect.top);
 			let x = Math.floor((e.clientX - (rect.left) - this.margin.left) / (this.boxWidth));
-			let currentBoxHeight = this.zoomedIn ? this.boxHeight : this.zoomedOutBoxHeight;
-			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / currentBoxHeight);
+			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / this.boxHeight);
 
 			let validCell = x >= 0 && y >= 0 && !!this.squareData[y] && !!this.squareData[y][x]
 			let clickedCellValue = !validCell ? "" : this.hoverContent(x,y);
@@ -266,8 +265,7 @@ export default Vue.component("time-series-heatmap", {
 			let centerWidth = canvasWidth - margin.left - margin.right;
 			this.boxWidth = centerWidth / this.renderData.columns.length;
 
-			let renderBoxSize = !this.zoomedIn ? 6 : this.boxHeight;
-			let canvasHeight = ((renderBoxSize * this.renderData.rows.length) + margin.top + margin.bottom);
+			let canvasHeight = ((this.boxHeight * this.renderData.rows.length) + margin.top + margin.bottom);
 			
 			c.setAttribute("width", canvasWidth);
 			c.setAttribute("height", canvasHeight);
@@ -292,22 +290,16 @@ export default Vue.component("time-series-heatmap", {
 			ctx.fillStyle = "#000000";
 
 			// render heatmap box
-
 			ctx.beginPath();
-			ctx.fillStyle = "#ffffff";
 			ctx.strokeStyle = "#666666";
-			var fillRect = false;
 			ctx.rect(margin.left, margin.top, (this.renderData.columns.length * this.boxWidth), (this.renderData.rows.length * this.boxHeight));
-			if (fillRect) {
-				ctx.fill();
-			}
 			ctx.stroke();
 			ctx.closePath();
 
 			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
 
-				let top = margin.top + (renderBoxSize * rIndex);
+				let top = margin.top + (this.boxHeight * rIndex);
 
 				ctx.font = `${this.fontSize}px Arial`;
 				ctx.textAlign = "end";
@@ -332,7 +324,7 @@ export default Vue.component("time-series-heatmap", {
 			this.renderData.rows.map((r, rIndex) => {
 				this.squareData[rIndex] = {};
 
-				let top = margin.top + (renderBoxSize * rIndex);
+				let top = margin.top + (this.boxHeight * rIndex);
 
 				this.renderData.columns.map((c, cIndex) => {
 
@@ -350,7 +342,7 @@ export default Vue.component("time-series-heatmap", {
 
 					if (X == cIndex && Y == rIndex) {
 						ctx.beginPath();
-						ctx.rect(left, top, this.boxWidth, renderBoxSize);
+						ctx.rect(left, top, this.boxWidth, this.boxHeight);
 						ctx.fillStyle = "black";
 						ctx.fill();
 
@@ -359,13 +351,13 @@ export default Vue.component("time-series-heatmap", {
 							left + 2,
 							top + 2,
 							this.boxWidth - 4,
-							renderBoxSize - 4
+							this.boxHeight - 4
 						);
 						ctx.fillStyle = colorString;
 						ctx.fill();
 					} else {
 						ctx.beginPath();
-						ctx.rect(left, top, this.boxWidth, renderBoxSize);
+						ctx.rect(left, top, this.boxWidth, this.boxHeight);
 						ctx.fillStyle = colorString;
 						ctx.fill();
 					}
@@ -392,11 +384,6 @@ $(function () {});
 <style>
 .heatmap-content {
 	text-align: center;
-	/*overflow-x: auto;*/
-}
-
-.heatmap-wrapper {
-	/*position: relative;*/
 }
 
 .heatmap-canvas-wrapper {
@@ -411,21 +398,14 @@ $(function () {});
 	transform-origin: left top;
 	transform: rotate(-90deg);
 	position: absolute;
-	/*left: 0;*/
 }
 #colWrapper div, .col-wrapper div{
-	/*transform-origin: left center;
-    transform: rotate(45deg);*/
 	white-space: nowrap;
 	padding-left: 10px;
 }
 #heatmapCanvasWrapper, .heatmap-canvas-wrapper {
 	display: inline-block;
 	vertical-align: top;
-}
-
-#heatmapCanvasWrapper canvas, .heatmap-canvas-wrapper canvas {
-	/*border: solid 1px #aaa;*/
 }
 
 #heatmap:hover, .heatmap:hover {
