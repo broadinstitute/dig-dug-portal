@@ -21,6 +21,7 @@ import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 import TimeSeriesHeatmap from "../../components/TimeSeriesHeatmap.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
+import TimeSeriesDisplay from "../../components/TimeSeriesDisplay.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -53,6 +54,7 @@ new Vue({
         TooltipDocumentation,
         TimeSeriesHeatmap,
         TimeSeriesLinePlot,
+        TimeSeriesDisplay,
         ResearchSingleCellInfo
     },
     mixins: [matkpMixin],

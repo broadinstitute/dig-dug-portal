@@ -40,16 +40,17 @@
                                                 </label>
                                             </div>
                                             <div v-if="$parent.ready" class="time-series-content">
-                                                <time-series-heatmap
-                                                    :heatmapData="$parent.paginatedData"
-                                                    :minScore="$parent.minScore"
-                                                    :maxScore="$parent.maxScore"
-                                                    :utils="$parent.utilsBox"
-                                                    sectionId="time-series-heatmap"
-                                                    :zoomedIn="$parent.zoomedIn"
-                                                    :activeTab="$parent.activeTab"
-                                                    :avgRep="$parent.avgRep">
-                                                </time-series-heatmap>
+                                                
+                                                    <time-series-display
+                                                        :heatmapData="$parent.paginatedData"
+                                                        :minScore="$parent.minScore"
+                                                        :maxScore="$parent.maxScore"
+                                                        :utils="$parent.utilsBox"
+                                                        :zoomedIn="$parent.zoomedIn"
+                                                        :activeTab="$parent.activeTab"
+                                                        :avgRep="$parent.avgRep">
+                                                    </time-series-display>
+                                                
                                             </div>
                                         <div>
                                         <div class="table-background">
