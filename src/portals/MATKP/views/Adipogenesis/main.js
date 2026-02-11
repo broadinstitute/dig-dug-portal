@@ -118,6 +118,11 @@ new Vue({
                     sortable: true
                 },
                 {
+                    key: "gene",
+                    label: "Gene",
+                    sortable: true
+                },
+                {
                     key: "transcript_id",
                     label: "Transcript",
                     sortable: true
@@ -125,11 +130,6 @@ new Vue({
                 {
                     key: "max_diff",
                     label: "Max diff.",
-                    sortable: true
-                },
-                {
-                    key: "gene",
-                    label: "Gene",
                     sortable: true
                 },
                 {
