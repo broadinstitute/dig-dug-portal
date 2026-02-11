@@ -176,6 +176,7 @@ export default Vue.component("research-splice-track", {
 		},
 
 		renderTrack(GENES) {
+			// TODO consult MultiRegionPlot component for how to get the coordinates track in there.
 			if (this.gene === null){
 				return;
 			}
