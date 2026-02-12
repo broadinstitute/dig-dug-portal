@@ -1,12 +1,21 @@
 <template>
     <div id="heatmapSection" class="heatmap-container">
-
+        <b-tabs v-model="activeTab" content-class="mt-2">
+            <b-tab title="Gene set × genes by phenotype">
+                <div id="heatmapTabGenes" class="heatmap-tab-content"></div>
+            </b-tab>
+            <b-tab title="Phenotype × gene set">
+                <div id="heatmapTabPhenotypeGeneSet" class="heatmap-tab-content"></div>
+            </b-tab>
+        </b-tabs>
     </div>
 </template>
 
 <script>
     import Vue from "vue";
-    import { BootstrapVueIcons } from "bootstrap-vue";
+    import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+    import "bootstrap-vue/dist/bootstrap-vue.css";
+    Vue.use(BootstrapVue);
     Vue.use(BootstrapVueIcons);
 
     import * as d3 from "d3";
@@ -15,7 +24,7 @@
         props: ["associations"],
         data() {
             return {
-                
+                activeTab: 0,
             };
         },
         mounted() {
@@ -57,15 +66,16 @@
                 // 5. Log the reorganized data
                 console.log('Reorganized associations by phenotype:', reorganizedByPhenotype);
 
-                // Render heatmap from processed data
+                // Render both heatmaps
                 this.renderHeatmap(reorganizedByPhenotype);
-                
+                this.renderPhenotypeGeneSetHeatmap(reorganizedByPhenotype);
+
                 return reorganizedByPhenotype;
             },
             renderHeatmap(reorganizedByPhenotype){
-                const root = d3.select('#heatmapSection.heatmap-container');
+                const root = d3.select('#heatmapTabGenes');
                 if (root.empty()) {
-                    console.warn('Heatmap container (#heatmapSection.heatmap-container) not found.');
+                    console.warn('Heatmap container (#heatmapTabGenes) not found.');
                     return;
                 }
 
@@ -455,6 +465,142 @@
                 draw(defaultPhenotype);
                 select.on('change', () => draw(document.getElementById('heatmapPhenotypeSelect').value));
             },
+            renderPhenotypeGeneSetHeatmap(reorganizedByPhenotype) {
+                const root = d3.select('#heatmapTabPhenotypeGeneSet');
+                if (root.empty()) return;
+
+                root.selectAll('*').remove();
+
+                const phenotypes = Object.keys(reorganizedByPhenotype || {}).filter(Boolean).sort();
+                if (!phenotypes.length) {
+                    root.append('div').style('color', '#777').text('No phenotype data available.');
+                    return;
+                }
+
+                const geneSetToLabel = {};
+                const valueMap = new Map();
+                phenotypes.forEach(phenotype => {
+                    const associations = reorganizedByPhenotype[phenotype] || [];
+                    associations.forEach(a => {
+                        const gsId = a.gene_set || '(unknown)';
+                        if (a.gene_set_label != null) geneSetToLabel[gsId] = a.gene_set_label;
+                        const beta = parseFloat(a.beta_uncorrected);
+                        if (isNaN(beta)) return;
+                        const key = `${phenotype}\t${gsId}`;
+                        const prev = valueMap.get(key);
+                        if (prev == null || beta > prev) valueMap.set(key, beta);
+                    });
+                });
+
+                const geneSetIds = [...new Set([...valueMap.keys()].map(k => k.split('\t')[1]))];
+                const geneSetSumBeta = new Map();
+                geneSetIds.forEach(gsId => {
+                    let sum = 0;
+                    phenotypes.forEach(phenotype => {
+                        const v = valueMap.get(`${phenotype}\t${gsId}`);
+                        if (v != null && Number.isFinite(v)) sum += v;
+                    });
+                    geneSetSumBeta.set(gsId, sum);
+                });
+                const geneSets = geneSetIds.sort((a, b) => (geneSetSumBeta.get(b) ?? 0) - (geneSetSumBeta.get(a) ?? 0));
+                if (!geneSets.length) {
+                    root.append('div').style('color', '#777').text('No gene set data available.');
+                    return;
+                }
+
+                const getValue = (phenotype, geneSet) => valueMap.get(`${phenotype}\t${geneSet}`) ?? null;
+                const betaColor = (val) => {
+                    if (val == null || !Number.isFinite(val)) return { fill: '#eee', opacity: 0.5 };
+                    if (val >= 1) return { fill: '#4a90e2', opacity: 1 };
+                    if (val >= 0.1) return { fill: '#f5a623', opacity: 1 };
+                    if (val >= 0.01) return { fill: '#f8e71c', opacity: 1 };
+                    return { fill: '#eee', opacity: 0.5 };
+                };
+
+                const cellSize = 20;
+                const margin = { top: 120, right: 20, bottom: 20, left: 180 };
+                const width = (geneSets.length + 1) * cellSize + margin.left + margin.right;
+                const height = (phenotypes.length + 1) * cellSize + margin.top + margin.bottom;
+
+                const legend = root.append('div').attr('class', 'heatmap-legend').style('margin-bottom', '12px');
+                legend.append('div').style('font-weight', 'bold').style('font-size', '12px').style('color', '#333').style('margin-bottom', '4px').text('Phenotype × gene set (beta_uncorrected):');
+                const legRow = legend.append('div').style('display', 'inline-flex').style('align-items', 'center').style('gap', '10px 6px');
+                [{ color: '#4a90e2', label: 'Very Strong (≥ 1)' }, { color: '#f5a623', label: 'Strongly Suggestive (0.1-1)' }, { color: '#f8e71c', label: 'Nominally Significant (0.01-0.1)' }, { color: '#eee', label: 'Below threshold' }].forEach(({ color, label }) => {
+                    legRow.append('span').style('display', 'inline-flex').style('align-items', 'center').style('gap', '4px')
+                        .append('span').style('width', '14px').style('height', '14px').style('background', color).style('flex-shrink', 0);
+                    legRow.append('span').style('font-size', '12px').style('color', '#333').text(label);
+                });
+
+                let tooltip = d3.select('#heatmapTooltip');
+                if (tooltip.empty()) {
+                    tooltip = d3.select('body').append('div').attr('id', 'heatmapTooltip').attr('class', 'heatmap-tooltip')
+                        .style('position', 'fixed').style('display', 'none').style('opacity', 0).style('left', 0).style('top', 0)
+                        .style('padding', '8px 12px').style('background', 'rgba(0,0,0,0.85)').style('color', '#fff').style('font-size', '12px')
+                        .style('border-radius', '6px').style('pointer-events', 'none').style('z-index', '10000').style('max-width', '320px');
+                }
+
+                const svg = root.append('svg').attr('id', 'heatmapPhenotypeGeneSet').attr('width', width).attr('height', height).style('overflow', 'visible');
+                const g = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+                const rows = phenotypes;
+                const cols = geneSets;
+
+                rows.forEach((rowId, rowIndex) => {
+                    cols.forEach((colId, colIndex) => {
+                        const value = getValue(rowId, colId);
+                        const style = betaColor(value);
+                        g.append('rect')
+                            .attr('x', (colIndex + 1) * cellSize)
+                            .attr('y', rowIndex * cellSize)
+                            .attr('width', cellSize)
+                            .attr('height', cellSize)
+                            .attr('class', 'heatmap-cell')
+                            .attr('fill', style.fill)
+                            .attr('opacity', style.opacity)
+                            .attr('stroke', '#ddd')
+                            .on('mouseover', function () {
+                                const ev = d3.event || window.event;
+                                const label = geneSetToLabel[colId] ?? colId;
+                                const text = value != null && Number.isFinite(value) ? Number(value).toFixed(3) : 'N/A';
+                                const tooltipHtml = `<strong>Phenotype:</strong> ${rowId}<br/><strong>Gene set:</strong> ${colId}<br/><strong>Gene set label:</strong> ${label}<br/><strong>beta_uncorrected:</strong> ${text}`;
+                                if (ev) {
+                                    const x = (ev.clientX != null ? ev.clientX : ev.pageX) + 10;
+                                    const y = (ev.clientY != null ? ev.clientY : ev.pageY) - 28;
+                                    tooltip.style('display', 'block').html(tooltipHtml).style('left', x + 'px').style('top', y + 'px');
+                                    tooltip.transition().duration(200).style('opacity', 0.9);
+                                    d3.select(`.pg-row-${rowIndex}`).classed('highlighted', true);
+                                    d3.select(`.pg-col-${colIndex}`).classed('highlighted', true);
+                                }
+                            })
+                            .on('mousemove', function () {
+                                const ev = d3.event || window.event;
+                                if (ev) tooltip.style('left', ((ev.clientX != null ? ev.clientX : ev.pageX) + 10) + 'px').style('top', ((ev.clientY != null ? ev.clientY : ev.pageY) - 28) + 'px');
+                            })
+                            .on('mouseout', () => {
+                                tooltip.transition().duration(500).style('opacity', 0).on('end', function () { d3.select(this).style('display', 'none'); });
+                                root.selectAll('.axis-label').classed('highlighted', false);
+                            });
+                    });
+                });
+
+                g.selectAll('.pg-row-label').data(rows).enter().append('text')
+                    .text(d => d)
+                    .attr('x', -10)
+                    .attr('y', (d, i) => i * cellSize + cellSize / 2)
+                    .attr('dy', '.35em')
+                    .attr('text-anchor', 'end')
+                    .attr('class', (d, i) => `axis-label pg-row-${i}`)
+                    .style('font-size', '10px')
+                    .style('fill', '#333');
+
+                g.selectAll('.pg-col-label').data(cols).enter().append('text')
+                    .text(d => d)
+                    .attr('transform', (d, i) => `translate(${(i + 1) * cellSize + cellSize / 2}, -10) rotate(-45)`)
+                    .attr('text-anchor', 'start')
+                    .attr('class', (d, i) => `axis-label pg-col-${i}`)
+                    .style('font-size', '10px')
+                    .style('fill', '#333');
+            },
             groupBy(array, key) {
                 return array.reduce((result, item) => {
                     const groupKey = item[key];
@@ -477,6 +623,11 @@
         border-radius: 10px;
         background: #fafafa;
         overflow: auto;
+    }
+
+    .heatmap-tab-content {
+        min-height: 120px;
+        padding: 4px 0;
     }
 
     .heatmap-container .axis-label.highlighted {
