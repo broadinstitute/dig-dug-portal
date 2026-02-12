@@ -491,6 +491,35 @@
 
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <kc-cfde-logo></kc-cfde-logo>
+                        <h4 class="card-title">
+                            Most significant <a href="https://cfdeknowledge.org" style="color: #ff6600;">CFDE</a> gene sets connected to 
+                            {{ $store.state.phenotype.description }}
+                            &nbsp;<tooltip-documentation
+                                name="phenotype.geneset2phenotype.tooltip"
+                                :content-fill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
+                            ></tooltip-documentation>
+                        </h4>
+                        <!--<documentation
+                            name="phenotype.geneset2phenotype.subheader"
+                            :content-map="$store.state.bioPortal.documentations"
+                        ></documentation>-->
+                        <div class="temporary-documentation">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse</div>
+
+                        <gene-set-2-phenotype
+                            :phenotype="$store.state.phenotype"
+                        >
+                        </gene-set-2-phenotype>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
                         <h4 class="card-title">
                             Genetic correlations for
                             {{ $store.state.phenotype.description }} (Ancestry:
@@ -712,4 +741,9 @@ div.card
     >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-totalEntropy {
     background-color: #14a433;
 }
+
+.temporary-documentation {
+    margin-bottom: 25px;
+}
+
 </style>
