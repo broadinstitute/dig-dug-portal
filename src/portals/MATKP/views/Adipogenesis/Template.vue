@@ -53,7 +53,6 @@
                                                     :utils="$parent.utilsBox"
                                                     :zoomedIn="$parent.zoomedIn"
                                                     sectionId="adipogenesis"
-                                                    :activeTab="$parent.activeTab"
                                                     :avgRep="$parent.avgRep"
                                                     :rowNorm="$parent.rowNorm">
                                                 </time-series-display>
@@ -109,7 +108,6 @@
                                                         :utils="$parent.utilsBox"
                                                         :zoomedIn="true"
                                                         sectionId="gene_search"
-                                                        :activeTab="$parent.activeTab"
                                                         :avgRep="$parent.avgRep"
                                                         :rowNorm="$parent.rowNorm">
                                                     </time-series-display>

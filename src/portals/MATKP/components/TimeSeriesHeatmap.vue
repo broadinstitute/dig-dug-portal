@@ -41,7 +41,7 @@ import * as d3 from 'd3';
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore", "rowNorm"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm"],
 	data() {
 		return {
 			squareData: {},
@@ -122,9 +122,6 @@ export default Vue.component("time-series-heatmap", {
 			this.renderHeatmap();
 		},
 		zoomedIn(){
-			this.renderHeatmap();
-		},
-		activeTab(){
 			this.renderHeatmap();
 		},
 		avgRep(){
