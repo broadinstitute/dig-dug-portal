@@ -6,7 +6,7 @@
                 :minScore="minScore"
                 :maxScore="maxScore"
                 :utils="utils"
-                sectionId="time-series-heatmap"
+                :sectionId="sectionId"
                 :zoomedIn="zoomedIn"
                 :activeTab="activeTab"
                 :avgRep="avgRep"

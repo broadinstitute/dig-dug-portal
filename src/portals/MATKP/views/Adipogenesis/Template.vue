@@ -52,6 +52,7 @@
                                                     :maxScore="$parent.maxScore"
                                                     :utils="$parent.utilsBox"
                                                     :zoomedIn="$parent.zoomedIn"
+                                                    sectionId="adipogenesis"
                                                     :activeTab="$parent.activeTab"
                                                     :avgRep="$parent.avgRep"
                                                     :rowNorm="$parent.rowNorm">
@@ -101,15 +102,17 @@
                                                     </div>
                                                 </criterion-function-group>
                                                 <div v-if="$parent.geneSearchResults.length > 0">
-                                                    <time-series-heatmap
+                                                    <time-series-display
                                                         :heatmapData="$parent.processedGeneSearch"
                                                         :minScore="$parent.minScore"
                                                         :maxScore="$parent.maxScore"
                                                         :utils="$parent.utilsBox"
-                                                        sectionId="search-heatmap"
                                                         :zoomedIn="true"
-                                                        :avgRep="$parent.avgRep">
-                                                    </time-series-heatmap>
+                                                        sectionId="gene_search"
+                                                        :activeTab="$parent.activeTab"
+                                                        :avgRep="$parent.avgRep"
+                                                        :rowNorm="$parent.rowNorm">
+                                                    </time-series-display>
                                                     <div class="table-background">
                                                         <b-table
                                                             small
