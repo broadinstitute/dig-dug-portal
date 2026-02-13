@@ -33,7 +33,7 @@
                                 </div>
                             </div>
                             <div id="tabs-below-checkboxes">
-                                <b-tabs v-model="$parent.activeTab">
+                                <b-tabs>
                                     <b-tab title="Top Transcripts">
                                         <div class="tab-inner">
                                             <h4>
@@ -82,7 +82,7 @@
                                             <h4>
                                                 Search up to 10 genes to create a custom heatmap.
                                             </h4>
-                                            <div v-if="$parent.allTimeSeriesData !== null && $parent.activeTab === 1"
+                                            <div v-if="$parent.allTimeSeriesData !== null"
                                                 class="time-series-content">
                                                 <criterion-function-group>
                                                     <div class="gene-search-controls">

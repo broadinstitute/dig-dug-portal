@@ -2,10 +2,12 @@
 	<div :id="`heatmap-wrapper-${sectionId}`">
 		<div>
 			<div style="display:flex">
-				<span>MIN</span>
+				<span v-if="!rowNorm">Dataset minimum</span>
+				<span v-else>Row minimum</span>
 				<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
 				</div>
-				<span>MAX</span>
+				<span v-if="!rowNorm">Dataset maximum</span>
+				<span v-else>Row maximum</span>
 			</div>
 			<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
