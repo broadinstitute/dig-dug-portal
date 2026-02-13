@@ -13,13 +13,19 @@
                     <div class="card mdkp-card">
                         <div class="card-body">
                             <div id="checkboxes">
-                                <div id="avg-checkbox">
+                                <div>
                                     <label>
                                         <input v-model="$parent.avgRep" type="checkbox" />
                                         Display average of all replicates per time point
                                     </label>
                                 </div>
-                                <div id="cluster-checkbox">
+                                <div>
+                                    <label>
+                                        <input v-model="$parent.rowNorm" type="checkbox" />
+                                        Show row-normalized values
+                                    </label>
+                                </div>
+                                <div>
                                     <label>
                                         <input v-model="$parent.clusterOn" type="checkbox" />
                                         Show data by clusters
@@ -27,7 +33,7 @@
                                 </div>
                             </div>
                             <div id="tabs-below-checkboxes">
-                                <b-tabs v-model="$parent.activeTab">
+                                <b-tabs>
                                     <b-tab title="Top Transcripts">
                                         <div class="tab-inner">
                                             <h4>
@@ -40,16 +46,17 @@
                                                 </label>
                                             </div>
                                             <div v-if="$parent.ready" class="time-series-content">
-                                                <time-series-heatmap
+                                                <time-series-display
                                                     :heatmapData="$parent.paginatedData"
+                                                    :days="$parent.conditionsMap.timePoints"
                                                     :minScore="$parent.minScore"
                                                     :maxScore="$parent.maxScore"
                                                     :utils="$parent.utilsBox"
-                                                    sectionId="time-series-heatmap"
                                                     :zoomedIn="$parent.zoomedIn"
-                                                    :activeTab="$parent.activeTab"
-                                                    :avgRep="$parent.avgRep">
-                                                </time-series-heatmap>
+                                                    sectionId="adipogenesis"
+                                                    :avgRep="$parent.avgRep"
+                                                    :rowNorm="$parent.rowNorm">
+                                                </time-series-display>
                                             </div>
                                         <div>
                                         <div class="table-background">
@@ -76,7 +83,7 @@
                                             <h4>
                                                 Search up to 10 genes to create a custom heatmap.
                                             </h4>
-                                            <div v-if="$parent.allTimeSeriesData !== null && $parent.activeTab === 1"
+                                            <div v-if="$parent.allTimeSeriesData !== null"
                                                 class="time-series-content">
                                                 <criterion-function-group>
                                                     <div class="gene-search-controls">
@@ -95,15 +102,17 @@
                                                     </div>
                                                 </criterion-function-group>
                                                 <div v-if="$parent.geneSearchResults.length > 0">
-                                                    <time-series-heatmap
+                                                    <time-series-display
                                                         :heatmapData="$parent.processedGeneSearch"
+                                                        :days="$parent.conditionsMap.timePoints"
                                                         :minScore="$parent.minScore"
                                                         :maxScore="$parent.maxScore"
                                                         :utils="$parent.utilsBox"
-                                                        sectionId="search-heatmap"
                                                         :zoomedIn="true"
-                                                        :avgRep="$parent.avgRep">
-                                                    </time-series-heatmap>
+                                                        sectionId="gene_search"
+                                                        :avgRep="$parent.avgRep"
+                                                        :rowNorm="$parent.rowNorm">
+                                                    </time-series-display>
                                                     <div class="table-background">
                                                         <b-table
                                                             small

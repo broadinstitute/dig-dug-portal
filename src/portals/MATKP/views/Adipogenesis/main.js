@@ -21,6 +21,7 @@ import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 import TimeSeriesHeatmap from "../../components/TimeSeriesHeatmap.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
+import TimeSeriesDisplay from "../../components/TimeSeriesDisplay.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -53,17 +54,17 @@ new Vue({
         TooltipDocumentation,
         TimeSeriesHeatmap,
         TimeSeriesLinePlot,
+        TimeSeriesDisplay,
         ResearchSingleCellInfo
     },
     mixins: [matkpMixin],
     data() {
         return {
             plotId: "time_series_heatmap",
-            timeSeriesId: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
+            defaultDataset: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             timeSeriesData: null,
             minScore: null,
             maxScore: null,
-            transcripts: ["1415687_a_at"],
             fullTxSuffix: "full_transcript_data.tsv.gz",
             top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
             datasetMetadata: null,
@@ -72,8 +73,8 @@ new Vue({
             currentTable: [],
             zoomedIn: true,
             avgRep: true,
+            rowNorm: true,
             clusterOn: false,
-            activeTab: 0,
             geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
             geneSearchResults: [],
             ready: false
@@ -118,6 +119,11 @@ new Vue({
                     sortable: true
                 },
                 {
+                    key: "gene",
+                    label: "Gene",
+                    sortable: true
+                },
+                {
                     key: "transcript_id",
                     label: "Transcript",
                     sortable: true
@@ -125,11 +131,6 @@ new Vue({
                 {
                     key: "max_diff",
                     label: "Max diff.",
-                    sortable: true
-                },
-                {
-                    key: "gene",
-                    label: "Gene",
                     sortable: true
                 },
                 {
@@ -163,11 +164,14 @@ new Vue({
             
             
             return baseFields;
-        }
+        },
     },
     async created() {
-        let timeSeriesData = await getTimeSeries(this.timeSeriesId);
-        this.conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
+        if (!keyParams.datasetid){
+            keyParams.set({datasetid: this.defaultDataset});
+        }
+        let timeSeriesData = await getTimeSeries(keyParams.datasetid);
+        this.conditionsMap = await mapConditions(timeSeriesData, keyParams.datasetid);
         this.timeSeriesData = includeAverages(timeSeriesData, this.conditionsMap);
         const metadata = await this.getMetadata();
         this.datasetMetadata = metadata;
@@ -194,7 +198,7 @@ new Vue({
             let url = "https://matkp.hugeampkpnbi.org/api/bio/multiquery";
             let index = "single-cell-time-series"
             let queryArray = [];
-            geneArray.forEach(g => queryArray.push(`${this.timeSeriesId},${g}`));
+            geneArray.forEach(g => queryArray.push(`${keyParams.datasetid},${g}`));
             let queryObject = {
                 "index": index,
                 "queries": queryArray
@@ -212,7 +216,7 @@ new Vue({
         async getMetadata() {
             let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
             let myMetadata = await scUtils.fetchMetadata(metadataUrl);           
-            return myMetadata.find(x => x.datasetId === this.timeSeriesId);
+            return myMetadata.find(x => x.datasetId === keyParams.datasetid);
         },
     },
     watch: {

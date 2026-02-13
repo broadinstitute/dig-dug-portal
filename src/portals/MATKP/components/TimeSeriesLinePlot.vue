@@ -3,6 +3,15 @@
         <div :id=plotId class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
+        <div class="download-images-setting">
+						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+						<ul class="options" >
+              <li>
+								<a href="javascript:;"
+								@click="downloadImage(plotId, `adipogenesis_${tx[0]}`, 'svg')">Download SVG</a>
+							</li>
+						</ul>
+					</div>
     </div>
 </template>
 <script>
@@ -14,12 +23,12 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "tx", "config", "plotId"],
+  props: ["plotData", "filter", "tightenLeft", "tx", "config", "plotId", "utils"],
   data() {
       return {
         chart: null,
         chartWidth: 300,
-        chartHeight: 150,
+        chartHeight: 200,
         svg: null,
         xScale: null,
         yScale: null,
@@ -51,7 +60,6 @@ export default Vue.component("time-series-line-plot", {
   },
   methods: {
     drawChart(){
-        // TODO make it so that each replicate is its own array, and the lines are drawn from point to point within the array.
       let margin = {
         top: 10,
         right: 10,
@@ -65,7 +73,7 @@ export default Vue.component("time-series-line-plot", {
         .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
-          .attr("id", `chart-${this.plotId}`)
+          .attr("id", `chart_${this.plotId}`)
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -134,28 +142,10 @@ export default Vue.component("time-series-line-plot", {
               ? this.yScale(0) // Is this an issue for log scale? 
               : this.yScale(d[yFieldScaled]))
           .attr("r", 3)
-          .attr("fill", d => d.replicate === 1 ? "blue" : "red")
+          .attr("fill", "red")
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
-              this.hoverDot(JSON.stringify(g)));
-
-        // adding the line graph
-        const line = d3.line()
-          .x(d => this.xScale(d[this.config.xField]))
-          .y(d => this.yScale(d[this.config.yField]));
-        this.svg.append("path")
-          .datum(this.chartData.filter(d => d.replicate === 1))
-          .attr("fill", "none")
-          .attr("stroke", "blue")
-          .attr("stroke-width", 1)
-          .attr("d", line);
-        this.svg.append("path")
-          .datum(this.chartData.filter(d => d.replicate === 2))
-          .attr("fill", "none")
-          .attr("stroke", "red")
-          .attr("stroke-width", 1)
-          .attr("d", line);
-           
+              this.hoverDot(JSON.stringify(g)));           
     },
     hoverDot(dotString) {
       this.unHoverDot();
@@ -224,6 +214,20 @@ export default Vue.component("time-series-line-plot", {
       }
       return fields;
     },
+    downloadImage(ID, NAME, TYPE) {
+      if (TYPE == "svg") {
+        let svgId = `chart_${this.plotId}`;
+        this.utils.uiUtils.downloadImg(
+            ID,
+            NAME,
+            TYPE,
+            svgId
+        );
+      }
+			if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
   },
   watch: {
     chartData(){
@@ -237,9 +241,6 @@ export default Vue.component("time-series-line-plot", {
 </script>
 <style scoped>
   @import url("/css/effectorGenes.css");
-  .tooltip span {
-      display: block;
-  }
   .plot {
     margin-right: 15px;
     margin-bottom: 15px;

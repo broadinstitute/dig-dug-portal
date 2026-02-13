@@ -1,22 +1,13 @@
 <template>
 	<div :id="`heatmap-wrapper-${sectionId}`">
-		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
-			<div :id="'clicked_cell_value_content' + sectionId">
-			</div>
-			<time-series-line-plot
-				v-if="filteredData.length > 0"
-				:plotData="filteredData"
-				:tx="[transcript]"
-				:config="linePlotConfig"
-				:plotId="`${sectionId}_line`">
-			</time-series-line-plot>
-		</div>
 		<div>
 			<div style="display:flex">
-				<span>MIN</span>
+				<span v-if="!rowNorm">Dataset minimum</span>
+				<span v-else>Row minimum</span>
 				<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
 				</div>
-				<span>MAX</span>
+				<span v-if="!rowNorm">Dataset maximum</span>
+				<span v-else>Row maximum</span>
 			</div>
 			<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
@@ -32,11 +23,7 @@
 						<ul class="options" >
 							<li>
 								<a href="javascript:;"
-								@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_heatmap', 'svg')">Download SVG</a>
-							</li>
-							<li>
-								<a href="javascript:;"
-								@click="downloadImage('heatmap' + sectionId, sectionId + '_heatmap', 'png')">Download PNG</a>
+								@click="downloadImage('heatmap' + sectionId, heatmapImgTitle, 'png')">Download PNG</a>
 							</li>
 						</ul>
 					</div>
@@ -56,13 +43,12 @@ import * as d3 from 'd3';
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm"],
 	data() {
 		return {
 			squareData: {},
 			canvasHover: false,
 			margin:{},
-			transcript: "1415687_a_at",
 			colorScale: null,
 			boxWidth: null,
 			fontSize: 12,
@@ -78,30 +64,13 @@ export default Vue.component("time-series-heatmap", {
 	},
 	beforeDestroy() {},
 	computed: {
-		linePlotConfig(){
-            return {
-                xField: "days",
-                xAxisLabel: "Time (days)",
-                xMin: -2, // TODO calculate this dynamically rather than hardcoding it
-                xMax: 7,
-                yField: "score",
-                yAxisLabel: "",
-                yMin: this.minScore,
-                yMax: this.maxScore,
-                dotKey: "identifier",
-                hoverBoxPosition: "both",
-                hoverFields: [
-                    {key: "transcript_id", label: "Transcript"},
-                    {key: "days", label: "Day"},
-                ],
-            }
-        },
 		filteredData(){
 			let data = structuredClone(this.heatmapData);
 			if (this.filter) {
                 data = data.filter(this.filter);
             }
 			data = data.filter(d => this.avgRep ? d.replicate === 'avg' : d.replicate !== 'avg');
+			this.$emit("dataFiltered", data);
 			return data;
 		},
 		renderData() {
@@ -146,6 +115,9 @@ export default Vue.component("time-series-heatmap", {
             let step = 0.01 * (this.maxScore - this.minScore);
             return d3.range(this.minScore, this.maxScore, step).map(t => this.colorScale(t)).join(', ');
         },
+		heatmapImgTitle(){
+			return "Adipogenesis";
+		}
 	},
 	watch: {
 		renderData() {
@@ -154,19 +126,16 @@ export default Vue.component("time-series-heatmap", {
 		zoomedIn(){
 			this.renderHeatmap();
 		},
-		activeTab(){
+		avgRep(){
 			this.renderHeatmap();
 		},
-		avgRep(){
+		rowNorm(){
 			this.renderHeatmap();
 		}
 	},
 	methods: {
 		downloadImage(ID, NAME, TYPE) {
-			if (TYPE == 'svg') {
-				this.$refs[this.sectionId + '_heatmap'].renderPlot();
-				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_heatmap_" + this.sectionId);
-			} else if (TYPE == 'png') {
+			if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
 			}
 		},
@@ -177,56 +146,32 @@ export default Vue.component("time-series-heatmap", {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
 
-			let xPos = Math.floor(e.clientX - rect.left);
-			let yPos = Math.floor(e.clientY - rect.top);
 			let x = Math.floor((e.clientX - (rect.left) - this.margin.left) / (this.boxWidth));
 			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / this.boxHeight);
 
 			let validCell = x >= 0 && y >= 0 && !!this.squareData[y] && !!this.squareData[y][x]
 			let clickedCellValue = !validCell ? "" : this.hoverContent(x,y);
-			
-			this.transcript = this.renderData.rows[y];
-			this.$emit("hover", this.renderData.rows[y]);
 
-			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
-			let contentWrapper = document.getElementById(
-				"clicked_cell_value_content" + this.sectionId
-			);
-
-			let canvasRect = document
-				.getElementById("heatmapCanvasWrapper" + this.sectionId)
-				.getBoundingClientRect();
-
-			let hoverTop = yPos - 10;
-			let hoverLeft = xPos + 50;
-
-			let canvasRight = canvasRect.right + this.margin.right;
-
-			let rightOverhang = hoverLeft + wrapper.clientWidth - canvasRight;
-
-			if (rightOverhang > 0){
-				hoverLeft = hoverLeft - rightOverhang;
-			}
 			
 			// show box if hovering over a valid cell
 			if (validCell) {
-				contentWrapper.innerHTML = clickedCellValue;
-				wrapper.classList.remove("hidden");
-				wrapper.style.top =`${hoverTop}px`; // Can we do this by bottom instead?
-				wrapper.style.left = `${hoverLeft}px`;
-			} else {
-				wrapper.classList.add("hidden");
+				this.$emit("hover", clickedCellValue);
 			}
 			this.renderHeatmap(x, y);
 		},
 		hoverContent(x, y){
-			let rowName = this.geneTxFormat(this.renderData.rows[y]);
+			let transcript = this.renderData.rows[y];
+			let rowName = this.geneTxFormat(transcript);
 			let columnName = this.renderData.columns[x];
+			columnName = this.readableColumn(columnName);
 			let scoreVal = this.squareData[y][x].value;
-			let hoverTitle = `<div><strong>${rowName}</strong></div>`;
-			let columnDiv = `<div>${columnName}<div>`;
-			let scoreDiv = `<div><strong>${this.datapointLabel}: </strong>${scoreVal}</div>`;
-			return hoverTitle + columnDiv + scoreDiv;
+			let info = {
+				transcript: transcript,
+				rowName: rowName,
+				columnName: columnName,
+				scoreVal: scoreVal
+			};
+			return info;
 		},
 		getWidth(ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;
@@ -241,7 +186,7 @@ export default Vue.component("time-series-heatmap", {
 			this.renderData.rows.forEach(r => longestLabel = r.length > longestLabel.length ? r : longestLabel);
 
 			let margin = {
-				top: 100,
+				top: 150,
 				bottom: 50,
 				left: !this.zoomedIn ? 20 : longestLabel.length * this.fontSize / 1.5,
 				right: 20,
@@ -305,11 +250,20 @@ export default Vue.component("time-series-heatmap", {
 				ctx.font = `${this.fontSize}px Arial`;
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
-				ctx.fillText(`  ${c}`, 0, 0);
+				let readableText = this.readableColumn(c);
+				ctx.fillText(`  ${readableText}`, 0, 0);
 				ctx.restore();
 			})
 
 			this.renderData.rows.map((r, rIndex) => {
+				// TODO if row-normalized, do it here;
+				let rowScores = Object.values(this.renderData[r]);
+				let rowMax = rowScores.reduce((a,b) => a > b ? a : b);
+				let rowMin = rowScores.reduce((a,b) => a < b ? a : b);
+				let numExtremes = [rowMin, rowMax];
+				let colorExtremes = [ACCESSIBLE_GRAY, ACCESSIBLE_PURPLE];
+				let rowScale = createColorScale(numExtremes, colorExtremes);
+				
 				this.squareData[rIndex] = {};
 
 				let top = margin.top + (this.boxHeight * rIndex);
@@ -324,37 +278,26 @@ export default Vue.component("time-series-heatmap", {
 						field: this.heatmapField,
 						value: this.renderData[r][c],
 					};
+					let scaleToUse = this.rowNorm ? rowScale : this.colorScale;
+					let colorString = `${scaleToUse(boxValue)}`;
 
-					let colorString = `${this.colorScale(boxValue)}`;
-
-
-					if (X == cIndex && Y == rIndex) {
-						ctx.beginPath();
-						ctx.rect(left, top, this.boxWidth, this.boxHeight);
-						ctx.fillStyle = "black";
-						ctx.fill();
-
-						ctx.beginPath();
-						ctx.rect(
-							left + 2,
-							top + 2,
-							this.boxWidth - 4,
-							this.boxHeight - 4
-						);
-						ctx.fillStyle = colorString;
-						ctx.fill();
-					} else {
-						ctx.beginPath();
-						ctx.rect(left, top, this.boxWidth, this.boxHeight);
-						ctx.fillStyle = colorString;
-						ctx.fill();
-					}
-
+					ctx.beginPath();
+					ctx.rect(left, top, this.boxWidth, this.boxHeight);
+					ctx.fillStyle = colorString;
+					ctx.fill();
 					cIndex++;
 				});
 				rIndex++;
+				
 			});
-
+			// Draw box around highlighted row
+			if (Y >= 0 && Y < this.renderData.rows.length){
+				let top = margin.top + (this.boxHeight * Y);
+				ctx.beginPath();
+				ctx.strokeStyle = "#000000";
+				ctx.rect(margin.left, top, (this.renderData.columns.length * this.boxWidth), this.boxHeight);
+				ctx.stroke();
+			}
 		},
 		geneTxFormat(str){
       		let splitString = str.split("___");
@@ -362,7 +305,15 @@ export default Vue.component("time-series-heatmap", {
 				return str;
 			}
       		return `${splitString[0]} (${splitString[1]})`;
-    	}
+    	},
+		readableColumn(snakeCase){
+			let findDay = /-?\d+/;
+			let day = snakeCase.match(findDay)[0];
+			let findRep = /rep_(\w+)/;
+			let rep = snakeCase.match(findRep)[1];
+			let repString = rep === "avg" ? "avg. of all replicates" : `replicate ${rep}`;
+			return `Day ${day}, ${repString}`;
+		}
 	},
 });
 
