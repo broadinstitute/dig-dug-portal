@@ -745,6 +745,7 @@
                     For mouse homolog {{$parent.adipogenesisData[0]?.gene}}
                     <time-series-display
                         :heatmapData="$parent.adipogenesisData"
+                        :days="$parent.conditionsMap.timePoints"
                         :minScore="$parent.adiposeMin"
                         :maxScore="$parent.adiposeMax"
                         :utils="$parent.utilsBox"

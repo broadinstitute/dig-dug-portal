@@ -37,7 +37,7 @@ import Vue from "vue";
 import TimeSeriesHeatmap from "@/portals/MATKP/components/TimeSeriesHeatmap.vue";
 import TimeSeriesLinePlot from "@/portals/MATKP/components/TimeSeriesLinePlot.vue";
 export default Vue.component("time-series-display", {
-	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm", "days"],
     components: {
         TimeSeriesHeatmap,
         TimeSeriesLinePlot
@@ -56,8 +56,8 @@ export default Vue.component("time-series-display", {
             return {
                 xField: "days",
                 xAxisLabel: "Time (days)",
-                xMin: -2, // TODO calculate this dynamically rather than hardcoding it
-                xMax: 7,
+                xMin: this.days.reduce((a,b) => a < b ? a : b),
+                xMax: this.days.reduce((a,b) => a > b ? a : b),
                 yField: "score",
                 yAxisLabel: "",
                 yMin: this.minScore,

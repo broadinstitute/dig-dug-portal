@@ -48,6 +48,7 @@
                                             <div v-if="$parent.ready" class="time-series-content">
                                                 <time-series-display
                                                     :heatmapData="$parent.paginatedData"
+                                                    :days="$parent.conditionsMap.timePoints"
                                                     :minScore="$parent.minScore"
                                                     :maxScore="$parent.maxScore"
                                                     :utils="$parent.utilsBox"
@@ -103,6 +104,7 @@
                                                 <div v-if="$parent.geneSearchResults.length > 0">
                                                     <time-series-display
                                                         :heatmapData="$parent.processedGeneSearch"
+                                                        :days="$parent.conditionsMap.timePoints"
                                                         :minScore="$parent.minScore"
                                                         :maxScore="$parent.maxScore"
                                                         :utils="$parent.utilsBox"
