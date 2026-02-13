@@ -14,21 +14,20 @@
                 @dataFiltered="d => getFilteredData(d)">
             </time-series-heatmap>
         </div>
-        <div class="col-md-3">
-            <div>
+        <div class="col-md-3 line-plot-wrapper">
+            <div v-if="transcript.length > 0">
                 <div><strong>{{rowName}}</strong></div>
-			    <div>{{columnName}}<div>
+                <div>{{columnName}}</div>
 			    <div><strong>score: </strong>{{scoreVal}}</div>
+                <time-series-line-plot
+                    v-if="filteredData.length > 0"
+                    :plotData="filteredData"
+                    :tx="transcript"
+                    :config="linePlotConfig"
+                    :plotId="`${sectionId}_line`">
+                </time-series-line-plot>
             </div>
-            <time-series-line-plot
-				v-if="filteredData.length > 0"
-				:plotData="filteredData"
-				:tx="transcript"
-				:config="linePlotConfig"
-				:plotId="`${sectionId}_line`">
-			</time-series-line-plot>
-        </div>
-            </div>
+            <div v-else>Hover over a cell to view individual time-point information.</div>
         </div>
     </div>
 </template>
@@ -39,7 +38,7 @@ export default Vue.component("time-series-display", {
 	data() {
 		return {
             filteredData: [],
-            transcript: [""],
+            transcript: [],
             rowName: "",
             columnName: "",
             scoreVal: ""
@@ -79,3 +78,9 @@ export default Vue.component("time-series-display", {
     }
 });
 </script>
+<style scoped>
+.line-plot-wrapper{
+    margin-top: 30px;
+    vertical-align: bottom;
+}
+</style>

@@ -19,7 +19,7 @@ export default Vue.component("time-series-line-plot", {
       return {
         chart: null,
         chartWidth: 300,
-        chartHeight: 150,
+        chartHeight: 200,
         svg: null,
         xScale: null,
         yScale: null,
@@ -237,9 +237,6 @@ export default Vue.component("time-series-line-plot", {
 </script>
 <style scoped>
   @import url("/css/effectorGenes.css");
-  .tooltip span {
-      display: block;
-  }
   .plot {
     margin-right: 15px;
     margin-bottom: 15px;
