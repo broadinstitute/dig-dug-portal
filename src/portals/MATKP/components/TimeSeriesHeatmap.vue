@@ -161,6 +161,7 @@ export default Vue.component("time-series-heatmap", {
 			let transcript = this.renderData.rows[y];
 			let rowName = this.geneTxFormat(transcript);
 			let columnName = this.renderData.columns[x];
+			columnName = this.readableColumn(columnName);
 			let scoreVal = this.squareData[y][x].value;
 			let info = {
 				transcript: transcript,
@@ -183,7 +184,7 @@ export default Vue.component("time-series-heatmap", {
 			this.renderData.rows.forEach(r => longestLabel = r.length > longestLabel.length ? r : longestLabel);
 
 			let margin = {
-				top: 100,
+				top: 150,
 				bottom: 50,
 				left: !this.zoomedIn ? 20 : longestLabel.length * this.fontSize / 1.5,
 				right: 20,
@@ -247,7 +248,8 @@ export default Vue.component("time-series-heatmap", {
 				ctx.font = `${this.fontSize}px Arial`;
 				ctx.fillStyle = "#000000";
 				ctx.textAlign = "start";
-				ctx.fillText(`  ${c}`, 0, 0);
+				let readableText = this.readableColumn(c);
+				ctx.fillText(`  ${readableText}`, 0, 0);
 				ctx.restore();
 			})
 
@@ -293,7 +295,15 @@ export default Vue.component("time-series-heatmap", {
 				return str;
 			}
       		return `${splitString[0]} (${splitString[1]})`;
-    	}
+    	},
+		readableColumn(snakeCase){
+			let findDay = /-?\d+/;
+			let day = snakeCase.match(findDay)[0];
+			let findRep = /rep_(\w+)/;
+			let rep = snakeCase.match(findRep)[1];
+			let repString = rep === "avg" ? "avg. of all replicates" : `replicate ${rep}`;
+			return `Day ${day}, ${repString}`;
+		}
 	},
 });
 

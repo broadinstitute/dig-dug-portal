@@ -10,10 +10,6 @@
 								<a href="javascript:;"
 								@click="downloadImage(plotId, `adipogenesis_${tx[0]}`, 'svg')">Download SVG</a>
 							</li>
-							<li>
-								<a href="javascript:;"
-								@click="downloadImage(plotId, `adipogenesis_${tx[0]}`, 'png')">Download PNG</a>
-							</li>
 						</ul>
 					</div>
     </div>
