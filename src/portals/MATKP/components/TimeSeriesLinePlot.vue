@@ -51,7 +51,6 @@ export default Vue.component("time-series-line-plot", {
   },
   methods: {
     drawChart(){
-        // TODO make it so that each replicate is its own array, and the lines are drawn from point to point within the array.
       let margin = {
         top: 10,
         right: 10,
@@ -134,28 +133,10 @@ export default Vue.component("time-series-line-plot", {
               ? this.yScale(0) // Is this an issue for log scale? 
               : this.yScale(d[yFieldScaled]))
           .attr("r", 3)
-          .attr("fill", d => d.replicate === 1 ? "blue" : "red")
+          .attr("fill", "red")
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
-              this.hoverDot(JSON.stringify(g)));
-
-        // adding the line graph
-        const line = d3.line()
-          .x(d => this.xScale(d[this.config.xField]))
-          .y(d => this.yScale(d[this.config.yField]));
-        this.svg.append("path")
-          .datum(this.chartData.filter(d => d.replicate === 1))
-          .attr("fill", "none")
-          .attr("stroke", "blue")
-          .attr("stroke-width", 1)
-          .attr("d", line);
-        this.svg.append("path")
-          .datum(this.chartData.filter(d => d.replicate === 2))
-          .attr("fill", "none")
-          .attr("stroke", "red")
-          .attr("stroke-width", 1)
-          .attr("d", line);
-           
+              this.hoverDot(JSON.stringify(g)));           
     },
     hoverDot(dotString) {
       this.unHoverDot();

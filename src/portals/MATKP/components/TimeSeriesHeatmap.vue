@@ -273,34 +273,23 @@ export default Vue.component("time-series-heatmap", {
 
 					let colorString = `${this.colorScale(boxValue)}`;
 
-
-					if (X == cIndex && Y == rIndex) {
-						ctx.beginPath();
-						ctx.rect(left, top, this.boxWidth, this.boxHeight);
-						ctx.fillStyle = "black";
-						ctx.fill();
-
-						ctx.beginPath();
-						ctx.rect(
-							left + 2,
-							top + 2,
-							this.boxWidth - 4,
-							this.boxHeight - 4
-						);
-						ctx.fillStyle = colorString;
-						ctx.fill();
-					} else {
-						ctx.beginPath();
-						ctx.rect(left, top, this.boxWidth, this.boxHeight);
-						ctx.fillStyle = colorString;
-						ctx.fill();
-					}
-
+					ctx.beginPath();
+					ctx.rect(left, top, this.boxWidth, this.boxHeight);
+					ctx.fillStyle = colorString;
+					ctx.fill();
 					cIndex++;
 				});
 				rIndex++;
+				
 			});
-
+			// Draw box around highlighted row
+			if (Y >= 0 && Y < this.renderData.rows.length){
+				let top = margin.top + (this.boxHeight * Y);
+				ctx.beginPath();
+				ctx.strokeStyle = "#000000";
+				ctx.rect(margin.left, top, (this.renderData.columns.length * this.boxWidth), this.boxHeight);
+				ctx.stroke();
+			}
 		},
 		geneTxFormat(str){
       		let splitString = str.split("___");
