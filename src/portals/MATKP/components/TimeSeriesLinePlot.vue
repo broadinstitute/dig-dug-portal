@@ -3,6 +3,19 @@
         <div :id=plotId class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
+        <div class="download-images-setting">
+						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+						<ul class="options" >
+              <li>
+								<a href="javascript:;"
+								@click="downloadImage(plotId, `adipogenesis_${tx[0]}`, 'svg')">Download SVG</a>
+							</li>
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage(plotId, `adipogenesis_${tx[0]}`, 'png')">Download PNG</a>
+							</li>
+						</ul>
+					</div>
     </div>
 </template>
 <script>
@@ -14,7 +27,7 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "tx", "config", "plotId"],
+  props: ["plotData", "filter", "tightenLeft", "tx", "config", "plotId", "utils"],
   data() {
       return {
         chart: null,
@@ -64,7 +77,7 @@ export default Vue.component("time-series-line-plot", {
         .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
-          .attr("id", `chart-${this.plotId}`)
+          .attr("id", `chart_${this.plotId}`)
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -205,6 +218,20 @@ export default Vue.component("time-series-line-plot", {
       }
       return fields;
     },
+    downloadImage(ID, NAME, TYPE) {
+      if (TYPE == "svg") {
+        let svgId = `chart_${this.plotId}`;
+        this.utils.uiUtils.downloadImg(
+            ID,
+            NAME,
+            TYPE,
+            svgId
+        );
+      }
+			if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
   },
   watch: {
     chartData(){

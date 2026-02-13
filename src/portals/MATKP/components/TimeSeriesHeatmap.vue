@@ -21,11 +21,7 @@
 						<ul class="options" >
 							<li>
 								<a href="javascript:;"
-								@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_heatmap', 'svg')">Download SVG</a>
-							</li>
-							<li>
-								<a href="javascript:;"
-								@click="downloadImage('heatmap' + sectionId, sectionId + '_heatmap', 'png')">Download PNG</a>
+								@click="downloadImage('heatmap' + sectionId, heatmapImgTitle, 'png')">Download PNG</a>
 							</li>
 						</ul>
 					</div>
@@ -117,6 +113,9 @@ export default Vue.component("time-series-heatmap", {
             let step = 0.01 * (this.maxScore - this.minScore);
             return d3.range(this.minScore, this.maxScore, step).map(t => this.colorScale(t)).join(', ');
         },
+		heatmapImgTitle(){
+			return "Adipogenesis";
+		}
 	},
 	watch: {
 		renderData() {
@@ -134,10 +133,7 @@ export default Vue.component("time-series-heatmap", {
 	},
 	methods: {
 		downloadImage(ID, NAME, TYPE) {
-			if (TYPE == 'svg') {
-				this.$refs[this.sectionId + '_heatmap'].renderPlot();
-				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_heatmap_" + this.sectionId);
-			} else if (TYPE == 'png') {
+			if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
 			}
 		},

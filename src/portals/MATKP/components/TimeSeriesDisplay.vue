@@ -22,6 +22,7 @@
                 <time-series-line-plot
                     v-if="filteredData.length > 0"
                     :plotData="filteredData"
+                    :utils="utils"
                     :tx="transcript"
                     :config="linePlotConfig"
                     :plotId="`${sectionId}_line`">
