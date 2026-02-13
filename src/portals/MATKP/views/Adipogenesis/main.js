@@ -61,11 +61,11 @@ new Vue({
     data() {
         return {
             plotId: "time_series_heatmap",
-            timeSeriesId: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
+            dataset: null,
+            defaultDataset: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             timeSeriesData: null,
             minScore: null,
             maxScore: null,
-            transcripts: ["1415687_a_at"],
             fullTxSuffix: "full_transcript_data.tsv.gz",
             top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
             datasetMetadata: null,
@@ -165,11 +165,12 @@ new Vue({
             
             
             return baseFields;
-        }
+        },
     },
     async created() {
-        let timeSeriesData = await getTimeSeries(this.timeSeriesId);
-        this.conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
+        this.dataset = !keyParams.dataset ? this.defaultDataset : keyParams.dataset;
+        let timeSeriesData = await getTimeSeries(this.dataset);
+        this.conditionsMap = await mapConditions(timeSeriesData, this.dataset);
         this.timeSeriesData = includeAverages(timeSeriesData, this.conditionsMap);
         const metadata = await this.getMetadata();
         this.datasetMetadata = metadata;
@@ -196,7 +197,7 @@ new Vue({
             let url = "https://matkp.hugeampkpnbi.org/api/bio/multiquery";
             let index = "single-cell-time-series"
             let queryArray = [];
-            geneArray.forEach(g => queryArray.push(`${this.timeSeriesId},${g}`));
+            geneArray.forEach(g => queryArray.push(`${this.dataset},${g}`));
             let queryObject = {
                 "index": index,
                 "queries": queryArray
@@ -214,7 +215,7 @@ new Vue({
         async getMetadata() {
             let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
             let myMetadata = await scUtils.fetchMetadata(metadataUrl);           
-            return myMetadata.find(x => x.datasetId === this.timeSeriesId);
+            return myMetadata.find(x => x.datasetId === this.dataset);
         },
     },
     watch: {
