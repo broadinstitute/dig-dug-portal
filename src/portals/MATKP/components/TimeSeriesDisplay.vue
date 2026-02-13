@@ -10,6 +10,7 @@
                 :zoomedIn="zoomedIn"
                 :activeTab="activeTab"
                 :avgRep="avgRep"
+                :rowNorm="rowNorm"
                 @hover="d => changeTranscript(d)"
                 @dataFiltered="d => getFilteredData(d)">
             </time-series-heatmap>
@@ -35,7 +36,7 @@
 <script>
 import Vue from "vue";
 export default Vue.component("time-series-display", {
-	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore", "rowNorm"],
 	data() {
 		return {
             filteredData: [],
@@ -67,7 +68,6 @@ export default Vue.component("time-series-display", {
     },
     methods: {
         changeTranscript(data){
-            console.log(JSON.stringify(data));
             this.transcript = [data.transcript];
             this.rowName = data.rowName;
             this.columnName = data.columnName;

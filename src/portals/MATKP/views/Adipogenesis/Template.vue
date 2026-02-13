@@ -13,13 +13,19 @@
                     <div class="card mdkp-card">
                         <div class="card-body">
                             <div id="checkboxes">
-                                <div id="avg-checkbox">
+                                <div>
                                     <label>
                                         <input v-model="$parent.avgRep" type="checkbox" />
                                         Display average of all replicates per time point
                                     </label>
                                 </div>
-                                <div id="cluster-checkbox">
+                                <div>
+                                    <label>
+                                        <input v-model="$parent.rowNorm" type="checkbox" />
+                                        Show row-normalized values
+                                    </label>
+                                </div>
+                                <div>
                                     <label>
                                         <input v-model="$parent.clusterOn" type="checkbox" />
                                         Show data by clusters
@@ -40,17 +46,16 @@
                                                 </label>
                                             </div>
                                             <div v-if="$parent.ready" class="time-series-content">
-                                                
-                                                    <time-series-display
-                                                        :heatmapData="$parent.paginatedData"
-                                                        :minScore="$parent.minScore"
-                                                        :maxScore="$parent.maxScore"
-                                                        :utils="$parent.utilsBox"
-                                                        :zoomedIn="$parent.zoomedIn"
-                                                        :activeTab="$parent.activeTab"
-                                                        :avgRep="$parent.avgRep">
-                                                    </time-series-display>
-                                                
+                                                <time-series-display
+                                                    :heatmapData="$parent.paginatedData"
+                                                    :minScore="$parent.minScore"
+                                                    :maxScore="$parent.maxScore"
+                                                    :utils="$parent.utilsBox"
+                                                    :zoomedIn="$parent.zoomedIn"
+                                                    :activeTab="$parent.activeTab"
+                                                    :avgRep="$parent.avgRep"
+                                                    :rowNorm="$parent.rowNorm">
+                                                </time-series-display>
                                             </div>
                                         <div>
                                         <div class="table-background">

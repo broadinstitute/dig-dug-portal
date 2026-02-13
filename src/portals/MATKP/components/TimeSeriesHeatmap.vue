@@ -41,7 +41,7 @@ import * as d3 from 'd3';
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore", "rowNorm"],
 	data() {
 		return {
 			squareData: {},
@@ -128,6 +128,9 @@ export default Vue.component("time-series-heatmap", {
 			this.renderHeatmap();
 		},
 		avgRep(){
+			this.renderHeatmap();
+		},
+		rowNorm(){
 			this.renderHeatmap();
 		}
 	},
@@ -254,6 +257,15 @@ export default Vue.component("time-series-heatmap", {
 			})
 
 			this.renderData.rows.map((r, rIndex) => {
+				// TODO if row-normalized, do it here;
+				let rowScores = Object.values(this.renderData[r]);
+				let rowMax = rowScores.reduce((a,b) => a > b ? a : b);
+				let rowMin = rowScores.reduce((a,b) => a < b ? a : b);
+				console.log(JSON.stringify(rowScores));
+				let numExtremes = [rowMin, rowMax];
+				let colorExtremes = [ACCESSIBLE_GRAY, ACCESSIBLE_PURPLE];
+				let rowScale = createColorScale(numExtremes, colorExtremes);
+				
 				this.squareData[rIndex] = {};
 
 				let top = margin.top + (this.boxHeight * rIndex);
@@ -268,8 +280,8 @@ export default Vue.component("time-series-heatmap", {
 						field: this.heatmapField,
 						value: this.renderData[r][c],
 					};
-
-					let colorString = `${this.colorScale(boxValue)}`;
+					let scaleToUse = this.rowNorm ? rowScale : this.colorScale;
+					let colorString = `${scaleToUse(boxValue)}`;
 
 					ctx.beginPath();
 					ctx.rect(left, top, this.boxWidth, this.boxHeight);
