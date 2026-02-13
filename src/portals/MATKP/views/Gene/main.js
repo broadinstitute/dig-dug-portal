@@ -50,6 +50,7 @@ import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 
 import TimeSeriesHeatmap from "@/portals/MATKP/components/TimeSeriesHeatmap.vue";
+import TimeSeriesDisplay from "../../components/TimeSeriesDisplay.vue";
 
 import Counter from "@/utils/idCounter";
 import regionUtils from "@/utils/regionUtils";
@@ -104,7 +105,8 @@ new Vue({
         ResearchBarPlot,
         ResearchBoxPlot,
         ResearchSingleCellBrowser,
-        TimeSeriesHeatmap
+        TimeSeriesHeatmap,
+        TimeSeriesDisplay
     },
     mixins: [pageMixin, matkpMixin],
 
@@ -117,7 +119,7 @@ new Vue({
             tooltips: [],
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
-            timeSeriesId: "GSE20696", // hardcoded for sample,
+            timeSeriesId: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             adipogenesis: [],
             adiposeMin: null,
             adiposeMax: null,

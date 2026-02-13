@@ -34,8 +34,14 @@
 </template>
 <script>
 import Vue from "vue";
+import TimeSeriesHeatmap from "@/portals/MATKP/components/TimeSeriesHeatmap.vue";
+import TimeSeriesLinePlot from "@/portals/MATKP/components/TimeSeriesLinePlot.vue";
 export default Vue.component("time-series-display", {
 	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm"],
+    components: {
+        TimeSeriesHeatmap,
+        TimeSeriesLinePlot
+    },
 	data() {
 		return {
             filteredData: [],
