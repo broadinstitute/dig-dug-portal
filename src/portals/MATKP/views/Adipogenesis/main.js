@@ -61,7 +61,6 @@ new Vue({
     data() {
         return {
             plotId: "time_series_heatmap",
-            dataset: null,
             defaultDataset: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             timeSeriesData: null,
             minScore: null,
@@ -168,9 +167,11 @@ new Vue({
         },
     },
     async created() {
-        this.dataset = !keyParams.dataset ? this.defaultDataset : keyParams.dataset;
-        let timeSeriesData = await getTimeSeries(this.dataset);
-        this.conditionsMap = await mapConditions(timeSeriesData, this.dataset);
+        if (!keyParams.datasetid){
+            keyParams.set({datasetid: this.defaultDataset});
+        }
+        let timeSeriesData = await getTimeSeries(keyParams.datasetid);
+        this.conditionsMap = await mapConditions(timeSeriesData, keyParams.datasetid);
         this.timeSeriesData = includeAverages(timeSeriesData, this.conditionsMap);
         const metadata = await this.getMetadata();
         this.datasetMetadata = metadata;
@@ -197,7 +198,7 @@ new Vue({
             let url = "https://matkp.hugeampkpnbi.org/api/bio/multiquery";
             let index = "single-cell-time-series"
             let queryArray = [];
-            geneArray.forEach(g => queryArray.push(`${this.dataset},${g}`));
+            geneArray.forEach(g => queryArray.push(`${keyParams.datasetid},${g}`));
             let queryObject = {
                 "index": index,
                 "queries": queryArray
@@ -215,7 +216,7 @@ new Vue({
         async getMetadata() {
             let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
             let myMetadata = await scUtils.fetchMetadata(metadataUrl);           
-            return myMetadata.find(x => x.datasetId === this.dataset);
+            return myMetadata.find(x => x.datasetId === keyParams.datasetid);
         },
     },
     watch: {
