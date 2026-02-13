@@ -260,7 +260,6 @@ export default Vue.component("time-series-heatmap", {
 				let rowScores = Object.values(this.renderData[r]);
 				let rowMax = rowScores.reduce((a,b) => a > b ? a : b);
 				let rowMin = rowScores.reduce((a,b) => a < b ? a : b);
-				console.log(JSON.stringify(rowScores));
 				let numExtremes = [rowMin, rowMax];
 				let colorExtremes = [ACCESSIBLE_GRAY, ACCESSIBLE_PURPLE];
 				let rowScale = createColorScale(numExtremes, colorExtremes);

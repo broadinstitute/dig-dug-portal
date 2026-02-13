@@ -741,14 +741,8 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>{{ $store.state.geneName }} and Adipogenesis</h4>
+                    <h6>{{ $parent.adipogenesisTitle }}</h6>
                     For mouse homolog {{$parent.adipogenesisData[0]?.gene}}
-                    <time-series-heatmap v-if="$parent.adipogenesisData.length > 0"
-                        
-                        
-                        
-                        :zoomedIn="true"
-                        :avgRep="true">
-                    </time-series-heatmap>
                     <time-series-display
                         :heatmapData="$parent.adipogenesisData"
                         :minScore="$parent.adiposeMin"
