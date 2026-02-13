@@ -1,16 +1,5 @@
 <template>
 	<div :id="`heatmap-wrapper-${sectionId}`">
-		<div :id="'clicked_cell_value'+sectionId" class="clicked-cell-value hidden">
-			<div :id="'clicked_cell_value_content' + sectionId">
-			</div>
-			<time-series-line-plot
-				v-if="filteredData.length > 0"
-				:plotData="filteredData"
-				:tx="[transcript]"
-				:config="linePlotConfig"
-				:plotId="`${sectionId}_line`">
-			</time-series-line-plot>
-		</div>
 		<div>
 			<div style="display:flex">
 				<span>MIN</span>
@@ -62,7 +51,6 @@ export default Vue.component("time-series-heatmap", {
 			squareData: {},
 			canvasHover: false,
 			margin:{},
-			transcript: "1415687_a_at",
 			colorScale: null,
 			boxWidth: null,
 			fontSize: 12,
@@ -78,30 +66,13 @@ export default Vue.component("time-series-heatmap", {
 	},
 	beforeDestroy() {},
 	computed: {
-		linePlotConfig(){
-            return {
-                xField: "days",
-                xAxisLabel: "Time (days)",
-                xMin: -2, // TODO calculate this dynamically rather than hardcoding it
-                xMax: 7,
-                yField: "score",
-                yAxisLabel: "",
-                yMin: this.minScore,
-                yMax: this.maxScore,
-                dotKey: "identifier",
-                hoverBoxPosition: "both",
-                hoverFields: [
-                    {key: "transcript_id", label: "Transcript"},
-                    {key: "days", label: "Day"},
-                ],
-            }
-        },
 		filteredData(){
 			let data = structuredClone(this.heatmapData);
 			if (this.filter) {
                 data = data.filter(this.filter);
             }
 			data = data.filter(d => this.avgRep ? d.replicate === 'avg' : d.replicate !== 'avg');
+			this.$emit("dataFiltered", data);
 			return data;
 		},
 		renderData() {
@@ -177,56 +148,31 @@ export default Vue.component("time-series-heatmap", {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
 
-			let xPos = Math.floor(e.clientX - rect.left);
-			let yPos = Math.floor(e.clientY - rect.top);
 			let x = Math.floor((e.clientX - (rect.left) - this.margin.left) / (this.boxWidth));
 			let y = Math.floor((e.clientY - (rect.top) - this.margin.top) / this.boxHeight);
 
 			let validCell = x >= 0 && y >= 0 && !!this.squareData[y] && !!this.squareData[y][x]
 			let clickedCellValue = !validCell ? "" : this.hoverContent(x,y);
-			
-			this.transcript = this.renderData.rows[y];
-			this.$emit("hover", this.renderData.rows[y]);
 
-			let wrapper = document.getElementById("clicked_cell_value" + this.sectionId);
-			let contentWrapper = document.getElementById(
-				"clicked_cell_value_content" + this.sectionId
-			);
-
-			let canvasRect = document
-				.getElementById("heatmapCanvasWrapper" + this.sectionId)
-				.getBoundingClientRect();
-
-			let hoverTop = yPos - 10;
-			let hoverLeft = xPos + 50;
-
-			let canvasRight = canvasRect.right + this.margin.right;
-
-			let rightOverhang = hoverLeft + wrapper.clientWidth - canvasRight;
-
-			if (rightOverhang > 0){
-				hoverLeft = hoverLeft - rightOverhang;
-			}
 			
 			// show box if hovering over a valid cell
 			if (validCell) {
-				contentWrapper.innerHTML = clickedCellValue;
-				wrapper.classList.remove("hidden");
-				wrapper.style.top =`${hoverTop}px`; // Can we do this by bottom instead?
-				wrapper.style.left = `${hoverLeft}px`;
-			} else {
-				wrapper.classList.add("hidden");
+				this.$emit("hover", clickedCellValue);
 			}
 			this.renderHeatmap(x, y);
 		},
 		hoverContent(x, y){
-			let rowName = this.geneTxFormat(this.renderData.rows[y]);
+			let transcript = this.renderData.rows[y];
+			let rowName = this.geneTxFormat(transcript);
 			let columnName = this.renderData.columns[x];
 			let scoreVal = this.squareData[y][x].value;
-			let hoverTitle = `<div><strong>${rowName}</strong></div>`;
-			let columnDiv = `<div>${columnName}<div>`;
-			let scoreDiv = `<div><strong>${this.datapointLabel}: </strong>${scoreVal}</div>`;
-			return hoverTitle + columnDiv + scoreDiv;
+			let info = {
+				transcript: transcript,
+				rowName: rowName,
+				columnName: columnName,
+				scoreVal: scoreVal
+			};
+			return info;
 		},
 		getWidth(ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;

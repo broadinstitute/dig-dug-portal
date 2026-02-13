@@ -5,15 +5,30 @@
                 :heatmapData="heatmapData"
                 :minScore="minScore"
                 :maxScore="maxScore"
-                :utils="utilsBox"
+                :utils="utils"
                 sectionId="time-series-heatmap"
                 :zoomedIn="zoomedIn"
                 :activeTab="activeTab"
-                :avgRep="avgRep">
+                :avgRep="avgRep"
+                @hover="d => changeTranscript(d)"
+                @dataFiltered="d => getFilteredData(d)">
             </time-series-heatmap>
         </div>
         <div class="col-md-3">
-            Line plot goes here
+            <div>
+                <div><strong>{{rowName}}</strong></div>
+			    <div>{{columnName}}<div>
+			    <div><strong>score: </strong>{{scoreVal}}</div>
+            </div>
+            <time-series-line-plot
+				v-if="filteredData.length > 0"
+				:plotData="filteredData"
+				:tx="transcript"
+				:config="linePlotConfig"
+				:plotId="`${sectionId}_line`">
+			</time-series-line-plot>
+        </div>
+            </div>
         </div>
     </div>
 </template>
@@ -22,7 +37,45 @@ import Vue from "vue";
 export default Vue.component("time-series-display", {
 	props: ["heatmapData","utils","sectionId", "zoomedIn", "activeTab", "filter", "avgRep", "minScore", "maxScore"],
 	data() {
-		return {};
+		return {
+            filteredData: [],
+            transcript: [""],
+            rowName: "",
+            columnName: "",
+            scoreVal: ""
+        };
 	},
+    computed: {
+        linePlotConfig(){
+            return {
+                xField: "days",
+                xAxisLabel: "Time (days)",
+                xMin: -2, // TODO calculate this dynamically rather than hardcoding it
+                xMax: 7,
+                yField: "score",
+                yAxisLabel: "",
+                yMin: this.minScore,
+                yMax: this.maxScore,
+                dotKey: "identifier",
+                hoverBoxPosition: "both",
+                hoverFields: [
+                    {key: "transcript_id", label: "Transcript"},
+                    {key: "days", label: "Day"},
+                ],
+            }
+        },
+    },
+    methods: {
+        changeTranscript(data){
+            console.log(JSON.stringify(data));
+            this.transcript = [data.transcript];
+            this.rowName = data.rowName;
+            this.columnName = data.columnName;
+            this.scoreVal = data.scoreVal;
+        },
+        getFilteredData(data){
+            this.filteredData = data;
+        }
+    }
 });
 </script>
