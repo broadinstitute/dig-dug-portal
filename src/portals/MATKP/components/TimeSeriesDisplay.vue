@@ -11,7 +11,8 @@
                 :avgRep="avgRep"
                 :rowNorm="rowNorm"
                 @hover="d => changeTranscript(d)"
-                @dataFiltered="d => getFilteredData(d)">
+                @dataFiltered="d => getFilteredData(d)"
+                :activeTab="activeTab">
             </time-series-heatmap>
         </div>
         <div class="col-md-3 line-plot-wrapper">
@@ -37,7 +38,7 @@ import Vue from "vue";
 import TimeSeriesHeatmap from "@/portals/MATKP/components/TimeSeriesHeatmap.vue";
 import TimeSeriesLinePlot from "@/portals/MATKP/components/TimeSeriesLinePlot.vue";
 export default Vue.component("time-series-display", {
-	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm", "days"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm", "days", "activeTab"],
     components: {
         TimeSeriesHeatmap,
         TimeSeriesLinePlot

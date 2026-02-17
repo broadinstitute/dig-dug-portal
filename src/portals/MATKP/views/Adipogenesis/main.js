@@ -77,7 +77,8 @@ new Vue({
             clusterOn: false,
             geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
             geneSearchResults: [],
-            ready: false
+            ready: false,
+            activeTab: 0
         };
     },
     computed: {
@@ -192,7 +193,6 @@ new Vue({
             let geneSearchArray = this.geneSearchQuery.split(delimiters);
             let results = await this.multiqueryGenes(geneSearchArray);
             this.geneSearchResults = includeAverages(results.data, this.conditionsMap);
-            console.log(JSON.stringify(this.geneSearchResults[0]));
         },
         async multiqueryGenes(geneArray) {
             let url = "https://matkp.hugeampkpnbi.org/api/bio/multiquery";

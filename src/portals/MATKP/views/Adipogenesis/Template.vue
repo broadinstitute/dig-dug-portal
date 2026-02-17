@@ -37,7 +37,7 @@
                                 </div>
                             </div>
                             <div id="tabs-below-checkboxes">
-                                <b-tabs>
+                                <b-tabs v-model="$parent.activeTab">
                                     <b-tab title="Top Transcripts">
                                         <div class="tab-inner">
                                             <h4>
@@ -60,7 +60,8 @@
                                                     :zoomedIn="$parent.zoomedIn"
                                                     sectionId="adipogenesis"
                                                     :avgRep="$parent.avgRep"
-                                                    :rowNorm="$parent.rowNorm">
+                                                    :rowNorm="$parent.rowNorm"
+                                                    :activeTab="$parent.activeTab">
                                                 </time-series-display>
                                             </div>
                                         <div>
@@ -117,7 +118,8 @@
                                                         :zoomedIn="true"
                                                         sectionId="gene_search"
                                                         :avgRep="$parent.avgRep"
-                                                        :rowNorm="$parent.rowNorm">
+                                                        :rowNorm="$parent.rowNorm"
+                                                        :activeTab="$parent.activeTab">
                                                     </time-series-display>
                                                     <div class="table-background">
                                                         <b-table

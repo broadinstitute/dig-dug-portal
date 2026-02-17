@@ -12,7 +12,6 @@
 			<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
 					<canvas
 						:id="'heatmap'+ sectionId"
-						@mouseleave="hidePanel"
 						@mousemove="checkPosition"
 						width=""
 						height=""
@@ -43,7 +42,7 @@ import * as d3 from 'd3';
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("time-series-heatmap", {
-	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm", "activeTab"],
 	data() {
 		return {
 			squareData: {},
@@ -132,6 +131,9 @@ export default Vue.component("time-series-heatmap", {
 		},
 		rowNorm(){
 			this.renderHeatmap();
+		},
+		activeTab(){
+			this.renderHeatmap();
 		}
 	},
 	methods: {
@@ -139,9 +141,6 @@ export default Vue.component("time-series-heatmap", {
 			if (TYPE == 'png') {
 				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
 			}
-		},
-		hidePanel() {
-			this.renderHeatmap();
 		},
 		checkPosition(event) {
 			let e = event;
