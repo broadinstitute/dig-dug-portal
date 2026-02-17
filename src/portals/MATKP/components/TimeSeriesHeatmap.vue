@@ -1,7 +1,7 @@
 <template>
 	<div :id="`heatmap-wrapper-${sectionId}`">
 		<div>
-			<div class="heatmap-legend-wrapper" style="display:flex">
+			<div class="heatmap-legend-wrapper">
 				<span v-if="!rowNorm">Global minimum</span>
 				<span v-else>Row minimum</span>
 				<span class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
@@ -353,6 +353,7 @@ $(function () {});
 
 .heatmap-legend-wrapper {
 	font-size: 13px;
+	display:flex;
 }
 
 .heatmap-legend-wrapper span {
