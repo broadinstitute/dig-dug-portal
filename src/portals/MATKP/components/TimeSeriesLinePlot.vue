@@ -182,11 +182,11 @@ export default Vue.component("time-series-line-plot", {
       if (this.config.hoverFields){
         this.config.hoverFields.forEach(field => {
           tooltipText = tooltipText.concat(
-            `<span>${field.label}: ${
+            `<div>${field.label}: ${
               field.formatter === undefined
                 ? dot[field.key] 
                 : field.formatter(dot[field.key])
-            }</span>`
+            }</div>`
           );
         });
       }
@@ -245,5 +245,9 @@ export default Vue.component("time-series-line-plot", {
     margin-right: 15px;
     margin-bottom: 15px;
     background-color: white;
+  }
+
+  .download-images-setting {
+    margin-top: -25px;
   }
 </style>

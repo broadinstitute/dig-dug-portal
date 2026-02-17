@@ -11,7 +11,8 @@
                 :avgRep="avgRep"
                 :rowNorm="rowNorm"
                 @hover="d => changeTranscript(d)"
-                @dataFiltered="d => getFilteredData(d)">
+                @dataFiltered="d => getFilteredData(d)"
+                :activeTab="activeTab">
             </time-series-heatmap>
         </div>
         <div class="col-md-3 line-plot-wrapper">
@@ -28,7 +29,7 @@
                     :plotId="`${sectionId}_line`">
                 </time-series-line-plot>
             </div>
-            <div v-else>Hover over a cell to view individual time-point information.</div>
+            <div v-else class="no-data-message">Hover over a cell to view individual time-point information.</div>
         </div>
     </div>
 </template>
@@ -37,7 +38,7 @@ import Vue from "vue";
 import TimeSeriesHeatmap from "@/portals/MATKP/components/TimeSeriesHeatmap.vue";
 import TimeSeriesLinePlot from "@/portals/MATKP/components/TimeSeriesLinePlot.vue";
 export default Vue.component("time-series-display", {
-	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm", "days"],
+	props: ["heatmapData","utils","sectionId", "zoomedIn", "filter", "avgRep", "minScore", "maxScore", "rowNorm", "days", "activeTab"],
     components: {
         TimeSeriesHeatmap,
         TimeSeriesLinePlot
@@ -67,6 +68,7 @@ export default Vue.component("time-series-display", {
                 hoverFields: [
                     {key: "transcript_id", label: "Transcript"},
                     {key: "days", label: "Day"},
+                    {key: "score", label: "Score"}
                 ],
             }
         },
@@ -86,7 +88,12 @@ export default Vue.component("time-series-display", {
 </script>
 <style scoped>
 .line-plot-wrapper{
-    margin-top: 30px;
+    margin-top: 160px;
     vertical-align: bottom;
+}
+.no-data-message {
+    font-size: 15px;
+    color: #ff6a00;
+    font-weight: bold;
 }
 </style>
