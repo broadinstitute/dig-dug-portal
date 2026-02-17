@@ -28,7 +28,7 @@
                     :plotId="`${sectionId}_line`">
                 </time-series-line-plot>
             </div>
-            <div v-else>Hover over a cell to view individual time-point information.</div>
+            <div v-else class="no-data-message">Hover over a cell to view individual time-point information.</div>
         </div>
     </div>
 </template>
@@ -86,7 +86,12 @@ export default Vue.component("time-series-display", {
 </script>
 <style scoped>
 .line-plot-wrapper{
-    margin-top: 30px;
+    margin-top: 160px;
     vertical-align: bottom;
+}
+.no-data-message {
+    font-size: 15px;
+    color: #ff6a00;
+    font-weight: bold;
 }
 </style>

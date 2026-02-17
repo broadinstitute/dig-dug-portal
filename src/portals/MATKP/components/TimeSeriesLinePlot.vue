@@ -246,4 +246,8 @@ export default Vue.component("time-series-line-plot", {
     margin-bottom: 15px;
     background-color: white;
   }
+
+  .download-images-setting {
+    margin-top: -25px;
+  }
 </style>

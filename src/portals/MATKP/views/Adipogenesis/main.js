@@ -2,7 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
-import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap, extremeVal} from "@/portals/MATKP/utils/adipogenesis.js";
+import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap, extremeVal } from "@/portals/MATKP/utils/adipogenesis.js";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -71,7 +71,7 @@ new Vue({
             currentPage: 1,
             conditionsMap: null,
             currentTable: [],
-            zoomedIn: true,
+            zoomedIn: false,
             avgRep: true,
             rowNorm: true,
             clusterOn: false,
@@ -94,24 +94,24 @@ new Vue({
             };
             return utils;
         },
-        processedData(){
-            if (this.conditionsMap === null){
+        processedData() {
+            if (this.conditionsMap === null) {
                 return null;
             }
             let allData = processDataForHeatmap(this.timeSeriesData, this.conditionsMap);
-            if (allData === null){
+            if (allData === null) {
                 return null;
             }
             return allData;
         },
-        paginatedData(){
+        paginatedData() {
             let pageData = this.filterByPage(this.processedData);
             return pageData;
         },
-        processedGeneSearch(){
+        processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
         },
-        tableFields(){
+        tableFields() {
             let baseFields = [
                 {
                     key: "order",
@@ -138,37 +138,37 @@ new Vue({
                     label: "Pattern",
                     sortable: true
                 }
-                
+
             ];
-                this.conditionsMap.timePoints.forEach(t => {
-                    if (this.avgRep){
+            this.conditionsMap.timePoints.forEach(t => {
+                if (this.avgRep) {
+                    let newField = {
+                        key: `day_${t}_rep_avg`,
+                        label: `Day ${t} (avg.)`,
+                        sortable: true,
+                        formatter: Formatters.tpmFormatter
+                    };
+                    baseFields.push(newField);
+                } else {
+                    this.conditionsMap.replicates.forEach(r => {
                         let newField = {
-                            key: `day_${t}_rep_avg`,
-                            label: `Day ${t} (avg.)`,
+                            key: `day_${t}_rep_${r}`,
+                            label: `Day ${t}, rep. ${r}`,
                             sortable: true,
                             formatter: Formatters.tpmFormatter
                         };
                         baseFields.push(newField);
-                    } else {
-                        this.conditionsMap.replicates.forEach(r => {
-                            let newField = {
-                                key: `day_${t}_rep_${r}`,
-                                label: `Day ${t}, rep. ${r}`,
-                                sortable: true,
-                                formatter: Formatters.tpmFormatter
-                            };
-                            baseFields.push(newField);
-                        });
-                    }
-                });
-            
-            
+                    });
+                }
+            });
+
+
             return baseFields;
         },
     },
     async created() {
-        if (!keyParams.datasetid){
-            keyParams.set({datasetid: this.defaultDataset});
+        if (!keyParams.datasetid) {
+            keyParams.set({ datasetid: this.defaultDataset });
         }
         let timeSeriesData = await getTimeSeries(keyParams.datasetid);
         this.conditionsMap = await mapConditions(timeSeriesData, keyParams.datasetid);
@@ -180,21 +180,21 @@ new Vue({
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
-        filterByPage(data){
-            if (!this.zoomedIn){
+        filterByPage(data) {
+            if (!this.zoomedIn) {
                 return data;
             }
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
         },
-        async queryGenes(){
+        async queryGenes() {
             let delimiters = /[\s;,]+/;
             let geneSearchArray = this.geneSearchQuery.split(delimiters);
             let results = await this.multiqueryGenes(geneSearchArray);
             this.geneSearchResults = includeAverages(results.data, this.conditionsMap);
             console.log(JSON.stringify(this.geneSearchResults[0]));
         },
-        async multiqueryGenes(geneArray){
+        async multiqueryGenes(geneArray) {
             let url = "https://matkp.hugeampkpnbi.org/api/bio/multiquery";
             let index = "single-cell-time-series"
             let queryArray = [];
@@ -204,25 +204,25 @@ new Vue({
                 "queries": queryArray
             };
             try {
-                    return await fetch(url, {
-                        method: "POST",
-                        body: JSON.stringify(queryObject),
-                    })
-                        .then((response) => response.json());
-                } catch (error) {
-                    throw error;
-                }
+                return await fetch(url, {
+                    method: "POST",
+                    body: JSON.stringify(queryObject),
+                })
+                    .then((response) => response.json());
+            } catch (error) {
+                throw error;
+            }
         },
         async getMetadata() {
             let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
-            let myMetadata = await scUtils.fetchMetadata(metadataUrl);           
+            let myMetadata = await scUtils.fetchMetadata(metadataUrl);
             return myMetadata.find(x => x.datasetId === keyParams.datasetid);
         },
     },
     watch: {
-        processedData(newData){
+        processedData(newData) {
             this.ready = false;
-            if (this.minScore === null && this.maxScore === null){
+            if (this.minScore === null && this.maxScore === null) {
                 this.minScore = extremeVal(newData);
                 this.maxScore = extremeVal(newData, false);
                 this.ready = true;

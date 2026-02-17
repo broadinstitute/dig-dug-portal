@@ -1,11 +1,11 @@
 <template>
 	<div :id="`heatmap-wrapper-${sectionId}`">
 		<div>
-			<div style="display:flex">
+			<div class="heatmap-legend-wrapper" style="display:flex">
 				<span v-if="!rowNorm">Dataset minimum</span>
 				<span v-else>Row minimum</span>
-				<div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
-				</div>
+				<span class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
+				</span>
 				<span v-if="!rowNorm">Dataset maximum</span>
 				<span v-else>Row maximum</span>
 			</div>
@@ -56,7 +56,8 @@ export default Vue.component("time-series-heatmap", {
 			rowField: "gene_tx",
 			columnField: "source",
 			heatmapField: "score",
-			datapointLabel: "score" // need to get a more descriptive label
+			datapointLabel: "score", // need to get a more descriptive label
+			renderScale: 4, // render at 4x resolution, display at 25% for crisp output
 		};
 	},
 	mounted: function () {
@@ -199,9 +200,10 @@ export default Vue.component("time-series-heatmap", {
 			this.boxWidth = centerWidth / this.renderData.columns.length;
 
 			let canvasHeight = ((this.boxHeight * this.renderData.rows.length) + margin.top + margin.bottom);
-			
-			c.setAttribute("width", canvasWidth);
-			c.setAttribute("height", canvasHeight);
+
+			const scale = this.renderScale;
+			c.setAttribute("width", canvasWidth * scale);
+			c.setAttribute("height", canvasHeight * scale);
 			c.setAttribute(
 				"style",
 				"width:" +
@@ -210,7 +212,8 @@ export default Vue.component("time-series-heatmap", {
 					canvasHeight +
 					"px;"
 			);
-			
+			ctx.setTransform(scale, 0, 0, scale, 0, 0);
+
 			let numExtremes = [this.minScore, this.maxScore];
 			let colorExtremes = [ACCESSIBLE_GRAY, ACCESSIBLE_PURPLE];
 			this.colorScale = createColorScale(numExtremes, colorExtremes);
@@ -349,16 +352,21 @@ $(function () {});
 	text-align: center;
 }
 
-.heatmap-legend {
-	font-size: 14px;
-	text-align: left;
+.heatmap-legend-wrapper {
+	font-size: 13px;
 }
+
+.heatmap-legend-wrapper span {
+	display: inline-flex;
+}
+
 .gradient {
-    height: 20px;
-    width: 200px;
-    border-radius: 20px;
+    height: 13px;
+    width: 130px;
+    border-radius: 10px;
 	margin-left: 15px;
 	margin-right: 15px;
+	margin-top: 3px;
 }
 </style>
 
