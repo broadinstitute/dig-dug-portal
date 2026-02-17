@@ -6,6 +6,7 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
+import { createColorScale } from "../../utils/visuals.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -55,6 +56,8 @@ new Vue({
         return {
             loading: true,
             dataReady: false,
+            enrichrReady: false,
+            tableHidden: false,
             allMetadata: null,
             bulkMetadata: null,
             plotId: "bulk_heatmap",
@@ -67,9 +70,7 @@ new Vue({
             enrichrUp: [],
             enrichrDown: [],
             enrichrLibraries: [],
-            enrichrDefaultLibrary: "KEGG_2015",
-            enrichrLibrary: "placeholder",
-            displayLibrary: "KEGG_2015",
+            enrichrLibrary: "KEGG_2015", //hardcoding default
             libraryPage: 1,
             selectedLibraryType: "",
             endpoint: "single-cell-bulk-z-norm",
@@ -121,7 +122,7 @@ new Vue({
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
-                    { key: "expand", label: "Gene query" },
+                    { key: "expand", label: "Gene expression by variable" },
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "single-cell-bulk-melted",
@@ -269,6 +270,8 @@ new Vue({
             }
             this.getParams();
             this.enrichrLibraries = await getTextContent(this.enrichrByor);
+            this.selectedLibraryType = this.enrichrLibraries.find(
+                l => l["Gene-set Library"] === this.enrichrLibrary)["Type"];
             await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
@@ -281,16 +284,13 @@ new Vue({
             this.dataReady = true;
         },
         async populateEnrichr(){
-            let libraryToUse = this.enrichrLibrary === 'placeholder' 
-                ? this.enrichrDefaultLibrary 
-                : this.enrichrLibrary;
+            this.enrichrReady = false;
             this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.upGenes, libraryToUse, this.truncateEnrichr);
-            this.enrichrDown = await getEnrichr(this.downGenes, libraryToUse, this.truncateEnrichr);
-            this.enrichrColorScale = this.createColorScale();
-            this.displayLibrary = libraryToUse;
-            this.enrichrLibrary = 'placeholder';
+            this.enrichrUp = await getEnrichr(this.upGenes, this.enrichrLibrary, this.truncateEnrichr);
+            this.enrichrDown = await getEnrichr(this.downGenes, this.enrichrLibrary, this.truncateEnrichr);
+            this.enrichrColorScale = createColorScale(this.colorScaleEndpoints, [ACCESSIBLE_DARK_GRAY, ACCESSIBLE_PURPLE]);
+            this.enrichrReady = true;
         },
         async getBulkMetadata() {
             if (!this.allMetadata) {
@@ -339,21 +339,20 @@ new Vue({
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
         },
-        createColorScale(){
-            let ends = this.colorScaleEndpoints;
-            return d3.scaleLinear()
-              .range([ACCESSIBLE_DARK_GRAY, ACCESSIBLE_PURPLE])
-              .domain(ends);
-        },
         async setVolcano(newYVal){
             if (newYVal === this.volcanoYCondition) {
                 return;
             }
-            this.dataReady = false;
             // If any change, refire Enrichr
             this.volcanoYCondition = newYVal;
             await this.populateEnrichr();
-            this.dataReady = true;
+        },
+        hideTable(){
+            this.tableHidden = true;
+        },
+        getClass(library){
+            let libraryName = library["Gene-set Library"];
+            return this.enrichrLibrary === libraryName ? "selected-library" : "";
         }
     },
     watch: {
@@ -374,9 +373,7 @@ new Vue({
         },
         async enrichrLibrary(newData, oldData){
             if(newData != oldData && newData != 'placeholder'){
-                this.dataReady = false;
                 await this.populateEnrichr();
-                this.dataReady = true;
             }
         },
         selectedComparison(newData, oldData) {
@@ -410,6 +407,11 @@ new Vue({
                 this.$store.state.selectedGene = newData;
             }
         },
+        selectedLibraryType(newData, oldData){
+            if (!!newData){
+                this.tableHidden = false;
+            }
+        }
     },
 
     render(createElement, context) {

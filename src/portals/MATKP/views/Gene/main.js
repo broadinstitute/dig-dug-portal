@@ -7,6 +7,7 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTextContent, getMotrpac } from "@/portals/MATKP/utils/content";
+import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap, extremeVal} from "@/portals/MATKP/utils/adipogenesis.js";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -48,6 +49,9 @@ import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
 
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
 
+import TimeSeriesHeatmap from "@/portals/MATKP/components/TimeSeriesHeatmap.vue";
+import TimeSeriesDisplay from "../../components/TimeSeriesDisplay.vue";
+
 import Counter from "@/utils/idCounter";
 import regionUtils from "@/utils/regionUtils";
 
@@ -60,7 +64,8 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import filterUtils from "@/utils/filterUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
-import { result } from "lodash";
+import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 Vue.config.productionTip = false;
 
@@ -101,7 +106,9 @@ new Vue({
         ColocusTable,
         ResearchBarPlot,
         ResearchBoxPlot,
-        ResearchSingleCellBrowser
+        ResearchSingleCellBrowser,
+        TimeSeriesHeatmap,
+        TimeSeriesDisplay
     },
     mixins: [pageMixin, matkpMixin],
 
@@ -114,6 +121,12 @@ new Vue({
             tooltips: [],
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
+            timeSeriesId: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
+            adipogenesisTitle: "",
+            adipogenesis: [],
+            adiposeMin: null,
+            adiposeMax: null,
+            conditionsMap: null,
             activeTab: "hugeScorePheWASPlot",
             externalResources: {
                 ensembl: {
@@ -645,14 +658,6 @@ new Vue({
             return data;
         },
 
-        /*smallestpValuePhenotype() {
-            // let data = this.$store.state.varassociations.data;
-            // let x = data.sort(
-            //     (a, b) => a.pValue - b.pValue
-            // );
-
-            return "T2D";
-        },*/
         selectedPhenotypes() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             if (Object.keys(phenotypeMap).length === 0) {
@@ -808,6 +813,19 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
+
+        adipogenesisData(){            
+            if (this.conditionsMap === null || this.adipogenesis.length === 0){
+                return [];
+            }
+            let filteredData = this.adipogenesis.filter(a => 
+                !!a.gene && a.gene.toLowerCase() === this.$store.state.geneName.toLowerCase());
+            let allData = processDataForHeatmap(filteredData, this.conditionsMap);
+            if (allData === null){
+                return [];
+            }
+            return allData;
+        }
     },
 
     watch: {
@@ -878,6 +896,15 @@ new Vue({
             this.$store.dispatch("getHugeScoresData");
 
         },
+        adipogenesisData(newData){
+            if (newData === null || newData.length === 0){
+                return;
+            }
+            if (this.adiposeMin === null && this.adiposeMax === null){
+                this.adiposeMin = extremeVal(newData);
+                this.adiposeMax = extremeVal(newData, false);
+            }
+        }
     },
 
     async created() {
@@ -888,8 +915,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         ////
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
-        //this.$store.dispatch("queryAssociations");
+        
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -901,6 +927,13 @@ new Vue({
         this.getGTExdata2();
         this.geneSigsData = await this.getGeneSigs();
         this.motrpacData = await this.getMotrpacResult(this.$store.state.geneName);
+
+        // Adipogenesis data for gene adipogenesis card
+        let timeSeriesData = await getTimeSeries(this.timeSeriesId);
+        this.conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
+        this.adipogenesis = includeAverages(timeSeriesData, this.conditionsMap);
+        const metadata = await this.adipogenesisMetadata();
+        this.adipogenesisTitle = metadata.datasetName;
     },
 
     methods: {
@@ -1180,7 +1213,12 @@ new Vue({
             }
             let tooltipItem = this.tooltips.find(t => t["ID"] === tooltipId);
             return tooltipItem["Content"];
-        }
+        },
+        async adipogenesisMetadata() {
+            let metadataUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
+            let myMetadata = await scUtils.fetchMetadata(metadataUrl);           
+            return myMetadata.find(x => x.datasetId === this.timeSeriesId);
+        },
     },
 
     render(createElement, context) {

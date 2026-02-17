@@ -2,12 +2,13 @@ import Vue from "vue";
 import Template from "./Template.vue";
 
 import "../../assets/matkp-styles.css";
-
+import { fetchMetadata } from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 //const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+const METADATA_URL = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
 
 new Vue({
     components: {
@@ -16,6 +17,7 @@ new Vue({
 
     data() {
         return {
+            config_pageid: 'matkp_config',
             config: null,
             datasets: null,
             datasetsFlat: null,
@@ -42,7 +44,9 @@ new Vue({
 
     async created() {
         await this.getConfig();
-        this.getDatasets();
+        const datasets = await fetchMetadata(METADATA_URL);
+        this.datasets = datasets;
+        this.datasetsFlat = this.flattenDatasets(datasets);
     },
 
     watch: {
@@ -118,7 +122,7 @@ new Vue({
                 ...fields,
                 ...[
                     { key: "show_details", label: "", sortable: false },
-                    { key: "download", label: "", sortable: false },
+                    //{ key: "download", label: "", sortable: false },
                     { key: "datasetId", label: "", sortable: false },
                 ],
             ];
@@ -135,6 +139,8 @@ new Vue({
                     sortable: true,
                 });
             });
+            fields.push({ key: "download", label: "Raw Data", sortable: false });
+            fields.push({ key: "download_public", label: "Processed Data", sortable: false });
             //console.log('subFields', fields);
             return fields;
         },
@@ -144,7 +150,7 @@ new Vue({
                 return Object.keys(this.selectedFilters).every((key) => {
                     if (this.selectedFilters[key].length === 0) return true;
                     return this.selectedFilters[key].some((filterValue) =>
-                        item[key].includes(filterValue)
+                        item[key]?.includes(filterValue)
                     );
                 });
             });
@@ -176,26 +182,14 @@ new Vue({
     methods: {
         async getConfig() {
             const dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=matkp_config";
+                `https://hugeampkpncms.org/rest/data?pageid=${this.config_pageid}`;
             const result = await fetch(dataPoint).then((resp) => resp.json());
             const json = JSON.parse(result[0]["field_data_points"]);
             this.config = json;
             console.log("config", json);
         },
-        async getDatasets() {
-            const fetchPath =
-                "/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz";
-            const response = await fetch(`${BIO_INDEX_HOST}${fetchPath}`);
-            const dataText = await response.text();
-            const lines = dataText
-                .split("\n")
-                .filter((line) => line.trim() !== "");
-            const jsonObjects = lines.map((line) => JSON.parse(line));
-            jsonObjects.forEach((object) => {
-                object._showDetails = false;
-            });
-            this.datasets = jsonObjects;
-            this.datasetsFlat = this.datasets.map(obj => {
+        flattenDatasets(datasets){
+            return datasets.map(obj => {
                 const { required_sample_properties, custom_sample_properties, ...rest } = obj;
                 return {
                     ...rest,
@@ -203,7 +197,6 @@ new Vue({
                     ...custom_sample_properties
                 };
             });
-            console.log("datasets", this.datasets, this.datasetsFlat);
         },
         updateQueryStringFromPage(selectedFilters) {
             console.log("updateFromPage");

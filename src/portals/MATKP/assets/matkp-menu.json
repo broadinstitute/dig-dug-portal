@@ -26,6 +26,10 @@
             {
                 "label": "Phenotype Browser",
                 "path": "/phenotype.html" 
+            },
+            {
+                "label": "Gene Browser",
+                "path": "/gene.html?gene=ADIPOQ" 
             }
         ]
     },

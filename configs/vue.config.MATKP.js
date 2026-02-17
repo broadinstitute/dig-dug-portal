@@ -67,6 +67,13 @@ let pages = {
         filename: "phenotype.html",
         title: "MATKP | Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "phenotype"]
+    },
+    adipogenesis: {
+        entry: "src/portals/MATKP/views/Adipogenesis/main.js",
+        template: "public/index.html",
+        filename: "adipogenesis.html",
+        title: "MATKP | Adipogenesis",
+        chunks: ["chunk-vendors", "chunk-common", "adipogenesis"]
     }
 };
 

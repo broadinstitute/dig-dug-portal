@@ -9,7 +9,11 @@
                         <option value="Mus musculus">Mus musculus</option>
                     </select>
                 </div>
-                <div class="f-col anatomy" style="gap:10px">
+                <div class="f-col anatomy" style="gap:10px; position:relative">
+                    <div class="f-row spread-out" style="position: absolute; width:100%; font-size: 12px;">
+                        <div>Male</div>
+                        <div>Female</div>
+                    </div>
                     <div class="anatomy-item" :style="`width:${anatomyWidth}px`">
                         <div class="anatomy-points" style="position:absolute; width:100%; height:100%; z-index: 1;">
                             <template v-for="depot in depots[selectedSpecies]">
@@ -551,14 +555,22 @@ export default Vue.component("matkp-anatomogram", {
 
         parseDatasetsBySpeciesAndDepot() {
             const speciesDepotsMap = {};
+            const depotList = [];
             this.datasets.forEach((dataset) => {
                 const species = dataset.species;
-                const depot1 = dataset.depot.includes("subcutaneous")
+                const depot1 = dataset.depot?.includes("subcutaneous")
                     ? "subcutaneous"
                     : dataset.depot;
-                const depot2 = dataset.depot2.includes("subcutaneous")
+                const depot2 = dataset.depot2?.includes("subcutaneous")
                     ? "subcutaneous"
                     : dataset.depot2;
+                depotList.push({
+                    id: dataset.datasetId,
+                    type: dataset.data_type,
+                    species: dataset.species,
+                    depot: dataset.depot,
+                    depot2: dataset.depot2
+                })
                 const depots = [depot2];
                 if (!speciesDepotsMap[species]) {
                     speciesDepotsMap[species] = {};
@@ -584,6 +596,7 @@ export default Vue.component("matkp-anatomogram", {
                 });
                 */
             });
+            //console.log(depotList)
             const result = {};
             for (const [species, depotsObj] of Object.entries(
                 speciesDepotsMap

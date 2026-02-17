@@ -127,8 +127,6 @@ export async function getNewsItem(itemId) {
 
 export async function getEnrichr(genesList, library) {
 	let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
-	console.log("enrichrEndpoint", enrichrEndpoint);
-	console.log("genesList", genesList);
 	let enrichrRequest = {
 		"gene_set_library": library,
 		"gene_list": genesList,
@@ -149,8 +147,6 @@ export async function getEnrichr(genesList, library) {
 			let rank = `${d["Rank"]}`.padStart(3, "0");
 			d.rankLabel = `${rank}_${d["Term name"]}`;
 		})
-
-		console.log("jsonData", jsonData);
 		return jsonData;
 	} catch (error) {
 		console.error(error.message);

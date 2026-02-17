@@ -170,29 +170,36 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.dataReady">
+                                <div id="table-wrapper" class="flex-gap flex-column">
+                                    <div class="flex-gap flex-column">
+                                        <bulk-table
+                                            :bulkData="$parent.bulkData19K"
+                                            
+                                            :dataset="$store.state.selectedDataset"
+                                            :config="$parent.tableConfig"
+                                            :scatterConfig="$parent.scatterplotConfig"
+                                            :highlightedGene="$store.state.selectedGene"
+                                            :regulationConditions="$parent.regulationConditions">
+                                        </bulk-table>
+                                    </div>
+                                </div>
+                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrReady && $parent.dataReady">
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                ENRICHR: Pathways for {{ $parent.upGenes.length }} upregulated
-                                                and {{ $parent.downGenes.length}} downregulated genes.
+                                                ENRICHR: Top pathways for differentially expressed genes
                                             </div>
                                         </div>
                                         <div class="tabs-section-wrapper">
-                                          <div class="tab-section" >
-                                            <div style="display:flex; gap:5px" class="legends">
-                                                <div style="display:inline-block" class="legend">
-                                                   <strong>-log10(P adj.)</strong>
-                                                    <div style="display:flex; margin-top:10px" class="marks">
-                                                        <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
-                                                        <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
-                                                        </div>
-                                                        <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div id="note">
-                                                Combined score = log(p) * z, where z represents deviation from expected rank.
+                                          <div class="tab-section">
+                                            <div class="row">
+                                                <p id="enrichr-explain">The top 10 pathways from the selected gene set library are provided
+                                                for all differentially expressed genes from the above-selected dataset
+                                                and p-value filters (<strong>{{ $parent.upGenes.length }}</strong> upregulated,
+                                                <strong>{{ $parent.downGenes.length}}</strong> downregulated genes).
+                                                If you use data from this tool, please review our <a href="/info.html?page=policies">Citation
+                                                Policies</a> to ensure proper citation of the underlying resource(s)
+                                                used to generate these analyses.</p>
                                             </div>
                                             <div class="row select-library">
                                                 <div class="col-md-3">
@@ -207,17 +214,42 @@
                                                         </option>
                                                     </select>
                                                 </div>
-                                                <div class="col-md-9"></div>
+                                                <div class="col-md-4"></div>
+                                                <div class="col-md-5">
+                                                    <div style="display:flex; gap:5px" class="legends">
+                                                        <div style="display:inline-block" class="legend">
+                                                        <strong>-log10(P adj.)</strong>
+                                                            <div style="display:flex; margin-top:10px" class="marks">
+                                                                <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
+                                                                <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
+                                                                </div>
+                                                                <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div id="note">
+                                                        Combined score = log(p) * z, where z represents deviation from expected rank.
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="row" v-if="!!$parent.selectedLibraryType">
                                                 <div class="col-md-12">
                                                     <b-table
+                                                    :hidden="$parent.tableHidden"
                                                     id="select-library-table"
                                                     small
                                                     :items="$parent.librariesForType"
                                                     :current-page="$parent.libraryPage"
                                                     :per-page="5"
+                                                    :tbody-tr-class="(library) => $parent.getClass(library)"
                                                     >
+                                                        <template #head(type)="item">
+                                                            Select
+                                                            <button class="btn btn-sm hide-table"
+                                                                @click="$parent.hideTable()">
+                                                                &#x2715;
+                                                            </button>
+                                                        </template>
                                                         <template #cell(type)="item">
                                                             <button class="btn btn-sm btn-primary select-library"
                                                                 @click="$parent.selectLibrary(item)">
@@ -235,7 +267,7 @@
                                                 </div>
                                             </div>
                                           </div>
-                                        <h4 id="enrichrResults">Results for gene set library {{ $parent.displayLibrary }}</h4>
+                                        <h4 id="enrichrResults">Results for gene set library {{ $parent.enrichrLibrary }}</h4>
                                         </div>
                                     </div>
                                 </div>
@@ -246,7 +278,7 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.dataReady"
+                                                            v-if="$parent.enrichrReady && $parent.dataReady"
                                                             ref="DownregulatedGenes"
                                                             :phenotypesData="$parent.enrichrDown"
                                                             :colors="$parent.colors"
@@ -266,7 +298,7 @@
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
                                                         <enrichr-plot
-                                                            v-if="$parent.dataReady"
+                                                            v-if="$parent.enrichrReady && $parent.dataReady"
                                                             ref="UpregulatedGenes"
                                                             :phenotypesData="$parent.enrichrUp"
                                                             :colors="$parent.colors"
@@ -279,19 +311,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div id="table-wrapper" class="flex-gap flex-column">
-                                    <div class="flex-gap flex-column">
-                                        <bulk-table
-                                            :bulkData="$parent.bulkData19K"
-                                            
-                                            :dataset="$store.state.selectedDataset"
-                                            :config="$parent.tableConfig"
-                                            :scatterConfig="$parent.scatterplotConfig"
-                                            :highlightedGene="$store.state.selectedGene"
-                                            :regulationConditions="$parent.regulationConditions">
-                                        </bulk-table>
                                     </div>
                                 </div>
                             </div>
@@ -443,5 +462,21 @@ button.select-library {
 }
 #select-library-table {
     background: #efefef;
+}
+button.hide-table {
+    background-color: red;
+    color: white;
+    float: right;
+    border-radius: 20px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight: bold;
+    font-size: smaller;
+}
+#enrichr-explain {
+    margin-left: 15px;
+    margin-right: 15px;
 }
 </style>
