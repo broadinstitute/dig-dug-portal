@@ -68,6 +68,7 @@ export default Vue.component("time-series-display", {
                 hoverFields: [
                     {key: "transcript_id", label: "Transcript"},
                     {key: "days", label: "Day"},
+                    {key: "score", label: "Score"}
                 ],
             }
         },

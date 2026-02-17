@@ -182,11 +182,11 @@ export default Vue.component("time-series-line-plot", {
       if (this.config.hoverFields){
         this.config.hoverFields.forEach(field => {
           tooltipText = tooltipText.concat(
-            `<span>${field.label}: ${
+            `<div>${field.label}: ${
               field.formatter === undefined
                 ? dot[field.key] 
                 : field.formatter(dot[field.key])
-            }</span>`
+            }</div>`
           );
         });
       }

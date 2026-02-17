@@ -2,11 +2,11 @@
 	<div :id="`heatmap-wrapper-${sectionId}`">
 		<div>
 			<div class="heatmap-legend-wrapper" style="display:flex">
-				<span v-if="!rowNorm">Dataset minimum</span>
+				<span v-if="!rowNorm">Global minimum</span>
 				<span v-else>Row minimum</span>
 				<span class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray});`">
 				</span>
-				<span v-if="!rowNorm">Dataset maximum</span>
+				<span v-if="!rowNorm">Global maximum</span>
 				<span v-else>Row maximum</span>
 			</div>
 			<div class="heatmap-canvas-wrapper" :id="'heatmapCanvasWrapper' + sectionId">
