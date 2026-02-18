@@ -79,7 +79,7 @@ new Vue({
             geneSearchResults: [],
             ready: false,
             activeTab: 0,
-            sortByPattern: false,
+            patternView: false,
             selectedPattern: null
         };
     },
@@ -107,9 +107,12 @@ new Vue({
             }
             return allData;
         },
+        tableData(){
+            return this.selectedPattern !== null ? this.filterByPattern(this.timeSeriesData) : this.timeSeriesData;
+        },
         paginatedData() {
             // Filter by page if pattern filter is off
-            let pageData = this.viewPattern ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
+            let pageData = this.selectedPattern !== null ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
             return pageData;
         },
         processedGeneSearch() {
@@ -204,9 +207,7 @@ new Vue({
             if (this.selectedPattern === null){
                 return data;
             }
-            console.log(JSON.stringify(data[0]));
             let matches = data.filter(d => d.pattern === this.selectedPattern);
-            console.log(matches.length);
             return matches;
         },
         async queryGenes() {
@@ -240,7 +241,6 @@ new Vue({
             return myMetadata.find(x => x.datasetId === keyParams.datasetid);
         },
         viewPattern(pattern){
-            console.log("Viewing", pattern);
             this.selectedPattern = pattern;
         }
     },
@@ -253,9 +253,25 @@ new Vue({
                 this.ready = true;
             }
         },
-        patterns(newPatterns){
-            console.log(JSON.stringify(newPatterns));
+        patternView(isTrue){
+            if (!isTrue){
+                this.selectedPattern = null;
+            }
+        },
+        selectedPattern(newValue){
+            if (newValue !== null){
+                // When a pattern is selected, make sure to zoom in
+                this.zoomedIn = true;
+            }
+        },
+        zoomedIn(isTrue){
+            // If you zoom out, clear pattern filter
+            if (!isTrue){
+                this.selectedPattern = null;
+                this.patternView = false;
+            }
         }
+        
     },
     render: (h) => h(Template),
 }).$mount("#app");

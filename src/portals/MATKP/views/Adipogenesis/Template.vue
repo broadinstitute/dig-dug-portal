@@ -50,12 +50,12 @@
                                                 </span>
                                                 <span class="zoom-checkbox">
                                                     <label>
-                                                        <input v-model="$parent.sortByPattern" type="checkbox" />
+                                                        <input v-model="$parent.patternView" type="checkbox" />
                                                         View rows by pattern
                                                     </label>
                                                 </span>
                                             </h4>
-                                            <div v-if="$parent.sortByPattern && $parent.patterns.length > 0">
+                                            <div v-if="$parent.patternView && $parent.patterns.length > 0">
                                                 <span v-for="pattern in $parent.patterns" class="pattern-bubble">
                                                     <button :id="pattern" @click="$parent.viewPattern(pattern)">{{ pattern }}</button>
                                                 </span>
@@ -80,7 +80,7 @@
                                             <b-table v-if="$parent.ready"
                                                 small
                                                 v-model="$parent.currentTable"
-                                                :items="$parent.timeSeriesData"
+                                                :items="$parent.tableData"
                                                 :fields="$parent.tableFields"
                                                 :per-page="10"
                                                 :current-page="$parent.currentPage">
