@@ -178,7 +178,7 @@ export default Vue.component('research-umap-plot-gl', {
                 this.buffers.color = null;
             }
             //this.expressionScale = d3.scaleSequential(d3.interpolatePlasma).domain([d3.max(this.expression), 0]),
-            this.expressionScale = d3.scaleLinear().domain([0, d3.max(this.expression)]).range(["lightgrey", "blue"]);
+            if(this.expression) this.expressionScale = d3.scaleLinear().domain([0, d3.max(this.expression)]).range(["lightgrey", "blue"]);
             this.setupBuffers();
             this.renderUMAP();
         },

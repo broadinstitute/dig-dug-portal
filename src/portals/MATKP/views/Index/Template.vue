@@ -6,7 +6,7 @@
             <!-- HERO BG -->
             <matkp-hero />
             <!-- BODY -->
-            <div class="mat-body f-col align-h-center">
+            <div class="mat-body f-col align-h-center" style="max-width: 1400px; margin: 0 auto">
                 
                 <div class="f-col" style="gap:30px; width:100%">
                     <div class="f-row align-v-bottom" style="padding: 50px 0 10px; background:none; gap:50px">
@@ -37,40 +37,75 @@
                     </div>
                 </div>
 
-                <div class="f-col align-v-center grow-children" style="gap:20px; width: min-content">
-                    <div class="f-row fill-width grow-children" style="gap:20px;">
-                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
+                <div class="f-row cards" style="gap:20px">
+                    <a class="f-col white-blur-bg yes-events" style="gap:5px; flex:1" href="/cellbrowser.html">
+                        <div style="width:100%; height:125px; padding:20px;"><img class="fit-img" src="https://hugeampkpncms.org/sites/default/files/images/matkp/matkp_sc.png"/></div>
+                        <div style="font-size:16px; font-weight:bold">Single Cell Browser</div>
+                        <div>Explore single-cell RNA-seq datasets from adipose tissue to examine cell types, gene expression, and marker genes.</div>
+                    </a>
+                    <a class="f-col white-blur-bg yes-events" style="gap:5px; flex:1" href="/bulkbrowser.html">
+                        <div style="width:100%; height:125px; padding:20px;"><img class="fit-img" src="https://hugeampkpncms.org/sites/default/files/images/matkp/matkp_de.png"/></div>
+                        <div style="font-size:16px; font-weight:bold">Expression Browser</div>
+                        <div>Compare gene expression in adipose tissue using bulk RNA-seq to identify differentially expressed genes and enriched pathways.</div>
+                    </a>
+                    <a class="f-col white-blur-bg yes-events" style="gap:5px; flex:1" href="/phenotype.html">
+                        <div style="width:100%; height:125px; padding:20px;"><img class="fit-img" src="https://hugeampkpncms.org/sites/default/files/images/matkp/matkp_p.png"/></div>
+                        <div style="font-size:16px; font-weight:bold">Phenotype Browser</div>
+                        <div>Browse adipose tissue–related phenotypes to examine genetic associations, implicated genes, and enriched pathways.</div>
+                    </a>
+                    <a class="f-col white-blur-bg yes-events" style="gap:5px; flex:1" href="/tissue.html">
+                        <div style="width:100%; height:125px; padding:20px;"><img class="fit-img" src="https://hugeampkpncms.org/sites/default/files/images/matkp/matkp_fa.png"/></div>
+                        <div style="font-size:16px; font-weight:bold">Functional Annotations</div>
+                        <div>Functional gene and regulatory annotations in adipose tissue; integrating gene expression, GWAS signals, and epigenomic data.</div>
+                    </a>
+                    <a class="f-col white-blur-bg yes-events" style="gap:5px; flex:1" href="/adipogenesis.html">
+                        <div style="width:100%; height:125px; padding:20px;"><img class="fit-img" src="https://hugeampkpncms.org/sites/default/files/images/matkp/matkp_a.png"/></div>
+                        <div style="font-size:16px; font-weight:bold">Adipogenesis</div>
+                        <div>Investigate gene expression programs underlying adipogenesis using interactive time-course datasets.</div>
+                    </a>
+                </div>
+
+                <div class="f-row align-v-center" style="gap:20px; min-width: 1160px;">
+                    <div class="f-row fill-width" style="gap:20px; padding:40px; background:#ffffffcc;">
+                        <div class="f-col" style="gap:5px; width: 225px;">
                             <div style="font-size:16px; font-weight:bold">Browse Data</div>
-                            <div style="flex:1">Single-cell, bulk, and pseudobulk datasets for human and mouse models.</div>
-                            <a class="yes-events" href="/datasets.html">Browse</a>
+                            <div style="flex:1">Browse and filter curated adipose tissue datasets across species, depots, assays, and experimental methods. Access detailed metadata and explore datasets available throughout the portal.</div>
+                            <a class="yes-events" href="/datasets.html">Browse All</a>
                         </div>
-                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
-                            <div style="font-size:16px; font-weight:bold">Explore Data</div>
-                            <div class="f-row" style="gap:5px;">
-                                <a class="yes-events" href="/cellbrowser.html">Single Cell Browser</a>
+                        <div class="f-row fill-width" style="gap:10px; padding: 25px 0 0">
+                            <div id="data-viz-labels">
+                                <div>Datasets</div>
+                                <div>Species</div>
+                                <div>Data Type</div>
                             </div>
-                            <div class="f-row" style="gap:5px">
-                                <a class="yes-events" href="/bulkbrowser.html">Differential Expression Browser</a>
+                            <div class="f-col fill-width" style="gap:10px">
+                                <div id="data-viz" class="yes-events" style="flex:1"></div>
+                                <div class="f-row" style="gap:10px">
+                                    <div v-for="item in $parent.secondaryLegend" class="f-row" style="gap:5px;">
+                                        <div
+                                            style="width:20px; height:20px;"
+                                            :style="{ background: item.color }"
+                                        ></div>
+                                        <div>{{ item.label }}</div>
+                                    </div>
+                                </div>
+                                <!--
+                                <div><em>Click a segment of the chart to go to the data page and see that subset of datasets.</em></div>
+                                -->
                             </div>
-                            <div class="f-row" style="gap:5px">
-                                <a class="yes-events" href="/tissue.html">Functional Annotations</a>
-                            </div>
-                            <div class="f-row" style="gap:5px">
-                                <a class="yes-events" href="/phenotype.html">Phenotype Browser</a>
-                            </div>
-                        </div>
-                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
-                            <div style="font-size:16px; font-weight:bold">Contribute Your Data</div>
-                            <div style="flex:1">Simply upload through our Data Registry.</div>
-                            <a class="yes-events" target="_blank" href="https://uploads.matkp.org">Try it here</a>
-                        </div>
-                        <div class="f-col" style="gap:5px; width: 250px; padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
-                            <div style="font-size:16px; font-weight:bold">Related Resources</div>
-                            <div style="flex:1">MATKP and ATKP provide complementary views on adipose tissue biology.</div>
-                            <a class="yes-events" target="_blank" href="https://hugeamp.org/r/eat_bio">Learn More</a>
                         </div>
                     </div>
-                    <div v-if="$parent.newsFeed && $parent.newsFeed.length>0" style="padding:20px; background: #ffffff70; backdrop-filter: blur(5px);">
+                    <div class="f-col" style="gap:5px; padding:40px; width:250px; background: #ffffffcc; height: -webkit-fill-available;">
+                        <div style="font-size:16px; font-weight:bold">Contribute Data</div>
+                        <div style="flex:1">Upload your data through our Data Registry.</div>
+                        <a class="yes-events" target="_blank" href="https://uploads.matkp.org">Try it here</a>
+                    </div>
+                </div>
+                
+                <!--
+                <div class="f-row align-v-center grow-children" style="gap:20px; width: min-content; min-width: 1160px">
+                    <div v-if="$parent.newsFeed && $parent.newsFeed.length>0" style="padding:20px; background: #ffffff70; backdrop-filter: blur(5px); height: -webkit-fill-available;">
+                        <div style="font-size:16px; font-weight:bold">Latest News</div>
                         <div class="news-items">
                             <div class="news-item f-row">
                                 <div class="news-thumbnail contain" style="height:70px; min-width:100px"
@@ -87,10 +122,11 @@
                         </div>
                     </div>
                 </div>
+                -->
                 
 
                 <!-- CONTENT -->
-                <div class="section f-row" style="gap:50px;">
+                <div class="section f-row" style="gap:50px; margin-top:-20px">
                     <div class="f-col" style="gap:20px">
                         <div class="section-title">Where is adipose tissue found?</div>
                         <div>
@@ -108,9 +144,10 @@
                         </em>
                     </div>
                     <!--ANATOMOGRAM-->
-                    <matkp-anatomogram></matkp-anatomogram>
+                    <matkp-anatomogram v-if="$parent.datasets" :data="$parent.datasets"></matkp-anatomogram>
                 </div>
 
+                <!--
                 <div class="section f-col">
                     <div class="f-col" style="font-size:14px;gap:20px;">
                         <div class="section-title">Why study adipose tissue?</div>
@@ -144,12 +181,20 @@
                         </div>
                     </div>
                 </div>
+                -->
 
                 <!-- -->
-                <div class="section f-row" style="gap:20px">
-                    <div class="f-col" style="flex: 1; gap: 10px">
-                        <div class="section-title">Collaborate</div>
-                        <div v-html="$parent.content.collaborate"></div>
+                <div class="section f-row" style="gap:50px">
+                    <div class="f-col" style="width:270px; gap:20px">
+                        <div class="f-col" style="gap: 10px">
+                            <div class="section-title">Collaborate</div>
+                            <div v-html="$parent.content.collaborate"></div>
+                        </div>
+    
+                        <div class="f-col" style="gap: 10px">
+                            <div class="section-title">Related Resources</div>
+                            <div>MATKP and ATKP provide complementary views on adipose tissue biology.<br/><a target="_blank" href="https://hugeamp.org/r/eat_bio">Learn More</a></br></div>
+                        </div>
                     </div>
 
                     <div class="f-col" style="flex: 1; gap: 10px">
@@ -194,7 +239,7 @@
 }
 .section {
     pointer-events: all;
-    background: #f6f6f6;
+    background: #ffffffcc;
     padding: 40px;
     width:1160px;
     max-width: 1400px;
@@ -259,6 +304,35 @@
 .news-thumbnail img {
     mix-blend-mode: darken;
 }
+
+.matkp .cards a{
+    color: black !important;
+    font-weight: normal;
+    transition: 0.2s all;
+}
+.matkp .cards a:hover{
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.white-blur-bg{
+    background: #ffffff70; 
+    backdrop-filter: blur(5px);
+    padding:20px;
+}
+.fit-img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#data-viz-labels div{
+    display:flex;
+    height:28px;
+    align-items: center;
+    font-weight: bold;
+}
+
 ::v-deep .contain img {
     width: 100%;
     height: 100%;

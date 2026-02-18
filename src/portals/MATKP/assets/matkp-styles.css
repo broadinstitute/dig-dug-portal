@@ -16,7 +16,7 @@ body.kp-default{
 }
 .matkp{
     width: 100%;
-    height: 100%;
+    height: 100vh;
     min-width: 1200px;
     min-height: 100vh;
     display: flex;

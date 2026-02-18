@@ -19,7 +19,11 @@ export default Vue.component("matkp-hero", {
         //inject latest d3 //TODO update package to load latest
         this.injectScript("https://cdn.jsdelivr.net/npm/d3@7");
     },
-    created() {},
+    created() {
+        window.addEventListener("resize", () => {
+            this.drawVoronoi();
+        });
+    },
     methods: {
         injectScript(scriptPath) {
             // Dynamically create a <script> tag to load library from CDN
@@ -36,6 +40,7 @@ export default Vue.component("matkp-hero", {
         },
         drawVoronoi() {
             const container = document.querySelector(".hero-interact");
+            container.innerHTML = "";
             const width = container.offsetWidth * 2;
             const height = container.offsetHeight * 2;
             console.log(container.offsetWidth, container.offsetHeight);

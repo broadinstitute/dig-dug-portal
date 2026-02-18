@@ -74,6 +74,13 @@ let pages = {
         filename: "adipogenesis.html",
         title: "MATKP | Adipogenesis",
         chunks: ["chunk-vendors", "chunk-common", "adipogenesis"]
+    },
+    nmf: {
+        entry: "src/portals/MATKP/views/NMF/main.js",
+        template: "public/index.html",
+        filename: "nmf.html",
+        title: "MATKP | NMF",
+        chunks: ["chunk-vendors", "chunk-common", "nmf"]
     }
 };
 

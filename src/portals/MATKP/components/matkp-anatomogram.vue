@@ -64,7 +64,7 @@ import Vue from "vue";
 
 export default Vue.component("matkp-anatomogram", {
     components: {},
-    props: [],
+    props: ["data"],
     data() {
         return {
             datasetsAPI: "https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz",
@@ -516,19 +516,20 @@ export default Vue.component("matkp-anatomogram", {
     mounted() {
     },
     created() {
-        this.getDatasets();
+        if(this.data)
+            this.getDatasets();
     },
     methods: {
         async getDatasets() {
-            const response = await fetch(this.datasetsAPI);
+            /*const response = await fetch(this.datasetsAPI);
             const dataText = await response.text();
             const lines = dataText
                 .split("\n")
                 .filter((line) => line.trim() !== "");
-            const jsonObjects = lines.map((line) => JSON.parse(line));
-            this.datasets = jsonObjects;
+            const jsonObjects = lines.map((line) => JSON.parse(line));*/
+            this.datasets = this.data;
             //this.filteredCount = this.datasets.length;
-            console.log(this.datasets);
+            //console.log(this.datasets);
             //console.log(this.filterOptions);
 
             this.depotsBySpecies = this.parseDatasetsBySpeciesAndDepot();
