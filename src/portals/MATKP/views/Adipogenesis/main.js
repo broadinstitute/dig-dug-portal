@@ -79,7 +79,8 @@ new Vue({
             geneSearchResults: [],
             ready: false,
             activeTab: 0,
-            sortByPattern: false
+            sortByPattern: false,
+            selectedPattern: null
         };
     },
     computed: {
@@ -107,7 +108,8 @@ new Vue({
             return allData;
         },
         paginatedData() {
-            let pageData = this.filterByPage(this.processedData);
+            // Filter by page if pattern filter is off
+            let pageData = this.viewPattern ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
             return pageData;
         },
         processedGeneSearch() {
@@ -198,6 +200,15 @@ new Vue({
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
         },
+        filterByPattern(data){
+            if (this.selectedPattern === null){
+                return data;
+            }
+            console.log(JSON.stringify(data[0]));
+            let matches = data.filter(d => d.pattern === this.selectedPattern);
+            console.log(matches.length);
+            return matches;
+        },
         async queryGenes() {
             let delimiters = /[\s;,]+/;
             let geneSearchArray = this.geneSearchQuery.split(delimiters);
@@ -230,6 +241,7 @@ new Vue({
         },
         viewPattern(pattern){
             console.log("Viewing", pattern);
+            this.selectedPattern = pattern;
         }
     },
     watch: {

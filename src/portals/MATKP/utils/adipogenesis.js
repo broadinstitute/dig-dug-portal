@@ -111,7 +111,8 @@ export function processDataForHeatmap(data, conditionsMap){
                     replicate: rep,
                     order: tsd.order,
                     gene_tx: `${tsd.gene}___${tsd.transcript_id}`,
-                    identifier: `${tsd.transcript_id}_rep_${rep}`
+                    identifier: `${tsd.transcript_id}_rep_${rep}`,
+                    pattern: tsd.pattern
                 }
                 output.push(entry);
             });
