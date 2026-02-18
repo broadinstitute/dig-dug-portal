@@ -236,6 +236,11 @@
                         {{ format_freq(row.item.gnomAD_exomes_AF) }}
                     </div>
                 </template>
+                <template #cell(gnomADaf)="row">
+                    <div align="left">
+                        {{ format_freq(row.item.gnomADaf) }}
+                    </div>
+                </template>
                 <template #cell(max_consequence)="data">
                     <div
                         v-if="data.item.Max_Impact"
@@ -254,6 +259,30 @@
                 </template>
 
                 <template #cell(view)="data">
+                    <b-btn
+                        v-if="data.item.gnomADinfo.length === 0"
+                        disabled
+                        size="sm"
+                        class="btn-mini"
+                        variant="outline-secondary"
+                        >No gnomAD Info</b-btn
+                    >
+                    <b-btn
+                        v-else
+                        size="sm"
+                        variant="outline-primary"
+                        class="btn-mini showData"
+                        @click="
+                            //showVariantData(data.item.varid);
+                            toToggle(data, 0)
+                        "
+                        >{{
+                            data.detailsShowing && data.item.showButton === 0
+                                ? "Hide"
+                                : "Show"
+                        }}
+                        gnomAD Info
+                    </b-btn>
                     <b-btn
                         size="sm"
                         class="btn-mini mr-2"
@@ -301,6 +330,31 @@
 
                 <template #row-details="row">
                     <div class="details">
+                        <div v-if="row.item.showButton === 0" class="row">
+                            <b-table
+                                :items="row.item.gnomADinfo"
+                                :fields="gnomADFields"
+                                :per-page="perPagegnomAD"
+                                :tbody-tr-class="rowPickClass"
+                            >
+                                <template #cell(cohort)="row">
+                                    <div align="left">
+                                        {{ row.item.cohort }}
+                                    </div>
+                                </template>
+                                <template #cell(frequency)="row">
+                                    <!-- <div align="right"> -->
+                                    <div align="left">
+                                        {{
+                                            formatAlleleFrequency(
+                                                row.item.frequency
+                                            )
+                                        }}
+                                    </div>
+                                </template>
+                                
+                            </b-table>
+                        </div>
                         <div v-if="row.item.showButton === 1" class="row">
                             <b-table
                                 :items="row.item.hpdisplay"
@@ -491,6 +545,13 @@ export default Vue.component("VariantSearch", {
                 "GLUT4pathway":"GLUT4pathway",
                 "NOII":"NOII",
             },
+            InfoFields: {
+                AA: "African/African American",
+                EA: "East Asian",
+                EU: "European",
+                HS: "Admixed American",
+                SA: "South Asian",
+            },
             filters: {
                 impacts: ["HIGH", "MODERATE", "LOW"],
                 phenotypes: [
@@ -601,7 +662,8 @@ export default Vue.component("VariantSearch", {
                     thClass: "text-right",
                 },*/
                 {
-                    key: "gnomadGenomesPopmaxAf",
+                    //key: "gnomadGenomesPopmaxAf",
+                    key: "gnomADaf",
                     label: "Frequency",
                     sortable: true,
                     tdClass: "text-right pr-3",
@@ -638,6 +700,16 @@ export default Vue.component("VariantSearch", {
                     label: "REVEL",
                 },
                 {key:"spliceai_DS_AG", label:"SpliceAI"},
+            ],
+            gnomADFields: [
+                {
+                    key: "cohort",
+                    label: "Cohort",
+                },
+                {
+                    key: "frequency",
+                    label: "Frequency",
+                },
             ],
             hprecordFields: [
                 {
@@ -740,6 +812,32 @@ export default Vue.component("VariantSearch", {
                 
                 
                 for (let i = 0; i < this.variants.length; i++) {
+                    if (this.variants[i].af != null) {
+                        //console.log(this.variants[i].af);
+                        var maxgnomfrequency = 0;
+                        var gnomADinfo = [];
+                    
+                        for (const key of Object.keys(this.variants[i].af)) { 
+                            //console.log(key); 
+                            var obj = {};
+                            obj["cohort"] = this.InfoFields[key];
+                            obj["frequency"] = this.variants[i].af[key];
+                            if (obj["frequency"] >= maxgnomfrequency){
+                                maxgnomfrequency = obj["frequency"];
+                            }
+                            gnomADinfo.push(obj);
+                        }
+                        if (maxgnomfrequency != 0){
+                            this.variants[i].gnomADaf = maxgnomfrequency;
+                        }
+                        this.variants[i].gnomADinfo = gnomADinfo;
+                    } else {
+                        this.variants[i].gnomADinfo = [];
+                    }
+
+                    
+                    
+
                     if (this.variants[i].vepRecords.length > 0) {
                         //console.log("vepRecords:"+this.variants[i].vepRecords.length);
                         let varrecords = this.variants[i].vepRecords;
@@ -851,6 +949,7 @@ export default Vue.component("VariantSearch", {
 						this.variants[i].hpdisplay2 = hpdisplay;
                         this.variants[i].hpdisplay = hpdisplay;
                     } 
+                    
                     //console.log(this.variants[i]);
                 }
                 //console.log("Variant Search done");
