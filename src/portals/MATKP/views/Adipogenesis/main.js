@@ -55,7 +55,7 @@ new Vue({
         TimeSeriesHeatmap,
         TimeSeriesLinePlot,
         TimeSeriesDisplay,
-        ResearchSingleCellInfo
+        ResearchSingleCellInfo,
     },
     mixins: [matkpMixin],
     data() {
@@ -78,7 +78,8 @@ new Vue({
             geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
             geneSearchResults: [],
             ready: false,
-            activeTab: 0
+            activeTab: 0,
+            sortByPattern: false
         };
     },
     computed: {
@@ -166,6 +167,15 @@ new Vue({
 
             return baseFields;
         },
+        patterns(){
+            if(this.timeSeriesData === null){
+                return [];
+            }
+            let patternSet = new Set(this.timeSeriesData.map(m => m.pattern));
+            let patternArray = Array.from(patternSet);
+            // null values are provided if we don't do this
+            return patternArray.filter(p => typeof p === "string");
+        }
     },
     async created() {
         if (!keyParams.datasetid) {
@@ -218,6 +228,9 @@ new Vue({
             let myMetadata = await scUtils.fetchMetadata(metadataUrl);
             return myMetadata.find(x => x.datasetId === keyParams.datasetid);
         },
+        viewPattern(pattern){
+            console.log("Viewing", pattern);
+        }
     },
     watch: {
         processedData(newData) {
@@ -227,6 +240,9 @@ new Vue({
                 this.maxScore = extremeVal(newData, false);
                 this.ready = true;
             }
+        },
+        patterns(newPatterns){
+            console.log(JSON.stringify(newPatterns));
         }
     },
     render: (h) => h(Template),
