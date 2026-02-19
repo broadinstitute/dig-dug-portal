@@ -56,11 +56,8 @@
                                                 </span>
                                             </h4>
                                             <div v-if="$parent.patternView && $parent.patterns.length > 0">
-                                                <pattern-selector></pattern-selector>
-                                                <span v-for="pattern in $parent.patterns"
-                                                    :class='`pattern-bubble bubble-${$parent.selectedPattern === pattern ? "on" : "off"}`'>
-                                                    <button class="btn btn-secondary btn-sm" :id="pattern" @click="$parent.viewPattern(pattern)">{{ pattern }}</button>
-                                                </span>
+                                                <pattern-selector @patternSelected="(p) => $parent.viewPattern(p)">
+                                                </pattern-selector>
                                             </div>
                                             
                                             <div v-if="$parent.ready" class="time-series-content">
@@ -243,11 +240,5 @@ button {
 .table-background {
     border: 10px solid #ffffff;
     padding-bottom: 10px;
-}
-.pattern-bubble button {
-    border: 0px;
-}
-.bubble-on button {
-    background-color: #ff6c02;
 }
 </style>

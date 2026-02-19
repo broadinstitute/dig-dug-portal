@@ -1,6 +1,9 @@
 <template>
 	<div>
-		Pattern selector coming soon
+		<span v-for="pattern in patterns"
+			:class='`pattern-bubble bubble-${$parent.selectedPattern === pattern ? "on" : "off"}`'>
+			<button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">{{ pattern }}</button>
+		</span>
 	</div>
 </template>
 
@@ -31,17 +34,36 @@ export default Vue.component("pattern-selector", {
 			return;
 		}
 		const newCentroids = await getCentroids(keyParams.datasetid);
-		console.log(JSON.stringify(newCentroids));
+		this.centroids = newCentroids;
 	},
-	computed: {},
+	computed: {
+		patterns (){
+			return this.centroids === null 
+				? [] 
+				: this.centroids.map(c => c.pattern);
+		}
+	},
 	watch: {
 	},
 	methods: {
+		viewPattern(pattern){
+			this.$emit("patternSelected", pattern)
+		}
 	},
 });
 </script>
 
 <style scoped>
+.pattern-bubble {
+	margin: 5px;
+	margin-bottom: 3px;
+}
+.pattern-bubble button {
+    border: 0px;
+}
+.bubble-on button {
+    background-color: #ff6c02;
+}
 </style>
 
 
