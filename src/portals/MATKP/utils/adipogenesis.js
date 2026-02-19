@@ -13,6 +13,14 @@ export async function getTimeSeries(timeSeriesId, top100=true) {
     return bulkDataObject;
 }
 
+async function getRawData(suffix, timeSeriesId){
+    let datasetFile = `${TIME_SERIES_RAW}${timeSeriesId}/${suffix}`;
+    const response = await fetch(datasetFile);
+    const bulkDataText = await response.text();
+    let bulkDataObject = dataConvert.tsv2Json(bulkDataText);    
+    return bulkDataObject;
+}
+
 export async function getTimeSeriesMetadata(timeSeriesId){
     let queryUrl = `https://matkp.hugeampkpnbi.org/api/raw/file/single_cell_time_series/${timeSeriesId}/sample_metadata.json.gz`;
     try {
@@ -32,6 +40,12 @@ export async function getTimeSeriesMetadata(timeSeriesId){
         console.error("Error: ", error);
         return {};
     }
+}
+
+export async function getCentroids(timeSeriesId) {
+    let suffix = "centroids.tsv.gz";
+    const data = await getRawData(suffix, timeSeriesId);
+    return data;
 }
 
 export async function mapConditions(data, timeSeriesId){

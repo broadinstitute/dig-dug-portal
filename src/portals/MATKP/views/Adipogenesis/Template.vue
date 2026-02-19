@@ -56,6 +56,7 @@
                                                 </span>
                                             </h4>
                                             <div v-if="$parent.patternView && $parent.patterns.length > 0">
+                                                <pattern-selector></pattern-selector>
                                                 <span v-for="pattern in $parent.patterns"
                                                     :class='`pattern-bubble bubble-${$parent.selectedPattern === pattern ? "on" : "off"}`'>
                                                     <button class="btn btn-secondary btn-sm" :id="pattern" @click="$parent.viewPattern(pattern)">{{ pattern }}</button>

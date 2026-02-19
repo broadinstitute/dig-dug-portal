@@ -19,6 +19,7 @@ import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
+import PatternSelector from "../../components/PatternSelector.vue";
 import TimeSeriesHeatmap from "../../components/TimeSeriesHeatmap.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
 import TimeSeriesDisplay from "../../components/TimeSeriesDisplay.vue";
@@ -52,6 +53,7 @@ new Vue({
         AncestrySelectPicker,
         Documentation,
         TooltipDocumentation,
+        PatternSelector,
         TimeSeriesHeatmap,
         TimeSeriesLinePlot,
         TimeSeriesDisplay,
