@@ -6,6 +6,7 @@ import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 import { getNewsFeed } from "@/portals/MATKP/utils/content.js";
+import { getTextContent } from "@/portals/MATKP/utils/content";
 
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import ResearchUmapPlotGL from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
@@ -22,6 +23,10 @@ new Vue({
 
     data() {
         return {
+            infoPageId: 'matkp_nmf',
+            title: null,
+            info: null,
+
             datasetId: "snRNA_Streets2024_Humans_VAT",
             cellTypeLabel: "T cell",
             cellType: "t_cell",
@@ -48,7 +53,7 @@ new Vue({
                 labelColors: null,
                 cellTypeField: null,
                 colorByField: null,
-                highlightLabel: 'T cell',
+                highlightLabel: null,
             }
         }
     },
@@ -58,6 +63,7 @@ new Vue({
     },
 
     async created() {
+        await this.getPageInfo();
         await this.fetchSCmetadata();
         await this.fetchSCdata();
         await this.loadFactors();
@@ -70,6 +76,12 @@ new Vue({
     },
 
     methods: {  
+        async getPageInfo(){
+            const content = await getTextContent(this.infoPageId, false, true);
+            console.log('content', content);
+            this.title = content.title;
+            this.info = content.body;
+        },
         injectScript(scriptPath) {
             // Dynamically create a <script> tag to load library from CDN
             const script = document.createElement("script");
@@ -86,15 +98,14 @@ new Vue({
             await this.fetchSCdata();
             await this.loadFactors();
         },
+        normalizeString(str) {
+            return str
+                .toLowerCase()
+                .replace(/\s+/g, '_')          // spaces → underscore
+                .replace(/[^a-z0-9_-]/g, '')   // remove invalid chars
+        },
         async onCellTypeChange(){
-            function normalizeString(str) {
-                return str
-                    .toLowerCase()
-                    .replace(/\s+/g, '_')          // spaces → underscore
-                    .replace(/[^a-z0-9_-]/g, '')   // remove invalid chars
-            }
-
-            this.cellType = normalizeString(this.cellTypeLabel);
+            this.cellType = this.normalizeString(this.cellTypeLabel);
             await this.loadFactors();
             this.SC.highlightLabel = this.cellTypeLabel;
         },
@@ -152,12 +163,15 @@ new Vue({
             }
 
             this.SC.cellTypeField = "cell_type__kp"//findCellTypeField(fieldsList);
+            this.cellTypeLabel = this.SC.fields.metadata_labels[this.SC.cellTypeField][0];
+            this.cellType = this.normalizeString(this.cellTypeLabel);
             this.SC.colorByField = this.SC.cellTypeField;
+            this.SC.highlightLabel = this.cellTypeLabel;
 
             this.SCloaded = true;
 
             this.$nextTick(() => {
-                this.$children[0].$refs.umapPlot.showLabels = false;
+                //this.$children[0].$refs.umapPlot.showLabels = false;
             });
         },
 
@@ -182,9 +196,12 @@ new Vue({
             // Toggle open if already loaded
             if (row.item.detailsLoaded) {
                 //row.toggleDetails()
+                console.log('already loaded')
                 this.toggleDetails(row.item)
                 return
             }
+
+            console.log('loading')
 
             this.$set(row.item, 'detailsLoading', true)
 
@@ -195,34 +212,42 @@ new Vue({
             const genesURL = `${this.genesURL}${this.datasetId},${this.cellType},${this.model},${factor}`;
             const genesRespoonse = await this.fetchData(genesURL);
             const genesData = genesRespoonse.data;
-            this.$set(row.item, 'genesData', genesData)
+            this.$set(row.item, 'genesData', genesData);
+            this.$set(row.item, 'cellsPerPage', 5);
+            this.$set(row.item, 'cellsCurrentPage', 1);
 
             const cellsURL = `${this.cellsURL}${this.datasetId},${this.cellType},${this.model},${factor}`;
             const cellsResponse = await this.fetchData(cellsURL);
             const cellsData = cellsResponse.data;
-            this.$set(row.item, 'cellsData', cellsData)
+            this.$set(row.item, 'cellsData', cellsData);
+            this.$set(row.item, 'genesPerPage', 5);
+            this.$set(row.item, 'genesCurrentPage', 1);
 
-            this.$set(row.item, 'detailsLoaded', true)
+            this.colorFactorLoadings(row.item.cellsData);
 
             //row.toggleDetails();
             this.toggleDetails(row.item);
 
-            this.colorFactorLoadings(row.item.cellsData);
-
-            this.$set(row.item, 'detailsLoading', false)
+            this.$set(row.item, 'detailsLoading', false);
+            this.$set(row.item, 'detailsLoaded', true);
         },
         toggleDetails(item) {
             const isClosed = !item._showDetails;
             if (isClosed) {
-                //console.log(`Row is closed, opening details.`);
-                this.colorFactorLoadings(item.cellsData);
+                console.log(`Row is closed, opening details.`);
+                if(item.detailsLoaded){
+                    console.log('recalculating');
+                    this.$set(item, 'detailsLoading', true);
+                    this.colorFactorLoadings(item.cellsData);
+                    this.$set(item, 'detailsLoading', false)
+                }
                 this.factorsData.forEach((row) => {
                     if (row !== item) {
                         this.$set(row, '_showDetails', false);
                     }
                 });
             } else {
-                //console.log(`Row is open, closing details.`);
+                console.log(`Row is open, closing details.`);
                 this.factorCellLoadings = null;
                 d3.select("#histogram").selectAll("*").remove();
             }
@@ -247,91 +272,90 @@ new Vue({
             this.calculateDistribution();
         },
         calculateDistribution() {
+            const values = this.factorCellLoadings
+                .filter(v => v > 0)
+                .map(v => Math.log10(v));
 
-    const values = this.factorCellLoadings
-        .filter(v => v > 0)
-        .map(v => Math.log10(v));
+            if (!values.length) return;
 
-    if (!values.length) return;
+            const container = d3.select("#histogram");
 
-    const container = d3.select("#histogram");
+            const margin = { top: 10, right: 10, bottom: 30, left: 40 };
+            const width = 400;
+            const height = 140;
 
-    const margin = { top: 10, right: 10, bottom: 30, left: 40 };
-    const width = 400;
-    const height = 140;
+            const innerWidth = width - margin.left - margin.right;
+            const innerHeight = height - margin.top - margin.bottom;
 
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
+            container.selectAll("*").remove();
 
-    container.selectAll("*").remove();
+            const svg = container
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
 
-    const svg = container
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const g = svg.append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+            // X scale
+            const x = d3.scaleLinear()
+                .domain(d3.extent(values))
+                .nice()
+                .range([0, innerWidth]);
 
-    // X scale
-    const x = d3.scaleLinear()
-        .domain(d3.extent(values))
-        .nice()
-        .range([0, innerWidth]);
+            // Histogram
+            const histogram = d3.bin()
+                .domain(x.domain())
+                .thresholds(x.ticks(30));
 
-    // Histogram
-    const histogram = d3.bin()
-        .domain(x.domain())
-        .thresholds(x.ticks(30));
+            const bins = histogram(values);
 
-    const bins = histogram(values);
+            // Y scale
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(bins, d => d.length)])
+                .nice()
+                .range([innerHeight, 0]);
 
-    // Y scale
-    const y = d3.scaleLinear()
-        .domain([0, d3.max(bins, d => d.length)])
-        .nice()
-        .range([innerHeight, 0]);
+            // Bars
+            g.selectAll("rect")
+                .data(bins)
+                .join("rect")
+                .attr("x", d => x(d.x0))
+                .attr("y", d => y(d.length))
+                .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+                .attr("height", d => innerHeight - y(d.length))
+                .attr("fill", "#4c6ef5");
 
-    // Bars
-    g.selectAll("rect")
-        .data(bins)
-        .join("rect")
-        .attr("x", d => x(d.x0))
-        .attr("y", d => y(d.length))
-        .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
-        .attr("height", d => innerHeight - y(d.length))
-        .attr("fill", "#4c6ef5");
+            // X Axis
+            g.append("g")
+                .attr("transform", `translate(0,${innerHeight})`)
+                .call(d3.axisBottom(x).ticks(5))
+                .selectAll("text")
+                .style("font-size", "10px");
 
-    // X Axis
-    g.append("g")
-        .attr("transform", `translate(0,${innerHeight})`)
-        .call(d3.axisBottom(x).ticks(5))
-        .selectAll("text")
-        .style("font-size", "10px");
+            // Y Axis
+            g.append("g")
+                .call(d3.axisLeft(y).ticks(3))
+                .selectAll("text")
+                .style("font-size", "10px");
 
-    // Y Axis
-    g.append("g")
-        .call(d3.axisLeft(y).ticks(3))
-        .selectAll("text")
-        .style("font-size", "10px");
+            // X axis label
+            svg.append("text")
+                .attr("x", margin.left + innerWidth / 2)
+                .attr("y", height - 3)
+                .attr("text-anchor", "middle")
+                .style("font-size", "11px")
+                .text("log10(factor loading)");
 
-    // X axis label
-    svg.append("text")
-        .attr("x", margin.left + innerWidth / 2)
-        .attr("y", height - 3)
-        .attr("text-anchor", "middle")
-        .style("font-size", "11px")
-        .text("log10(factor loading)");
-
-    // Y axis label
-    svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -(margin.top + innerHeight / 2))
-        .attr("y", 12)
-        .attr("text-anchor", "middle")
-        .style("font-size", "11px")
-        .text("# cells");
-}
+            // Y axis label
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -(margin.top + innerHeight / 2))
+                .attr("y", 12)
+                .attr("text-anchor", "middle")
+                .style("font-size", "11px")
+                .text("# cells");
+        }
 
 
     },

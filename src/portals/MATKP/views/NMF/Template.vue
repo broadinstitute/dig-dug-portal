@@ -2,14 +2,20 @@
     <div class="matkp">
         <div class="f-col fill-height">
             <!-- NAV -->
-            <matkp-nav glass :showSearch="false"/>
+            <matkp-nav :showSearch="false"/>
             <!-- BODY -->
-            <div class="mat-body f-col" style="max-width: 1400px; margin: 0 auto">
-                <div v-if="$parent.SCloaded" class="f-row" style="gap:40px; margin:40px 0;">
+            <div class="mat-body f-col" style="width:100%; max-width: 1400px; margin: 0 auto">
+                <!-- INFO -->
+                 <div v-if="$parent.info">
+                    <h2>{{ $parent.title }}</h2>
+                    <div v-html="$parent.info"></div>
+                 </div>
+                 <!-- CONTENT -->
+                <div v-if="$parent.SCloaded" class="f-row" style="gap:40px; margin:20px 0;">
                     <div class="f-col" style="gap:10px;">
                         <div class="f-col">
                             <div style="font-weight: bold;">Dataset</div>
-                            <select v-model="$parent.datasetId" @change="$parent.onDatasetChange" disabled>
+                            <select v-model="$parent.datasetId" @change="$parent.onDatasetChange">
                                 <option v-for="dataset in $parent.SC.metadata" :key="dataset.datasetId" :value="dataset.datasetId">{{ dataset.datasetId }}</option>
                             </select>
                         </div>
@@ -64,7 +70,7 @@
                         </div>
                         <b-table 
                             :items="$parent.factorsData"
-                            :fields="[{key:'label', label:'Factor',  tdClass: 'font-weight-bold'}, 'top_cells', 'top_genes', 'importance', { key: 'actions', label: 'Actions' }]"
+                            :fields="[{key:'label', label:'Factor',  tdClass: 'font-weight-bold'}, 'top_genes', 'importance', { key: 'actions', label: 'Actions' }]"
                             striped
                             small
                             sticky-header="700px"
@@ -133,16 +139,24 @@
                                         <b-table
                                             :items="row.item.cellsData"
                                             :fields="['cell', 'value']"
+                                            :per-page="row.item.cellsPerPage"
+                                            :current-page="row.item.cellsCurrentPage"
                                             small
                                             bordered
                                             sticky-header="200px"
                                             style="flex:1"
                                         >
-                                            <!-- Importance -->
                                             <template #cell(value)="row">
                                                 {{ row.item.value.toFixed(4) }}
                                             </template>
                                         </b-table>
+                                        <b-pagination
+                                            v-model="row.item.cellsCurrentPage"
+                                            :total-rows="row.item.cellsData.length"
+                                            :per-page="row.item.cellsPerPage"
+                                            size="sm"
+                                            class="mt-2"
+                                        />
                                     </div>
                                     <div class="f-col" style="flex:1; gap:5px;">
                                         <div class="f-row spread-out">
@@ -152,10 +166,19 @@
                                         <b-table
                                             :items="row.item.genesData"
                                             :fields="['gene', 'value']"
+                                            :per-page="row.item.genesPerPage"
+                                            :current-page="row.item.genesCurrentPage"
                                             small
                                             bordered
                                             sticky-header="200px"
                                         ></b-table>
+                                        <b-pagination
+                                            v-model="row.item.genesCurrentPage"
+                                            :total-rows="row.item.cellsData.length"
+                                            :per-page="row.item.genesPerPage"
+                                            size="sm"
+                                            class="mt-2"
+                                        />
                                     </div>
                                 </div>
                             </template>
@@ -172,5 +195,35 @@
 <style scoped>
 #histogram:empty + .histogram-note{
     display:none !important;
+}
+
+::v-deep .pagination.b-pagination {
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+  gap: 5px;
+}
+::v-deep .pagination.b-pagination .page-link {
+  border: 0 !important;
+  border-radius: 0px !important;
+  min-width: 25px;
+  height: 25px;
+  text-align: center;
+  font-size: 12px;
+  border-bottom: 1px solid black;
+  color: #000000;
+  background-color: white;
+}
+::v-deep .page-item.disabled .page-link {
+  background-color: #ddd;
+  border-radius: 0px !important;
+  color: #b1b1b1;
+}
+::v-deep .page-item.active .page-link {
+  color: black;
+  background-color: #ffd10c;
+}
+::v-deep .page-link:hover {
+  outline: 2px solid #ffd10c;
 }
 </style>

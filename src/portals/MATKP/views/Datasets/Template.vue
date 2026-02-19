@@ -248,7 +248,13 @@
                     <a v-if="data.item.data_type==='bulk_rna'"
                       class="dataset-explore-link"
                       :href="`/bulkbrowser.html?dataset=${data.value}`"
-                      style="font-weight: bold; background:#ffaa01"
+                      style="font-weight: bold;"
+                      >explore ❯</a
+                    >
+                    <a v-if="data.item.data_type==='time_series'"
+                      class="dataset-explore-link"
+                      :href="`/adipogenesis.html?dataset=${data.value}`"
+                      style="font-weight: bold;"
                       >explore ❯</a
                     >
                   </template>
