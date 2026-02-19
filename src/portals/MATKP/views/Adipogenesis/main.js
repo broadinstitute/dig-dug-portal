@@ -55,7 +55,7 @@ new Vue({
         TimeSeriesHeatmap,
         TimeSeriesLinePlot,
         TimeSeriesDisplay,
-        ResearchSingleCellInfo
+        ResearchSingleCellInfo,
     },
     mixins: [matkpMixin],
     data() {
@@ -78,7 +78,9 @@ new Vue({
             geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
             geneSearchResults: [],
             ready: false,
-            activeTab: 0
+            activeTab: 0,
+            patternView: false,
+            selectedPattern: null
         };
     },
     computed: {
@@ -105,8 +107,12 @@ new Vue({
             }
             return allData;
         },
+        tableData(){
+            return this.selectedPattern !== null ? this.filterByPattern(this.timeSeriesData) : this.timeSeriesData;
+        },
         paginatedData() {
-            let pageData = this.filterByPage(this.processedData);
+            // Filter by page if pattern filter is off
+            let pageData = this.selectedPattern !== null ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
             return pageData;
         },
         processedGeneSearch() {
@@ -166,6 +172,15 @@ new Vue({
 
             return baseFields;
         },
+        patterns(){
+            if(this.timeSeriesData === null){
+                return [];
+            }
+            let patternSet = new Set(this.timeSeriesData.map(m => m.pattern));
+            let patternArray = Array.from(patternSet);
+            // null values are provided if we don't do this
+            return patternArray.filter(p => typeof p === "string");
+        }
     },
     async created() {
         if (!keyParams.datasetid) {
@@ -187,6 +202,13 @@ new Vue({
             }
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
+        },
+        filterByPattern(data){
+            if (this.selectedPattern === null){
+                return data;
+            }
+            let matches = data.filter(d => d.pattern === this.selectedPattern);
+            return matches;
         },
         async queryGenes() {
             let delimiters = /[\s;,]+/;
@@ -218,6 +240,9 @@ new Vue({
             let myMetadata = await scUtils.fetchMetadata(metadataUrl);
             return myMetadata.find(x => x.datasetId === keyParams.datasetid);
         },
+        viewPattern(pattern){
+            this.selectedPattern = pattern;
+        }
     },
     watch: {
         processedData(newData) {
@@ -227,7 +252,26 @@ new Vue({
                 this.maxScore = extremeVal(newData, false);
                 this.ready = true;
             }
+        },
+        patternView(isTrue){
+            if (!isTrue){
+                this.selectedPattern = null;
+            }
+        },
+        selectedPattern(newValue){
+            if (newValue !== null){
+                // When a pattern is selected, make sure to zoom in
+                this.zoomedIn = true;
+            }
+        },
+        zoomedIn(isTrue){
+            // If you zoom out, clear pattern filter
+            if (!isTrue){
+                this.selectedPattern = null;
+                this.patternView = false;
+            }
         }
+        
     },
     render: (h) => h(Template),
 }).$mount("#app");

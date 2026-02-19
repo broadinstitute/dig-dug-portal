@@ -42,13 +42,25 @@
                                         <div class="tab-inner">
                                             <h4>
                                                 Top 100 transcripts by max difference
-                                                <span id="zoom-checkbox">
+                                                <span class="zoom-checkbox">
                                                     <label>
                                                         <input v-model="$parent.zoomedIn" type="checkbox" />
                                                         Show only rows displayed in table
                                                     </label>
                                                 </span>
+                                                <span class="zoom-checkbox">
+                                                    <label>
+                                                        <input v-model="$parent.patternView" type="checkbox" />
+                                                        View rows by pattern
+                                                    </label>
+                                                </span>
                                             </h4>
+                                            <div v-if="$parent.patternView && $parent.patterns.length > 0">
+                                                <span v-for="pattern in $parent.patterns"
+                                                    :class='`pattern-bubble bubble-${$parent.selectedPattern === pattern ? "on" : "off"}`'>
+                                                    <button class="btn btn-secondary btn-sm" :id="pattern" @click="$parent.viewPattern(pattern)">{{ pattern }}</button>
+                                                </span>
+                                            </div>
                                             
                                             <div v-if="$parent.ready" class="time-series-content">
                                                 <time-series-display
@@ -69,7 +81,7 @@
                                             <b-table v-if="$parent.ready"
                                                 small
                                                 v-model="$parent.currentTable"
-                                                :items="$parent.timeSeriesData"
+                                                :items="$parent.tableData"
                                                 :fields="$parent.tableFields"
                                                 :per-page="10"
                                                 :current-page="$parent.currentPage">
@@ -198,7 +210,7 @@ div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
 .time-series-content {
     padding: 20px;
 }
-#zoom-checkbox {
+.zoom-checkbox {
 	text-align: left;
     font-size: 14px;
     margin-left: 20px;
@@ -230,5 +242,11 @@ button {
 .table-background {
     border: 10px solid #ffffff;
     padding-bottom: 10px;
+}
+.pattern-bubble button {
+    border: 0px;
+}
+.bubble-on button {
+    background-color: #ff6c02;
 }
 </style>
