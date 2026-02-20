@@ -62,7 +62,7 @@
                                             
                                             <div v-if="$parent.ready" class="time-series-content">
                                                 <time-series-display
-                                                    :heatmapData="$parent.paginatedData"
+                                                    :heatmapData="$parent.heatmapData"
                                                     :days="$parent.conditionsMap.timePoints"
                                                     :minScore="$parent.minScore"
                                                     :maxScore="$parent.maxScore"

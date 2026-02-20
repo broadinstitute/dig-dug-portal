@@ -112,10 +112,8 @@ new Vue({
         tableData(){
             return this.selectedPattern !== null ? this.filterByPattern(this.timeSeriesData) : this.timeSeriesData;
         },
-        paginatedData() {
-            // Filter by page if pattern filter is off
-            let pageData = this.selectedPattern !== null ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
-            return pageData;
+        heatmapData(){
+            return this.patternView ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
