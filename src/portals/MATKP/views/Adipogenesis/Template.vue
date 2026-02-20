@@ -56,7 +56,8 @@
                                                 </span>
                                             </h4>
                                             <div v-if="$parent.patternView && $parent.patterns.length > 0">
-                                                <pattern-selector @patternSelected="(p) => $parent.viewPattern(p)">
+                                                <pattern-selector @patternSelected="(p) => $parent.viewPattern(p)"
+                                                    :patterns="$parent.patterns">
                                                 </pattern-selector>
                                             </div>
                                             

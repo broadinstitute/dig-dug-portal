@@ -19,7 +19,7 @@ import * as d3 from 'd3';
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("pattern-selector", {
-	props: [],
+	props: ["patterns"],
 	components: {
 		TimeSeriesLinePlot
 	},
@@ -34,15 +34,9 @@ export default Vue.component("pattern-selector", {
 			console.log("No dataset named here")
 			return;
 		}
+		// TODO get patterns from data filtering, not from metadata
 		const newCentroids = await getCentroids(keyParams.datasetid);
 		this.centroids = newCentroids;
-	},
-	computed: {
-		patterns (){
-			return this.centroids === null 
-				? [] 
-				: this.centroids.map(c => c.pattern).filter(p => p !== '');
-		}
 	},
 	watch: {
 	},

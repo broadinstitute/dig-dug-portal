@@ -109,6 +109,9 @@ new Vue({
             }
             return allData;
         },
+        patterns(){
+            return Array.from(new Set(this.processedData.map(d => d.pattern)));
+        },
         tableData(){
             return this.selectedPattern !== null ? this.filterByPattern(this.timeSeriesData) : this.timeSeriesData;
         },
