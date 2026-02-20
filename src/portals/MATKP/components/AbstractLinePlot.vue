@@ -1,9 +1,9 @@
 <template>
-    <div>
-        <div :id=plotId class="plot">
-            <p>Loading...</p>
+    
+        <div :id=plotId>
+          <p>Loading...</p>
         </div>
-    </div>
+    
 </template>
 <script>
 import Vue from "vue";
@@ -114,27 +114,14 @@ export default Vue.component("abstract-line-plot", {
         .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(this.xScale))
-          .selectAll("text")
-            .style("font-size", "13px");
-      this.svg.append("text")
-        .attr("text-anchor", "middle")
-        .attr("y", height + margin.top + 20)
-        .attr("x", width/2)
+        .call(d3.axisBottom(this.xScale).tickFormat(t => ""));
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
         .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
-        .call(d3.axisLeft(this.yScale).tickFormat(t => t/1000))
-          .selectAll("text")
-            .style("font-size", "13px");
-      this.svg.append("text")
-        .attr("text-anchor", "middle")
-        .attr("transform", "rotate(-90)")
-        .attr("y", -margin.left + 15)
-        .attr("x", - height / 2)
+        .call(d3.axisLeft(this.yScale).tickFormat(t => ""));
       // add dots
       this.svg.append("g")
         .selectAll("dot")

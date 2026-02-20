@@ -74,7 +74,10 @@ export default Vue.component("pattern-selector", {
 </script>
 
 <style scoped>
-.pattern-bubble {
+.patterns {
+	display: inline;
+}
+.pattern-bubble, .pattern-bubble div {
 	display: inline;
 }
 .pattern-bubble button {
