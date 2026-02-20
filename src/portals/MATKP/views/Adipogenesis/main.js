@@ -76,7 +76,6 @@ new Vue({
             zoomedIn: false,
             avgRep: true,
             rowNorm: true,
-            clusterOn: false,
             geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
             geneSearchResults: [],
             ready: false,

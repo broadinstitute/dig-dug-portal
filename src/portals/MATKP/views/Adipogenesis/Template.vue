@@ -29,12 +29,6 @@
                                         Show row-normalized values
                                     </label>
                                 </div>
-                                <div>
-                                    <label>
-                                        <input v-model="$parent.clusterOn" type="checkbox" />
-                                        Show data by clusters
-                                    </label>
-                                </div>
                             </div>
                             <div id="tabs-below-checkboxes">
                                 <b-tabs v-model="$parent.activeTab">
