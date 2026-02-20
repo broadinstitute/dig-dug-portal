@@ -2,8 +2,10 @@
 	<div class="patterns">
 		<div v-for="pattern in patterns"
 			:class='`pattern-bubble bubble-${selectedPattern === pattern ? "on" : "off"}`'>
-			<button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">{{ pattern }}</button>
-	</div>
+			<!-- <button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">{{ pattern }}</button> -->
+			 <div v-if="centroidsMap !== null">{{ centroidsMap[pattern] }}</div>
+			 <div v-else>{{ pattern }}</div>
+		</div>
 	</div>
 </template>
 
@@ -26,6 +28,7 @@ export default Vue.component("pattern-selector", {
 	data() {
 		return {
 			centroids: null,
+			centroidsMap: null,
 			selectedPattern: ""
 		};
 	},
@@ -34,18 +37,36 @@ export default Vue.component("pattern-selector", {
 			console.log("No dataset named here")
 			return;
 		}
-		// TODO get patterns from data filtering, not from metadata
-		const newCentroids = await getCentroids(keyParams.datasetid);
-		this.centroids = newCentroids;
+		this.centroidsMap = await this.getCentroids(keyParams.datasetid);
 	},
 	watch: {
+		async datasetid(newId, oldId){
+			if (newId !== oldId){
+				this.centroidsMap = await this.getCentroids(newId);
+			}
+		},
 	},
 	methods: {
 		viewPattern(pattern){
 			this.selectedPattern = pattern;
 			this.$emit("patternSelected", pattern)
+		},
+		async getCentroids(datasetid){
+			const newCentroids = await getCentroids(keyParams.datasetid);
+			this.centroids = newCentroids;
+			console.log(JSON.stringify(newCentroids));
+			let centroidsMap = {};
+			newCentroids.forEach(c => {
+				centroidsMap[c.pattern] = c;
+			});
+			return centroidsMap;
 		}
 	},
+	computed: {
+		datasetid(){
+			return keyParams.datasetid;
+		}
+	}
 });
 </script>
 
