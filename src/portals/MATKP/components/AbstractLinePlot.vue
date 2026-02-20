@@ -114,14 +114,14 @@ export default Vue.component("abstract-line-plot", {
         .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(this.xScale).tickFormat(t => ""));
+        .call(d3.axisBottom(this.xScale).tickFormat(t => "").tickSize(0));
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
         .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
-        .call(d3.axisLeft(this.yScale).tickFormat(t => ""));
+        .call(d3.axisLeft(this.yScale).tickFormat(t => "").tickSize(0));
       const line = d3.line()
           .x(d => this.xScale(d[this.config.xField]))
           .y(d => this.yScale(d[this.config.yField]));

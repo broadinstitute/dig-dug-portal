@@ -1,12 +1,11 @@
 <template>
 	<div class="patterns">
-		<div v-for="pattern in patterns"
+		<div v-for="pattern, index in patterns"
 			:class='`pattern-bubble bubble-${selectedPattern === pattern ? "on" : "off"}`'>
-			<!-- <button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">{{ pattern }}</button> -->
-			 <div v-if="centroidsMap !== null">
+			 <div v-if="centroidsMap !== null" class="pattern-option">
 				<abstract-line-plot :plotId="pattern" :plotData="centroidsMap[pattern]"></abstract-line-plot>
+				<button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">Pattern {{ index }}</button>
 			 </div>
-			 <div v-else>{{ pattern }}</div>
 		</div>
 	</div>
 </template>
@@ -77,12 +76,16 @@ export default Vue.component("pattern-selector", {
 .patterns {
 	display: inline;
 }
-.pattern-bubble, .pattern-bubble div {
+.pattern-bubble {
 	display: inline;
+}
+.pattern-option {
+	display: inline-block;
+	text-align: center;
+	margin: 10px;
 }
 .pattern-bubble button {
     border: 0px;
-	margin: 5px;
 }
 .bubble-on button {
     background-color: #ff6c02;
