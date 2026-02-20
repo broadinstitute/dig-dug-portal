@@ -10,6 +10,7 @@ import { getTextContent } from "@/portals/MATKP/utils/content";
 
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import ResearchUmapPlotGL from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
+import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
 
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"];
@@ -17,6 +18,7 @@ const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#55
 new Vue({
     components: {
         ResearchUmapPlotGL,
+        ResearchSingleCellInfo
     },
     
     mixins: [matkpMixin],
@@ -27,7 +29,7 @@ new Vue({
             title: null,
             info: null,
 
-            datasetId: "snRNA_Streets2024_Humans_VAT",
+            datasetId: "SingleCell_Emont2022_Humans_SCP1376_SN_SAT",
             cellTypeLabel: "T cell",
             cellType: "t_cell",
             model: "mouse_msigdb_phi1",
@@ -47,6 +49,7 @@ new Vue({
                     coordinates: "/api/raw/file/single_cell/$datasetId/coordinates.tsv.gz",
                 },
                 metadata: null,
+                datasetMetadata: null,
                 fields: null,   //raw fields
                 coordinates: null,  //raw coordinates
                 totalCells: null,
@@ -95,6 +98,7 @@ new Vue({
             document.head.appendChild(script);
         },
         async onDatasetChange(){
+            this.SC.datasetMetadata = this.SC.metadata.find(x => x.datasetId === this.datasetId);
             await this.fetchSCdata();
             await this.loadFactors();
         },
@@ -124,6 +128,7 @@ new Vue({
                     return allMetadata;
                 };
                 this.SC.metadata = filterSingleCellMetadata();
+                this.SC.datasetMetadata = this.SC.metadata.find(x => x.datasetId === this.datasetId);
         },
         async fetchSCdata(){
             const fieldsEnpoint = this.SC.bioIndex+this.SC.endpoints.fields;
@@ -188,6 +193,7 @@ new Vue({
         },
         async loadFactors(){
             this.factorCellLoadings = null;
+            d3.select("#histogram").selectAll("*").remove();
             const url = `${this.factorsURL}${this.datasetId},${this.cellType},${this.model}`;
             const factorsData = await this.fetchData(url);
             this.factorsData = factorsData.data;
