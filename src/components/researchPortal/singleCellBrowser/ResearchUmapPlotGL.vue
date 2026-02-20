@@ -131,6 +131,7 @@ export default Vue.component('research-umap-plot-gl', {
             isDragging: false,
             lastMouse: { x: 0, y: 0 },
             isHovering: false,
+            vertexCount: null,
 
             // We'll store cluster center info here: { label, x, y }
             clusterCenters: [],
@@ -167,6 +168,7 @@ export default Vue.component('research-umap-plot-gl', {
             this.renderUMAP();
         },
         highlightLabels() {
+            if(this.highlightLabels && this.highlightLabels.length>0)
             // Rebuild buffers if highlightLabel changes
             this.setupBuffers();
             this.renderUMAP();
@@ -373,7 +375,123 @@ export default Vue.component('research-umap-plot-gl', {
             gl.useProgram(this.program);
         },
 
+        buildSortedBuffers() {
+            const count = this.points.length;
+            const originalPositions = sharedUmapData.getPositions(this.group);
+
+            const labelField =
+                this.colorByField ||
+                this.cellTypeField ||
+                Object.keys(this.labels.metadata_labels)[0];
+
+            const metadata = this.labels.metadata[labelField];
+            const metadataLabels = this.labels.metadata_labels[labelField];
+
+            // Create index array
+            const indices = Array.from({ length: count }, (_, i) => i);
+
+            // Sort by expression if present
+            if (this.expression) {
+                indices.sort((a, b) => {
+                    const va = this.expression[a] ?? -Infinity;
+                    const vb = this.expression[b] ?? -Infinity;
+                    return va - vb; // low first, high last
+                });
+            }
+
+            // Allocate new arrays
+            const positions = new Float32Array(originalPositions.length);
+            const colors = new Uint8Array(count * 4);
+            const highlight = new Float32Array(count);
+
+            // Expression scale (if needed)
+            let expressionScale = null;
+            if (this.expression) {
+                expressionScale = d3.scaleLinear()
+                    .domain([0, d3.max(this.expression)])
+                    .range(["lightgrey", "blue"]);
+            }
+
+            // Build reordered buffers
+            for (let newIdx = 0; newIdx < count; newIdx++) {
+                const i = indices[newIdx];
+
+                // ---- positions (2 floats per point)
+                positions[newIdx * 2] = originalPositions[i * 2];
+                positions[newIdx * 2 + 1] = originalPositions[i * 2 + 1];
+
+                // ---- colors
+                let r, g, b, a = 255;
+
+                if (this.expression && this.expression[i] != null) {
+                    const val = this.expression[i];
+                    const rgb = d3.color(expressionScale(val)).rgb();
+                    r = rgb.r;
+                    g = rgb.g;
+                    b = rgb.b;
+                } else {
+                    const labelIndex = metadata[i];
+                    const label = metadataLabels[labelIndex];
+                    const color = this.colors[labelField][label] || "#000000";
+                    const rgb = d3.color(color).rgb();
+                    r = rgb.r;
+                    g = rgb.g;
+                    b = rgb.b;
+                }
+
+                const cIdx = newIdx * 4;
+                colors[cIdx] = r;
+                colors[cIdx + 1] = g;
+                colors[cIdx + 2] = b;
+                colors[cIdx + 3] = a;
+
+                // ---- highlight
+                if (!this.highlightLabel && this.highlightLabels.length === 0) {
+                    highlight[newIdx] = 1.0;
+                } else {
+                    const labelIndex = metadata[i];
+                    const label = metadataLabels[labelIndex];
+                    highlight[newIdx] =
+                        label === this.highlightLabel ||
+                        this.highlightLabels.includes(label)
+                            ? 1.0
+                            : 0.0;
+                }
+            }
+
+            return { positions, colors, highlight, vertexCount: count };
+        },
+
+        setupBuffers() {
+            const gl = this.gl;
+            if (!gl) return;
+
+            const { positions, colors, highlight, vertexCount } = this.buildSortedBuffers();
+            this.vertexCount = vertexCount;
+
+            // ---- position buffer
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+            this.buffers.position = positionBuffer;
+
+            // ---- color buffer
+            const colorBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+            this.buffers.color = colorBuffer;
+
+            // ---- highlight buffer
+            const highlightBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, highlightBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, highlight, gl.STATIC_DRAW);
+            this.buffers.highlight = highlightBuffer;
+        },
+
+
+
         // --- THE KEY PART: Decide whether to color by expression or by label
+        /*
         setupBuffers() {
             //llog("   setupBuffers");
             const gl = this.gl;
@@ -455,6 +573,7 @@ export default Vue.component('research-umap-plot-gl', {
             gl.bufferData(gl.ARRAY_BUFFER, highlightArray, gl.STATIC_DRAW);
             this.buffers.highlight = highlightBuffer;
         },
+        */
 
         renderUMAP() {
             // 1) Render points via WebGL
@@ -506,7 +625,7 @@ export default Vue.component('research-umap-plot-gl', {
             gl.vertexAttribPointer(highlightLoc, 1, gl.FLOAT, false, 0, 0);
 
             // Draw
-            gl.drawArrays(gl.POINTS, 0, this.points.length);
+            gl.drawArrays(gl.POINTS, 0, this.vertexCount);
         },
 
         drawLabels() {
