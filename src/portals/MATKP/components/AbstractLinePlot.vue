@@ -122,24 +122,15 @@ export default Vue.component("abstract-line-plot", {
         .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale).tickFormat(t => ""));
-      // add dots
-      this.svg.append("g")
-        .selectAll("dot")
-        .data(this.chartData)
-        .enter()
-        .append("circle")
-          .attr("class", d => `${d[this.config.dotKey]}`)
-          .attr("cx", d => 
-            d[this.config.xField] === undefined
-              ? this.xScale(0) 
-              : this.xScale(d[this.config.xField]))
-          .attr("cy", d => 
-            d[yFieldScaled] === undefined 
-              ? this.yScale(0) // Is this an issue for log scale? 
-              : this.yScale(d[yFieldScaled]))
-          .attr("r", 3)
-          .attr("fill", "red")
-          .attr("stroke", this.dotOutlineColor);
+      const line = d3.line()
+          .x(d => this.xScale(d[this.config.xField]))
+          .y(d => this.yScale(d[this.config.yField]));
+      this.svg.append("path")
+          .datum(this.chartData)
+          .attr("fill", "none")
+          .attr("stroke", "red")
+          .attr("stroke-width", 1)
+          .attr("d", line);
     },
   },
 });
