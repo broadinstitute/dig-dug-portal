@@ -8,13 +8,11 @@
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-import DownloadChart from "@/components/DownloadChart.vue";
-import plotUtils from "@/utils/plotUtils";
-import Formatters from "@/utils/formatters";
+const FIND_DAY = /-?\d+/;
 export default Vue.component("abstract-line-plot", {
   components: {
   },
-  props: ["plotData", "tx", "config", "plotId", "utils"],
+  props: ["plotData", "plotId"],
   data() {
       return {
         chart: null,
@@ -30,6 +28,47 @@ export default Vue.component("abstract-line-plot", {
   mounted(){
     this.chart = document.getElementById(this.plotId);
     this.drawChart();
+  },
+  computed: {
+    times(){
+      return Object.keys(this.plotData).filter(t => t.startsWith("time"));
+    },
+    days(){
+      return this.times.map(t => t.match(FIND_DAY)[0]).map(d => parseInt(d));
+    },
+    yMin(){
+      return this.times.map(t => this.plotData[t]).reduce((a,b) => a < b ? a : b);
+    },
+    yMax(){
+      return this.times.map(t => this.plotData[t]).reduce((a,b) => a > b ? a : b);
+    },
+    config(){
+      if (!this.times || !this.days){
+        return {};
+      }
+      console.log(this.days);
+      return {
+        xField: "day",
+        xMin: this.days.reduce((a,b) => a < b ? a : b),
+        xMax: this.days.reduce((a,b) => a > b ? a : b),
+        yField: "score",
+        yMin: this.yMin,
+        yMax: this.yMax,
+        dotKey: "identifier",
+    }
+    },
+    chartData(){
+      let data = [];      
+      this.times.forEach(t => {
+        let entry = {
+          day: parseInt(t.match(FIND_DAY)[0]),
+          score: this.plotData[t],
+          identifier: `${this.plotId}_t`
+        };
+        data.push(entry);
+      });
+      return data;
+    }
   },
   methods: {
     drawChart(){
@@ -82,7 +121,6 @@ export default Vue.component("abstract-line-plot", {
         .attr("text-anchor", "middle")
         .attr("y", height + margin.top + 20)
         .attr("x", width/2)
-        .text(this.config.xAxisLabel || this.config.xField);
       
       // add Y-axis
       this.yScale = d3.scaleLinear()
@@ -100,7 +138,7 @@ export default Vue.component("abstract-line-plot", {
       // add dots
       this.svg.append("g")
         .selectAll("dot")
-        .data(this.plotData)
+        .data(this.chartData)
         .enter()
         .append("circle")
           .attr("class", d => `${d[this.config.dotKey]}`)

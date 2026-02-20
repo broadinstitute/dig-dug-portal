@@ -3,7 +3,9 @@
 		<div v-for="pattern in patterns"
 			:class='`pattern-bubble bubble-${selectedPattern === pattern ? "on" : "off"}`'>
 			<!-- <button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">{{ pattern }}</button> -->
-			 <div v-if="centroidsMap !== null">{{ centroidsMap[pattern] }}</div>
+			 <div v-if="centroidsMap !== null">
+				<abstract-line-plot :plotId="pattern" :plotData="centroidsMap[pattern]"></abstract-line-plot>
+			 </div>
 			 <div v-else>{{ pattern }}</div>
 		</div>
 	</div>
@@ -16,14 +18,15 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 import keyParams from "@/utils/keyParams";
 import { getCentroids } from "@/portals/MATKP/utils/adipogenesis.js";
 import TimeSeriesLinePlot from "@/portals/MATKP/components/TimeSeriesLinePlot.vue";
-import * as d3 from 'd3';
+import AbstractLinePlot from "@/portals/MATKP/components/AbstractLinePlot.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("pattern-selector", {
 	props: ["patterns"],
 	components: {
-		TimeSeriesLinePlot
+		TimeSeriesLinePlot,
+		AbstractLinePlot
 	},
 	data() {
 		return {
