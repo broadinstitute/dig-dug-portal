@@ -19,6 +19,7 @@ import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
+import PatternSelector from "../../components/PatternSelector.vue";
 import TimeSeriesHeatmap from "../../components/TimeSeriesHeatmap.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
 import TimeSeriesDisplay from "../../components/TimeSeriesDisplay.vue";
@@ -52,6 +53,7 @@ new Vue({
         AncestrySelectPicker,
         Documentation,
         TooltipDocumentation,
+        PatternSelector,
         TimeSeriesHeatmap,
         TimeSeriesLinePlot,
         TimeSeriesDisplay,
@@ -74,7 +76,6 @@ new Vue({
             zoomedIn: false,
             avgRep: true,
             rowNorm: true,
-            clusterOn: false,
             geneSearchQuery: "Fabp4\nAdipoq\nEnpp2",
             geneSearchResults: [],
             ready: false,
@@ -107,13 +108,14 @@ new Vue({
             }
             return allData;
         },
+        patterns(){
+            return Array.from(new Set(this.processedData.map(d => d.pattern)));
+        },
         tableData(){
             return this.selectedPattern !== null ? this.filterByPattern(this.timeSeriesData) : this.timeSeriesData;
         },
-        paginatedData() {
-            // Filter by page if pattern filter is off
-            let pageData = this.selectedPattern !== null ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
-            return pageData;
+        heatmapData(){
+            return this.patternView ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);

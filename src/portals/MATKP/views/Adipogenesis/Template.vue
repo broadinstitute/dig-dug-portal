@@ -29,12 +29,6 @@
                                         Show row-normalized values
                                     </label>
                                 </div>
-                                <div>
-                                    <label>
-                                        <input v-model="$parent.clusterOn" type="checkbox" />
-                                        Show data by clusters
-                                    </label>
-                                </div>
                             </div>
                             <div id="tabs-below-checkboxes">
                                 <b-tabs v-model="$parent.activeTab">
@@ -56,15 +50,14 @@
                                                 </span>
                                             </h4>
                                             <div v-if="$parent.patternView && $parent.patterns.length > 0">
-                                                <span v-for="pattern in $parent.patterns"
-                                                    :class='`pattern-bubble bubble-${$parent.selectedPattern === pattern ? "on" : "off"}`'>
-                                                    <button class="btn btn-secondary btn-sm" :id="pattern" @click="$parent.viewPattern(pattern)">{{ pattern }}</button>
-                                                </span>
+                                                <pattern-selector @patternSelected="(p) => $parent.viewPattern(p)"
+                                                    :patterns="$parent.patterns">
+                                                </pattern-selector>
                                             </div>
                                             
                                             <div v-if="$parent.ready" class="time-series-content">
                                                 <time-series-display
-                                                    :heatmapData="$parent.paginatedData"
+                                                    :heatmapData="$parent.heatmapData"
                                                     :days="$parent.conditionsMap.timePoints"
                                                     :minScore="$parent.minScore"
                                                     :maxScore="$parent.maxScore"
@@ -242,11 +235,5 @@ button {
 .table-background {
     border: 10px solid #ffffff;
     padding-bottom: 10px;
-}
-.pattern-bubble button {
-    border: 0px;
-}
-.bubble-on button {
-    background-color: #ff6c02;
 }
 </style>
