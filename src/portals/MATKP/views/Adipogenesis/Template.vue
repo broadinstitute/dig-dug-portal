@@ -32,6 +32,46 @@
                             </div>
                             <div id="tabs-below-checkboxes">
                                 <b-tabs v-model="$parent.activeTab">
+                                    <b-tab title="Patterns">
+                                        <div class="tab-inner">
+                                            <h4>View transcripts by adipogenesis pattern</h4>
+                                            <div v-if="$parent.patterns.length > 0">
+                                                <pattern-selector @patternSelected="(p) => $parent.viewPattern(p)"
+                                                    :patterns="$parent.patterns">
+                                                </pattern-selector>
+                                            </div>
+                                            <div v-if="$parent.ready" class="time-series-content">
+                                                <time-series-display v-if="$parent.patternHeatmapData.length > 0"
+                                                    :heatmapData="$parent.patternHeatmapData"
+                                                    :days="$parent.conditionsMap.timePoints"
+                                                    :minScore="$parent.minScore"
+                                                    :maxScore="$parent.maxScore"
+                                                    :utils="$parent.utilsBox"
+                                                    :zoomedIn="true"
+                                                    sectionId="adipogenesis"
+                                                    :avgRep="$parent.avgRep"
+                                                    :rowNorm="$parent.rowNorm"
+                                                    :activeTab="$parent.activeTab">
+                                                </time-series-display>
+                                            </div>
+                                            <div class="table-background">
+                                            <b-table v-if="$parent.ready"
+                                                small
+                                                v-model="$parent.currentPatternTable"
+                                                :items="$parent.singlePatternTableData"
+                                                :fields="$parent.tableFields"
+                                                :per-page="10"
+                                                :current-page="$parent.currentPatternPage">
+                                            </b-table>
+                                            <b-pagination v-if="$parent.ready"
+                                                v-model="$parent.currentPatternPage"
+                                                class="pagination-sm justify-content-center"
+                                                :total-rows="$parent.timeSeriesData.length"
+                                                :per-page="10"
+                                            ></b-pagination>
+                                        </div>
+                                        </div>
+                                    </b-tab>
                                     <b-tab title="Top Transcripts">
                                         <div class="tab-inner">
                                             <h4>
@@ -42,22 +82,10 @@
                                                         Show only rows displayed in table
                                                     </label>
                                                 </span>
-                                                <span class="zoom-checkbox">
-                                                    <label>
-                                                        <input v-model="$parent.patternView" type="checkbox" />
-                                                        View rows by pattern
-                                                    </label>
-                                                </span>
                                             </h4>
-                                            <div v-if="$parent.patternView && $parent.patterns.length > 0">
-                                                <pattern-selector @patternSelected="(p) => $parent.viewPattern(p)"
-                                                    :patterns="$parent.patterns">
-                                                </pattern-selector>
-                                            </div>
-                                            
                                             <div v-if="$parent.ready" class="time-series-content">
-                                                <time-series-display v-if="$parent.heatmapData.length > 0"
-                                                    :heatmapData="$parent.heatmapData"
+                                                <time-series-display v-if="$parent.pageHeatmapData.length > 0"
+                                                    :heatmapData="$parent.pageHeatmapData"
                                                     :days="$parent.conditionsMap.timePoints"
                                                     :minScore="$parent.minScore"
                                                     :maxScore="$parent.maxScore"
@@ -74,7 +102,7 @@
                                             <b-table v-if="$parent.ready"
                                                 small
                                                 v-model="$parent.currentTable"
-                                                :items="$parent.tableData"
+                                                :items="$parent.timeSeriesData"
                                                 :fields="$parent.tableFields"
                                                 :per-page="10"
                                                 :current-page="$parent.currentPage">

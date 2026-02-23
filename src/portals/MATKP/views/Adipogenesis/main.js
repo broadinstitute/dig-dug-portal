@@ -70,8 +70,10 @@ new Vue({
             maxScore: null,
             datasetMetadata: null,
             currentPage: 1,
+            currentPatternPage: 1,
             conditionsMap: null,
             currentTable: [],
+            currentPatternTable: [],
             zoomedIn: false,
             avgRep: true,
             rowNorm: true,
@@ -107,31 +109,21 @@ new Vue({
             }
             return allData;
         },
-        processedFullData(){
+        patternHeatmapData(){
             if (this.conditionsMap === null){
                 return null;
             }
-            let allData = processDataForHeatmap(this.fullTimeSeriesData, this.conditionsMap);
-            return allData;
+            let allData = processDataForHeatmap(this.singlePatternTableData, this.conditionsMap);
+
+            // Filter to make the pattern view heatmap track with the pattern view table
+            let currentTranscripts = this.currentPatternTable.map(t => t.transcript_id);
+            return allData.filter(d => currentTranscripts.includes(d.transcript_id));
         },
         patterns(){
-            return Array.from(new Set(this.processedData.map(d => d.pattern)));
-        },
-        tableData(){
-            return this.selectedPattern !== null ? this.filterByPattern(this.timeSeriesData) : this.timeSeriesData;
-        },
-        patternHeatmapData(){
-            return this.filterByPattern(this.processedFullData);
+            return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
         },
         pageHeatmapData(){
             return this.filterByPage(this.processedData);
-        },
-        heatmapData(){
-            // TODO just make patterns its own tab!! it's that easy!!
-            console.log("IS THIS THING ON????");
-            console.log(this.patternHeatmapData.length);
-            console.log("of", this.fullTimeSeriesData.length);
-            return this.patternView ? this.filterByPattern(this.processedFullData) : this.filterByPage(this.processedData);
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
@@ -198,6 +190,9 @@ new Vue({
             let patternArray = Array.from(patternSet);
             // null values are provided if we don't do this
             return patternArray.filter(p => typeof p === "string");
+        },
+        singlePatternTableData(){
+            return this.fullTimeSeriesData.filter(d => d.pattern === this.selectedPattern);
         }
     },
     async created() {
@@ -228,13 +223,6 @@ new Vue({
             }
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             return data.filter(d => currentTranscripts.includes(d.transcript_id));
-        },
-        filterByPattern(data){
-            if (this.selectedPattern === null){
-                return [];
-            }
-            let matches = data.filter(d => d.pattern === this.selectedPattern);
-            return matches;
         },
         async queryGenes() {
             let delimiters = /[\s;,]+/;
@@ -285,10 +273,7 @@ new Vue({
             }
         },
         selectedPattern(newValue){
-            if (newValue !== null){
-                // When a pattern is selected, make sure to zoom in
-                this.zoomedIn = true;
-            }
+            this.currentPatternPage = 1;
         },
         zoomedIn(isTrue){
             // If you zoom out, clear pattern filter
