@@ -56,7 +56,7 @@
                                             </div>
                                             
                                             <div v-if="$parent.ready" class="time-series-content">
-                                                <time-series-display
+                                                <time-series-display v-if="$parent.heatmapData.length > 0"
                                                     :heatmapData="$parent.heatmapData"
                                                     :days="$parent.conditionsMap.timePoints"
                                                     :minScore="$parent.minScore"

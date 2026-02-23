@@ -65,10 +65,9 @@ new Vue({
             plotId: "time_series_heatmap",
             defaultDataset: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             timeSeriesData: null,
+            fullTimeSeriesData: null,
             minScore: null,
             maxScore: null,
-            fullTxSuffix: "full_transcript_data.tsv.gz",
-            top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
             datasetMetadata: null,
             currentPage: 1,
             conditionsMap: null,
@@ -108,14 +107,32 @@ new Vue({
             }
             return allData;
         },
+        processedFullData(){
+            if (this.conditionsMap === null){
+                return null;
+            }
+            let allData = processDataForHeatmap(this.fullTimeSeriesData, this.conditionsMap);
+            return allData;
+        },
         patterns(){
             return Array.from(new Set(this.processedData.map(d => d.pattern)));
         },
         tableData(){
             return this.selectedPattern !== null ? this.filterByPattern(this.timeSeriesData) : this.timeSeriesData;
         },
+        patternHeatmapData(){
+            return this.filterByPattern(this.processedFullData);
+        },
+        pageHeatmapData(){
+            return this.filterByPage(this.processedData);
+        },
         heatmapData(){
-            return this.patternView ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
+            // TODO filter by pattern with FULL data
+            // TODO consider making 
+            console.log("IS THIS THING ON????");
+            console.log(this.patternHeatmapData.length);
+            console.log("of", this.fullTimeSeriesData.length);
+            return this.patternView ? this.filterByPattern(this.processedFullData) : this.filterByPage(this.processedData);
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
@@ -188,9 +205,17 @@ new Vue({
         if (!keyParams.datasetid) {
             keyParams.set({ datasetid: this.defaultDataset });
         }
+        // Get the full data
+        let fullTimeSeriesData = await getTimeSeries(keyParams.datasetid, false);
+        this.conditionsMap = await mapConditions(fullTimeSeriesData, keyParams.datasetid);
+        this.fullTimeSeriesData = includeAverages(fullTimeSeriesData, this.conditionsMap);
+
+        // Get the data for just the top 100
         let timeSeriesData = await getTimeSeries(keyParams.datasetid);
-        this.conditionsMap = await mapConditions(timeSeriesData, keyParams.datasetid);
+        //this.conditionsMap = await mapConditions(timeSeriesData, keyParams.datasetid);
         this.timeSeriesData = includeAverages(timeSeriesData, this.conditionsMap);
+        
+
         const metadata = await this.getMetadata();
         this.datasetMetadata = metadata;
     },
@@ -207,7 +232,7 @@ new Vue({
         },
         filterByPattern(data){
             if (this.selectedPattern === null){
-                return data;
+                return [];
             }
             let matches = data.filter(d => d.pattern === this.selectedPattern);
             return matches;
