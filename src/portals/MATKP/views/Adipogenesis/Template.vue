@@ -48,7 +48,7 @@
                                                     :maxScore="$parent.maxScore"
                                                     :utils="$parent.utilsBox"
                                                     :zoomedIn="true"
-                                                    sectionId="adipogenesis"
+                                                    sectionId="adipogenesis_patterns"
                                                     :avgRep="$parent.avgRep"
                                                     :rowNorm="$parent.rowNorm"
                                                     :activeTab="$parent.activeTab">

@@ -123,7 +123,15 @@ new Vue({
             return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
         },
         pageHeatmapData(){
-            return this.filterByPage(this.processedData);
+            console.log("Is this thing on?");
+            let data = this.processedData;
+            if (!this.zoomedIn) {
+                return data;
+            }
+            let currentTranscripts = this.currentTable.map(t => t.transcript_id);
+            let results = data.filter(d => currentTranscripts.includes(d.transcript_id));
+            console.log(results.length);
+            return results;
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
@@ -217,13 +225,6 @@ new Vue({
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
-        filterByPage(data) {
-            if (!this.zoomedIn) {
-                return data;
-            }
-            let currentTranscripts = this.currentTable.map(t => t.transcript_id);
-            return data.filter(d => currentTranscripts.includes(d.transcript_id));
-        },
         async queryGenes() {
             let delimiters = /[\s;,]+/;
             let geneSearchArray = this.geneSearchQuery.split(delimiters);
@@ -261,6 +262,8 @@ new Vue({
     watch: {
         processedData(newData) {
             this.ready = false;
+            // TODO MAKE THESE TRULY GLOBAL as in not from top 100
+            // also consider whether the ready boolean is even necessary
             if (this.minScore === null && this.maxScore === null) {
                 this.minScore = extremeVal(newData);
                 this.maxScore = extremeVal(newData, false);

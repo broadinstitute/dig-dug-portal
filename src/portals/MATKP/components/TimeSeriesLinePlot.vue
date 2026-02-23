@@ -47,7 +47,6 @@ export default Vue.component("time-series-line-plot", {
   computed: {
     chartData(){
       let data = structuredClone(this.plotData);
-      console.log("Line plot data:", JSON.stringify(data));
       if (this.filter){
         data = data.filter(this.filter);
       }
