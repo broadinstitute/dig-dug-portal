@@ -80,7 +80,7 @@ new Vue({
             geneSearchResults: [],
             ready: false,
             activeTab: 0,
-            patternView: false,
+            patternView: true,
             selectedPattern: null
         };
     },

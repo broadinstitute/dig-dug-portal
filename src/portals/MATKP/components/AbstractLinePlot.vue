@@ -46,7 +46,6 @@ export default Vue.component("abstract-line-plot", {
       if (!this.times || !this.days){
         return {};
       }
-      console.log(this.days);
       return {
         xField: "day",
         xMin: this.days.reduce((a,b) => a < b ? a : b),
