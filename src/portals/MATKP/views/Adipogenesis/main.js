@@ -127,8 +127,7 @@ new Vue({
             return this.filterByPage(this.processedData);
         },
         heatmapData(){
-            // TODO filter by pattern with FULL data
-            // TODO consider making 
+            // TODO just make patterns its own tab!! it's that easy!!
             console.log("IS THIS THING ON????");
             console.log(this.patternHeatmapData.length);
             console.log("of", this.fullTimeSeriesData.length);
