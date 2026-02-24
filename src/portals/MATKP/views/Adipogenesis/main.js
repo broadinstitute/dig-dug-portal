@@ -109,11 +109,19 @@ new Vue({
             }
             return allData;
         },
+        processedFullData() {
+            if (this.conditionsMap === null) {
+                return null;
+            }
+            let allData = processDataForHeatmap(this.fullTimeSeriesData, this.conditionsMap);
+            return allData;
+        },
         patternHeatmapData(){
             if (this.conditionsMap === null){
                 return null;
             }
-            let allData = processDataForHeatmap(this.singlePatternTableData, this.conditionsMap);
+            let allData = this.processedFullData.filter(d => d.pattern === this.selectedPattern);
+            //let allData = processDataForHeatmap(this.singlePatternTableData, this.conditionsMap);
 
             // Filter to make the pattern view heatmap track with the pattern view table
             let currentTranscripts = this.currentPatternTable.map(t => t.transcript_id);
@@ -260,7 +268,7 @@ new Vue({
         }
     },
     watch: {
-        processedData(newData) {
+        processedFullData(newData) {
             this.ready = false;
             // TODO MAKE THESE TRULY GLOBAL as in not from top 100
             // also consider whether the ready boolean is even necessary

@@ -258,7 +258,6 @@ export default Vue.component("time-series-heatmap", {
 			})
 
 			this.renderData.rows.map((r, rIndex) => {
-				// TODO if row-normalized, do it here;
 				let rowScores = Object.values(this.renderData[r]);
 				let rowMax = rowScores.reduce((a,b) => a > b ? a : b);
 				let rowMin = rowScores.reduce((a,b) => a < b ? a : b);
