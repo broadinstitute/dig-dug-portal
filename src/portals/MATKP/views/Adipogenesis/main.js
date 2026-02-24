@@ -1,8 +1,9 @@
-import Vue from "vue";
+import Vue, { h } from "vue";
 import Template from "./Template.vue";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap, extremeVal } from "@/portals/MATKP/utils/adipogenesis.js";
+import { getTextContent } from "../../utils/content.js";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -62,17 +63,20 @@ new Vue({
     mixins: [matkpMixin],
     data() {
         return {
+            byorPage: "matkp_adipogenesis",
+            headerText: "",
             plotId: "time_series_heatmap",
             defaultDataset: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             timeSeriesData: null,
+            fullTimeSeriesData: null,
             minScore: null,
             maxScore: null,
-            fullTxSuffix: "full_transcript_data.tsv.gz",
-            top100Suffix: "heatmap_top100_transcript_data.tsv.gz",
             datasetMetadata: null,
             currentPage: 1,
+            currentPatternPage: 1,
             conditionsMap: null,
             currentTable: [],
+            currentPatternTable: [],
             zoomedIn: false,
             avgRep: true,
             rowNorm: true,
@@ -80,7 +84,7 @@ new Vue({
             geneSearchResults: [],
             ready: false,
             activeTab: 0,
-            patternView: false,
+            patternView: true,
             selectedPattern: null
         };
     },
@@ -108,14 +112,35 @@ new Vue({
             }
             return allData;
         },
+        processedFullData() {
+            if (this.conditionsMap === null) {
+                return null;
+            }
+            let allData = processDataForHeatmap(this.fullTimeSeriesData, this.conditionsMap);
+            return allData;
+        },
+        patternHeatmapData(){
+            if (this.conditionsMap === null){
+                return null;
+            }
+            let allData = this.processedFullData.filter(d => d.pattern === this.selectedPattern);
+            //let allData = processDataForHeatmap(this.singlePatternTableData, this.conditionsMap);
+
+            // Filter to make the pattern view heatmap track with the pattern view table
+            let currentTranscripts = this.currentPatternTable.map(t => t.transcript_id);
+            return allData.filter(d => currentTranscripts.includes(d.transcript_id));
+        },
         patterns(){
-            return Array.from(new Set(this.processedData.map(d => d.pattern)));
+            return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
         },
-        tableData(){
-            return this.selectedPattern !== null ? this.filterByPattern(this.timeSeriesData) : this.timeSeriesData;
-        },
-        heatmapData(){
-            return this.patternView ? this.filterByPattern(this.processedData) : this.filterByPage(this.processedData);
+        pageHeatmapData(){
+            let data = this.processedData;
+            if (!this.zoomedIn) {
+                return data;
+            }
+            let currentTranscripts = this.currentTable.map(t => t.transcript_id);
+            let results = data.filter(d => currentTranscripts.includes(d.transcript_id));
+            return results;
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
@@ -182,15 +207,30 @@ new Vue({
             let patternArray = Array.from(patternSet);
             // null values are provided if we don't do this
             return patternArray.filter(p => typeof p === "string");
+        },
+        singlePatternTableData(){
+            return this.fullTimeSeriesData.filter(d => d.pattern === this.selectedPattern);
         }
     },
     async created() {
+        let header = await getTextContent(this.byorPage, true);
+        this.headerText = header;
+        let headerParagraph = document.getElementById(this.byorPage);
+        headerParagraph.innerHTML = header;
         if (!keyParams.datasetid) {
             keyParams.set({ datasetid: this.defaultDataset });
         }
+        // Get the full data
+        let fullTimeSeriesData = await getTimeSeries(keyParams.datasetid, false);
+        this.conditionsMap = await mapConditions(fullTimeSeriesData, keyParams.datasetid);
+        this.fullTimeSeriesData = includeAverages(fullTimeSeriesData, this.conditionsMap);
+
+        // Get the data for just the top 100
         let timeSeriesData = await getTimeSeries(keyParams.datasetid);
-        this.conditionsMap = await mapConditions(timeSeriesData, keyParams.datasetid);
+        //this.conditionsMap = await mapConditions(timeSeriesData, keyParams.datasetid);
         this.timeSeriesData = includeAverages(timeSeriesData, this.conditionsMap);
+        
+
         const metadata = await this.getMetadata();
         this.datasetMetadata = metadata;
     },
@@ -198,20 +238,6 @@ new Vue({
         tissueFormatter: Formatters.tissueFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         phenotypeFormatter: Formatters.phenotypeFormatter,
-        filterByPage(data) {
-            if (!this.zoomedIn) {
-                return data;
-            }
-            let currentTranscripts = this.currentTable.map(t => t.transcript_id);
-            return data.filter(d => currentTranscripts.includes(d.transcript_id));
-        },
-        filterByPattern(data){
-            if (this.selectedPattern === null){
-                return data;
-            }
-            let matches = data.filter(d => d.pattern === this.selectedPattern);
-            return matches;
-        },
         async queryGenes() {
             let delimiters = /[\s;,]+/;
             let geneSearchArray = this.geneSearchQuery.split(delimiters);
@@ -247,8 +273,10 @@ new Vue({
         }
     },
     watch: {
-        processedData(newData) {
+        processedFullData(newData) {
             this.ready = false;
+            // TODO MAKE THESE TRULY GLOBAL as in not from top 100
+            // also consider whether the ready boolean is even necessary
             if (this.minScore === null && this.maxScore === null) {
                 this.minScore = extremeVal(newData);
                 this.maxScore = extremeVal(newData, false);
@@ -261,10 +289,7 @@ new Vue({
             }
         },
         selectedPattern(newValue){
-            if (newValue !== null){
-                // When a pattern is selected, make sure to zoom in
-                this.zoomedIn = true;
-            }
+            this.currentPatternPage = 1;
         },
         zoomedIn(isTrue){
             // If you zoom out, clear pattern filter

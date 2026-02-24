@@ -3,8 +3,10 @@
 		<div v-for="pattern, index in patterns"
 			:class='`pattern-bubble bubble-${selectedPattern === pattern ? "on" : "off"}`'>
 			 <div v-if="centroidsMap !== null" class="pattern-option">
-				<abstract-line-plot :plotId="pattern" :plotData="centroidsMap[pattern]"></abstract-line-plot>
-				<button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">Pattern {{ index }}</button>
+				<button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">
+					<abstract-line-plot :plotId="pattern" :plotData="centroidsMap[pattern]"></abstract-line-plot>
+				</button>
+				<div>Pattern {{ index + 1 }}</div>
 			 </div>
 		</div>
 	</div>
@@ -36,10 +38,10 @@ export default Vue.component("pattern-selector", {
 	},
 	mounted: async function () {
 		if (!keyParams.datasetid){
-			console.log("No dataset named here")
 			return;
 		}
 		this.centroidsMap = await this.getCentroids(keyParams.datasetid);
+		this.viewPattern(this.patterns[0]);
 	},
 	watch: {
 		async datasetid(newId, oldId){
@@ -56,7 +58,6 @@ export default Vue.component("pattern-selector", {
 		async getCentroids(datasetid){
 			const newCentroids = await getCentroids(keyParams.datasetid);
 			this.centroids = newCentroids;
-			console.log(JSON.stringify(newCentroids));
 			let centroidsMap = {};
 			newCentroids.forEach(c => {
 				centroidsMap[c.pattern] = c;
