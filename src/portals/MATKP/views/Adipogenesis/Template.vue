@@ -59,7 +59,7 @@
                                                 small
                                                 v-model="$parent.currentPatternTable"
                                                 :items="$parent.singlePatternTableData"
-                                                :fields="$parent.tableFields"
+                                                :fields="$parent.tableFields.filter(f => f.key !== 'order')"
                                                 :per-page="10"
                                                 :current-page="$parent.currentPatternPage">
                                             </b-table>
