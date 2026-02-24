@@ -1,9 +1,7 @@
 <template>
-    
-        <div :id=plotId>
-          <p>Loading...</p>
-        </div>
-    
+  <div :id=plotId class="abstract-line-plot">
+    <p>Loading...</p>
+  </div>
 </template>
 <script>
 import Vue from "vue";
@@ -85,6 +83,7 @@ export default Vue.component("abstract-line-plot", {
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .attr("id", `chart_${this.plotId}`)
+          .style("background-color", "white")
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       this.tooltip = d3
@@ -113,6 +112,7 @@ export default Vue.component("abstract-line-plot", {
         .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
+        .attr("color", "black")
         .call(d3.axisBottom(this.xScale).tickFormat(t => "").tickSize(0));
       
       // add Y-axis
@@ -120,6 +120,7 @@ export default Vue.component("abstract-line-plot", {
         .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
+        .attr("color", "black")
         .call(d3.axisLeft(this.yScale).tickFormat(t => "").tickSize(0));
       const line = d3.line()
           .x(d => this.xScale(d[this.config.xField]))
@@ -136,12 +137,6 @@ export default Vue.component("abstract-line-plot", {
 </script>
 <style scoped>
   @import url("/css/effectorGenes.css");
-  .plot {
-    margin-right: 15px;
-    margin-bottom: 15px;
-    background-color: white;
-  }
-
   .download-images-setting {
     margin-top: -25px;
   }
