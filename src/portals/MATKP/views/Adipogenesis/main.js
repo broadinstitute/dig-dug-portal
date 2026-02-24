@@ -134,14 +134,12 @@ new Vue({
             return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
         },
         pageHeatmapData(){
-            console.log("Is this thing on?");
             let data = this.processedData;
             if (!this.zoomedIn) {
                 return data;
             }
             let currentTranscripts = this.currentTable.map(t => t.transcript_id);
             let results = data.filter(d => currentTranscripts.includes(d.transcript_id));
-            console.log(results.length);
             return results;
         },
         processedGeneSearch() {
