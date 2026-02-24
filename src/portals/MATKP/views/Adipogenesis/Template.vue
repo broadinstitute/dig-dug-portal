@@ -40,6 +40,7 @@
                                                     :patterns="$parent.patterns">
                                                 </pattern-selector>
                                             </div>
+                                            <div v-if="!$parent.ready">Loading...</div>
                                             <div v-if="$parent.ready" class="time-series-content">
                                                 <time-series-display v-if="$parent.patternHeatmapData.length > 0"
                                                     :heatmapData="$parent.patternHeatmapData"
