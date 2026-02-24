@@ -9,12 +9,9 @@
                     <h2 class="matkp-static-content-title">
                         Adipogenesis Datasets
                     </h2>
-                    <div class="matkp-tool-documentation">
-                        <p>This page lets you explore time-series gene expression from adipogenesis experiments. Use <strong>Top Transcripts</strong> to view the top 100 transcripts ranked by maximum change across time points, or <strong>Search by Gene</strong> to build a custom view for up to 10 genes (enter gene symbols, one per line or separated by spaces or commas, then click Search). For both views you get a heatmap (transcripts as rows, time points as columns), a line plot that updates when you hover over a heatmap cell, and a table with transcript IDs, genes, and expression values per time point.</p>
-                        <p>Above the tabs you can turn <strong>Display average of all replicates per time point</strong> on to show one column per day, or off to see individual replicates. <strong>Show row-normalized values</strong> rescales each transcript’s row so that the minimum and maximum across time points define the color range, making patterns across time easier to compare. In the Top Transcripts tab, <strong>Show only rows displayed in table</strong> limits the heatmap to the transcripts on the current table page so the heatmap and table stay in sync. Use the table pagination to change pages; you can download the heatmap as PNG from the Download button on the heatmap.</p>
-                    </div>
+                    <div class="matkp-tool-documentation" style="font-size: 16px" :id="$parent.byorPage"></div>
                     <research-single-cell-info :data="$parent.datasetMetadata"/>
-                    <div class="card mdkp-card">
+                    <div class="card mdkp-card" id="adipogenesis-card">
                         <div class="card-body">
                             <div id="checkboxes">
                                 <div>
@@ -226,8 +223,8 @@ div.card >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-H {
     background-color: #66bbff30 !important;
     border: solid 1px #3399ff30 !important;
 }
-.matkp-tool-documentation, .matkp-tool-documentation p {
-    font-size: 16px;
+#adipogenesis-card {
+    margin-top: 0px !important;
 }
 .time-series-content {
     padding: 20px;

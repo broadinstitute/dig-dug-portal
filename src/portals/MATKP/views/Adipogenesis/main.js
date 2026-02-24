@@ -1,8 +1,9 @@
-import Vue from "vue";
+import Vue, { h } from "vue";
 import Template from "./Template.vue";
 import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import { getTimeSeries, mapConditions, includeAverages, processDataForHeatmap, extremeVal } from "@/portals/MATKP/utils/adipogenesis.js";
+import { getTextContent } from "../../utils/content.js";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
 import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -62,6 +63,8 @@ new Vue({
     mixins: [matkpMixin],
     data() {
         return {
+            byorPage: "matkp_adipogenesis",
+            headerText: "",
             plotId: "time_series_heatmap",
             defaultDataset: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             timeSeriesData: null,
@@ -212,6 +215,10 @@ new Vue({
         }
     },
     async created() {
+        let header = await getTextContent(this.byorPage, true);
+        this.headerText = header;
+        let headerParagraph = document.getElementById(this.byorPage);
+        headerParagraph.innerHTML = header;
         if (!keyParams.datasetid) {
             keyParams.set({ datasetid: this.defaultDataset });
         }
