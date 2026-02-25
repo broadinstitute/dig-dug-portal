@@ -64,7 +64,7 @@ new Vue({
     data() {
         return {
             byorPage: "matkp_adipogenesis",
-            headerText: "",
+            headerContent: {},
             plotId: "time_series_heatmap",
             defaultDataset: "Time_Series_Mikkelsen2010_Adipogenesis_Mouse", // hardcoded for sample,
             timeSeriesData: null,
@@ -213,10 +213,10 @@ new Vue({
         }
     },
     async created() {
-        let header = await getTextContent(this.byorPage, true);
-        this.headerText = header;
-        let headerParagraph = document.getElementById(this.byorPage);
-        headerParagraph.innerHTML = header;
+        let header = await getTextContent(this.byorPage);
+        this.headerContent = header;
+        console.log(this.headerContent);
+
         if (!keyParams.datasetid) {
             keyParams.set({ datasetid: this.defaultDataset });
         }
@@ -270,6 +270,10 @@ new Vue({
         },
         viewPattern(pattern){
             this.selectedPattern = pattern;
+        },
+        getHeaderContent(item){
+            let entry = this.headerContent.find(d => d["key"] == item);
+            return entry === undefined ? "" : entry.content;
         }
     },
     watch: {
