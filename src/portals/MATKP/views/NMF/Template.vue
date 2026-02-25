@@ -172,10 +172,12 @@
                 
                                     <!-- ROW DETAILS SUBTABLE -->
                                     <template #row-details="row">
+                                        <!--
                                         <div style="padding:10px 50px;">
                                             <div style="font-weight: bold;">Gene Program <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:#ffd10c" v-b-tooltip.hover.right="`Biological interpretation of this NMF factor. The gene program represents a coordinated gene expression pattern inferred from the model.`"/></span></div>
                                             {{ row.item.description }}
                                         </div>
+                                        -->
                                         <div class="f-row" style="gap:10px; padding:10px 50px 20px;">
                                             <div class="f-col" style="flex:1; gap:5px;">
                                                 <div class="f-row spread-out">

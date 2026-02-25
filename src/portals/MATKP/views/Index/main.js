@@ -82,7 +82,8 @@ new Vue({
             console.log("config", json);
         },
         async getNews() {
-            this.newsFeed = await getNewsFeed(this.content.news.feedId);
+            const feed = await getNewsFeed(this.content.news.feedId);
+            this.newsFeed = feed.slice(0, 3);
         },
 
         async getDatasets() {

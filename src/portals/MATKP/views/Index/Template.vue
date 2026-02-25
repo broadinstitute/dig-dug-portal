@@ -198,7 +198,7 @@
                     </div>
 
                     <div class="f-col" style="flex: 1; gap: 10px">
-                        <div class="section-title">News</div>
+                        <div class="section-title">Latest News</div>
                         <div class="news-items" v-if="$parent.newsFeed">
                             <div
                                 class="news-item f-row"
