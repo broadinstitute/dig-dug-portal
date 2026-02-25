@@ -88,7 +88,8 @@ export default Vue.component("time-series-display", {
 </script>
 <style scoped>
 .line-plot-wrapper{
-    margin-top: 160px;
+    margin-top: 45px;
+    padding-top: 55px;
     vertical-align: bottom;
 }
 .no-data-message {

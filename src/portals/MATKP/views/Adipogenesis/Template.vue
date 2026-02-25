@@ -59,7 +59,9 @@
                                                 :items="$parent.singlePatternTableData"
                                                 :fields="$parent.tableFields.filter(f => f.key !== 'order')"
                                                 :per-page="10"
-                                                :current-page="$parent.currentPatternPage">
+                                                :current-page="$parent.currentPatternPage"
+                                                :sort-by="'max_diff'"
+                                                :sort-desc="true">
                                             </b-table>
                                             <b-pagination v-if="$parent.ready"
                                                 v-model="$parent.currentPatternPage"

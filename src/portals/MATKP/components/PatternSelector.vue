@@ -1,13 +1,16 @@
 <template>
-	<div class="patterns">
-		<div v-for="pattern, index in patterns"
-			:class='`pattern-bubble bubble-${selectedPattern === pattern ? "on" : "off"}`'>
-			 <div v-if="centroidsMap !== null" class="pattern-option">
-				<button class="btn btn-secondary btn-sm" :id="pattern" @click="viewPattern(pattern)">
-					<abstract-line-plot :plotId="pattern" :plotData="centroidsMap[pattern]"></abstract-line-plot>
-				</button>
-				<div>Pattern {{ index + 1 }}</div>
-			 </div>
+	<div>
+		<div>Select a pattern:</div>
+		<div class="patterns">
+			<div v-for="pattern, index in patterns"
+				:class='`pattern-bubble bubble-${selectedPattern === pattern ? "on" : "off"}`'>
+				 <div v-if="centroidsMap !== null" class="pattern-option">
+					<div :id="pattern" @click="viewPattern(pattern)">
+						<abstract-line-plot :plotId="pattern" :plotData="centroidsMap[pattern]"></abstract-line-plot>
+					</div>
+					<div class="bubble-label">{{ index + 1 }}</div>
+				 </div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -75,21 +78,36 @@ export default Vue.component("pattern-selector", {
 
 <style scoped>
 .patterns {
-	display: inline;
+	display:flex; 
+	gap: 10px;
+	justify-content: space-between;
+	padding:20px 10px;
+	background-color: #eee;
+	margin-bottom: 20px;
+	overflow-x: auto;
 }
 .pattern-bubble {
 	display: inline;
+	cursor: pointer;
+}
+.bubble-label{
+	margin: 0 5px;
+	font-size: .9em;
+}
+.pattern-bubble:not(.bubble-on):hover .bubble-label{
+	background:  #ccc;
 }
 .pattern-option {
 	display: inline-block;
 	text-align: center;
-	margin: 10px;
 }
 .pattern-bubble button {
     border: 0px;
 }
-.bubble-on button {
-    background-color: #ff6c02;
+.bubble-on .bubble-label{
+    background: #ff6c02;
+	color: white;
+	font-weight: bold;
 }
 </style>
 

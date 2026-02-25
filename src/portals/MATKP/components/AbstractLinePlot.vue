@@ -14,8 +14,8 @@ export default Vue.component("abstract-line-plot", {
   data() {
       return {
         chart: null,
-        chartWidth: 150,
-        chartHeight: 100,
+        chartWidth: 70,
+        chartHeight: 50,
         svg: null,
         xScale: null,
         yScale: null,
@@ -70,10 +70,10 @@ export default Vue.component("abstract-line-plot", {
   methods: {
     drawChart(){
       let margin = {
-        top: 10,
-        right: 10,
-        bottom: 10,
-        left: 10
+        top: 5,
+        right: 5,
+        bottom: 5,
+        left: 5
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
@@ -83,7 +83,7 @@ export default Vue.component("abstract-line-plot", {
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .attr("id", `chart_${this.plotId}`)
-          .style("background-color", "white")
+          .style("background-color", "transparent")
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
       this.tooltip = d3
@@ -112,7 +112,7 @@ export default Vue.component("abstract-line-plot", {
         .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
-        .attr("color", "black")
+        .attr("color", "#aaa")
         .call(d3.axisBottom(this.xScale).tickFormat(t => "").tickSize(0));
       
       // add Y-axis
@@ -120,16 +120,17 @@ export default Vue.component("abstract-line-plot", {
         .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
-        .attr("color", "black")
+        .attr("color", "#aaa")
         .call(d3.axisLeft(this.yScale).tickFormat(t => "").tickSize(0));
       const line = d3.line()
           .x(d => this.xScale(d[this.config.xField]))
           .y(d => this.yScale(d[this.config.yField]));
+
       this.svg.append("path")
           .datum(this.chartData)
           .attr("fill", "none")
           .attr("stroke", "red")
-          .attr("stroke-width", 1)
+          .attr("stroke-width", 2)
           .attr("d", line);
     },
   },

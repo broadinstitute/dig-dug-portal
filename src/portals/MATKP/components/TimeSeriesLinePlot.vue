@@ -23,7 +23,7 @@ import Formatters from "@/utils/formatters";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "tx", "config", "plotId", "utils"],
+  props: ["plotData", "filter", "tightenLeft", "tx", "config", "plotId", "utils", "showLine"],
   data() {
       return {
         chart: null,
@@ -126,6 +126,30 @@ export default Vue.component("time-series-line-plot", {
         .attr("y", -margin.left + 15)
         .attr("x", - height / 2)
         .text(`${this.config.yAxisLabel || this.config.yField} (thousands)`);
+
+        const sortedData = [...this.chartData].sort(
+          (a, b) => a[this.config.xField] - b[this.config.xField]
+        );
+
+      if (this.showLine != false) {
+        const lineGenerator = d3.line()
+          .x(d => this.xScale(d[this.config.xField]))
+          .y(d => this.yScale(d[this.config.yField]))
+          .defined(d =>
+            d[this.config.xField] !== undefined &&
+            d[this.config.yField] !== undefined
+          );
+
+        this.svg.append("path")
+          .datum(sortedData)
+          .attr("fill", "none")
+          .attr("stroke", "red")
+          .attr("stroke-width", 1)
+          .attr("class", "line-path")
+          .attr("d", lineGenerator);
+      }
+
+
       // add dots
       this.svg.append("g")
         .selectAll("dot")
