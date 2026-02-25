@@ -9,7 +9,9 @@
                     <h2 class="matkp-static-content-title">
                         Adipogenesis Datasets
                     </h2>
-                    <div class="matkp-tool-documentation" style="font-size: 16px" :id="$parent.byorPage"></div>
+                    <div class="matkp-tool-documentation" v-if="$parent.ready" style="font-size: 16px">
+                        {{ $parent.getHeaderContent('page_top') }}
+                    </div>
                     <research-single-cell-info :data="$parent.datasetMetadata"/>
                     <div class="card mdkp-card" id="adipogenesis-card">
                         <div class="card-body">
@@ -32,6 +34,9 @@
                                     <b-tab title="Patterns">
                                         <div class="tab-inner">
                                             <h4>View transcripts by adipogenesis pattern</h4>
+                                            <div v-if="$parent.ready" class="documentation">
+                                                {{ $parent.getHeaderContent('pattern') }}
+                                            </div>
                                             <div v-if="$parent.patterns.length > 0">
                                                 <pattern-selector @patternSelected="(p) => $parent.viewPattern(p)"
                                                     :patterns="$parent.patterns">
@@ -83,6 +88,9 @@
                                                     </label>
                                                 </span>
                                             </h4>
+                                            <div v-if="$parent.ready" class="documentation">
+                                                    {{ $parent.getHeaderContent('top_transcripts') }}
+                                                </div>
                                             <div v-if="$parent.ready" class="time-series-content">
                                                 <time-series-display v-if="$parent.pageHeatmapData.length > 0"
                                                     :heatmapData="$parent.pageHeatmapData"
@@ -122,6 +130,9 @@
                                             <h4>
                                                 Search up to 10 genes to create a custom heatmap.
                                             </h4>
+                                            <div v-if="$parent.ready" class="documentation">
+                                                {{ $parent.getHeaderContent('genes_search') }}
+                                            </div>
                                             <div v-if="$parent.allTimeSeriesData !== null"
                                                 class="time-series-content">
                                                 <criterion-function-group>
@@ -263,5 +274,8 @@ button {
 .table-background {
     border: 10px solid #ffffff;
     padding-bottom: 10px;
+}
+.documentation {
+    margin-bottom: 10px;
 }
 </style>
