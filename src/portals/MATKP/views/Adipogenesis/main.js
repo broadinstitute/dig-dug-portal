@@ -152,13 +152,7 @@ new Vue({
                     key: "max_diff",
                     label: "Max diff.",
                     sortable: true
-                },
-                {
-                    key: "pattern",
-                    label: "Pattern",
-                    sortable: true
                 }
-
             ];
             this.conditionsMap.timePoints.forEach(t => {
                 if (this.avgRep) {
@@ -181,8 +175,12 @@ new Vue({
                     });
                 }
             });
-
-
+            baseFields.push(
+                {
+                    key: "pattern",
+                    label: "Pattern",
+                    sortable: true
+                });
             return baseFields;
         },
         patterns(){
@@ -257,6 +255,7 @@ new Vue({
         viewPattern(pattern){
             this.selectedPattern = null; // clearing out old data
             this.selectedPattern = pattern;
+            this.activeTab = 0;
         },
         getHeaderContent(item){
             let entry = this.headerContent.find(d => d["key"] == item);

@@ -63,7 +63,7 @@
                                                 small
                                                 v-model="$parent.currentPatternTable"
                                                 :items="$parent.singlePatternTableData"
-                                                :fields="$parent.tableFields.filter(f => f.key !== 'order')"
+                                                :fields="$parent.tableFields.filter(f => f.key !== 'order' && f.key !== 'pattern')"
                                                 :per-page="10"
                                                 :current-page="$parent.currentPatternPage"
                                                 :sort-by="'max_diff'"
@@ -125,6 +125,11 @@
                                                             {{ r.item.gene }}
                                                         </a>
                                                     </template>
+                                                    <template #cell(pattern)="r">
+                                                        <button class="btn btn-sm pattern-button" @click="$parent.viewPattern(r.item.pattern)">
+                                                            View pattern cluster
+                                                        </button>
+                                                    </template>
                                             </b-table>
                                             <b-pagination v-if="$parent.ready"
                                                 v-model="$parent.currentPage"
@@ -184,6 +189,11 @@
                                                                     <a :href='`/gene.html?gene=${r.item.gene.toUpperCase()}`'>
                                                                         {{ r.item.gene }}
                                                                     </a>
+                                                                </template>
+                                                                <template #cell(pattern)="r">
+                                                                    <button class="btn btn-sm pattern-button" @click="$parent.viewPattern(r.item.pattern)">
+                                                                        View pattern cluster
+                                                                    </button>
                                                                 </template>
                                                         </b-table>
                                                     </div>
@@ -286,6 +296,11 @@ button {
     background-color: #ff6c02;
     border: none; 
     margin-top: 25px
+}
+.pattern-button {
+    background-color: #ff6c02;
+    margin: 0px;
+    color: white;
 }
 .table-background {
     border: 10px solid #ffffff;
