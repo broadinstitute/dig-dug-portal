@@ -44,7 +44,7 @@
                                             </div>
                                             <div v-if="!$parent.ready">Loading...</div>
                                             <div v-if="$parent.ready" class="time-series-content">
-                                                <time-series-display v-if="$parent.patternHeatmapData.length > 0"
+                                                <time-series-display v-if="!!$parent.patternHeatmapData"
                                                     :heatmapData="$parent.patternHeatmapData"
                                                     :days="$parent.conditionsMap.timePoints"
                                                     :minScore="$parent.minScore"
@@ -56,17 +56,23 @@
                                                     :rowNorm="$parent.rowNorm"
                                                     :activeTab="$parent.activeTab">
                                                 </time-series-display>
+                                                <div v-else>Loading pattern data...</div>
                                             </div>
                                             <div class="table-background">
                                             <b-table v-if="$parent.ready"
                                                 small
                                                 v-model="$parent.currentPatternTable"
                                                 :items="$parent.singlePatternTableData"
-                                                :fields="$parent.tableFields.filter(f => f.key !== 'order')"
+                                                :fields="$parent.tableFields.filter(f => f.key !== 'order' && f.key !== 'pattern')"
                                                 :per-page="10"
                                                 :current-page="$parent.currentPatternPage"
                                                 :sort-by="'max_diff'"
                                                 :sort-desc="true">
+                                                    <template #cell(gene)="r">
+                                                        <a :href='`/gene.html?gene=${r.item.gene.toUpperCase()}`'>
+                                                            {{ r.item.gene }}
+                                                        </a>
+                                                    </template>
                                             </b-table>
                                             <b-pagination v-if="$parent.ready"
                                                 v-model="$parent.currentPatternPage"
@@ -114,6 +120,16 @@
                                                 :fields="$parent.tableFields"
                                                 :per-page="10"
                                                 :current-page="$parent.currentPage">
+                                                    <template #cell(gene)="r">
+                                                        <a :href='`/gene.html?gene=${r.item.gene.toUpperCase()}`'>
+                                                            {{ r.item.gene }}
+                                                        </a>
+                                                    </template>
+                                                    <template #cell(pattern)="r">
+                                                        <button class="btn btn-sm pattern-button" @click="$parent.viewPattern(r.item.pattern)">
+                                                            View pattern cluster
+                                                        </button>
+                                                    </template>
                                             </b-table>
                                             <b-pagination v-if="$parent.ready"
                                                 v-model="$parent.currentPage"
@@ -169,6 +185,16 @@
                                                             small
                                                             :items="$parent.geneSearchResults"
                                                             :fields="$parent.tableFields.filter(f => f.key !== 'order')">
+                                                                <template #cell(gene)="r">
+                                                                    <a :href='`/gene.html?gene=${r.item.gene.toUpperCase()}`'>
+                                                                        {{ r.item.gene }}
+                                                                    </a>
+                                                                </template>
+                                                                <template #cell(pattern)="r">
+                                                                    <button class="btn btn-sm pattern-button" @click="$parent.viewPattern(r.item.pattern)">
+                                                                        View pattern cluster
+                                                                    </button>
+                                                                </template>
                                                         </b-table>
                                                     </div>
                                                 </div>
@@ -270,6 +296,11 @@ button {
     background-color: #ff6c02;
     border: none; 
     margin-top: 25px
+}
+.pattern-button {
+    background-color: #ff6c02;
+    margin: 0px;
+    color: white;
 }
 .table-background {
     border: 10px solid #ffffff;

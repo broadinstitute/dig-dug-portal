@@ -85,7 +85,7 @@ new Vue({
             ready: false,
             activeTab: 0,
             patternView: true,
-            selectedPattern: null
+            selectedPattern: null,
         };
     },
     computed: {
@@ -120,27 +120,10 @@ new Vue({
             return allData;
         },
         patternHeatmapData(){
-            if (this.conditionsMap === null){
-                return null;
-            }
-            let allData = this.processedFullData.filter(d => d.pattern === this.selectedPattern);
-            //let allData = processDataForHeatmap(this.singlePatternTableData, this.conditionsMap);
-
-            // Filter to make the pattern view heatmap track with the pattern view table
-            let currentTranscripts = this.currentPatternTable.map(t => t.transcript_id);
-            return allData.filter(d => currentTranscripts.includes(d.transcript_id));
-        },
-        patterns(){
-            return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
+            return this.collateHeatmapData(true);
         },
         pageHeatmapData(){
-            let data = this.processedData;
-            if (!this.zoomedIn) {
-                return data;
-            }
-            let currentTranscripts = this.currentTable.map(t => t.transcript_id);
-            let results = data.filter(d => currentTranscripts.includes(d.transcript_id));
-            return results;
+            return this.zoomedIn ? this.collateHeatmapData(false) : this.processedData;
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
@@ -166,13 +149,7 @@ new Vue({
                     key: "max_diff",
                     label: "Max diff.",
                     sortable: true
-                },
-                {
-                    key: "pattern",
-                    label: "Pattern",
-                    sortable: true
                 }
-
             ];
             this.conditionsMap.timePoints.forEach(t => {
                 if (this.avgRep) {
@@ -195,15 +172,19 @@ new Vue({
                     });
                 }
             });
-
-
+            baseFields.push(
+                {
+                    key: "pattern",
+                    label: "Pattern",
+                    sortable: true
+                });
             return baseFields;
         },
         patterns(){
-            if(this.timeSeriesData === null){
+            if(this.fullTimeSeriesData === null){
                 return [];
             }
-            let patternSet = new Set(this.timeSeriesData.map(m => m.pattern));
+            let patternSet = new Set(this.fullTimeSeriesData.map(m => m.pattern));
             let patternArray = Array.from(patternSet);
             // null values are provided if we don't do this
             return patternArray.filter(p => typeof p === "string");
@@ -269,12 +250,27 @@ new Vue({
             return myMetadata.find(x => x.datasetId === keyParams.datasetid);
         },
         viewPattern(pattern){
+            this.selectedPattern = null; // clearing out old data
             this.selectedPattern = pattern;
+            this.activeTab = 0;
         },
         getHeaderContent(item){
             let entry = this.headerContent.find(d => d["key"] == item);
             return entry === undefined ? "" : entry.content;
-        }
+        },
+        collateHeatmapData(isPattern=true){
+            let trackTable = isPattern ? this.currentPatternTable : this.currentTable;
+            let currentTranscripts = trackTable.map(t => t.transcript_id);
+
+            let allData = isPattern 
+                ? this.processedFullData.filter(d => d.pattern === this.selectedPattern)
+                : this.processedData;
+            let results = [];
+            currentTranscripts.forEach(t => {
+                results = results.concat(allData.filter(d => d.transcript_id === t));
+            })
+            return results;
+        },
     },
     watch: {
         processedFullData(newData) {
@@ -287,21 +283,9 @@ new Vue({
                 this.ready = true;
             }
         },
-        patternView(isTrue){
-            if (!isTrue){
-                this.selectedPattern = null;
-            }
-        },
         selectedPattern(newValue){
             this.currentPatternPage = 1;
         },
-        zoomedIn(isTrue){
-            // If you zoom out, clear pattern filter
-            if (!isTrue){
-                this.selectedPattern = null;
-                this.patternView = false;
-            }
-        }
         
     },
     render: (h) => h(Template),

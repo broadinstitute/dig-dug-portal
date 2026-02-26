@@ -743,7 +743,7 @@
                     <h4>{{ $store.state.geneName }} and Adipogenesis</h4>
                     <h6>{{ $parent.adipogenesisTitle }}</h6>
                     For mouse homolog {{$parent.adipogenesisData[0]?.gene}}
-                    <time-series-display
+                    <time-series-display v-if="$parent.conditionsMap !== null"
                         :heatmapData="$parent.adipogenesisData"
                         :days="$parent.conditionsMap.timePoints"
                         :minScore="$parent.adiposeMin"

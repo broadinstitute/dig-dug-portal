@@ -819,7 +819,7 @@ new Vue({
                 return [];
             }
             let filteredData = this.adipogenesis.filter(a => 
-                !!a.gene && a.gene.toLowerCase() === this.$store.state.geneName.toLowerCase());
+                !!a.gene && typeof a.gene === 'string' && a.gene.toLowerCase() === this.$store.state.geneName.toLowerCase());
             let allData = processDataForHeatmap(filteredData, this.conditionsMap);
             if (allData === null){
                 return [];
@@ -929,7 +929,7 @@ new Vue({
         this.motrpacData = await this.getMotrpacResult(this.$store.state.geneName);
 
         // Adipogenesis data for gene adipogenesis card
-        let timeSeriesData = await getTimeSeries(this.timeSeriesId);
+        let timeSeriesData = await getTimeSeries(this.timeSeriesId, false);
         this.conditionsMap = await mapConditions(timeSeriesData, this.timeSeriesId);
         this.adipogenesis = includeAverages(timeSeriesData, this.conditionsMap);
         const metadata = await this.adipogenesisMetadata();

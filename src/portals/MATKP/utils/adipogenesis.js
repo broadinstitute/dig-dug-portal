@@ -119,6 +119,7 @@ export function processDataForHeatmap(data, conditionsMap){
                 let entry = {
                     source: source,
                     gene: tsd.gene,
+                    gene_symbol: tsd.gene_symbol,
                     transcript_id: tsd.transcript_id,
                     score: tsd[source],
                     days: t,
