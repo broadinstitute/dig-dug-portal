@@ -120,28 +120,13 @@ new Vue({
             return allData;
         },
         patternHeatmapData(){
-            if (this.conditionsMap === null || this.selectedPattern === null){
-                return null;
-            }
-            let allData = this.processedFullData.filter(d => d.pattern === this.selectedPattern);
-            //let allData = processDataForHeatmap(this.singlePatternTableData, this.conditionsMap);
-
-            // Filter to make the pattern view heatmap track with the pattern view table
-            let currentTranscripts = this.currentPatternTable.map(t => t.transcript_id);
-            allData = allData.filter(d => currentTranscripts.includes(d.transcript_id));
-            return allData;
+            return this.collateHeatmapData(true);
         },
         patterns(){
             return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
         },
         pageHeatmapData(){
-            let data = this.processedData;
-            if (!this.zoomedIn) {
-                return data;
-            }
-            let currentTranscripts = this.currentTable.map(t => t.transcript_id);
-            let results = data.filter(d => currentTranscripts.includes(d.transcript_id));
-            return results;
+            return this.collateHeatmapData(false);
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
@@ -276,7 +261,16 @@ new Vue({
         getHeaderContent(item){
             let entry = this.headerContent.find(d => d["key"] == item);
             return entry === undefined ? "" : entry.content;
-        }
+        },
+        collateHeatmapData(isPattern=true){
+            let trackTable = isPattern ? this.currentPatternTable : this.currentTable;
+            let currentTranscripts = trackTable.map(t => t.transcript_id);
+
+            let allData = isPattern 
+                ? this.processedFullData.filter(d => d.pattern === this.selectedPattern)
+                : this.processedData;
+            return allData.filter(d => currentTranscripts.includes(d.transcript_id));
+        },
     },
     watch: {
         processedFullData(newData) {
