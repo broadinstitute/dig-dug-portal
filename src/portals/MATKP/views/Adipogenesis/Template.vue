@@ -68,6 +68,11 @@
                                                 :current-page="$parent.currentPatternPage"
                                                 :sort-by="'max_diff'"
                                                 :sort-desc="true">
+                                                    <template #cell(gene)="r">
+                                                        <a :href='`/gene.html?gene=${r.item.gene.toUpperCase()}`'>
+                                                            {{ r.item.gene }}
+                                                        </a>
+                                                    </template>
                                             </b-table>
                                             <b-pagination v-if="$parent.ready"
                                                 v-model="$parent.currentPatternPage"
@@ -115,6 +120,11 @@
                                                 :fields="$parent.tableFields"
                                                 :per-page="10"
                                                 :current-page="$parent.currentPage">
+                                                    <template #cell(gene)="r">
+                                                        <a :href='`/gene.html?gene=${r.item.gene.toUpperCase()}`'>
+                                                            {{ r.item.gene }}
+                                                        </a>
+                                                    </template>
                                             </b-table>
                                             <b-pagination v-if="$parent.ready"
                                                 v-model="$parent.currentPage"
@@ -170,6 +180,11 @@
                                                             small
                                                             :items="$parent.geneSearchResults"
                                                             :fields="$parent.tableFields.filter(f => f.key !== 'order')">
+                                                                <template #cell(gene)="r">
+                                                                    <a :href='`/gene.html?gene=${r.item.gene.toUpperCase()}`'>
+                                                                        {{ r.item.gene }}
+                                                                    </a>
+                                                                </template>
                                                         </b-table>
                                                     </div>
                                                 </div>
