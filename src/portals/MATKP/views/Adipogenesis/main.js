@@ -122,9 +122,6 @@ new Vue({
         patternHeatmapData(){
             return this.collateHeatmapData(true);
         },
-        patterns(){
-            return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
-        },
         pageHeatmapData(){
             return this.zoomedIn ? this.collateHeatmapData(false) : this.processedData;
         },
@@ -184,10 +181,10 @@ new Vue({
             return baseFields;
         },
         patterns(){
-            if(this.timeSeriesData === null){
+            if(this.fullTimeSeriesData === null){
                 return [];
             }
-            let patternSet = new Set(this.timeSeriesData.map(m => m.pattern));
+            let patternSet = new Set(this.fullTimeSeriesData.map(m => m.pattern));
             let patternArray = Array.from(patternSet);
             // null values are provided if we don't do this
             return patternArray.filter(p => typeof p === "string");
@@ -268,7 +265,11 @@ new Vue({
             let allData = isPattern 
                 ? this.processedFullData.filter(d => d.pattern === this.selectedPattern)
                 : this.processedData;
-            return allData.filter(d => currentTranscripts.includes(d.transcript_id));
+            let results = [];
+            currentTranscripts.forEach(t => {
+                results = results.concat(allData.filter(d => d.transcript_id === t));
+            })
+            return results;
         },
     },
     watch: {
