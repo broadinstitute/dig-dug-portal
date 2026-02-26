@@ -298,6 +298,15 @@ export default Vue.component("time-series-heatmap", {
 				ctx.strokeStyle = "#000000";
 				ctx.rect(margin.left, top, (this.renderData.columns.length * this.boxWidth), this.boxHeight);
 				ctx.stroke();
+				// Inner box around highlighted cell
+				if (X >= 0 && X < this.renderData.columns.length){
+					let left  = margin.left + (X * this.boxWidth);
+					ctx.beginPath();
+					let orange = "#ff6c02";
+					ctx.strokeStyle = orange;
+					ctx.rect(left + 2, top + 2, this.boxWidth - 4, this.boxHeight - 4);
+					ctx.stroke();
+				}
 			}
 		},
 		geneTxFormat(str){
