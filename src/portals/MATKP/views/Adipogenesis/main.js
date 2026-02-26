@@ -85,7 +85,7 @@ new Vue({
             ready: false,
             activeTab: 0,
             patternView: true,
-            selectedPattern: null
+            selectedPattern: null,
         };
     },
     computed: {
@@ -120,7 +120,7 @@ new Vue({
             return allData;
         },
         patternHeatmapData(){
-            if (this.conditionsMap === null){
+            if (this.conditionsMap === null || this.selectedPattern === null){
                 return null;
             }
             let allData = this.processedFullData.filter(d => d.pattern === this.selectedPattern);
@@ -128,7 +128,8 @@ new Vue({
 
             // Filter to make the pattern view heatmap track with the pattern view table
             let currentTranscripts = this.currentPatternTable.map(t => t.transcript_id);
-            return allData.filter(d => currentTranscripts.includes(d.transcript_id));
+            allData = allData.filter(d => currentTranscripts.includes(d.transcript_id));
+            return allData;
         },
         patterns(){
             return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
@@ -269,6 +270,7 @@ new Vue({
             return myMetadata.find(x => x.datasetId === keyParams.datasetid);
         },
         viewPattern(pattern){
+            this.selectedPattern = null; // clearing out old data
             this.selectedPattern = pattern;
         },
         getHeaderContent(item){
@@ -287,21 +289,9 @@ new Vue({
                 this.ready = true;
             }
         },
-        patternView(isTrue){
-            if (!isTrue){
-                this.selectedPattern = null;
-            }
-        },
         selectedPattern(newValue){
             this.currentPatternPage = 1;
         },
-        zoomedIn(isTrue){
-            // If you zoom out, clear pattern filter
-            if (!isTrue){
-                this.selectedPattern = null;
-                this.patternView = false;
-            }
-        }
         
     },
     render: (h) => h(Template),

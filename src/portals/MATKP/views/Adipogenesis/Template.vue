@@ -44,7 +44,7 @@
                                             </div>
                                             <div v-if="!$parent.ready">Loading...</div>
                                             <div v-if="$parent.ready" class="time-series-content">
-                                                <time-series-display v-if="$parent.patternHeatmapData.length > 0"
+                                                <time-series-display v-if="!!$parent.patternHeatmapData"
                                                     :heatmapData="$parent.patternHeatmapData"
                                                     :days="$parent.conditionsMap.timePoints"
                                                     :minScore="$parent.minScore"
@@ -56,6 +56,7 @@
                                                     :rowNorm="$parent.rowNorm"
                                                     :activeTab="$parent.activeTab">
                                                 </time-series-display>
+                                                <div v-else>Loading pattern data...</div>
                                             </div>
                                             <div class="table-background">
                                             <b-table v-if="$parent.ready"

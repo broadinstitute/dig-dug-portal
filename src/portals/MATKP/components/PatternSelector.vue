@@ -4,8 +4,8 @@
 		<div class="patterns">
 			<div v-for="pattern, index in patterns"
 				:class='`pattern-bubble bubble-${selectedPattern === pattern ? "on" : "off"}`'>
-				 <div v-if="centroidsMap !== null" class="pattern-option">
-					<div :id="pattern" @click="viewPattern(pattern)">
+				 <div v-if="centroidsMap !== null" class="pattern-option"  @click="viewPattern(pattern)">
+					<div :id="pattern">
 						<abstract-line-plot :plotId="pattern" :plotData="centroidsMap[pattern]"></abstract-line-plot>
 					</div>
 					<div class="bubble-label">{{ index + 1 }}</div>
@@ -55,8 +55,8 @@ export default Vue.component("pattern-selector", {
 	},
 	methods: {
 		viewPattern(pattern){
+			this.$emit("patternSelected", pattern);
 			this.selectedPattern = pattern;
-			this.$emit("patternSelected", pattern)
 		},
 		async getCentroids(datasetid){
 			const newCentroids = await getCentroids(keyParams.datasetid);
