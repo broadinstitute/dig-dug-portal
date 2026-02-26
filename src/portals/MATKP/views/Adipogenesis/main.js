@@ -126,7 +126,7 @@ new Vue({
             return Array.from(new Set(this.fullTimeSeriesData.map(d => d.pattern)));
         },
         pageHeatmapData(){
-            return this.collateHeatmapData(false);
+            return this.zoomedIn ? this.collateHeatmapData(false) : this.processedData;
         },
         processedGeneSearch() {
             return processDataForHeatmap(this.geneSearchResults, this.conditionsMap);
