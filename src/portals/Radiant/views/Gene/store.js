@@ -155,14 +155,20 @@ export default new Vuex.Store({
                 context.dispatch("geneToTranscript/query", { q: name });
                 
                 //add pigean gene
-                console.log("query gene name");
+                //console.log("traitsData --query gene name:"+name);
                 let traitsData = [];
-                for (let i = 0; i < bioIndexUtils.TRAIT_GROUPS.length; i++){
-                    let group = bioIndexUtils.TRAIT_GROUPS[i];
+                //console.log("TRAIT_GROUPS:"+bioIndexUtils.TRAIT_GROUPS);
+                //for (let i = 0; i < bioIndexUtils.TRAIT_GROUPS.length; i++){
+                for (const key of Object.keys(bioIndexUtils.TRAIT_GROUPS)){
+                    //let group = bioIndexUtils.TRAIT_GROUPS[i];
+                    let group = key;
                     let traitQuery = `${group},${context.state.geneName},${
                         bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
+                    //console.log("traitsData before await");
                     let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
+                    //console.log("traitsData after await");
                     traitsData = traitsData.concat(groupData);
+                    //console.log("traitsData:"+traitsData.length);
                 }
                 traitsData = traitsData.sort((a,b) => b.combined - a.combined);
                 //console.log(traitsData.length);
