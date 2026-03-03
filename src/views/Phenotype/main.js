@@ -18,6 +18,9 @@ import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
 import PigeanPhenotype from "@/components/PigeanPhenotype.vue";
 import PigeanFactor from "@/components/PigeanFactors.vue";
 
+import GeneSet2Phenotype from "@/components/Cfde2Kp/GeneSet2Phenotype.vue";
+import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";
+
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -65,6 +68,8 @@ new Vue({
         MetaAnalysisBarGraph,
         PigeanPhenotype,
         PigeanFactor,
+        // CFDE features
+        GeneSet2Phenotype,
     },
     mixins: [pageMixin],
     data() {
