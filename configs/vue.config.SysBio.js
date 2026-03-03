@@ -45,6 +45,13 @@ let pages = {
         title: "Single Cell",
         chunks: ["chunk-vendors", "chunk-common", "singlecell"],
     },
+    datasetsSummary: {
+        entry: "src/portals/SysBio/views/datasetsSummary/main.js",
+        template: "src/portals/SysBio/views/index.html",
+        filename: "datasetsSummary.html",
+        title: "Datasets Summary",
+        chunks: ["chunk-vendors", "chunk-common", "datasetsSummary"],
+    },
 };
 
 module.exports = {
