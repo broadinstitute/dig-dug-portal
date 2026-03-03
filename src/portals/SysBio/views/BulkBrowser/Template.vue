@@ -110,38 +110,6 @@
                                     <div class="tabs-group wide-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
-                                                Top 20 Differentially Expressed Genes
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="tabs-section-wrapper">
-                                            <div class="tab-section" >
-                                                <div  class="flex-gap">
-                                                    <div class="wide-block">
-                                                        <div v-if="$parent.zNormData.length > 0">
-                                                            <bulk-heatmap
-                                                                :zNormData="$parent.zNormData"
-                                                                :samplesColumns="$parent.samplesColumns"
-                                                                :comparisonId="$parent.selectedComparison"
-                                                                :margin="$parent.margin"
-                                                                :sampleColors="$parent.colors"
-                                                                :plotHeight="$parent.plotHeight"
-                                                                :selectedGene="$parent.selectedGene"
-                                                                @highlight="gene => $parent.highlight(gene)"
-                                                            >
-                                                            </bulk-heatmap>
-                                                        </div>
-                                                        <div v-else>
-                                                            Select a dataset and a comparison to view the heatmap.
-                                                        </div>
-                                                    </div>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tabs-group wide-group">
-                                        <div class="tabs-wrapper">
-                                            <div class="tab">
                                                 Differentially Expressed Genes
                                             </div>
                                         </div>

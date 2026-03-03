@@ -2,13 +2,12 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import "../../assets/matkp-styles.css";
 
-import { matkpMixin } from "../../mixins/matkpMixin.js";
+import { sysbioMixin } from "../../mixins/sysbioMixin.js";
+import { sysbioStore } from "../../mixins/sysbioStore.js";
 import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
 import { createColorScale } from "../../utils/visuals.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
-import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import BulkTable from "../../components/BulkTable.vue";
 import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
@@ -50,7 +49,7 @@ new Vue({
         ResearchSingleCellInfo,
         uiUtils
     },
-    mixins: [matkpMixin],
+    mixins: [pageMixin],
     props: [],
     data() {
         return {
