@@ -1,12 +1,12 @@
 <template>
-  <div class="matkp">
+  <div class="sysbio f-layout">
       <div class="f-col fill-height">
           <!-- NAV -->
-          <matkp-nav></matkp-nav>
+          <sysbio-header></sysbio-header>
           <!-- BODY -->
-          <div class="mat-body f-col">
-            <h2 class="matkp-static-content-title">Differential Gene Expression Browser</h2>
-            <div class="matkp-tool-documentation" v-if="$parent.documentation?.body" v-html="$parent.documentation.body"></div>
+          <div class="sysbio-body f-col">
+            <h2>Differential Gene Expression Browser</h2>
+            <div>Fill in differential expression documentation here.</div>
               <div class="flex-column flex-small-gap">
                     <div id="center-width" class="flex-gap flex-column">
                         <div class="flex-gap flex-column" id="center-content">
@@ -288,7 +288,7 @@
                 </div>
           </div>
           <!-- FOOTER -->
-          <matkp-footer></matkp-footer>
+          <sysbio-footer></sysbio-footer>
       </div>
   </div>
 </template>

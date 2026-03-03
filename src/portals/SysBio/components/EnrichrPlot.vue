@@ -121,7 +121,6 @@ import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import { evaluate } from 'mathjs';
 import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPlotVector.vue";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 Vue.use(BootstrapVueIcons);
 

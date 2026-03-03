@@ -2,6 +2,8 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
+import "../../css/f-layout.css";
+import "../../css/sysbio.css";
 
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 import { sysbioStore } from "../../mixins/sysbioStore.js";
@@ -17,40 +19,31 @@ import EnrichrPlot from "../../components/EnrichrPlot.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
-import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue"
-import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
-import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot"
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
-import { isNull } from "lodash";
-import { padStart } from "lodash";
 
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
+
 
 new Vue({
-    store,
+    //store,
+    mixins: [sysbioMixin],
     components: {
         Scatterplot,
-        BulkHeatmap,
         BulkVolcanoPlot,
         BulkTable,
         BulkViolinPlot,
         GeneSelectPicker,
         MouseGeneSelect,
         EnrichrPlot,
-        ResearchBarPlot,
-        CriterionFunctionGroup,
-        FilterGreaterThan,
-        ResearchSingleCellBrowser,
-        ResearchSingleCellInfo,
-        uiUtils
+       // ResearchBarPlot,
+        //CriterionFunctionGroup,
+        //FilterGreaterThan,
+        //ResearchSingleCellBrowser,
+        //ResearchSingleCellInfo,
+        //uiUtils
     },
-    mixins: [pageMixin],
-    props: [],
     data() {
         return {
             loading: true,
@@ -299,17 +292,6 @@ new Vue({
             }
 
             this.bulkMetadata = this.allMetadata.find(x => x.datasetId === this.selectedDataset);
-        },
-        async getDocumentation() {
-            const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=matkp_differentialgeneexpressionbrowser";
-
-            let jsonContent = await fetch(CONTENT_URL).then(
-                resp => resp.json());
-            if (jsonContent.length === 0) {
-                this.documentation = null;
-            }
-
-            this.documentation = jsonContent[0];
         },
         async getParams() {
             let url = `${BIO_INDEX_HOST}/api/bio/keys/${this.endpoint}/2`;
