@@ -27,7 +27,7 @@ const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
 
 
 new Vue({
-    //store,
+    store,
     mixins: [sysbioMixin],
     components: {
         Scatterplot,
@@ -57,7 +57,6 @@ new Vue({
             chart: null,
             chartWidth: 0,
             datasets: [],
-            enrichrByor: "matkp_enrichrlibraries",
             truncateEnrichr: 10,
             enrichrUp: [],
             enrichrDown: [],
@@ -65,7 +64,7 @@ new Vue({
             enrichrLibrary: "KEGG_2015", //hardcoding default
             libraryPage: 1,
             selectedLibraryType: "",
-            endpoint: "single-cell-bulk-z-norm",
+            endpoint: "dataset-associations",
             documentation: null,
             utils: {
                 uiUtils: uiUtils,
@@ -199,6 +198,9 @@ new Vue({
             return config;
         },
         comparisons() {
+            if (!this.$store.state.currentComparisons){
+                return null;
+            }
             let items = Object.keys(this.$store.state.currentComparisons);
             return items;
         },
@@ -248,7 +250,6 @@ new Vue({
     },
     async mounted() {
         this.init();
-        this.getDocumentation();
     },
     created() {
     },
@@ -261,10 +262,8 @@ new Vue({
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
             this.getParams();
-            this.enrichrLibraries = await getTextContent(this.enrichrByor);
-            this.selectedLibraryType = this.enrichrLibraries.find(
-                l => l["Gene-set Library"] === this.enrichrLibrary)["Type"];
-            await this.getBulkMetadata();
+            // Enrichr libraries should get filled in here
+            // await this.getBulkMetadata();
             if (!keyParams.comparison) {
                 this.$store.dispatch("resetComparison");
                 keyParams.set({ comparison: this.$store.state.selectedComparison });

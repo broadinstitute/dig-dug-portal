@@ -6,9 +6,9 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import bioIndexUtils from "@/utils/bioIndexUtils";
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
 import dataConvert from "@/utils/dataConvert";
+
+const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
 
 Vue.use(Vuex);
 
@@ -23,7 +23,7 @@ export default new Vuex.Store({
     limit: 20,
     singleBulkZNormData: [],
     bulkData19K: [],
-    selectedDataset: keyParams.dataset || 'bulkRNA_Emont2022_Humans_SAT',
+    selectedDataset: keyParams.dataset || 'sysbio_v1',
     defaultComparison: "",
     selectedComparison: keyParams.comparison || "",
     selectedGene: keyParams.gene || "",
@@ -77,14 +77,15 @@ export default new Vuex.Store({
         const response = await fetch(datasetFile);
         const bulkDataText = await response.text();
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+        console.log("Bulk data retrieved", JSON.stringify(bulkDataObject[0]));
         let bulkDataComparisons = bulkDataObject
           .filter(item => !!item.comparison)
           .map(item => [item.comparison_id, item.comparison]);
-        comparisons = Object.fromEntries(bulkDataComparisons);
+        //comparisons = Object.fromEntries(bulkDataComparisons);
       }
       context.commit("setBulkData19K", bulkDataObject);
       context.dispatch("firstGene"); // Default to viewing first gene in table
-      context.commit("setCurrentComparisons", comparisons);
+      //context.commit("setCurrentComparisons", comparisons);
     },
     resetComparison(context) {
       context.commit("setSelectedComparison", context.state.defaultComparison);
