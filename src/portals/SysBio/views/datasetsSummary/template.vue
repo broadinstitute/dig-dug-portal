@@ -55,7 +55,7 @@ import * as d3 from "d3";
 const PIE_FIELDS = ["case_control", "ethnicity", "sex"];
 const BAR_FIELDS = ["disease", "race"];
 const CHART_WIDTH = 330;
-const THEME_COLORS = ["#E6007E", "#1F007B", "#00BFFF"];
+const THEME_COLORS = ["#EE4097", "#0000C6", "#00BFFF"];
 
 export default {
     name: "DatasetsSummary",
