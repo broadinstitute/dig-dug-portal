@@ -46,7 +46,7 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "singlecell"],
     },
     diffexp: {
-        entry: "src/portals/SysBio/views/BulkBroser/main.js",
+        entry: "src/portals/SysBio/views/BulkBrowser/main.js",
         template: "src/portals/SysBio/views/index.html",
         filename: "diffexp.html",
         title: "Differential Expression",
