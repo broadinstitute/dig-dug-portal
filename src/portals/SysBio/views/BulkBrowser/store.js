@@ -24,7 +24,7 @@ export default new Vuex.Store({
     singleBulkZNormData: [],
     bulkData19K: [],
     selectedDataset: keyParams.dataset || 'sysbio_v1',
-    defaultComparison: "",
+    defaultComparison: "T001",
     selectedComparison: keyParams.comparison || "",
     selectedGene: keyParams.gene || "",
     bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
@@ -72,20 +72,21 @@ export default new Vuex.Store({
       if (context.state.selectedDataset !== "") {
         let datasetFile = `${context.state.bulkFileUrl
           }${context.state.selectedDataset}/dea.tsv.gz`;
-        console.log(datasetFile);
         
         const response = await fetch(datasetFile);
         const bulkDataText = await response.text();
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
-        console.log("Bulk data retrieved", JSON.stringify(bulkDataObject[0]));
-        let bulkDataComparisons = bulkDataObject
-          .filter(item => !!item.comparison)
-          .map(item => [item.comparison_id, item.comparison]);
-        //comparisons = Object.fromEntries(bulkDataComparisons);
+        bulkDataObject.forEach(b => {
+          let comp_id = b.comparison_id;
+          if (!comparisons.comp_id){
+            comparisons[comp_id] = b.comparison;
+          }
+        });
+        console.log((JSON.stringify(comparisons)));
       }
       context.commit("setBulkData19K", bulkDataObject);
       context.dispatch("firstGene"); // Default to viewing first gene in table
-      //context.commit("setCurrentComparisons", comparisons);
+      context.commit("setCurrentComparisons", comparisons);
     },
     resetComparison(context) {
       context.commit("setSelectedComparison", context.state.defaultComparison);

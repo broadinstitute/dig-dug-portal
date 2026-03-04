@@ -309,6 +309,7 @@ new Vue({
         },
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);
+            console.log(data.length);
             data = data.filter(d => 
                 up ? d.logFoldChange >= this.volcanoXConditionGreater
                 : d.logFoldChange <= this.volcanoXConditionLower );
