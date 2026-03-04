@@ -208,7 +208,7 @@ new Vue({
             if (this.$store.state.selectedDataset === 'bulkRNA_Emont2022_Humans_SAT'){
                 return 'insulin resistant';
             }
-            let comparisonText = this.$store.state.currentComparisons[this.$store.state.selectedComparison];
+            let comparisonText = this.$store.state.currentComparisons[this.$store.state.selectedComparison].label;
             let versus = /[^w]vs/;
             return Formatters.snakeFormatter(comparisonText.split(versus)[0]);
         },

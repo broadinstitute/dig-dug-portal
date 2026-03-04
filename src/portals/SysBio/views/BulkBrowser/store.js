@@ -76,12 +76,20 @@ export default new Vuex.Store({
         const response = await fetch(datasetFile);
         const bulkDataText = await response.text();
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+        const compTypeFinder = /\((\w+)\)/g;
         bulkDataObject.forEach(b => {
           let comp_id = b.comparison_id;
-          if (!comparisons.comp_id){
-            comparisons[comp_id] = b.comparison;
+          if (!comparisons.comp_id && !!b.comparison){
+            comparisons[comp_id] = {label: b.comparison};
           }
         });
+        for (const [k, v] of Object.entries(comparisons)){
+          let comptype = Array.from(v.label.matchAll(compTypeFinder))
+            .map(a => a[1])
+            .join(" vs. ");
+          console.log(comptype);
+        }
+
         console.log((JSON.stringify(comparisons)));
       }
       context.commit("setBulkData19K", bulkDataObject);
