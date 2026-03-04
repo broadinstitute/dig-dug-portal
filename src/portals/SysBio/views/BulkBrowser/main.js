@@ -204,6 +204,13 @@ new Vue({
             let items = Object.keys(this.$store.state.currentComparisons);
             return items;
         },
+        comptypes(){
+            if (!this.$store.state.currentComparisons){
+                return null;
+            }
+            let types = Object.values(this.$store.state.currentComparisons).map(v => v.type);
+            return Array.from(new Set(types));
+        },
         upregulatedIn(){
             if (this.$store.state.selectedDataset === 'bulkRNA_Emont2022_Humans_SAT'){
                 return 'insulin resistant';

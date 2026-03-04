@@ -16,7 +16,29 @@
 
                             <div v-if="$parent.dataReady" id="menu" class="flex-gap">
                                 <!--left tab group-->
-                                <div class="tabs-group">
+                                <div class="tabs-group top-menu-item">
+                                    <div class="tabs-wrapper">
+                                        <div class="tab">
+                                            Select a comparison type
+                                        </div>
+                                    </div>
+                                    <div class="tabs-section-wrapper">
+                                        <div class="tab-section" >
+                                            <div  class="flex-gap">
+                                                <div class="top-block">
+                                                    <select v-model="$store.state.selectedComparison">
+                                                        <option value="">Select a comparison type</option>
+                                                        <option v-for="type in $parent.comptypes"
+                                                            :value="type">
+                                                            {{ type }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tabs-group top-menu-item">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
                                             Select a comparison
@@ -39,7 +61,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tabs-group">
+                                <div class="tabs-group top-menu-item">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
                                             Select a gene
@@ -61,7 +83,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tabs-group">
+                                <div class="tabs-group top-menu-item">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
                                             Set -log10(FDR adj. p) threshold
@@ -425,5 +447,8 @@ button.hide-table {
 }
 .volcano {
     width: 100%;
+}
+.top-menu-item {
+    max-width: 25%;
 }
 </style>

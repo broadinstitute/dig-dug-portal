@@ -87,7 +87,7 @@ export default new Vuex.Store({
           let comptype = Array.from(v.label.matchAll(compTypeFinder))
             .map(a => a[1])
             .join(" vs. ");
-          console.log(comptype);
+          v.type = comptype;
         }
 
         console.log((JSON.stringify(comparisons)));
