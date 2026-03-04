@@ -341,7 +341,7 @@
                     :pigeanFactorData="$store.state.pigeanFactor.data"
                 >
                 </pigean-factors>
-            -->
+            
 
                 <pigean-phenotype
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
@@ -349,6 +349,8 @@
                 >
 
                 </pigean-phenotype>
+
+                -->
 
           <div class="card mdkp-card">
                     <div class="card-body geneLevelAssoc">
@@ -457,7 +459,7 @@
                             </template>
                         </criterion-function-group>
                     </div>
-                </div>      TODO: Add gene-level associations table
+                </div>
 
                 
 
