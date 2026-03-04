@@ -98,7 +98,10 @@
                             empty-text="No gene set data."
                         >
                             <template v-slot:[geneSetCellSlot]="cell">
-                                <a :href="`/r/kc_gsb?geneSet=${encodeURIComponent(cell.value || '')}`">{{ cell.value }}</a>
+                                <a
+                                    :href="`/r/kc_gsb?geneSet=${encodeURIComponent(cell.value || '')}`"
+                                    :title="cell.value"
+                                >{{ formatGeneSetCell(cell.value) }}</a>
                             </template>
                             <template #cell(Source)="cell">
                                 <a :href="`/r/kc_gsb?source=${encodeURIComponent(cell.value || '')}`">{{ cell.value }}</a>
@@ -147,6 +150,7 @@ const GENE_SET_TABLE_FORMAT = {
     "data convert": [
         { type: "raw", "field name": "Phenotype", "raw field": "phenotype" },
         { type: "raw", "field name": "Gene set", "raw field": "gene_set" },
+        { type: "raw", "field name": "Description", "raw field": "gene_set_description" },
         { type: "raw", "field name": "Model", "raw field": "gene_set_size" },
         { type: "raw", "field name": "Joint effect", "raw field": "beta", "if no value": "0" },
         {
@@ -180,6 +184,7 @@ const GENE_SET_TABLE_FORMAT = {
     ],
     "top rows": [
         "Gene set",
+        "Description",
         "Joint effect",
         "Evidence range (Joint effect)",
         "Marginal effect",
@@ -203,6 +208,12 @@ function translateToCategory(value, categories) {
     if (Number.isNaN(num)) return "";
     const cat = categories.find((c) => valueMatchesCategory(num, c));
     return cat ? cat.name : "";
+}
+
+const GENE_SET_SOURCE_EXCLUDE = ["gene_set_list_mouse", "gene_set_list_msigdb"];
+function geneSetSourceFilteredOut(source) {
+    const s = String(source || "");
+    return GENE_SET_SOURCE_EXCLUDE.some((x) => s.includes(x));
 }
 
 function joinMultiValues(fieldsToJoin, joinBy, row) {
@@ -392,7 +403,8 @@ export default Vue.component("HugeScoresTable", {
         getGeneSetSubtableData(item) {
             const key = this.getRowKey(item);
             const state = this.geneSetDataByRow[key];
-            return state && state.data ? state.data : [];
+            const data = state && state.data ? state.data : [];
+            return data.filter((row) => !geneSetSourceFilteredOut(row.Source));
         },
         getGeneSetSubtablePage(item) {
             const key = this.getRowKey(item);
@@ -401,6 +413,11 @@ export default Vue.component("HugeScoresTable", {
         setGeneSetSubtablePage(item, page) {
             const key = this.getRowKey(item);
             this.$set(this.geneSetSubtablePageByRow, key, page);
+        },
+        formatGeneSetCell(value) {
+            if (value == null) return "";
+            const s = String(value);
+            return s.length > 25 ? s.slice(0, 25) + "…" : s;
         },
         getGeneSetSubtableLoading(item) {
             const key = this.getRowKey(item);
