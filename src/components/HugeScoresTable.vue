@@ -79,14 +79,18 @@
                 </button>
             </template>
             <template #row-details="row">
-                <div class="p-3 bg-light">
+                <div class="p-3" style="background-color: #eeeeee; border-left: 5px solid #cccccc;">
                     <div v-if="getGeneSetSubtableLoading(row.item)" class="text-muted">
                         Loading gene sets...
                     </div>
                     <div v-else-if="getGeneSetSubtableError(row.item)" class="text-danger">
                         {{ getGeneSetSubtableError(row.item) }}
                     </div>
+                    
                     <template v-else>
+                        <div class="kc-logo-container" style="    position: relative;height: 70px;margin-top: -20px;">
+                            <kc-cfde-logo></kc-cfde-logo>
+                        </div>
                         <b-table
                             small
                             responsive="sm"
@@ -99,12 +103,12 @@
                         >
                             <template v-slot:[geneSetCellSlot]="cell">
                                 <a
-                                    :href="`/r/kc_gsb?geneSet=${encodeURIComponent(cell.value || '')}`"
+                                    :href="`https://cfdeknowledge.org/r/kc_gsb?geneSet=${encodeURIComponent(cell.value || '')}`"
                                     :title="cell.value"
                                 >{{ formatGeneSetCell(cell.value) }}</a>
                             </template>
                             <template #cell(Source)="cell">
-                                <a :href="`/r/kc_gsb?source=${encodeURIComponent(cell.value || '')}`">{{ cell.value }}</a>
+                                <a :href="`https://cfdeknowledge.org/r/kc_gsb?source=${encodeURIComponent(cell.value || '')}`">{{ cell.value }}</a>
                             </template>
                         </b-table>
                         <b-pagination
@@ -145,6 +149,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import DataDownload from "@/components/DataDownload";
+import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";
 
 const GENE_SET_TABLE_FORMAT = {
     "data convert": [
@@ -316,7 +321,7 @@ export default Vue.component("HugeScoresTable", {
         },
         geneSetSubtableFields() {
             const topRows = GENE_SET_TABLE_FORMAT["top rows"] || [];
-            return topRows.map((key) => ({ key, label: key, tdClass: this.geneSetEvidenceTdClass(key) }));
+            return topRows.map((key) => ({ key, label: key }));
         },
         tableData() {
             let assocs = this.hugeScores;
@@ -367,15 +372,6 @@ export default Vue.component("HugeScoresTable", {
         },
         getRowKey(item) {
             return `${item.phenotype || ""}|${item.gene || ""}`;
-        },
-        geneSetEvidenceTdClass(fieldKey) {
-            const evidenceKeys = ["Evidence range (Joint effect)", "Evidence range (Marginal effect)"];
-            if (!evidenceKeys.includes(fieldKey)) return () => "";
-            return (val) => {
-                if (!val) return "";
-                const v = String(val).toLowerCase().replace(/\s+/g, "-");
-                return "evidence-" + v;
-            };
         },
         applyGeneSetDataConvert(rawRows) {
             const convertConfig = GENE_SET_TABLE_FORMAT["data convert"];
@@ -487,9 +483,4 @@ export default Vue.component("HugeScoresTable", {
 .no-evidence {
     background-color: #ffffff;
 }
-/* Gene set subtable evidence range */
-::v-deep .evidence-not-significant { background-color: #f8f9fa; }
-::v-deep .evidence-significant { background-color: #fff3cd; }
-::v-deep .evidence-strongly-significant { background-color: #ffeeba; }
-::v-deep .evidence-extremely-significant { background-color: #f5c6cb; }
 </style>
