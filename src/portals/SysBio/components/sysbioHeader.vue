@@ -10,23 +10,32 @@
                 class="menu-item-wrapper"
                 :class="{ active: isActive(item.path) }"
             >
-                <a class="menu-item" 
-                   :href="item.path || null"
-                   :target="item.external ? '_blank' : null"
-                >
-                    {{ item.label}}
-                </a>
-                <div v-if="item.subMenuItems" class="submenu">
-                    <a
-                        v-for="subItem in item.subMenuItems"
-                        class="submenu-item"
-                        :class="{ active: isActive(subItem.path) }"
-                        :href="subItem.path || null"
-                        :target="subItem.external ? '_blank' : null"
+                    <a class="menu-item" 
+                       :href="item.path || null"
+                       :target="item.external ? '_blank' : null"
+                       v-html="item.label"
                     >
-                        {{ subItem.label }}
                     </a>
-                </div>
+                    <div v-if="item.subMenuItems" class="submenu">
+                        <a
+                            v-for="subItem in item.subMenuItems"
+                            class="submenu-item"
+                            :class="{ active: isActive(subItem.path) }"
+                            :href="subItem.path || null"
+                            :target="subItem.external ? '_blank' : null"
+                        >
+                            {{ subItem.label }}
+                        </a>
+                    </div>
+            </div>
+            <div style="height:2em; width:0; border: 1px solid black; margin:0 10px; align-self: center;"></div>
+            <div class="menu-item-wrapper">
+                    <a class="menu-item" 
+                       :href="'/account'"
+                    >
+                        <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'><g stroke='#000' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'><path d='M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7'/></g></svg> 
+                        Account
+                    </a>
             </div>
         </div>
     </div>
@@ -48,6 +57,14 @@ export default Vue.component("sysbio-header", {
         };
     },
     computed: {},
+    mounted() {
+        fetch("/", { method: "HEAD" })
+        .then(res => {
+            const userInfo = res.headers.get("X-Fairplex-User-Info");
+            //console.log(userInfo);
+        })
+        .catch(() => {});
+    },
     created() {
         this.injectFavicon(
             "/images/sysbio/logos/sb-color-icon.svg"
@@ -164,6 +181,13 @@ export default Vue.component("sysbio-header", {
         font-weight: 600;
         color: var(--sysbio-black);
         font-weight: bold;
+        display:flex;
+        align-items: center;
+        gap:3px;
+    }
+    ::v-deep .menu-item svg,
+    ::v-deep .menu-item img{
+        height: 1em;
     }
     .menu-item-wrapper:has(.submenu) .menu-item{
         border-radius: 10px 10px 0 0;
