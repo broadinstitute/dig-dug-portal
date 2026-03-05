@@ -51,7 +51,14 @@ let pages = {
         filename: "diffexp.html",
         title: "Differential Expression",
         chunks: ["chunk-vendors", "chunk-common", "diffexp"]
-    }
+    },
+    datasetsSummary: {
+        entry: "src/portals/SysBio/views/datasetsSummary/main.js",
+        template: "src/portals/SysBio/views/index.html",
+        filename: "datasetsSummary.html",
+        title: "Datasets Summary",
+        chunks: ["chunk-vendors", "chunk-common", "datasetsSummary"],
+    },
 };
 
 module.exports = {
