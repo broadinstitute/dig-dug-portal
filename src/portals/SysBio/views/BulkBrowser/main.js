@@ -168,9 +168,10 @@ new Vue({
             return outputData.sort((a,b) => a.logFoldChange - b.logFoldChange);
         },
         bulkData19K() {
-            return this.$store.state.bulkData19K.filter(
+            let results = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
                     && item.comparison_id === this.$store.state.selectedComparison);
+            return results;
         },
         volcanoConfig() {
             let config = {
@@ -198,18 +199,23 @@ new Vue({
             return config;
         },
         comparisons() {
-            if (!this.$store.state.currentComparisons){
+            let allComps = this.$store.state.currentComparisons;
+            if (!allComps){
                 return null;
             }
-            let items = Object.keys(this.$store.state.currentComparisons);
-            return items;
+            let items = Object.keys(allComps);
+            return items.filter(i => allComps[i].type === this.$store.state.selectedCompType);
         },
         comptypes(){
             if (!this.$store.state.currentComparisons){
                 return null;
             }
             let types = Object.values(this.$store.state.currentComparisons).map(v => v.type);
-            return Array.from(new Set(types));
+            let typeArray = Array.from(new Set(types));
+            if (this.$store.state.selectedCompType === ""){
+                this.$store.state.selectedCompType = typeArray[0];
+            }
+            return typeArray;
         },
         upregulatedIn(){
             if (this.$store.state.selectedDataset === 'bulkRNA_Emont2022_Humans_SAT'){
@@ -269,12 +275,6 @@ new Vue({
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
             this.getParams();
-            // Enrichr libraries should get filled in here
-            // await this.getBulkMetadata();
-            if (!keyParams.comparison) {
-                this.$store.dispatch("resetComparison");
-                keyParams.set({ comparison: this.$store.state.selectedComparison });
-            }
             await this.$store.dispatch("queryBulkFile");
             await this.$store.dispatch("queryBulk");
         
@@ -316,7 +316,6 @@ new Vue({
         },
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);
-            console.log(data.length);
             data = data.filter(d => 
                 up ? d.logFoldChange >= this.volcanoXConditionGreater
                 : d.logFoldChange <= this.volcanoXConditionLower );
@@ -375,9 +374,9 @@ new Vue({
                 keyParams.set({ gene: newData });
             }
         },
-        comparisons(newData) {
-            if (!newData.includes(this.selectedComparison)) {
-                this.$store.dispatch("resetComparison");
+        comparisons(newData, oldData) {
+            if (this.$store.state.selectedComparison === "" || !newData.includes(this.selectedComparison)){
+                this.$store.state.selectedComparison = newData[0];
             }
         },
         kpDataset(newData, oldData) {

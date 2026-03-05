@@ -49,7 +49,7 @@ export default new Vuex.Store({
     },
     setSelectedGene(state, gene){
       state.selectedGene = gene;
-    }
+    },
 
   },
 
@@ -90,8 +90,6 @@ export default new Vuex.Store({
             .join(" vs. ");
           v.type = comptype;
         }
-
-        console.log((JSON.stringify(comparisons)));
       }
       context.commit("setBulkData19K", bulkDataObject);
       context.dispatch("firstGene"); // Default to viewing first gene in table
@@ -103,6 +101,6 @@ export default new Vuex.Store({
     firstGene(context){
       let gene = context.state.bulkData19K[0].gene;
       context.commit("setSelectedGene", gene);
-    }
+    },
   },
 });
