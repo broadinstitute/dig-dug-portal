@@ -92,6 +92,10 @@ const PIE_FIELDS = ["case_control", "ethnicity", "sex"];
 const BAR_FIELDS = ["disease", "race"];
 const CHART_WIDTH = 330;
 const THEME_COLORS = ["#EE4097", "#0000C6", "#00BFFF"];
+/** Distinct colors for programs in bar charts (no blue shades). */
+const PROGRAM_COLORS = ["#EE4097", "#0000C6", "#00BFFF", "#2E7D32", "#F9A825", "#6A1B9A", "#C62828", "#00838F"];
+const ANIMATION_DURATION = 500;
+const ANIMATION_DELAY_STAGGER = 40;
 
 export default {
     name: "DatasetsSummary",
@@ -295,7 +299,15 @@ export default {
                 .enter()
                 .append("path")
                 .attr("fill", (d) => colorScale(d.data.name))
-                .attr("d", arc);
+                .attr("d", (d) => arc({ ...d, endAngle: d.startAngle }))
+                .transition()
+                .duration(ANIMATION_DURATION)
+                .delay((d, i) => i * ANIMATION_DELAY_STAGGER)
+                .ease(d3.easeCubicOut)
+                .attrTween("d", function (d) {
+                    const interp = d3.interpolate(d.startAngle, d.endAngle);
+                    return (t) => arc({ ...d, endAngle: interp(t) });
+                });
 
             const fontSize = scale < 1 ? "10px" : "14px";
             g.selectAll("text.pie-slice-label")
@@ -308,7 +320,26 @@ export default {
                 .attr("transform", (d) => `translate(${arc.centroid(d)})`)
                 .attr("font-size", fontSize)
                 .attr("font-weight", "normal")
-                .text((d) => `${d.data.name}: ${d.data.value}`);
+                .text((d) => String(d.data.value))
+                .style("opacity", 0)
+                .transition()
+                .delay(ANIMATION_DURATION * 0.5)
+                .duration(200)
+                .style("opacity", 1);
+
+            if (scale >= 1) {
+                const legend = d3.select(el).append("ul").attr("class", "pie-legend");
+                domain.forEach((name) => {
+                    legend
+                        .append("li")
+                        .attr("class", "pie-legend-item")
+                        .each(function () {
+                            const li = d3.select(this);
+                            li.append("span").attr("class", "pie-legend-swatch").style("background", colorScale(name));
+                            li.append("span").attr("class", "pie-legend-label").text(name);
+                        });
+                });
+            }
         },
         renderBar(el, counts, scale = 1, programs = null, fieldBreakdown = null) {
             d3.select(el).selectAll("*").remove();
@@ -361,8 +392,7 @@ export default {
             const barG = svg.append("g").attr("transform", `translate(${labelWidth}, 0)`);
 
             if (multiProgram) {
-                const shades = this.getProgramShades(programs.length, "#0000C6");
-                const colorScale = d3.scaleOrdinal().domain(programs).range(shades);
+                const colorScale = d3.scaleOrdinal().domain(programs).range(PROGRAM_COLORS);
                 const stack = d3.stack().keys(programs).value((d, key) => Number(d[key]) || 0);
                 const stacked = stack(entries);
                 barG
@@ -379,6 +409,11 @@ export default {
                     .attr("y", (d) => yScale(d.data.name))
                     .attr("height", yScale.bandwidth())
                     .attr("x", (d) => xScale(d[0]))
+                    .attr("width", 0)
+                    .transition()
+                    .duration(ANIMATION_DURATION)
+                    .delay((d, i) => i * ANIMATION_DELAY_STAGGER)
+                    .ease(d3.easeCubicOut)
                     .attr("width", (d) => Math.max(0, xScale(d[1]) - xScale(d[0])));
                 barG
                     .selectAll("text.value")
@@ -391,7 +426,12 @@ export default {
                     .attr("dy", "0.35em")
                     .attr("font-size", "14px")
                     .attr("font-weight", "normal")
-                    .text((d) => d.total);
+                    .text((d) => d.total)
+                    .style("opacity", 0)
+                    .transition()
+                    .delay(ANIMATION_DURATION * 0.6)
+                    .duration(200)
+                    .style("opacity", 1);
                 const legend = d3.select(el).append("ul").attr("class", "bar-legend-programs");
                 programs.forEach((program) => {
                     legend
@@ -413,8 +453,13 @@ export default {
                     .attr("y", (d) => yScale(d.name))
                     .attr("height", yScale.bandwidth())
                     .attr("x", 0)
-                    .attr("width", (d) => xScale(d.value))
-                    .attr("fill", BAR_FILL);
+                    .attr("width", 0)
+                    .attr("fill", BAR_FILL)
+                    .transition()
+                    .duration(ANIMATION_DURATION)
+                    .delay((d, i) => i * ANIMATION_DELAY_STAGGER)
+                    .ease(d3.easeCubicOut)
+                    .attr("width", (d) => xScale(d.value));
                 const fontSize = scale < 1 ? "9px" : "14px";
                 barG
                     .selectAll("text.value")
@@ -427,7 +472,12 @@ export default {
                     .attr("dy", "0.35em")
                     .attr("font-size", fontSize)
                     .attr("font-weight", "normal")
-                    .text((d) => d.value);
+                    .text((d) => d.value)
+                    .style("opacity", 0)
+                    .transition()
+                    .delay(ANIMATION_DURATION * 0.6)
+                    .duration(200)
+                    .style("opacity", 1);
             }
 
             const fontSize = scale < 1 ? "9px" : "14px";
@@ -471,8 +521,7 @@ export default {
                 .range([innerHeight, 0])
                 .nice();
 
-            const shades = this.getProgramShades(programs.length, "#0000C6");
-            const colorScale = d3.scaleOrdinal().domain(programs).range(shades);
+            const colorScale = d3.scaleOrdinal().domain(programs).range(PROGRAM_COLORS);
 
             const svg = d3
                 .select(el)
@@ -489,10 +538,16 @@ export default {
                 .enter()
                 .append("rect")
                 .attr("x", (d) => xScale(d.program))
-                .attr("y", (d) => yScale(d.value))
+                .attr("y", innerHeight)
                 .attr("width", xScale.bandwidth())
-                .attr("height", (d) => innerHeight - yScale(d.value))
-                .attr("fill", (d) => colorScale(d.program));
+                .attr("height", 0)
+                .attr("fill", (d) => colorScale(d.program))
+                .transition()
+                .duration(ANIMATION_DURATION)
+                .delay((d, i) => i * ANIMATION_DELAY_STAGGER)
+                .ease(d3.easeCubicOut)
+                .attr("y", (d) => yScale(d.value))
+                .attr("height", (d) => innerHeight - yScale(d.value));
 
             g.selectAll("text.value")
                 .data(entries)
@@ -504,7 +559,12 @@ export default {
                 .attr("text-anchor", "middle")
                 .attr("font-size", "11px")
                 .attr("font-weight", "normal")
-                .text((d) => d.value);
+                .text((d) => d.value)
+                .style("opacity", 0)
+                .transition()
+                .delay(ANIMATION_DURATION * 0.5)
+                .duration(200)
+                .style("opacity", 1);
 
             g.append("g")
                 .attr("transform", `translate(0,${innerHeight})`)
@@ -575,6 +635,31 @@ export default {
     font-size: 14px;
     font-weight: normal;
     fill: white;
+}
+.chart-pie-container >>> .pie-legend {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    font-size: 11px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+    justify-content: center;
+}
+.chart-pie-container >>> .pie-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.chart-pie-container >>> .pie-legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.chart-pie-container >>> .pie-legend-label {
+    white-space: nowrap;
 }
 .chart-bar-container >>> svg.d3-bar text.label,
 .chart-bar-container >>> svg.d3-bar text.value {
