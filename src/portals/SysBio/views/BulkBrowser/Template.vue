@@ -1,23 +1,30 @@
 <template>
   <div class="sysbio f-layout">
-      <div class="f-col fill-height">
+        <div class="f-col fill-height">
           <!-- NAV -->
           <sysbio-header></sysbio-header>
           <!-- BODY -->
           <div class="sysbio-body f-col">
             <h2>Differential Gene Expression Browser</h2>
-            <div>Fill in differential expression documentation here.</div>
-              <div class="flex-column flex-small-gap">
-                    <div id="center-width" class="flex-gap flex-column">
-                        <div class="flex-gap flex-column" id="center-content">
-                            <research-single-cell-info v-if="!!$store.state.selectedDataset"
-                                :data="$parent.bulkMetadata"
-                            />
-                            <div v-if="$parent.dataReady" id="menu" class="flex-gap">
-                                <!--left tab group-->
-                                <div>
-                                    <label>
+            <div>
+                Fill in differential expression documentation here.
+            </div>
+            <div class="flex-column flex-small-gap">
+                <div id="center-width" class="flex-gap flex-column">
+                    <div class="flex-gap flex-column" id="center-content">
+                        <research-single-cell-info v-if="!!$store.state.selectedDataset"
+                            :data="$parent.bulkMetadata"
+                        />
+                        <div v-if="$parent.dataReady" id="menu">
+                            <!--left tab group-->
+                            <div class="tabs-group">
+                                <div class="tabs-wrapper">
+                                    <div class="tab">
                                         Select a comparison type
+                                    </div>
+                                </div>
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section">
                                         <select v-model="$store.state.selectedCompType">
                                             <option value="">Select a comparison type</option>
                                             <option v-for="type in $parent.comptypes"
@@ -25,11 +32,17 @@
                                                 {{ type }}
                                             </option>
                                         </select>
-                                    </label>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label>
+                            </div>
+                            <div class="tabs-group">
+                                <div class="tabs-wrapper">
+                                    <div class="tab">
                                         Select a comparison
+                                    </div>
+                                </div>
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section">
                                         <select v-model="$store.state.selectedComparison">
                                             <option value="">Select a comparison</option>
                                             <option v-for="comp in $parent.comparisons"
@@ -38,143 +51,71 @@
                                                 }}
                                             </option>
                                         </select>
-                                    </label>
+                                    </div>
                                 </div>
-                                <div>
-                                    <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
-
-                                    </gene-selectpicker>
+                            </div>
+                            <div class="tabs-group">
+                                <div class="tabs-wrapper">
+                                    <div class="tab">
+                                        Search for a gene
+                                    </div>
                                 </div>
-                                <div>
-                                    <label>
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section">
+                                        <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
+                                        </gene-selectpicker>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tabs-group">
+                                <div class="tabs-wrapper">
+                                    <div class="tab">
                                         Set -log10(FDR adj. p) threshold
+                                    </div>
+                                </div>
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section">
                                         <input type="number" step="0.1"
                                             :value=$parent.volcanoYCondition
                                             @change="event => $parent.setVolcano(event.target.value)"/>
-                                    </label>
+                                    </div>
                                 </div>
                             </div>
-                            <!-- 
-                            <div v-if="$parent.dataReady" id="menu" class="flex-gap">
-                                <div class="tabs-group top-menu-item">
-                                    <div class="tabs-wrapper">
-                                        <div class="tab">
-                                            Select a comparison type
-                                        </div>
-                                    </div>
-                                    <div class="tabs-section-wrapper">
-                                        <div class="tab-section" >
-                                            <div  class="flex-gap">
-                                                <div class="top-block">
-                                                    <select v-model="$store.state.selectedComparison">
-                                                        <option value="">Select a comparison type</option>
-                                                        <option v-for="type in $parent.comptypes"
-                                                            :value="type">
-                                                            {{ type }}
-                                                        </option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
+                        </div>
+                    </div>
+                    <div v-if="$parent.dataReady">
+                        <div class="flex-gap" id="visualizers">
+                            <!--left tab group-->
+                            <div class="tabs-group volcano">
+                                <div class="tabs-wrapper">
+                                    <div class="tab">
+                                        Differentially Expressed Genes
                                     </div>
                                 </div>
-                                <div class="tabs-group top-menu-item">
-                                    <div class="tabs-wrapper">
-                                        <div class="tab">
-                                            Select a comparison
-                                        </div>
-                                    </div>
-                                    <div class="tabs-section-wrapper">
-                                        <div class="tab-section" >
-                                            <div  class="flex-gap">
-                                                <div class="top-block">
-                                                    <select v-model="$store.state.selectedComparison">
-                                                        <option value="">Select a comparison</option>
-                                                        <option v-for="comp in $parent.comparisons"
-                                                            :value="comp">
-                                                            {{ $store.state.currentComparisons[comp].label 
-                                                            }}
-                                                        </option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tabs-group top-menu-item">
-                                    <div class="tabs-wrapper">
-                                        <div class="tab">
-                                            Select a gene
-                                        </div>
-                                    </div>
-                                    <div class="tabs-section-wrapper">
-                                        <div class="tab-section" >
-                                            <div  class="flex-gap">
-                                                <div class="top-block">
-                                                    <mouse-gene-select
-                                                        v-if="$parent.isMouse"
-                                                        @onGeneChange="gene => $parent.highlight(gene)">
-                                                    </mouse-gene-select>
-                                                    <gene-selectpicker v-else
-                                                        @onGeneChange="gene => $parent.highlight(gene)"
-                                                    ></gene-selectpicker>
-                                                </div>
-                                                </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tabs-group top-menu-item">
-                                    <div class="tabs-wrapper">
-                                        <div class="tab">
-                                            Set -log10(FDR adj. p) threshold
-                                        </div>
-                                    </div>
-                                    <div class="tabs-section-wrapper">
-                                        <div class="tab-section" >
-                                            <div  class="flex-gap">
-                                                <div class="top-block">
-                                                    <input type="number" step="0.1"
-                                                        :value=$parent.volcanoYCondition
-                                                        @change="event => $parent.setVolcano(event.target.value)"/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> -->
-                            <div v-if="$parent.dataReady">
-                                <div class="flex-gap" id="visualizers">
-                                    <!--left tab group-->
-                                    <div class="tabs-group volcano">
-                                        <div class="tabs-wrapper">
-                                            <div class="tab">
-                                                Differentially Expressed Genes
-                                            </div>
-                                        </div>
-                                        <div class="tabs-section-wrapper">
-                                            <div class="tab-section" >
-                                                <div class="flex-gap">
-                                                    <div class="wide-block">
-                                                        <div v-if="$parent.bulkData19K.length> 0">
-                                                            <bulk-volcano-plot
-                                                                :renderData="$parent.bulkData19K"
-                                                                :renderConfig="$parent.volcanoConfig"
-                                                                :margin="$parent.margin"
-                                                                sectionId="_bulk"
-                                                                :selectedGene="$parent.selectedGene"
-                                                                :upregulatedIn="$parent.upregulatedIn"
-                                                                @highlight="gene => $parent.highlight(gene)">
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section" >
+                                        <div class="flex-gap">
+                                            <div class="wide-block">
+                                                <div v-if="$parent.bulkData19K.length> 0">
+                                                    <bulk-volcano-plot
+                                                        :renderData="$parent.bulkData19K"
+                                                        :renderConfig="$parent.volcanoConfig"
+                                                        :margin="$parent.margin"
+                                                        sectionId="_bulk"
+                                                        :selectedGene="$parent.selectedGene"
+                                                        :upregulatedIn="$parent.upregulatedIn"
+                                                        @highlight="gene => $parent.highlight(gene)">
 
-                                                            </bulk-volcano-plot>
-                                                        </div>
-                                                        <div v-else>
-                                                            Select a dataset and a comparison to view the volcano plot.
-                                                        </div>
-                                                    </div>
-                                                    </div>
+                                                    </bulk-volcano-plot>
+                                                </div>
+                                                <div v-else>
+                                                    Select a dataset and a comparison to view the volcano plot.
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
                                 </div>
                                 <div id="table-wrapper" class="flex-gap flex-column">
                                     <div class="flex-gap flex-column">
@@ -319,16 +260,19 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div v-else>Loading...</div>
-                        </div>
+                    </div>
+                    <div v-else>
+                        Loading...
                     </div>
                 </div>
-          </div>
-          <!-- FOOTER -->
-          <sysbio-footer></sysbio-footer>
+            </div>
+        </div>
+        <!-- FOOTER -->
+        <sysbio-footer></sysbio-footer>
+    </div>
+          
+          
       </div>
-  </div>
 </template>
 <style scoped>
 .tabs-group{
@@ -490,5 +434,14 @@ button.hide-table {
 }
 .top-menu-item {
     max-width: 25%;
+}
+#menu {
+    /*display: flex;*/
+}
+#menu div.tabs-group {
+    margin: 10px;
+}
+#menu div.tabs-group:last-child {
+    margin-right: 0px !important;
 }
 </style>
