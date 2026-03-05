@@ -185,7 +185,7 @@
                 </div>
             </div>
 
-            <!-- Pigean Gene -->
+            <!-- Pigean Gene 
             <pigean-gene 
         v-if="$parent.pigeanGeneData && $parent.pigeanGeneData.length > 0 && $parent.phenotypeMap"
             :gene="$store.state.geneName"
@@ -194,9 +194,10 @@
             :phenotypesInSession="$parent.phenotypesInSession"
             :phenotypeMap="$parent.phenotypeMap"
             ></pigean-gene>
+            -->
         
 
-            <!--<div class="card mdkp-card">
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>
                         {{
@@ -565,7 +566,7 @@
                         </template>
                     </criterion-function-group>
                 </div>
-            </div>-->
+            </div>
 
             <!-- NDKP only -->
             <div

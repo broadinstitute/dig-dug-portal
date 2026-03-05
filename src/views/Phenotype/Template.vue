@@ -335,12 +335,13 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <!-- 
                 <pigean-factors
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     :pigeanFactorData="$store.state.pigeanFactor.data"
                 >
-
                 </pigean-factors>
+            
 
                 <pigean-phenotype
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
@@ -348,7 +349,9 @@
                 >
 
                 </pigean-phenotype>
-<!--
+
+                -->
+
           <div class="card mdkp-card">
                     <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">
@@ -456,8 +459,8 @@
                             </template>
                         </criterion-function-group>
                     </div>
-                </div>      TODO: Add gene-level associations table
--->
+                </div>
+
                 
 
                 <div class="card mdkp-card">
