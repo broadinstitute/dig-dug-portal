@@ -13,9 +13,49 @@
                             <research-single-cell-info v-if="!!$store.state.selectedDataset"
                                 :data="$parent.bulkMetadata"
                             />
-
                             <div v-if="$parent.dataReady" id="menu" class="flex-gap">
                                 <!--left tab group-->
+                                <div>
+                                    <label>
+                                        Select a comparison type
+                                        <select v-model="$store.state.selectedCompType">
+                                            <option value="">Select a comparison type</option>
+                                            <option v-for="type in $parent.comptypes"
+                                                :value="type">
+                                                {{ type }}
+                                            </option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>
+                                        Select a comparison
+                                        <select v-model="$store.state.selectedComparison">
+                                            <option value="">Select a comparison</option>
+                                            <option v-for="comp in $parent.comparisons"
+                                                :value="comp">
+                                                {{ $store.state.currentComparisons[comp].label 
+                                                }}
+                                            </option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div>
+                                    <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
+
+                                    </gene-selectpicker>
+                                </div>
+                                <div>
+                                    <label>
+                                        Set -log10(FDR adj. p) threshold
+                                        <input type="number" step="0.1"
+                                            :value=$parent.volcanoYCondition
+                                            @change="event => $parent.setVolcano(event.target.value)"/>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- 
+                            <div v-if="$parent.dataReady" id="menu" class="flex-gap">
                                 <div class="tabs-group top-menu-item">
                                     <div class="tabs-wrapper">
                                         <div class="tab">
@@ -101,7 +141,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                             <div v-if="$parent.dataReady">
                                 <div class="flex-gap" id="visualizers">
                                     <!--left tab group-->

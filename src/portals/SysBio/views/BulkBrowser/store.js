@@ -30,6 +30,7 @@ export default new Vuex.Store({
     bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
     singleBulkZNormUrl: `${BIO_INDEX_HOST}/api/bio/query/single-cell-bulk-z-norm?q=`,
     currentComparisons: {},
+    selectedCompType: ""
   },
 
   mutations: {
