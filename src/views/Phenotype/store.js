@@ -15,9 +15,9 @@ export default new Vuex.Store({
         kp4cd,
         associations: bioIndex("global-associations"),
         annotations: bioIndex("global-enrichment"),
-        // genes: bioIndex("gene-finder"), // Commented out - gene-level associations section is muted
-        // genes52k: bioIndex("gene-finder-52k"), // Commented out - gene-level associations section is muted
-        // hugePhenotype: bioIndex("huge-phenotype"), // Commented out - gene-level associations section is muted
+        genes: bioIndex("gene-finder"), // Commented out - gene-level associations section is muted
+        genes52k: bioIndex("gene-finder-52k"), // Commented out - gene-level associations section is muted
+        hugePhenotype: bioIndex("huge-phenotype"), // Commented out - gene-level associations section is muted
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
         geneticCorrelation: bioIndex("genetic-correlation"),
         pathwayAssoc: bioIndex("pathway-associations"),
@@ -123,17 +123,17 @@ export default new Vuex.Store({
                 ? query
                 : ancestryQuery;
             // Commented out - gene-level associations section is muted
-            // let geneQuery = {
-            //     ...ancestryOptionalQuery,
-            //     limitWhile: (r) => r.pValue <= 0.05,
-            //     limit: 1000,
-            // };
-            // let gene52kQuery = {
-            //     ...query,
-            //     limitWhile: (r) => r.pValue <= 0.05,
-            //     limit: 1000,
-            // };
-            // let hugePhenotypeQuery = { ...query, limit: 1000 };
+            let geneQuery = {
+                ...ancestryOptionalQuery,
+                limitWhile: (r) => r.pValue <= 0.05,
+                limit: 1000,
+            };
+            let gene52kQuery = {
+                ...query,
+                limitWhile: (r) => r.pValue <= 0.05,
+                limit: 1000,
+            };
+            let hugePhenotypeQuery = { ...query, limit: 1000 };
             let pathwayAssocQuery = { ...ancestryOptionalQuery, limit: 100 };
 
             if (
@@ -149,9 +149,9 @@ export default new Vuex.Store({
             }
             context.dispatch("annotations/query", query);
             // Commented out - gene-level associations section is muted
-            // context.dispatch("genes/query", geneQuery);
-            // context.dispatch("genes52k/query", gene52kQuery);
-            // context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
+            context.dispatch("genes/query", geneQuery);
+            context.dispatch("genes52k/query", gene52kQuery);
+            context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
             context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
             context.dispatch("getCs2ct");
