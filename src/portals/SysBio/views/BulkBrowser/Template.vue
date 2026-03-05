@@ -436,10 +436,11 @@ button.hide-table {
     max-width: 25%;
 }
 #menu {
-    /*display: flex;*/
+    display: flex;
 }
 #menu div.tabs-group {
     margin: 10px;
+    max-width: 25%;
 }
 #menu div.tabs-group:last-child {
     margin-right: 0px !important;
