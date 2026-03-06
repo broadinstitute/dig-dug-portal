@@ -58,6 +58,7 @@ module.exports = {
     devServer: {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
+    publicPath: process.env.BASE_URL || "/",
     configureWebpack: (config) => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
         let bioindex_host =
